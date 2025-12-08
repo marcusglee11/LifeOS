@@ -1,1 +1,6 @@
-# Project Backlog
+tasks:
+  - id: "TASK-001"
+    domain: "docs"
+    type: "rebuild_index"
+    status: "todo"
+    description: "Rebuild the documentation index to ensure consistency."

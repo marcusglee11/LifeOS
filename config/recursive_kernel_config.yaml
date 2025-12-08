@@ -1,1 +1,12 @@
-# Recursive Kernel Config
+safe_domains:
+  - docs
+  - tests_doc
+
+test_command: "pytest"
+
+max_diff_lines_auto_merge: 200
+
+risk_rules:
+  low_risk_paths:
+    - "docs/"
+    - "tests_doc/"

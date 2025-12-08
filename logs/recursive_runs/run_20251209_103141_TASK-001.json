@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-12-09T10:31:41.145671",
+  "task_id": "TASK-001",
+  "domain": "docs",
+  "applied": true,
+  "verified": false,
+  "gate_decision": "AUTO_MERGE",
+  "reason": ""
+}
