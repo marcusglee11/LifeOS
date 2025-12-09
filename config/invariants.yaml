@@ -1,0 +1,38 @@
+# /LifeOS/config/invariants.yaml
+version: 1
+
+canonical_source: "/LifeOS/docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md"
+
+invariants:
+  human_burden:
+    enabled: true
+    non_derogable: true
+
+    description: >
+      All AI systems must minimise human workload, default to agent-side action,
+      and prevent workflows that push routine operations onto the human.
+
+    # Behavioural limits
+    max_visible_steps: 5       # total steps shown to the human in any workflow
+    max_human_actions: 2       # max steps requiring human action (intent/approve/veto only)
+
+    # Ethos switches
+    agent_first: true          # agents must assume responsibility for executable work
+    zero_donkey_work: true     # no routine file moves, index updates, refactors for the human
+    flag_on_violation: true    # agents must flag any plan that breaks these limits
+
+    # Scope of application
+    apply_to:
+      - chatgpt
+      - antigravity
+      - gemini
+      - council
+      - runtime
+
+    # Hints for agents (Antigravity, runtime workers, etc.)
+    enforcement_hints:
+      - "Prefer agent-side file generation, moves, and index updates."
+      - "Refactor any workflow that exceeds max_visible_steps or max_human_actions."
+      - "If human action is required, state why it cannot yet be automated."
+      - "Treat this invariant as constitutional; do not silently override."
+
