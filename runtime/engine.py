@@ -34,9 +34,22 @@ class RuntimeFSM:
     Enforces strict linear progression and halts on ambiguity.
     """
 
-    def __init__(self):
+    def __init__(self, strict_mode: Optional[bool] = None):
+        """
+        Initialize the FSM.
+        
+        Args:
+            strict_mode: If None, reads from COO_STRICT_MODE env var (default False).
+                        If provided, uses that value directly for deterministic config.
+        """
         self.__current_state = RuntimeState.INIT
         self._history: List[RuntimeState] = [RuntimeState.INIT]
+        
+        # FP-001: Strict-mode captured at construction for determinism
+        if strict_mode is None:
+            self._strict_mode = (os.environ.get("COO_STRICT_MODE", "0") == "1")
+        else:
+            self._strict_mode = strict_mode
         
         # Define allowed transitions (Strict Linear Progression)
         self._transitions: Dict[RuntimeState, List[RuntimeState]] = {
@@ -85,7 +98,7 @@ class RuntimeFSM:
         ]
         
         if next_state in strict_states:
-            if os.environ.get("COO_STRICT_MODE", "0") != "1":
+            if not self._strict_mode:
                 self._force_error(f"Strict Mode Required for transition to {next_state}")
                 return
 
@@ -96,12 +109,18 @@ class RuntimeFSM:
 
     def _force_error(self, reason: str) -> None:
         """
-        Forces the FSM into the ERROR state and raises a GovernanceError.
-        Used for any ambiguous or invalid condition.
+        Forces the FSM into the ERROR state.
+        
+        FP-001: Calls raise_question for logging/alerting, then raises GovernanceError.
+        Since raise_question itself raises, we catch it and re-raise as GovernanceError.
         """
         self.__current_state = RuntimeState.ERROR
         self._history.append(RuntimeState.ERROR)
-        raise_question(QuestionType.FSM_STATE_ERROR, f"RUNTIME HALT: {reason}. Please raise a QUESTION to the CEO.")
+        try:
+            raise_question(QuestionType.FSM_STATE_ERROR, f"RUNTIME HALT: {reason}. Please raise a QUESTION to the CEO.")
+        except Exception:
+            pass  # Logged/alerted, now raise GovernanceError
+        raise GovernanceError(reason)
 
     def assert_state(self, expected_state: RuntimeState) -> None:
         """
@@ -117,6 +136,8 @@ class RuntimeFSM:
         - After CAPTURE_AMU0
         - After GATES
         - Before CEO_FINAL_REVIEW (which is effectively after GATES transition)
+        
+        FP-002: Checkpoints are anchored under amu0_path/checkpoints/ for determinism.
         """
         allowed_states = [
             RuntimeState.CAPTURE_AMU0,
@@ -124,19 +145,23 @@ class RuntimeFSM:
             RuntimeState.CEO_FINAL_REVIEW
         ]
         
+        # FP-002: Use _force_error for illegal checkpoint state (governance error)
         if self.__current_state not in allowed_states:
-             raise_question(QuestionType.FSM_STATE_ERROR, f"Checkpointing not allowed in state {self.__current_state}")
+            self._force_error(f"Checkpointing not allowed in state {self.__current_state}")
+            return
 
         # Get Pinned Time (A.3)
         context_path = os.path.join(amu0_path, "pinned_context.json")
         if not os.path.exists(context_path):
-            raise_question(QuestionType.AMU0_INTEGRITY, "pinned_context.json missing. Cannot checkpoint with pinned time.")
+            self._force_error("pinned_context.json missing. Cannot checkpoint with pinned time.")
+            return
             
         with open(context_path, "r") as f:
             context = json.load(f)
         
         if "mock_time" not in context:
-            raise_question(QuestionType.AMU0_INTEGRITY, "mock_time missing in pinned_context.json")
+            self._force_error("mock_time missing in pinned_context.json")
+            return
             
         timestamp = context["mock_time"]
 
@@ -155,45 +180,87 @@ class RuntimeFSM:
         try:
             signature = Signature.sign_data(payload_bytes)
         except Exception as e:
-            raise_question(QuestionType.KEY_INTEGRITY, f"Signing failed: {e}")
+            self._force_error(f"Signing failed: {e}")
+            return
         
-        # Write
-        filename = f"fsm_checkpoint_{checkpoint_name}.json"
+        # FP-002: Anchor checkpoints under amu0_path/checkpoints/
+        checkpoints_dir = os.path.join(amu0_path, "checkpoints")
+        os.makedirs(checkpoints_dir, exist_ok=True)
+        
+        filename = os.path.join(checkpoints_dir, f"fsm_checkpoint_{checkpoint_name}.json")
+        sig_filename = f"{filename}.sig"
+        
         with open(filename, "w") as f:
             json.dump(data, f, sort_keys=True)
             
-        with open(f"{filename}.sig", "wb") as f:
+        with open(sig_filename, "wb") as f:
             f.write(signature)
 
-    def load_checkpoint(self, checkpoint_name: str) -> None:
+    def load_checkpoint(self, checkpoint_name: str, amu0_path: str) -> None:
         """
         Loads a signed FSM checkpoint.
+        
+        H-002: Must be called with the same amu0_path used in checkpoint_state
+        to ensure path coherence.
+        
+        Args:
+            checkpoint_name: Name of the checkpoint to load.
+            amu0_path: Path to AMU0 directory (same as used in checkpoint_state).
         """
-        filename = f"fsm_checkpoint_{checkpoint_name}.json"
+        # H-002: Use same checkpoints_dir as checkpoint_state
+        checkpoints_dir = os.path.join(amu0_path, "checkpoints")
+        filename = os.path.join(checkpoints_dir, f"fsm_checkpoint_{checkpoint_name}.json")
         sig_filename = f"{filename}.sig"
         
         if not os.path.exists(filename) or not os.path.exists(sig_filename):
-            raise_question(QuestionType.FSM_STATE_ERROR, f"Checkpoint {checkpoint_name} missing.")
+            self._force_error(f"Checkpoint {checkpoint_name} missing at {checkpoints_dir}")
+            return
             
         # R6.4 G1: Verify using unified Signature protocol
-        # R6.5 G2: Verify using unified Signature protocol (memory keys)
         from .util.crypto import Signature
         
-        # Read payload bytes for verification (was missing in original code snippet logic)
+        # Single-read verification
         with open(filename, "rb") as f:
             payload_bytes = f.read()
         with open(sig_filename, "rb") as f:
             signature = f.read()
 
         if not Signature.verify_data(payload_bytes, signature):
-            raise_question(QuestionType.KEY_INTEGRITY, f"FSM Checkpoint {checkpoint_name} Signature Invalid!")
+            self._force_error(f"FSM Checkpoint {checkpoint_name} Signature Invalid!")
+            return
             
-        # Restore State
-        with open(filename, "r") as f:
-            data = json.load(f)
+        # H-002: Single-read - decode JSON from verified bytes
+        data = json.loads(payload_bytes.decode("utf-8"))
         self.__current_state = RuntimeState[data["current_state"]]
         self._history = [RuntimeState[s] for s in data["history"]]
         
-        # Validate History (A.3)
-        # Check if the history is a valid path in the transition graph
+        # FP-001: Validate history after load
+        self._validate_history()
 
+    def _validate_history(self) -> None:
+        """
+        FP-001: Validates that the loaded history is a valid path in the transition graph.
+        
+        Ensures:
+        - History is non-empty
+        - Each transition in history is allowed by the transitions table
+        
+        Raises GovernanceError if history is invalid.
+        """
+        if not self._history:
+            self._force_error("Invalid history: empty history list")
+            return
+        
+        # Check that first state is INIT
+        if self._history[0] != RuntimeState.INIT:
+            self._force_error(f"Invalid history: must start with INIT, got {self._history[0]}")
+            return
+        
+        # Replay transitions to validate path
+        for i in range(len(self._history) - 1):
+            from_state = self._history[i]
+            to_state = self._history[i + 1]
+            
+            if to_state not in self._transitions.get(from_state, []):
+                self._force_error(f"Invalid history path: {from_state.name} → {to_state.name} not allowed")
+                return
