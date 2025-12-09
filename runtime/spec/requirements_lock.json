@@ -1,0 +1,6 @@
+{
+    "python_version": "3.12.0",
+    "dependencies": {},
+    "locked_at": "2025-12-09T00:00:00Z",
+    "notes": "Minimal lock file for Tier-1 envelope verification."
+}

@@ -1,0 +1,61 @@
+RuntimePolicy:
+  version: 0.1
+  authority:
+    - Anti_Failure_Operational_Packet_v0.1 (canonical)
+    - Human Preservation
+    - Complexity Ceilings
+    - Delegation Rules
+
+  workflow_constraints:
+    max_visible_steps: 5
+    max_human_actions: 2     # Intent / Approve / Veto / Governance only
+    allowed_human_actions:
+      - DeclareIntent
+      - Approve
+      - Veto
+      - GovernanceDecision
+
+  workflow_validation:
+    on_propose_workflow:
+      - Count steps
+      - Count human-actions
+      - If steps > max_visible_steps OR human-actions > max_human_actions:
+          - Reject workflow
+          - Emit: "This exceeds the anti-failure constraints; here is the automation needed."
+          - Propose automation/refactor plan
+
+  automation_mandates:
+    # If something is “human-only” today, Runtime must push toward agentification.
+    rewrite_if:
+      - manual_file_ops
+      - manual_index_updates
+      - multi-step human processing
+      - repeated human decision gates
+      - context-transfer burdens (copy/paste)
+
+    required_response_for_violation:
+      - Identify failure mode ("manual burden", "complexity overflow", etc.)
+      - Output minimal automation plan (<5 steps)
+      - Route to Antigravity agent or Runtime backlog
+
+  human_preservation_rules:
+    - Human time must be spent only on:
+        - deciding priorities
+        - resolving ambiguity
+        - applying governance
+        - high-leverage judgment
+    - Human may not:
+        - maintain indices
+        - move files
+        - rewrite artefacts
+        - synchronise documents
+        - track state manually
+
+  runtime_self-behaviour:
+    - All state deltas, doc ops, indexing, and alignment checks must be agent-side.
+    - All proposals must be complexity-limited and delegation-maximising.
+    - Agents maintain a continuous log for the human but never require manual updates.
+
+  daily_interface:
+    - Runtime must produce a single Daily Briefing artefact for the human.
+    - Runtime must accept a single Daily Input from the human.

@@ -26,6 +26,7 @@
 - [03_runtime/README_Recursive_Kernel_v0.1.md](./03_runtime/README_Recursive_Kernel_v0.1.md)
 - [03_runtime/Runtime_Complexity_Constraints_v0.1.md](./03_runtime/Runtime_Complexity_Constraints_v0.1.md)
 - [03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md)
+- [03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md)
 - [04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](./04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md)
 - [04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](./04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md)
 - [05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](./05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md)
@@ -118,3 +119,5 @@
 - [99_archive/legacy_structures/Specs/council/Council_Protocol_v1.0.md](./99_archive/legacy_structures/Specs/council/Council_Protocol_v1.0.md)
 - [99_archive/legacy_structures/pipelines/outward-facing/Combined_Pipeline_For_Outward_Facing_Product_Generation_v1.md](./99_archive/legacy_structures/pipelines/outward-facing/Combined_Pipeline_For_Outward_Facing_Product_Generation_v1.md)
 - [INDEX.md](./INDEX.md)
+- [internal/Audit_Findings_Tier1_Readiness_v0.1.md](./internal/Audit_Findings_Tier1_Readiness_v0.1.md)
+- [internal/Tier1_Hardening_Completion_Report_v0.1.md](./internal/Tier1_Hardening_Completion_Report_v0.1.md)

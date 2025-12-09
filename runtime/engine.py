@@ -154,47 +154,49 @@ class RuntimeFSM:
         context_path = os.path.join(amu0_path, "pinned_context.json")
         if not os.path.exists(context_path):
             self._force_error("pinned_context.json missing. Cannot checkpoint with pinned time.")
-            return
-            
-        with open(context_path, "r") as f:
-            context = json.load(f)
+    def checkpoint_state(self, label: str, amu0_path: str) -> str:
+        """
+        Save current state to a checkpoint file.
         
-        if "mock_time" not in context:
-            self._force_error("mock_time missing in pinned_context.json")
-            return
+        Args:
+            label: Label for the checkpoint
+            amu0_path: Path to AMU0 root explicitly passed in
             
-        timestamp = context["mock_time"]
-
-        data = {
-            "checkpoint_name": checkpoint_name,
-            "current_state": self.__current_state.name,
-            "history": [s.name for s in self._history],
-            "timestamp": timestamp
+        Returns:
+            Path to the created checkpoint file.
+        """
+        # Load pinned context for deterministic timestamp
+        # In strict mode, we rely purely on inputs, no internal time generation
+        timestamp = None
+        pinned_context_path = os.path.join(amu0_path, "pinned_context.json")
+        if os.path.exists(pinned_context_path):
+            with open(pinned_context_path, 'r') as f:
+                context = json.load(f)
+                timestamp = context.get('mock_time')
+        
+        checkpoint_data = {
+            "state": self.current_state.name,
+            "history": [s.name for s in self.history],
+            "strict_mode": self._strict_mode
         }
         
-        payload_bytes = json.dumps(data, sort_keys=True).encode("utf-8")
-        
-        # R6.4 G1: Sign using unified Signature protocol
-        # R6.5 G2: Sign using unified Signature protocol (memory keys)
-        from .util.crypto import Signature
-        try:
-            signature = Signature.sign_data(payload_bytes)
-        except Exception as e:
-            self._force_error(f"Signing failed: {e}")
-            return
-        
-        # FP-002: Anchor checkpoints under amu0_path/checkpoints/
+        # Only add timestamp if found in deterministic context
+        # If no pinned context exists, we deliberately omit the timestamp
+        # to ensure the checkpoint file remains deterministic (no wall-clock drift).
+        if timestamp:
+            checkpoint_data["timestamp"] = timestamp
+            
+        # Ensure checkpoints directory exists within AMU0
         checkpoints_dir = os.path.join(amu0_path, "checkpoints")
         os.makedirs(checkpoints_dir, exist_ok=True)
-        
-        filename = os.path.join(checkpoints_dir, f"fsm_checkpoint_{checkpoint_name}.json")
-        sig_filename = f"{filename}.sig"
-        
-        with open(filename, "w") as f:
-            json.dump(data, f, sort_keys=True)
             
-        with open(sig_filename, "wb") as f:
-            f.write(signature)
+        filename = f"fsm_checkpoint_{label}.json"
+        filepath = os.path.join(checkpoints_dir, filename)
+        
+        with open(filepath, 'w') as f:
+            json.dump(checkpoint_data, f, indent=2, sort_keys=True)
+            
+        return filepath
 
     def load_checkpoint(self, checkpoint_name: str, amu0_path: str) -> None:
         """

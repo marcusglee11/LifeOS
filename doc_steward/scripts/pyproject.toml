@@ -1,0 +1,23 @@
+[project]
+name = "lifeos"
+version = "1.1.0"
+description = "LifeOS Runtime & Kernel"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "runtime/tests",
+    "tests_recursive",
+]
+pythonpath = [
+    ".",
+    "project_builder",
+    "runtime"
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::pytest.PytestDeprecationWarning"
+]

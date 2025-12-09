@@ -1,0 +1,270 @@
+{
+  "timestamp": "2025-12-09T19:09:00+11:00",
+  "files": [
+    {
+      "path": "runtime\\amendment_engine.py",
+      "size": 3714,
+      "sha256": "d689e6a527c806c2065f36a01c4aef2e9482ed539429c95cd0ca1fa1a6d41d9a"
+    },
+    {
+      "path": "runtime\\cli.py",
+      "size": 16,
+      "sha256": "cc0947a5857f68cabe0d35e537ba96642f35a26294ed6374facb10a30e9e1dc3"
+    },
+    {
+      "path": "runtime\\engine.py",
+      "size": 11017,
+      "sha256": "890d8244c57b9022f9708426c0631fef8a11c815e181797ced493a4b8d58f7aa"
+    },
+    {
+      "path": "runtime\\freeze.py",
+      "size": 4145,
+      "sha256": "039ea7ab49760a6bac42803a96f6e909d295356688b29823f7d78b064e8e3849"
+    },
+    {
+      "path": "runtime\\gates.py",
+      "size": 14817,
+      "sha256": "d5342f37f3c67fc446b81220e26103db155b8ce645284364f694bac946148d7a"
+    },
+    {
+      "path": "runtime\\invariants.py",
+      "size": 192,
+      "sha256": "a7ba86e86c0bc9c04f43462faff9918f7b8e8f7faa75f8a6933dd85cdbdd7816"
+    },
+    {
+      "path": "runtime\\lint_engine.py",
+      "size": 3919,
+      "sha256": "cd83dc3bc95fb490e52a9cc8198b4d27a4856c8f89427a8572b4a53c88a88912"
+    },
+    {
+      "path": "runtime\\migration.py",
+      "size": 8443,
+      "sha256": "e46ea9d6b74b2157ac148ade70901f1f104a6af7f9e6fd96f7c7415b4cd8789c"
+    },
+    {
+      "path": "runtime\\rollback.py",
+      "size": 9703,
+      "sha256": "40783f1bef8a098300c9c2e04ae1494db4441cdd96eef6658aac7f737fe255d4"
+    },
+    {
+      "path": "runtime\\sign.py",
+      "size": 242,
+      "sha256": "e6269711f6c619a1f20729a04090dae5fe6f885af80711c451736ea3317402cc"
+    },
+    {
+      "path": "runtime\\state_store.py",
+      "size": 995,
+      "sha256": "20c336bdd54c9d589548eb0559df4e6a6a2fc66f6fc58f039ed7bc6225dc9aec"
+    },
+    {
+      "path": "runtime\\__init__.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime\\tests\\test_backpressure.py",
+      "size": 3391,
+      "sha256": "8ab67b3906bfe07aed7fb7d6ec3d01778d4c554e44bc32f54224da7d9dc76961"
+    },
+    {
+      "path": "runtime\\tests\\test_budget_txn.py",
+      "size": 3694,
+      "sha256": "092a80f0725cc0660f6d488b9e5563fd3de2b7f5f418a38794efc1e78d861644"
+    },
+    {
+      "path": "runtime\\tests\\test_crypto_determinism.py",
+      "size": 1131,
+      "sha256": "c58b6f75a522584e5112b33961c39228bb571b7d0d1dda53a436ae6555ac7c2f"
+    },
+    {
+      "path": "runtime\\tests\\test_demo_approval_determinism.py",
+      "size": 2391,
+      "sha256": "978c054da8d820407275f094ff48a5df218fc5d93bbb23171bdd422c87309bf7"
+    },
+    {
+      "path": "runtime\\tests\\test_determinism.py",
+      "size": 1245,
+      "sha256": "bd0b989a861ec9d01e23538c6cd71328c2ba98a5c4f57f8b259a35cb2bb59f77"
+    },
+    {
+      "path": "runtime\\tests\\test_enforce_governance.py",
+      "size": 3782,
+      "sha256": "f0e5305371340be0cdde88058b1089175e849b286facd9e2ab1153f802845058"
+    },
+    {
+      "path": "runtime\\tests\\test_engine.py",
+      "size": 5987,
+      "sha256": "21e7225c7ad7137eedd1f30b9adcedd307a8f9c1a82d829ec84409c5c6eb3afc"
+    },
+    {
+      "path": "runtime\\tests\\test_freeze_sign.py",
+      "size": 452,
+      "sha256": "d35fda1a11545f4ad5a34c6edcfcd8545806a61aa15b064233d9eff37c85eca4"
+    },
+    {
+      "path": "runtime\\tests\\test_fsm.py",
+      "size": 2025,
+      "sha256": "45fef4f1113c16f41b9ee36e6e9def28813d6ee048fa9d8963eff14761333c9d"
+    },
+    {
+      "path": "runtime\\tests\\test_fsm_checkpoint_regression.py",
+      "size": 2358,
+      "sha256": "d3f4e5d310d84ed0832b60702af9b194ddfd6c02a2134981e06d9b5e20ed89a8"
+    },
+    {
+      "path": "runtime\\tests\\test_governance_integrity.py",
+      "size": 1986,
+      "sha256": "4025f7d1836aa2b0bcf74fab0c3599cbcfc5b27abc8785d09b3ec6faf0284106"
+    },
+    {
+      "path": "runtime\\tests\\test_invariants.py",
+      "size": 344,
+      "sha256": "c419a1fc4261bacfa201c162c73c2145cb4fd7a9175bf590eeb1f1722f3a21ea"
+    },
+    {
+      "path": "runtime\\tests\\test_manifest_parsing.py",
+      "size": 5902,
+      "sha256": "4a63c98c4d649342a75b21eb5385f933af22ea29150dd63b1c02b9c01f074b5b"
+    },
+    {
+      "path": "runtime\\tests\\test_migration.py",
+      "size": 5032,
+      "sha256": "06ae0e8c38e6e733ff513a72ea57409e8bee5b4a01450c8465c6f1204d9834ff"
+    },
+    {
+      "path": "runtime\\tests\\test_migration_snapshot_b.py",
+      "size": 1750,
+      "sha256": "00a22061d7d81db34a4fdde154ddc962c0642148c4816d331e43d106f6d588b8"
+    },
+    {
+      "path": "runtime\\tests\\test_planner_validation.py",
+      "size": 1922,
+      "sha256": "22c244392e504ace272a22583451d76b89b5a45d621a748932d495dd8b2ab598"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_5_amu0_capture.py",
+      "size": 3992,
+      "sha256": "9734383a8198033473032e9f459c3e7e5f2bc4b5349093ee150b340c3caa880a"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_5_deep_replay_trace.py",
+      "size": 3628,
+      "sha256": "0deda892d4d78c52f31ff221f8b9099345aceee172ef5cb9a5b215c7d26faa42"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_5_initialization.py",
+      "size": 2438,
+      "sha256": "04c45769f18b7ed7a401e36c25bd9a673b64f708e5bcbf68343fd8f9fb00d58c"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_5_key_management.py",
+      "size": 2930,
+      "sha256": "68f5ab802224ff38a958dbcbdcaa271408865cb21815273a5b62a457f7362d4e"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_5_question_routing.py",
+      "size": 5292,
+      "sha256": "b139af13208e9be592e90857ab06fee5388b5d552bcacaf046eefbc7b674a5c6"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_5_rollback_integrity.py",
+      "size": 3395,
+      "sha256": "7019e601b410d4cbb3157f38b974df989f0b59bc4b505c800ede55803a5257c5"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_5_subprocess_isolation.py",
+      "size": 2652,
+      "sha256": "686583983bc858ecf0f6c12749058c8996f71bbed8551164041ddeb38c5c322b"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_5_tracker_signing.py",
+      "size": 3102,
+      "sha256": "a2886dd5dbe16d2ac36af76d31c8c9a527607558c0ac4c8be63f164ba3bdbfeb"
+    },
+    {
+      "path": "runtime\\tests\\test_r6_integration_determinism.py",
+      "size": 8561,
+      "sha256": "64dd38e7e7441bc9579b2b7908a5cae75d19002b9135597f499ef930a25e29b3"
+    },
+    {
+      "path": "runtime\\tests\\test_reclaim.py",
+      "size": 3135,
+      "sha256": "13b1f106cdf222d9dd11d61d84799395f5080b6ba0d0e4fb3bbd4077d135cba4"
+    },
+    {
+      "path": "runtime\\tests\\test_repair_context.py",
+      "size": 873,
+      "sha256": "edc81b183e657b4fb33ee674ca4fe4d2938e34b9b8d39ab3b9e7f54976f33c14"
+    },
+    {
+      "path": "runtime\\tests\\test_replay.py",
+      "size": 2950,
+      "sha256": "688be6bbbc7bf8ade116beae55ac36c249a2ec55aae5e9396fe9280275ab8435"
+    },
+    {
+      "path": "runtime\\tests\\test_required_artifact_ids.py",
+      "size": 694,
+      "sha256": "9e0feefedf3a78714609c0ee67734db41aef54bd4beaeec6d9d5b5932d1f8425"
+    },
+    {
+      "path": "runtime\\tests\\test_routing.py",
+      "size": 1790,
+      "sha256": "92657f152bfab7f140b8bba342a0be117c201ca39c8574155c8b2c6db56e9f54"
+    },
+    {
+      "path": "runtime\\tests\\test_sandbox_remediation.py",
+      "size": 2980,
+      "sha256": "ecac4459a2ecc7d32d37045a8d3db89b09f86a5a19175b612f17730e867695ec"
+    },
+    {
+      "path": "runtime\\tests\\test_sandbox_security.py",
+      "size": 771,
+      "sha256": "168b33f40c4b93ab746a4199879726ca9b260d0f727c77326e37a6dfa21e0b83"
+    },
+    {
+      "path": "runtime\\tests\\test_schema.py",
+      "size": 2097,
+      "sha256": "108b96416f5aa6b8d77b7f89e86651fa2f1e9bab547a4b39a0c60799565889fa"
+    },
+    {
+      "path": "runtime\\tests\\test_snapshot.py",
+      "size": 7354,
+      "sha256": "268516363ee475833aba5ef25267d9bdc9bf4469b4077b742250c371e560a238"
+    },
+    {
+      "path": "runtime\\tests\\test_state_store.py",
+      "size": 736,
+      "sha256": "f7352f0ada693bdf21fa398d36f46e89271784c7eccf9132640710e913172d13"
+    },
+    {
+      "path": "runtime\\tests\\test_timeline_determinism.py",
+      "size": 1485,
+      "sha256": "be7a86ab66d49d1bcecbde8b961eb43ff2aaf905c4826fa7c91a2f0a7e78db5f"
+    },
+    {
+      "path": "runtime\\tests\\test_tokenizer_replay.py",
+      "size": 3992,
+      "sha256": "16099d82cfd8cc80f4cf65d2f1cc7e3d5d2a6802f204172ad7aac44ebfa32d2a"
+    },
+    {
+      "path": "runtime\\tests\\__init__.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime\\util\\crypto.py",
+      "size": 333,
+      "sha256": "8c8d8930062bd062d7a56658e192d8ed785733e4f86fd6831d51b4237ba4dbb1"
+    },
+    {
+      "path": "runtime\\util\\questions.py",
+      "size": 278,
+      "sha256": "5ed0ea3f8e3c040f2fe49ae320f5e05e99efc742f200cfbe10df1dd2e4c4668f"
+    },
+    {
+      "path": "runtime\\util\\__init__.py",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+    "version": "1.1",
+    "surfaces": [
+        {
+            "path": "runtime/governance/HASH_POLICY_v1.py",
+            "type": "policy",
+            "protected": true
+        },
+        {
+            "path": "runtime/governance/override_protocol.py",
+            "type": "protocol",
+            "protected": true
+        },
+        {
+            "path": "runtime/governance/surface_validator.py",
+            "type": "validator",
+            "protected": true
+        },
+        {
+            "path": "runtime/governance/surface_manifest.json",
+            "type": "registry",
+            "protected": true
+        },
+        {
+            "path": "runtime/amu0/lineage.py",
+            "type": "ledger",
+            "protected": true
+        },
+        {
+            "path": "runtime/envelope/execution_envelope.py",
+            "type": "infrastructure",
+            "protected": true
+        },
+        {
+            "path": "runtime/gateway/deterministic_call.py",
+            "type": "gateway",
+            "protected": true
+        },
+        {
+            "path": "runtime/validator/anti_failure_validator.py",
+            "type": "validator",
+            "protected": true
+        },
+        {
+            "path": "runtime/api/governance_api.py",
+            "type": "api",
+            "protected": true
+        },
+        {
+            "path": "runtime/api/runtime_api.py",
+            "type": "api",
+            "protected": true
+        },
+        {
+            "path": "config/governance/protected_artefacts.json",
+            "type": "registry",
+            "protected": true
+        }
+    ],
+    "immutable": true,
+    "council_approved": false,
+    "last_updated": "2025-12-09"
+}
