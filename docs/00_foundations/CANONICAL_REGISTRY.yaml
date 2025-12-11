@@ -50,3 +50,19 @@ artefacts:
       - "invariants"
       - "substrate"
     depends_on: []
+
+  tier1_hardening_council_ruling:
+    title: "TIER1_HARDENING_COUNCIL_RULING_v0.1"
+    type: "governance"
+    track: "core"
+    version: "0.1"
+    status: "active"
+    repo_path: "01_governance/Tier1_Hardening_Council_Ruling_v0.1.md"
+    drive_path: "01_governance/Tier1_Hardening_Council_Ruling_v0.1.md"
+    created_at: "2025-12-12T00:00:00Z"
+    updated_at: "2025-12-12T00:00:00Z"
+    tags:
+      - "council"
+      - "ruling"
+      - "tier1"
+    depends_on: []
