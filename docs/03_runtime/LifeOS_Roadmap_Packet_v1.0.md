@@ -1,3 +1,17 @@
+# DEPRECATED
+
+**This file has been deprecated and replaced by:**  
+[LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](./LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md)
+
+**Deprecation Date:** 2025-12-11  
+**Reason:** Superseded by Core/Fuel/Plumbing structured roadmap aligned with Programme Charter v1.0
+
+**Do not reference this file for current programme direction.**
+
+---
+
+# Original Content Below (Historical Reference Only)
+
 /LifeOS/docs/03_runtime/LifeOS_Roadmap_Packet_v1.0.md
 
 LifeOS Roadmap Packet

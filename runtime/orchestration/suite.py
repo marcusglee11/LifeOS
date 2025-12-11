@@ -16,6 +16,7 @@ import copy
 import hashlib
 import json
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any, Dict, List, Mapping, Tuple
 
 from runtime.orchestration.harness import (
@@ -69,6 +70,19 @@ class ScenarioSuiteResult:
     scenario_results: Mapping[str, ScenarioResult]
     metadata: Mapping[str, Any]
 
+    def __post_init__(self) -> None:
+        """Enforce strict read-only nature of mapping fields."""
+        object.__setattr__(
+            self, 
+            "scenario_results", 
+            MappingProxyType(dict(self.scenario_results))
+        )
+        object.__setattr__(
+            self, 
+            "metadata", 
+            MappingProxyType(dict(self.metadata))
+        )
+
 
 # =============================================================================
 # Helper Functions
@@ -119,7 +133,10 @@ def run_suite(defn: ScenarioSuiteDefinition) -> ScenarioSuiteResult:
         result = run_scenario(scenario_def)
         
         # Store result (using scenario name as key)
-        # If duplicate names exist, last-write wins (deterministic)
+        # Sequence matters: if duplicate scenario_name exists, later definitions
+        # deterministically override earlier ones ("last-write wins").
+        # Scenario names must be unique for strictly distinct results, but
+        # this override behavior is intentional and test-covered.
         scenario_results[scenario_def.scenario_name] = result
     
     # Build deterministic metadata
@@ -130,7 +147,7 @@ def run_suite(defn: ScenarioSuiteDefinition) -> ScenarioSuiteResult:
                 m_name: m_res.to_dict()
                 for m_name, m_res in res.mission_results.items()
             },
-            "metadata": res.metadata,
+            "metadata": dict(res.metadata),
         }
         for name, res in scenario_results.items()
     }

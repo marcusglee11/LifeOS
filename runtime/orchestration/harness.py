@@ -17,6 +17,7 @@ import copy
 import hashlib
 import json
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any, Dict, List, Mapping, Tuple
 
 from runtime.orchestration.engine import ExecutionContext, OrchestrationResult
@@ -83,6 +84,19 @@ class ScenarioResult:
     scenario_name: str
     mission_results: Mapping[str, OrchestrationResult]
     metadata: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        """Enforce strict read-only nature of mapping fields."""
+        object.__setattr__(
+            self, 
+            "mission_results", 
+            MappingProxyType(dict(self.mission_results))
+        )
+        object.__setattr__(
+            self, 
+            "metadata", 
+            MappingProxyType(dict(self.metadata))
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """

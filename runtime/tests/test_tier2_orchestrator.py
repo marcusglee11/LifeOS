@@ -192,3 +192,38 @@ def test_orchestrator_enforces_execution_envelope():
 
     with pytest.raises(EnvelopeViolation):
         orchestrator.run_workflow(workflow, ctx)
+
+
+def test_executed_steps_are_snapshotted() -> None:
+    """
+    Ensure the orchestrator snapshots (deepcopies) executed steps so that 
+    subsequent mutation of the input payload does not corrupt the history.
+    """
+    # Construct a workflow with a mutable payload in the StepSpec
+    mutable_payload = {"value": 1}
+
+    workflow = WorkflowDefinition(
+        id="mutable-step",
+        name="mutable-step",
+        steps=[
+            StepSpec(
+                id="step-1",
+                kind="runtime",
+                payload=mutable_payload,
+            )
+        ],
+    )
+
+    ctx = ExecutionContext(initial_state={"x": 0})
+    orchestrator = Orchestrator()
+
+    result: OrchestrationResult = orchestrator.run_workflow(workflow, ctx)
+
+    # Mutate the original payload after the run
+    mutable_payload["value"] = 999
+
+    # Assert the executed_steps snapshot has not changed
+    executed_step = result.executed_steps[0]
+    # StepSpec does not have to_dict, but we can access payload directly
+    assert executed_step.payload["value"] == 1
+    assert executed_step.payload is not mutable_payload  # Must be a different object

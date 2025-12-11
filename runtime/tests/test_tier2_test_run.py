@@ -8,7 +8,7 @@ suite execution and expectations evaluation into a single deterministic result.
 import copy
 import hashlib
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Mapping
 
 import pytest
 
@@ -53,11 +53,11 @@ def _serialise_test_run(tr: TestRunResult) -> Dict[str, Any]:
                     m_name: m_res.to_dict()
                     for m_name, m_res in sr.mission_results.items()
                 },
-                "metadata": sr.metadata,
+                "metadata": dict(sr.metadata),
             }
             for name, sr in tr.suite_result.scenario_results.items()
         },
-        "metadata": tr.suite_result.metadata,
+        "metadata": dict(tr.suite_result.metadata),
     }
     
     # Expectations result serialisation
@@ -72,14 +72,14 @@ def _serialise_test_run(tr: TestRunResult) -> Dict[str, Any]:
             }
             for eid, er in tr.expectations_result.expectation_results.items()
         },
-        "metadata": tr.expectations_result.metadata,
+        "metadata": dict(tr.expectations_result.metadata),
     }
     
     return {
         "suite_result": suite_res,
         "expectations_result": exp_res,
         "passed": tr.passed,
-        "metadata": tr.metadata,
+        "metadata": dict(tr.metadata),
     }
 
 
@@ -226,10 +226,10 @@ def test_metadata_structure(sample_definitions):
     
     result = run_test_run(suite_def, expectations_def)
     
-    assert isinstance(result.metadata, dict)
+    assert isinstance(result.metadata, Mapping)
     
-    # Must be JSON-serialisable
-    json_payload = json.dumps(result.metadata, sort_keys=True)
+    # Must be JSON-serialisable (after casting)
+    json_payload = json.dumps(dict(result.metadata), sort_keys=True)
     assert isinstance(json_payload, str)
     
     # Check for stable hash

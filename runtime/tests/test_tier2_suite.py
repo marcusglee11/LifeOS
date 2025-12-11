@@ -171,7 +171,7 @@ def test_suite_handles_duplicate_scenario_names():
     # Daily loop step count?
     # Actually, I can rely on just the fact that it completed without error for now.
     # OR better: Use 'echo' mission which is minimal and easier to control.
-    pass  # Real validation below using echo
+    # OR better: Use 'echo' mission which is minimal and easier to control.
     
     s_echo1 = ScenarioDefinition(
         scenario_name="echo_dupe",

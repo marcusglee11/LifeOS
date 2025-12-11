@@ -1,5 +1,6 @@
 # Documentation Index v1.1
 
+- [00_foundations/LifeOS_Programme_Charter_v1.0.md](./00_foundations/LifeOS_Programme_Charter_v1.0.md) — **Constitutional and Canonical**
 - [00_foundations/Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md)
 - [00_foundations/Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md)
 - [00_foundations/Minimal_Substrate_v0.1.md](./00_foundations/Minimal_Substrate_v0.1.md)
@@ -11,6 +12,10 @@
 - [01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md)
 - [01_governance/Deterministic_Artefact_Protocol_v2.0.md](./01_governance/Deterministic_Artefact_Protocol_v2.0.md)
 - [01_governance/Human_Role_Charter_v0.1.md](./01_governance/Human_Role_Charter_v0.1.md)
+- [01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](./01_governance/Tier1_Hardening_Council_Ruling_v0.1.md)
+- [01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md)
+- [01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md)
+- [01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md)
 - [02_alignment/Alignment_Layer_v1.4.md](./02_alignment/Alignment_Layer_v1.4.md)
 - [02_alignment/LifeOS_Alignment_Layer_v1.0.md](./02_alignment/LifeOS_Alignment_Layer_v1.0.md)
 - [03_runtime/Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md)
@@ -22,11 +27,13 @@
 - [03_runtime/COO_Runtime_Walkthrough_v1.0.md](./03_runtime/COO_Runtime_Walkthrough_v1.0.md)
 - [03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md)
 - [03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md)
-- [03_runtime/LifeOS_Roadmap_Packet_v1.0.md](./03_runtime/LifeOS_Roadmap_Packet_v1.0.md)
+- [03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](./03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) — **Canonical Programme Roadmap (Core/Fuel/Plumbing)**
+- [03_runtime/LifeOS_Roadmap_Packet_v1.0.md](./03_runtime/LifeOS_Roadmap_Packet_v1.0.md) — **DEPRECATED** (replaced by Core/Fuel/Plumbing roadmap)
 - [03_runtime/README_Recursive_Kernel_v0.1.md](./03_runtime/README_Recursive_Kernel_v0.1.md)
 - [03_runtime/Runtime_Complexity_Constraints_v0.1.md](./03_runtime/Runtime_Complexity_Constraints_v0.1.md)
 - [03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md)
 - [03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md)
+- [03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](./03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md)
 - [04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](./04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md)
 - [04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](./04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md)
 - [05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](./05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md)

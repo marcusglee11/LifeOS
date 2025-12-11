@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any, Dict, List, Literal, Mapping, Tuple, Union
 
 from runtime.orchestration.suite import ScenarioSuiteResult
@@ -81,6 +82,8 @@ class SuiteExpectationsDefinition:
         object.__setattr__(self, "expectations", exps_tuple)
         
         # Enforce unique IDs
+        # Expectation IDs must be unique within a definition. 
+        # Duplicates raise ValueError to ensure deterministic reporting.
         ids = [e.id for e in self.expectations]
         if len(ids) != len(set(ids)):
             raise ValueError(f"Duplicate expectation IDs are not allowed: {ids}")
@@ -97,8 +100,21 @@ class SuiteExpectationsResult:
         metadata: Deterministic, JSON-serialisable metadata.
     """
     passed: bool
-    expectation_results: Dict[str, ExpectationResult]
-    metadata: Dict[str, Any]
+    expectation_results: Mapping[str, ExpectationResult]
+    metadata: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        """Enforce strict read-only nature of mapping fields."""
+        object.__setattr__(
+            self, 
+            "expectation_results", 
+            MappingProxyType(dict(self.expectation_results))
+        )
+        object.__setattr__(
+            self, 
+            "metadata", 
+            MappingProxyType(dict(self.metadata))
+        )
 
 
 # =============================================================================
