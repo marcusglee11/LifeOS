@@ -19,6 +19,7 @@
 - [02_alignment/Alignment_Layer_v1.4.md](./02_alignment/Alignment_Layer_v1.4.md)
 - [02_alignment/LifeOS_Alignment_Layer_v1.0.md](./02_alignment/LifeOS_Alignment_Layer_v1.0.md)
 - [03_runtime/Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md)
+- [03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](./03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md)
 - [03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](./03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md)
 - [03_runtime/COO_Runtime_Core_Spec_v1.0.md](./03_runtime/COO_Runtime_Core_Spec_v1.0.md)
 - [03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](./03_runtime/COO_Runtime_Implementation_Packet_v1.0.md)
