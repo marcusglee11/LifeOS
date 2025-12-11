@@ -8,7 +8,7 @@ one or more named missions and returns a single deterministic result.
 import copy
 import hashlib
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Mapping
 
 import pytest
 
@@ -211,10 +211,10 @@ def test_scenario_result_metadata_is_json_serialisable():
     
     result = run_scenario(defn)
     
-    assert isinstance(result.metadata, dict)
+    assert isinstance(result.metadata, Mapping)
     
-    # Must be JSON-serialisable without error
-    json_payload = json.dumps(result.metadata, sort_keys=True)
+    # Must be JSON-serialisable without error (after casting)
+    json_payload = json.dumps(dict(result.metadata), sort_keys=True)
     assert isinstance(json_payload, str)
 
 

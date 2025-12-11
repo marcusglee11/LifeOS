@@ -7,6 +7,7 @@
 - [00_foundations/Runtime_AntiFailure_Policy_v0.1.md](./Runtime_AntiFailure_Policy_v0.1.md)
 - [01_governance/AgentConstitution_GEMINI_Template_v1.0.md](../01_governance/AgentConstitution_GEMINI_Template_v1.0.md)
 - [01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](../01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md)
+- [01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](../01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md)
 - [01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](../01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md)
 - [01_governance/COO_Expectations_Log_v1.0.md](../01_governance/COO_Expectations_Log_v1.0.md)
 - [01_governance/COO_Operating_Contract_v1.0.md](../01_governance/COO_Operating_Contract_v1.0.md)

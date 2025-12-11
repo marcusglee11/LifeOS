@@ -8,7 +8,7 @@ multiple scenarios and returns a deterministic aggregate result.
 import copy
 import hashlib
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Mapping
 
 import pytest
 
@@ -46,11 +46,11 @@ def _serialise_suite_result(sr: ScenarioSuiteResult) -> Dict[str, Any]:
                     m_name: m_res.to_dict()
                     for m_name, m_res in res.mission_results.items()
                 },
-                "metadata": res.metadata,
+                "metadata": dict(res.metadata),
             }
             for name, res in sr.scenario_results.items()
         },
-        "metadata": sr.metadata,
+        "metadata": dict(sr.metadata),
     }
 
 
@@ -326,10 +326,10 @@ def test_suite_metadata_is_json_serialisable():
     
     result = run_suite(suite_def)
     
-    assert isinstance(result.metadata, dict)
+    assert isinstance(result.metadata, Mapping)
     
-    # Must be JSON-serialisable without error
-    json_payload = json.dumps(result.metadata, sort_keys=True, separators=(",", ":"))
+    # Must be JSON-serialisable without error (after casting)
+    json_payload = json.dumps(dict(result.metadata), sort_keys=True, separators=(",", ":"))
     assert isinstance(json_payload, str)
 
 

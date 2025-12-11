@@ -30,7 +30,7 @@ def _serialise_test_run(tr: TestRunResult) -> Dict[str, Any]:
         "suite_name": tr.suite_result.suite_name,
         "expectations_passed": tr.expectations_result.passed,
         "run_passed": tr.passed,
-        "metadata": tr.metadata,
+        "metadata": dict(tr.metadata),
         # We could go deeper but metadata hash covers deep content equality
     }
 

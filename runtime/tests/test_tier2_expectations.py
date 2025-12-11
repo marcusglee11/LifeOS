@@ -301,7 +301,7 @@ def test_determinism_and_metadata(sample_suite_result):
                 }
                 for k, v in r.expectation_results.items()
             },
-            "metadata": r.metadata
+            "metadata": dict(r.metadata)
         }
         
     hash1 = _stable_hash(result_to_dict(result1))
