@@ -3,7 +3,7 @@
 - [00_foundations/LifeOS_Programme_Charter_v1.0.md](./00_foundations/LifeOS_Programme_Charter_v1.0.md) — **Constitutional and Canonical**
 - [00_foundations/Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md)
 - [00_foundations/Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md)
-- [00_foundations/Minimal_Substrate_v0.1.md](./00_foundations/Minimal_Substrate_v0.1.md)
+- [00_foundations/Minimal_Substrate_v0.1.md](./00_foundations/Minimal_Substrate_v0.1.md) — governance/core v0.1
 - [00_foundations/Runtime_AntiFailure_Policy_v0.1.md](./00_foundations/Runtime_AntiFailure_Policy_v0.1.md)
 - [01_governance/AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md)
 - [01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md)
