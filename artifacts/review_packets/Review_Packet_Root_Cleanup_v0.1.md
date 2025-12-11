@@ -1,83 +1,153 @@
-# Review_Packet_Root_Cleanup_v0.1
+# Review_Packet_Root_Cleanup_and_Hygiene_v0.1.md
 
-**Title:** Review_Packet_Root_Cleanup_v0.1
-**Version:** v0.1
-**Author:** Antigravity Agent
-**Date:** 2025-12-09
-**Mission Context:** LifeOS Root Directory Cleanup
-**Scope:** Root `/LifeOS/`
+## 1. Summary
+This mission successfully cleaned the repository root directory and established a formal governance policy to prevent future clutter.
+Key actions taken:
+- Moved 6 `.txt` files to `artifacts/misc/tier2_archives/` or `logs/`.
+- Moved `Antigrav_Mission*.yaml` to `artifacts/missions/`.
+- Created `Antigrav_Output_Hygiene_Policy_v0.1.md` in Governance.
+- Registered and Indexed the new policy (with relative links).
+- Committed changes and synced to Brain.
 
----
+## 2. Issue Catalogue
+- **Root Pollution**: Found `tier2` results and `debug` logs in root.
+- **Missing Policy**: No explicit rule prevented root writes before.
 
-## Summary
-Reorganized the LifeOS root directory to reduce clutter.
+## 3. Proposed Resolutions
+- **Cleanup**: Archives created in `artifacts/`.
+- **Policy**: New governance artifact enforcing "Root Protection Rule".
 
-**Before:** 17 subdirectories, 13 files (30 total items)
-**After:** 15 subdirectories, 4 files (19 total items)
+## 4. Implementation Guidance
+- **Strict Adherence**: Antigravity must check `Antigrav_Output_Hygiene_Policy_v0.1.md` before creating new files.
 
-**Key Changes:**
-- Created `artifacts/review_packets/` for all review packets.
-- Archived legacy directories (`CSO Strategic Layer`, `Concept`, `Productisation`) to `docs/99_archive/legacy_dirs/`.
-- Archived tree snapshot files to `docs/99_archive/tree_snapshots/`.
-- Moved `README_Recursive_Kernel_v0.1.md` to `docs/03_runtime/`.
-- Moved `pytest.log` to `logs/`.
-- Deleted garbage files (`tatus`, `README_RUNTIME.md`).
+## 5. Acceptance Criteria
+- [x] Root directory clean of `.txt` and `.yaml` debris.
+- [x] Policy created and registered.
+- [x] Index updated.
+- [x] Git Commit & Brain Sync successful.
 
----
+## 6. Non-Goals
+- Cleaning up `venv`, `docs`, or other subdirectories (focused on root only).
 
-## Invariant Compliance
-- **zero_donkey_work**: COMPLIANT. All moves automated.
-- **max_human_actions**: COMPLIANT (1 action: approval).
+## Appendix — Flattened Code Snapshots
 
----
+### File: docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md
+```markdown
+# Antigravity Output Hygiene Policy v0.1
+Authority: LifeOS Governance Council
+Date: 2025-12-12
+Status: ACTIVE
 
-## Acceptance Criteria
-- [x] Root contains only essential files.
-- [x] `pytest` passes.
-- [x] Doc index rebuilt.
+## 1. Zero-Clutter Principle
+The **ROOT DIRECTORY** (`c:\Users\cabra\Projects\LifeOS`) is a pristine, canonical namespace. It must **NEVER** contain transient output, logs, or unclassified artifacts.
 
----
+## 2. Root Protection Rule (Governance Hard Constraint)
+Antigravity is **FORBIDDEN** from writing any file to the root directory unless it is a **Mission-Critical System Configuration File** (e.g., `pyproject.toml`, `.gitignore`) and explicitly authorized by a specialized Mission Plan.
 
-## New Directory Structure
-```
-/LifeOS
-├── .git/
-├── .github/
-├── .gitignore
-├── .pytest_cache/
-├── README.md
-├── artifacts/
-│   └── review_packets/
-│       ├── Review_Packet_Hardening_Pass_v0.1.md
-│       └── Review_Packet_Indexing_Config_v0.1.md
-├── config/
-├── doc_steward/
-├── docs/
-│   └── 99_archive/
-│       ├── legacy_dirs/
-│       │   ├── CSO_Strategic_Layer/
-│       │   ├── Concept/
-│       │   └── Productisation/
-│       └── tree_snapshots/
-│           ├── LifeOS_DirTree_PostPhase1.txt
-│           ├── LifeOS_DocTree_Final.txt
-│           └── LifeOS_DocTree_PostPhase1.txt
-├── logs/
-├── project_builder/
-├── pyproject.toml
-├── pytest.ini
-├── recursive_kernel/
-├── runtime/
-├── scripts/
-├── tests_doc/
-├── tests_recursive/
-└── venv/
+## 3. Mandatory Output Routing
+All generated content must be routed to semantic directories:
+
+| Content Type | Mandatory Location |
+| :--- | :--- |
+| **Governance/Docs** | `docs/01_governance/` or `docs/03_runtime/` etc. |
+| **Code/Scripts** | `runtime/` or `scripts/` |
+| **Logs/Debug** | `logs/` |
+| **Artifacts/Packets** | `artifacts/` (or strictly `artifacts/review_packets/`) |
+| **Mission State** | `artifacts/missions/` |
+| **Misc Data** | `artifacts/misc/` |
+
+## 4. Enforcement
+1. **Pre-Computation Check**: Antigravity must check target paths before writing.
+2. **Post-Mission Cleanup**: Any file accidentally dropped in root must be moved immediately.
+
+Signed,
+LifeOS Governance Council
 ```
 
----
+### File: docs/00_foundations/CANONICAL_REGISTRY.yaml
+```yaml
+meta:
+  registry_version: 1
+  repo_root: "docs"
+  drive_root: "docs"
+  last_updated: "2025-12-12T00:00:00Z"
 
-## Files Deleted
-| File | Reason |
-|------|--------|
-| `tatus` | Garbage (typo file) |
-| `README_RUNTIME.md` | Empty/duplicate |
+artefacts:
+  programme_charter:
+    title: "PROGRAMME_CHARTER_v1.0"
+    type: "governance"
+    track: "core"
+    version: "1.0"
+    status: "active"
+    repo_path: "00_foundations/PROGRAMME_CHARTER_v1.0.md"
+    drive_path: "00_foundations/PROGRAMME_CHARTER_v1.0.md"
+    created_at: "2025-12-12T00:00:00Z"
+    updated_at: "2025-12-12T00:00:00Z"
+    tags:
+      - "programme"
+      - "charter"
+    depends_on: []
+
+  decision_surface:
+    title: "DECISION_SURFACE_v1.0"
+    type: "governance"
+    track: "core"
+    version: "1.0"
+    status: "active"
+    repo_path: "01_governance/DECISION_SURFACE_v1.0.md"
+    drive_path: "01_governance/DECISION_SURFACE_v1.0.md"
+    created_at: "2025-12-12T00:00:00Z"
+    updated_at: "2025-12-12T00:00:00Z"
+    tags:
+      - "decision"
+      - "surface"
+    depends_on:
+      - programme_charter
+
+  minimal_substrate:
+    title: "MINIMAL_SUBSTRATE_v0.1"
+    type: "governance"
+    track: "core"
+    version: "0.1"
+    status: "active"
+    repo_path: "00_foundations/Minimal_Substrate_v0.1.md"
+    drive_path: "00_foundations/Minimal_Substrate_v0.1.md"
+    created_at: "2025-12-12T00:00:00Z"
+    updated_at: "2025-12-12T00:00:00Z"
+    tags:
+      - "invariants"
+      - "substrate"
+    depends_on: []
+
+  tier1_hardening_council_ruling:
+    title: "TIER1_HARDENING_COUNCIL_RULING_v0.1"
+    type: "governance"
+    track: "core"
+    version: "0.1"
+    status: "active"
+    repo_path: "01_governance/Tier1_Hardening_Council_Ruling_v0.1.md"
+    drive_path: "01_governance/Tier1_Hardening_Council_Ruling_v0.1.md"
+    created_at: "2025-12-12T00:00:00Z"
+    updated_at: "2025-12-12T00:00:00Z"
+    tags:
+      - "council"
+      - "ruling"
+      - "tier1"
+    depends_on: []
+
+  antigrav_output_hygiene_policy:
+    title: "ANTIGRAV_OUTPUT_HYGIENE_POLICY_v0.1"
+    type: "governance"
+    track: "core"
+    version: "0.1"
+    status: "active"
+    repo_path: "01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md"
+    drive_path: "01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md"
+    created_at: "2025-12-12T00:00:00Z"
+    updated_at: "2025-12-12T00:00:00Z"
+    tags:
+      - "policy"
+      - "hygiene"
+      - "governance"
+    depends_on: []
+```
