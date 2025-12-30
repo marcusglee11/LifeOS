@@ -3,7 +3,7 @@
     "version": "1.0.0"
   },
   "artefacts": {
-    "charter": "docs/governance/charter/CHARTER_v1.0.md",
+    "charter": "docs/governance/charter/DOES_NOT_EXIST.md",
     "decision_surface": "docs/governance/surface/DECISION_SURFACE_v1.0.md",
     "envelopes": "docs/governance/envelopes/ENVELOPES_v1.0.md",
     "council_protocol": "docs/governance/council/COUNCIL_PROTOCOL_v1.0.md",
