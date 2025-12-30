@@ -1,0 +1,25 @@
+name: Validate Governance Index
+
+on:
+  pull_request:
+    paths:
+      - 'docs/governance/**'
+      - 'tools/validate_governance_index.py'
+      - '.github/workflows/validate-governance-index.yml'
+
+jobs:
+  validate:
+    name: Validate Artefact Index
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run governance index validator
+        run: python tools/validate_governance_index.py --repo-root .
