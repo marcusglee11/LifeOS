@@ -2,11 +2,11 @@
 """
 LifeOS Governance Artefact Index Validator
 
-Validates docs/governance/ARTEFACT_INDEX.json against the following rules:
+Validates docs/01_governance/ARTEFACT_INDEX.json against the following rules:
 1. Valid JSON with "artefacts" object
 2. All artefact IDs are non-empty strings
 3. All paths are non-empty strings
-4. All paths are repo-root relative (start with "docs/governance/")
+4. All paths are repo-root relative (start with "docs/01_governance/")
 5. All paths use forward slashes only (no backslashes)
 6. All paths are not absolute (Unix or Windows)
 7. All paths contain no traversal segments ("..")
@@ -29,7 +29,7 @@ from pathlib import Path
 def validate_index(repo_root: Path) -> list[str]:
     """Validate the governance artefact index. Returns list of error messages."""
     errors: list[str] = []
-    index_path = repo_root / "docs" / "governance" / "ARTEFACT_INDEX.json"
+    index_path = repo_root / "docs" / "01_governance" / "ARTEFACT_INDEX.json"
 
     # Check index file exists
     if not index_path.is_file():
@@ -101,9 +101,9 @@ def validate_index(repo_root: Path) -> list[str]:
             errors.append(f"{prefix} Path must not contain traversal segments (..): {artefact_path}")
             continue
 
-        # Check path starts with docs/governance/
-        if not artefact_path.startswith("docs/governance/"):
-            errors.append(f"{prefix} Path must start with 'docs/governance/': {artefact_path}")
+        # Check path starts with docs/01_governance/
+        if not artefact_path.startswith("docs/01_governance/"):
+            errors.append(f"{prefix} Path must start with 'docs/01_governance/': {artefact_path}")
             continue
 
         # Check file exists
