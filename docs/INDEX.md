@@ -35,6 +35,7 @@ LifeOS Constitution v2.0 (Supreme)
 | Document | Purpose |
 |----------|---------|
 | [Governance_Protocol_v1.0.md](./01_governance/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
+| [Document_Steward_Protocol_v1.0.md](./01_governance/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
 | [COO_Operating_Contract_v1.0.md](./01_governance/COO_Operating_Contract_v1.0.md) | CEO/COO role boundaries and interaction rules |
 | [Deterministic_Artefact_Protocol_v2.0.md](./01_governance/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
 | [AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md) | Template for agent GEMINI.md files |

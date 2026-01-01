@@ -1,11 +1,12 @@
 {
     "meta": {
-        "version": "2.0.0",
+        "version": "2.2.0",
         "updated": "2026-01-01"
     },
     "artefacts": {
         "constitution": "docs/00_foundations/LifeOS_Constitution_v2.0.md",
         "governance_protocol": "docs/01_governance/Governance_Protocol_v1.0.md",
+        "document_steward_protocol": "docs/01_governance/Document_Steward_Protocol_v1.0.md",
         "coo_contract": "docs/01_governance/COO_Operating_Contract_v1.0.md",
         "dap": "docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md",
         "agent_constitution": "docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md",

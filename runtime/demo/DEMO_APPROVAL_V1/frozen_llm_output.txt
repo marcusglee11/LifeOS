@@ -1,0 +1,6 @@
+PLAN: Deploy Payment Gateway v2.0
+1. Provision t3.micro instance
+2. Install docker
+3. Pull image payment-gateway:v2.0
+4. Run container on port 8080
+5. Verify health check
