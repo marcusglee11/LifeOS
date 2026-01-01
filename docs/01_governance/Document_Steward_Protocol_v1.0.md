@@ -48,7 +48,7 @@ When creating a new document:
 5. Update `ARTEFACT_INDEX.json` if governance-related
 6. Commit to git with descriptive message
 7. Push to GitHub
-8. Sync to Google Drive
+8. (Google Drive syncs automatically)
 
 ### 3.2 Document Modification
 When modifying an existing document:
@@ -57,7 +57,7 @@ When modifying an existing document:
 3. Update `docs/INDEX.md` if description changed
 4. Commit to git with change description
 5. Push to GitHub
-6. Sync to Google Drive
+6. (Google Drive syncs automatically)
 
 ### 3.3 Document Archival
 When archiving a superseded document:
@@ -66,7 +66,7 @@ When archiving a superseded document:
 3. Remove from `ARTEFACT_INDEX.json` if applicable
 4. Commit to git
 5. Push to GitHub
-6. Sync archival to Google Drive
+6. (Google Drive syncs automatically)
 
 ### 3.4 Index Maintenance
 Indices that must be kept current:
@@ -101,17 +101,30 @@ git push origin main
 
 ## 5. Google Drive Sync Procedure
 
-### 5.1 Manual Sync (Current Method)
-1. Navigate to Google Drive LifeOS folder
-2. Upload changed files to matching directory structure
-3. Delete obsolete files
-4. Verify folder structure matches local
+### 5.1 Automated Sync (Active)
 
-### 5.2 Automated Sync (Future)
-When Google Drive API integration is available:
-- Automatic sync on git push
-- Bidirectional conflict detection
-- Sync log maintained
+Google Drive for Desktop is configured to automatically sync the local repository to Google Drive.
+
+**Configuration:**
+- **Local folder**: `C:\Users\cabra\Projects\LifeOS\docs`
+- **Drive folder**: [LifeOS/docs](https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5)
+- **Sync mode**: Mirror (bidirectional)
+
+**Behavior:**
+- All local changes are automatically synced to Google Drive
+- No manual upload required
+- Sync occurs in background whenever files change
+
+### 5.2 Steward Actions
+The steward does NOT need to manually sync to Google Drive. The workflow is:
+1. Edit files locally
+2. Commit and push to GitHub
+3. Google Drive syncs automatically
+
+### 5.3 Verification
+To verify sync is working:
+- Check Google Drive for Desktop tray icon (green checkmark = synced)
+- Spot-check recent file in Drive web interface
 
 ---
 

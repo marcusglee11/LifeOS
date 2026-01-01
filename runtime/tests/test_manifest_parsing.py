@@ -4,8 +4,9 @@ import tempfile
 from pathlib import Path
 from project_builder.sandbox.manifest import (
     parse_manifest, verify_manifest_checksums,
-    SandboxTerminalFailure, ManifestValidationError
+    SandboxTerminalFailure
 )
+from project_builder.config.governance import ManifestValidationError
 
 def test_missing_manifest():
     """FIX 6A: Test that missing manifest raises sandbox_manifest_error."""

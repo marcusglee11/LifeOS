@@ -129,31 +129,6 @@ class RuntimeFSM:
         if self.__current_state != expected_state:
             self._force_error(f"State assertion failed. Expected {expected_state}, got {self.__current_state}")
 
-    def checkpoint_state(self, checkpoint_name: str, amu0_path: str) -> None:
-        """
-        Creates a signed checkpoint of the FSM state (A.3).
-        Allowed only at constitutional boundaries:
-        - After CAPTURE_AMU0
-        - After GATES
-        - Before CEO_FINAL_REVIEW (which is effectively after GATES transition)
-        
-        FP-002: Checkpoints are anchored under amu0_path/checkpoints/ for determinism.
-        """
-        allowed_states = [
-            RuntimeState.CAPTURE_AMU0,
-            RuntimeState.GATES,
-            RuntimeState.CEO_FINAL_REVIEW
-        ]
-        
-        # FP-002: Use _force_error for illegal checkpoint state (governance error)
-        if self.__current_state not in allowed_states:
-            self._force_error(f"Checkpointing not allowed in state {self.__current_state}")
-            return
-
-        # Get Pinned Time (A.3)
-        context_path = os.path.join(amu0_path, "pinned_context.json")
-        if not os.path.exists(context_path):
-            self._force_error("pinned_context.json missing. Cannot checkpoint with pinned time.")
     def checkpoint_state(self, label: str, amu0_path: str) -> str:
         """
         Save current state to a checkpoint file.
@@ -165,8 +140,18 @@ class RuntimeFSM:
         Returns:
             Path to the created checkpoint file.
         """
+        # Checkpointing only allowed at specific boundaries
+        allowed_states = [
+            RuntimeState.CAPTURE_AMU0,
+            RuntimeState.GATES,
+            RuntimeState.CEO_FINAL_REVIEW
+        ]
+        
+        if self.__current_state not in allowed_states:
+            self._force_error(f"Checkpointing not allowed in state {self.__current_state}")
+            return ""
+        
         # Load pinned context for deterministic timestamp
-        # In strict mode, we rely purely on inputs, no internal time generation
         timestamp = None
         pinned_context_path = os.path.join(amu0_path, "pinned_context.json")
         if os.path.exists(pinned_context_path):
@@ -175,14 +160,13 @@ class RuntimeFSM:
                 timestamp = context.get('mock_time')
         
         checkpoint_data = {
+            "current_state": self.current_state.name,
             "state": self.current_state.name,
             "history": [s.name for s in self.history],
             "strict_mode": self._strict_mode
         }
         
         # Only add timestamp if found in deterministic context
-        # If no pinned context exists, we deliberately omit the timestamp
-        # to ensure the checkpoint file remains deterministic (no wall-clock drift).
         if timestamp:
             checkpoint_data["timestamp"] = timestamp
             
@@ -193,8 +177,17 @@ class RuntimeFSM:
         filename = f"fsm_checkpoint_{label}.json"
         filepath = os.path.join(checkpoints_dir, filename)
         
-        with open(filepath, 'w') as f:
-            json.dump(checkpoint_data, f, indent=2, sort_keys=True)
+        # Write checkpoint file
+        payload_bytes = json.dumps(checkpoint_data, indent=2, sort_keys=True).encode('utf-8')
+        with open(filepath, 'wb') as f:
+            f.write(payload_bytes)
+        
+        # Create signature file using Signature protocol
+        from .util.crypto import Signature
+        signature = Signature.sign_data(payload_bytes)
+        sig_filepath = f"{filepath}.sig"
+        with open(sig_filepath, 'wb') as f:
+            f.write(signature)
             
         return filepath
 
