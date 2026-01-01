@@ -101,9 +101,10 @@ def validate_index(repo_root: Path) -> list[str]:
             errors.append(f"{prefix} Path must not contain traversal segments (..): {artefact_path}")
             continue
 
-        # Check path starts with docs/01_governance/
-        if not artefact_path.startswith("docs/01_governance/"):
-            errors.append(f"{prefix} Path must start with 'docs/01_governance/': {artefact_path}")
+        # Check path starts with allowed docs directories
+        allowed_prefixes = ("docs/00_foundations/", "docs/01_governance/")
+        if not artefact_path.startswith(allowed_prefixes):
+            errors.append(f"{prefix} Path must start with one of {allowed_prefixes}: {artefact_path}")
             continue
 
         # Check file exists
