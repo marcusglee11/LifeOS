@@ -12,7 +12,7 @@ python -m recursive_kernel.runner
 
 ## Behavior
 1. **Plan**: Loads `config/recursive_kernel_config.yaml` and checks `config/backlog.yaml` for `todo` tasks in `safe_domains` (currently `docs`, `tests_doc`).
-2. **Build**: Executes the task. Currently supports `rebuild_index` for `docs`, which regenerates `docs/INDEX_v1.1.md` based on valid markdown files in `docs/`.
+2. **Build**: Executes the task. Currently supports `rebuild_index` for `docs`, which regenerates `docs/INDEX.md` based on valid markdown files in `docs/`.
 3. **Verify**: Runs the configured `test_command` (default: `pytest`).
 4. **Gate**: Evaluates the risk of changes.
    - Low risk (docs only, small diff) -> `AUTO_MERGE` (Simulated)

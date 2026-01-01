@@ -32,7 +32,7 @@ Author: Assistant (under CEO direction)
 - Normalise naming conventions (underscores, hyphens, capitalisation).
 - Audit for deprecated/straggler docs across old project folders (COOProject, governance-hub, LifeOS root).
 - Move deprecated files into `/docs/99_archive/` or eliminate them after confirmation.
-- Update the Documentation Index from `INDEX_v1.0.md` to `INDEX_v1.1.md`.
+- Update the Documentation Index from `INDEX_v1.0.md` to `INDEX.md`.
 - Identify structural inconsistencies requiring cleanup before Phase 2 and Phase 3.
 - Complete a formal Reversioning Execution Log for auditability.
 
@@ -109,7 +109,7 @@ Current at Phase 1 start:
 - Action:
 
   - Leave `INDEX_v1.0.md` unchanged.
-  - Create `INDEX_v1.1.md` at Gate 3 based on this plan.
+  - Create `INDEX.md` at Gate 3 based on this plan.
 
 ---
 
@@ -437,7 +437,7 @@ Classification: `CANONICAL_ACTIVE`.
 Action:
 
 - No move or rename in Phase 1.  
-- Guidance: README should reference `docs/INDEX_v1.1.md` after Phase 1.
+- Guidance: README should reference `docs/INDEX.md` after Phase 1.
 
 ---
 
@@ -526,9 +526,9 @@ Phase 1 does not perform this promotion; it only records the possibility.
 
 ---
 
-## 6. INDEX_v1.1 Generation Plan
+## 6. INDEX Generation Plan
 
-At Gate 3, `INDEX_v1.1.md` will be generated to reflect:
+At Gate 3, `INDEX.md` will be generated to reflect:
 
 1. **Foundations — 00**  
    - `Architecture_Skeleton_v1.0.md`
@@ -580,7 +580,7 @@ At Gate 3, `INDEX_v1.1.md` will be generated to reflect:
     - General archive docs
     - `concept/`, `cso/`, `legacy_structures/`
 
-`INDEX_v1.1.md` is generated after the filesystem operations, based on this plan.
+`INDEX.md` is generated after the filesystem operations, based on this plan.
 
 ---
 
@@ -614,7 +614,7 @@ This document is the **canonical reversioning and deprecation plan** for Phase 1
 
 - It defines all expected renames and moves.
 - It defines how external repositories are classified.
-- It defines the target state summarised in `INDEX_v1.1.md`.
+- It defines the target state summarised in `INDEX.md`.
 
 Once the CEO is satisfied, they approve Gate 2 by instructing:
 

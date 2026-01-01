@@ -55,8 +55,9 @@ When creating a new document:
 4. Update `docs/INDEX.md` with new entry
 5. Update `ARTEFACT_INDEX.json` if governance-related
 6. Commit to git with descriptive message
-7. Push to GitHub
-8. (Google Drive syncs automatically)
+7. Run corpus generator: `python docs/scripts/generate_corpus.py`
+8. Push to GitHub
+9. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.2 Document Modification
 When modifying an existing document:
@@ -64,8 +65,9 @@ When modifying an existing document:
 2. Update version if significant change
 3. Update `docs/INDEX.md` if description changed
 4. Commit to git with change description
-5. Push to GitHub
-6. (Google Drive syncs automatically)
+5. Run corpus generator: `python docs/scripts/generate_corpus.py`
+6. Push to GitHub
+7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.3 Document Archival
 When archiving a superseded document:
@@ -73,13 +75,15 @@ When archiving a superseded document:
 2. Remove from `docs/INDEX.md`
 3. Remove from `ARTEFACT_INDEX.json` if applicable
 4. Commit to git
-5. Push to GitHub
-6. (Google Drive syncs automatically)
+5. Run corpus generator: `python docs/scripts/generate_corpus.py`
+6. Push to GitHub
+7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.4 Index Maintenance
 Indices that must be kept current:
 - `docs/INDEX.md` — Master documentation index
 - `docs/01_governance/ARTEFACT_INDEX.json` — Governance artefact registry
+- `docs/LifeOS_Universal_Corpus.md` — Universal corpus for AI/NotebookLM
 - Any subsystem-specific indexes
 
 ---
@@ -144,6 +148,7 @@ After any document operation, verify:
 - [ ] `docs/INDEX.md` is current
 - [ ] `ARTEFACT_INDEX.json` is current (if governance)
 - [ ] Git commit created
+- [ ] Corpus generated (`LifeOS_Universal_Corpus.md` updated)
 - [ ] Pushed to GitHub
 - [ ] Synced to Google Drive
 - [ ] No broken links in related documents
