@@ -1,6 +1,6 @@
 # **LifeOS Alignment Review â€” TEMPLATE (v1.0)**  
 _For Monthly or Quarterly Use_  
-_Anchor documents: **PROGRAMME_CHARTER_v1.0** and the **Decision Surface** (Leverage, Bottleneck Reduction, Autonomy, Life-Story Alignment)._
+_Anchor documents: **LifeOS Constitution v2.0** and the **Governance Protocol v1.0** (Leverage, Bottleneck Reduction, Autonomy, Life-Story Alignment)._
 
 ---
 
@@ -18,7 +18,7 @@ _What materially changed in my life? Not internal clarity, not system-building â
 - Outcome 3  
 
 **Assessment:**  
-Did these outcomes demonstrate increased leverage, wealth, agency, reputation, or narrative fulfilment as defined in PROGRAMME_CHARTER_v1.0?
+Did these outcomes demonstrate increased leverage, wealth, agency, reputation, or narrative fulfilment as defined in Constitution v2.0?
 
 ---
 

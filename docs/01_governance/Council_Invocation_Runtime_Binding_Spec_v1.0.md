@@ -2,7 +2,7 @@
 
 Status: Active  
 Scope: AI Council, COO Runtime, CSO, Antigravity  
-Authority: Subordinate to LifeOS v1.1; superior to all ad hoc council behaviour.
+Authority: Subordinate to LifeOS Constitution v2.0; superior to all ad hoc council behaviour.
 
 ---
 
@@ -24,7 +24,8 @@ The following documents are **binding** for all council behaviour:
 
 Hierarchy:
 
-- LifeOS v1.1 (Supreme)
+- LifeOS Constitution v2.0 (Supreme)
+- Governance Protocol v1.0
 - Council Protocol v1.0
 - Intent Routing Rule v1.0
 - AI Council Procedural Spec v1.0

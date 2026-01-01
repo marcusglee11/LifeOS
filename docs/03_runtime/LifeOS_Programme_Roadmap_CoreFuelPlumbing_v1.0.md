@@ -2,9 +2,9 @@
 
 **Version:** v1.0  
 **Status:** Canonical Programme Roadmap  
-**Authority:** [LifeOS Programme Charter v1.0](../00_foundations/LifeOS_Programme_Charter_v1.0.md)  
+**Authority:** [LifeOS Constitution v2.0](../00_foundations/LifeOS_Constitution_v2.0.md)  
 **Author:** LifeOS Programme Office  
-**Date:** 2025-12-11  
+**Date:** 2025-12-11 (Authority updated 2026-01-01)  
 
 ---
 

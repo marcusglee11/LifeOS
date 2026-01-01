@@ -1,126 +1,126 @@
-# Documentation Index
+# LifeOS Documentation Index
 
-- [00_foundations/Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md)
-- [00_foundations/Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md)
-- [00_foundations/Minimal_Substrate_v0.1.md](./00_foundations/Minimal_Substrate_v0.1.md)
-- [00_foundations/Runtime_AntiFailure_Policy_v0.1.md](./00_foundations/Runtime_AntiFailure_Policy_v0.1.md)
-- [01_governance/AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md)
-- [01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md)
-- [01_governance/COO_Expectations_Log_v1.0.md](./01_governance/COO_Expectations_Log_v1.0.md)
-- [01_governance/COO_Operating_Contract_v1.0.md](./01_governance/COO_Operating_Contract_v1.0.md)
-- [01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md)
-- [01_governance/Deterministic_Artefact_Protocol_v2.0.md](./01_governance/Deterministic_Artefact_Protocol_v2.0.md)
-- [01_governance/Human_Role_Charter_v0.1.md](./01_governance/Human_Role_Charter_v0.1.md)
-- [02_alignment/Alignment_Layer_v1.4.md](./02_alignment/Alignment_Layer_v1.4.md)
-- [02_alignment/LifeOS_Alignment_Layer_v1.0.md](./02_alignment/LifeOS_Alignment_Layer_v1.0.md)
-- [03_runtime/Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md)
-- [03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](./03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md)
-- [03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](./03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md)
-- [03_runtime/COO_Runtime_Core_Spec_v1.0.md](./03_runtime/COO_Runtime_Core_Spec_v1.0.md)
-- [03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](./03_runtime/COO_Runtime_Implementation_Packet_v1.0.md)
-- [03_runtime/COO_Runtime_Spec_Index_v1.0.md](./03_runtime/COO_Runtime_Spec_Index_v1.0.md)
-- [03_runtime/COO_Runtime_Spec_v1.0.md](./03_runtime/COO_Runtime_Spec_v1.0.md)
-- [03_runtime/COO_Runtime_Walkthrough_v1.0.md](./03_runtime/COO_Runtime_Walkthrough_v1.0.md)
-- [03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md)
-- [03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md)
-- [03_runtime/README_Recursive_Kernel_v0.1.md](./03_runtime/README_Recursive_Kernel_v0.1.md)
-- [03_runtime/Runtime_Complexity_Constraints_v0.1.md](./03_runtime/Runtime_Complexity_Constraints_v0.1.md)
-- [03_runtime/policy/anti_failure_runtime_policy.yaml](./03_runtime/policy/anti_failure_runtime_policy.yaml)
-- [04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](./04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md)
-- [04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](./04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md)
-- [05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](./05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md)
-- [06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](./06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md)
-- [07_productisation/Productisation_Brief_v1.0.md](./07_productisation/Productisation_Brief_v1.0.md)
-- [08_manuals/Governance_Runtime_Manual_v1.0.md](./08_manuals/Governance_Runtime_Manual_v1.0.md)
-- [09_prompts/v1.0/initialisers/Gemini_System_Prompt_v1.0.txt](./09_prompts/v1.0/initialisers/Gemini_System_Prompt_v1.0.txt)
-- [09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](./09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md)
-- [09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](./09_prompts/v1.0/initialisers/master_initialiser_v1.0.md)
-- [09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](./09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md)
-- [09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](./09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md)
-- [09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](./09_prompts/v1.0/protocols/discussion_protocol_v1.0.md)
-- [09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](./09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md)
-- [09_prompts/v1.0/roles/chair_prompt_v1.0.md](./09_prompts/v1.0/roles/chair_prompt_v1.0.md)
-- [09_prompts/v1.0/roles/cochair_prompt_v1.0.md](./09_prompts/v1.0/roles/cochair_prompt_v1.0.md)
-- [09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](./09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md)
-- [09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](./09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md)
-- [09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](./09_prompts/v1.0/system/capability_envelope_universal_v1.0.md)
-- [09_prompts/v1.0/system/modes_overview_v1.0.md](./09_prompts/v1.0/system/modes_overview_v1.0.md)
-- [10_meta/CODE_REVIEW_STATUS_v1.0.md](./10_meta/CODE_REVIEW_STATUS_v1.0.md)
-- [10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](./10_meta/COO_Runtime_Deprecation_Notice_v1.0.md)
-- [10_meta/DEPRECATION_AUDIT_v1.0.md](./10_meta/DEPRECATION_AUDIT_v1.0.md)
-- [10_meta/IMPLEMENTATION_PLAN_v1.0.md](./10_meta/IMPLEMENTATION_PLAN_v1.0.md)
-- [10_meta/LifeOS — Exploratory_Proposal.md](./10_meta/LifeOS — Exploratory_Proposal.md)
-- [10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](./10_meta/LifeOSTechnicalArchitectureDraftV1.0.md)
-- [10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](./10_meta/LifeOSTechnicalArchitectureDraftV1.1.md)
-- [10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](./10_meta/LifeOSTechnicalArchitectureDraftV1.2.md)
-- [10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](./10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md)
-- [10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](./10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md)
-- [10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](./10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md)
-- [10_meta/REVERSION_EXECUTION_LOG_v1.0.md](./10_meta/REVERSION_EXECUTION_LOG_v1.0.md)
-- [10_meta/REVERSION_PLAN_v1.0.md](./10_meta/REVERSION_PLAN_v1.0.md)
-- [10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](./10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md)
-- [10_meta/Review_Packet_Reminder_v1.0.md](./10_meta/Review_Packet_Reminder_v1.0.md)
-- [10_meta/TASKS_v1.0.md](./10_meta/TASKS_v1.0.md)
-- [10_meta/Tier-2_Test_Report_v0.1.1-R1.md](./10_meta/Tier-2_Test_Report_v0.1.1-R1.md)
-- [10_meta/governance_digest_v1.0.md](./10_meta/governance_digest_v1.0.md)
-- [99_archive/ARCHITECTUREold_v0.1.md](./99_archive/ARCHITECTUREold_v0.1.md)
-- [99_archive/Antigravity_Implementation_Packet_v0.9.6.md](./99_archive/Antigravity_Implementation_Packet_v0.9.6.md)
-- [99_archive/COO_Runtime_Core_Spec_v0.5.md](./99_archive/COO_Runtime_Core_Spec_v0.5.md)
-- [99_archive/DocumentAudit_MINI_DIGEST1_v1.0.md](./99_archive/DocumentAudit_MINI_DIGEST1_v1.0.md)
-- [99_archive/README_RUNTIME_DRAFT.md](./99_archive/README_RUNTIME_DRAFT.md)
-- [99_archive/README_RUNTIME_V2.md](./99_archive/README_RUNTIME_V2.md)
-- [99_archive/concept/Distilled_Opus_Abstract_v1.0.md](./99_archive/concept/Distilled_Opus_Abstract_v1.0.md)
-- [99_archive/concept/Opus_LifeOS_Audit_Prompt_2_and_Response_v1.0.md](./99_archive/concept/Opus_LifeOS_Audit_Prompt_2_and_Response_v1.0.md)
-- [99_archive/concept/Opus_LifeOS_Audit_Prompt_and_Response_v1.0.md](./99_archive/concept/Opus_LifeOS_Audit_Prompt_and_Response_v1.0.md)
-- [99_archive/cso/CSO_Operating_Model_v1.0.md](./99_archive/cso/CSO_Operating_Model_v1.0.md)
-- [99_archive/cso/ChatGPT_Project_Primer_v1.0.md](./99_archive/cso/ChatGPT_Project_Primer_v1.0.md)
-- [99_archive/cso/Full_Strategy_Audit_Packet_v1.0.md](./99_archive/cso/Full_Strategy_Audit_Packet_v1.0.md)
-- [99_archive/cso/Intent_Routing_Rule_v1.0.md](./99_archive/cso/Intent_Routing_Rule_v1.0.md)
-- [99_archive/legacy_structures/CommunicationsProtocols/Communication_Protocol_v1.md](./99_archive/legacy_structures/CommunicationsProtocols/Communication_Protocol_v1.md)
-- [99_archive/legacy_structures/Governance/Bootstrap Cycle Addendum v1.0.md](./99_archive/legacy_structures/Governance/Bootstrap Cycle Addendum v1.0.md)
-- [99_archive/legacy_structures/Governance/CEO_Interaction_and_Escalation_Directive_v1.0.md](./99_archive/legacy_structures/Governance/CEO_Interaction_and_Escalation_Directive_v1.0.md)
-- [99_archive/legacy_structures/Governance/CSO_Charter_v1.0.md](./99_archive/legacy_structures/Governance/CSO_Charter_v1.0.md)
-- [99_archive/legacy_structures/Governance/Capabilities & Composition Review v1.0.md](./99_archive/legacy_structures/Governance/Capabilities & Composition Review v1.0.md)
-- [99_archive/legacy_structures/Governance/Capability Quarantine Protocol v1.0.md](./99_archive/legacy_structures/Governance/Capability Quarantine Protocol v1.0.md)
-- [99_archive/legacy_structures/Governance/Compatibility & Versioning Epochs v1.0.md](./99_archive/legacy_structures/Governance/Compatibility & Versioning Epochs v1.0.md)
-- [99_archive/legacy_structures/Governance/Constitutional Amendment Bundle Takeoff Actiavtion v1.0.md](./99_archive/legacy_structures/Governance/Constitutional Amendment Bundle Takeoff Actiavtion v1.0.md)
-- [99_archive/legacy_structures/Governance/Constitutional Amendment Protocol v1.0.md](./99_archive/legacy_structures/Governance/Constitutional Amendment Protocol v1.0.md)
-- [99_archive/legacy_structures/Governance/Constitutional Integration Bundle v1.0.md](./99_archive/legacy_structures/Governance/Constitutional Integration Bundle v1.0.md)
-- [99_archive/legacy_structures/Governance/Council_Invoke.md](./99_archive/legacy_structures/Governance/Council_Invoke.md)
-- [99_archive/legacy_structures/Governance/Council_Protocol_v1.0.md](./99_archive/legacy_structures/Governance/Council_Protocol_v1.0.md)
-- [99_archive/legacy_structures/Governance/Critical Takeoff Readiness Checklist v1.0.md](./99_archive/legacy_structures/Governance/Critical Takeoff Readiness Checklist v1.0.md)
-- [99_archive/legacy_structures/Governance/Governance Drift Monitor v1.0.md](./99_archive/legacy_structures/Governance/Governance Drift Monitor v1.0.md)
-- [99_archive/legacy_structures/Governance/Governance Load Balancer v1.0.md](./99_archive/legacy_structures/Governance/Governance Load Balancer v1.0.md)
-- [99_archive/legacy_structures/Governance/Governance Overhead & Friction Model v1.0.md](./99_archive/legacy_structures/Governance/Governance Overhead & Friction Model v1.0.md)
-- [99_archive/legacy_structures/Governance/Governance_Index_v1.0.md](./99_archive/legacy_structures/Governance/Governance_Index_v1.0.md)
-- [99_archive/legacy_structures/Governance/Governed Self-Improvement Protocol v1.0.md](./99_archive/legacy_structures/Governance/Governed Self-Improvement Protocol v1.0.md)
-- [99_archive/legacy_structures/Governance/Identity Continuity Rules v1.0.md](./99_archive/legacy_structures/Governance/Identity Continuity Rules v1.0.md)
-- [99_archive/legacy_structures/Governance/Interpretation Ledger v1.0.md](./99_archive/legacy_structures/Governance/Interpretation Ledger v1.0.md)
-- [99_archive/legacy_structures/Governance/Judiciary Interaction Rules v1.0.md](./99_archive/legacy_structures/Governance/Judiciary Interaction Rules v1.0.md)
-- [99_archive/legacy_structures/Governance/Judiciary Lifecycle & Evolution Rules v1.0.md](./99_archive/legacy_structures/Governance/Judiciary Lifecycle & Evolution Rules v1.0.md)
-- [99_archive/legacy_structures/Governance/Judiciary Logging & Audit Requirements v1.0.md](./99_archive/legacy_structures/Governance/Judiciary Logging & Audit Requirements v1.0.md)
-- [99_archive/legacy_structures/Governance/Judiciary Performance Baseline v1.0.md](./99_archive/legacy_structures/Governance/Judiciary Performance Baseline v1.0.md)
-- [99_archive/legacy_structures/Governance/Judiciary_v1.0.md](./99_archive/legacy_structures/Governance/Judiciary_v1.0.md)
-- [99_archive/legacy_structures/Governance/Judiciary_v1.0_Verdict_Template.md](./99_archive/legacy_structures/Governance/Judiciary_v1.0_Verdict_Template.md)
-- [99_archive/legacy_structures/Governance/Judiciary–Recursion Interface v1.0 Integration Packet.md](./99_archive/legacy_structures/Governance/Judiciary–Recursion Interface v1.0 Integration Packet.md)
-- [99_archive/legacy_structures/Governance/LifeOS Alignment Layer v1.2.md](./99_archive/legacy_structures/Governance/LifeOS Alignment Layer v1.2.md)
-- [99_archive/legacy_structures/Governance/LifeOS Constitution v1.1.md](./99_archive/legacy_structures/Governance/LifeOS Constitution v1.1.md)
-- [99_archive/legacy_structures/Governance/LifeOS Recursive Takeoff Protocol v1.0.md](./99_archive/legacy_structures/Governance/LifeOS Recursive Takeoff Protocol v1.0.md)
-- [99_archive/legacy_structures/Governance/LifeOS_Judiciary_v1.0_Integration_Packet.md](./99_archive/legacy_structures/Governance/LifeOS_Judiciary_v1.0_Integration_Packet.md)
-- [99_archive/legacy_structures/Governance/Precedent Ledger & Interpretation Drift v1.0.md](./99_archive/legacy_structures/Governance/Precedent Ledger & Interpretation Drift v1.0.md)
-- [99_archive/legacy_structures/Governance/Precedent Lifecycle v1.0.md](./99_archive/legacy_structures/Governance/Precedent Lifecycle v1.0.md)
-- [99_archive/legacy_structures/Governance/Precedent Logging + Drift Detection v1.0.md](./99_archive/legacy_structures/Governance/Precedent Logging + Drift Detection v1.0.md)
-- [99_archive/legacy_structures/Governance/Self-Modification Safety Layer v1.0 — Integration Packet.md](./99_archive/legacy_structures/Governance/Self-Modification Safety Layer v1.0 — Integration Packet.md)
-- [99_archive/legacy_structures/Governance/Semantic Anchoring v1.0.md](./99_archive/legacy_structures/Governance/Semantic Anchoring v1.0.md)
-- [99_archive/legacy_structures/Governance/Version Manifest v1.0 — Integration Packet.md](./99_archive/legacy_structures/Governance/Version Manifest v1.0 — Integration Packet.md)
-- [99_archive/legacy_structures/Runtime/Runtime–Subsystem Builder Interface v1.0.md](./99_archive/legacy_structures/Runtime/Runtime–Subsystem Builder Interface v1.0.md)
-- [99_archive/legacy_structures/Specs/Alignment_Layer_v1.4.md](./99_archive/legacy_structures/Specs/Alignment_Layer_v1.4.md)
-- [99_archive/legacy_structures/Specs/Archive/LifeOS v0.3.2 — Full Specification.md](./99_archive/legacy_structures/Specs/Archive/LifeOS v0.3.2 — Full Specification.md)
-- [99_archive/legacy_structures/Specs/Archive/LifeOS v1.0 — Full Specification.md](./99_archive/legacy_structures/Specs/Archive/LifeOS v1.0 — Full Specification.md)
-- [99_archive/legacy_structures/Specs/Archive/LifeOS v1.0 — Full Specification.md - Shortcut.lnk](./99_archive/legacy_structures/Specs/Archive/LifeOS v1.0 — Full Specification.md - Shortcut.lnk)
-- [99_archive/legacy_structures/Specs/Subsystem Specification Template v1.md](./99_archive/legacy_structures/Specs/Subsystem Specification Template v1.md)
-- [99_archive/legacy_structures/Specs/council/Council_Protocol_v1.0.md](./99_archive/legacy_structures/Specs/council/Council_Protocol_v1.0.md)
-- [99_archive/legacy_structures/pipelines/outward-facing/Combined_Pipeline_For_Outward_Facing_Product_Generation_v1.md](./99_archive/legacy_structures/pipelines/outward-facing/Combined_Pipeline_For_Outward_Facing_Product_Generation_v1.md)
-- [99_archive/tree_snapshots/LifeOS_DirTree_PostPhase1.txt](./99_archive/tree_snapshots/LifeOS_DirTree_PostPhase1.txt)
-- [99_archive/tree_snapshots/LifeOS_DocTree_Final.txt](./99_archive/tree_snapshots/LifeOS_DocTree_Final.txt)
-- [99_archive/tree_snapshots/LifeOS_DocTree_PostPhase1.txt](./99_archive/tree_snapshots/LifeOS_DocTree_PostPhase1.txt)
+**Last Updated**: 2026-01-01  
+**Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
+
+---
+
+## Authority Chain
+
+```
+LifeOS Constitution v2.0 (Supreme)
+        │
+        └── Governance Protocol v1.0
+                │
+                ├── COO Operating Contract v1.0
+                ├── DAP v2.0
+                └── COO Runtime Spec v1.0
+```
+
+---
+
+## 00_foundations — Core Principles
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Constitution_v2.0.md](./00_foundations/LifeOS_Constitution_v2.0.md) | **Supreme governing document** — Raison d'être, invariants, principles |
+| [Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md) | Anti-failure mechanisms, human preservation, workflow constraints |
+| [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
+
+---
+
+## 01_governance — Governance & Contracts
+
+### Core Governance
+| Document | Purpose |
+|----------|---------|
+| [Governance_Protocol_v1.0.md](./01_governance/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
+| [COO_Operating_Contract_v1.0.md](./01_governance/COO_Operating_Contract_v1.0.md) | CEO/COO role boundaries and interaction rules |
+| [Deterministic_Artefact_Protocol_v2.0.md](./01_governance/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
+| [AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md) | Template for agent GEMINI.md files |
+
+### Council & Review
+| Document | Purpose |
+|----------|---------|
+| [Council_Invocation_Runtime_Binding_Spec_v1.0.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md) | Council invocation and runtime binding |
+| [Antigravity_Council_Review_Packet_Spec_v1.0.md](./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md) | Council review packet format |
+| [ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md) | Monthly/quarterly alignment review template |
+
+### Policies & Logs
+| Document | Purpose |
+|----------|---------|
+| [COO_Expectations_Log_v1.0.md](./01_governance/COO_Expectations_Log_v1.0.md) | Working preferences and behavioral refinements |
+| [Antigrav_Output_Hygiene_Policy_v0.1.md](./01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md) | Output path rules for Antigravity |
+
+### Historical Rulings
+| Document | Purpose |
+|----------|---------|
+| [Tier1_Hardening_Council_Ruling_v0.1.md](./01_governance/Tier1_Hardening_Council_Ruling_v0.1.md) | Historical: Tier-1 ratification ruling |
+| [Tier1_Tier2_Activation_Ruling_v0.2.md](./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md) | Historical: Tier-2 activation ruling |
+| [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md) | Historical: Tier transition conditions |
+| [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
+
+---
+
+## 03_runtime — Runtime Specification
+
+### Core Specs
+| Document | Purpose |
+|----------|---------|
+| [COO_Runtime_Spec_v1.0.md](./03_runtime/COO_Runtime_Spec_v1.0.md) | Mechanical execution contract, FSM, determinism rules |
+| [COO_Runtime_Implementation_Packet_v1.0.md](./03_runtime/COO_Runtime_Implementation_Packet_v1.0.md) | Implementation details for Antigravity |
+| [COO_Runtime_Core_Spec_v1.0.md](./03_runtime/COO_Runtime_Core_Spec_v1.0.md) | Extended core specification |
+| [COO_Runtime_Spec_Index_v1.0.md](./03_runtime/COO_Runtime_Spec_Index_v1.0.md) | Spec index and patch log |
+
+### Roadmaps & Plans
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](./03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) | **Current roadmap** — Core/Fuel/Plumbing tracks |
+| [LifeOS_Recursive_Improvement_Architecture_v0.2.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md) | Recursive improvement architecture |
+| [LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](./03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md) | Future router and executor adapter spec |
+
+### Work Plans & Fix Packs
+| Document | Purpose |
+|----------|---------|
+| [Hardening_Backlog_v0.1.md](./03_runtime/Hardening_Backlog_v0.1.md) | Hardening work backlog |
+| [Tier1_Hardening_Work_Plan_v0.1.md](./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md) | Tier-1 hardening work plan |
+| [Tier2.5_Unified_Fix_Plan_v1.0.md](./03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md) | Tier-2.5 unified fix plan |
+| [Runtime_Hardening_Fix_Pack_v0.1.md](./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md) | Runtime hardening fix pack |
+| [fixpacks/FP-4x_Implementation_Packet_v0.1.md](./03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md) | FP-4x implementation |
+
+### Templates & Tools
+| Document | Purpose |
+|----------|---------|
+| [BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](./03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md) | Build starter prompt template |
+| [CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](./03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md) | Code review prompt template |
+| [COO_Runtime_Walkthrough_v1.0.md](./03_runtime/COO_Runtime_Walkthrough_v1.0.md) | Runtime walkthrough |
+| [COO_Runtime_Clean_Build_Spec_v1.1.md](./03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md) | Clean build specification |
+
+### Other
+| Document | Purpose |
+|----------|---------|
+| [Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md) | Automation proposal |
+| [Runtime_Complexity_Constraints_v0.1.md](./03_runtime/Runtime_Complexity_Constraints_v0.1.md) | Complexity constraints |
+| [README_Recursive_Kernel_v0.1.md](./03_runtime/README_Recursive_Kernel_v0.1.md) | Recursive kernel readme |
+
+---
+
+## 99_archive — Historical Documents
+
+Archived documents are in `99_archive/`. Key locations:
+- `99_archive/superseded_by_constitution_v2/` — Documents superseded by Constitution v2.0
+- `99_archive/legacy_structures/` — Legacy governance and specs
+
+---
+
+## Other Directories
+
+| Directory | Contents |
+|-----------|----------|
+| `04_project_builder/` | Project builder specs |
+| `05_agents/` | Agent architecture |
+| `06_user_surface/` | User surface specs |
+| `07_productisation/` | Productisation briefs |
+| `08_manuals/` | Manuals |
+| `09_prompts/` | Prompt templates and protocols |
+| `10_meta/` | Meta documents, reviews, tasks |
