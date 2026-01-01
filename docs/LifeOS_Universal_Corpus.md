@@ -1,16 +1,16 @@
 # LifeOS Universal Corpus
-**Generated**: 2026-01-02 08:41:08
+**Generated**: 2026-01-02 09:32:52
 **Steward**: Antigravity (Automated)
-**Version**: 18aef27
+**Version**: 2b84769
 
 ---
 
 ## 📋 Table of Changes (Last 5 Commits)
+- `dde124d` 2026-01-02: **docs: resolve index inconsistency and generate corpus**
 - `6b7f1eb` 2026-01-01: **fix: Update validator to allow Constitution in 00_foundations**
 - `813aae9` 2026-01-01: **gov: Clarify agent is document steward, not CEO**
 - `22442b6` 2026-01-01: **gov: Update Document Steward Protocol for automated Drive sync**
 - `98bd2a9` 2026-01-01: **gov: Add Document Steward Protocol v1.0**
-- `e64c79a` 2026-01-01: **gov: Consolidate governance under Constitution v2.0**
 
 ---
 
@@ -28,7 +28,7 @@
 ---
 
 ## 🔎 Table of Contents
-- [docs/00_foundations/LifeOS_Constitution_v2.0.md](#file-docs-00-foundations-lifeos-constitution-v2-0-md)\n- [docs/01_governance/COO_Operating_Contract_v1.0.md](#file-docs-01-governance-coo-operating-contract-v1-0-md)\n- [docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md](#file-docs-01-governance-deterministic-artefact-protocol-v2-0-md)\n- [docs/01_governance/Document_Steward_Protocol_v1.0.md](#file-docs-01-governance-document-steward-protocol-v1-0-md)\n- [docs/01_governance/Governance_Protocol_v1.0.md](#file-docs-01-governance-governance-protocol-v1-0-md)\n- [docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](#file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md)\n- [docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md](#file-docs-00-foundations-anti-failure-operational-packet-v0-1-md)\n- [docs/00_foundations/Architecture_Skeleton_v1.0.md](#file-docs-00-foundations-architecture-skeleton-v1-0-md)\n- [docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](#file-docs-01-governance-alignment-review-template-v1-0-md)\n- [docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](#file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md)\n- [docs/01_governance/COO_Expectations_Log_v1.0.md](#file-docs-01-governance-coo-expectations-log-v1-0-md)\n- [docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](#file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md)\n- [docs/01_governance/INDEX.md](#file-docs-01-governance-index-md)\n- [docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](#file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md)\n- [docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](#file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md)\n- [docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](#file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md)\n- [docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](#file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md)\n- [docs/03_runtime/Automation_Proposal_v0.1.md](#file-docs-03-runtime-automation-proposal-v0-1-md)\n- [docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-build-starter-prompt-template-v1-0-md)\n- [docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-code-review-prompt-template-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](#file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md)\n- [docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-core-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](#file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-index-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md](#file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md)\n- [docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md](#file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md)\n- [docs/03_runtime/Hardening_Backlog_v0.1.md](#file-docs-03-runtime-hardening-backlog-v0-1-md)\n- [docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](#file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md)\n- [docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](#file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md)\n- [docs/03_runtime/README_Recursive_Kernel_v0.1.md](#file-docs-03-runtime-readme-recursive-kernel-v0-1-md)\n- [docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md](#file-docs-03-runtime-runtime-complexity-constraints-v0-1-md)\n- [docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](#file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md)\n- [docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](#file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md)\n- [docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](#file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md)\n- [docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](#file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md)\n- [docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](#file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md)\n- [docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](#file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md)\n- [docs/06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](#file-docs-06-user-surface-coo-runtime-user-surface-stageb-testharness-v1-1-md)\n- [docs/07_productisation/Productisation_Brief_v1.0.md](#file-docs-07-productisation-productisation-brief-v1-0-md)\n- [docs/08_manuals/Governance_Runtime_Manual_v1.0.md](#file-docs-08-manuals-governance-runtime-manual-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md)\n- [docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](#file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md)\n- [docs/09_prompts/v1.0/system/modes_overview_v1.0.md](#file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md)\n- [docs/10_meta/CODE_REVIEW_STATUS_v1.0.md](#file-docs-10-meta-code-review-status-v1-0-md)\n- [docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](#file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md)\n- [docs/10_meta/DEPRECATION_AUDIT_v1.0.md](#file-docs-10-meta-deprecation-audit-v1-0-md)\n- [docs/10_meta/governance_digest_v1.0.md](#file-docs-10-meta-governance-digest-v1-0-md)\n- [docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md](#file-docs-10-meta-implementation-plan-v1-0-md)\n- [docs/10_meta/LifeOS — Exploratory_Proposal.md](#file-docs-10-meta-lifeos-—-exploratory-proposal-md)\n- [docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](#file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md)\n- [docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](#file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md)\n- [docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md](#file-docs-10-meta-reversion-execution-log-v1-0-md)\n- [docs/10_meta/REVERSION_PLAN_v1.0.md](#file-docs-10-meta-reversion-plan-v1-0-md)\n- [docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](#file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md)\n- [docs/10_meta/Review_Packet_Reminder_v1.0.md](#file-docs-10-meta-review-packet-reminder-v1-0-md)\n- [docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md](#file-docs-10-meta-steward-artefact-mission-v1-0-md)\n- [docs/10_meta/TASKS_v1.0.md](#file-docs-10-meta-tasks-v1-0-md)\n- [docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md](#file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md)\n- [docs/INDEX.md](#file-docs-index-md)
+- [docs/00_foundations/LifeOS_Constitution_v2.0.md](#file-docs-00-foundations-lifeos-constitution-v2-0-md)\n- [docs/01_governance/COO_Operating_Contract_v1.0.md](#file-docs-01-governance-coo-operating-contract-v1-0-md)\n- [docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md](#file-docs-01-governance-deterministic-artefact-protocol-v2-0-md)\n- [docs/01_governance/Document_Steward_Protocol_v1.0.md](#file-docs-01-governance-document-steward-protocol-v1-0-md)\n- [docs/01_governance/Governance_Protocol_v1.0.md](#file-docs-01-governance-governance-protocol-v1-0-md)\n- [docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](#file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md)\n- [docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md](#file-docs-00-foundations-anti-failure-operational-packet-v0-1-md)\n- [docs/00_foundations/Architecture_Skeleton_v1.0.md](#file-docs-00-foundations-architecture-skeleton-v1-0-md)\n- [docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](#file-docs-01-governance-alignment-review-template-v1-0-md)\n- [docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](#file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md)\n- [docs/01_governance/COO_Expectations_Log_v1.0.md](#file-docs-01-governance-coo-expectations-log-v1-0-md)\n- [docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](#file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md)\n- [docs/01_governance/INDEX.md](#file-docs-01-governance-index-md)\n- [docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](#file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md)\n- [docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](#file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md)\n- [docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](#file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md)\n- [docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](#file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md)\n- [docs/03_runtime/Automation_Proposal_v0.1.md](#file-docs-03-runtime-automation-proposal-v0-1-md)\n- [docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-build-starter-prompt-template-v1-0-md)\n- [docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-code-review-prompt-template-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](#file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md)\n- [docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-core-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](#file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-index-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md](#file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md)\n- [docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md](#file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md)\n- [docs/03_runtime/Hardening_Backlog_v0.1.md](#file-docs-03-runtime-hardening-backlog-v0-1-md)\n- [docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](#file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md)\n- [docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](#file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md)\n- [docs/03_runtime/README_Recursive_Kernel_v0.1.md](#file-docs-03-runtime-readme-recursive-kernel-v0-1-md)\n- [docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md](#file-docs-03-runtime-runtime-complexity-constraints-v0-1-md)\n- [docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](#file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md)\n- [docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](#file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md)\n- [docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](#file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md)\n- [docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](#file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md)\n- [docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](#file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md)\n- [docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](#file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md)\n- [docs/06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](#file-docs-06-user-surface-coo-runtime-user-surface-stageb-testharness-v1-1-md)\n- [docs/07_productisation/Productisation_Brief_v1.0.md](#file-docs-07-productisation-productisation-brief-v1-0-md)\n- [docs/08_manuals/Governance_Runtime_Manual_v1.0.md](#file-docs-08-manuals-governance-runtime-manual-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md)\n- [docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](#file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md)\n- [docs/09_prompts/v1.0/system/modes_overview_v1.0.md](#file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md)\n- [docs/10_meta/CODE_REVIEW_STATUS_v1.0.md](#file-docs-10-meta-code-review-status-v1-0-md)\n- [docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](#file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md)\n- [docs/10_meta/DEPRECATION_AUDIT_v1.0.md](#file-docs-10-meta-deprecation-audit-v1-0-md)\n- [docs/10_meta/governance_digest_v1.0.md](#file-docs-10-meta-governance-digest-v1-0-md)\n- [docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md](#file-docs-10-meta-implementation-plan-v1-0-md)\n- [docs/10_meta/LifeOS — Exploratory_Proposal.md](#file-docs-10-meta-lifeos-—-exploratory-proposal-md)\n- [docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](#file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md)\n- [docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](#file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md)\n- [docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md](#file-docs-10-meta-reversion-execution-log-v1-0-md)\n- [docs/10_meta/REVERSION_PLAN_v1.0.md](#file-docs-10-meta-reversion-plan-v1-0-md)\n- [docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](#file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md)\n- [docs/10_meta/Review_Packet_Reminder_v1.0.md](#file-docs-10-meta-review-packet-reminder-v1-0-md)\n- [docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md](#file-docs-10-meta-steward-artefact-mission-v1-0-md)\n- [docs/10_meta/TASKS_v1.0.md](#file-docs-10-meta-tasks-v1-0-md)\n- [docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md](#file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md)\n- [docs/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](#file-docs-f3-tier2-5-activation-conditions-checklist-v1-0-md)\n- [docs/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](#file-docs-f4-tier2-5-deactivation-rollback-conditions-v1-0-md)\n- [docs/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](#file-docs-f7-runtime-antigrav-mission-protocol-v1-0-md)\n- [docs/INDEX.md](#file-docs-index-md)
 
 ---
 
@@ -18166,6 +18166,525 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
 
 <hr>
 
+<a id="file-docs-f3-tier2-5-activation-conditions-checklist-v1-0-md"></a>
+# 📄 FILE: docs/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md
+**Source**: `docs/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md`
+
+# Tier-2.5 Activation Conditions Checklist v1.0
+
+**Status**: Active  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+**Implements**: Tier2.5_Unified_Fix_Plan_v1.0 (F3)  
+**Effective**: 2026-01-02
+
+---
+
+## 1. Purpose
+
+This checklist defines the mandatory conditions that must be satisfied before Tier-2.5 (Semi-Autonomous Development Layer) operations may commence.
+
+Tier-2.5 activation is not a one-time gate but a **continuous assertion**. If any condition becomes false during operation, Tier-2.5 must deactivate per F4 (Deactivation & Rollback Conditions).
+
+---
+
+## 2. Activation Conditions
+
+All conditions must be TRUE for Tier-2.5 to be active.
+
+### 2.1 Runtime Integrity
+
+| ID | Condition | Verification Method |
+|----|-----------|---------------------|
+| A1 | Tier-2 test suite passes at 100% | `pytest runtime/tests -q` returns 0 failures |
+| A2 | No unresolved envelope violations in last test run | Test output contains no `EnvelopeViolation` exceptions |
+| A3 | Anti-Failure invariants hold | Test output contains no `AntiFailureViolation` exceptions |
+
+### 2.2 Governance Integrity
+
+| ID | Condition | Verification Method |
+|----|-----------|---------------------|
+| B1 | Constitution v2.0 is active | `docs/00_foundations/LifeOS_Constitution_v2.0.md` exists and is current |
+| B2 | Governance Protocol v1.0 is active | `docs/01_governance/Governance_Protocol_v1.0.md` exists |
+| B3 | Document Steward Protocol v1.0 is active | `docs/01_governance/Document_Steward_Protocol_v1.0.md` exists |
+| B4 | F4 (Deactivation Conditions) is documented | This companion doc exists |
+| B5 | F7 (Runtime↔Antigrav Protocol) is documented | Protocol spec exists |
+
+### 2.3 Operational Readiness
+
+| ID | Condition | Verification Method |
+|----|-----------|---------------------|
+| C1 | Rollback procedure documented and tested | Rollback to last known-good commit is possible |
+| C2 | Corpus generation functional | `python docs/scripts/generate_corpus.py` succeeds |
+| C3 | Git repository in clean state | `git status` shows no uncommitted governance changes |
+
+### 2.4 Authorization
+
+| ID | Condition | Verification Method |
+|----|-----------|---------------------|
+| D1 | CEO has approved Tier-2.5 activation | Logged in Council ruling or explicit CEO statement |
+| D2 | Council review of Tier-2 completion recorded | Tier2_Completion_Tier2.5_Activation_Ruling exists |
+
+---
+
+## 3. Activation Protocol
+
+When all conditions in Section 2 are TRUE:
+
+1. **Verify** - Run verification methods for A1-A3 (runtime tests)
+2. **Assert** - Confirm B1-B5 docs exist
+3. **Confirm** - CEO confirms activation (may be implicit if Council ruling exists)
+4. **Log** - Record activation timestamp in commit message or governance log
+5. **Operate** - Tier-2.5 missions may proceed under F7 protocol
+
+---
+
+## 4. Continuous Assertion
+
+Tier-2.5 is not "activated once and forgotten." The following must remain true:
+
+- **Before each Tier-2.5 mission**: A1 (tests pass) must be verified
+- **After each Tier-2.5 mission**: If any condition becomes FALSE, deactivate per F4
+- **Daily**: C3 (clean git state) should be verified before autonomous commits
+
+---
+
+## 5. Current Status
+
+As of 2026-01-02:
+
+| Condition | Status | Notes |
+|-----------|--------|-------|
+| A1-A3 | ✓ PASS | 316 tests passing |
+| B1-B3 | ✓ PASS | Governance docs exist |
+| B4-B5 | ✓ PASS | F4, F7 now documented |
+| C1-C3 | ✓ PASS | Operational infrastructure functional |
+| D1-D2 | ✓ PASS | Council ruling exists, CEO approved |
+
+**Tier-2.5 Status: ACTIVE**
+
+---
+
+**END OF DOCUMENT**
+
+<hr>
+
+<a id="file-docs-f4-tier2-5-deactivation-rollback-conditions-v1-0-md"></a>
+# 📄 FILE: docs/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md
+**Source**: `docs/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md`
+
+# Tier-2.5 Deactivation & Rollback Conditions v1.0
+
+**Status**: Active  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+**Implements**: Tier2.5_Unified_Fix_Plan_v1.0 (F4)  
+**Effective**: 2026-01-02
+
+---
+
+## 1. Purpose
+
+This document defines the conditions that trigger automatic deactivation or suspension of Tier-2.5 operations, and the rollback procedures to restore system integrity.
+
+Tier-2.5 operates under a **fail-closed** posture: uncertainty defaults to deactivation.
+
+---
+
+## 2. Automatic Deactivation Triggers
+
+Any of the following conditions triggers immediate Tier-2.5 deactivation:
+
+### 2.1 Runtime Failures
+
+| ID | Trigger | Detection |
+|----|---------|-----------|
+| R1 | Test pass rate drops below 100% | `pytest` returns any failures |
+| R2 | `EnvelopeViolation` raised during mission | Exception in mission execution |
+| R3 | `AntiFailureViolation` raised during mission | Exception in mission execution |
+| R4 | `AntiFailurePlanningError` raised during build | Exception in mission planning |
+
+### 2.2 Protocol Breaches
+
+| ID | Trigger | Detection |
+|----|---------|-----------|
+| P1 | Antigrav invokes non-whitelisted entrypoint | F7 protocol violation |
+| P2 | Mission executed without required validation | F7 protocol violation |
+| P3 | Commit made without test verification | Git hook or manual detection |
+| P4 | Governance doc modified without Council review | Constitution v2.0 violation |
+
+### 2.3 Governance Holds
+
+| ID | Trigger | Detection |
+|----|---------|-----------|
+| G1 | Council issues explicit HOLD | Council ruling with HOLD status |
+| G2 | CEO issues explicit STOP | CEO directive |
+| G3 | Unresolved conflict between agents | Escalation without resolution |
+
+### 2.4 Operational Failures
+
+| ID | Trigger | Detection |
+|----|---------|-----------|
+| O1 | Corpus generation fails | `generate_corpus.py` returns non-zero |
+| O2 | Git push fails | Network or permission error |
+| O3 | Index validation fails | `index_checker.py` returns errors |
+
+---
+
+## 3. Deactivation Protocol
+
+When any trigger in Section 2 fires:
+
+### 3.1 Immediate Actions (Automatic)
+
+1. **HALT** - Current Tier-2.5 mission stops immediately
+2. **LOG** - Trigger condition logged with timestamp and context
+3. **PRESERVE** - Current state preserved (no cleanup that destroys evidence)
+
+### 3.2 Assessment Actions (Manual or Automated)
+
+4. **DIAGNOSE** - Identify root cause of trigger
+5. **CLASSIFY** - Determine severity:
+   - **Transient**: Network glitch, temporary resource issue
+   - **Recoverable**: Test failure from bad code, fixable
+   - **Structural**: Protocol flaw, governance gap, requires redesign
+
+### 3.3 Resolution Paths
+
+| Severity | Resolution | Reactivation |
+|----------|------------|--------------|
+| Transient | Retry after delay | Auto-reactivate if F3 conditions pass |
+| Recoverable | Fix issue, run tests | Manual reactivation after CEO/Council confirm |
+| Structural | Fix Pack required | Full Council review before reactivation |
+
+---
+
+## 4. Rollback Procedures
+
+### 4.1 Code Rollback
+
+If Tier-2.5 mission produced bad code:
+
+```bash
+# Identify last known-good commit
+git log --oneline -10
+
+# Rollback to specific commit
+git revert <bad-commit-hash>
+
+# Verify tests pass
+pytest runtime/tests -q
+
+# Commit revert
+git commit -m "rollback: Revert Tier-2.5 mission due to <trigger>"
+```
+
+### 4.2 Document Rollback
+
+If Tier-2.5 mission produced bad governance docs:
+
+```bash
+# Restore specific file from previous commit
+git checkout <good-commit-hash> -- docs/path/to/file.md
+
+# Regenerate corpus
+python docs/scripts/generate_corpus.py
+
+# Commit restoration
+git commit -m "rollback: Restore <file> due to <trigger>"
+```
+
+### 4.3 Full State Rollback
+
+If system state is uncertain:
+
+```bash
+# Hard reset to last known-good tag
+git reset --hard <tag>
+
+# Verify integrity
+pytest runtime/tests -q
+python docs/scripts/generate_corpus.py
+
+# Force push if necessary (requires CEO approval)
+git push --force-with-lease
+```
+
+---
+
+## 5. Reactivation Requirements
+
+After deactivation, Tier-2.5 may only reactivate when:
+
+1. **Root cause identified** and documented
+2. **Fix applied** (if applicable)
+3. **All F3 conditions pass** (full checklist)
+4. **CEO approves** reactivation (explicit or implicit via standing authorization)
+
+For **Structural** severity issues:
+- Council review required
+- Fix Pack documenting the issue and resolution required
+- Extended test period may be mandated
+
+---
+
+## 6. Escalation
+
+If deactivation trigger is ambiguous or contested:
+
+1. **Escalate to CEO** with full context
+2. **CEO decides** whether to:
+   - Confirm deactivation
+   - Override and continue (logged as exception)
+   - Request Council review
+
+Per Constitution v2.0: CEO may override any system decision at any time.
+
+---
+
+**END OF DOCUMENT**
+
+<hr>
+
+<a id="file-docs-f7-runtime-antigrav-mission-protocol-v1-0-md"></a>
+# 📄 FILE: docs/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md
+**Source**: `docs/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md`
+
+# Runtime ↔ Antigrav Mission Protocol v1.0
+
+**Status**: Active  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+**Implements**: Tier2.5_Unified_Fix_Plan_v1.0 (F7)  
+**Effective**: 2026-01-02
+
+---
+
+## 1. Purpose
+
+This protocol defines the interface between Antigravity (the document steward / build agent) and the COO Runtime. It specifies:
+
+- Which runtime entrypoints Antigravity may invoke
+- How missions are represented and validated
+- How Anti-Failure and envelope constraints apply to Antigrav-originated missions
+- How the mission whitelist is maintained
+
+---
+
+## 2. Definitions
+
+| Term | Meaning |
+|------|---------|
+| **Antigravity** | The AI agent acting as Document Steward and build executor |
+| **Runtime** | The COO Runtime (Tier-2 deterministic orchestration layer) |
+| **Mission** | A bounded unit of work with defined inputs, outputs, and constraints |
+| **Entrypoint** | A Python function that Antigravity may invoke to execute missions |
+| **Whitelist** | The set of mission types Antigravity is authorized to execute |
+
+---
+
+## 3. Whitelisted Entrypoints
+
+Antigravity may ONLY invoke the following runtime entrypoints:
+
+### 3.1 Tier-2.5 Authorized Entrypoints
+
+| Entrypoint | Module | Purpose | Risk Level |
+|------------|--------|---------|------------|
+| `run_daily_loop()` | `runtime.orchestration.daily_loop` | Execute daily loop mission | Low |
+| `run_scenario()` | `runtime.orchestration.harness` | Execute single scenario | Low |
+| `run_suite()` | `runtime.orchestration.suite` | Execute scenario suite | Low |
+| `run_test_run_from_config()` | `runtime.orchestration.config_adapter` | Execute config-driven test run | Low |
+| `aggregate_test_run()` | `runtime.orchestration.test_run` | Aggregate results | Low |
+
+### 3.2 Forbidden Entrypoints
+
+Antigravity may NOT directly invoke:
+
+| Entrypoint | Reason |
+|------------|--------|
+| `OrchestrationEngine._execute_step()` | Internal; bypasses validation |
+| `MissionBuilder._build_*()` | Internal; bypasses registry |
+| Any `runtime.gates.*` | Governance layer; CEO-only |
+| Any `runtime.freeze.*` | State management; requires explicit authorization |
+| Any `runtime.rollback.*` | Destructive; requires CEO approval |
+
+### 3.3 Entrypoint Extension
+
+New entrypoints may be added to Section 3.1 ONLY via:
+1. Fix Pack proposing the addition
+2. Council review (Architect + Risk minimum)
+3. CEO approval
+4. Update to this document
+
+---
+
+## 4. Mission Whitelist
+
+### 4.1 Tier-2.5 Authorized Mission Types
+
+| Mission Type | Registry Key | Parameters | Constraints |
+|--------------|--------------|------------|-------------|
+| Daily Loop | `daily_loop` | `mode`, `requested_steps`, `requested_human_steps` | Max 5 steps, max 1 human step |
+| Echo | `echo` | `message`, `params` | Test only; no side effects |
+| Run Tests | `run_tests` | `suite_name`, `config` | Read-only; no mutations |
+
+### 4.2 Mission Type Extension
+
+New mission types may be added ONLY via:
+1. Implementation in `runtime/orchestration/` with full test coverage
+2. Registration in `runtime/orchestration/registry.py`
+3. Fix Pack documenting the mission type
+4. Council review
+5. Update to this whitelist
+
+---
+
+## 5. Pre-Execution Validation
+
+Before Antigravity executes ANY mission, the following validations MUST pass:
+
+### 5.1 Mission Validation Checklist
+
+| ID | Validation | Failure Action |
+|----|------------|----------------|
+| V1 | Mission type is in whitelist (Section 4.1) | REJECT mission |
+| V2 | Entrypoint is authorized (Section 3.1) | REJECT mission |
+| V3 | Parameters conform to mission schema | REJECT mission |
+| V4 | Anti-Failure limits will not be exceeded | REJECT mission |
+| V5 | No forbidden step kinds in plan | REJECT mission |
+| V6 | Runtime tests pass (A1 from F3) | HALT and deactivate |
+
+### 5.2 Validation Sequence
+
+```
+1. Receive mission request
+2. Check V1: mission_type in WHITELIST
+3. Check V2: entrypoint in AUTHORIZED_ENTRYPOINTS
+4. Check V3: validate(params, mission_schema)
+5. Build mission via MissionBuilder
+6. Check V4, V5: _validate_anti_failure(workflow)
+7. Check V6: pytest runtime/tests (if not recently verified)
+8. Execute mission
+9. Log result
+```
+
+---
+
+## 6. Anti-Failure Enforcement
+
+Per COO Runtime Spec, Anti-Failure invariants apply to ALL missions including Antigrav-originated:
+
+### 6.1 Hard Limits
+
+| Constraint | Limit | Enforcement |
+|------------|-------|-------------|
+| MAX_TOTAL_STEPS | 10 | Builder rejects plans exceeding limit |
+| MAX_HUMAN_STEPS | 3 | Builder rejects plans exceeding limit |
+| Allowed step kinds | `{"runtime", "human"}` | EnvelopeViolation on other kinds |
+
+### 6.2 Enforcement Points
+
+- **Planning time**: `MissionBuilder._validate_anti_failure()` rejects invalid plans
+- **Execution time**: `OrchestrationEngine` raises `EnvelopeViolation` on forbidden operations
+- **Post-execution**: Results logged; violations trigger F4 deactivation
+
+---
+
+## 7. Envelope Constraints
+
+Antigrav-originated missions operate under the Tier-2 deterministic envelope:
+
+### 7.1 Forbidden Operations
+
+| Operation | Reason |
+|-----------|--------|
+| Network I/O | Non-deterministic |
+| File I/O outside workspace | Escape from sandbox |
+| Random number generation | Non-deterministic |
+| System time access (wall clock) | Non-deterministic |
+| External process execution | Uncontrolled side effects |
+
+### 7.2 Permitted Operations
+
+| Operation | Condition |
+|-----------|-----------|
+| Read from `docs/` | Always |
+| Write to `docs/` | After mission success, via commit |
+| Read from `runtime/` | Always |
+| Run `pytest` | Via subprocess with captured output |
+| Run `generate_corpus.py` | Via subprocess with captured output |
+| Git operations | Commit, push only; no force-push without CEO |
+
+---
+
+## 8. Result Handling
+
+### 8.1 Success Path
+
+When mission completes successfully:
+
+1. **Log** result with full trace
+2. **Verify** outputs conform to expected schema
+3. **Commit** any file changes with descriptive message
+4. **Push** to remote (if configured)
+5. **Report** summary to CEO (async, non-blocking)
+
+### 8.2 Failure Path
+
+When mission fails:
+
+1. **Log** failure with full trace and error details
+2. **Preserve** state (no cleanup that destroys evidence)
+3. **Classify** failure per F4 severity levels
+4. **Deactivate** if trigger conditions met
+5. **Escalate** to CEO if ambiguous
+
+---
+
+## 9. Audit Trail
+
+All Antigrav→Runtime invocations MUST be logged:
+
+### 9.1 Required Log Fields
+
+| Field | Content |
+|-------|---------|
+| `timestamp` | ISO 8601 UTC |
+| `mission_type` | Registry key |
+| `entrypoint` | Function invoked |
+| `params` | Mission parameters (sanitized) |
+| `result` | Success/failure |
+| `duration_ms` | Execution time |
+| `commit_hash` | Git commit if changes made |
+| `error` | Error details if failed |
+
+### 9.2 Log Location
+
+Logs written to:
+- Console (immediate feedback)
+- `logs/antigrav_missions.jsonl` (persistent, append-only)
+- Git commit messages (for state-changing missions)
+
+---
+
+## 10. Protocol Versioning
+
+This protocol is versioned. Changes require:
+
+1. Fix Pack with proposed changes
+2. Council review (minimum: Architect, Risk)
+3. CEO approval
+4. Version increment (v1.0 → v1.1 for minor, v2.0 for breaking)
+
+Breaking changes (new constraints, removed permissions) require:
+- Full Council review
+- Migration plan for in-flight missions
+- CEO sign-off
+
+---
+
+**END OF DOCUMENT**
+
+<hr>
+
 <a id="file-docs-index-md"></a>
 # 📄 FILE: docs/INDEX.md
 **Source**: `docs/INDEX.md`
@@ -18258,6 +18777,9 @@ LifeOS Constitution v2.0 (Supreme)
 | [Hardening_Backlog_v0.1.md](./03_runtime/Hardening_Backlog_v0.1.md) | Hardening work backlog |
 | [Tier1_Hardening_Work_Plan_v0.1.md](./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md) | Tier-1 hardening work plan |
 | [Tier2.5_Unified_Fix_Plan_v1.0.md](./03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md) | Tier-2.5 unified fix plan |
+| [F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](./F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md) | Tier-2.5 activation conditions checklist (F3) |
+| [F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](./F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md) | Tier-2.5 deactivation and rollback conditions (F4) |
+| [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](./F7_Runtime_Antigrav_Mission_Protocol_v1.0.md) | Runtime↔Antigrav mission protocol (F7) |
 | [Runtime_Hardening_Fix_Pack_v0.1.md](./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md) | Runtime hardening fix pack |
 | [fixpacks/FP-4x_Implementation_Packet_v0.1.md](./03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md) | FP-4x implementation |
 
