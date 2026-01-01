@@ -93,7 +93,7 @@ When you believe Phase 1 has been fully executed, use this checklist to verify t
 - [ ] `Phase1_Reversion_Moves.ps1` executed without unhandled errors.  
 - [ ] All planned renames in `REVERSION_PLAN_v1.0.md` are reflected on disk.  
 - [ ] All planned moves in `REVERSION_PLAN_v1.0.md` are reflected on disk.  
-- [ ] `/docs` root contains `INDEX_v1.0.md` and `INDEX_v1.1.md`.  
+- [ ] `/docs` root contains `INDEX.md`.  
 - [ ] Legacy folders exist only under `docs/99_archive/legacy_structures/`.  
 - [ ] Concept and CSO docs exist only under `docs/99_archive/concept/` and `docs/99_archive/cso/`.  
 - [ ] Productisation brief exists at `docs/07_productisation/Productisation_Brief_v1.0.md`.  
@@ -112,7 +112,7 @@ When you believe Phase 1 has been fully executed, use this checklist to verify t
 
 ## 6. CEO Sign-off
 
-Once the checklist above is complete and you are satisfied that the filesystem matches the Phase 1 plan and `INDEX_v1.1.md`, sign off here.
+Once the checklist above is complete and you are satisfied that the filesystem matches the Phase 1 plan and `INDEX.md`, sign off here.
 
 ### 6.1. Sign-off Block
 
