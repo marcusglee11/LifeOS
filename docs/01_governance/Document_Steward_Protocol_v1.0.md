@@ -10,6 +10,14 @@
 
 This protocol defines how canonical documents are created, updated, indexed, and synchronized across all LifeOS locations.
 
+**Document Steward**: The agent (Antigravity or successor) — NOT the human CEO.
+
+Per Constitution v2.0:
+- **CEO performs**: Intent, approval, governance decisions only
+- **Agent performs**: All file creation, indexing, git operations, syncing
+
+The CEO must never manually shuffle documents, update indices, or run git commands. If the CEO is doing these things, it is a governance violation.
+
 **Canonical Locations**:
 1. **Local Repository**: `c:\Users\cabra\Projects\LifeOS\docs`
 2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs

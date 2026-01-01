@@ -82,10 +82,19 @@ class TestDeterminismSuite(unittest.TestCase):
         for i in range(3):
             with tempfile.TemporaryDirectory() as tmpdir:
                 amu0_path = os.path.join(tmpdir, "amu0")
-                # NO pinned_context.json created here
+                # NO pinned_context.json created here - tests no timestamp case
+                os.makedirs(amu0_path, exist_ok=True)
                 
+                # Navigate to a checkpointable state (CAPTURE_AMU0)
                 fsm = RuntimeFSM(strict_mode=True)
                 fsm.transition_to(RuntimeState.AMENDMENT_PREP)
+                fsm.transition_to(RuntimeState.AMENDMENT_EXEC)
+                fsm.transition_to(RuntimeState.AMENDMENT_VERIFY)
+                fsm.transition_to(RuntimeState.CEO_REVIEW)
+                fsm.transition_to(RuntimeState.FREEZE_PREP)
+                fsm.transition_to(RuntimeState.FREEZE_ACTIVATED)
+                fsm.transition_to(RuntimeState.CAPTURE_AMU0)
+                
                 filepath = fsm.checkpoint_state("no_time", amu0_path)
                 
                 with open(filepath, 'r') as f:
