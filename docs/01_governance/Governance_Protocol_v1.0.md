@@ -1,6 +1,6 @@
 # LifeOS Governance Protocol v1.0
 
-**Status**: Subordinate to LifeOS Constitution v2.1  
+**Status**: Subordinate to LifeOS Constitution v2.0  
 **Effective**: 2026-01-01  
 **Purpose**: Define operational governance rules that can evolve as trust increases
 

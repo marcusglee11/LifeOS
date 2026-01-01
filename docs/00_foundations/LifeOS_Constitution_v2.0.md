@@ -1,4 +1,4 @@
-# LifeOS Constitution v2.1
+# LifeOS Constitution v2.0
 
 **Status**: Supreme Governing Document  
 **Effective**: 2026-01-01  
