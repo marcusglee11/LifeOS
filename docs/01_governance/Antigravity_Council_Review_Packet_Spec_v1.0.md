@@ -1,7 +1,7 @@
 ANTIGRAVITY COUNCIL REVIEW PACKET SPEC v1.0
 
 Authority Chain:
-LifeOS v1.1 → Alignment Layer v1.4 → COO Runtime Spec v1.0 → Implementation Packet v1.0 → Antigravity Instruction Packet (Phase 4) → this Review Packet Spec.
+LifeOS Constitution v2.0 → Governance Protocol v1.0 → COO Runtime Spec v1.0 → Implementation Packet v1.0 → this Review Packet Spec.
 
 Status: Subordinate, mechanical, non-governance.
 Scope: Applies to all COO Runtime / PB→COO builds performed under the Phase 4 Instruction Packet (and later phases that extend the runtime).
@@ -24,7 +24,7 @@ You generate documentation only; you do NOT judge or approve anything.
 
 1. Subordination & Role Boundaries
 
-LifeOS v1.1, Alignment Layer v1.4, COO Runtime Spec v1.0, Implementation Packet v1.0, and the Antigravity Instruction Packet all supersede this document in case of conflict.
+LifeOS Constitution v2.0, Governance Protocol v1.0, COO Runtime Spec v1.0, Implementation Packet v1.0, and the Antigravity Instruction Packet all supersede this document in case of conflict.
 
 You MUST treat this spec as mechanical only:
 

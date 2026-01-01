@@ -4,8 +4,10 @@ import tempfile
 from pathlib import Path
 from project_builder.sandbox.manifest import (
     parse_manifest, verify_manifest_checksums,
-    SandboxTerminalFailure, ManifestValidationError
+    SandboxTerminalFailure,
+    ManifestValidationError as SandboxManifestError
 )
+from project_builder.config.governance import ManifestValidationError as GovernanceManifestError
 
 def test_missing_manifest():
     """FIX 6A: Test that missing manifest raises sandbox_manifest_error."""
@@ -45,7 +47,7 @@ def test_invalid_json():
         # Write invalid JSON
         (root / ".coo-manifest.json").write_text("{invalid json")
         
-        with pytest.raises(ManifestValidationError, match="manifest_syntax_error"):
+        with pytest.raises(SandboxManifestError, match="manifest_syntax_error"):
             parse_manifest(root)
 
 def test_malformed_checksum():
@@ -62,7 +64,7 @@ def test_malformed_checksum():
         ]
         (root / ".coo-manifest.json").write_text(json.dumps(manifest))
         
-        with pytest.raises(ManifestValidationError, match="manifest_syntax_error.*checksum"):
+        with pytest.raises(SandboxManifestError, match="manifest_syntax_error.*checksum"):
             parse_manifest(root)
 
 def test_checksum_mismatch():
@@ -95,19 +97,19 @@ def test_path_special_chars():
         # Test backslash
         manifest = [{"path": "src\\main.py", "checksum": "sha256:" + "0"*64}]
         (root / ".coo-manifest.json").write_text(json.dumps(manifest))
-        with pytest.raises(ManifestValidationError, match="invalid_artifact_path.*backslash"):
+        with pytest.raises(GovernanceManifestError, match="invalid_artifact_path.*backslash"):
             parse_manifest(root)
         
         # Test semicolon
         manifest = [{"path": "src;rm -rf", "checksum": "sha256:" + "0"*64}]
         (root / ".coo-manifest.json").write_text(json.dumps(manifest))
-        with pytest.raises(ManifestValidationError, match="invalid_artifact_path"):
+        with pytest.raises(GovernanceManifestError, match="invalid_artifact_path"):
             parse_manifest(root)
         
         # Test pipe
         manifest = [{"path": "src|cat", "checksum": "sha256:" + "0"*64}]
         (root / ".coo-manifest.json").write_text(json.dumps(manifest))
-        with pytest.raises(ManifestValidationError, match="invalid_artifact_path"):
+        with pytest.raises(GovernanceManifestError, match="invalid_artifact_path"):
             parse_manifest(root)
 
 def test_valid_paths_with_spaces():

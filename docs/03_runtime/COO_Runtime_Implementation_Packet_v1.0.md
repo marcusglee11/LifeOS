@@ -3,9 +3,9 @@ IMPLEMENTATION PACKET v1.0
 Mechanical Execution Guide for COO Runtime v1.0
 Subordinate to:
 
-LifeOS v1.1
+LifeOS Constitution v2.0
 
-Alignment Layer v1.4
+Governance Protocol v1.0
 
 COO Runtime Spec v1.0
 Prepared for: Antigravity
@@ -42,8 +42,8 @@ Required integration points with Antigravity’s build system
 No governance or decision-making authority exists in this document.
 
 1. SUBORDINATION CLAUSE
-LifeOS v1.1 is supreme.  
-Alignment Layer v1.4 and COO Runtime Spec v1.0 define all governance, sequencing, authority, and determinism.  
+LifeOS Constitution v2.0 is supreme.  
+Governance Protocol v1.0 and COO Runtime Spec v1.0 define all governance, sequencing, authority, and determinism.  
 This Implementation Packet defines only mechanical behaviour.  
 If any instruction conflicts with a superior document, this packet yields without exception.
 

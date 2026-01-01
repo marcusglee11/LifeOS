@@ -21,9 +21,10 @@ Implement a minimal, reliable governance stewardship system where GitHub is the 
 ## Files Touched (Summary)
 
 MODIFIED_FILES:
-- docs/governance/ARTEFACT_INDEX.json
-- docs/.pending_root_files/validate_governance_index.py
-- docs/10_meta/GOVERNANCE_STEWARDSHIP_REVIEW_PACKET_v1.0.txt (Internal recreation)
+- docs/01_governance/ARTEFACT_INDEX.json
+- tools/validate_governance_index.py
+- .github/workflows/validate-governance-index.yml
+- .github/PULL_REQUEST_TEMPLATE.md
 
 # 2. IMPLEMENTATION PLAN MAPPING
 

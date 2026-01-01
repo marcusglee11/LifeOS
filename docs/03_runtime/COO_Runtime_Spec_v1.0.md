@@ -1,7 +1,7 @@
 COO RUNTIME SPECIFICATION v1.0
 
 Mechanical Execution Contract for the LifeOS Runtime
-Status: Subordinate to LifeOS v1.1 and Alignment Layer v1.4
+Status: Subordinate to LifeOS Constitution v2.0 and Governance Protocol v1.0
 Purpose: Define the exact deterministic behaviour, state model, and execution rules for the COO Runtime.
 
 ## Patches Applied
@@ -30,12 +30,12 @@ All ambiguity MUST escalate to CEO via QUESTION.
 
 The COO Runtime is subordinate to:
 
-LifeOS v1.1
-Alignment Layer v1.4
+LifeOS Constitution v2.0
+Governance Protocol v1.0
 This COO Runtime Spec v1.0
 Implementation Pack v1.0
 
-If any instruction contradicts LifeOS v1.1 or Alignment Layer v1.4, it MUST halt and escalate.
+If any instruction contradicts Constitution v2.0 or Governance Protocol v1.0, it MUST halt and escalate.
 
 1.2 Role Boundaries
 

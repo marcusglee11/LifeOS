@@ -3,7 +3,7 @@ name: Validate Governance Index
 on:
   pull_request:
     paths:
-      - 'docs/governance/**'
+      - 'docs/01_governance/**'
       - 'tools/validate_governance_index.py'
       - '.github/workflows/validate-governance-index.yml'
 

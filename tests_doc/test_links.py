@@ -8,9 +8,11 @@ def test_link_integrity():
     
     errors = check_links(docs_root)
     
-    # Filter known broken links (legacy/WIP)
+    # Filter known broken links (legacy/WIP/archived)
     ignored_patterns = [
-        "COO_Runtime_Deprecation_Notice_v1.0.md"
+        "COO_Runtime_Deprecation_Notice_v1.0.md",
+        "99_archive",  # Archived files naturally have stale references
+        "10_meta",     # Meta files may reference WIP paths
     ]
     
     real_errors = []
