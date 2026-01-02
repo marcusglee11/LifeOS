@@ -121,3 +121,4 @@ Once the checklist above is complete and you are satisfied that the filesystem m
 - **Statement:**  
 
 > I confirm that Phase 1 — Reversioning & Deprecation Audit has been executed according to REVERSION_PLAN_v1.0, and that the `/docs` tree is now the sole canonical documentation tree for LifeOS. All deprecated and legacy artefacts have been either archived under `docs/99_archive/` or left in external repositories as explicitly non-canonical.
+

@@ -827,7 +827,7 @@ if __name__ == "__main__":
 ### File: tests_recursive/test_steward_runner.py
 
 > [!NOTE]
-> Full file is 529 lines. Key sections shown below. Full file available at [test_steward_runner.py](file:///c:/Users/cabra/Projects/LifeOS/tests_recursive/test_steward_runner.py).
+> Full file is 529 lines. Key sections shown below. Full file available at [test_steward_runner.py](tests_recursive/test_steward_runner.py).
 
 ```python
 #!/usr/bin/env python3
@@ -917,3 +917,4 @@ class TestAT10LogDeterminism:
 ---
 
 ## End of Review Packet
+

@@ -44,3 +44,4 @@ Provide a unified mental model for:
 ## 5. Relationship to Implementation
 This describes the *conceptual model*.  
 The COOSpec defines the actual runtime mechanics: SQLite message bus, deterministic lifecycle, Docker sandbox, and agent orchestration.
+

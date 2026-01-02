@@ -105,7 +105,7 @@ Conducted systematic audit of GEMINI.md to identify requirements lacking enforce
 ### File: GEMINI.md
 
 > [!NOTE]
-> Full file is 498 lines. Key new sections shown. Full file at [GEMINI.md](file:///c:/Users/cabra/Projects/LifeOS/GEMINI.md).
+> Full file is 498 lines. Key new sections shown. Full file at [GEMINI.md](GEMINI.md).
 
 #### Article VII — Prohibited Actions (lines 281-296)
 
@@ -221,8 +221,9 @@ This protocol triggers automatically when:
 
 ### File: artifacts/GapAnalysis_Constitutional_Enforcement_v0.1.md
 
-Full file available at [GapAnalysis_Constitutional_Enforcement_v0.1.md](file:///c:/Users/cabra/Projects/LifeOS/artifacts/GapAnalysis_Constitutional_Enforcement_v0.1.md).
+Full file available at [GapAnalysis_Constitutional_Enforcement_v0.1.md](artifacts/GapAnalysis_Constitutional_Enforcement_v0.1.md).
 
 ---
 
 ## End of Review Packet
+

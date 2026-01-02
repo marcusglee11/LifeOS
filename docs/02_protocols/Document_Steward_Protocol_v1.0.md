@@ -19,7 +19,7 @@ Per Constitution v2.0:
 The CEO must never manually shuffle documents, update indices, or run git commands. If the CEO is doing these things, it is a governance violation.
 
 **Canonical Locations**:
-1. **Local Repository**: `c:\Users\cabra\Projects\LifeOS\docs`
+1. **Local Repository**: `docs`
 2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
 3. **Google Drive**: https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5
 
@@ -118,7 +118,7 @@ git push origin main
 Google Drive for Desktop is configured to automatically sync the local repository to Google Drive.
 
 **Configuration:**
-- **Local folder**: `C:\Users\cabra\Projects\LifeOS\docs`
+- **Local folder**: `docs`
 - **Drive folder**: [LifeOS/docs](https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5)
 - **Sync mode**: Mirror (bidirectional)
 
@@ -201,3 +201,4 @@ If sync requires more than 2 human steps, the workflow must be automated.
 ---
 
 **END OF PROTOCOL**
+

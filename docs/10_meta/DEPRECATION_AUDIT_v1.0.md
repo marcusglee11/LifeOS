@@ -165,3 +165,4 @@ After Phase 1:
 - Anything under `/docs/99_archive/legacy_structures/` is a legacy layout that must not be used as a source of truth.
 - Any artefact that lives only in COOProject or governance-hub is **non-canonical** unless explicitly imported into `/docs` in a future phase.
 - Phase 2+ may promote selected external artefacts into `/docs` using strict `_vX.Y` naming and explicit index entries.
+

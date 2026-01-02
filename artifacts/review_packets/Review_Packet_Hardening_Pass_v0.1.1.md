@@ -1873,3 +1873,4 @@ def test_suite_result_is_fully_serialisable():
     assert isinstance(h, str)
     assert len(h) == 64
 ```
+

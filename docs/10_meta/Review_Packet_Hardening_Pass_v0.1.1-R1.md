@@ -13,7 +13,7 @@ All 101/101 Tier-2 tests passed successfully after resolving the `MappingProxyTy
 - Resolved `TypeError: Object of type mappingproxy is not JSON serializable` in 4 test modules.
 - Verified removal of `stdout` usage in `engine.py` (Envelope Violation fix).
 - Confirmed full Determinism and Immutability compliance across the suite.
-- Generated comprehensive Test Report: [Tier-2_Test_Report_v0.1.1-R1.md](file:///C:/Users/cabra/.gemini/antigravity/brain/a9d3454a-28c2-474e-96fc-070dce7014fb/Tier-2_Test_Report_v0.1.1-R1.md)
+- Generated comprehensive Test Report: [Tier-2_Test_Report_v0.1.1-R1.md]([artifact]/Tier-2_Test_Report_v0.1.1-R1.md)
 
 ## 2. Issue Catalogue & Resolutions
 
@@ -166,3 +166,4 @@ def test_determinism_and_metadata(sample_suite_result):
         }
     # ...
 ```
+

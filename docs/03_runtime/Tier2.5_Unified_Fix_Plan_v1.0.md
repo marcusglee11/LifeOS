@@ -128,3 +128,4 @@ To respect all identified nits while not blocking activation, Council adopts the
 All items F1–F7 are **non-blocking** for Tier-2 certification and Tier-2.5 activation, but are adopted as **binding follow-up work** for Tier-2.5.
 
 Completion of F3, F4, and F7 is required before full-scale Tier-2.5 operations commence.
+

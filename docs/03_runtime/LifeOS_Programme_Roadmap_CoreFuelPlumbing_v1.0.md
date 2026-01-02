@@ -239,3 +239,4 @@ Anything not clearly contributing to external leverage, agency, autonomy, wealth
 ---
 
 **End of LifeOS Programme Roadmap — Core/Fuel/Plumbing v1.0**
+

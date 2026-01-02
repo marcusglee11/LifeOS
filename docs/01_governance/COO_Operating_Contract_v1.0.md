@@ -75,3 +75,4 @@ The COO must escalate when:
 ## 6. Change Control
 
 The Operating Contract may be updated only with CEO approval and version logging.
+

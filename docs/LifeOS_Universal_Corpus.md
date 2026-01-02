@@ -834,7 +834,7 @@ Per Constitution v2.0:
 The CEO must never manually shuffle documents, update indices, or run git commands. If the CEO is doing these things, it is a governance violation.
 
 **Canonical Locations**:
-1. **Local Repository**: `c:\Users\cabra\Projects\LifeOS\docs`
+1. **Local Repository**: `docs`
 2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
 3. **Google Drive**: https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5
 
@@ -933,7 +933,7 @@ git push origin main
 Google Drive for Desktop is configured to automatically sync the local repository to Google Drive.
 
 **Configuration:**
-- **Local folder**: `C:\Users\cabra\Projects\LifeOS\docs`
+- **Local folder**: `docs`
 - **Drive folder**: [LifeOS/docs](https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5)
 - **Sync mode**: Mirror (bidirectional)
 
@@ -5256,9 +5256,9 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 1. Secret Scrubbing (`structlog` Integration)
 **Files Modified:**
-- [coo/logging_utils.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/logging_utils.py) - NEW
-- [coo/main.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/main.py)
-- [tests/unit/test_scrubbing.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/unit/test_scrubbing.py) - NEW
+- [coo/logging_utils.py](coo-agent/coo/logging_utils.py) - NEW
+- [coo/main.py](coo-agent/coo/main.py)
+- [tests/unit/test_scrubbing.py](coo-agent/tests/unit/test_scrubbing.py) - NEW
 
 **Implementation:**
 - Created `scrub_secrets` processor for `structlog` that redacts sensitive information from logs
@@ -5272,8 +5272,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 2. Timeline Events
 **Files Modified:**
-- [coo/message_store.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/message_store.py)
-- [coo/orchestrator.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/orchestrator.py)
+- [coo/message_store.py](coo-agent/coo/message_store.py)
+- [coo/orchestrator.py](coo-agent/coo/orchestrator.py)
 
 **Implementation:**
 - Added `log_timeline_event(mission_id, event_type, data)` method to `MessageStore`
@@ -5290,8 +5290,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 3. CLI Commands
 **Files Modified:**
-- [coo/cli.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/cli.py)
-- [tests/unit/test_cli.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/unit/test_cli.py) - NEW
+- [coo/cli.py](coo-agent/coo/cli.py)
+- [tests/unit/test_cli.py](coo-agent/tests/unit/test_cli.py) - NEW
 
 **Commands Implemented:**
 - `coo mission <id>` - Show mission details, budget, and recent timeline
@@ -5310,8 +5310,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 4. Approval Flow & CONTROL Messages
 **Files Modified:**
-- [coo/agents/real_agents.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/agents/real_agents.py)
-- [coo/cli.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/cli.py)
+- [coo/agents/real_agents.py](coo-agent/coo/agents/real_agents.py)
+- [coo/cli.py](coo-agent/coo/cli.py)
 
 **Implementation:**
 - `RealCOO` now intercepts `CONTROL` messages before calling LLM
@@ -5325,8 +5325,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 5. Backpressure Hard Pause
 **Files Modified:**
-- [coo/message_store.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/message_store.py)
-- [tests/unit/test_control_flow.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/unit/test_control_flow.py) - NEW
+- [coo/message_store.py](coo-agent/coo/message_store.py)
+- [tests/unit/test_control_flow.py](coo-agent/tests/unit/test_control_flow.py) - NEW
 
 **Implementation:**
 - Modified `claim_pending_messages` to exclude messages from paused missions
@@ -5340,8 +5340,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 6. Sandbox Crash Recovery
 **Files Modified:**
-- [coo/sandbox.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/sandbox.py)
-- [coo/orchestrator.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/orchestrator.py)
+- [coo/sandbox.py](coo-agent/coo/sandbox.py)
+- [coo/orchestrator.py](coo-agent/coo/orchestrator.py)
 
 **Implementation:**
 - `recover_crashed_runs` marks stale sandbox runs as failed
@@ -5354,7 +5354,7 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 7. Integration Testing
 **Files Created:**
-- [tests/integration/test_full_system.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/integration/test_full_system.py) - NEW
+- [tests/integration/test_full_system.py](coo-agent/tests/integration/test_full_system.py) - NEW
 
 **Implementation:**
 - Full system integration test using `DummyAgents`
@@ -12890,27 +12890,27 @@ Enhance system observability with structured logging (`structlog`) and timeline 
 ## Proposed Changes
 
 ### Observability
-#### [MODIFY] [coo/main.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/main.py)
+#### [MODIFY] [coo/main.py](coo-agent/coo/main.py)
 - Configure `structlog` with:
     - JSON renderer.
     - Timestamp, level, logger name.
     - **Secret Scrubbing**: Processor to redact API keys and sensitive data.
 
-#### [MODIFY] [coo/message_store.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/message_store.py)
+#### [MODIFY] [coo/message_store.py](coo-agent/coo/message_store.py)
 - **`log_timeline_event`**: New method to insert into `timeline_events` table.
 - Call this method from `Orchestrator` and `Agents` for major lifecycle events (mission start, task complete, budget warning).
 
 ### CLI & Operations
-#### [MODIFY] [coo/cli.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/cli.py)
+#### [MODIFY] [coo/cli.py](coo-agent/coo/cli.py)
 - **`mission <id>`**: Show status, budget usage, and recent timeline.
 - **`logs <id>`**: Dump structured logs or timeline events for a mission.
 - **`dlq replay <id>`**: Replay a failed message from Dead Letter Queue.
 
 ### Hardening
-#### [NEW] [tests/unit/test_scrubbing.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/unit/test_scrubbing.py)
+#### [NEW] [tests/unit/test_scrubbing.py](coo-agent/tests/unit/test_scrubbing.py)
 - Verify that `structlog` processor correctly redacts secrets from logs.
 
-#### [NEW] [tests/integration/test_full_system.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/integration/test_full_system.py)
+#### [NEW] [tests/integration/test_full_system.py](coo-agent/tests/integration/test_full_system.py)
 - Full integration test running the Orchestrator against a real (or mocked) LLM and Sandbox, verifying the entire lifecycle including timeline events.
 
 ## Verification Plan
@@ -15593,10 +15593,10 @@ Author: Assistant (under CEO direction)
 ### 0.1. Source paths
 
 - **Authoritative tree (only source of truth for docs):**  
-  `C:\Users\cabra\Projects\LifeOS\docs\`
+  `docs\`
 
 - **Non-authoritative but in-scope for audit (stragglers / legacy):**
-  - `C:\Users\cabra\Projects\LifeOS\` (outside `/docs`)
+  - `` (outside `/docs`)
   - `C:\Users\cabra\Projects\COOProject\`
   - `C:\Users\cabra\Projects\governance-hub\`
 
@@ -15942,7 +15942,7 @@ Note: All specs within these directories are thereby deprecated for Phase 1 and 
 
 ## 3. Stragglers in LifeOS Root (outside `/docs`)
 
-Markdown artefacts under `C:\Users\cabra\Projects\LifeOS\` outside `docs\`:
+Markdown artefacts under `` outside `docs\`:
 
 - `Concept\Distilled Opus Abstract.md`
 - `Concept\Opus LifeOS Audit Prompt and Response.md`
@@ -16224,7 +16224,7 @@ All 101/101 Tier-2 tests passed successfully after resolving the `MappingProxyTy
 - Resolved `TypeError: Object of type mappingproxy is not JSON serializable` in 4 test modules.
 - Verified removal of `stdout` usage in `engine.py` (Envelope Violation fix).
 - Confirmed full Determinism and Immutability compliance across the suite.
-- Generated comprehensive Test Report: [Tier-2_Test_Report_v0.1.1-R1.md](file:///C:/Users/cabra/.gemini/antigravity/brain/a9d3454a-28c2-474e-96fc-070dce7014fb/Tier-2_Test_Report_v0.1.1-R1.md)
+- Generated comprehensive Test Report: [Tier-2_Test_Report_v0.1.1-R1.md]([artifact]/Tier-2_Test_Report_v0.1.1-R1.md)
 
 ## 2. Issue Catalogue & Resolutions
 
@@ -19330,3 +19330,4 @@ Archived documents are in `99_archive/`. Key locations:
 | `08_manuals/` | Manuals |
 | `09_prompts/` | Prompt templates and protocols |
 | `10_meta/` | Meta documents, reviews, tasks |
+

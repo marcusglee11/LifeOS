@@ -22,7 +22,7 @@ MINI DIGEST LOG — INGESTED FILES (RAW INDEX)
 
 1. LifeOS / Governance Layer
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\Governance\
+Path: docs\Governance\
 
 Constitutional Core
 
@@ -114,7 +114,7 @@ Governance Load Balancer v1.0.md — Governance Routing Infrastructure
 
 2. LifeOS / Specs Layer
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\Specs\
+Path: docs\Specs\
 
 Alignment_Layer_v1.4.md — Alignment (Newer Variant)
 
@@ -128,7 +128,7 @@ LifeOS v1.0 — Full Specification.md — Constitutional Evolution Line
 
 3. LifeOS / Concept
 
-Path: C:\Users\cabra\Projects\LifeOS\Concept\
+Path: Concept\
 
 Distilled Opus Abstract.md — Conceptual Audit
 
@@ -138,25 +138,25 @@ Opus LifeOS Audit Prompt 2 and Response.md — External Audit
 
 4. LifeOS / Pipelines
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\pipelines\outward-facing\
+Path: docs\pipelines\outward-facing\
 
 Combined_Pipeline_For_Outward_Facing_Product_Generation_v1.md — Externalisation Pipeline
 
 5. LifeOS / CommunicationsProtocols
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\CommunicationsProtocols\
+Path: docs\CommunicationsProtocols\
 
 Communication_Protocol_v1.md — Protocol Layer
 
 6. LifeOS / Runtime
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\Runtime\
+Path: docs\Runtime\
 
 Runtime–Subsystem Builder Interface v1.0.md — Runtime ↔ PB Bridge
 
 7. LifeOS / CSO Strategic Layer
 
-Path: C:\Users\cabra\Projects\LifeOS\CSO Strategic Layer\
+Path: CSO Strategic Layer\
 
 ChatGPTProjectPrimer.md — Ops Primer
 
@@ -168,7 +168,7 @@ Intent Routing Rule v1.0.md — Routing Layer (Mirror)
 
 8. LifeOS / Productisation
 
-Path: C:\Users\cabra\Projects\LifeOS\Productisation\
+Path: Productisation\
 
 PRODUCTISATION BRIEF v1.md — Product Strategy
 
