@@ -1,10 +1,50 @@
-__pycache__/ 
-*.pyc 
-.env 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
 
-# Steward runner logs (required for require_clean_start=true)
-logs/steward_runner/
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.*
+
+# Private keys & credentials
+*.pem
+*.key
+credentials.json
+**/secrets.json
+**/secrets.yaml
+
+# Databases
+*.db
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
 
 # Test artifacts
 test_budget_concurrency.db
 tests/_artifacts/
+
+# Temp files
+*.tmp
+.tmp/

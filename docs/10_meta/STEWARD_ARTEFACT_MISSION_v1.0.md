@@ -55,3 +55,4 @@ Persist a canonical LifeOS artefact into the repo, update registry/index, commit
 
 ### 7. Summary
 - Emit summary confirming stewardship and sync.
+

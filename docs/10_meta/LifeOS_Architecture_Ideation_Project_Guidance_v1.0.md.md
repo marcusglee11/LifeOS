@@ -425,3 +425,4 @@ These remain open to design, provided they respect:
 * **Next logical step (conceptually):** drafting or updating the LifeOS v1 architecture/spec to embody the Fix Plan items and making conformance testable.
 
 No operational execution is authorised or directed by this ruling; it defines **architectural and governance conditions** only.
+

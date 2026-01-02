@@ -37,3 +37,4 @@ If the substrate is unstable (e.g., human is doing manual work):
 2. **Delegate**: Write a script to handle the manual step.
 3. **Verify**: Ensure the script runs without human intervention.
 4. **Resume**: Only after the invariant is restored.
+

@@ -711,3 +711,4 @@ def test_h002_checkpoint_round_trip():
         assert fsm2.current_state == saved_state
         assert fsm2.history == saved_history
 ```
+

@@ -805,3 +805,4 @@ This document is intended as a candidate architecture to be:
 1. Compared with alternative architectures (e.g. Gemini’s draft).
 2. Synthesised into a consolidated hybrid architecture.
 3. Submitted to the Governance Council as a CRP input for canonicalisation.
+

@@ -19,3 +19,4 @@ The authoritative implementation of the COO Runtime now resides in this reposito
 
 ## 4. History
 This migration was performed in December 2025 to consolidate the "LifeOS Kernel" into a single, deterministic monorepo.
+

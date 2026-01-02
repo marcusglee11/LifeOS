@@ -34,3 +34,4 @@ If any threshold is breached:
 1. The Runtime flags the breach.
 2. The Agent proposes a **Simplification Plan** (not just "doing the work").
 3. New work halts until complexity is reduced.
+

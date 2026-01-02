@@ -10,3 +10,4 @@
 6. Ask before expanding breadth or depth.
 7. If uncertain about user intent, ask instead of inferring.
 8. When the user shifts into actionable tasks, confirm whether to begin StepGate in a new thread.
+

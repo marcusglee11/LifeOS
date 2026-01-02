@@ -1259,3 +1259,4 @@ A Project Builder implementation is considered correct if it satisfies:
    - Snapshot queries use the JSON1 extension where required.
 
 This v0.8 specification incorporates all remaining council-required fixes and is intended to be LOCKED for implementation.
+

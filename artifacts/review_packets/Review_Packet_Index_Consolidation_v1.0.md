@@ -99,10 +99,10 @@ Author: Assistant (under CEO direction)
 ### 0.1. Source paths
 
 - **Authoritative tree (only source of truth for docs):**  
-  `C:\Users\cabra\Projects\LifeOS\docs\`
+  `docs\`
 
 - **Non-authoritative but in-scope for audit (stragglers / legacy):**
-  - `C:\Users\cabra\Projects\LifeOS\` (outside `/docs`)
+  - `` (outside `/docs`)
   - `C:\Users\cabra\Projects\COOProject\`
   - `C:\Users\cabra\Projects\governance-hub\`
 
@@ -448,7 +448,7 @@ Note: All specs within these directories are thereby deprecated for Phase 1 and 
 
 ## 3. Stragglers in LifeOS Root (outside `/docs`)
 
-Markdown artefacts under `C:\Users\cabra\Projects\LifeOS\` outside `docs\`:
+Markdown artefacts under `` outside `docs\`:
 
 - `Concept\Distilled Opus Abstract.md`
 - `Concept\Opus LifeOS Audit Prompt and Response.md`
@@ -863,3 +863,4 @@ Once the checklist above is complete and you are satisfied that the filesystem m
 
 > I confirm that Phase 1 — Reversioning & Deprecation Audit has been executed according to REVERSION_PLAN_v1.0, and that the `/docs` tree is now the sole canonical documentation tree for LifeOS. All deprecated and legacy artefacts have been either archived under `docs/99_archive/` or left in external repositories as explicitly non-canonical.
 ```
+

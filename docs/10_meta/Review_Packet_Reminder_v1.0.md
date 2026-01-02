@@ -77,3 +77,4 @@ Just make it part of your completion checklist:
 3. ✅ Walkthrough written
 4. ✅ **Review packet generated** ← `/generate_review_packet`
 5. ✅ Ready for Council review
+

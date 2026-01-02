@@ -536,3 +536,4 @@ def test_fp005_verifier_default_cwd():
 ✅ Builder has no cwd dependence  
 ✅ Verifier accepts optional cwd  
 ✅ All tests pass (26 total)
+

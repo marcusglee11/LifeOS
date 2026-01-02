@@ -397,3 +397,4 @@ These items can be batched into a future “Tier-2 Orchestration Hardening” mi
 2. **Code hygiene**: BLD-H6, HB-T2-REG-04, HB-T2-HAR-02, HB-T2-SUITE-01, HB-T2-SUITE-02, HB-T2-EXP-01, HB-T2-EXP-03, HB-T2-EXP-05, HB-T2-TRUN-01.
 3. **Low-risk code hardening**: DLR-H3, BLD-H2, ORCH-H2, HB-T2-REG-01, HB-T2-REG-02, HB-T2-REG-03, HB-T2-HAR-03, HB-T2-SUITE-03, HB-T2-EXP-02, HB-T2-EXP-04, HB-T2-TRUN-02, HB-T2-TRUN-03.
 4. **Design extensions**: ORCH-H3, BLD-H1, BLD-H4, ORCH-H1 (if tightening op set).
+

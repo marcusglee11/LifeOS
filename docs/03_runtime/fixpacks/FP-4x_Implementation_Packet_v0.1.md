@@ -118,3 +118,4 @@
 - [ ] Governance surface validation works
 - [ ] Health checks and halt procedure integrated
 - [ ] DAP and INDEX use shared detsort utilities
+

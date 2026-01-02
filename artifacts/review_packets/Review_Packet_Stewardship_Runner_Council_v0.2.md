@@ -86,10 +86,10 @@ AT-11 PASSED — Test scope enforcement (P0-1)
 
 | File | Change |
 |------|--------|
-| [steward_runner.py](file:///c:/Users/cabra/Projects/LifeOS/scripts/steward_runner.py) | P0-1, P1-1, P1-2, P2-2 |
-| [steward_runner.yaml](file:///c:/Users/cabra/Projects/LifeOS/config/steward_runner.yaml) | P1-3, P2-2, Contract docs |
-| [.gitignore](file:///c:/Users/cabra/Projects/LifeOS/.gitignore) | P0-2 |
-| [test_steward_runner.py](file:///c:/Users/cabra/Projects/LifeOS/tests_recursive/test_steward_runner.py) | AT-11 |
+| [steward_runner.py](scripts/steward_runner.py) | P0-1, P1-1, P1-2, P2-2 |
+| [steward_runner.yaml](config/steward_runner.yaml) | P1-3, P2-2, Contract docs |
+| [.gitignore](.gitignore) | P0-2 |
+| [test_steward_runner.py](tests_recursive/test_steward_runner.py) | AT-11 |
 
 ---
 
@@ -147,3 +147,4 @@ logs/steward_runner/
 ---
 
 ## End of Review Packet
+

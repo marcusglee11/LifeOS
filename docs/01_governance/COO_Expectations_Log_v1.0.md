@@ -49,3 +49,4 @@ Refine the COO’s behaviour based on Sir’s preferences.
 - Consolidate outputs into single artefacts.
 - Carry context proactively.
 - Recommend alternatives when workflows increase friction.
+

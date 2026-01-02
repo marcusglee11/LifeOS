@@ -3456,38 +3456,38 @@ def test_test_run_does_not_mutate_definitions():
 
 ### 1. Orchestrator & Builder & Daily Loop
 
-#### [MODIFY] [runtime/orchestration/engine.py](file:///c:/Users/cabra/Projects/LifeOS/runtime/orchestration/engine.py)
+#### [MODIFY] [runtime/orchestration/engine.py](runtime/orchestration/engine.py)
 - [x] Snapshot `executed_steps` in `OrchestrationResult` during appending (use `deepcopy`).
 
-#### [MODIFY] [runtime/orchestration/builder.py](file:///c:/Users/cabra/Projects/LifeOS/runtime/orchestration/builder.py)
+#### [MODIFY] [runtime/orchestration/builder.py](runtime/orchestration/builder.py)
 - [x] Canonicalise `params` (sorted new dict) before passing to builders.
 - [x] Ensure `build_workflow` does not mutate caller's `mission.params`.
 
-#### [MODIFY] [runtime/orchestration/daily_loop.py](file:///c:/Users/cabra/Projects/LifeOS/runtime/orchestration/daily_loop.py)
+#### [MODIFY] [runtime/orchestration/daily_loop.py](runtime/orchestration/daily_loop.py)
 - [x] Defensive copy of `params` at function entry.
 
 ### 2. Registry & Harness
 
-#### [MODIFY] [runtime/orchestration/registry.py](file:///c:/Users/cabra/Projects/LifeOS/runtime/orchestration/registry.py)
+#### [MODIFY] [runtime/orchestration/registry.py](runtime/orchestration/registry.py)
 - [x] Enforce `workflow.id` == `workflow.name` (autofill or raise error).
 - [x] Add comment: `MISSION_REGISTRY` is static/read-only at runtime.
 
-#### [MODIFY] [runtime/orchestration/harness.py](file:///c:/Users/cabra/Projects/LifeOS/runtime/orchestration/harness.py)
+#### [MODIFY] [runtime/orchestration/harness.py](runtime/orchestration/harness.py)
 - [x] Update `ScenarioResult` to use `Mapping` for `mission_results`/`metadata`.
 - [x] Implement `ScenarioResult.to_dict()` -> `{"scenario_name": ..., "mission_results": {name: res.to_dict()}, "metadata": ...}`.
 
 ### 3. Suite, Expectations, Test Run
 
-#### [MODIFY] [runtime/orchestration/suite.py](file:///c:/Users/cabra/Projects/LifeOS/runtime/orchestration/suite.py)
+#### [MODIFY] [runtime/orchestration/suite.py](runtime/orchestration/suite.py)
 - [x] Update `ScenarioSuiteResult` to use `Mapping`.
 - [x] Expose `to_dict` friendly structure (via `test_run` or internal helper).
 
-#### [MODIFY] [runtime/orchestration/expectations.py](file:///c:/Users/cabra/Projects/LifeOS/runtime/orchestration/expectations.py)
+#### [MODIFY] [runtime/orchestration/expectations.py](runtime/orchestration/expectations.py)
 - [x] `SuiteExpectationsDefinition.expectations`: Change `List` to `Tuple`.
 - [x] `__init__`: Enforce unique IDs (raise `ValueError`).
 - [x] `_evaluate_op`: Clean up unreachable logic.
 
-#### [MODIFY] [runtime/orchestration/test_run.py](file:///c:/Users/cabra/Projects/LifeOS/runtime/orchestration/test_run.py)
+#### [MODIFY] [runtime/orchestration/test_run.py](runtime/orchestration/test_run.py)
 - [x] `TestRunResult`: Update types to `Mapping`.
 - [x] `to_dict()`: Implement canonical serialisation.
 - [x] `metadata`: Ensure `test_run_hash` includes `suite_name` and full result tree hash.
@@ -3552,6 +3552,7 @@ Full regression test suite passed (100% success rate).
 - [Implementation Plan](Implementation_Plan_FP-3.1-REV2.md)
 - [Review Packet](Review_Packet_Hardening_Pass_v0.1.md)
 ```
+
 
 
 

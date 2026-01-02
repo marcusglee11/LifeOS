@@ -12,10 +12,10 @@ Author: Assistant (under CEO direction)
 ### 0.1. Source paths
 
 - **Authoritative tree (only source of truth for docs):**  
-  `C:\Users\cabra\Projects\LifeOS\docs\`
+  `docs\`
 
 - **Non-authoritative but in-scope for audit (stragglers / legacy):**
-  - `C:\Users\cabra\Projects\LifeOS\` (outside `/docs`)
+  - `` (outside `/docs`)
   - `C:\Users\cabra\Projects\COOProject\`
   - `C:\Users\cabra\Projects\governance-hub\`
 
@@ -361,7 +361,7 @@ Note: All specs within these directories are thereby deprecated for Phase 1 and 
 
 ## 3. Stragglers in LifeOS Root (outside `/docs`)
 
-Markdown artefacts under `C:\Users\cabra\Projects\LifeOS\` outside `docs\`:
+Markdown artefacts under `` outside `docs\`:
 
 - `Concept\Distilled Opus Abstract.md`
 - `Concept\Opus LifeOS Audit Prompt and Response.md`
@@ -621,3 +621,4 @@ Once the CEO is satisfied, they approve Gate 2 by instructing:
 > `go (Gate 3)`
 
 which authorises the generation of scripts, the execution log template, the full deprecation audit, and the new index.
+
