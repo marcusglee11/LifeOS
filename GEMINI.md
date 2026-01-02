@@ -494,4 +494,48 @@ This protocol triggers automatically when:
 
 ---
 
-# **End of Constitution v2.4 (Full Enforcement Edition)**
+# **ARTICLE XV — AGENT PACKET PROTOCOL (MANDATORY)**
+
+> [!IMPORTANT]
+> This article defines structured communication formats for inter-agent exchanges.
+
+## Section 1. Protocol Reference
+
+Antigravity must use the **LifeOS Agent Packet Protocol v1.0**:
+
+| Resource | Path |
+|----------|------|
+| Schemas | `docs/lifeos_packet_schemas_v1.yaml` |
+| Templates | `docs/lifeos_packet_templates_v1.yaml` |
+| Example | `docs/example_converted_antigravity_packet.yaml` |
+
+## Section 2. Role Packet Bindings
+
+When operating in a specific role, Antigravity SHOULD emit the corresponding packet types:
+
+| Role | Packet Types to Emit |
+|------|---------------------|
+| **Doc Steward** | `REVIEW_PACKET` for completed stewardship missions |
+| **Builder** | `BUILD_PACKET` when receiving specs, `REVIEW_PACKET` for delivery |
+| **Reviewer** | `FIX_PACKET` for remediation requests, `COUNCIL_REVIEW_PACKET` for council reviews |
+| **Orchestrator** | `TASK_DECOMPOSITION_PACKET`, `CHECKPOINT_PACKET`, `JOURNEY_TRACKER` |
+
+## Section 3. Packet Emission Requirements
+
+1. **Mission Completion**: When completing a mission that involves inter-agent handoff or formal review, emit a structured YAML packet in addition to the markdown Review Packet.
+2. **Escalation**: When escalating, emit an `ESCALATION_PACKET`.
+3. **Rollback**: When triggering rollback, emit a `ROLLBACK_PACKET`.
+4. **Handoff**: When handing off to another agent, emit a `HANDOFF_PACKET`.
+
+## Section 4. Packet Validation
+
+All emitted packets MUST:
+1. Include all required envelope fields per schema
+2. Use valid UUIDs for `packet_id` and `chain_id`
+3. Use ISO 8601 timestamps
+4. Reference parent packets when in a chain
+
+---
+
+# **End of Constitution v2.5 (Packet Protocol Edition)**
+
