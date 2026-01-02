@@ -16,8 +16,8 @@ Author: Assistant (under CEO direction)
 
 - **Non-authoritative but in-scope for audit (stragglers / legacy):**
   - `` (outside `/docs`)
-  - `C:\Users\cabra\Projects\COOProject\`
-  - `C:\Users\cabra\Projects\governance-hub\`
+  - `[LOCAL]\\Projects\COOProject\`
+  - `[LOCAL]\\Projects\governance-hub\`
 
 ### 0.2. CEO policy decisions (locked)
 
@@ -445,7 +445,7 @@ Action:
 
 Repository:
 
-- `C:\Users\cabra\Projects\governance-hub\`
+- `[LOCAL]\\Projects\governance-hub\`
 
 Key markdown structures:
 
@@ -472,7 +472,7 @@ These largely mirror `/docs/09_prompts/v1.0/`.
 
 Repository:
 
-- `C:\Users\cabra\Projects\COOProject\`
+- `[LOCAL]\\Projects\COOProject\`
 
 High-level clusters (per scan) include:
 
@@ -621,4 +621,5 @@ Once the CEO is satisfied, they approve Gate 2 by instructing:
 > `go (Gate 3)`
 
 which authorises the generation of scripts, the execution log template, the full deprecation audit, and the new index.
+
 

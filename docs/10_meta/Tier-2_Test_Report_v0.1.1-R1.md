@@ -22,7 +22,7 @@ All tests passed, confirming that the Anti-Failure, Determinism, and Immutabilit
 ============================= test session starts =============================
 platform win32 -- Python 3.12.6, pytest-8.3.4, pluggy-1.5.0 -- C:\Python312\python.exe
 cachedir: .pytest_cache
-rootdir: C:\Users\cabra\Projects\LifeOS
+rootdir: [LOCAL]\\Projects\LifeOS
 configfile: pytest.ini
 plugins: anyio-4.7.0, asyncio-1.3.0, cov-6.2.1, mockito-0.0.4
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
@@ -2577,4 +2577,5 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
     assert isinstance(json_payload, str)
 
 ```
+
 

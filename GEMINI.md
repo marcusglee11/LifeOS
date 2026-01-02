@@ -209,6 +209,14 @@ Drafts must:
 - Avoid speculative or ambiguous language.
 - Maintain internal consistency and cross-references.
 
+## Section 4. File Organization
+
+Antigravity must keep `docs/` root clean:
+1. Only `INDEX.md` and `LifeOS_Universal_Corpus.md` at root
+2. All other files must be in appropriate subdirectories
+3. When stewarding new files, move to correct location before indexing
+4. **Protocol files** → `docs/02_protocols/`
+
 ---
 
 # ARTICLE V — CODE & TESTING STEWARDSHIP
@@ -505,9 +513,9 @@ Antigravity must use the **LifeOS Agent Packet Protocol v1.0**:
 
 | Resource | Path |
 |----------|------|
-| Schemas | `docs/lifeos_packet_schemas_v1.yaml` |
-| Templates | `docs/lifeos_packet_templates_v1.yaml` |
-| Example | `docs/example_converted_antigravity_packet.yaml` |
+| Schemas | `docs/02_protocols/lifeos_packet_schemas_v1.yaml` |
+| Templates | `docs/02_protocols/lifeos_packet_templates_v1.yaml` |
+| Example | `docs/02_protocols/example_converted_antigravity_packet.yaml` |
 
 ## Section 2. Role Packet Bindings
 
