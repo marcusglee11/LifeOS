@@ -324,7 +324,7 @@ def run_change_detect(
 
 
 def normalize_commit_path(path: str) -> tuple[str, str | None]:
-    """
+    r"""
     Normalize a commit_paths entry per Commit Paths Contract.
     
     Returns (normalized_path, error_reason | None).

@@ -4,3 +4,7 @@ __pycache__/
 
 # Steward runner logs (required for require_clean_start=true)
 logs/steward_runner/
+
+# Test artifacts
+test_budget_concurrency.db
+tests/_artifacts/
