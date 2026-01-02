@@ -14,7 +14,7 @@ The `LifeOS_Roadmap_Packet_v1.0.md` has been successfully stewarded to `docs/03_
 
 ## Appendix — Flattened Code Snapshots
 
-### File: c:/Users/cabra/Projects/LifeOS/docs/03_runtime/LifeOS_Roadmap_Packet_v1.0.md
+### File: docs/03_runtime/LifeOS_Roadmap_Packet_v1.0.md
 ```markdown
 /LifeOS/docs/03_runtime/LifeOS_Roadmap_Packet_v1.0.md
 
@@ -527,7 +527,7 @@ Only after passing these can LifeOS be declared Tier 3 capable.
 End of LifeOS Roadmap Packet v1.0
 ```
 
-### File: c:/Users/cabra/Projects/LifeOS/docs/INDEX_v1.1.md
+### File: docs/INDEX_v1.1.md
 ```markdown
 # Documentation Index v1.1
 
@@ -650,4 +650,5 @@ End of LifeOS Roadmap Packet v1.0
 - [99_archive/legacy_structures/pipelines/outward-facing/Combined_Pipeline_For_Outward_Facing_Product_Generation_v1.md](./99_archive/legacy_structures/pipelines/outward-facing/Combined_Pipeline_For_Outward_Facing_Product_Generation_v1.md)
 - [INDEX.md](./INDEX.md)
 ```
+
 

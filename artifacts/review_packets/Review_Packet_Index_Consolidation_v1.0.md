@@ -103,8 +103,8 @@ Author: Assistant (under CEO direction)
 
 - **Non-authoritative but in-scope for audit (stragglers / legacy):**
   - `` (outside `/docs`)
-  - `C:\Users\cabra\Projects\COOProject\`
-  - `C:\Users\cabra\Projects\governance-hub\`
+  - `[LOCAL]\\Projects\COOProject\`
+  - `[LOCAL]\\Projects\governance-hub\`
 
 ### 0.2. CEO policy decisions (locked)
 
@@ -532,7 +532,7 @@ Action:
 
 Repository:
 
-- `C:\Users\cabra\Projects\governance-hub\`
+- `[LOCAL]\\Projects\governance-hub\`
 
 Key markdown structures:
 
@@ -559,7 +559,7 @@ These largely mirror `/docs/09_prompts/v1.0/`.
 
 Repository:
 
-- `C:\Users\cabra\Projects\COOProject\`
+- `[LOCAL]\\Projects\COOProject\`
 
 High-level clusters (per scan) include:
 
@@ -863,4 +863,5 @@ Once the checklist above is complete and you are satisfied that the filesystem m
 
 > I confirm that Phase 1 — Reversioning & Deprecation Audit has been executed according to REVERSION_PLAN_v1.0, and that the `/docs` tree is now the sole canonical documentation tree for LifeOS. All deprecated and legacy artefacts have been either archived under `docs/99_archive/` or left in external repositories as explicitly non-canonical.
 ```
+
 

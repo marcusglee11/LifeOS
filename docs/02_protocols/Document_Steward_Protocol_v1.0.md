@@ -86,6 +86,19 @@ Indices that must be kept current:
 - `docs/LifeOS_Universal_Corpus.md` — Universal corpus for AI/NotebookLM
 - Any subsystem-specific indexes
 
+### 3.5 File Organization
+
+When receiving or creating files:
+1. **Never leave files at `docs/` root** (except INDEX.md and corpus)
+2. Analyze file type and purpose
+3. Move to appropriate subdirectory per Directory Structure (Section 8)
+4. **Protocol files** (`*_Protocol_*.md`, packet schemas) → `02_protocols/`
+5. Update INDEX.md with correct paths after moving
+
+**Root files allowed**:
+- `INDEX.md` — Master documentation index
+- `LifeOS_Universal_Corpus.md` — Generated corpus
+
 ---
 
 ## 4. GitHub Sync Procedure
@@ -173,8 +186,8 @@ After any document operation, verify:
 ```
 docs/
 ├── 00_foundations/     ← Core principles, Constitution
-├── 01_governance/      ← Governance protocols, contracts
-├── 02_alignment/       ← (Empty after archive)
+├── 01_governance/      ← Contracts, policies, rulings, templates
+├── 02_protocols/       ← Protocols and agent communication schemas
 ├── 03_runtime/         ← Runtime specs, roadmaps, work plans
 ├── 04_project_builder/ ← Builder specs
 ├── 05_agents/          ← Agent architecture

@@ -174,7 +174,7 @@ PRODUCTISATION BRIEF v1.md — Product Strategy
 
 9. COOProject / coo-agent / docs / specs
 
-Path: C:\Users\cabra\Projects\COOProject\coo-agent\docs\specs\
+Path: [LOCAL]\\Projects\COOProject\coo-agent\docs\specs\
 
 COO_RUNTIME_SPECIFICATION_v1.0.md — Runtime Core Spec
 
@@ -184,7 +184,7 @@ IMPLEMENTATION PACKET v1.0.md — Runtime Implementation Contract
 
 10. COOProject / coo-agent / docs / governance
 
-Path: C:\Users\cabra\Projects\COOProject\coo-agent\docs\governance\
+Path: [LOCAL]\\Projects\COOProject\coo-agent\docs\governance\
 
 Judiciary_v1.0.md — Runtime-level Judiciary Integration Packet
 
@@ -192,7 +192,7 @@ Judiciary_v1.0_Verdict_Template.md — Mirror of Global Verdict Template
 
 11. COOProject / coo-agent / docs / project_builder
 
-Path: C:\Users\cabra\Projects\COOProject\coo-agent\docs\project_builder\
+Path: [LOCAL]\\Projects\COOProject\coo-agent\docs\project_builder\
 
 Antigravity_Implementation_Packet_v0_9_7.md — PB Implementation Contract
 
@@ -200,7 +200,7 @@ GPTCOO_v1_1_ProjectBuilder_v0_9_PatchedSpec.md — PB Spec (Patched)
 
 12. COOProject / coo-agent / docs (root)
 
-Path: C:\Users\cabra\Projects\COOProject\coo-agent\docs\
+Path: [LOCAL]\\Projects\COOProject\coo-agent\docs\
 
 Antigravity_Council_Review_Packet_Spec_v1.0.md — Council-PB Interface
 
@@ -239,3 +239,4 @@ COO_Project_Phase3_Status_Report.md — Status Snapshot
 LifeOS Core Specification v0.3.1.md — Historical Constitution
 
 GPTCOO_v1_1_ProjectBuilder_v0_9_FinalCleanSpec.md — PB Spec
+

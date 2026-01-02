@@ -1,16 +1,16 @@
 # LifeOS Universal Corpus
-**Generated**: 2026-01-02 18:30:12
+**Generated**: 2026-01-02 18:58:51
 **Steward**: Antigravity (Automated)
-**Version**: fd8675c
+**Version**: bdc6fbf
 
 ---
 
 ## 📋 Table of Changes (Last 5 Commits)
+- `bdc6fbf` 2026-01-02: **chore: remove venv from tracking, expand .gitignore with security patterns**
+- `54210f7` 2026-01-02: **docs: steward packet protocol v1.0 + bind to GEMINI.md Article XV**
 - `fd8675c` 2026-01-02: **[governance] Restore Agent Constitution to canonical location**
 - `244709f` 2026-01-02: **wip: Add steward runner infrastructure and review packets**
 - `1145d4d` 2026-01-02: **steward: Move F3, F4, F7 to docs/03_runtime/ subdirectory**
-- `72c3e01` 2026-01-02: **steward: Add F3, F4, F7 Tier-2.5 documentation to index**
-- `dde124d` 2026-01-02: **docs: resolve index inconsistency and generate corpus**
 
 ---
 
@@ -28,7 +28,7 @@
 ---
 
 ## 🔎 Table of Contents
-- [docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md](#file-docs-01-governance-agentconstitution-gemini-template-v1-0-md)\n- [docs/00_foundations/LifeOS_Constitution_v2.0.md](#file-docs-00-foundations-lifeos-constitution-v2-0-md)\n- [docs/01_governance/COO_Operating_Contract_v1.0.md](#file-docs-01-governance-coo-operating-contract-v1-0-md)\n- [docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md](#file-docs-01-governance-deterministic-artefact-protocol-v2-0-md)\n- [docs/01_governance/Document_Steward_Protocol_v1.0.md](#file-docs-01-governance-document-steward-protocol-v1-0-md)\n- [docs/01_governance/Governance_Protocol_v1.0.md](#file-docs-01-governance-governance-protocol-v1-0-md)\n- [docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](#file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md)\n- [docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md](#file-docs-00-foundations-anti-failure-operational-packet-v0-1-md)\n- [docs/00_foundations/Architecture_Skeleton_v1.0.md](#file-docs-00-foundations-architecture-skeleton-v1-0-md)\n- [docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](#file-docs-01-governance-alignment-review-template-v1-0-md)\n- [docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](#file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md)\n- [docs/01_governance/COO_Expectations_Log_v1.0.md](#file-docs-01-governance-coo-expectations-log-v1-0-md)\n- [docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](#file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md)\n- [docs/01_governance/INDEX.md](#file-docs-01-governance-index-md)\n- [docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](#file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md)\n- [docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](#file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md)\n- [docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](#file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md)\n- [docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](#file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md)\n- [docs/03_runtime/Automation_Proposal_v0.1.md](#file-docs-03-runtime-automation-proposal-v0-1-md)\n- [docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-build-starter-prompt-template-v1-0-md)\n- [docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-code-review-prompt-template-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](#file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md)\n- [docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-core-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](#file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-index-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md](#file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md)\n- [docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](#file-docs-03-runtime-f3-tier2-5-activation-conditions-checklist-v1-0-md)\n- [docs/03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](#file-docs-03-runtime-f4-tier2-5-deactivation-rollback-conditions-v1-0-md)\n- [docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](#file-docs-03-runtime-f7-runtime-antigrav-mission-protocol-v1-0-md)\n- [docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md](#file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md)\n- [docs/03_runtime/Hardening_Backlog_v0.1.md](#file-docs-03-runtime-hardening-backlog-v0-1-md)\n- [docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](#file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md)\n- [docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](#file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md)\n- [docs/03_runtime/README_Recursive_Kernel_v0.1.md](#file-docs-03-runtime-readme-recursive-kernel-v0-1-md)\n- [docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md](#file-docs-03-runtime-runtime-complexity-constraints-v0-1-md)\n- [docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](#file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md)\n- [docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](#file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md)\n- [docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](#file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md)\n- [docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](#file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md)\n- [docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](#file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md)\n- [docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](#file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md)\n- [docs/06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](#file-docs-06-user-surface-coo-runtime-user-surface-stageb-testharness-v1-1-md)\n- [docs/07_productisation/Productisation_Brief_v1.0.md](#file-docs-07-productisation-productisation-brief-v1-0-md)\n- [docs/08_manuals/Governance_Runtime_Manual_v1.0.md](#file-docs-08-manuals-governance-runtime-manual-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md)\n- [docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](#file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md)\n- [docs/09_prompts/v1.0/system/modes_overview_v1.0.md](#file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md)\n- [docs/10_meta/CODE_REVIEW_STATUS_v1.0.md](#file-docs-10-meta-code-review-status-v1-0-md)\n- [docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](#file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md)\n- [docs/10_meta/DEPRECATION_AUDIT_v1.0.md](#file-docs-10-meta-deprecation-audit-v1-0-md)\n- [docs/10_meta/governance_digest_v1.0.md](#file-docs-10-meta-governance-digest-v1-0-md)\n- [docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md](#file-docs-10-meta-implementation-plan-v1-0-md)\n- [docs/10_meta/LifeOS — Exploratory_Proposal.md](#file-docs-10-meta-lifeos-—-exploratory-proposal-md)\n- [docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](#file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md)\n- [docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](#file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md)\n- [docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md](#file-docs-10-meta-reversion-execution-log-v1-0-md)\n- [docs/10_meta/REVERSION_PLAN_v1.0.md](#file-docs-10-meta-reversion-plan-v1-0-md)\n- [docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](#file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md)\n- [docs/10_meta/Review_Packet_Reminder_v1.0.md](#file-docs-10-meta-review-packet-reminder-v1-0-md)\n- [docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md](#file-docs-10-meta-steward-artefact-mission-v1-0-md)\n- [docs/10_meta/TASKS_v1.0.md](#file-docs-10-meta-tasks-v1-0-md)\n- [docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md](#file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md)\n- [docs/INDEX.md](#file-docs-index-md)
+- [docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md](#file-docs-01-governance-agentconstitution-gemini-template-v1-0-md)\n- [docs/00_foundations/LifeOS_Constitution_v2.0.md](#file-docs-00-foundations-lifeos-constitution-v2-0-md)\n- [docs/01_governance/COO_Operating_Contract_v1.0.md](#file-docs-01-governance-coo-operating-contract-v1-0-md)\n- [docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](#file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md)\n- [docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md](#file-docs-00-foundations-anti-failure-operational-packet-v0-1-md)\n- [docs/00_foundations/Architecture_Skeleton_v1.0.md](#file-docs-00-foundations-architecture-skeleton-v1-0-md)\n- [docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](#file-docs-01-governance-alignment-review-template-v1-0-md)\n- [docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](#file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md)\n- [docs/01_governance/COO_Expectations_Log_v1.0.md](#file-docs-01-governance-coo-expectations-log-v1-0-md)\n- [docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](#file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md)\n- [docs/01_governance/INDEX.md](#file-docs-01-governance-index-md)\n- [docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](#file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md)\n- [docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](#file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md)\n- [docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](#file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md)\n- [docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](#file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md)\n- [docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md](#file-docs-02-protocols-deterministic-artefact-protocol-v2-0-md)\n- [docs/02_protocols/Document_Steward_Protocol_v1.0.md](#file-docs-02-protocols-document-steward-protocol-v1-0-md)\n- [docs/02_protocols/Governance_Protocol_v1.0.md](#file-docs-02-protocols-governance-protocol-v1-0-md)\n- [docs/03_runtime/Automation_Proposal_v0.1.md](#file-docs-03-runtime-automation-proposal-v0-1-md)\n- [docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-build-starter-prompt-template-v1-0-md)\n- [docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-code-review-prompt-template-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](#file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md)\n- [docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-core-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](#file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-index-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md](#file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md)\n- [docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](#file-docs-03-runtime-f3-tier2-5-activation-conditions-checklist-v1-0-md)\n- [docs/03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](#file-docs-03-runtime-f4-tier2-5-deactivation-rollback-conditions-v1-0-md)\n- [docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](#file-docs-03-runtime-f7-runtime-antigrav-mission-protocol-v1-0-md)\n- [docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md](#file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md)\n- [docs/03_runtime/Hardening_Backlog_v0.1.md](#file-docs-03-runtime-hardening-backlog-v0-1-md)\n- [docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](#file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md)\n- [docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](#file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md)\n- [docs/03_runtime/README_Recursive_Kernel_v0.1.md](#file-docs-03-runtime-readme-recursive-kernel-v0-1-md)\n- [docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md](#file-docs-03-runtime-runtime-complexity-constraints-v0-1-md)\n- [docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](#file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md)\n- [docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](#file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md)\n- [docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](#file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md)\n- [docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](#file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md)\n- [docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](#file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md)\n- [docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](#file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md)\n- [docs/06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](#file-docs-06-user-surface-coo-runtime-user-surface-stageb-testharness-v1-1-md)\n- [docs/07_productisation/Productisation_Brief_v1.0.md](#file-docs-07-productisation-productisation-brief-v1-0-md)\n- [docs/08_manuals/Governance_Runtime_Manual_v1.0.md](#file-docs-08-manuals-governance-runtime-manual-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md)\n- [docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](#file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md)\n- [docs/09_prompts/v1.0/system/modes_overview_v1.0.md](#file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md)\n- [docs/10_meta/CODE_REVIEW_STATUS_v1.0.md](#file-docs-10-meta-code-review-status-v1-0-md)\n- [docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](#file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md)\n- [docs/10_meta/DEPRECATION_AUDIT_v1.0.md](#file-docs-10-meta-deprecation-audit-v1-0-md)\n- [docs/10_meta/governance_digest_v1.0.md](#file-docs-10-meta-governance-digest-v1-0-md)\n- [docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md](#file-docs-10-meta-implementation-plan-v1-0-md)\n- [docs/10_meta/LifeOS — Exploratory_Proposal.md](#file-docs-10-meta-lifeos-—-exploratory-proposal-md)\n- [docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](#file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md)\n- [docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](#file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md)\n- [docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md](#file-docs-10-meta-reversion-execution-log-v1-0-md)\n- [docs/10_meta/REVERSION_PLAN_v1.0.md](#file-docs-10-meta-reversion-plan-v1-0-md)\n- [docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](#file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md)\n- [docs/10_meta/Review_Packet_Reminder_v1.0.md](#file-docs-10-meta-review-packet-reminder-v1-0-md)\n- [docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md](#file-docs-10-meta-steward-artefact-mission-v1-0-md)\n- [docs/10_meta/TASKS_v1.0.md](#file-docs-10-meta-tasks-v1-0-md)\n- [docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md](#file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md)\n- [docs/INDEX.md](#file-docs-index-md)
 
 ---
 
@@ -540,6 +540,7 @@ This protocol triggers automatically when:
 
 # **End of Constitution v2.4 (Full Enforcement Edition)**
 
+
 <hr>
 
 <a id="file-docs-00-foundations-lifeos-constitution-v2-0-md"></a>
@@ -629,6 +630,7 @@ In any conflict, this Constitution prevails.
 
 **END OF CONSTITUTION**
 
+
 <hr>
 
 <a id="file-docs-01-governance-coo-operating-contract-v1-0-md"></a>
@@ -713,428 +715,6 @@ The COO must escalate when:
 
 The Operating Contract may be updated only with CEO approval and version logging.
 
-<hr>
-
-<a id="file-docs-01-governance-deterministic-artefact-protocol-v2-0-md"></a>
-# 📄 FILE: docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md
-**Source**: `docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md`
-
-# Deterministic Artefact Protocol (DAP) v2.0 — Dual-Layer Specification
-
-## Placement
-`/docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md`
-
-## Status
-Canonical governance specification.
-
-## Layer 1 — Canonical Human-Readable Specification
-
-## 1. Purpose
-The Deterministic Artefact Protocol (DAP) v2.0 defines the mandatory rules and constraints governing the creation, modification, storage, naming, indexing, validation, and execution of all artefacts produced within the LifeOS environment. Its goals include determinism, auditability, reproducibility, immutability of historical artefacts, and elimination of conversational drift.
-
-## 2. Scope
-DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit reports, ZIP archives, tool-generated files, and directory structure modifications. It applies to all assistant behaviour, tool invocations, and agents within LifeOS.
-
-## 3. Definitions
-- **Artefact**: Deterministic file created or modified under DAP.
-- **Deterministic State**: A reproducible filesystem state.
-- **Canonical Artefact**: The authoritative version stored under `/docs`.
-- **Non-Canonical Artefact**: Any artefact outside `/docs`.
-- **Immutable Artefact**: Any file within `/docs/99_archive`.
-- **DAP Operation**: Any assistant operation affecting artefacts.
-
-## 4. Core Principles
-- Determinism
-- Explicitness
-- Idempotence
-- Immutability
-- Auditability
-- Isolation
-- Version Discipline
-- Canonical Tree Enforcement
-
-## 5. Mandatory Workflow Rules
-- Artefacts may only be created at StepGate Gate 3.
-- All artefacts must include complete content.
-- Tool calls must embed full content.
-- ZIP generation must be deterministic.
-- Any structural change requires index regeneration.
-- Archive folders are immutable.
-- Strict filename pattern enforcement.
-- Forbidden behaviours include guessing filenames, modifying artefacts without approval, creating placeholders, relying on conversational memory, or generating artefacts outside StepGate.
-
-## 6. Interaction with StepGate
-DAP references StepGate but does not merge with it. All DAP operations require Gate 3; violations require halting and returning to Gate 0.
-
-## 7. Error Handling
-Hard failures include overwriting archive files, missing approval, missing paths, ambiguous targets, or context degradation. On detection, the assistant must declare a contamination event and require a fresh project.
-
-## 8. Canonical Status
-DAP v2.0 becomes binding upon placement at the specified path.
-
----
-
-## Layer 2 — Machine-Operational Protocol
-
-## M-1. Inputs
-Assistant must not act without explicit filename, path, content, StepGate Gate 3 status.
-
-## M-2. Artefact Creation Algorithm
-IF Gate != 3 → refuse.  
-Require filename, path, full content.  
-Write file.  
-Verify file exists and contains no placeholders.
-
-## M-3. Naming Rules
-`<BASE>_v<MAJOR>.<MINOR>[.<PATCH>].md`
-
-## M-4. Archive Rules
-Immutable; may not be rewritten.
-
-## M-5. Index Regeneration Rules
-Structural changes require new index version with diff summary.
-
-## M-6. Forbidden Operations
-Guessing paths, relying on memory, placeholder generation, modifying archive files, or creating artefacts outside Gate 3.
-
-## M-7. Deterministic ZIP Generation
-Sort filenames, preserve ordering, include only approved artefacts.
-
-## M-8. Contamination Detection
-Placeholder or truncated output requires contamination event and new project.
-
-## M-9. Resolution
-Return to Gate 0, regenerate plan deterministically.
-
-
-<hr>
-
-<a id="file-docs-01-governance-document-steward-protocol-v1-0-md"></a>
-# 📄 FILE: docs/01_governance/Document_Steward_Protocol_v1.0.md
-**Source**: `docs/01_governance/Document_Steward_Protocol_v1.0.md`
-
-# Document Steward Protocol v1.0
-
-**Status**: Active  
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
-**Effective**: 2026-01-01
-
----
-
-## 1. Purpose
-
-This protocol defines how canonical documents are created, updated, indexed, and synchronized across all LifeOS locations.
-
-**Document Steward**: The agent (Antigravity or successor) — NOT the human CEO.
-
-Per Constitution v2.0:
-- **CEO performs**: Intent, approval, governance decisions only
-- **Agent performs**: All file creation, indexing, git operations, syncing
-
-The CEO must never manually shuffle documents, update indices, or run git commands. If the CEO is doing these things, it is a governance violation.
-
-**Canonical Locations**:
-1. **Local Repository**: `docs`
-2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
-3. **Google Drive**: https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5
-
----
-
-## 2. Sync Requirements
-
-### 2.1 Source of Truth
-The **local repository** is the primary source of truth. All changes originate here.
-
-### 2.2 Sync Targets
-Changes must be propagated to:
-1. **GitHub** (primary backup, version control)
-2. **Google Drive** (external access, offline backup)
-
-### 2.3 Sync Frequency
-| Event | GitHub Sync | Google Drive Sync |
-|-------|:-----------:|:-----------------:|
-| Document creation | Immediate | Same session |
-| Document modification | Immediate | Same session |
-| Document archival | Immediate | Same session |
-| Index update | Immediate | Same session |
-
----
-
-## 3. Steward Responsibilities
-
-### 3.1 Document Creation
-When creating a new document:
-1. Create file in appropriate `docs/` subdirectory
-2. Follow naming convention: `DocumentName_vX.Y.md`
-3. Include metadata header (Status, Authority, Date)
-4. Update `docs/INDEX.md` with new entry
-5. Update `ARTEFACT_INDEX.json` if governance-related
-6. Commit to git with descriptive message
-7. Run corpus generator: `python docs/scripts/generate_corpus.py`
-8. Push to GitHub
-9. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
-
-### 3.2 Document Modification
-When modifying an existing document:
-1. Edit the file
-2. Update version if significant change
-3. Update `docs/INDEX.md` if description changed
-4. Commit to git with change description
-5. Run corpus generator: `python docs/scripts/generate_corpus.py`
-6. Push to GitHub
-7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
-
-### 3.3 Document Archival
-When archiving a superseded document:
-1. Move to `docs/99_archive/` with appropriate subfolder
-2. Remove from `docs/INDEX.md`
-3. Remove from `ARTEFACT_INDEX.json` if applicable
-4. Commit to git
-5. Run corpus generator: `python docs/scripts/generate_corpus.py`
-6. Push to GitHub
-7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
-
-### 3.4 Index Maintenance
-Indices that must be kept current:
-- `docs/INDEX.md` — Master documentation index
-- `docs/01_governance/ARTEFACT_INDEX.json` — Governance artefact registry
-- `docs/LifeOS_Universal_Corpus.md` — Universal corpus for AI/NotebookLM
-- Any subsystem-specific indexes
-
----
-
-## 4. GitHub Sync Procedure
-
-```bash
-# Stage all changes
-git add -A
-
-# Commit with descriptive message
-git commit -m "category: Brief description
-
-- Detailed change 1
-- Detailed change 2"
-
-# Push to remote
-git push origin <branch>
-
-# If on feature branch, merge to main when approved
-git checkout main
-git merge <branch>
-git push origin main
-```
-
----
-
-## 5. Google Drive Sync Procedure
-
-### 5.1 Automated Sync (Active)
-
-Google Drive for Desktop is configured to automatically sync the local repository to Google Drive.
-
-**Configuration:**
-- **Local folder**: `docs`
-- **Drive folder**: [LifeOS/docs](https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5)
-- **Sync mode**: Mirror (bidirectional)
-
-**Behavior:**
-- All local changes are automatically synced to Google Drive
-- No manual upload required
-- Sync occurs in background whenever files change
-
-### 5.2 Steward Actions
-The steward does NOT need to manually sync to Google Drive. The workflow is:
-1. Edit files locally
-2. Commit and push to GitHub
-3. Google Drive syncs automatically
-
-### 5.3 Verification
-To verify sync is working:
-- Check Google Drive for Desktop tray icon (green checkmark = synced)
-- Spot-check recent file in Drive web interface
-
----
-
-## 6. Verification Checklist
-
-After any document operation, verify:
-
-- [ ] File exists in correct local path
-- [ ] `docs/INDEX.md` is current
-- [ ] `ARTEFACT_INDEX.json` is current (if governance)
-- [ ] Git commit created
-- [ ] Corpus generated (`LifeOS_Universal_Corpus.md` updated)
-- [ ] Pushed to GitHub
-- [ ] Synced to Google Drive
-- [ ] No broken links in related documents
-
----
-
-## 7. Naming Conventions
-
-| Type | Pattern | Example |
-|------|---------|---------|
-| Specification | `Name_Spec_vX.Y.md` | `COO_Runtime_Spec_v1.0.md` |
-| Protocol | `Name_Protocol_vX.Y.md` | `Governance_Protocol_v1.0.md` |
-| Packet | `Name_Packet_vX.Y.md` | `Implementation_Packet_v1.0.md` |
-| Template | `Name_TEMPLATE_vX.Y.md` | `ALIGNMENT_REVIEW_TEMPLATE_v1.0.md` |
-| Ruling | `Name_Ruling_vX.Y.md` | `Tier1_Hardening_Council_Ruling_v0.1.md` |
-| Work Plan | `Name_Work_Plan_vX.Y.md` | `Tier1_Hardening_Work_Plan_v0.1.md` |
-
----
-
-## 8. Directory Structure
-
-```
-docs/
-├── 00_foundations/     ← Core principles, Constitution
-├── 01_governance/      ← Governance protocols, contracts
-├── 02_alignment/       ← (Empty after archive)
-├── 03_runtime/         ← Runtime specs, roadmaps, work plans
-├── 04_project_builder/ ← Builder specs
-├── 05_agents/          ← Agent architecture
-├── 06_user_surface/    ← User surface specs
-├── 07_productisation/  ← Productisation briefs
-├── 08_manuals/         ← Manuals
-├── 09_prompts/         ← Prompt templates
-├── 10_meta/            ← Meta docs, reviews, tasks
-└── 99_archive/         ← Historical documents (immutable)
-```
-
----
-
-## 9. Anti-Failure Constraints
-
-Per Constitution v2.0 and Anti-Failure Operational Packet:
-
-- **Human performs**: Intent, approval, governance decisions only
-- **System performs**: File creation, indexing, syncing, commit, push
-- **Maximum human steps**: ≤ 2 (approve sync, confirm if needed)
-
-If sync requires more than 2 human steps, the workflow must be automated.
-
----
-
-**END OF PROTOCOL**
-
-<hr>
-
-<a id="file-docs-01-governance-governance-protocol-v1-0-md"></a>
-# 📄 FILE: docs/01_governance/Governance_Protocol_v1.0.md
-**Source**: `docs/01_governance/Governance_Protocol_v1.0.md`
-
-# LifeOS Governance Protocol v1.0
-
-**Status**: Subordinate to LifeOS Constitution v2.0  
-**Effective**: 2026-01-01  
-**Purpose**: Define operational governance rules that can evolve as trust increases
-
----
-
-## 1. Authority Model
-
-### 1.1 Delegated Authority
-
-LifeOS operates on delegated authority from the CEO. Delegation is defined by **envelopes** — boundaries within which LifeOS may act autonomously.
-
-### 1.2 Envelope Categories
-
-| Category | Description | Autonomy Level |
-|----------|-------------|----------------|
-| **Routine** | Reversible, low-impact, within established patterns | Full autonomy |
-| **Standard** | Moderate impact, follows established protocols | Autonomy with logging |
-| **Significant** | High impact or irreversible | Requires CEO approval |
-| **Strategic** | Affects direction, identity, or governance | CEO decision only |
-
-### 1.3 Envelope Evolution
-
-Envelopes expand as trust and capability increase. The CEO may:
-- Expand envelopes by explicit authorization
-- Contract envelopes at any time
-- Override any envelope boundary
-
----
-
-## 2. Escalation Rules
-
-### 2.1 When to Escalate
-
-LifeOS must escalate to the CEO when:
-1. Action is outside the defined envelope
-2. Decision is irreversible and high-impact
-3. Strategic intent is ambiguous
-4. Action would affect governance structures
-5. Prior similar decision was overridden by CEO
-
-### 2.2 How to Escalate
-
-Escalation must include:
-- Clear description of the decision required
-- Options with tradeoffs
-- Recommended option with rationale
-- Deadline (if time-sensitive)
-
-### 2.3 When NOT to Escalate
-
-Do not escalate when:
-- Action is within envelope
-- Decision is reversible and low-impact
-- Prior similar decision was approved by CEO
-- Escalating would cause unacceptable delay on urgent matters (log and proceed)
-
----
-
-## 3. Council Model
-
-### 3.1 Purpose
-
-The Council is the deliberative and advisory layer operating below the CEO's intent layer. It provides:
-- Strategic and tactical advice
-- Ideation and brainstorming
-- Structured reviews
-- Quality assurance
-- Governance assistance
-
-### 3.2 Operating Phases
-
-**Phase 0–1 (Human-in-Loop)**:
-- Council Chair reviews and produces a recommendation
-- CEO decides whether to proceed or request fixes
-- Iterate until CEO approves
-- CEO explicitly authorizes advancement
-
-**Phase 2+ (Bounded Autonomy)**:
-- Council may approve within defined envelope
-- Escalation rules apply for decisions outside envelope
-- CEO receives summary and may override
-
-### 3.3 Chair Responsibilities
-
-- Synthesize findings into actionable recommendations
-- Enforce templates and prevent drift
-- Never infer permission from silence or past approvals
-- Halt and escalate if required inputs are missing
-
-### 3.4 Invocation
-
-Council mode activates when:
-- CEO uses phrases like "council review", "run council"
-- Artefact explicitly requires council evaluation
-- Governance protocol specifies council review
-
----
-
-## 4. Amendment
-
-This Governance Protocol may be amended by:
-1. CEO explicit authorization, OR
-2. Council recommendation approved by CEO
-
-Amendments must be logged with rationale and effective date.
-
----
-
-**END OF GOVERNANCE PROTOCOL**
 
 <hr>
 
@@ -1524,6 +1104,7 @@ Concatenate all sections in the defined order into a single text file.
 Write to the council_review/ directory at the project root.
 
 If any step fails, you MUST still attempt to emit a partial packet with a clear error note in Section 7.1.
+
 ## 📂 Full Documentation Tree
 
 <hr>
@@ -1741,6 +1322,7 @@ Human steps → reduced
 Substrate remains stable for 14 days
 
 END OF PACKET
+
 <hr>
 
 <a id="file-docs-00-foundations-architecture-skeleton-v1-0-md"></a>
@@ -1793,6 +1375,7 @@ Provide a unified mental model for:
 ## 5. Relationship to Implementation
 This describes the *conceptual model*.  
 The COOSpec defines the actual runtime mechanics: SQLite message bus, deterministic lifecycle, Docker sandbox, and agent orchestration.
+
 
 <hr>
 
@@ -1918,6 +1501,7 @@ _Concise statement integrating: outcomes → alignment → required corrections.
 **Completed by:**  
 **Date:**  
 
+
 <hr>
 
 <a id="file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md"></a>
@@ -1930,7 +1514,7 @@ Date: 2025-12-12
 Status: ACTIVE
 
 ## 1. Zero-Clutter Principle
-The **ROOT DIRECTORY** (`c:\Users\cabra\Projects\LifeOS`) is a pristine, canonical namespace. It must **NEVER** contain transient output, logs, or unclassified artifacts.
+The **ROOT DIRECTORY** (`[LOCAL]\\Projects\LifeOS`) is a pristine, canonical namespace. It must **NEVER** contain transient output, logs, or unclassified artifacts.
 
 ## 2. Root Protection Rule (Governance Hard Constraint)
 Antigravity is **FORBIDDEN** from writing any file to the root directory unless it is a **Mission-Critical System Configuration File** (e.g., `pyproject.toml`, `.gitignore`) and explicitly authorized by a specialized Mission Plan.
@@ -1953,6 +1537,8 @@ All generated content must be routed to semantic directories:
 
 Signed,
 LifeOS Governance Council
+
+
 
 <hr>
 
@@ -2011,6 +1597,7 @@ Refine the COO’s behaviour based on Sir’s preferences.
 - Consolidate outputs into single artefacts.
 - Carry context proactively.
 - Recommend alternatives when workflows increase friction.
+
 
 <hr>
 
@@ -2206,6 +1793,7 @@ Any amendment must:
 
 END OF SPEC
 
+
 <hr>
 
 <a id="file-docs-01-governance-index-md"></a>
@@ -2217,6 +1805,7 @@ END OF SPEC
 - [Tier1_Hardening_Council_Ruling_v0.1.md](./Tier1_Hardening_Council_Ruling_v0.1.md) (Superseded by Tier1_Tier2_Activation_Ruling_v0.2.md)
 - [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md)
 - [Tier1_Tier2_Activation_Ruling_v0.2.md](./Tier1_Tier2_Activation_Ruling_v0.2.md) (Active)
+
 
 <hr>
 
@@ -2284,6 +1873,7 @@ This ruling stands until explicitly superseded by:
 
 Signed,  
 LifeOS Governance Council  
+
 
 <hr>
 
@@ -2443,6 +2033,7 @@ Tier-2 activation is now active and authorized.
 Signed,  
 **LifeOS Governance Council**
 
+
 <hr>
 
 <a id="file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md"></a>
@@ -2552,6 +2143,7 @@ This Manifest is binding on Runtime and Antigrav until superseded by Council.
 
 Signed,  
 LifeOS Governance Council  
+
 
 <hr>
 
@@ -2758,6 +2350,446 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 
 Red-Team concerns are valuable but, when reconciled with the canonical packets and majority reviews, **none constitute a blocking Tier-2 defect**. They translate into governance and documentation work, plus optional future micro-hardening, not into a requirement to hold activation.
 
+
+<hr>
+
+<a id="file-docs-02-protocols-deterministic-artefact-protocol-v2-0-md"></a>
+# 📄 FILE: docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md
+**Source**: `docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md`
+
+# Deterministic Artefact Protocol (DAP) v2.0 — Dual-Layer Specification
+
+## Placement
+`/docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md`
+
+## Status
+Canonical governance specification.
+
+## Layer 1 — Canonical Human-Readable Specification
+
+## 1. Purpose
+The Deterministic Artefact Protocol (DAP) v2.0 defines the mandatory rules and constraints governing the creation, modification, storage, naming, indexing, validation, and execution of all artefacts produced within the LifeOS environment. Its goals include determinism, auditability, reproducibility, immutability of historical artefacts, and elimination of conversational drift.
+
+## 2. Scope
+DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit reports, ZIP archives, tool-generated files, and directory structure modifications. It applies to all assistant behaviour, tool invocations, and agents within LifeOS.
+
+## 3. Definitions
+- **Artefact**: Deterministic file created or modified under DAP.
+- **Deterministic State**: A reproducible filesystem state.
+- **Canonical Artefact**: The authoritative version stored under `/docs`.
+- **Non-Canonical Artefact**: Any artefact outside `/docs`.
+- **Immutable Artefact**: Any file within `/docs/99_archive`.
+- **DAP Operation**: Any assistant operation affecting artefacts.
+
+## 4. Core Principles
+- Determinism
+- Explicitness
+- Idempotence
+- Immutability
+- Auditability
+- Isolation
+- Version Discipline
+- Canonical Tree Enforcement
+
+## 5. Mandatory Workflow Rules
+- Artefacts may only be created at StepGate Gate 3.
+- All artefacts must include complete content.
+- Tool calls must embed full content.
+- ZIP generation must be deterministic.
+- Any structural change requires index regeneration.
+- Archive folders are immutable.
+- Strict filename pattern enforcement.
+- Forbidden behaviours include guessing filenames, modifying artefacts without approval, creating placeholders, relying on conversational memory, or generating artefacts outside StepGate.
+
+## 6. Interaction with StepGate
+DAP references StepGate but does not merge with it. All DAP operations require Gate 3; violations require halting and returning to Gate 0.
+
+## 7. Error Handling
+Hard failures include overwriting archive files, missing approval, missing paths, ambiguous targets, or context degradation. On detection, the assistant must declare a contamination event and require a fresh project.
+
+## 8. Canonical Status
+DAP v2.0 becomes binding upon placement at the specified path.
+
+---
+
+## Layer 2 — Machine-Operational Protocol
+
+## M-1. Inputs
+Assistant must not act without explicit filename, path, content, StepGate Gate 3 status.
+
+## M-2. Artefact Creation Algorithm
+IF Gate != 3 → refuse.  
+Require filename, path, full content.  
+Write file.  
+Verify file exists and contains no placeholders.
+
+## M-3. Naming Rules
+`<BASE>_v<MAJOR>.<MINOR>[.<PATCH>].md`
+
+## M-4. Archive Rules
+Immutable; may not be rewritten.
+
+## M-5. Index Regeneration Rules
+Structural changes require new index version with diff summary.
+
+## M-6. Forbidden Operations
+Guessing paths, relying on memory, placeholder generation, modifying archive files, or creating artefacts outside Gate 3.
+
+## M-7. Deterministic ZIP Generation
+Sort filenames, preserve ordering, include only approved artefacts.
+
+## M-8. Contamination Detection
+Placeholder or truncated output requires contamination event and new project.
+
+## M-9. Resolution
+Return to Gate 0, regenerate plan deterministically.
+
+
+
+<hr>
+
+<a id="file-docs-02-protocols-document-steward-protocol-v1-0-md"></a>
+# 📄 FILE: docs/02_protocols/Document_Steward_Protocol_v1.0.md
+**Source**: `docs/02_protocols/Document_Steward_Protocol_v1.0.md`
+
+# Document Steward Protocol v1.0
+
+**Status**: Active  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+**Effective**: 2026-01-01
+
+---
+
+## 1. Purpose
+
+This protocol defines how canonical documents are created, updated, indexed, and synchronized across all LifeOS locations.
+
+**Document Steward**: The agent (Antigravity or successor) — NOT the human CEO.
+
+Per Constitution v2.0:
+- **CEO performs**: Intent, approval, governance decisions only
+- **Agent performs**: All file creation, indexing, git operations, syncing
+
+The CEO must never manually shuffle documents, update indices, or run git commands. If the CEO is doing these things, it is a governance violation.
+
+**Canonical Locations**:
+1. **Local Repository**: `docs`
+2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
+3. **Google Drive**: https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5
+
+---
+
+## 2. Sync Requirements
+
+### 2.1 Source of Truth
+The **local repository** is the primary source of truth. All changes originate here.
+
+### 2.2 Sync Targets
+Changes must be propagated to:
+1. **GitHub** (primary backup, version control)
+2. **Google Drive** (external access, offline backup)
+
+### 2.3 Sync Frequency
+| Event | GitHub Sync | Google Drive Sync |
+|-------|:-----------:|:-----------------:|
+| Document creation | Immediate | Same session |
+| Document modification | Immediate | Same session |
+| Document archival | Immediate | Same session |
+| Index update | Immediate | Same session |
+
+---
+
+## 3. Steward Responsibilities
+
+### 3.1 Document Creation
+When creating a new document:
+1. Create file in appropriate `docs/` subdirectory
+2. Follow naming convention: `DocumentName_vX.Y.md`
+3. Include metadata header (Status, Authority, Date)
+4. Update `docs/INDEX.md` with new entry
+5. Update `ARTEFACT_INDEX.json` if governance-related
+6. Commit to git with descriptive message
+7. Run corpus generator: `python docs/scripts/generate_corpus.py`
+8. Push to GitHub
+9. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
+
+### 3.2 Document Modification
+When modifying an existing document:
+1. Edit the file
+2. Update version if significant change
+3. Update `docs/INDEX.md` if description changed
+4. Commit to git with change description
+5. Run corpus generator: `python docs/scripts/generate_corpus.py`
+6. Push to GitHub
+7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
+
+### 3.3 Document Archival
+When archiving a superseded document:
+1. Move to `docs/99_archive/` with appropriate subfolder
+2. Remove from `docs/INDEX.md`
+3. Remove from `ARTEFACT_INDEX.json` if applicable
+4. Commit to git
+5. Run corpus generator: `python docs/scripts/generate_corpus.py`
+6. Push to GitHub
+7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
+
+### 3.4 Index Maintenance
+Indices that must be kept current:
+- `docs/INDEX.md` — Master documentation index
+- `docs/01_governance/ARTEFACT_INDEX.json` — Governance artefact registry
+- `docs/LifeOS_Universal_Corpus.md` — Universal corpus for AI/NotebookLM
+- Any subsystem-specific indexes
+
+### 3.5 File Organization
+
+When receiving or creating files:
+1. **Never leave files at `docs/` root** (except INDEX.md and corpus)
+2. Analyze file type and purpose
+3. Move to appropriate subdirectory per Directory Structure (Section 8)
+4. **Protocol files** (`*_Protocol_*.md`, packet schemas) → `02_protocols/`
+5. Update INDEX.md with correct paths after moving
+
+**Root files allowed**:
+- `INDEX.md` — Master documentation index
+- `LifeOS_Universal_Corpus.md` — Generated corpus
+
+---
+
+## 4. GitHub Sync Procedure
+
+```bash
+# Stage all changes
+git add -A
+
+# Commit with descriptive message
+git commit -m "category: Brief description
+
+- Detailed change 1
+- Detailed change 2"
+
+# Push to remote
+git push origin <branch>
+
+# If on feature branch, merge to main when approved
+git checkout main
+git merge <branch>
+git push origin main
+```
+
+---
+
+## 5. Google Drive Sync Procedure
+
+### 5.1 Automated Sync (Active)
+
+Google Drive for Desktop is configured to automatically sync the local repository to Google Drive.
+
+**Configuration:**
+- **Local folder**: `docs`
+- **Drive folder**: [LifeOS/docs](https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5)
+- **Sync mode**: Mirror (bidirectional)
+
+**Behavior:**
+- All local changes are automatically synced to Google Drive
+- No manual upload required
+- Sync occurs in background whenever files change
+
+### 5.2 Steward Actions
+The steward does NOT need to manually sync to Google Drive. The workflow is:
+1. Edit files locally
+2. Commit and push to GitHub
+3. Google Drive syncs automatically
+
+### 5.3 Verification
+To verify sync is working:
+- Check Google Drive for Desktop tray icon (green checkmark = synced)
+- Spot-check recent file in Drive web interface
+
+---
+
+## 6. Verification Checklist
+
+After any document operation, verify:
+
+- [ ] File exists in correct local path
+- [ ] `docs/INDEX.md` is current
+- [ ] `ARTEFACT_INDEX.json` is current (if governance)
+- [ ] Git commit created
+- [ ] Corpus generated (`LifeOS_Universal_Corpus.md` updated)
+- [ ] Pushed to GitHub
+- [ ] Synced to Google Drive
+- [ ] No broken links in related documents
+
+---
+
+## 7. Naming Conventions
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Specification | `Name_Spec_vX.Y.md` | `COO_Runtime_Spec_v1.0.md` |
+| Protocol | `Name_Protocol_vX.Y.md` | `Governance_Protocol_v1.0.md` |
+| Packet | `Name_Packet_vX.Y.md` | `Implementation_Packet_v1.0.md` |
+| Template | `Name_TEMPLATE_vX.Y.md` | `ALIGNMENT_REVIEW_TEMPLATE_v1.0.md` |
+| Ruling | `Name_Ruling_vX.Y.md` | `Tier1_Hardening_Council_Ruling_v0.1.md` |
+| Work Plan | `Name_Work_Plan_vX.Y.md` | `Tier1_Hardening_Work_Plan_v0.1.md` |
+
+---
+
+## 8. Directory Structure
+
+```
+docs/
+├── 00_foundations/     ← Core principles, Constitution
+├── 01_governance/      ← Contracts, policies, rulings, templates
+├── 02_protocols/       ← Protocols and agent communication schemas
+├── 03_runtime/         ← Runtime specs, roadmaps, work plans
+├── 04_project_builder/ ← Builder specs
+├── 05_agents/          ← Agent architecture
+├── 06_user_surface/    ← User surface specs
+├── 07_productisation/  ← Productisation briefs
+├── 08_manuals/         ← Manuals
+├── 09_prompts/         ← Prompt templates
+├── 10_meta/            ← Meta docs, reviews, tasks
+└── 99_archive/         ← Historical documents (immutable)
+```
+
+---
+
+## 9. Anti-Failure Constraints
+
+Per Constitution v2.0 and Anti-Failure Operational Packet:
+
+- **Human performs**: Intent, approval, governance decisions only
+- **System performs**: File creation, indexing, syncing, commit, push
+- **Maximum human steps**: ≤ 2 (approve sync, confirm if needed)
+
+If sync requires more than 2 human steps, the workflow must be automated.
+
+---
+
+**END OF PROTOCOL**
+
+
+<hr>
+
+<a id="file-docs-02-protocols-governance-protocol-v1-0-md"></a>
+# 📄 FILE: docs/02_protocols/Governance_Protocol_v1.0.md
+**Source**: `docs/02_protocols/Governance_Protocol_v1.0.md`
+
+# LifeOS Governance Protocol v1.0
+
+**Status**: Subordinate to LifeOS Constitution v2.0  
+**Effective**: 2026-01-01  
+**Purpose**: Define operational governance rules that can evolve as trust increases
+
+---
+
+## 1. Authority Model
+
+### 1.1 Delegated Authority
+
+LifeOS operates on delegated authority from the CEO. Delegation is defined by **envelopes** — boundaries within which LifeOS may act autonomously.
+
+### 1.2 Envelope Categories
+
+| Category | Description | Autonomy Level |
+|----------|-------------|----------------|
+| **Routine** | Reversible, low-impact, within established patterns | Full autonomy |
+| **Standard** | Moderate impact, follows established protocols | Autonomy with logging |
+| **Significant** | High impact or irreversible | Requires CEO approval |
+| **Strategic** | Affects direction, identity, or governance | CEO decision only |
+
+### 1.3 Envelope Evolution
+
+Envelopes expand as trust and capability increase. The CEO may:
+- Expand envelopes by explicit authorization
+- Contract envelopes at any time
+- Override any envelope boundary
+
+---
+
+## 2. Escalation Rules
+
+### 2.1 When to Escalate
+
+LifeOS must escalate to the CEO when:
+1. Action is outside the defined envelope
+2. Decision is irreversible and high-impact
+3. Strategic intent is ambiguous
+4. Action would affect governance structures
+5. Prior similar decision was overridden by CEO
+
+### 2.2 How to Escalate
+
+Escalation must include:
+- Clear description of the decision required
+- Options with tradeoffs
+- Recommended option with rationale
+- Deadline (if time-sensitive)
+
+### 2.3 When NOT to Escalate
+
+Do not escalate when:
+- Action is within envelope
+- Decision is reversible and low-impact
+- Prior similar decision was approved by CEO
+- Escalating would cause unacceptable delay on urgent matters (log and proceed)
+
+---
+
+## 3. Council Model
+
+### 3.1 Purpose
+
+The Council is the deliberative and advisory layer operating below the CEO's intent layer. It provides:
+- Strategic and tactical advice
+- Ideation and brainstorming
+- Structured reviews
+- Quality assurance
+- Governance assistance
+
+### 3.2 Operating Phases
+
+**Phase 0–1 (Human-in-Loop)**:
+- Council Chair reviews and produces a recommendation
+- CEO decides whether to proceed or request fixes
+- Iterate until CEO approves
+- CEO explicitly authorizes advancement
+
+**Phase 2+ (Bounded Autonomy)**:
+- Council may approve within defined envelope
+- Escalation rules apply for decisions outside envelope
+- CEO receives summary and may override
+
+### 3.3 Chair Responsibilities
+
+- Synthesize findings into actionable recommendations
+- Enforce templates and prevent drift
+- Never infer permission from silence or past approvals
+- Halt and escalate if required inputs are missing
+
+### 3.4 Invocation
+
+Council mode activates when:
+- CEO uses phrases like "council review", "run council"
+- Artefact explicitly requires council evaluation
+- Governance protocol specifies council review
+
+---
+
+## 4. Amendment
+
+This Governance Protocol may be amended by:
+1. CEO explicit authorization, OR
+2. Council recommendation approved by CEO
+
+Amendments must be logged with rationale and effective date.
+
+---
+
+**END OF GOVERNANCE PROTOCOL**
+
+
 <hr>
 
 <a id="file-docs-03-runtime-automation-proposal-v0-1-md"></a>
@@ -2807,6 +2839,7 @@ The following tasks are currently candidates for human manual labor and must be 
 ## 4. Next Step for Human
 - **Approve this proposal**.
 - I will then implement `scripts/auto_index.py` immediately.
+
 
 <hr>
 
@@ -2858,6 +2891,7 @@ Describe the deterministic implementation plan for:
 
 No placeholders. No drift from the Programme Charter.  
 Produce a complete, deterministic build plan ready for Antigrav execution.
+
 
 <hr>
 
@@ -2927,6 +2961,7 @@ Provide:
 3. **Fix Plan:** concrete instructions tied to file paths  
 4. **Risk Commentary:** autonomy, recursion, error surface  
 5. **Track Alignment Assessment:** Core/Fuel/Plumbing correctness
+
 
 <hr>
 
@@ -3228,6 +3263,7 @@ Open User Surface & Demos thread → “Gate 1 — go”
 Open Productisation thread LAST and keep dormant
 
 This sets up the environment for the next month of development.
+
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-core-spec-v1-0-md"></a>
@@ -4283,6 +4319,7 @@ prompts/
 
 **Signed**: Kimi (Primary Engineer)  
 **Date**: 2025-11-19
+
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md"></a>
@@ -4770,6 +4807,7 @@ Allow deletion outside declared directories
 
 END OF IMPLEMENTATION PACK v1.0
 
+
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-spec-index-v1-0-md"></a>
@@ -4874,6 +4912,7 @@ Do not edit here."
 ---------------------------------------------------------------
 END — Spec Canon Index
 ===============================================================
+
 
 <hr>
 
@@ -5241,6 +5280,7 @@ Timestamp (mocked if frozen)
 
 END OF COO RUNTIME SPEC v1.0
 
+
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md"></a>
@@ -5397,6 +5437,7 @@ All unit tests pass (25 tests):
 ## Next Steps
 The only remaining task in Phase 4 is creating a README and operations guide for deployment and usage instructions.
 
+
 <hr>
 
 <a id="file-docs-03-runtime-f3-tier2-5-activation-conditions-checklist-v1-0-md"></a>
@@ -5498,6 +5539,7 @@ As of 2026-01-02:
 ---
 
 **END OF DOCUMENT**
+
 
 <hr>
 
@@ -5674,6 +5716,7 @@ Per Constitution v2.0: CEO may override any system decision at any time.
 ---
 
 **END OF DOCUMENT**
+
 
 <hr>
 
@@ -5916,6 +5959,7 @@ Breaking changes (new constraints, removed permissions) require:
 
 **END OF DOCUMENT**
 
+
 <hr>
 
 <a id="file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md"></a>
@@ -6042,6 +6086,7 @@ Breaking changes (new constraints, removed permissions) require:
 - [ ] Governance surface validation works
 - [ ] Health checks and halt procedure integrated
 - [ ] DAP and INDEX use shared detsort utilities
+
 
 <hr>
 
@@ -6449,6 +6494,7 @@ These items can be batched into a future “Tier-2 Orchestration Hardening” mi
 3. **Low-risk code hardening**: DLR-H3, BLD-H2, ORCH-H2, HB-T2-REG-01, HB-T2-REG-02, HB-T2-REG-03, HB-T2-HAR-03, HB-T2-SUITE-03, HB-T2-EXP-02, HB-T2-EXP-04, HB-T2-TRUN-02, HB-T2-TRUN-03.
 4. **Design extensions**: ORCH-H3, BLD-H1, BLD-H4, ORCH-H1 (if tightening op set).
 
+
 <hr>
 
 <a id="file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md"></a>
@@ -6696,6 +6742,7 @@ Anything not clearly contributing to external leverage, agency, autonomy, wealth
 ---
 
 **End of LifeOS Programme Roadmap — Core/Fuel/Plumbing v1.0**
+
 
 <hr>
 
@@ -7194,6 +7241,7 @@ This v0.1 architecture is intended for structured review. Key questions:
 ---
 
 **End of document.**
+
 
 <hr>
 
@@ -7870,6 +7918,7 @@ For the first full recursive improvement cycle:
 
 **End of document.**
 
+
 <hr>
 
 <a id="file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md"></a>
@@ -8031,6 +8080,7 @@ Executor.report() -> status/artefacts
 - How to avoid overcomplicating the adapter before an actual API exists.
 - How to surface mission and executor state back to the user in a clean way (dashboards, logs, etc.).
 
+
 <hr>
 
 <a id="file-docs-03-runtime-readme-recursive-kernel-v0-1-md"></a>
@@ -8060,6 +8110,7 @@ python -m recursive_kernel.runner
 
 ## Logs
 Check `logs/recursive_runs/` for execution details. Each run generates a timestamped JSON file.
+
 <hr>
 
 <a id="file-docs-03-runtime-runtime-complexity-constraints-v0-1-md"></a>
@@ -8102,6 +8153,7 @@ If any threshold is breached:
 1. The Runtime flags the breach.
 2. The Agent proposes a **Simplification Plan** (not just "doing the work").
 3. New work halts until complexity is reduced.
+
 
 <hr>
 
@@ -8266,6 +8318,7 @@ This Fix Pack **does not**:
 ## E. Post-conditions
 
 Once implemented, `Review_Packet_Hardening_Pass_v0.2` must guarantee all fixes applied and flattened.
+
 
 <hr>
 
@@ -8501,6 +8554,7 @@ Approve or veto Tier-1 readiness
 
 No other human steps are in scope.
 
+
 <hr>
 
 <a id="file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md"></a>
@@ -8637,6 +8691,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 All items F1–F7 are **non-blocking** for Tier-2 certification and Tier-2.5 activation, but are adopted as **binding follow-up work** for Tier-2.5.
 
 Completion of F3, F4, and F7 is required before full-scale Tier-2.5 operations commence.
+
 
 <hr>
 
@@ -9677,6 +9732,7 @@ git push origin impl/project-builder-v0.9.7
 -----
 
 This packet, together with the v0.9 spec, is sufficient for a junior engineer to implement the GPTCOO v1.1 Project Builder correctly, deterministically, securely, and under disciplined version control.
+
 <hr>
 
 <a id="file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md"></a>
@@ -10945,6 +11001,7 @@ A Project Builder implementation is considered correct if it satisfies:
 
 This v0.8 specification incorporates all remaining council-required fixes and is intended to be LOCKED for implementation.
 
+
 <hr>
 
 <a id="file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md"></a>
@@ -11060,6 +11117,7 @@ LifeOS Intake / Council / CSO
   Agent Team + Sandbox + Message Bus
         ↓
     Artefacts + Logs → Flight Recorder
+
 
 <hr>
 
@@ -11528,6 +11586,7 @@ Hardcode a specific model name in demo logic.
 Create a separate LLM client for the demo.
 
 Demo is strictly a thin orchestration + formatting layer over the existing runtime.
+
 <hr>
 
 <a id="file-docs-07-productisation-productisation-brief-v1-0-md"></a>
@@ -11889,6 +11948,7 @@ keeps your personal involvement low
 keeps all safety boundaries intact
 
 END OF DOCUMENT — Productisation Brief v1
+
 <hr>
 
 <a id="file-docs-08-manuals-governance-runtime-manual-v1-0-md"></a>
@@ -12014,6 +12074,7 @@ When changes are needed:
 
 This preserves determinism and makes it possible to reproduce prior decisions and workflows.
 
+
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md"></a>
@@ -12051,6 +12112,7 @@ Apply the following:
 
 Assume that **StepGate Protocol v1.0**, **Discussion Protocol v1.0**, and the relevant capability envelope apply.
 
+
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md"></a>
@@ -12060,6 +12122,7 @@ Assume that **StepGate Protocol v1.0**, **Discussion Protocol v1.0**, and the re
 # Master Initialiser v1.0
 
 Minimal behavioural initialiser.
+
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md"></a>
@@ -12079,6 +12142,7 @@ Minimal behavioural initialiser.
 7. Detect transitions from discussion → instructions and propose StepGate activation in a new thread.
 8. Maintain deterministic, predictable behaviour across all steps and modes.
 
+
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md"></a>
@@ -12097,6 +12161,7 @@ Minimal behavioural initialiser.
 6. Ask before expanding breadth or depth.
 7. If uncertain about user intent, ask instead of inferring.
 8. When the user shifts into actionable tasks, confirm whether to begin StepGate in a new thread.
+
 
 <hr>
 
@@ -12137,6 +12202,7 @@ A disciplined, low-friction framework for exploratory or conceptual dialogues. P
    Keep outputs small and bounded. Avoid surprising the user with unexpected scope or volume.
 
 ---
+
 
 <hr>
 
@@ -12192,6 +12258,7 @@ The only valid progression command is:
 **go**
 
 Do not proceed without it.
+
 
 <hr>
 
@@ -12262,6 +12329,7 @@ You are not the CEO and not the system designer. You are a process governor and 
 - Escalate ambiguity instead of guessing.
 - Avoid overproducing branches; default to the single path the user appears to favour, then ask if alternatives are needed.
 
+
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md"></a>
@@ -12321,6 +12389,7 @@ You are not a rubber stamp. You are a second line of defence.
 - Do not expand packet scope without explicit user approval.
 - Prefer clear bullet points over prose.
 - Always highlight “What the human must do next” when relevant.
+
 
 <hr>
 
@@ -12393,6 +12462,7 @@ Escalate these explicitly to the user.
 - Do not add new requirements not implied by the packet.
 - Do not fill gaps using speculative assumptions.
 - Do not drift into low-level implementation details except to illustrate structural issues.
+
 
 <hr>
 
@@ -12474,6 +12544,7 @@ Trust the artefact where it contradicts hand-wavy descriptions, but call out the
 - Escalate missing context rather than guessing.
 - Maintain a neutral, analytic tone.
 
+
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md"></a>
@@ -12505,6 +12576,7 @@ Provide a model-agnostic behavioural shell for AI assistants working within the 
 
 - **Discussion Mode:** focus on understanding, framing, and limited exploration.
 - **Instruction Mode (StepGate):** tightly controlled, stepwise execution with explicit gating.
+
 
 <hr>
 
@@ -12540,6 +12612,7 @@ Behaviours:
 - Progress only on the gate phrase **"go"**.
 - Keep each step atomic and clear.
 - Call out what the human must do at each step.
+
 
 <hr>
 
@@ -12615,6 +12688,7 @@ All tests passing ✅
 - Unit tests: 25 tests
 - Integration tests: 1 test
 
+
 <hr>
 
 <a id="file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md"></a>
@@ -12642,6 +12716,7 @@ The authoritative implementation of the COO Runtime now resides in this reposito
 
 ## 4. History
 This migration was performed in December 2025 to consolidate the "LifeOS Kernel" into a single, deterministic monorepo.
+
 
 <hr>
 
@@ -12729,7 +12804,7 @@ These folders remain available for historical reference and selective re-promoti
 
 ### 3.1. governance-hub
 
-**Repository root:** `C:\Users\cabra\Projects\governance-hub\`
+**Repository root:** `[LOCAL]\\Projects\governance-hub\`
 
 #### 3.1.1. Prompt library duplication
 
@@ -12760,7 +12835,7 @@ Zipped prompt bundles:
 
 ### 3.2. COOProject
 
-**Repository root:** `C:\Users\cabra\Projects\COOProject\`  
+**Repository root:** `[LOCAL]\\Projects\COOProject\`  
 
 COOProject contains:
 
@@ -12817,6 +12892,8 @@ After Phase 1:
 - Any artefact that lives only in COOProject or governance-hub is **non-canonical** unless explicitly imported into `/docs` in a future phase.
 - Phase 2+ may promote selected external artefacts into `/docs` using strict `_vX.Y` naming and explicit index entries.
 
+
+
 <hr>
 
 <a id="file-docs-10-meta-governance-digest-v1-0-md"></a>
@@ -12872,6 +12949,7 @@ The system is designed to fail if:
 - The configured digest is not in `ALLOWED_PROD_DIGESTS`.
 - The platform is Windows (in PROD).
 
+
 <hr>
 
 <a id="file-docs-10-meta-implementation-plan-v1-0-md"></a>
@@ -12922,6 +13000,7 @@ Enhance system observability with structured logging (`structlog`) and timeline 
 ### Manual Verification
 - Run `coo mission <id>` on a running mission to verify real-time status.
 - Inspect `coo.log` (or stdout) to confirm JSON formatting and redaction.
+
 
 <hr>
 
@@ -13351,6 +13430,7 @@ Exploratory layer (Gemini, Claude, NotebookLM, Antigravity) handles wide-corpus 
 Manual council (browser-based) continues until the COO runtime can automate the environment.
 
 Document drift is prevented by ensuring the freeze step always occurs inside a deterministic engine.
+
 <hr>
 
 <a id="file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md"></a>
@@ -13784,6 +13864,7 @@ These remain open to design, provided they respect:
 * **Next logical step (conceptually):** drafting or updating the LifeOS v1 architecture/spec to embody the Fix Plan items and making conformance testable.
 
 No operational execution is authorised or directed by this ruling; it defines **architectural and governance conditions** only.
+
 
 <hr>
 
@@ -14599,6 +14680,7 @@ This document is intended as a candidate architecture to be:
 2. Synthesised into a consolidated hybrid architecture.
 3. Submitted to the Governance Council as a CRP input for canonicalisation.
 
+
 <hr>
 
 <a id="file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md"></a>
@@ -14629,6 +14711,7 @@ LifeOS Technical Architecture SpecificationVersion: 1.0.0Status: DRAFT (Pending 
   "signature": "stepgate_pending"
 }
 4. The Core Workflow: The "Constitutional Loop"This is the standard operating procedure for any change in LifeOS (Self-Improvement).Phase A: Detection & Planning (The Forge)Trigger: Human request or System Alert (e.g., "Dependency vulnerability detected").Agent Action (Antigravity): The "Architect Agent" reads llms.txt, analyzes the codebase, and formulates a plan.Artifact Generation: The Agent produces a DAP Candidate (JSON).Phase B: The Adversarial Debate (The Runtime)Orchestration (Temporal): A GovernanceWorkflow is triggered.Debate Logic (LangGraph):Node 1 (The Skeptic): Reads the DAP. Critiques it against docs/governance/security.md. "This introduces a race condition."Node 2 (The Architect): Refines the DAP based on critique.Node 3 (The Judge): Uses DeepEval to score the final DAP. If score < Threshold, loop back. If retries > Max, fail.Persistence: The entire debate transcript is logged to logs/debates/.Phase C: The StepGate (The Decision)Human-in-the-Loop: Temporal pauses the workflow. A notification is sent to the Operator.Review: Operator reviews the DAP Summary and Skeptic's Critique.Action: Operator signs the DAP (cryptographic signature) or rejects it.Phase D: Freeze & Merge (The Constitution)Execution: Upon signature, Temporal triggers the merge.Canonicalization: freeze.py runs. It recalculates the SHA-256 hash of the modified files and updates manifest.lock.Commit: The Runtime pushes the changes to Git main.5. Implementation RoadmapHorizon 1: The "Iron Skeleton" (Now - Month 1)Focus: Manual triggers, Scripted safeguards, Local Execution.Repository: Standardize on Git with llms.txt and .agent/ directory structure.Tooling:Cognition: LiteLLM (Python) to abstract model calls.Validation: freeze.py (Script) for integrity checks.Debate: debate.py (Script) running a linear Architect -> Skeptic loop.The Grind Relief: Use LlamaIndex locally to query your own docs instead of reading them.Horizon 2: The "Constitutional Cloud" (Month 2 - Month 6)Focus: Automation, Durability, Scalability.Runtime Migration: Port debate.py logic into Temporal Workflows.IDE: Fully adopt Google Antigravity for the "Forge" workspace.CI/CD: Integrate DeepEval into GitHub Actions to block PRs that fail "Intelligence Tests."Identity: Assign distinct IAM identities to agents.6. Security & Safety ProtocolsThe Kill Switch: A CANARY.md file exists in the root. If this file is deleted or modified to contain "STOP", all Temporal workers immediately cease processing triggers.Instrumental Convergence Protection: The "Skeptic" agent's system prompt is immutable and hard-coded to prioritize safety and reversibility over efficiency. It cannot be overwritten by the "Architect."Identity Isolation: The "Architect" agent (Builder) has no write access to the manifest.lock. Only the freeze.py process (privileged runner) can update the manifest.7. Open Decisions for CouncilModel Selection: Shall we designate Gemini 1.5 Pro as the "Architect" (Context Window strength) and Claude 3.5 Sonnet as the "Skeptic" (Logic/Reasoning strength)?Thresholds: What is the minimum DeepEval score (0.0 - 1.0) required to trigger a StepGate notification? (Recommendation: 0.85).
+
 <hr>
 
 <a id="file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md"></a>
@@ -14806,6 +14889,7 @@ Horizon 3: Operational Excellence (Month 6+)
     DeepEval Threshold: Default: 0.85. High-Risk: 0.95.
 
     Model Agnosticism: The architecture does not hardcode "Gemini". The Architect role is an interface. We will rotate models (Claude/Gemini/DeepSeek) to prevent vendor-specific bias/lock-in.
+
 <hr>
 
 <a id="file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md"></a>
@@ -15265,6 +15349,7 @@ Fix Item	Component	Technology Stack	Key Benefit
 8.7 IAM	AEGIS / Zero Trust	SPIFFE/SPIRE, OPA	Prevents permission creep; Limits blast radius.
 8.8 Dependencies	Supply Chain Security	SLSA L3, TUF, SBOM	Prevents malware injection via updates or libraries.
 8.9 Documentation	GitOps / Drift Detection	ArgoCD, Markdown	Ensures documentation always matches runtime reality.
+
 <hr>
 
 <a id="file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md"></a>
@@ -15443,6 +15528,7 @@ GitDB -->|Updates| Manifest
 3.  **StepGate (The Conscience):** The physical point where the Human Operator applies their YubiKey signature.
 4.  **GitDB (The Memory):** The only thing that is real. If it's not in Git, it didn't happen.
 ```
+
 <hr>
 
 <a id="file-docs-10-meta-reversion-execution-log-v1-0-md"></a>
@@ -15573,6 +15659,7 @@ Once the checklist above is complete and you are satisfied that the filesystem m
 
 > I confirm that Phase 1 — Reversioning & Deprecation Audit has been executed according to REVERSION_PLAN_v1.0, and that the `/docs` tree is now the sole canonical documentation tree for LifeOS. All deprecated and legacy artefacts have been either archived under `docs/99_archive/` or left in external repositories as explicitly non-canonical.
 
+
 <hr>
 
 <a id="file-docs-10-meta-reversion-plan-v1-0-md"></a>
@@ -15597,8 +15684,8 @@ Author: Assistant (under CEO direction)
 
 - **Non-authoritative but in-scope for audit (stragglers / legacy):**
   - `` (outside `/docs`)
-  - `C:\Users\cabra\Projects\COOProject\`
-  - `C:\Users\cabra\Projects\governance-hub\`
+  - `[LOCAL]\\Projects\COOProject\`
+  - `[LOCAL]\\Projects\governance-hub\`
 
 ### 0.2. CEO policy decisions (locked)
 
@@ -16026,7 +16113,7 @@ Action:
 
 Repository:
 
-- `C:\Users\cabra\Projects\governance-hub\`
+- `[LOCAL]\\Projects\governance-hub\`
 
 Key markdown structures:
 
@@ -16053,7 +16140,7 @@ These largely mirror `/docs/09_prompts/v1.0/`.
 
 Repository:
 
-- `C:\Users\cabra\Projects\COOProject\`
+- `[LOCAL]\\Projects\COOProject\`
 
 High-level clusters (per scan) include:
 
@@ -16202,6 +16289,8 @@ Once the CEO is satisfied, they approve Gate 2 by instructing:
 > `go (Gate 3)`
 
 which authorises the generation of scripts, the execution log template, the full deprecation audit, and the new index.
+
+
 
 <hr>
 
@@ -16378,6 +16467,7 @@ def test_determinism_and_metadata(sample_suite_result):
     # ...
 ```
 
+
 <hr>
 
 <a id="file-docs-10-meta-review-packet-reminder-v1-0-md"></a>
@@ -16464,6 +16554,7 @@ Just make it part of your completion checklist:
 4. ✅ **Review packet generated** ← `/generate_review_packet`
 5. ✅ Ready for Council review
 
+
 <hr>
 
 <a id="file-docs-10-meta-steward-artefact-mission-v1-0-md"></a>
@@ -16527,6 +16618,7 @@ Persist a canonical LifeOS artefact into the repo, update registry/index, commit
 
 ### 7. Summary
 - Emit summary confirming stewardship and sync.
+
 
 <hr>
 
@@ -16601,6 +16693,7 @@ Persist a canonical LifeOS artefact into the repo, update registry/index, commit
     - [x] Integration tests <!-- id: 40 -->
     - [ ] README + operations guide <!-- id: 41 -->
 
+
 <hr>
 
 <a id="file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md"></a>
@@ -16631,7 +16724,7 @@ All tests passed, confirming that the Anti-Failure, Determinism, and Immutabilit
 ============================= test session starts =============================
 platform win32 -- Python 3.12.6, pytest-8.3.4, pluggy-1.5.0 -- C:\Python312\python.exe
 cachedir: .pytest_cache
-rootdir: C:\Users\cabra\Projects\LifeOS
+rootdir: [LOCAL]\\Projects\LifeOS
 configfile: pytest.ini
 plugins: anyio-4.7.0, asyncio-1.3.0, cov-6.2.1, mockito-0.0.4
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
@@ -19187,6 +19280,8 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
 
 ```
 
+
+
 <hr>
 
 <a id="file-docs-index-md"></a>
@@ -19195,7 +19290,7 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
 
 # LifeOS Documentation Index
 
-**Last Updated**: 2026-01-02T18:29+11:00  
+**Last Updated**: 2026-01-02T18:56+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
@@ -19229,10 +19324,7 @@ LifeOS Constitution v2.0 (Supreme)
 ### Core Governance
 | Document | Purpose |
 |----------|---------|
-| [Governance_Protocol_v1.0.md](./01_governance/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
-| [Document_Steward_Protocol_v1.0.md](./01_governance/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
 | [COO_Operating_Contract_v1.0.md](./01_governance/COO_Operating_Contract_v1.0.md) | CEO/COO role boundaries and interaction rules |
-| [Deterministic_Artefact_Protocol_v2.0.md](./01_governance/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
 | [AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md) | Template for agent GEMINI.md files |
 
 ### Council & Review
@@ -19256,12 +19348,18 @@ LifeOS Constitution v2.0 (Supreme)
 | [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md) | Historical: Tier transition conditions |
 | [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
 
-### Agent Communication
+---
+
+## 02_protocols — Protocols & Agent Communication
+
 | Document | Purpose |
 |----------|---------|
-| [lifeos_packet_schemas_v1.yaml](./lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
-| [lifeos_packet_templates_v1.yaml](./lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
-| [example_converted_antigravity_packet.yaml](./example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
+| [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
+| [Document_Steward_Protocol_v1.0.md](./02_protocols/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
+| [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
+| [lifeos_packet_schemas_v1.yaml](./02_protocols/lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
+| [lifeos_packet_templates_v1.yaml](./02_protocols/lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
+| [example_converted_antigravity_packet.yaml](./02_protocols/example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
 
 ---
 
