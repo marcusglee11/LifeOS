@@ -1,6 +1,6 @@
 # LifeOS Documentation Index
 
-**Last Updated**: 2026-01-02  
+**Last Updated**: 2026-01-02T18:29+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
@@ -60,6 +60,13 @@ LifeOS Constitution v2.0 (Supreme)
 | [Tier1_Tier2_Activation_Ruling_v0.2.md](./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md) | Historical: Tier-2 activation ruling |
 | [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md) | Historical: Tier transition conditions |
 | [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
+
+### Agent Communication
+| Document | Purpose |
+|----------|---------|
+| [lifeos_packet_schemas_v1.yaml](./lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
+| [lifeos_packet_templates_v1.yaml](./lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
+| [example_converted_antigravity_packet.yaml](./example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
 
 ---
 
