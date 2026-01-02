@@ -1,0 +1,54 @@
+# Stewardship Runner Configuration v0.2
+# All paths are repo-root relative. Repo root is determined at runtime via:
+#   git rev-parse --show-toplevel
+
+tests:
+  # Command to run tests. Uses -q for reduced output noise per D3.
+  command: ["python", "-m", "pytest", "-q", "-c", "pytest.ini"]
+  # Test directories to include (P0-1: appended to command argv)
+  paths:
+    - "runtime/tests"
+    - "tests_doc"
+    - "tests_recursive"
+
+validators:
+  # Ordered list of validator commands (E3: stop on first failure)
+  commands:
+    - ["python", "tools/validate_governance_index.py", "--repo-root", "."]
+    - ["python", "-m", "doc_steward.cli", "dap-validate", "docs/"]
+    - ["python", "-m", "doc_steward.cli", "index-check", "docs/", "docs/INDEX.md"]
+
+corpus:
+  # Corpus generation command (F1)
+  command: ["python", "docs/scripts/generate_corpus.py"]
+  # Expected outputs to verify after corpus step (F2)
+  outputs_expected:
+    - "docs/LifeOS_Universal_Corpus.md"
+
+git:
+  # If true, fail preflight if repo has uncommitted changes (C2)
+  # NOTE: logs/steward_runner/ must be in .gitignore for this to work
+  require_clean_start: true
+  # Commit is DISABLED by default (C4). Must be explicitly enabled.
+  commit_enabled: false
+  # Commit message template. {run_id} is substituted.
+  commit_message_template: "[steward] Autonomous run {run_id}"
+  # Commit Paths Contract:
+  #   - Directory prefixes: end with "/" (e.g., "docs/")
+  #   - Exact files: no trailing "/" (e.g., "docs/INDEX.md")
+  #   - No globs, absolute paths, or ".." allowed
+  commit_paths:
+    - "docs/"
+
+logging:
+  # Directory for JSONL logs (J2)
+  # NOTE: Must be in .gitignore for require_clean_start=true
+  log_dir: "logs/steward_runner"
+  # Directory for content-addressed stdout/stderr streams (B4)
+  streams_dir: "logs/steward_runner/streams"
+  # Log format
+  format: "jsonl"
+
+determinism:
+  # Run ID is required (C1)
+  run_id_required: true

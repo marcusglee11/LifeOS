@@ -1,3 +1,6 @@
 __pycache__/ 
 *.pyc 
 .env 
+
+# Steward runner logs (required for require_clean_start=true)
+logs/steward_runner/
