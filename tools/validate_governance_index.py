@@ -102,7 +102,7 @@ def validate_index(repo_root: Path) -> list[str]:
             continue
 
         # Check path starts with allowed docs directories
-        allowed_prefixes = ("docs/00_foundations/", "docs/01_governance/")
+        allowed_prefixes = ("docs/00_foundations/", "docs/01_governance/", "docs/02_protocols/")
         if not artefact_path.startswith(allowed_prefixes):
             errors.append(f"{prefix} Path must start with one of {allowed_prefixes}: {artefact_path}")
             continue
