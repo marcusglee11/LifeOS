@@ -1,16 +1,16 @@
 # LifeOS Universal Corpus
-**Generated**: 2026-01-03 14:41:23
+**Generated**: 2026-01-03 14:50:13
 **Steward**: Antigravity (Automated)
-**Version**: 2e23b0c
+**Version**: 087331f
 
 ---
 
 ## 📋 Table of Changes (Last 5 Commits)
+- `087331f` 2026-01-03: **gov: amend GEMINI.md with control plane protocols (startup + hygiene)**
+- `f232163` 2026-01-03: **docs: regenerate corpuses post-protocol-update**
 - `2e23b0c` 2026-01-03: **docs: enforce stray file checks in steward protocol**
 - `be29743` 2026-01-03: **docs: regenerate corpuses post-admin-refinement**
 - `88a2f91` 2026-01-03: **chore(admin): refine thin control plane alignment (v1.2 compliance)**
-- `bdb69f1` 2026-01-03: **docs: regenerate universal and strategic corpuses post-admin-upgrade**
-- `3e545f7` 2026-01-03: **chore(admin): upgrade thin control plane to v1.2 (anchored evidence + hygiene refine)**
 
 ---
 
@@ -1558,7 +1558,7 @@ If any step fails, you MUST still attempt to emit a partial packet with a clear 
 **Source**: `docs/LifeOS_Strategic_Corpus.md`
 
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-03 14:34
+**Generated:** 2026-01-03 14:41
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -3418,7 +3418,13 @@ When receiving or creating files:
 
 **Root files allowed**:
 - `INDEX.md` — Master documentation index
-- `LifeOS_Universal_Corpus.md` — Generated corpus
+- `LifeOS_Universal_Corpus.md` — Generated universal corpus
+- `LifeOS_Strategic_Corpus.md` — Generated strategic corpus
+
+### 3.6 Stray File Check (Mandatory)
+After every document operation, the steward must scan:
+1.  **Repo Root**: Ensure no random output files (`*.txt`, `*.log`, `*.db`) remain. Move to `logs/` or `99_archive/`.
+2.  **Docs Root**: Ensure only allowed files (see 3.5) and directories exist. Move any loose markdown strings to appropriate subdirectories.
 
 ---
 
@@ -3485,6 +3491,7 @@ After any document operation, verify:
 - [ ] Corpus generated (`LifeOS_Universal_Corpus.md` updated)
 - [ ] Pushed to GitHub
 - [ ] Synced to Google Drive
+- [ ] Stray files checked and cleaned (repo root + docs root)
 - [ ] No broken links in related documents
 
 ---
@@ -23031,7 +23038,7 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
 
 # LifeOS Documentation Index
 
-**Last Updated**: 2026-01-03T14:45+11:00  
+**Last Updated**: 2026-01-03T14:50+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
