@@ -19,12 +19,22 @@ from typing import Any, Dict, List, Optional
 # =============================================================================
 
 class AntiFailureViolation(Exception):
-    """Raised when workflow violates Anti-Failure constraints."""
+    """Raised when workflow violates Anti-Failure constraints.
+    
+    Anti-Failure violations relate to step-count and human-step limits:
+    - Exceeding maximum total steps (default: 5)
+    - Exceeding maximum human steps (default: 2)
+    """
     pass
 
 
 class EnvelopeViolation(Exception):
-    """Raised when workflow violates execution envelope constraints."""
+    """Raised when workflow violates execution envelope constraints.
+    
+    Envelope violations relate to forbidden operations and step kinds:
+    - Using disallowed step kinds (only 'runtime' and 'human' permitted)
+    - Attempting forbidden I/O operations
+    """
     pass
 
 
