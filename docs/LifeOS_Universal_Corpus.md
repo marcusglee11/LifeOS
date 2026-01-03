@@ -1,16 +1,16 @@
 # LifeOS Universal Corpus
-**Generated**: 2026-01-03 14:34:47
+**Generated**: 2026-01-03 14:41:23
 **Steward**: Antigravity (Automated)
-**Version**: 88a2f91
+**Version**: 2e23b0c
 
 ---
 
 ## 📋 Table of Changes (Last 5 Commits)
+- `2e23b0c` 2026-01-03: **docs: enforce stray file checks in steward protocol**
+- `be29743` 2026-01-03: **docs: regenerate corpuses post-admin-refinement**
 - `88a2f91` 2026-01-03: **chore(admin): refine thin control plane alignment (v1.2 compliance)**
 - `bdb69f1` 2026-01-03: **docs: regenerate universal and strategic corpuses post-admin-upgrade**
 - `3e545f7` 2026-01-03: **chore(admin): upgrade thin control plane to v1.2 (anchored evidence + hygiene refine)**
-- `293f227` 2026-01-03: **chore(admin): initialize thin control plane (state/backlog/decisions/inbox)**
-- `b7f1c4e` 2026-01-02: **[governance] Fix protocol paths in ARTEFACT_INDEX.json**
 
 ---
 
@@ -28,7 +28,7 @@
 ---
 
 ## 🔎 Table of Contents
-- [docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md](#file-docs-01-governance-agentconstitution-gemini-template-v1-0-md)\n- [docs/00_foundations/LifeOS_Constitution_v2.0.md](#file-docs-00-foundations-lifeos-constitution-v2-0-md)\n- [docs/01_governance/COO_Operating_Contract_v1.0.md](#file-docs-01-governance-coo-operating-contract-v1-0-md)\n- [docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md](#file-docs-02-protocols-deterministic-artefact-protocol-v2-0-md)\n- [docs/02_protocols/Document_Steward_Protocol_v1.0.md](#file-docs-02-protocols-document-steward-protocol-v1-0-md)\n- [docs/02_protocols/Governance_Protocol_v1.0.md](#file-docs-02-protocols-governance-protocol-v1-0-md)\n- [docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](#file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md)\n- [docs/LifeOS_Strategic_Corpus.md](#file-docs-lifeos-strategic-corpus-md)\n- [docs/00_admin/BACKLOG.md](#file-docs-00-admin-backlog-md)\n- [docs/00_admin/DECISIONS.md](#file-docs-00-admin-decisions-md)\n- [docs/00_admin/INBOX.md](#file-docs-00-admin-inbox-md)\n- [docs/00_admin/LIFEOS_STATE.md](#file-docs-00-admin-lifeos-state-md)\n- [docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md](#file-docs-00-foundations-anti-failure-operational-packet-v0-1-md)\n- [docs/00_foundations/Architecture_Skeleton_v1.0.md](#file-docs-00-foundations-architecture-skeleton-v1-0-md)\n- [docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](#file-docs-01-governance-alignment-review-template-v1-0-md)\n- [docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](#file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md)\n- [docs/01_governance/COO_Expectations_Log_v1.0.md](#file-docs-01-governance-coo-expectations-log-v1-0-md)\n- [docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](#file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md)\n- [docs/01_governance/Council_Review_Stewardship_Runner_v1.0.md](#file-docs-01-governance-council-review-stewardship-runner-v1-0-md)\n- [docs/01_governance/INDEX.md](#file-docs-01-governance-index-md)\n- [docs/01_governance/LOG_RETENTION.md](#file-docs-01-governance-log-retention-md)\n- [docs/01_governance/PLATFORM_POLICY.md](#file-docs-01-governance-platform-policy-md)\n- [docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](#file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md)\n- [docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](#file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md)\n- [docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](#file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md)\n- [docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](#file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md)\n- [docs/02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](#file-docs-02-protocols-tier-2-api-evolution-and-versioning-strategy-v1-0-md)\n- [docs/03_runtime/Automation_Proposal_v0.1.md](#file-docs-03-runtime-automation-proposal-v0-1-md)\n- [docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-build-starter-prompt-template-v1-0-md)\n- [docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-code-review-prompt-template-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](#file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md)\n- [docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-core-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](#file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-index-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md](#file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md)\n- [docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](#file-docs-03-runtime-f3-tier2-5-activation-conditions-checklist-v1-0-md)\n- [docs/03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](#file-docs-03-runtime-f4-tier2-5-deactivation-rollback-conditions-v1-0-md)\n- [docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](#file-docs-03-runtime-f7-runtime-antigrav-mission-protocol-v1-0-md)\n- [docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md](#file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md)\n- [docs/03_runtime/Hardening_Backlog_v0.1.md](#file-docs-03-runtime-hardening-backlog-v0-1-md)\n- [docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](#file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md)\n- [docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](#file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md)\n- [docs/03_runtime/README_Recursive_Kernel_v0.1.md](#file-docs-03-runtime-readme-recursive-kernel-v0-1-md)\n- [docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md](#file-docs-03-runtime-runtime-complexity-constraints-v0-1-md)\n- [docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](#file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md)\n- [docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](#file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md)\n- [docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](#file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md)\n- [docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](#file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md)\n- [docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](#file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md)\n- [docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](#file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md)\n- [docs/06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](#file-docs-06-user-surface-coo-runtime-user-surface-stageb-testharness-v1-1-md)\n- [docs/07_productisation/Productisation_Brief_v1.0.md](#file-docs-07-productisation-productisation-brief-v1-0-md)\n- [docs/08_manuals/Governance_Runtime_Manual_v1.0.md](#file-docs-08-manuals-governance-runtime-manual-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md)\n- [docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](#file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md)\n- [docs/09_prompts/v1.0/system/modes_overview_v1.0.md](#file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md)\n- [docs/10_meta/CODE_REVIEW_STATUS_v1.0.md](#file-docs-10-meta-code-review-status-v1-0-md)\n- [docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](#file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md)\n- [docs/10_meta/DEPRECATION_AUDIT_v1.0.md](#file-docs-10-meta-deprecation-audit-v1-0-md)\n- [docs/10_meta/governance_digest_v1.0.md](#file-docs-10-meta-governance-digest-v1-0-md)\n- [docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md](#file-docs-10-meta-implementation-plan-v1-0-md)\n- [docs/10_meta/LifeOS — Exploratory_Proposal.md](#file-docs-10-meta-lifeos-—-exploratory-proposal-md)\n- [docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](#file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md)\n- [docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](#file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md)\n- [docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md](#file-docs-10-meta-reversion-execution-log-v1-0-md)\n- [docs/10_meta/REVERSION_PLAN_v1.0.md](#file-docs-10-meta-reversion-plan-v1-0-md)\n- [docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](#file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md)\n- [docs/10_meta/Review_Packet_Reminder_v1.0.md](#file-docs-10-meta-review-packet-reminder-v1-0-md)\n- [docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md](#file-docs-10-meta-steward-artefact-mission-v1-0-md)\n- [docs/10_meta/TASKS_v1.0.md](#file-docs-10-meta-tasks-v1-0-md)\n- [docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md](#file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md)\n- [docs/INDEX.md](#file-docs-index-md)\n- [docs/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](#file-docs-tier-2-api-evolution-and-versioning-strategy-v1-0-md)
+- [docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md](#file-docs-01-governance-agentconstitution-gemini-template-v1-0-md)\n- [docs/00_foundations/LifeOS_Constitution_v2.0.md](#file-docs-00-foundations-lifeos-constitution-v2-0-md)\n- [docs/01_governance/COO_Operating_Contract_v1.0.md](#file-docs-01-governance-coo-operating-contract-v1-0-md)\n- [docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md](#file-docs-02-protocols-deterministic-artefact-protocol-v2-0-md)\n- [docs/02_protocols/Document_Steward_Protocol_v1.0.md](#file-docs-02-protocols-document-steward-protocol-v1-0-md)\n- [docs/02_protocols/Governance_Protocol_v1.0.md](#file-docs-02-protocols-governance-protocol-v1-0-md)\n- [docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](#file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md)\n- [docs/LifeOS_Strategic_Corpus.md](#file-docs-lifeos-strategic-corpus-md)\n- [docs/00_admin/BACKLOG.md](#file-docs-00-admin-backlog-md)\n- [docs/00_admin/DECISIONS.md](#file-docs-00-admin-decisions-md)\n- [docs/00_admin/INBOX.md](#file-docs-00-admin-inbox-md)\n- [docs/00_admin/LIFEOS_STATE.md](#file-docs-00-admin-lifeos-state-md)\n- [docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md](#file-docs-00-foundations-anti-failure-operational-packet-v0-1-md)\n- [docs/00_foundations/Architecture_Skeleton_v1.0.md](#file-docs-00-foundations-architecture-skeleton-v1-0-md)\n- [docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](#file-docs-01-governance-alignment-review-template-v1-0-md)\n- [docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](#file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md)\n- [docs/01_governance/COO_Expectations_Log_v1.0.md](#file-docs-01-governance-coo-expectations-log-v1-0-md)\n- [docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](#file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md)\n- [docs/01_governance/Council_Review_Stewardship_Runner_v1.0.md](#file-docs-01-governance-council-review-stewardship-runner-v1-0-md)\n- [docs/01_governance/INDEX.md](#file-docs-01-governance-index-md)\n- [docs/01_governance/LOG_RETENTION.md](#file-docs-01-governance-log-retention-md)\n- [docs/01_governance/PLATFORM_POLICY.md](#file-docs-01-governance-platform-policy-md)\n- [docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](#file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md)\n- [docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](#file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md)\n- [docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](#file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md)\n- [docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](#file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md)\n- [docs/02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](#file-docs-02-protocols-tier-2-api-evolution-and-versioning-strategy-v1-0-md)\n- [docs/03_runtime/Automation_Proposal_v0.1.md](#file-docs-03-runtime-automation-proposal-v0-1-md)\n- [docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-build-starter-prompt-template-v1-0-md)\n- [docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-code-review-prompt-template-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](#file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md)\n- [docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-core-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](#file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-index-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md](#file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md)\n- [docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](#file-docs-03-runtime-f3-tier2-5-activation-conditions-checklist-v1-0-md)\n- [docs/03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](#file-docs-03-runtime-f4-tier2-5-deactivation-rollback-conditions-v1-0-md)\n- [docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](#file-docs-03-runtime-f7-runtime-antigrav-mission-protocol-v1-0-md)\n- [docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md](#file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md)\n- [docs/03_runtime/Hardening_Backlog_v0.1.md](#file-docs-03-runtime-hardening-backlog-v0-1-md)\n- [docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](#file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md)\n- [docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](#file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md)\n- [docs/03_runtime/README_Recursive_Kernel_v0.1.md](#file-docs-03-runtime-readme-recursive-kernel-v0-1-md)\n- [docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md](#file-docs-03-runtime-runtime-complexity-constraints-v0-1-md)\n- [docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](#file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md)\n- [docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](#file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md)\n- [docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](#file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md)\n- [docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](#file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md)\n- [docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](#file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md)\n- [docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](#file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md)\n- [docs/06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](#file-docs-06-user-surface-coo-runtime-user-surface-stageb-testharness-v1-1-md)\n- [docs/07_productisation/Productisation_Brief_v1.0.md](#file-docs-07-productisation-productisation-brief-v1-0-md)\n- [docs/08_manuals/Governance_Runtime_Manual_v1.0.md](#file-docs-08-manuals-governance-runtime-manual-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md)\n- [docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](#file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md)\n- [docs/09_prompts/v1.0/system/modes_overview_v1.0.md](#file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md)\n- [docs/10_meta/CODE_REVIEW_STATUS_v1.0.md](#file-docs-10-meta-code-review-status-v1-0-md)\n- [docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](#file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md)\n- [docs/10_meta/DEPRECATION_AUDIT_v1.0.md](#file-docs-10-meta-deprecation-audit-v1-0-md)\n- [docs/10_meta/governance_digest_v1.0.md](#file-docs-10-meta-governance-digest-v1-0-md)\n- [docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md](#file-docs-10-meta-implementation-plan-v1-0-md)\n- [docs/10_meta/LifeOS — Exploratory_Proposal.md](#file-docs-10-meta-lifeos-—-exploratory-proposal-md)\n- [docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](#file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md)\n- [docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](#file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md)\n- [docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md](#file-docs-10-meta-reversion-execution-log-v1-0-md)\n- [docs/10_meta/REVERSION_PLAN_v1.0.md](#file-docs-10-meta-reversion-plan-v1-0-md)\n- [docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](#file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md)\n- [docs/10_meta/Review_Packet_Reminder_v1.0.md](#file-docs-10-meta-review-packet-reminder-v1-0-md)\n- [docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md](#file-docs-10-meta-steward-artefact-mission-v1-0-md)\n- [docs/10_meta/TASKS_v1.0.md](#file-docs-10-meta-tasks-v1-0-md)\n- [docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md](#file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md)\n- [docs/INDEX.md](#file-docs-index-md)
 
 ---
 
@@ -916,7 +916,13 @@ When receiving or creating files:
 
 **Root files allowed**:
 - `INDEX.md` — Master documentation index
-- `LifeOS_Universal_Corpus.md` — Generated corpus
+- `LifeOS_Universal_Corpus.md` — Generated universal corpus
+- `LifeOS_Strategic_Corpus.md` — Generated strategic corpus
+
+### 3.6 Stray File Check (Mandatory)
+After every document operation, the steward must scan:
+1.  **Repo Root**: Ensure no random output files (`*.txt`, `*.log`, `*.db`) remain. Move to `logs/` or `99_archive/`.
+2.  **Docs Root**: Ensure only allowed files (see 3.5) and directories exist. Move any loose markdown strings to appropriate subdirectories.
 
 ---
 
@@ -983,6 +989,7 @@ After any document operation, verify:
 - [ ] Corpus generated (`LifeOS_Universal_Corpus.md` updated)
 - [ ] Pushed to GitHub
 - [ ] Synced to Google Drive
+- [ ] Stray files checked and cleaned (repo root + docs root)
 - [ ] No broken links in related documents
 
 ---
@@ -1551,7 +1558,7 @@ If any step fails, you MUST still attempt to emit a partial packet with a clear 
 **Source**: `docs/LifeOS_Strategic_Corpus.md`
 
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-03 14:29
+**Generated:** 2026-01-03 14:34
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -23024,7 +23031,7 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
 
 # LifeOS Documentation Index
 
-**Last Updated**: 2026-01-03T14:35+11:00  
+**Last Updated**: 2026-01-03T14:45+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
@@ -23184,268 +23191,3 @@ Archived documents are in `99_archive/`. Key locations:
 | `09_prompts/` | Prompt templates and protocols |
 | `10_meta/` | Meta documents, reviews, tasks |
 
-
-<hr>
-
-<a id="file-docs-tier-2-api-evolution-and-versioning-strategy-v1-0-md"></a>
-# 📄 FILE: docs/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md
-**Source**: `docs/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md`
-
-# Tier-2 API Evolution & Versioning Strategy v1.0
-**Status**: Draft (ready for adoption)  
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
-**Scope**: Tier-2 Deterministic Runtime Interfaces  
-**Effective (on adoption)**: 2026-01-03
-
----
-
-## 1. Purpose
-
-The LifeOS Tier-2 Runtime is a **certified deterministic core**. Its interfaces are contracts of behaviour and contracts of **evidence**: changing an interface can change system hashes and invalidate `AMU₀` snapshots and replay chains.
-
-This document defines strict versioning, deprecation, and compatibility rules for Tier-2 public interfaces to ensure long-term stability for Tier-3+ layers.
-
----
-
-## 2. Definitions
-
-### 2.1 Tier-2 Public Interface
-Any callable surface, schema, or emitted evidence format that Tier-3+ (or external tooling) can depend on, including:
-- Entrypoints invoked by authorized agents
-- Cross-module result schemas (e.g., orchestration and test-run results)
-- Configuration schemas consumed by Tier-2
-- Evidence formats parsed downstream (e.g., timeline / flight recording)
-
-### 2.2 Protected Interface (“Constitutional Interface”)
-A Tier-2 interface classified as replay-critical and governance-sensitive. Breaking changes require Fix Pack + Council Review.
-
----
-
-## 3. Protected Interface Registry (authoritative)
-
-This registry is the definitive list of Protected Interfaces. Any Tier-2 surface not listed here is **not Protected** by default, but still subject to normal interface versioning rules.
-
-| Protected Surface | Kind | Canonical Location | Notes / Contract |
-|---|---|---|---|
-| `run_daily_loop()` | Entrypoint | `runtime.orchestration.daily_loop` | Authorized Tier-2.5 entrypoint |
-| `run_scenario()` | Entrypoint | `runtime.orchestration.harness` | Authorized Tier-2.5 entrypoint |
-| `run_suite()` | Entrypoint | `runtime.orchestration.suite` | Authorized Tier-2.5 entrypoint |
-| `run_test_run_from_config()` | Entrypoint | `runtime.orchestration.config_adapter` | Authorized Tier-2.5 entrypoint |
-| `aggregate_test_run()` | Entrypoint | `runtime.orchestration.test_run` | Authorized Tier-2.5 entrypoint |
-| Mission registry | Registry surface | `runtime/orchestration/registry.py` | Adding mission types requires code + registration here |
-| `timeline_events` schema | Evidence format | DB table `timeline_events` | Replay-critical event stream schema |
-| `config/models.yaml` schema | Config schema | `config/models.yaml` | Canonical model pool config |
-
-**Registry rule**: Any proposal to (a) add a new Protected Interface, or (b) remove one, must be made explicitly via Fix Pack and recorded as a registry change. Entrypoint additions require Fix Pack + Council + CEO approval per the runtime↔agent protocol.
-
----
-
-## 4. Interface Versioning Strategy (Semantic Governance)
-
-Tier-2 uses Semantic Versioning (`MAJOR.MINOR.PATCH`) mapped to **governance impact**, not just capability.
-
-### 4.1 MAJOR (X.0.0) — Constitutional / Breaking Change
-MAJOR bump required for:
-- Any breaking change to a Protected Interface (Section 3)
-- Any change that alters **evidence hashes for historical replay**, unless handled via Legacy Mode (Section 6.3)
-
-Governance requirement (default):
-- Fix Pack + Council Review + CEO sign-off (per active governance enforcement)
-
-### 4.2 MINOR (1.X.0) — Backward-Compatible Extension
-MINOR bump allowed for:
-- Additive extensions that preserve backwards compatibility (new optional fields, new optional config keys, new entrypoints added via governance)
-- Additions that do not invalidate historical replay chains (unless clearly version-gated)
-
-### 4.3 PATCH (1.1.X) — Hardening / Bugfix / Docs
-PATCH bump for:
-- Internal refactors
-- Bugfixes restoring intended behaviour
-- Docs updates
-
-**Constraint**:
-- Must not change Protected schemas or emitted evidence formats for existing missions.
-
----
-
-## 5. Compatibility Rules (Breaking vs Non-Breaking)
-
-### 5.1 Entrypoints
-Non-breaking (MINOR/PATCH):
-- Add optional parameters with defaults
-- Add new entrypoints (governed) without changing existing ones
-
-Breaking (MAJOR):
-- Remove/rename entrypoints
-- Change required parameters
-- Change semantics
-
-### 5.2 Result / Payload schemas
-Non-breaking (MINOR/PATCH):
-- Add fields as `Optional` with deterministic defaults
-- Add keys that consumers can safely ignore
-
-Breaking (MAJOR):
-- Remove/rename fields/keys
-- Change types non-widening
-- Change semantics
-
-### 5.3 Config schemas
-Non-breaking (MINOR/PATCH):
-- Add optional keys with defaults
-Breaking (MAJOR):
-- Remove/rename keys
-- Change required structure
-- Change semantics
-
----
-
-## 6. Deprecation Policy
-
-### 6.1 Two-Tick Rule
-Any feature planned for removal must pass through two interface ticks:
-
-**Tick 1 — Deprecation**
-- Feature remains functional
-- Docs marked `[DEPRECATED]`
-- Entry added to Deprecation Ledger (Section 11)
-- If warnings are enabled (Section 6.2), emit a deterministic deprecation event
-
-**Tick 2 — Removal**
-- Feature removed or disabled by default
-- Any use raises deterministic failure (`GovernanceViolation` or `NotImplementedError`)
-- Removal occurs only at the next MINOR or MAJOR bump consistent with classification
-
-### 6.2 Deterministic Deprecation Warnings (single flag, deterministic format)
-Deprecation warnings are OFF by default.
-
-If enabled via a single explicit flag:
-- **Flag name (standard)**: `debug.deprecation_warnings = true`
-- Warning emission must be deterministic and replay-safe:
-  - Emit as a structured timeline event (not stdout)
-  - Event type: `deprecation_warning`
-  - Event JSON MUST include:
-    - `interface_version` (current)
-    - `deprecated_surface`
-    - `replacement_surface`
-    - `removal_target_version`
-    - `first_seen_at` (deterministic: derived from run start / mission metadata, not ad hoc wall-clock time)
-
-**Hash impact note**: enabling warnings changes evidence (timeline) and therefore changes hashes; that is acceptable only because the flag is an explicit input and must be preserved across replay.
-
-### 6.3 Immutable History Exception (Legacy Mode)
-If a deprecated feature is required to replay a historical `AMU₀` snapshot:
-- Move implementation to `runtime/legacy/`
-- Expose it only through an explicit replay path (“Legacy Mode”)
-- Legacy Mode must be auditable and explicit (no silent fallback)
-
----
-
-## 7. Hash-Impact Guardrail (enforceable rule)
-
-**Rule (load-bearing)**:  
-Any Tier-2 change that alters emitted evidence for an already-recorded run (e.g., `timeline_events` shape/content, result serialization, receipts) is **MAJOR by default**, unless:
-1) the change is confined to a newly versioned schema branch (Section 9), or  
-2) the historical behaviour is preserved via Legacy Mode (Section 6.3).
-
-This prevents accidental replay invalidation and makes “contracts of evidence” operational rather than rhetorical.
-
----
-
-## 8. Change Requirements (artefacts and tests)
-
-Every Tier-2 interface change must include:
-- Classified bump type: PATCH/MINOR/MAJOR (default to MAJOR if uncertain)
-- Updated Interface Version (single authoritative location; Section 10)
-- Updated interface documentation and (if relevant) a migration note
-- Test coverage demonstrating:
-  - backward compatibility (MINOR/PATCH), or
-  - explicit break + migration/legacy path (MAJOR)
-- Deprecation Ledger entry if any surface is deprecated
-
----
-
-## 9. Schema Versioning Inside Artefacts
-
-All Protected structured artefacts MUST carry explicit schema versioning in their serialized forms.
-
-### 9.1 Standard field
-Every `to_dict()` / serialized payload for Protected result/evidence types must include:
-
-- `schema_version`: string (e.g., `"orchestration_result@1"`, `"scenario_result@1"`, `"test_run_result@1"`)
-
-### 9.2 Relationship to Interface Version
-- `schema_version` is per-object-type and increments only when that object’s serialized contract changes.
-- Interface Version increments according to Section 4 based on governance impact.
-
-### 9.3 Config schema versioning
-Protected config schemas must include either:
-- a `schema_version` key, or
-- an explicit top-level `version` key
-
-Additive introduction is MINOR; removal/rename is MAJOR.
-
----
-
-## 10. Interface Version Location (single source of truth)
-
-Tier-2 MUST expose the **current Interface Version** from exactly one authoritative location. This location must be:
-- deterministic (no environment-dependent mutation),
-- importable/parseable by Tier-3+ consumers, and
-- testable in CI.
-
-**Steward decision required**: the Doc Steward will select the lowest-friction authoritative location (doc field vs code constant) that preserves auditability and minimizes recurring operator effort. Once chosen, the exact path and access method must be recorded here:
-
-- **Authoritative interface version location**: _[to be filled by steward]_  
-- **How consumers read it**: _[to be filled by steward]_  
-- **How CI asserts it**: _[to be filled by steward]_
-
-After this decision, Tier-3+ surfaces must fail-fast when encountering an unsupported interface version range.
-
----
-
-## 11. Compatibility Test Matrix
-
-Tier-2 must maintain a small, explicit compatibility suite to prevent accidental breaks.
-
-### 11.1 Required fixtures
-Maintain fixtures for:
-- prior `schema_version` payloads for each Protected result type
-- prior config schema examples for each Protected config
-
-### 11.2 Required tests
-- **Decode compatibility**: current code can load/parse prior fixtures
-- **Serialize stability**: `to_dict()` produces canonical ordering / stable shape
-- **Replay invariants**: where applicable, evidence/event emission matches expectations under the same inputs and flags
-
-### 11.3 Storage convention (recommended)
-- `runtime/tests/fixtures/interface_v{X}/...`
-- Each fixture file name includes:
-  - object type
-  - schema_version
-  - short provenance note
-
----
-
-## 12. Deprecation Ledger (append-only)
-
-| Date | Interface Version | Deprecated Surface | Replacement | Removal Target | Hash Impact? | Notes |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
-
-Ledger rules:
-- Append-only (supersede by adding rows)
-- Every deprecation must specify replacement + removal target
-- “Hash Impact?” must be explicitly marked `yes/no/unknown` (unknown defaults to MAJOR until resolved)
-
----
-
-## 13. Adoption Checklist (F2 completion)
-
-F2 is complete when:
-1) This document is filed under the canonical runtime docs location.
-2) The Protected Interface Registry (Section 3) is adopted as authoritative.
-3) Interface Version location is selected and recorded (Section 10).
-4) Deprecation warnings flag and event format (Section 6.2) are standardized.
-5) Schema versioning rules (Section 9) are applied to all Protected result/evidence serializers moving forward.
-6) Compatibility test matrix fixtures + tests (Section 11) exist and run in CI.

@@ -1,5 +1,5 @@
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-03 14:34
+**Generated:** 2026-01-03 14:41
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -1859,7 +1859,13 @@ When receiving or creating files:
 
 **Root files allowed**:
 - `INDEX.md` — Master documentation index
-- `LifeOS_Universal_Corpus.md` — Generated corpus
+- `LifeOS_Universal_Corpus.md` — Generated universal corpus
+- `LifeOS_Strategic_Corpus.md` — Generated strategic corpus
+
+### 3.6 Stray File Check (Mandatory)
+After every document operation, the steward must scan:
+1.  **Repo Root**: Ensure no random output files (`*.txt`, `*.log`, `*.db`) remain. Move to `logs/` or `99_archive/`.
+2.  **Docs Root**: Ensure only allowed files (see 3.5) and directories exist. Move any loose markdown strings to appropriate subdirectories.
 
 ---
 
@@ -1926,6 +1932,7 @@ After any document operation, verify:
 - [ ] Corpus generated (`LifeOS_Universal_Corpus.md` updated)
 - [ ] Pushed to GitHub
 - [ ] Synced to Google Drive
+- [ ] Stray files checked and cleaned (repo root + docs root)
 - [ ] No broken links in related documents
 
 ---
