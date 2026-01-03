@@ -10,7 +10,12 @@
   - **Scope:** Runtime stewardship, doc hygiene automation
   - **Evidence:** [Council_Review_Stewardship_Runner_v1.0.md](../01_governance/Council_Review_Stewardship_Runner_v1.0.md)
 
-- **2026-01-03 — Decision:** Adopt thin control plane (4-file admin surface)
+- **2026-01-03 — Decision:** Adopt thin control plane v1.1
   - **Why:** Reduces friction by externalising in-head state; prevents scaffolding spiral
   - **Scope:** Project admin via LIFEOS_STATE, BACKLOG, DECISIONS, INBOX
-  - **Evidence:** This instruction (Project Admin Steward v1.1)
+  - **Evidence:** `293f227`, `docs/00_admin/`
+
+- **2026-01-03 — Decision:** Upgrade thin control plane to v1.2
+  - **Why:** Refine evidence rules (anchoring), clarify hygiene triggers, adopt default sequencing rule
+  - **Scope:** Admin hygiene protocols and evidence standards
+  - **Evidence:** This mission; v1.2 instruction
