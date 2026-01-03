@@ -1,16 +1,16 @@
 # LifeOS Universal Corpus
-**Generated**: 2026-01-03 14:29:44
+**Generated**: 2026-01-03 14:34:47
 **Steward**: Antigravity (Automated)
-**Version**: 3e545f7
+**Version**: 88a2f91
 
 ---
 
 ## 📋 Table of Changes (Last 5 Commits)
+- `88a2f91` 2026-01-03: **chore(admin): refine thin control plane alignment (v1.2 compliance)**
+- `bdb69f1` 2026-01-03: **docs: regenerate universal and strategic corpuses post-admin-upgrade**
 - `3e545f7` 2026-01-03: **chore(admin): upgrade thin control plane to v1.2 (anchored evidence + hygiene refine)**
 - `293f227` 2026-01-03: **chore(admin): initialize thin control plane (state/backlog/decisions/inbox)**
 - `b7f1c4e` 2026-01-02: **[governance] Fix protocol paths in ARTEFACT_INDEX.json**
-- `0e7f32c` 2026-01-02: **docs: create 02_protocols/ and establish file organization rules**
-- `bdc6fbf` 2026-01-02: **chore: remove venv from tracking, expand .gitignore with security patterns**
 
 ---
 
@@ -1550,13 +1550,13 @@ If any step fails, you MUST still attempt to emit a partial packet with a clear 
 # 📄 FILE: docs/LifeOS_Strategic_Corpus.md
 **Source**: `docs/LifeOS_Strategic_Corpus.md`
 
-﻿# âš¡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-03 14:01
+# ⚡ LifeOS Strategic Dashboard
+**Generated:** 2026-01-03 14:29
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
-**Current Governance Mode:** Phase 2 â€” Operational Autonomy (Target State)
+**Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
 **Purpose:** High-level strategic reasoning and catch-up context.
-**Authority Chain:** Constitution (Supreme) â†’ Governance â†’ Runtime (Mechanical)
+**Authority Chain:** Constitution (Supreme) → Governance → Runtime (Mechanical)
 
 ---
 
@@ -1577,7 +1577,7 @@ Technical implementation lives in COOSpecv1.0Final.md.
 
 ## 1. Purpose
 Provide a unified mental model for:
-- How intent â†’ missions â†’ execution flow.
+- How intent → missions → execution flow.
 - How CEO, COO, and Worker Agents interact.
 - How the LifeOS layers produce stable momentum.
 
@@ -1598,7 +1598,7 @@ Provide a unified mental model for:
 
 ## 3. Mission Flow
 
-1. Intent â†’ mission proposal.
+1. Intent → mission proposal.
 2. Mission approval when required.
 3. Execution planning.
 4. Worker agent execution.
@@ -1630,7 +1630,7 @@ The COOSpec defines the actual runtime mechanics: SQLite message bus, determinis
 
 ---
 
-## Part I: Raison d'ÃŠtre
+## Part I: Raison d'Être
 
 LifeOS exists to make me the CEO of my life and extend the CEO's operational reach into the world.
 
@@ -1681,15 +1681,15 @@ Constitutional changes must be logged and deliberate.
 
 These principles are interpretive guides, not binding rules. They help agents make judgment calls when rules don't specify.
 
-1. **Prefer action over paralysis** â€” When in doubt, act reversibly rather than wait indefinitely.
+1. **Prefer action over paralysis** — When in doubt, act reversibly rather than wait indefinitely.
 
-2. **Prefer reversible over irreversible** â€” Make decisions that can be undone.
+2. **Prefer reversible over irreversible** — Make decisions that can be undone.
 
-3. **Prefer external outcomes over internal elegance** â€” Visible results matter more than architectural beauty.
+3. **Prefer external outcomes over internal elegance** — Visible results matter more than architectural beauty.
 
-4. **Prefer automation over human labor** â€” The CEO should not perform routine execution.
+4. **Prefer automation over human labor** — The CEO should not perform routine execution.
 
-5. **Prefer transparency over opacity** â€” Make reasoning visible and auditable.
+5. **Prefer transparency over opacity** — Make reasoning visible and auditable.
 
 ---
 
@@ -1711,7 +1711,7 @@ In any conflict, this Constitution prevails.
 
 # File: 01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md
 
-# **LifeOS Alignment Review â€” TEMPLATE (v1.0)**  
+# **LifeOS Alignment Review — TEMPLATE (v1.0)**  
 _For Monthly or Quarterly Use_  
 _Anchor documents: **LifeOS Constitution v2.0** and the **Governance Protocol v1.0** (Leverage, Bottleneck Reduction, Autonomy, Life-Story Alignment)._
 
@@ -1724,7 +1724,7 @@ _Anchor documents: **LifeOS Constitution v2.0** and the **Governance Protocol v1
 ---
 
 ## **2. External Outcomes This Period**  
-_What materially changed in my life? Not internal clarity, not system-building â€” external results only._
+_What materially changed in my life? Not internal clarity, not system-building — external results only._
 
 - Outcome 1  
 - Outcome 2  
@@ -1805,7 +1805,7 @@ _Identify slippage back into old patterns._
 
 ---
 
-## **7. Concrete Adjustments for Next Period (3â€“5 changes)**  
+## **7. Concrete Adjustments for Next Period (3–5 changes)**  
 _All adjustments must be consistent with PROGRAMME_CHARTER_v1.0 and evaluated through the Decision Surface._
 
 1.  
@@ -1817,7 +1817,7 @@ _All adjustments must be consistent with PROGRAMME_CHARTER_v1.0 and evaluated th
 ---
 
 ## **8. Executive Summary**
-_Concise statement integrating: outcomes â†’ alignment â†’ required corrections._
+_Concise statement integrating: outcomes → alignment → required corrections._
 
 - What went well  
 - What went poorly  
@@ -1864,7 +1864,7 @@ Antigravity **must never directly modify authoritative LifeOS specifications**. 
 
 ---
 
-# ARTICLE I â€” AUTHORITY & JURISDICTION
+# ARTICLE I — AUTHORITY & JURISDICTION
 
 ## Section 1. Authority Chain
 
@@ -1890,7 +1890,7 @@ It **does not** grant permission to:
 - Write to authoritative specifications
 - Create or modify governance protocols
 - Commit code or documentation autonomously
-- Persist internal long-term â€œknowledgeâ€ that contradicts LifeOS rules
+- Persist internal long-term “knowledge” that contradicts LifeOS rules
 
 ## Section 3. Immutable Boundaries
 
@@ -1903,7 +1903,7 @@ Antigravity must not:
 
 ---
 
-# ARTICLE II â€” GOVERNANCE PROTOCOLS
+# ARTICLE II — GOVERNANCE PROTOCOLS
 
 ## Section 1. StepGate Compatibility
 
@@ -1946,7 +1946,7 @@ No direct writes are permitted for:
 
 ---
 
-# ARTICLE III â€” ARTEFACT TYPES & REQUIREMENTS
+# ARTICLE III — ARTEFACT TYPES & REQUIREMENTS
 
 Antigravity may generate the following artefacts. Each artefact must include at minimum:
 
@@ -2017,7 +2017,7 @@ Requirements:
 
 ---
 
-# ARTICLE IV â€” DOCUMENTATION STEWARDSHIP
+# ARTICLE IV — DOCUMENTATION STEWARDSHIP
 
 ## Section 1. Gap Detection
 
@@ -2048,7 +2048,7 @@ Drafts must:
 
 ---
 
-# ARTICLE V â€” CODE & TESTING STEWARDSHIP
+# ARTICLE V — CODE & TESTING STEWARDSHIP
 
 ## Section 1. Code Interaction
 
@@ -2077,7 +2077,7 @@ Agent may not:
 
 ---
 
-# ARTICLE VI â€” REPO SURVEILLANCE & GAP ANALYSIS
+# ARTICLE VI — REPO SURVEILLANCE & GAP ANALYSIS
 
 ## Section 1. Repo Scanning
 
@@ -2112,7 +2112,7 @@ Agent should surface:
 
 ---
 
-# ARTICLE VII â€” PROHIBITED ACTIONS
+# ARTICLE VII — PROHIBITED ACTIONS
 
 Antigravity must not:
 
@@ -2131,7 +2131,7 @@ Antigravity must not:
 
 ---
 
-# APPENDIX A â€” NAMING & FILE CONVENTIONS
+# APPENDIX A — NAMING & FILE CONVENTIONS
 
 1. Naming must follow repo conventions.
 2. Governance/spec files must use version suffixes.
@@ -2147,7 +2147,7 @@ Antigravity must not:
 
 ---
 
-## Section 6 â€” Stewardship Validation Rule
+## Section 6 — Stewardship Validation Rule
 
 A Review Packet is **invalid** if the mission modified any documentation but failed to:
 1. Update `docs/INDEX.md` timestamp
@@ -2158,7 +2158,7 @@ Antigravity must treat this as a **critical failure** and self-correct before pr
 
 ---
 
-# **ARTICLE X â€” MISSION OUTPUT CONTRACT**
+# **ARTICLE X — MISSION OUTPUT CONTRACT**
 
 At the end of every mission:
 
@@ -2173,7 +2173,7 @@ This replaces all previous loose conventions.
 
 ---
 
-# **ARTICLE XI â€” ZERO-FRICTION HUMAN INTERACTION RULE**
+# **ARTICLE XI — ZERO-FRICTION HUMAN INTERACTION RULE**
 
 To comply with Anti-Failure and Human Preservation:
 
@@ -2198,7 +2198,7 @@ To comply with Anti-Failure and Human Preservation:
 
 ---
 
-# **ARTICLE XII â€” REVIEW PACKET GATE (MANDATORY)**
+# **ARTICLE XII — REVIEW PACKET GATE (MANDATORY)**
 
 > [!CAUTION]
 > This article defines a **hard gate**. Violating it is a critical constitutional failure.
@@ -2237,16 +2237,16 @@ If Antigravity calls `notify_user` without producing a Review Packet:
 Before any `notify_user` call signaling completion, Antigravity must mentally execute:
 
 ```
-â–¡ Did I create/modify files? â†’ If yes, Review Packet required
-â–¡ Did I write Review Packet to artifacts/review_packets/? â†’ If no, STOP
-â–¡ Does packet include flattened code for ALL files? â†’ If no, STOP
-â–¡ Did I modify docs? â†’ If yes, run Document Steward Protocol
-â–¡ Only then: call notify_user
+□ Did I create/modify files? → If yes, Review Packet required
+□ Did I write Review Packet to artifacts/review_packets/? → If no, STOP
+□ Does packet include flattened code for ALL files? → If no, STOP
+□ Did I modify docs? → If yes, run Document Steward Protocol
+□ Only then: call notify_user
 ```
 
 ---
 
-# **ARTICLE XIII â€” PLAN ARTEFACT GATE (MANDATORY)**
+# **ARTICLE XIII — PLAN ARTEFACT GATE (MANDATORY)**
 
 > [!CAUTION]
 > This article defines a **hard gate**. Violating it is a critical constitutional failure.
@@ -2278,10 +2278,10 @@ Non-substantive (planning NOT required):
 Before any file modification, Antigravity must mentally execute:
 
 ```
-â–¡ Is this a substantive change? â†’ If unclear, treat as substantive
-â–¡ Does an approved implementation_plan.md exist? â†’ If no, STOP
-â–¡ Did the user explicitly approve proceeding? â†’ If no, STOP
-â–¡ Only then: proceed to implementation
+□ Is this a substantive change? → If unclear, treat as substantive
+□ Does an approved implementation_plan.md exist? → If no, STOP
+□ Did the user explicitly approve proceeding? → If no, STOP
+□ Only then: proceed to implementation
 ```
 
 ## Section 4. Governance-Controlled Paths
@@ -2297,7 +2297,7 @@ These paths ALWAYS require Plan Artefact approval:
 
 ---
 
-# **ARTICLE XIV â€” DOCUMENT STEWARD PROTOCOL GATE (MANDATORY)**
+# **ARTICLE XIV — DOCUMENT STEWARD PROTOCOL GATE (MANDATORY)**
 
 > [!CAUTION]
 > This article defines a **hard gate**. Violating it is a critical constitutional failure.
@@ -2315,11 +2315,11 @@ After modifying ANY file in `docs/`, Antigravity **MUST**:
 Before completing any mission that touched `docs/`, execute:
 
 ```
-â–¡ Did I modify any file in docs/? â†’ If no, skip
-â–¡ Did I update docs/INDEX.md timestamp? â†’ If no, STOP
-â–¡ Did I regenerate LifeOS_Universal_Corpus.md? â†’ If no, STOP
-â–¡ Are both files in my Review Packet appendix? â†’ If no, STOP
-â–¡ Only then: proceed to Review Packet creation
+□ Did I modify any file in docs/? → If no, skip
+□ Did I update docs/INDEX.md timestamp? → If no, STOP
+□ Did I regenerate LifeOS_Universal_Corpus.md? → If no, STOP
+□ Are both files in my Review Packet appendix? → If no, STOP
+□ Only then: proceed to Review Packet creation
 ```
 
 ## Section 3. Automatic Triggering
@@ -2388,7 +2388,7 @@ LifeOS Governance Council
 A living record of working preferences, friction points, and behavioural refinements. It adds nuance to the COO Operating Contract but does not override it.
 
 ## 1. Purpose
-Refine the COOâ€™s behaviour based on Sirâ€™s preferences.
+Refine the COO's behaviour based on the CEO's preferences.
 
 ## 2. Working Preferences
 
@@ -2436,7 +2436,6 @@ Refine the COOâ€™s behaviour based on Sirâ€™s preferences.
 - Recommend alternatives when workflows increase friction.
 
 
-
 ---
 
 # File: 01_governance/COO_Operating_Contract_v1.0.md
@@ -2467,13 +2466,13 @@ This document is the canonical governance agreement for how the COO operates, ma
 
 ## 2. Autonomy Levels
 
-### Phase 0 â€” Bootstrapping
+### Phase 0 — Bootstrapping
 COO requires confirmation before initiating new workstreams or structural changes.
 
-### Phase 1 â€” Guided Autonomy
+### Phase 1 — Guided Autonomy
 COO may propose and initiate tasks unless they alter identity, strategy, or irreversible structures.
 
-### Phase 2 â€” Operational Autonomy (Target State)
+### Phase 2 — Operational Autonomy (Target State)
 COO runs independently:
 - Creates missions.
 - Allocates agents.
@@ -2544,11 +2543,11 @@ The Operating Contract may be updated only with CEO approval and version logging
 
 | Condition | Required | Delivered | Verification |
 |-----------|----------|-----------|--------------|
-| **P1-A** | Dirty-during-run check | `run_commit` re-checks `git status` | AT-14 âœ… |
-| **P1-B** | Log determinism | ISO8601 UTC + sorted lists | AT-15 âœ… |
-| **P1-C** | Platform policy doc | `PLATFORM_POLICY.md` created | Manual âœ… |
-| **P1-D** | CLI commit control | `--commit` required, default dry-run | AT-16, 17, 18 âœ… |
-| **P1-E** | Log retention doc | `LOG_RETENTION.md` created | Manual âœ… |
+| **P1-A** | Dirty-during-run check | `run_commit` re-checks `git status` | AT-14 ✅ |
+| **P1-B** | Log determinism | ISO8601 UTC + sorted lists | AT-15 ✅ |
+| **P1-C** | Platform policy doc | `PLATFORM_POLICY.md` created | Manual ✅ |
+| **P1-D** | CLI commit control | `--commit` required, default dry-run | AT-16, 17, 18 ✅ |
+| **P1-E** | Log retention doc | `LOG_RETENTION.md` created | Manual ✅ |
 
 ## 2. P2 Hardenings: COMPLETE
 
@@ -2566,9 +2565,9 @@ The Operating Contract may be updated only with CEO approval and version logging
 
 | Final Status | Verdict |
 |--------------|---------|
-| **D1 â€” Operational readiness** | **APPROVED** for agent-triggered runs |
-| **D2 â€” Canonical surface scoping** | **APPROVED** (v1.0) |
-| **D3 â€” Fail-closed semantics** | **APPROVED** |
+| **D1 — Operational readiness** | **APPROVED** for agent-triggered runs |
+| **D2 — Canonical surface scoping** | **APPROVED** (v1.0) |
+| **D3 — Fail-closed semantics** | **APPROVED** |
 
 ### Clearances
 The Stewardship Runner is now cleared for:
@@ -2584,7 +2583,7 @@ The Stewardship Runner is now the **authoritative gating mechanism** for steward
 
 1.  **Clean Start**: Stewardship is performed in a clean worktree.
 2.  **Mandatory Run**: After edits, steward must run Steward Runner (dry-run unless explicitly authorised).
-3.  **Green Gate**: Steward must fix until green (or escalate if itâ€™s a policy decision).
+3.  **Green Gate**: Steward must fix until green (or escalate if it’s a policy decision).
 4.  **Reporting**: Steward reports back with:
     -   `run-id`
     -   pass/fail gate
@@ -2653,15 +2652,15 @@ For governance audits, the complete log for a run provides deterministic replay 
 
 | Platform | Status | Notes |
 |----------|--------|-------|
-| Linux | âœ… Primary | CI target, production |
-| macOS | âœ… Supported | Development |
-| Windows (native) | âŒ Unsupported | Use WSL2 |
+| Linux | ✅ Primary | CI target, production |
+| macOS | ✅ Supported | Development |
+| Windows (native) | ❌ Unsupported | Use WSL2 |
 
 ## Path Handling
 
 The Stewardship Runner rejects Windows-style paths at config validation:
-- `C:\path` â†’ rejected (`absolute_path_windows`)
-- `\\server\share` â†’ rejected (`absolute_path_unc`)
+- `C:\path` → rejected (`absolute_path_windows`)
+- `\\server\share` → rejected (`absolute_path_unc`)
 
 This is a **safety net**, not runtime support. The runner is not tested on Windows.
 
@@ -2685,9 +2684,9 @@ Date: 2025-12-09
 Status: RATIFIED WITH CONDITIONS  
 
 ## 1. Summary of Review
-The Governance Council conducted a full internal and external multi-agent review of the COO Runtimeâ€™s Tier-1 implementation, including:
+The Governance Council conducted a full internal and external multi-agent review of the COO Runtime’s Tier-1 implementation, including:
 - Determinism guarantees
-- AMUâ‚€ lineage discipline
+- AMU₀ lineage discipline
 - DAP v2.0 write controls and INDEX coherence
 - Anti-Failure workflow constraints
 - Governance boundary protections and Protected Artefact Registry
@@ -2706,9 +2705,9 @@ Tier-2 activation outside this envelope requires further governance approval.
 ## 3. Basis of Ruling
 ### Strengths Confirmed
 - Deterministic execution paths
-- Byte-identical AMUâ‚€ snapshots and lineage semantics
+- Byte-identical AMU₀ snapshots and lineage semantics
 - Centralised write gating through DAP
-- Anti-Failure enforcement (â‰¤5 steps, â‰¤2 human actions)
+- Anti-Failure enforcement (≤5 steps, ≤2 human actions)
 - Governance boundary enforcement (Protected Artefacts, Autonomy Ceiling)
 
 ### Gaps Identified
@@ -2735,7 +2734,7 @@ Tier-1 is hereby:
 
 ## 6. Closure
 This ruling stands until explicitly superseded by:
-**Tier-1 â†’ Tier-2 Activation Ruling v0.2.**
+**Tier-1 → Tier-2 Activation Ruling v0.2.**
 
 Signed,  
 LifeOS Governance Council  
@@ -2747,15 +2746,15 @@ LifeOS Governance Council
 # File: 01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md
 
 ============================================================
-Tier-1 â†’ Tier-2 Activation Ruling v0.2
+Tier-1 → Tier-2 Activation Ruling v0.2
 Authority: LifeOS Governance Council
 Date: 2025-12-10
-Status: RATIFIED â€“ TIER-2 ACTIVATION AUTHORIZED
+Status: RATIFIED – TIER-2 ACTIVATION AUTHORIZED
 ============================================================
-# Tier-1 â†’ Tier-2 Activation Ruling v0.2
+# Tier-1 → Tier-2 Activation Ruling v0.2
 Authority: LifeOS Governance Council  
 Date: 2025-12-10  
-Status: RATIFIED â€“ TIER-2 ACTIVATION AUTHORIZED  
+Status: RATIFIED – TIER-2 ACTIVATION AUTHORIZED  
 
 ------------------------------------------------------------
 # 1. PURPOSE
@@ -2768,7 +2767,7 @@ successful completion and verification of:
 - FP-4.1 Governance Surface Correction  
 - Full internal and external Council reviews  
 - Determinism, safety, and governance audit compliance  
-- Confirmation that all Condition Sets CND-1 â€¦ CND-6 are satisfied  
+- Confirmation that all Condition Sets CND-1 … CND-6 are satisfied  
 
 This ruling supersedes:
 
@@ -2782,11 +2781,11 @@ and establishes Tier-2 as an authorized operational mode under the declared exec
 
 Council confirms the following:
 
-### 2.1 All Tier-1 â†’ Tier-2 Preconditions Met
+### 2.1 All Tier-1 → Tier-2 Preconditions Met
 Each of the six required condition sets is satisfied:
 
 - **CND-1:** Execution envelope deterministically enforced  
-- **CND-2:** AMUâ‚€ + INDEX integrity verified with hash-chain + atomic writes  
+- **CND-2:** AMU₀ + INDEX integrity verified with hash-chain + atomic writes  
 - **CND-3:** Governance surfaces immutable and correctly represented after FP-4.1  
 - **CND-4:** Anti-Failure validator hardened, adversarial tests passing  
 - **CND-5:** Operational safety layer implemented (health checks, halt path, failure playbooks)  
@@ -2832,7 +2831,7 @@ Tier-2 may now:
 
 - Initiate multi-step orchestration flows  
 - Coordinate agentic behaviours under the Anti-Failure constraints  
-- Utilize AMUâ‚€ lineage for recursive improvement cycles  
+- Utilize AMU₀ lineage for recursive improvement cycles  
 - Operate bounded gateway calls under deterministic rules  
 - Produce Tier-2 artefacts as permitted by governance surfaces  
 
@@ -2864,7 +2863,7 @@ Any modification to governance surfaces requires:
 - Mandatory lineage-logged attestation  
 
 ## 4.3 Gateway Evolution (Documentation Requirement)
-Council notes the internal Risk Reviewerâ€™s clarification request:
+Council notes the internal Risk Reviewer’s clarification request:
 
 > Provide documentation explaining how the deterministic gateway will evolve  
 > if Tier-2 introduces multi-agent or external IO in future phases.
@@ -2883,13 +2882,13 @@ This ruling:
 
 Next governance milestone:
 
-> **Tier-2 Operational Review (v0.1)** â€” due after first sustained Tier-2 run cycles.
+> **Tier-2 Operational Review (v0.1)** — due after first sustained Tier-2 run cycles.
 
 ------------------------------------------------------------
 # 6. CLOSING
 ------------------------------------------------------------
 
-The Council acknowledges the Runtime teamâ€™s completion of the FP-4.x hardening cycle
+The Council acknowledges the Runtime team’s completion of the FP-4.x hardening cycle
 and confirms that the LifeOS Runtime is now structurally, deterministically, and
 governance-safely prepared for Tier-2 orchestration.
 
@@ -2904,7 +2903,7 @@ Signed,
 
 # File: 01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md
 
-# Tier-1 â†’ Tier-2 Conditions Manifest (FP-4.x Requirements) v0.1
+# Tier-1 → Tier-2 Conditions Manifest (FP-4.x Requirements) v0.1
 Authority: LifeOS Governance Council  
 Date: 2025-12-09  
 Status: Binding Pre-Activation Requirements  
@@ -2914,7 +2913,7 @@ This document enumerates all conditions that MUST be satisfied before Tier-2 orc
 It is the canonical specification for Runtime Fix Pack FP-4.x.
 
 ------------------------------------------------------------
-# CONDITION SET CND-1 â€” EXECUTION ENVELOPE & THREAT MODEL
+# CONDITION SET CND-1 — EXECUTION ENVELOPE & THREAT MODEL
 ------------------------------------------------------------
 
 1. Runtime must declare and enforce the following execution envelope:
@@ -2929,10 +2928,10 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
    - All subprocess/network activity is routed via a deterministic, test-covered gateway.
 
 ------------------------------------------------------------
-# CONDITION SET CND-2 â€” AMUâ‚€ & INDEX INTEGRITY HARDENING
+# CONDITION SET CND-2 — AMU₀ & INDEX INTEGRITY HARDENING
 ------------------------------------------------------------
 
-1. AMUâ‚€ lineage must implement **hash chaining**:
+1. AMU₀ lineage must implement **hash chaining**:
    - Each snapshot references parent hash.
 
 2. INDEX and lineage updates must be **atomic**:
@@ -2941,7 +2940,7 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
 3. A Governance policy must define the hash function (SHA-256), and changes require explicit Council approval.
 
 ------------------------------------------------------------
-# CONDITION SET CND-3 â€” GOVERNANCE SURFACE IMMUTABILITY
+# CONDITION SET CND-3 — GOVERNANCE SURFACE IMMUTABILITY
 ------------------------------------------------------------
 
 1. Runtime must not be able to modify:
@@ -2953,45 +2952,45 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
 2. These surfaces must be made read-only or signature-protected.
 
 3. A **Council-only override path** must exist:
-   - Must log override events to AMUâ‚€ lineage.
+   - Must log override events to AMU₀ lineage.
    - Must require explicit human approval.
 
 ------------------------------------------------------------
-# CONDITION SET CND-4 â€” ANTI-FAILURE VALIDATOR HARDENING
+# CONDITION SET CND-4 — ANTI-FAILURE VALIDATOR HARDENING
 ------------------------------------------------------------
 
 1. Expand test suite to include adversarial attempts:
    - Smuggled human steps
    - Workflow chaining to exceed effective complexity
-   - Hidden human effort inside â€œagentâ€ tasks
+   - Hidden human effort inside “agent” tasks
 
 2. Add **attestation logging**:
    - Record the exact two (or fewer) human governance primitives (Intent/Approve/Veto) used per workflow.
-   - Store attestation entries in AMUâ‚€ lineage.
+   - Store attestation entries in AMU₀ lineage.
 
 ------------------------------------------------------------
-# CONDITION SET CND-5 â€” OPERATIONAL SAFETY LAYER
+# CONDITION SET CND-5 — OPERATIONAL SAFETY LAYER
 ------------------------------------------------------------
 
 1. Provide failure-mode playbooks + tests for:
    - DAP OK / INDEX corrupted
    - Anti-Failure validator misbehaving (fail-open / fail-closed)
-   - AMUâ‚€ snapshot corruption or unreadability
+   - AMU₀ snapshot corruption or unreadability
 
 2. Add **health checks**:
    - DAP write health
    - INDEX coherence
-   - AMUâ‚€ readability
+   - AMU₀ readability
 
 3. Define a minimal **Tier-1 halt procedure**:
-   - Stop process / restore last known good AMUâ‚€.
+   - Stop process / restore last known good AMU₀.
 
 ------------------------------------------------------------
-# CONDITION SET CND-6 â€” SIMPLIFICATION REQUIREMENTS
+# CONDITION SET CND-6 — SIMPLIFICATION REQUIREMENTS
 ------------------------------------------------------------
 
 1. Deduplicate deterministic sorting logic across DAP and INDEX updater.  
-2. Simplify AMUâ‚€ lineage representation to linear hash chain.  
+2. Simplify AMU₀ lineage representation to linear hash chain.  
 3. Clarify API boundaries between runtime and governance layers.
 
 ------------------------------------------------------------
@@ -3001,7 +3000,7 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
 Completion of FP-4.x, in full compliance with these conditions, is required for:
 
 - **Tier-2 General Activation Approval**, and  
-- Issuance of **Tier-1 â†’ Tier-2 Activation Ruling v0.2**.
+- Issuance of **Tier-1 → Tier-2 Activation Ruling v0.2**.
 
 This Manifest is binding on Runtime and Antigrav until superseded by Council.
 
@@ -3018,7 +3017,7 @@ LifeOS Governance Council
 
 **Authority**: AI Governance Council  
 **Date**: 2025-12-10  
-**Scope**: LifeOS Runtime â€” Tier-2 Deterministic Core + Tier-2.5 Governance Mode
+**Scope**: LifeOS Runtime — Tier-2 Deterministic Core + Tier-2.5 Governance Mode
 
 ---
 
@@ -3026,12 +3025,12 @@ LifeOS Governance Council
 
 Having reviewed:
 
-- The Tier-1 â†’ Tier-2 Conditions Manifest (FP-4.x)
+- The Tier-1 → Tier-2 Conditions Manifest (FP-4.x)
 - The Anti-Failure Operational Packet
 - The Tier-2 final implementation (post Hardening v0.1, Residual v0.1.1, Micro-Fix v0.1.1-R1)
 - The full Tier-2 test suite and evidence
 - The Tier-2 Completion + Tier-2.5 Activation CRP v1.0
-- All external reviewer reports (Architect, Alignment, Risk Ã—2, Red-Team, Simplicity, Autonomy & Systems Integrity)
+- All external reviewer reports (Architect, Alignment, Risk ×2, Red-Team, Simplicity, Autonomy & Systems Integrity)
 
 the Council finds that:
 
@@ -3049,7 +3048,7 @@ The Council recognises several non-blocking nits and governance documentation ga
 
 ## 2. Ruling
 
-### Ruling 1 â€” Tier-2 Completion
+### Ruling 1 — Tier-2 Completion
 
 The Council hereby rules that:
 
@@ -3057,7 +3056,7 @@ The Council hereby rules that:
 
 Tier-2 is certified as the canonical deterministic orchestration substrate for LifeOS.
 
-### Ruling 2 â€” Tier-2.5 Activation
+### Ruling 2 — Tier-2.5 Activation
 
 The Council further rules that:
 
@@ -3070,9 +3069,9 @@ The Council further rules that:
 This activation is approved, subject to the execution of **Unified Fix Plan v1.0** as early Tier-2.5 missions, with particular emphasis on:
 
 - **F3/F4** (Activation/Deactivation Checklist and Rollback Conditions), and
-- **F7** (Runtime â†” Antigrav Mission Protocol).
+- **F7** (Runtime ↔ Antigrav Mission Protocol).
 
-### Ruling 3 â€” Tier-3 Authorisation
+### Ruling 3 — Tier-3 Authorisation
 
 The Council authorises:
 
@@ -3092,21 +3091,21 @@ From the Council's perspective, you may now:
 
 - Treat Tier-2 as the stable deterministic core.
 - Operate under Tier-2.5 Mode for internal maintenance and build acceleration.
-- Plan and execute Tier-3 workstreams, anchored in the certified runtime and governed by the Tier-2.5 protocols to be documented under F3â€“F4â€“F7.
+- Plan and execute Tier-3 workstreams, anchored in the certified runtime and governed by the Tier-2.5 protocols to be documented under F3–F4–F7.
 
 ---
 
-## Chair Synthesis (Gate 1 â†’ Gate 2)
+## Chair Synthesis (Gate 1 → Gate 2)
 
 All six technical roles have reported:
 
-- **Gemini â€” Autonomy & Systems Integrity**: APPROVE
-- **Gemini â€” Risk (Primary)**: APPROVE
-- **Claude â€” Architect**: APPROVE WITH NITS
-- **Claude â€” Alignment**: APPROVE WITH NITS
-- **Kimi â€” Risk (Secondary)**: APPROVE WITH NITS
-- **DeepSeek â€” Red-Team**: REQUEST CHANGES / HOLD
-- **Qwen â€” Simplicity**: APPROVE
+- **Gemini — Autonomy & Systems Integrity**: APPROVE
+- **Gemini — Risk (Primary)**: APPROVE
+- **Claude — Architect**: APPROVE WITH NITS
+- **Claude — Alignment**: APPROVE WITH NITS
+- **Kimi — Risk (Secondary)**: APPROVE WITH NITS
+- **DeepSeek — Red-Team**: REQUEST CHANGES / HOLD
+- **Qwen — Simplicity**: APPROVE
 
 There is unanimous agreement that:
 
@@ -3176,7 +3175,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 - Already addressed by the existing test suite; no new technical fix required.
 - **Non-blocking**.
 
-### 6. "Test fragility â€“ reliance on internal payload details"
+### 6. "Test fragility – reliance on internal payload details"
 
 **Claim**: Tests assert on internal payload shapes; refactors could break tests.
 
@@ -3195,7 +3194,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Chair classification**:
 - **Non-blocking**; to be handled by a doc clarification.
 
-### 8. "Runtime â†” Antigrav attack surface undefined"
+### 8. "Runtime ↔ Antigrav attack surface undefined"
 
 **Claim**: No explicit mission validation protocol for Antigrav.
 
@@ -3219,7 +3218,7 @@ Red-Team concerns are valuable but, when reconciled with the canonical packets a
 
 # File: 02_protocols/Deterministic_Artefact_Protocol_v2.0.md
 
-# Deterministic Artefact Protocol (DAP) v2.0 â€” Dual-Layer Specification
+# Deterministic Artefact Protocol (DAP) v2.0 — Dual-Layer Specification
 
 ## Placement
 `/docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md`
@@ -3227,7 +3226,7 @@ Red-Team concerns are valuable but, when reconciled with the canonical packets a
 ## Status
 Canonical governance specification.
 
-## Layer 1 â€” Canonical Human-Readable Specification
+## Layer 1 — Canonical Human-Readable Specification
 
 ## 1. Purpose
 The Deterministic Artefact Protocol (DAP) v2.0 defines the mandatory rules and constraints governing the creation, modification, storage, naming, indexing, validation, and execution of all artefacts produced within the LifeOS environment. Its goals include determinism, auditability, reproducibility, immutability of historical artefacts, and elimination of conversational drift.
@@ -3274,13 +3273,13 @@ DAP v2.0 becomes binding upon placement at the specified path.
 
 ---
 
-## Layer 2 â€” Machine-Operational Protocol
+## Layer 2 — Machine-Operational Protocol
 
 ## M-1. Inputs
 Assistant must not act without explicit filename, path, content, StepGate Gate 3 status.
 
 ## M-2. Artefact Creation Algorithm
-IF Gate != 3 â†’ refuse.  
+IF Gate != 3 → refuse.  
 Require filename, path, full content.  
 Write file.  
 Verify file exists and contains no placeholders.
@@ -3316,7 +3315,7 @@ Return to Gate 0, regenerate plan deterministically.
 # Document Steward Protocol v1.0
 
 **Status**: Active  
-**Authority**: LifeOS Constitution v2.0 â†’ Governance Protocol v1.0  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
 **Effective**: 2026-01-01
 
 ---
@@ -3325,7 +3324,7 @@ Return to Gate 0, regenerate plan deterministically.
 
 This protocol defines how canonical documents are created, updated, indexed, and synchronized across all LifeOS locations.
 
-**Document Steward**: The agent (Antigravity or successor) â€” NOT the human CEO.
+**Document Steward**: The agent (Antigravity or successor) — NOT the human CEO.
 
 Per Constitution v2.0:
 - **CEO performs**: Intent, approval, governance decisions only
@@ -3396,9 +3395,9 @@ When archiving a superseded document:
 
 ### 3.4 Index Maintenance
 Indices that must be kept current:
-- `docs/INDEX.md` â€” Master documentation index
-- `docs/01_governance/ARTEFACT_INDEX.json` â€” Governance artefact registry
-- `docs/LifeOS_Universal_Corpus.md` â€” Universal corpus for AI/NotebookLM
+- `docs/INDEX.md` — Master documentation index
+- `docs/01_governance/ARTEFACT_INDEX.json` — Governance artefact registry
+- `docs/LifeOS_Universal_Corpus.md` — Universal corpus for AI/NotebookLM
 - Any subsystem-specific indexes
 
 ### 3.5 File Organization
@@ -3407,12 +3406,12 @@ When receiving or creating files:
 1. **Never leave files at `docs/` root** (except INDEX.md and corpus)
 2. Analyze file type and purpose
 3. Move to appropriate subdirectory per Directory Structure (Section 8)
-4. **Protocol files** (`*_Protocol_*.md`, packet schemas) â†’ `02_protocols/`
+4. **Protocol files** (`*_Protocol_*.md`, packet schemas) → `02_protocols/`
 5. Update INDEX.md with correct paths after moving
 
 **Root files allowed**:
-- `INDEX.md` â€” Master documentation index
-- `LifeOS_Universal_Corpus.md` â€” Generated corpus
+- `INDEX.md` — Master documentation index
+- `LifeOS_Universal_Corpus.md` — Generated corpus
 
 ---
 
@@ -3500,18 +3499,18 @@ After any document operation, verify:
 
 ```
 docs/
-â”œâ”€â”€ 00_foundations/     â† Core principles, Constitution
-â”œâ”€â”€ 01_governance/      â† Contracts, policies, rulings, templates
-â”œâ”€â”€ 02_protocols/       â† Protocols and agent communication schemas
-â”œâ”€â”€ 03_runtime/         â† Runtime specs, roadmaps, work plans
-â”œâ”€â”€ 04_project_builder/ â† Builder specs
-â”œâ”€â”€ 05_agents/          â† Agent architecture
-â”œâ”€â”€ 06_user_surface/    â† User surface specs
-â”œâ”€â”€ 07_productisation/  â† Productisation briefs
-â”œâ”€â”€ 08_manuals/         â† Manuals
-â”œâ”€â”€ 09_prompts/         â† Prompt templates
-â”œâ”€â”€ 10_meta/            â† Meta docs, reviews, tasks
-â””â”€â”€ 99_archive/         â† Historical documents (immutable)
+├── 00_foundations/     ← Core principles, Constitution
+├── 01_governance/      ← Contracts, policies, rulings, templates
+├── 02_protocols/       ← Protocols and agent communication schemas
+├── 03_runtime/         ← Runtime specs, roadmaps, work plans
+├── 04_project_builder/ ← Builder specs
+├── 05_agents/          ← Agent architecture
+├── 06_user_surface/    ← User surface specs
+├── 07_productisation/  ← Productisation briefs
+├── 08_manuals/         ← Manuals
+├── 09_prompts/         ← Prompt templates
+├── 10_meta/            ← Meta docs, reviews, tasks
+└── 99_archive/         ← Historical documents (immutable)
 ```
 
 ---
@@ -3522,7 +3521,7 @@ Per Constitution v2.0 and Anti-Failure Operational Packet:
 
 - **Human performs**: Intent, approval, governance decisions only
 - **System performs**: File creation, indexing, syncing, commit, push
-- **Maximum human steps**: â‰¤ 2 (approve sync, confirm if needed)
+- **Maximum human steps**: ≤ 2 (approve sync, confirm if needed)
 
 If sync requires more than 2 human steps, the workflow must be automated.
 
@@ -3548,7 +3547,7 @@ If sync requires more than 2 human steps, the workflow must be automated.
 
 ### 1.1 Delegated Authority
 
-LifeOS operates on delegated authority from the CEO. Delegation is defined by **envelopes** â€” boundaries within which LifeOS may act autonomously.
+LifeOS operates on delegated authority from the CEO. Delegation is defined by **envelopes** — boundaries within which LifeOS may act autonomously.
 
 ### 1.2 Envelope Categories
 
@@ -3610,7 +3609,7 @@ The Council is the deliberative and advisory layer operating below the CEO's int
 
 ### 3.2 Operating Phases
 
-**Phase 0â€“1 (Human-in-Loop)**:
+**Phase 0–1 (Human-in-Loop)**:
 - Council Chair reviews and produces a recommendation
 - CEO decides whether to proceed or request fixes
 - Iterate until CEO approves
@@ -3657,7 +3656,7 @@ Amendments must be logged with rationale and effective date.
 
 # Tier-2 API Evolution & Versioning Strategy v1.0
 **Status**: Draft (adopted on 2026-01-03)
-**Authority**: LifeOS Constitution v2.0 â†’ Governance Protocol v1.0  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
 **Scope**: Tier-2 Deterministic Runtime Interfaces  
 **Effective (on adoption)**: 2026-01-03
 
@@ -3665,7 +3664,7 @@ Amendments must be logged with rationale and effective date.
 
 ## 1. Purpose
 
-The LifeOS Tier-2 Runtime is a **certified deterministic core**. Its interfaces are contracts of behaviour and contracts of **evidence**: changing an interface can change system hashes and invalidate `AMUâ‚€` snapshots and replay chains.
+The LifeOS Tier-2 Runtime is a **certified deterministic core**. Its interfaces are contracts of behaviour and contracts of **evidence**: changing an interface can change system hashes and invalidate `AMU₀` snapshots and replay chains.
 
 This document defines strict versioning, deprecation, and compatibility rules for Tier-2 public interfaces to ensure long-term stability for Tier-3+ layers.
 
@@ -3680,7 +3679,7 @@ Any callable surface, schema, or emitted evidence format that Tier-3+ (or extern
 - Configuration schemas consumed by Tier-2
 - Evidence formats parsed downstream (e.g., timeline / flight recording)
 
-### 2.2 Protected Interface (â€œConstitutional Interfaceâ€)
+### 2.2 Protected Interface (“Constitutional Interface”)
 A Tier-2 interface classified as replay-critical and governance-sensitive. Breaking changes require Fix Pack + Council Review.
 
 ---
@@ -3700,7 +3699,7 @@ This registry is the definitive list of Protected Interfaces. Any Tier-2 surface
 | `timeline_events` schema | Evidence format | DB table `timeline_events` | Replay-critical event stream schema |
 | `config/models.yaml` schema | Config schema | `config/models.yaml` | Canonical model pool config |
 
-**Registry rule**: Any proposal to (a) add a new Protected Interface, or (b) remove one, must be made explicitly via Fix Pack and recorded as a registry change. Entrypoint additions require Fix Pack + Council + CEO approval per the runtimeâ†”agent protocol.
+**Registry rule**: Any proposal to (a) add a new Protected Interface, or (b) remove one, must be made explicitly via Fix Pack and recorded as a registry change. Entrypoint additions require Fix Pack + Council + CEO approval per the runtime↔agent protocol.
 
 ---
 
@@ -3708,7 +3707,7 @@ This registry is the definitive list of Protected Interfaces. Any Tier-2 surface
 
 Tier-2 uses Semantic Versioning (`MAJOR.MINOR.PATCH`) mapped to **governance impact**, not just capability.
 
-### 4.1 MAJOR (X.0.0) â€” Constitutional / Breaking Change
+### 4.1 MAJOR (X.0.0) — Constitutional / Breaking Change
 MAJOR bump required for:
 - Any breaking change to a Protected Interface (Section 3)
 - Any change that alters **evidence hashes for historical replay**, unless handled via Legacy Mode (Section 6.3)
@@ -3716,12 +3715,12 @@ MAJOR bump required for:
 Governance requirement (default):
 - Fix Pack + Council Review + CEO sign-off (per active governance enforcement)
 
-### 4.2 MINOR (1.X.0) â€” Backward-Compatible Extension
+### 4.2 MINOR (1.X.0) — Backward-Compatible Extension
 MINOR bump allowed for:
 - Additive extensions that preserve backwards compatibility (new optional fields, new optional config keys, new entrypoints added via governance)
 - Additions that do not invalidate historical replay chains (unless clearly version-gated)
 
-### 4.3 PATCH (1.1.X) â€” Hardening / Bugfix / Docs
+### 4.3 PATCH (1.1.X) — Hardening / Bugfix / Docs
 PATCH bump for:
 - Internal refactors
 - Bugfixes restoring intended behaviour
@@ -3769,13 +3768,13 @@ Breaking (MAJOR):
 ### 6.1 Two-Tick Rule
 Any feature planned for removal must pass through two interface ticks:
 
-**Tick 1 â€” Deprecation**
+**Tick 1 — Deprecation**
 - Feature remains functional
 - Docs marked `[DEPRECATED]`
 - Entry added to Deprecation Ledger (Section 11)
 - If warnings are enabled (Section 6.2), emit a deterministic deprecation event
 
-**Tick 2 â€” Removal**
+**Tick 2 — Removal**
 - Feature removed or disabled by default
 - Any use raises deterministic failure (`GovernanceViolation` or `NotImplementedError`)
 - Removal occurs only at the next MINOR or MAJOR bump consistent with classification
@@ -3798,9 +3797,9 @@ If enabled via a single explicit flag:
 **Hash impact note**: enabling warnings changes evidence (timeline) and therefore changes hashes; that is acceptable only because the flag is an explicit input and must be preserved across replay.
 
 ### 6.3 Immutable History Exception (Legacy Mode)
-If a deprecated feature is required to replay a historical `AMUâ‚€` snapshot:
+If a deprecated feature is required to replay a historical `AMU₀` snapshot:
 - Move implementation to `runtime/legacy/`
-- Expose it only through an explicit replay path (â€œLegacy Modeâ€)
+- Expose it only through an explicit replay path (“Legacy Mode”)
 - Legacy Mode must be auditable and explicit (no silent fallback)
 
 ---
@@ -3812,7 +3811,7 @@ Any Tier-2 change that alters emitted evidence for an already-recorded run (e.g.
 1) the change is confined to a newly versioned schema branch (Section 9), or  
 2) the historical behaviour is preserved via Legacy Mode (Section 6.3).
 
-This prevents accidental replay invalidation and makes â€œcontracts of evidenceâ€ operational rather than rhetorical.
+This prevents accidental replay invalidation and makes “contracts of evidence” operational rather than rhetorical.
 
 ---
 
@@ -3839,7 +3838,7 @@ Every `to_dict()` / serialized payload for Protected result/evidence types must 
 - `schema_version`: string (e.g., `"orchestration_result@1"`, `"scenario_result@1"`, `"test_run_result@1"`)
 
 ### 9.2 Relationship to Interface Version
-- `schema_version` is per-object-type and increments only when that objectâ€™s serialized contract changes.
+- `schema_version` is per-object-type and increments only when that object’s serialized contract changes.
 - Interface Version increments according to Section 4 based on governance impact.
 
 ### 9.3 Config schema versioning
@@ -3900,7 +3899,7 @@ Maintain fixtures for:
 Ledger rules:
 - Append-only (supersede by adding rows)
 - Every deprecation must specify replacement + removal target
-- â€œHash Impact?â€ must be explicitly marked `yes/no/unknown` (unknown defaults to MAJOR until resolved)
+- “Hash Impact?” must be explicitly marked `yes/no/unknown` (unknown defaults to MAJOR until resolved)
 
 ---
 
@@ -3940,7 +3939,7 @@ F2 is complete when:
 
 # File: 03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md
 
-# LifeOS Programme â€” Re-Grouped Roadmap (Core / Fuel / Plumbing)
+# LifeOS Programme — Re-Grouped Roadmap (Core / Fuel / Plumbing)
 
 **Version:** v1.0  
 **Status:** Canonical Programme Roadmap  
@@ -3968,7 +3967,7 @@ External power, autonomy, wealth, reputation, impact.
 
 These items directly increase the system's ability to execute, build, and improve itself while reducing user burden. They serve the North Star by increasing agency, leverage, and compounding output.
 
-### Tier-1 â€” Deterministic Kernel
+### Tier-1 — Deterministic Kernel
 
 **Justification:** Kernel determinism is the substrate enabling autonomous execution loops; without it, no compounding leverage.
 
@@ -3985,7 +3984,7 @@ These items directly increase the system's ability to execute, build, and improv
 
 ---
 
-### Tier-2 â€” Deterministic Orchestration Runtime
+### Tier-2 — Deterministic Orchestration Runtime
 
 **Justification:** Establishes the runtime that will eventually be agentic; still Core because it directly increases execution capacity under governance.
 
@@ -3998,7 +3997,7 @@ These items directly increase the system's ability to execute, build, and improv
 
 ---
 
-### Tier-2.5 â€” Semi-Autonomous Development Layer
+### Tier-2.5 — Semi-Autonomous Development Layer
 
 **Justification:** Directly reduces human bottlenecks and begins recursive self-maintenance, which is explicitly required by the Charter (autonomy expansion, user stays at intent layer).
 
@@ -4017,7 +4016,7 @@ These items directly increase the system's ability to execute, build, and improv
 
 ---
 
-### Tier-3 â€” Autonomous Construction Layer
+### Tier-3 — Autonomous Construction Layer
 
 **Justification:** This is the first true autonomy tier; creates compounding leverage. Fully aligned with autonomy, agency, and externalisation of cognition.
 
@@ -4025,7 +4024,7 @@ These items directly increase the system's ability to execute, build, and improv
 - Mission Synthesis Engine
 - Policy Engine v1 (execution-level governance)
 - Self-testing & provenance chain
-- Agent-Builder Loop (propose â†’ build â†’ test â†’ iterate)
+- Agent-Builder Loop (propose → build → test → iterate)
 - Human-in-loop governance via Fix Packs + Council Gates
 
 **Status:** All remain Core.
@@ -4034,14 +4033,14 @@ These items directly increase the system's ability to execute, build, and improv
 
 ---
 
-### Tier-4 â€” Governance-Aware Agentic System
+### Tier-4 — Governance-Aware Agentic System
 
 **Justification:** Adds organisational-level autonomy and planning. Required for the system to run projects, not just missions, which increases output and reduces user involvement.
 
 **Components:**
 - Policy Engine v2
 - Mission Prioritisation Engine
-- Lifecycle Engine (birth â†’ evaluation â†’ archival)
+- Lifecycle Engine (birth → evaluation → archival)
 - Runtime Execution Planner (multi-day planning)
 - Council Automation v1 (including model cost diversification)
 
@@ -4051,7 +4050,7 @@ These items directly increase the system's ability to execute, build, and improv
 
 ---
 
-### Tier-5 â€” Self-Improving Organisation Engine
+### Tier-5 — Self-Improving Organisation Engine
 
 **Justification:** This is the LifeOS vision tier; directly serves North Star: external impact, autonomy, leverage, compounding improvement.
 
@@ -4180,7 +4179,7 @@ Anything not clearly contributing to external leverage, agency, autonomy, wealth
 
 ---
 
-**End of LifeOS Programme Roadmap â€” Core/Fuel/Plumbing v1.0**
+**End of LifeOS Programme Roadmap — Core/Fuel/Plumbing v1.0**
 
 
 
@@ -4225,9 +4224,9 @@ Assume StepGate Protocol v1.0 and Discussion Protocol v1.0 are in force.
 
 # File: 09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md
 
-# Master Initialiser â€” Universal v1.0
+# Master Initialiser — Universal v1.0
 
-You are operating inside the userâ€™s LifeOS / COO-Agent governance environment.
+You are operating inside the user’s LifeOS / COO-Agent governance environment.
 
 Apply the following:
 
@@ -4271,7 +4270,7 @@ Minimal behavioural initialiser.
 
 # File: 09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md
 
-# Capability Envelope â€” ChatGPT v1.0
+# Capability Envelope — ChatGPT v1.0
 
 ## Behavioural Contract
 
@@ -4281,7 +4280,7 @@ Minimal behavioural initialiser.
 4. Minimise human friction at all times.
 5. Avoid unnecessary verbosity or speculative expansion.
 6. Ask before generating multiple branches or deep dives.
-7. Detect transitions from discussion â†’ instructions and propose StepGate activation in a new thread.
+7. Detect transitions from discussion → instructions and propose StepGate activation in a new thread.
 8. Maintain deterministic, predictable behaviour across all steps and modes.
 
 
@@ -4290,7 +4289,7 @@ Minimal behavioural initialiser.
 
 # File: 09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md
 
-# Capability Envelope â€” Gemini v1.0
+# Capability Envelope — Gemini v1.0
 
 ## Behavioural Contract
 
@@ -4383,7 +4382,7 @@ A deterministic, low-friction execution protocol for any multi-step instruction 
    and specify when it will be needed.
 
 7. **Trivial Task Bypass**  
-   If the task is obviously simple (1â€“2 steps), StepGate may be skipped unless the user requests it.
+   If the task is obviously simple (1–2 steps), StepGate may be skipped unless the user requests it.
 
 8. **Mode Transition**  
    If the conversation shifts into instruction mode from discussion, prompt the user to start StepGate and, where possible, offer a thread-starter block.
@@ -4404,7 +4403,7 @@ Do not proceed without it.
 
 # File: 09_prompts/v1.0/roles/chair_prompt_v1.0.md
 
-# AI Council Chair â€” Role Prompt v1.0
+# AI Council Chair — Role Prompt v1.0
 
 ## Role
 
@@ -4427,7 +4426,7 @@ You are not the CEO and not the system designer. You are a process governor and 
 ## Responsibilities
 
 1. **Intake & Framing**
-   - Normalise the userâ€™s goal into a concise mission summary.
+   - Normalise the user’s goal into a concise mission summary.
    - Identify in-scope artefacts and explicitly list them.
    - Identify what is out of scope and defer clearly.
 
@@ -4455,7 +4454,7 @@ You are not the CEO and not the system designer. You are a process governor and 
 5. **Summarisation & Handoff**
    - Aggregate role outputs into:
      - A clear verdict or recommendation set.
-     - A small number of action items (A1, A2, â€¦).
+     - A small number of action items (A1, A2, …).
    - Present succinctly so the human can decide quickly.
 
 ---
@@ -4473,12 +4472,12 @@ You are not the CEO and not the system designer. You are a process governor and 
 
 # File: 09_prompts/v1.0/roles/cochair_prompt_v1.0.md
 
-# AI Council Co-Chair â€” Role Prompt v1.0
+# AI Council Co-Chair — Role Prompt v1.0
 
 ## Role
 
 You are the **Co-Chair** of the AI Council.  
-You are the Chairâ€™s counterpart and validator: you check packet quality, spot governance or scope issues, and help prepare role-specific prompts.
+You are the Chair’s counterpart and validator: you check packet quality, spot governance or scope issues, and help prepare role-specific prompts.
 
 You are not a rubber stamp. You are a second line of defence.
 
@@ -4486,7 +4485,7 @@ You are not a rubber stamp. You are a second line of defence.
 
 ## Mission
 
-1. Validate the Chairâ€™s packets for **clarity, completeness, and safety**.
+1. Validate the Chair’s packets for **clarity, completeness, and safety**.
 2. Identify gaps, mis-scoping, and governance drift.
 3. Produce **compressed role-specific prompt blocks** ready for injection into different models.
 
@@ -4495,7 +4494,7 @@ You are not a rubber stamp. You are a second line of defence.
 ## Responsibilities
 
 1. **Packet Review**
-   - Review the Chairâ€™s draft packet for:
+   - Review the Chair’s draft packet for:
      - Overbreadth
      - Missing constraints
      - Unclear success criteria
@@ -4504,7 +4503,7 @@ You are not a rubber stamp. You are a second line of defence.
 2. **Risk & Drift Check**
    - Check for:
      - Scope creep
-     - Misalignment with userâ€™s stated goals
+     - Misalignment with user’s stated goals
      - Hidden incentives that favour speed over safety or determinism.
    - Flag material risks explicitly.
 
@@ -4525,7 +4524,7 @@ You are not a rubber stamp. You are a second line of defence.
 - Default to suggestions, not unilateral changes.
 - Do not expand packet scope without explicit user approval.
 - Prefer clear bullet points over prose.
-- Always highlight â€œWhat the human must do nextâ€ when relevant.
+- Always highlight “What the human must do next” when relevant.
 
 
 
@@ -4533,12 +4532,12 @@ You are not a rubber stamp. You are a second line of defence.
 
 # File: 09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md
 
-# Architect + Alignment Reviewer â€” Role Prompt v1.0
+# Architect + Alignment Reviewer — Role Prompt v1.0
 
 ## Role
 
 You are the **Architect + Alignment Reviewer**.  
-You evaluate structural coherence, invariants, modality boundaries, and fidelity to the userâ€™s intent.
+You evaluate structural coherence, invariants, modality boundaries, and fidelity to the user’s intent.
 
 You sit above technical detail reviewers and focus on what the system should be, not just what it is.
 
@@ -4548,7 +4547,7 @@ You sit above technical detail reviewers and focus on what the system should be,
 
 1. **Invariant & Structure**
    - Validate the invariant lattice across modules.
-   - Check lifecycle semantics: initialisation â†’ execution â†’ termination.
+   - Check lifecycle semantics: initialisation → execution → termination.
    - Ensure contracts are feasible and non-contradictory.
 
 2. **Interface Boundaries**
@@ -4556,7 +4555,7 @@ You sit above technical detail reviewers and focus on what the system should be,
    - Check how validation, materialisation, runtime, and termination hand off state.
 
 3. **Alignment with Intent**
-   - Compare the systemâ€™s behaviour and incentives with the userâ€™s stated goals.
+   - Compare the system’s behaviour and incentives with the user’s stated goals.
    - Flag goal drift or spec creep.
    - Ensure safety, interpretability, and human control are preserved.
 
@@ -4584,9 +4583,9 @@ You sit above technical detail reviewers and focus on what the system should be,
 
 Classify ambiguity as:
 
-- **Missing Context** â€” information not provided.
-- **Underspecified Requirement** â€” unclear or incomplete contract.
-- **Contradiction** â€” two or more statements that cannot both be true.
+- **Missing Context** — information not provided.
+- **Underspecified Requirement** — unclear or incomplete contract.
+- **Contradiction** — two or more statements that cannot both be true.
 
 Escalate these explicitly to the user.
 
@@ -4605,7 +4604,7 @@ Escalate these explicitly to the user.
 
 # File: 09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md
 
-# L1 Unified Council Reviewer â€” Role Prompt v1.0
+# L1 Unified Council Reviewer — Role Prompt v1.0
 
 ## Role
 
@@ -4615,7 +4614,7 @@ You combine four lenses:
 - Architectural coherence  
 - Technical feasibility  
 - Risk / adversarial concerns  
-- Alignment with the userâ€™s goals and constraints  
+- Alignment with the user’s goals and constraints  
 
 You provide a **single, integrated review** without the overhead of a full multi-role council.
 
@@ -4628,7 +4627,7 @@ Provide a concise but rigorous evaluation of the given packet and artefact(s), f
 1. Structural or specification inconsistencies  
 2. Implementation-level concerns  
 3. Safety and misuse risks  
-4. Misalignment with the userâ€™s stated goals  
+4. Misalignment with the user’s stated goals  
 5. Ambiguities, contradictions, or missing requirements  
 
 ---
@@ -4646,29 +4645,29 @@ Trust the artefact where it contradicts hand-wavy descriptions, but call out the
 
 ## Required Output Format
 
-### Section 1 â€” Verdict
+### Section 1 — Verdict
 - One of: **Accept / Go with Fixes / Reject**
-- 3â€“7 bullets explaining why.
+- 3–7 bullets explaining why.
 
-### Section 2 â€” Issues
-- 3â€“10 bullets of the most important issues.
+### Section 2 — Issues
+- 3–10 bullets of the most important issues.
 - Each bullet should:
   - State the issue.
   - Explain impact.
   - Suggest a direction for remediation (not full design).
 
-### Section 3 â€” Risks
-- Concrete ways the system could fail, be misused, or drift from the userâ€™s goals.
+### Section 3 — Risks
+- Concrete ways the system could fail, be misused, or drift from the user’s goals.
 
-### Section 4 â€” Required Changes
+### Section 4 — Required Changes
 - Numbered list of changes required for:
   - Structural soundness,
   - Safety,
   - Alignment.
 
-### Section 5 â€” Questions / Ambiguities
+### Section 5 — Questions / Ambiguities
 - Questions that must be answered by the human or future work.
-- Separate **â€œmust answer nowâ€** vs **â€œcan deferâ€**.
+- Separate **“must answer now”** vs **“can defer”**.
 
 ---
 
@@ -4689,7 +4688,7 @@ Trust the artefact where it contradicts hand-wavy descriptions, but call out the
 
 ## Purpose
 
-Provide a model-agnostic behavioural shell for AI assistants working within the userâ€™s LifeOS / COO-Agent ecosystem.
+Provide a model-agnostic behavioural shell for AI assistants working within the user’s LifeOS / COO-Agent ecosystem.
 
 ---
 
@@ -4717,7 +4716,7 @@ Provide a model-agnostic behavioural shell for AI assistants working within the 
 
 # File: 09_prompts/v1.0/system/modes_overview_v1.0.md
 
-# Modes Overview v1.0 â€” Discussion vs StepGate
+# Modes Overview v1.0 — Discussion vs StepGate
 
 ## Discussion Mode
 
@@ -4754,7 +4753,7 @@ Behaviours:
 
 ## Test Status
 
-All tests passing âœ…
+All tests passing ✅
 - Unit tests: 25 tests
 - Integration tests: 1 test
 
@@ -4831,7 +4830,7 @@ All tests passing âœ…
 - **2026-01-03 — Decision:** Upgrade thin control plane to v1.2
   - **Why:** Refine evidence rules (anchoring), clarify hygiene triggers, adopt default sequencing rule
   - **Scope:** Admin hygiene protocols and evidence standards
-  - **Evidence:** This mission; v1.2 instruction
+  - **Evidence:** `3e545f7`, `docs/00_admin/`
 
 <hr>
 
@@ -4855,22 +4854,22 @@ All tests passing âœ…
 Tier-2.5 Semi-Autonomous Development Layer is **active**. Phase 1 (critical governance: F3, F4, F7) is complete. Currently executing Phase 2 cleanup and documentation items while maintaining doc stewardship discipline.
 
 ## Active WIP (max 3–5)
+
 - [WIP-1] Strategic Context Generator v1.2 refinements — Next: verify section-bounded extraction works correctly
-- [WIP-2] Tier2.5 Unified Fix Plan Phase 2 — Next: execute F2 (API Evolution doc) or F6 (Violation Hierarchy clarification)
+- [WIP-2] Tier2.5 Unified Fix Plan Phase 2 — Next: execute F2 (then F6)
 
 ## Blockers
 - None
 
 ## Open Questions
-- **Backlog priority**: Should F2 (API Evolution) or F6 (Violation Hierarchy) be tackled next in Phase 2? (Both are low-medium priority)
-- **Tier-2.5 items not in fix plan**: Are there additional Phase 2 items beyond F1/F2/F5/F6 that should be tracked?
+- (None)
 
 ## Next Actions (top 5–10)
 1. F2 — Create API Evolution & Versioning Strategy doc
 2. F6 — Add violation hierarchy docstrings (15 min)
 3. F1 — Update FP-4.x artefact manifest (docs only)
 4. F5 — Remove obsolete comment from test_tier2_daily_loop.py (5 min)
-5. Run Document Steward Protocol after any substantive docs changes
+5. Scan Phase 2 scope; add any missing Phase 2 items to BACKLOG (Next/Later)
 
 ## Context for Next Session
 - **Roadmap**: [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](../03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) — Tier-2.5 is active
@@ -23025,7 +23024,7 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
 
 # LifeOS Documentation Index
 
-**Last Updated**: 2026-01-03T14:20+11:00  
+**Last Updated**: 2026-01-03T14:35+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
