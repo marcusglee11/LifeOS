@@ -18,4 +18,4 @@
 - **2026-01-03 — Decision:** Upgrade thin control plane to v1.2
   - **Why:** Refine evidence rules (anchoring), clarify hygiene triggers, adopt default sequencing rule
   - **Scope:** Admin hygiene protocols and evidence standards
-  - **Evidence:** This mission; v1.2 instruction
+  - **Evidence:** `3e545f7`, `docs/00_admin/`

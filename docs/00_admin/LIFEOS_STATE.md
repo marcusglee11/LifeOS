@@ -4,22 +4,22 @@
 Tier-2.5 Semi-Autonomous Development Layer is **active**. Phase 1 (critical governance: F3, F4, F7) is complete. Currently executing Phase 2 cleanup and documentation items while maintaining doc stewardship discipline.
 
 ## Active WIP (max 3–5)
+
 - [WIP-1] Strategic Context Generator v1.2 refinements — Next: verify section-bounded extraction works correctly
-- [WIP-2] Tier2.5 Unified Fix Plan Phase 2 — Next: execute F2 (API Evolution doc) or F6 (Violation Hierarchy clarification)
+- [WIP-2] Tier2.5 Unified Fix Plan Phase 2 — Next: execute F2 (then F6)
 
 ## Blockers
 - None
 
 ## Open Questions
-- **Backlog priority**: Should F2 (API Evolution) or F6 (Violation Hierarchy) be tackled next in Phase 2? (Both are low-medium priority)
-- **Tier-2.5 items not in fix plan**: Are there additional Phase 2 items beyond F1/F2/F5/F6 that should be tracked?
+- (None)
 
 ## Next Actions (top 5–10)
 1. F2 — Create API Evolution & Versioning Strategy doc
 2. F6 — Add violation hierarchy docstrings (15 min)
 3. F1 — Update FP-4.x artefact manifest (docs only)
 4. F5 — Remove obsolete comment from test_tier2_daily_loop.py (5 min)
-5. Run Document Steward Protocol after any substantive docs changes
+5. Scan Phase 2 scope; add any missing Phase 2 items to BACKLOG (Next/Later)
 
 ## Context for Next Session
 - **Roadmap**: [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](../03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) — Tier-2.5 is active
