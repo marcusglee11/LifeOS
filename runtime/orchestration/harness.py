@@ -106,6 +106,7 @@ class ScenarioResult:
         Metadata is deep-copied to ensure immutability.
         """
         return {
+            "schema_version": "scenario_result@1",
             "scenario_name": self.scenario_name,
             "mission_results": {
                 name: res.to_dict()

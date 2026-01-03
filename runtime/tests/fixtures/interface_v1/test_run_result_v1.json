@@ -1,0 +1,43 @@
+{
+    "schema_version": "test_run_result@1",
+    "suite_result": {
+        "suite_name": "basic_suite",
+        "scenario_results": {
+            "scenario_1": {
+                "scenario_name": "scenario_1",
+                "mission_results": {
+                    "mission_a": {
+                        "id": "mission_a",
+                        "success": true,
+                        "executed_steps": [],
+                        "final_state": {},
+                        "lineage": {},
+                        "receipt": {}
+                    }
+                },
+                "metadata": {
+                    "scenario_hash": "dummy_hash"
+                }
+            }
+        },
+        "metadata": {}
+    },
+    "expectations_result": {
+        "passed": true,
+        "expectation_results": {
+            "exp_1": {
+                "id": "exp_1",
+                "passed": true,
+                "actual": "foo",
+                "expected": "foo",
+                "details": {}
+            }
+        },
+        "metadata": {}
+    },
+    "passed": true,
+    "metadata": {
+        "suite_name": "basic_suite",
+        "test_run_hash": "dummy_run_hash"
+    }
+}
