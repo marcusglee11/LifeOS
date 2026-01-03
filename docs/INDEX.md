@@ -1,6 +1,6 @@
 # LifeOS Documentation Index
 
-**Last Updated**: 2026-01-03T21:00+11:00  
+> **Last Updated:** 2026-01-04 10:41 UTC+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
@@ -31,10 +31,10 @@ LifeOS Constitution v2.0 (Supreme)
 
 | Document | Purpose |
 |----------|---------|
-| [LIFEOS_STATE.md](./00_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions |
-| [BACKLOG.md](./00_admin/BACKLOG.md) | Actionable backlog (Now/Next/Later) — target ≤40 items |
-| [DECISIONS.md](./00_admin/DECISIONS.md) | Append-only decision log (low volume) |
-| [INBOX.md](./00_admin/INBOX.md) | Raw capture scratchpad for triage |
+| [LIFEOS_STATE.md](./11_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions |
+| [BACKLOG.md](./11_admin/BACKLOG.md) | Actionable backlog (Now/Next/Later) — target ≤40 items |
+| [DECISIONS.md](./11_admin/DECISIONS.md) | Append-only decision log (low volume) |
+| [INBOX.md](./11_admin/INBOX.md) | Raw capture scratchpad for triage |
 
 ---
 
@@ -45,7 +45,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [LifeOS_Constitution_v2.0.md](./00_foundations/LifeOS_Constitution_v2.0.md) | **Supreme governing document** — Raison d'être, invariants, principles |
 | [Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md) | Anti-failure mechanisms, human preservation, workflow constraints |
 | [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
-| [ARCH_Future_Build_Automation_Operating_Model_v0.1_Draft.md](./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.1_Draft.md) | **Draft** — Future Build Automation Operating Model |
+| [ARCH_Future_Build_Automation_Operating_Model_v0.2.md](./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md) | **Architecture Proposal** — Future Build Automation Operating Model v0.2 |
 
 ---
 
@@ -77,6 +77,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Tier1_Tier2_Activation_Ruling_v0.2.md](./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md) | Historical: Tier-2 activation ruling |
 | [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md) | Historical: Tier transition conditions |
 | [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
+| [Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md](./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md) | **Active**: Reactive Task Layer v0.1 Signoff |
 | [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
 
 ---
@@ -138,6 +139,14 @@ LifeOS Constitution v2.0 (Supreme)
 | [Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md) | Automation proposal |
 | [Runtime_Complexity_Constraints_v0.1.md](./03_runtime/Runtime_Complexity_Constraints_v0.1.md) | Complexity constraints |
 | [README_Recursive_Kernel_v0.1.md](./03_runtime/README_Recursive_Kernel_v0.1.md) | Recursive kernel readme |
+
+---
+
+## internal — Internal Reports
+
+| Document | Purpose |
+|----------|---------|
+| [OpenCode_Phase0_Completion_Report_v1.0.md](./internal/OpenCode_Phase0_Completion_Report_v1.0.md) | OpenCode Phase 0 API connectivity validation — PASSED |
 
 ---
 

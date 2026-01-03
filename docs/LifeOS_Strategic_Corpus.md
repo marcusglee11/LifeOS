@@ -1,5 +1,5 @@
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-03 21:03
+**Generated:** 2026-01-04 10:41
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -8,122 +8,147 @@
 
 ---
 
-# File: 00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.1_Draft.md
+# File: 00_foundations/ARCH_Builder_North-Star_Operating_Model_v0.5.md
 
-# ARCH — Future Build Automation Operating Model v0.1 (Draft)
+# ARCH — Builder North-Star Operating Model v0.5 (Draft)
 
 **Status:** Draft (Architecture / Ideation)  
 **In force:** No (non-binding; not a governance artefact)  
+**Scope:** Target/evolving operating model for the **builder system** (build → verify → govern → integrate → steward)  
+**Audience:** CEO interface users; future control-plane designers; endpoint implementers  
 **Last updated:** 2026-01-03 (Australia/Sydney)  
-**Audience:** CEO interface users; System architects; Future implementers  
-**Intent:** Capture the target *operating model* for fully automated builds with governance gating, including role boundaries, packet taxonomy, ledger topology, convergence/termination, and escalation.
+**Lineage:** Derived from v0.4 after multi-model iteration; restructured to preserve the north-star and move validation/plan material to annexes.
 
 ---
 
-## 1. Purpose and scope
+## 0. Purpose and scope
 
-Define how a fully automated build should run end-to-end with:
-- minimal CEO involvement (exception-only),
-- schema-led packet exchange between specialised agents/endpoints,
-- governance separation (Council as an independent domain),
-- auditable, replayable trails via ledgers and evidence manifests,
-- bounded loops with deterministic termination and escalation rules.
+This document defines the desired end-state and intermediate target model for how LifeOS executes builds autonomously with governance gating, auditability, and bounded escalation to the CEO.
 
-**Scope includes:** build lifecycle from approved intent → tasking → build/verify → council review cycles → integration/regression/E2E → release record → documentation stewardship.
+**Covers**
+- Role boundaries (control plane vs endpoints) and how they interact
+- Packet taxonomy (schema-led contracts) and evidence handling
+- Ledger topology (Executive Index Ledger + domain ledgers, including Council as a separate domain now)
+- Convergence/termination and escalation policy
+- Autonomy ladder (capability rungs) as the activation schedule for the machinery above
 
----
-
-## 2. Non-goals
-
-- This document does not define implementation details, concrete schemas, storage engines, or UI/GUI design.
-- This document does not establish governance authority or ratify policy.
-- This document does not define every domain (e.g., finance, business ops) beyond ledger topology patterns.
+**Does not cover**
+- Concrete runtime implementation, storage engines, or exact schema JSON/YAML
+- Full governance protocol text (this doc is not authority)
+- Product positioning / broader LifeOS mission statements beyond what is necessary to define the builder operating model
 
 ---
 
-## 3. System model and role boundaries
+## 1. Core invariants (non-negotiables for the north-star)
 
-### 3.1 CEO interface principle
-From the CEO perspective there is **one system interface** (the control plane). Internally, work is decomposed into specialised endpoint agents/services.
-
-### 3.2 Logical roles (minimal set)
-These roles are **logical**; they may be implemented as distinct processes/services later.
-
-1) **COO / Concierge (Control Plane)**
-- Primary interface with CEO.
-- Routes work to endpoints.
-- Enforces policy gates and escalation rules.
-- Maintains the Executive Index Ledger (EIL) as the global state spine.
-
-2) **Planner-Orchestrator (Control Plane function)**
-- Decomposes approved intent into prioritised tasks.
-- Issues task orders to endpoints.
-- Tracks dependencies and readiness.
-> May be co-located with the COO control plane as one logical agent, with tool-permission separation.
-
-3) **Architect (Spec Owner)**
-- Owns “done means…” and resolves spec/design ambiguity.
-- Translates rulings into implementable constraints and fix pack requirements.
-- Default sink for non-policy ambiguity and non-convergence.
-
-4) **Builder (Construction Endpoint)**
-- Executes builds/changes inside authorised constraints.
-- Produces build outputs and evidence references.
-
-5) **Verifier (Test/Analysis Endpoint)**
-- Executes verification suites (unit/integration/regression/E2E), determinism checks, static analysis.
-- Produces verification evidence and pass/fail classifications.
-
-6) **Council (Governance Endpoint) — separate domain**
-- Interprets policy/constitution constraints.
-- Issues structured rulings and dispositions.
-- Operates independently (ideally read-only access to review packets + evidence refs).
-
-7) **CSO (Intent Proxy / Deadlock Reframer) — optional early, essential later**
-- High-trust intent alignment arbiter.
-- Does not override Council.
-- Invoked only after **deadlock triggers**; default action is **reframing and re-dispatch**, not deciding.
-- May hold bounded delegated authority (e.g., small spend, small-stakes external comms) under explicit caps and prohibitions (future).
+1) **Single CEO surface:** From the CEO’s view, there is one interface (COO control plane). Internal complexity must be absorbed by the system.  
+2) **Typed packets, not chat:** Inter-agent communication is via **schema-led packets** with explicit `authority_refs`, `input_refs`, and signed outputs.  
+3) **Evidence by reference:** Packets carry **evidence manifests** (typed references), not embedded logs/diffs.  
+4) **Ledgered operations:** The system is auditable by design via append-only ledgers, not ad hoc narrative.  
+5) **EIL is the global spine:** Only the Executive Index Ledger (EIL) advances global case state. Domain ledgers publish outcomes; EIL records state transitions.  
+6) **Council is separate now:** Governance runs in a dedicated domain ledger (DL_GOV). Governance gates advance only via recorded DL_GOV dispositions.  
+7) **Bounded loops:** Build/review/council cycles are bounded with monotonic progress signals and deterministic deadlock triggers.  
+8) **CEO by exception:** CEO involvement occurs only on explicit escalation triggers; escalations are bounded to ≤3 options and cite ledger refs.  
+9) **Tool choice is an implementation detail:** Roles must not be named after tools (e.g., “OpenCode” is an endpoint implementation, not a role).  
+10) **Complexity is debt:** Infrastructure is “earned” rung-by-rung; no premature federation unless it reduces CEO burden and improves auditability.
 
 ---
 
-## 4. High-level state machine (overview)
+## 2. Roles and boundaries
 
-Example global states (EIL-owned):
-- `CASE_OPENED`
-- `AUTH_GRANTED`
-- `READY_FOR_BUILD`
-- `BUILDING`
-- `READY_FOR_REVIEW`
-- `FIX_REQUESTED`
-- `READY_FOR_COUNCIL`
-- `COUNCIL_FIX_REQUESTED`
-- `COUNCIL_APPROVED`
-- `INTEGRATING`
-- `E2E_REGRESSION`
-- `RELEASE_APPROVED`
-- `ARCHIVED`
-- `PAUSED_ESCALATION`
+### 2.1 Control plane vs endpoints
 
-**Invariant:** Only the Executive Index Ledger (EIL) advances global state. Domain ledgers publish outcomes; the control plane records state transitions.
+**Control plane** (COO surface)
+- Conversational interface for intent capture and status presentation
+- Routes work to endpoints
+- Enforces constraints, gates, escalation policy
+- Owns the EIL and the “global truth” of what is happening
+
+**Endpoints** (specialised services / agents)
+- Builder, Verifier, Council, Document Steward, etc.
+- Each endpoint accepts a narrow set of packet types and returns typed results + evidence refs
+
+### 2.2 Minimal logical roles (for builds)
+
+1) **COO / Concierge (Control Plane)**  
+   Routes, governs, records (EIL), escalates.
+
+2) **Planner–Orchestrator (Control Plane function)**  
+   Converts authorised intent into a prioritised workplan and task orders; schedules dispatch.
+
+3) **Architect (Spec Owner / Acceptance Owner)**  
+   Owns “done means…”, resolves spec ambiguity, translates rulings into implementable constraints and fix packs.
+
+4) **Builder (Construction Endpoint)**  
+   Applies changes under explicit authority; emits build results and artefact refs.
+
+5) **Verifier (Test/Analysis Endpoint)**  
+   Runs verification suites and determinism checks; emits verification results and evidence refs.
+
+6) **Council (Governance Endpoint) — DL_GOV**  
+   Issues structured rulings and dispositions; ideally operates read-only on review packets + evidence refs.
+
+7) **CSO (Intent Proxy / Deadlock Reframer) — optional early, essential later**  
+   Invoked only after deadlock triggers; default action is reframing and re-dispatch (not deciding).
+
+### 2.3 Logical vs physical separation (deployment choice)
+
+Default: roles are **logically distinct** (separate permission sets, separate packet contracts).  
+Evolve to physical separation when it materially improves:
+- security/blast radius (secrets, money, external comms)
+- throughput (parallel build/test)
+- context scarcity (domain-specific caches)
+- reliability (fault isolation)
 
 ---
 
-## 5. Packet taxonomy
+## 3. Ledger topology (start with per-domain ledgers + executive index)
 
-### 5.1 Principle
-Packets are **typed commitments**, not chat messages:
-- schema-validated,
-- signed,
-- referencable by immutable IDs,
-- replayable via referenced inputs/evidence.
+### 3.1 Ledgers
 
-### 5.2 Packet families (minimum viable set)
-1) **Intent / Authorization**
+**Executive Index Ledger (EIL)** — global spine
+- `case_id` creation
+- authority grants / approvals
+- dispatches to domain ledgers (with `dispatch_id`)
+- domain outcomes (refs only)
+- global state transitions
+- escalations and resolutions
+
+**Domain ledgers** — detailed operational truth per domain
+- **DL_BUILD:** build/verify/integration execution packets + evidence refs
+- **DL_GOV:** council cycles, rulings, dispositions + evidence refs
+- **DL_DOC:** doc stewardship requests/results + reports
+- (future) DL_FIN, DL_BIZOPS, etc.
+
+### 3.2 Cross-ledger anchoring invariant
+
+Every domain run must be anchored to EIL via:
+- shared `case_id`
+- `eil_anchor_ref` (the EIL entry that authorised/started the run)
+- domain root entry hash/packet ref
+
+Every EIL outcome entry must reference:
+- `domain_ledger_id`
+- `domain_entry_hash` or `packet_ref`
+- outcome classification (pass/fail/fix_required/escalate)
+
+### 3.3 Why Council separation is mandatory now
+
+- Maintains governance independence (no repo write access required)
+- Enables clear governance gating: only DL_GOV dispositions advance governance gates in EIL
+- Prevents “build loop” and “governance loop” from collapsing into one opaque loop
+
+---
+
+## 4. Packet taxonomy (north-star contracts)
+
+### 4.1 Packet families (minimum viable set)
+
+1) **Intent / Authority**
 - `INTENT_PROPOSAL`
-- `AUTH_GRANTED` (decision record / approved intent envelope)
+- `AUTH_GRANTED` (authority envelope, constraints, escalation rules)
 
-2) **Work decomposition**
+2) **Planning / Tasking**
 - `WORKPLAN`
 - `TASK_ORDER`
 
@@ -136,11 +161,13 @@ Packets are **typed commitments**, not chat messages:
 - `VERIFY_RESULT`
 
 5) **Review / Governance**
-- `REVIEW_REQUEST` / `REVIEW_FINDINGS` (architect/peer review)
-- `COUNCIL_REVIEW_REQUEST` / `COUNCIL_RULING` / `COUNCIL_DISPOSITION`
+- `REVIEW_REQUEST` / `REVIEW_FINDINGS` (architect/peer)
+- `COUNCIL_REVIEW_REQUEST`
+- `COUNCIL_RULING`
+- `COUNCIL_DISPOSITION`
 
-6) **Change instructions**
-- `FIX_PACK` (authorises changes after findings/rulings)
+6) **Change instruction**
+- `FIX_PACK` (the only post-finding/ruling change authorisation)
 
 7) **Integration / Release**
 - `INTEGRATION_REQUEST` / `INTEGRATION_RESULT`
@@ -149,154 +176,1087 @@ Packets are **typed commitments**, not chat messages:
 8) **Stewardship**
 - `DOC_STEWARD_REQUEST` / `DOC_STEWARD_RESULT`
 
-### 5.3 Required common fields (all packets)
+### 4.2 Required common fields (all packets)
+
 - `packet_id` (prefer content-addressed)
 - `packet_type`, `schema_version`
-- `issued_at`, `issuer_role`, `issuer_identity` (key id)
-- `case_id` (global thread identifier)
-- `authority_refs` (what approvals/decisions this operates under)
-- `input_refs` (immutable refs: repo states, artefacts, prior packets)
+- `issued_at`, `issuer_role`, `issuer_identity`
+- `case_id`
+- `authority_refs` (what grant/decision authorises this)
+- `input_refs` (immutable refs to artefacts, repo state, prior packets)
 - `constraints` (permissions/side-effects allowed; determinism envelope)
 - `expected_outputs` (declared artefact classes + evidence requirements)
-- `evidence_manifest_ref` (see below)
-- `signature` (over canonical serialisation)
+- `evidence_manifest_ref`
+- `signature` (canonical serialisation)
 
-### 5.4 Evidence as first-class (by reference)
-Packets should not embed large logs/diffs. Instead:
-- `evidence_manifest` is a typed list of evidence objects (test logs, diff bundles, metrics, traces).
-- Packets carry concise summaries + references; evidence blobs live in object stores.
+### 4.3 Evidence manifests (by reference)
 
----
-
-## 6. Ledger topology (start with B: per-domain + executive index)
-
-### 6.1 Structure
-1) **Executive Index Ledger (EIL)**
-- Global “spine” for cases, authorisations, dispatches, outcomes, state transitions, escalations.
-- The only ledger required to answer: “What is happening now?”
-
-2) **Domain Ledgers**
-- `DL_BUILD` — build/verify/integration details + evidence refs
-- `DL_GOV` — council review cycles, rulings, dispositions + evidence refs
-- `DL_DOC` — documentation stewardship actions and reports
-- (future) `DL_FIN`, `DL_BIZOPS`, etc.
-
-3) **Object/Evidence Stores**
-- Hold heavy evidence objects referenced by manifests.
-
-### 6.2 Cross-ledger anchoring invariant
-Every domain run must be anchored to EIL:
-- Domain packets carry `case_id` + `eil_anchor_ref` (the EIL entry authorising/dispatching the run).
-- EIL records outcomes with `domain_ledger_id` + `domain_entry_hash/packet_ref`.
-
-**Invariant:** Domain ledgers cannot advance global state directly; they publish outcomes; EIL records transitions.
-
-### 6.3 Governance separation (DL_GOV from day one)
-- Council runs in `DL_GOV`.
-- EIL governance gates advance only via recorded DL_GOV dispositions.
-- Council ideally has read-only access to review packets and evidence refs, not direct repo access.
+Evidence is stored as typed objects and referenced from packets:
+- `TEST_LOG`, `LINT_REPORT`, `DIFF_BUNDLE`, `METRICS`, `TRACE`, `ARTEFACT_BUNDLE`, etc.
+- Packets contain summaries + refs, not bulk payloads.
 
 ---
 
-## 7. Convergence, termination, and bounded cycles
+## 5. End-to-end build lifecycle (case flow)
 
-### 7.1 Anti-ping-pong measures
-- **Batch rulings:** reviewers/council issue consolidated rulings per cycle.
-- **Batch fix packs:** architect/design returns one fix pack mapping each item → change → evidence.
+### 5.1 High-level flow (conceptual)
 
-### 7.2 Bounded cycles
-Each loop (build-review, council, verification) has:
-- `max_cycles (N)`
-- a required **monotonic progress signal** per cycle
+```
+CEO → COO(Control Plane)
+   → EIL: CASE_OPENED / AUTH_GRANTED
+   → DL_BUILD: BUILD_REQUEST → BUILD_RESULT
+   → DL_BUILD: VERIFY_REQUEST → VERIFY_RESULT
+   → DL_GOV: COUNCIL_REVIEW_REQUEST → COUNCIL_RULING/DISPOSITION
+   → (if fix) Architect → FIX_PACK → DL_BUILD rebuild/verify
+   → EIL: STATE_ADVANCED → INTEGRATION → RELEASE_RECORD
+   → DL_DOC: DOC_STEWARD_REQUEST → DOC_STEWARD_RESULT
+```
+
+### 5.2 Gate ownership
+
+- **Architect gate:** acceptance criteria clarity (“done means…”) and fix pack authorisation
+- **Verifier gate:** tests/determinism/regression evidence
+- **Council gate:** policy compliance and disposition (DL_GOV)
+- **COO gate:** global state advancement recorded in EIL
+
+---
+
+## 6. Convergence, termination, and deadlocks
+
+### 6.1 Anti-ping-pong rules
+
+- Council/review outputs are **batch rulings** per cycle (no drip-feed).
+- Architect responses are **batch fix packs** mapping each item → change → evidence.
+
+### 6.2 Bounded cycles and monotonic progress
+
+Each loop defines:
+- max cycles `N`
+- a monotonic progress signal (must improve per cycle, or within `M` cycles)
 - escalation triggers when bounds are violated
 
-### 7.3 Monotonic progress signals (examples)
-- reduced failing test count (or closure of specific failing IDs)
-- reduced open council item count (or closure of specified item IDs)
-- reduced schema conformance errors
-- determinism checks improving (replay success/hashes stable)
+Progress signal examples:
+- decreasing failing test count (or closure of specific failing IDs)
+- decreasing open ruling item count (or closure of specific `item_id`s)
+- decreasing schema conformance errors
+- improving determinism checks (replay success / stable hashes)
 
-### 7.4 Failure classification (required)
-Non-convergence must be classified (to avoid “try again” loops):
-- spec ambiguity
-- conflicting constraints (policy vs design)
-- tooling/runtime limitation
-- flaky verification / harness instability
-- scope creep / mis-slicing
+### 6.3 Deadlock triggers (deterministic)
+
+A deadlock trigger may fire when (examples):
+- cycles ≥ `N` with no reduction in open items
+- no monotonic progress for `M` cycles
+- repeated re-litigation (same item IDs recur without new admissible evidence)
+- cross-domain dependency loop (build ↔ council stalemate)
+
+### 6.4 CSO intervention (post-trigger only)
+
+When a deadlock trigger fires, CSO is invoked to **reframe and re-dispatch**, not to decide.
+
+CSO outputs (ordered preference):
+1) `CSO_REFRAME_DIRECTIVE` (narrow / split / clarify / repackage evidence) + remaining-cycle bounds
+2) `CSO_ROUTING_CHANGE` (redirect to the correct authority: Architect vs Council vs Verifier)
+3) `CEO_ESCALATION_REQUIRED` (only if outside authorised envelope)
 
 ---
 
-## 8. Escalation policy
+## 7. Escalation policy (CEO by exception)
 
-### 8.1 Levels and default routing
-- **L0:** Auto-resolve within bounded cycles.
-- **L1:** Internal escalation → Architect (spec/design ambiguity; routine non-convergence).
-- **L1b:** Deadlock escalation → CSO (intent reframing; post-trigger only).
-- **L2:** Governance escalation → Council (policy/authority conflicts).
-- **L3:** CEO escalation → CEO (only when required by governance class or safety boundary).
+### 7.1 Levels
 
-### 8.2 Trigger taxonomy
-- Non-convergence (cycle limit; no monotonic progress)
-- Spec/intent ambiguity
-- Policy/authority conflict
-- Safety boundaries (money, external comms, security-sensitive operations)
-- Tooling/runtime limitations
+- **L0:** Auto-resolve within bounded cycles
+- **L1:** Internal escalation → Architect (spec/design ambiguity; routine non-convergence)
+- **L1b:** Deadlock escalation → CSO (post-trigger reframing)
+- **L2:** Governance escalation → Council (policy/authority conflicts)
+- **L3:** CEO escalation → CEO (safety boundaries or governance-required decisions)
 
-### 8.3 CEO escalation packet (standard payload)
-Every CEO escalation must include:
-- escalation class
+### 7.2 CEO escalation packet standard (required)
+
+Any CEO escalation must include:
+- escalation class + why triggered
 - decision required (single sentence)
-- up to 3 options with effects
+- ≤3 options, with effects (not implementation detail)
 - recommendation + rationale
-- ledger refs only (EIL + domain refs)
+- ledger refs (EIL + domain refs only)
 - safe default if no response (pause affected case)
 
 ---
 
-## 9. CSO deadlock protocol (post-trigger only)
+## 8. Autonomy ladder (capability rungs)
 
-### 9.1 Deadlock triggers (deterministic)
-Examples:
-- council cycles ≥ N with no reduction in open item count
-- no monotonic progress for M cycles
-- repeated re-litigation (same item IDs recur without new evidence types)
-- cross-domain dependency loop (build ↔ council stalemate without a new admissible evidence path)
+The ladder measures capability, not architectural sophistication. Each rung “earns” additional infrastructure only when it reduces CEO burden and improves auditability.
 
-### 9.2 CSO outputs (ordered preference)
-1) `CSO_REFRAME_DIRECTIVE` (default)
-- narrow scope, clarify intent into acceptance criteria, repackage minimal decisive evidence, split into sub-cases
-- includes `max_remaining_cycles` for retry
+### Rung 0 — Manual orchestration
+Human initiates and executes; AI responds. No durable ledgering beyond ad hoc notes.
 
-2) `CSO_ROUTING_CHANGE`
-- redirect to correct authority (Architect vs Council vs Verifier/harness)
+### Rung 1 — Triggered autonomy (single task, single loop)
+Agent executes a defined task when triggered (CI/cron/command). Outputs are reviewable artefacts.  
+**Minimum machinery:** `BUILD_REQUEST/RESULT`, `VERIFY_REQUEST/RESULT`, evidence refs.
 
-3) `CEO_ESCALATION_REQUIRED`
-- only if reframing cannot stay within the authorised envelope
+### Rung 2 — Supervised chains (multi-step workflow with checkpoints)
+Multi-step workflows with explicit checkpoints; agent can run several steps autonomously but must satisfy gates before advancing.  
+**Minimum machinery:** EIL case spine + dispatch/outcome recording; structured fix packs.
 
-### 9.3 Guardrail
-CSO may re-scope/reprioritise within envelope but must not relax acceptance thresholds or expand permissions without pre-authorised rules or CEO escalation.
+### Rung 3 — Delegated domains (domain ownership within constraints)
+Agent owns a domain end-to-end within constraints; human involvement by exception.  
+**Minimum machinery:** domain ledgers + cross-ledger anchoring; council gating for significant changes; bounded escalation.
 
----
-
-## 10. Open questions / parameters (intentionally deferred)
-- Defaults for cycle limits: `N` (cycles), `M` (no-progress cycles), `K` (post-reframe retry cycles)
-- Delegation envelopes for CSO (caps, expiry, prohibited zones)
-- Exact schema registry/versioning policy for packets
-- Evidence store strategy (shared vs per-domain)
-- Operational monitoring / observability requirements (alert thresholds)
+### Rung 4 — Autonomous initiative (proposal → approval → execution)
+Agent identifies tasks worth doing, proposes them, and executes after approval, within delegation envelopes.  
+**Minimum machinery:** proposal packets + delegated authority grants + robust deadlock handling.
 
 ---
 
-## 11. Summary invariants (the “spine”)
-1) **EIL is the global state spine.** Domains publish outcomes; EIL advances state.
-2) **Council is separate (DL_GOV).** Governance gates advance only via DL_GOV dispositions recorded in EIL.
-3) **Packets are typed commitments.** Signed, schema-led, replayable, evidence by reference.
-4) **Fixes are traceable.** Fix packs must cite ruling item IDs and evidence refs.
-5) **Loops are bounded.** Convergence enforced via monotonic progress signals and cycle limits.
-6) **CSO intervenes only after deadlock triggers.** Default action is reframing and re-dispatch, not deciding.
-7) **CEO involvement is exception-only.** Escalations must be minimal, options-bounded, and ledger-referenced.
+## 9. Security and safety boundaries (north-star posture)
+
+This operating model assumes explicit constraints in `AUTH_GRANTED`:
+- no spend / no external comms / no secrets changes unless explicitly delegated
+- branch-only writes and controlled merge/release gates (implementation choice, but the authority must exist)
+- least privilege credentials and blast-radius partitioning (especially as endpoints become physical services)
+
+(Concrete delegation envelopes and enforcement live in governance/risk artefacts, not here.)
 
 ---
+
+## 10. Glossary (minimal)
+
+- **Artefact:** A durable output (code, doc, report, bundle) referenced immutably.
+- **Packet:** A typed, schema-led message with signatures, refs, and constraints.
+- **Invariant:** A rule that must hold across implementations and rungs.
+- **EIL:** Executive Index Ledger (global spine for cases, gates, escalation).
+- **Domain ledger:** Append-only ledger for a specific operational domain (build, gov, docs).
+- **Disposition:** Council outcome that advances/blocks a governance gate.
+
+---
+
+# Annexes (supporting material; not part of the north-star core)
+
+## Annex A — Validation record (from v0.4 “Validated Foundation”)
+This annex preserves proof-of-concept notes and should be maintained in an audit-grade “Validation Record” format:
+- environment topology (self-hosted vs hosted runner)
+- exact invocations
+- immutable evidence refs (logs, commit SHAs, run IDs)
+- reproducibility notes
+
+## Annex B — Implementation roadmap (from v0.4 “Implementation Plan”)
+Timeboxes are non-durable; preserve as a working plan, but prefer capability exit criteria:
+- validate the loop
+- raise the stakes (PR workflow, notifications)
+- supervised chains
+- expand scope
+
+## Annex C — Risk register (from v0.4)
+Keep operational and governance risks here, tied to mitigations and triggers.
+
+## Annex D — Migration notes (from v0.4 Appendix B “Migration from Antigravity”)
+Tool migrations and endpoint selection belong here. Roles remain stable; implementations swap.
+
+## Annex E — Document history
+Version log and major structural changes.
+
+
+---
+
+# File: 00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md
+
+# **ARCH\_LifeOS\_Operating\_Model\_v0.2: The Agentic Platform Edition**
+
+Version: 0.2 (Draft)  
+Status: Architecture Proposal  
+Strategic Focus: Platform Engineering, Supply Chain Security (SLSA), Agentic Orchestration, MLOps.
+
+## ---
+
+**1\. Executive Summary: From "Scripting" to "Platform"**
+
+**Vision:** To transition "LifeOS" from a collection of fragile automation scripts into a resilient **Internal Developer Platform (IDP)** that vends "Life Capabilities" as secure, managed products.  
+**Core Pivot:** v0.1 relied on a monolithic "Meta-Optimization" brain to manage tasks. v0.2 decentralizes this into a **Federated Multi-Agent System** running on a **Kubernetes** substrate, governed by **Policy as Code**. This ensures that while the Agents (Health, Finance, Productivity) are autonomous and probabilistic, the underlying infrastructure is deterministic, secure, and cost-aware.1  
+**Key Architectural Shifts:**
+
+1. **Topology:** From "User as Administrator" to "User as Platform Engineer" (Team Topologies).2  
+2. **Build:** From "Manual Edits" to **GitOps & SLSA Level 3** pipelines.  
+3. **Intelligence:** From "Monolithic Brain" to **Federated MLOps**.3  
+4. **Economics:** From "ROI-Tracking" to **Active FinOps Governance**.4
+
+## ---
+
+**2\. The Organizational Operating Model (Team Topologies)**
+
+To manage the complexity of a self-improving life system, we adopt the **Team Topologies** framework to separate concerns between the infrastructure and the "Life" goals.2
+
+### **2.1. The Platform Team (The Kernel)**
+
+* **Mission:** Build the "Paved Road" (Golden Paths) that allows Agents to run safely. They do not decide *what* to do (e.g., "Run a marathon"), but ensure the system *can* support it (e.g., API uptime, data integrity).  
+* **Responsibilities:**  
+  * Maintain the **Internal Developer Platform (IDP)** (e.g., Backstage).6  
+  * Enforce **Policy as Code** (OPA/Rego) for safety and budget.7  
+  * Manage the **Kubernetes/Knative** cluster and Vector Database infrastructure.3
+
+### **2.2. Stream-Aligned Agents (The Life Verticals)**
+
+* **Mission:** Optimize specific domains of the user's life. These are treated as independent microservices.  
+  * **Health Stream:** Ingests bio-data, manages workout routines.  
+  * **Finance Stream:** Manages budget, investments, and "FinOps" for the platform itself.4  
+  * **Growth Stream:** Manages learning, reading, and skill acquisition.  
+* **Interaction:** Agents communicate via the **Central Orchestrator** using standardized APIs, not by directly modifying each other's databases.
+
+## ---
+
+**3\. Technical Architecture: The "Life Infrastructure" Stack**
+
+The v0.2 architecture replaces the "L0 Layers" with a modular, containerized stack.
+
+### **3.1. Layer 1: The Substrate (Infrastructure as Code)**
+
+* **Technology:** Terraform / OpenTofu \+ Kubernetes (K8s).  
+* **Function:** All "Primitives" (basic tasks) are defined as **Infrastructure as Code (IaC)** modules.  
+* **Strategy:** "Immutable Infrastructure." We do not manually edit a routine in a database. We update the Terraform module for routine\_morning\_v2, and the pipeline applies the change.8
+
+### **3.2. Layer 2: The Governance Plane (Policy as Code)**
+
+* **Technology:** Open Policy Agent (OPA) / Rego.  
+* **Function:** Acts as the "Executive Function" or "Pre-frontal Cortex," inhibiting dangerous or costly actions proposed by AI agents.  
+* **Policies:**  
+  * *Safety:* deny\[msg\] { input.action \== "reduce\_sleep"; input.duration \< 6h }  
+  * *Financial:* deny\[msg\] { input.cost \> input.budget\_remaining }  
+  * *Security:* deny\[msg\] { input.image\_provenance\!= "SLSA\_L3" }  
+    10
+
+### **3.3. Layer 3: The Build Plane (SLSA & Supply Chain Security)**
+
+* **Technology:** Dagger.io / GitHub Actions.  
+* **Standard:** **SLSA Level 3** (Hermetic Builds).  
+* **Pipeline Logic:**  
+  1. **Code Commit:** User/Agent proposes a new routine (YAML/Python).  
+  2. **Lint & Test:** Check for syntax errors and logical conflicts (e.g., double-booking time).  
+  3. **Policy Check:** OPA validates against safety/budget rules.11  
+  4. **Simulation:** Spin up an **Ephemeral Environment** to simulate the routine's impact.12  
+  5. **Provenance:** Sign the artifact and deploy to the Agentic Plane.
+
+### **3.4. Layer 4: The Agentic Plane (Federated Intelligence)**
+
+* **Technology:** LangChain / AutoGPT on Knative (Serverless Containers).  
+* **Function:** "Scale-to-Zero" agents. The "Travel Agent" costs $0/hour until the user says "Plan a trip." It then spins up, executes, and spins down.3  
+* **Memory:** **GraphRAG** (Graph Retrieval-Augmented Generation) ensures agents share context without creating data silos.
+
+## ---
+
+**4\. The "Self-Improvement" Loop (MLOps)**
+
+Refining the "Meta-Optimization" concept from v0.1 into a rigorous **MLOps** pipeline.
+
+### **4.1. Continuous Training (CT) Pipeline**
+
+Instead of a "nightly script," we implement **Trigger-Based Retraining**.13
+
+* **Drift Detection:** If the correlation between "Sleep" and "Productivity" drops below threshold $r \< 0.3$, a retraining job is triggered.  
+* **Evaluation Gate:** The new model is tested against a "Golden Dataset" of historical user preferences. It is only promoted to production if it outperforms the previous model without violating safety constraints.
+
+### **4.2. Synthetic Stakeholders (Simulation)**
+
+Before an Agent changes a major life parameter (e.g., "Switch to Vegan Diet"), it runs a simulation against **Synthetic Personas** (e.g., "Stressed User," "Athletic User") to predict failure modes.
+
+## ---
+
+**5\. FinOps: Economic Governance**
+
+A "LifeOS" must not bankrupt its user. Cost is a first-class metric.4
+
+* **Unit Economics:** Track Cost\_Per\_Insight and Cost\_Per\_Routine.  
+* **Budget Guardrails:** Agents have token limits. If the "Research Agent" hits 80% of its monthly API budget, it automatically switches from GPT-4 to a cheaper model (e.g., Llama 3 70B) or requires manual approval.14  
+* **Ephemeral Efficiency:** Test environments have a strict **TTL (Time-To-Live)** of 2 hours to prevent zombie infrastructure costs.15
+
+## ---
+
+**6\. Implementation Roadmap**
+
+### **Phase 1: Foundation (Months 1-3)**
+
+* **Objective:** Stabilize the "Primitives."  
+* **Actions:**  
+  * Deploy **Internal Developer Platform (IDP)** (Backstage/Port).  
+  * Containerize all existing scripts into Docker images.  
+  * Implement **GitOps** flow (ArgoCD/Flux) for the "Life Database."
+
+### **Phase 2: Governance (Months 4-6)**
+
+* **Objective:** Secure the Supply Chain.  
+* **Actions:**  
+  * Implement **OPA** Policy Gates.  
+  * Achieve **SLSA Level 2** (Hosted, signed builds).  
+  * Deploy **FinOps** tagging strategy.
+
+### **Phase 3: Agency (Months 7+)**
+
+* **Objective:** Autonomous Optimization.  
+* **Actions:**  
+  * Deploy **Federated Agents** on Knative.  
+  * Enable **GraphRAG** for shared memory.  
+  * Activate **MLOps** auto-retraining loops.
+
+## ---
+
+**7\. Critical Risk Register**
+
+| Risk | Probability | Mitigation Strategy |
+| :---- | :---- | :---- |
+| **Model Hallucination** | High | **Strict Policy Gates (OPA).** No AI decision \>$50 or involving health safety executes without human-in-the-loop.7 |
+| **Cost Blowout** | Medium | **FinOps Budget Caps.** Hard API limits and "Scale-to-Zero" architecture.14 |
+| **"Golden Cage"** | Medium | **InnerSource Model.** Allow "forking" of standard routines to create custom variations.16 |
+| **Complexity Overload** | High | **Golden Paths.** The IDP must provide simple "One-Click" templates for 90% of user needs.17 |
+
+#### **Works cited**
+
+1. The PolyInnovation Operating System \#PIOS as a Second Brain or LifeOS, accessed January 3, 2026, [https://polyinnovator.space/the-polyinnovation-operating-system-pios-as-a-second-brain-or-lifeos/](https://polyinnovator.space/the-polyinnovation-operating-system-pios-as-a-second-brain-or-lifeos/)  
+2. Application Release Engineering \- Best Practices and Tools \- XenonStack, accessed January 3, 2026, [https://www.xenonstack.com/insights/application-release-engineering](https://www.xenonstack.com/insights/application-release-engineering)  
+3. William Whatley | Fractional Engineering, accessed January 3, 2026, [https://www.gofractional.com/member/william-whatley](https://www.gofractional.com/member/william-whatley)  
+4. AI's Next Act: 4 AI Trends That Will Redefine 2026 | Zinnov, accessed January 3, 2026, [https://zinnov.com/automation/ais-next-act-4-ai-trends-that-will-redefine-2026-blog/](https://zinnov.com/automation/ais-next-act-4-ai-trends-that-will-redefine-2026-blog/)  
+5. InnerSource and Agile, accessed January 3, 2026, [https://innersourcecommons.org/learn/learning-path/project-leader/02/](https://innersourcecommons.org/learn/learning-path/project-leader/02/)  
+6. 15 DevEx Metrics for Engineering Leaders to Consider: Because 14 Wasn't Enough, accessed January 3, 2026, [https://jellyfish.co/library/developer-experience-metrics/](https://jellyfish.co/library/developer-experience-metrics/)  
+7. Enforcing Policy as Code in Terraform: A Comprehensive Guide \- Scalr, accessed January 3, 2026, [https://scalr.com/learning-center/enforcing-policy-as-code-in-terraform-a-comprehensive-guide/](https://scalr.com/learning-center/enforcing-policy-as-code-in-terraform-a-comprehensive-guide/)  
+8. Building an AI-Native Engineering Team \- OpenAI for developers, accessed January 3, 2026, [https://developers.openai.com/codex/guides/build-ai-native-engineering-team/](https://developers.openai.com/codex/guides/build-ai-native-engineering-team/)  
+9. What is Policy as Code? \- XenonStack, accessed January 3, 2026, [https://www.xenonstack.com/blog/policy-as-code](https://www.xenonstack.com/blog/policy-as-code)  
+10. What is Build Automation?… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/what-is-build-automation](https://www.harness.io/harness-devops-academy/what-is-build-automation)  
+11. Becoming an Autonomous Enterprise: How to Build an AI-Infused Operating Model, accessed January 3, 2026, [https://www.automationanywhere.com/company/blog/automation-ai/becoming-autonomous-enterprise-how-build-ai-infused-operating-model](https://www.automationanywhere.com/company/blog/automation-ai/becoming-autonomous-enterprise-how-build-ai-infused-operating-model)  
+12. What is the SLSA Framework? \- JFrog, accessed January 3, 2026, [https://jfrog.com/learn/grc/slsa-framework/](https://jfrog.com/learn/grc/slsa-framework/)  
+13. Enterprise MLOps Platform on Kubernetes: Complete Machine Learning Life Cycle from Experimentation to Deployment | by Wltsankalpa | Medium, accessed January 3, 2026, [https://medium.com/@wltsankalpa/enterprise-mlops-platform-on-kubernetes-complete-machine-learning-life-cycle-from-experimentation-b78a1c21e7c5](https://medium.com/@wltsankalpa/enterprise-mlops-platform-on-kubernetes-complete-machine-learning-life-cycle-from-experimentation-b78a1c21e7c5)  
+14. The top 10 fallacies in platform engineering \- Humanitec, accessed January 3, 2026, [https://humanitec.com/blog/top-10-fallacies-in-platform-engineering](https://humanitec.com/blog/top-10-fallacies-in-platform-engineering)  
+15. How to Build Enterprise Workflow Automation: Tools & Best Practices | Bika.ai, accessed January 3, 2026, [https://bika.ai/blog/how-to-build-enterprise-workflow-automation-tools-best-practices](https://bika.ai/blog/how-to-build-enterprise-workflow-automation-tools-best-practices)  
+16. 9 FinOps Best Practices to Optimize and Cut Cloud Costs | DoiT, accessed January 3, 2026, [https://www.doit.com/blog/9-finops-best-practices-to-optimize-and-cut-cloud-costs/](https://www.doit.com/blog/9-finops-best-practices-to-optimize-and-cut-cloud-costs/)  
+17. Mastering Infrastructure as Code Best Practices for Modern DevOps… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/infrastructure-as-code-best-practices](https://www.harness.io/harness-devops-academy/infrastructure-as-code-best-practices)
+
+
+---
+
+# File: 00_foundations/ARCH_LifeOS_Operating_Model_v0.3.md
+
+# ARCH_LifeOS_Operating_Model_v0.3: The Shipping Edition
+
+**Version:** 0.3  
+**Status:** Architecture Proposal  
+**Strategic Focus:** Minimal viable autonomy, then iterate.
+
+---
+
+## 1. Executive Summary
+
+**The Problem:** LifeOS has extensive governance documentation, 316 passing tests, and zero autonomous operation. The operator (GL) remains the waterboy shuttling context between AI collaborators.
+
+**The Goal:** One agent doing one thing end-to-end without human intervention. Then two things. Then patterns emerge.
+
+**The Pivot from v0.2:** v0.2 proposed enterprise-grade infrastructure (Kubernetes, SLSA L3, Federated Agents, FinOps governance) for a single-user system. This is architectural overcapitalization. v0.3 proposes the minimum viable stack that achieves autonomy, with complexity added only when earned by actual bottlenecks.
+
+**Success Metric:** GL wakes up to completed work he didn't manually orchestrate.
+
+---
+
+## 2. Architectural Principles
+
+### 2.1. Complexity is Debt
+
+Every component added is a component that can break, requires maintenance, and delays shipping. The architecture should be as simple as possible while achieving autonomy—and no simpler.
+
+**Heuristic:** If you can't explain why a component is necessary in one sentence tied to a concrete problem, remove it.
+
+### 2.2. Earn Your Infrastructure
+
+| Trigger | Response |
+|---------|----------|
+| "We might need X" | Don't build X |
+| "X broke twice this week" | Now build X |
+| "X is a bottleneck" | Now optimize X |
+
+### 2.3. One Path, Not Golden Paths
+
+"Golden Paths" and Internal Developer Platforms serve teams with divergent needs. LifeOS has one user. There is one path: the one that works.
+
+### 2.4. Governance Follows Capability
+
+The existing governance framework is ahead of execution capability. New governance documentation is blocked until execution catches up. Govern what exists, not what might exist.
+
+---
+
+## 3. Technical Architecture
+
+### 3.1. The Stack
+
+```
+┌─────────────────────────────────────────────────┐
+│                    OPERATOR                      │
+│              (GL - async oversight)              │
+└─────────────────────┬───────────────────────────┘
+                      │ reviews / approves
+                      ▼
+┌─────────────────────────────────────────────────┐
+│                 ORCHESTRATOR                     │
+│         (Single agent with API access)           │
+│    Currently: OpenCode migrating from Antigravity│
+└─────────────────────┬───────────────────────────┘
+                      │ executes
+                      ▼
+┌─────────────────────────────────────────────────┐
+│                   RUNTIME                        │
+│     Git repo + GitHub Actions + test suite       │
+└─────────────────────┬───────────────────────────┘
+                      │ persists
+                      ▼
+┌─────────────────────────────────────────────────┐
+│                    STATE                         │
+│   Filesystem (repo) + lightweight DB if needed   │
+└─────────────────────────────────────────────────┘
+```
+
+**That's it.** No Kubernetes. No Knative. No Terraform modules. No OPA policy engine. No vector database. No GraphRAG.
+
+### 3.2. Component Specifications
+
+**Orchestrator (OpenCode)**
+- Has API access (the capability Antigravity lacked)
+- Receives task via structured prompt or queue
+- Executes using standard tools (file I/O, git, shell)
+- Commits results to repo
+- Signals completion
+
+**Runtime (GitHub Actions)**
+- Triggered by commits or schedule
+- Runs test suite (316 existing tests)
+- Deploys/executes approved changes
+- Posts results to notification channel
+
+**State (Git Repository)**
+- Single source of truth
+- All changes via commits (auditable by default)
+- No separate "Life Database" to sync
+
+**Governance (Embedded, Not Layered)**
+- Approval gates are GitHub PR reviews, not OPA policies
+- Cost limits are API key quotas, not FinOps dashboards
+- Safety constraints are test assertions, not policy-as-code
+
+### 3.3. What's Explicitly Excluded (For Now)
+
+| Component | Why Excluded | Trigger to Add |
+|-----------|--------------|----------------|
+| Kubernetes | Orchestration overhead exceeds value at n=1 agents | Multiple long-running agents competing for resources |
+| Vector DB / RAG | No retrieval bottleneck yet | Agent struggles with context window limits |
+| Policy-as-Code (OPA) | Test assertions + PR review sufficient | Automated decisions with financial/safety impact bypass human review |
+| IDP (Backstage) | One user, one path | Never (this is a team tool) |
+| Terraform/IaC | No infrastructure to manage | Cloud resources beyond single VM |
+| Multi-agent federation | Coordination overhead without proven single-agent success | One agent is bottlenecked and task is cleanly separable |
+
+---
+
+## 4. The Autonomy Ladder
+
+Progress is measured by climbing rungs, not by architectural sophistication.
+
+### Rung 0: Manual Orchestration (Current State)
+GL shuttles context between Claude, ChatGPT, and specialized agents. Every action requires human initiation.
+
+### Rung 1: Triggered Autonomy
+Agent executes a defined task when triggered (cron, webhook, or GL command). Human reviews output async.
+
+**First target:** Doc steward hygiene—lint, format, update timestamps, flag inconsistencies. Low stakes, high repetition, clear success criteria.
+
+### Rung 2: Supervised Chains
+Agent executes multi-step workflows. Human approves at checkpoints (e.g., PR review before merge).
+
+**Target:** Build cycle—receive instruction, implement, test, submit PR, await approval, merge.
+
+### Rung 3: Delegated Domains
+Agent owns a domain end-to-end within defined constraints. Human intervenes by exception.
+
+**Target:** Repository maintenance—dependency updates, test coverage gaps, documentation sync.
+
+### Rung 4: Autonomous Initiative
+Agent identifies tasks, proposes them, and executes approved proposals without GL defining the work.
+
+**Target:** TBD—this emerges from Rung 3 patterns.
+
+---
+
+## 5. Implementation Plan
+
+### Phase 1: Prove the Loop (Week 1-2)
+
+**Objective:** One autonomous execution, any task, any stakes.
+
+**Actions:**
+1. Validate OpenCode API connectivity
+2. Define single task with clear input/output (doc hygiene recommended)
+3. Write GitHub Action that: triggers agent → agent executes → commits result → runs tests
+4. Execute manually once. Then schedule.
+
+**Exit Criteria:** Scheduled job runs overnight, GL wakes to committed changes that pass tests.
+
+### Phase 2: Raise the Stakes (Week 3-4)
+
+**Objective:** Autonomous execution of substantive work.
+
+**Actions:**
+1. Extend to multi-file changes
+2. Add PR workflow (agent commits to branch, opens PR, awaits review)
+3. Implement notification on completion/failure
+4. Document failure modes encountered
+
+**Exit Criteria:** Agent submits PR with working code change. GL reviews and merges.
+
+### Phase 3: Chain Tasks (Week 5-8)
+
+**Objective:** Multi-step workflows with checkpoints.
+
+**Actions:**
+1. Define 2-3 step workflow (e.g., receive spec → implement → test → PR)
+2. Implement checkpoint notifications
+3. Add rollback capability on failure
+4. Begin extracting patterns into reusable prompts/templates
+
+**Exit Criteria:** Agent completes chained workflow with single initial trigger.
+
+### Phase 4: Expand Scope (Month 3+)
+
+**Objective:** Second and third autonomous domains.
+
+**Actions:**
+1. Identify next domain based on Phase 1-3 learnings
+2. Apply proven patterns
+3. Evaluate whether multi-agent coordination is now justified
+4. Add infrastructure only if concrete bottleneck demands it
+
+**Exit Criteria:** Multiple domains operating autonomously with GL in async oversight role.
+
+---
+
+## 6. Risk Register
+
+| Risk | Probability | Mitigation |
+|------|-------------|------------|
+| Agent produces broken code | High | Test suite gates all merges. PR review for non-trivial changes. |
+| API costs spike | Medium | Hard quota on API keys. Alert at 50% monthly budget. |
+| Agent hallucinates task completion | Medium | Require artifact (commit, file, log) as proof of execution. |
+| Scope creep into enterprise architecture | High | This document. Refer to §3.3 exclusion triggers. |
+| GL over-engineers instead of shipping | High | Phase 1 has 2-week timebox. Ship or retro. |
+
+---
+
+## 7. What This Document Is Not
+
+**Not a platform strategy.** There is no platform. There is a repo and an agent.
+
+**Not a team topology.** There is no team. There is GL and his AI collaborators.
+
+**Not a long-term architecture.** This is the minimum structure to achieve autonomy. Architecture evolves from working systems, not from documents.
+
+**Not comprehensive.** It deliberately excludes most of what a "complete" operating model would contain. Completeness is not the goal. Shipping is.
+
+---
+
+## 8. Success Criteria for This Document
+
+This document succeeds if:
+
+1. Phase 1 completes within 2 weeks
+2. GL spends less time on infrastructure and more time on substantive work
+3. The excluded components (§3.3) remain excluded for at least 3 months
+4. Autonomy ladder rungs are climbed, not skipped
+
+This document fails if:
+
+1. It spawns child documents before Phase 1 ships
+2. Components are added "just in case"
+3. GL is still the waterboy in 30 days
+
+---
+
+## Appendix A: Migration Notes (Antigravity → OpenCode)
+
+Current state: Antigravity is build agent but lacks API access for autonomous operation.
+
+Migration approach:
+1. OpenCode assumes doc steward role first (low-risk validation)
+2. Parallel operation during transition
+3. Antigravity deprecated once OpenCode proves equivalent capability
+4. COO orchestrator layer added only if multi-agent coordination becomes necessary
+
+---
+
+## Appendix B: Governance Integration
+
+Existing governance specs (F3, F4, F7, etc.) remain authoritative. This operating model does not replace governance—it provides execution capability for governance to govern.
+
+Integration points:
+- Council review process applies to significant changes (Rung 2+)
+- Structured packet format used for agent ↔ agent communication when multi-agent is justified
+- Audit trail is git history (commit log, PR discussion, CI results)
+
+New governance documentation is paused until Rung 2 is achieved. Govern what runs, not what might run.
+
+
+---
+
+# File: 00_foundations/ARCH_LifeOS_Operating_Model_v0.4.md
+
+# ARCH_LifeOS_Operating_Model_v0.4
+
+**Version:** 0.4  
+**Date:** 2026-01-03  
+**Status:** Active  
+**Author:** GL (with AI collaboration)
+
+---
+
+> [!IMPORTANT]
+> **Non-Canonical Artifact**
+> This document describes a conceptual, WIP target operating model. It is **not** canonical and is **not** part of the formal LifeOS authority chain. Future governance decisions cannot cite this document as binding authority.
+
+---
+
+## 1. Purpose and Scope
+
+### 1.1. What is LifeOS?
+
+LifeOS is a governance-first personal operating system designed to extend one person's operational capacity through AI. The goal is to convert high-level intent into auditable, autonomous action—reducing the manual effort required to coordinate between AI tools, manage routine tasks, and maintain complex systems.
+
+LifeOS is not a product for distribution. It is infrastructure for a single operator (GL) to expand his effective reach across work, finances, and life administration.
+
+### 1.2. What This Document Covers
+
+This document defines the operating model for LifeOS build automation: how AI agents receive instructions, execute work, and commit results without continuous human intervention.
+
+It does not cover:
+- The full LifeOS technical architecture (see: Technical Architecture v1.2)
+- Governance specifications for council review (see: F3, F4, F7 specs)
+- Life domain applications (health, finance, productivity agents)
+
+### 1.3. Current State
+
+| Dimension | Status |
+|-----------|--------|
+| Codebase | Functional Python implementation with 316 passing tests across Tier-1 and Tier-2 components |
+| Documentation | Extensive governance specs, some ahead of implementation |
+| Autonomous execution | **Validated as of 2026-01-03** — see §2 |
+| Daily operation | Manual orchestration between AI collaborators |
+
+The core challenge: GL currently acts as the "waterboy" shuttling context between ChatGPT (thinking partner), Claude (execution partner), and specialized agents. Every action requires human initiation. The goal is to invert this—humans define intent, agents execute autonomously, humans review async.
+
+---
+
+## 2. Validated Foundation
+
+On 2026-01-03, the following capability was verified:
+
+**An AI agent (OpenCode) can run headless via CI, execute a task, create files, and commit to a git repository without human intervention during execution.**
+
+### 2.1. Proof of Concept Results
+
+| Element | Evidence |
+|---------|----------|
+| Trigger | `scripts/opencode_ci_runner.py` |
+| Agent | OpenCode server at `http://127.0.0.1:4096` |
+| Session | `ses_47c563db0ffeG8ZRFXgNddZI4o` |
+| Output | File `ci_proof.txt` created with content "Verified" |
+| Commit | `51ef5dba` — "CI: OpenCode verification commit" |
+| Author | `OpenCode Robot <robot@lifeos.local>` |
+
+Execution log confirmed: server ready → session created → prompt sent → agent responded → file verified → commit verified → **CI INTEGRATION TEST PASSED**.
+
+### 2.2. What This Proves
+
+1. **Headless execution works.** The agent does not require an interactive terminal or human presence.
+2. **Git integration works.** The agent can commit changes with proper attribution.
+3. **The architecture is viable.** The stack described in §4 is not speculative—it has been demonstrated.
+
+### 2.3. What Remains Unproven
+
+1. **Multi-step workflows.** The proof shows a single task; chained tasks with checkpoints are untested.
+2. **Test suite integration.** The agent committed a file but did not run the existing 316 tests.
+3. **Failure recovery.** Behavior on error, timeout, or invalid output is undefined.
+4. **Substantive work.** Creating a proof file is trivial; modifying production code is not.
+
+---
+
+## 3. Architectural Principles
+
+### 3.1. Complexity is Debt
+
+Every component added is a component that can break, requires maintenance, and delays shipping. The architecture must be as simple as possible while achieving autonomy—and no simpler.
+
+**Decision heuristic:** If a component cannot be justified in one sentence tied to a concrete, current problem, it is excluded.
+
+### 3.2. Earn Your Infrastructure
+
+Infrastructure is added reactively, not speculatively.
+
+| Signal | Response |
+|--------|----------|
+| "We might need X" | Do not build X |
+| "X broke twice this week" | Now build X |
+| "X is a bottleneck blocking progress" | Now optimize X |
+
+### 3.3. Governance Follows Capability
+
+LifeOS has extensive governance documentation (council review processes, structured packet formats, approval workflows). This governance framework is currently ahead of execution capability.
+
+**Constraint:** New governance documentation is paused until autonomous execution reaches Rung 2 (see §5). Govern what exists, not what might exist.
+
+### 3.4. Auditability by Default
+
+All agent actions must produce artifacts that can be reviewed after the fact. Git commits, CI logs, and test results form the audit trail. No "trust me, I did it" claims.
+
+---
+
+## 4. Technical Architecture
+
+### 4.1. System Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         OPERATOR                             │
+│                    (GL — async oversight)                    │
+│                                                              │
+│   Defines tasks • Reviews PRs • Approves merges • Exceptions │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+                              │ intent / review
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       ORCHESTRATOR                           │
+│                   (OpenCode via CI Runner)                   │
+│                                                              │
+│   Receives prompts • Executes via tools • Commits results    │
+│   API endpoint: http://127.0.0.1:4096                        │
+│   Trigger: scripts/opencode_ci_runner.py                     │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+                              │ file I/O / git / shell
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                         RUNTIME                              │
+│              (Git Repository + GitHub Actions)               │
+│                                                              │
+│   Source of truth • CI/CD pipeline • Test execution          │
+│   Test suite: 316 tests (Tier-1 + Tier-2)                    │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+                              │ persists
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                          STATE                               │
+│                (Filesystem + Git History)                    │
+│                                                              │
+│   All state is files • All changes are commits • Auditable   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 4.2. Component Specifications
+
+#### 4.2.1. Orchestrator: OpenCode
+
+OpenCode is an AI coding agent with API access, enabling headless (non-interactive) operation.
+
+| Property | Value |
+|----------|-------|
+| Server endpoint | `http://127.0.0.1:4096` |
+| Trigger mechanism | `scripts/opencode_ci_runner.py` |
+| Capabilities | File read/write, shell commands, git operations |
+| Commit identity | `OpenCode Robot <robot@lifeos.local>` |
+
+**Why OpenCode (not Antigravity):** The previous build agent (Antigravity) lacked API access, requiring interactive terminal sessions. This blocked autonomous operation. OpenCode's API enables the CI runner pattern demonstrated in §2.
+
+**Migration status:** OpenCode is now primary for autonomous tasks. Antigravity remains available for interactive sessions during transition.
+
+#### 4.2.2. Runtime: Git + GitHub Actions
+
+| Function | Implementation |
+|----------|----------------|
+| Source of truth | Git repository (GitHub-hosted) |
+| CI trigger | Push to branch, scheduled cron, or manual dispatch |
+| Test execution | `pytest` running 316 existing tests |
+| Deployment | Merge to main after PR approval |
+
+**Workflow pattern:**
+1. CI runner triggers OpenCode with task prompt
+2. OpenCode executes, commits to feature branch
+3. GitHub Action runs test suite
+4. If tests pass: PR opened for review
+5. GL reviews async, approves or requests changes
+6. Merge to main on approval
+
+#### 4.2.3. State: Filesystem as Database
+
+LifeOS does not use a separate database. All state is stored as files in the repository.
+
+- **Configuration:** YAML/JSON files in `/config`
+- **Documentation:** Markdown in `/docs`
+- **Code:** Python in `/src`
+- **Audit trail:** Git commit history
+
+This eliminates sync problems between code and data, ensures all changes are versioned, and makes the system trivially portable.
+
+### 4.3. Explicitly Excluded Components
+
+The following are intentionally not part of the current architecture. Each has a defined trigger condition for future inclusion.
+
+| Component | Rationale for Exclusion | Trigger to Reconsider |
+|-----------|------------------------|----------------------|
+| **Kubernetes** | Container orchestration overhead exceeds value for single-agent workloads | Multiple long-running agents competing for compute resources |
+| **Vector database / RAG** | No retrieval bottleneck observed; context window sufficient | Agent consistently fails due to context limits on large codebases |
+| **Policy-as-Code (OPA)** | Test assertions + PR review provide sufficient safety gates | Automated decisions with financial or safety impact must bypass human review |
+| **Terraform / IaC** | No cloud infrastructure to manage; runs on local/single VM | Deployment to multiple cloud resources required |
+| **Multi-agent federation** | Single-agent capability unproven; coordination adds complexity | One agent is bottlenecked and task is cleanly separable |
+| **Internal Developer Platform** | Single user, single path; IDP solves team divergence problems | Never (wrong tool for single-operator system) |
+
+---
+
+## 5. The Autonomy Ladder
+
+Progress is measured by capability level, not architectural sophistication. Each rung represents increased agent autonomy and decreased human involvement in routine execution.
+
+### Rung 0: Manual Orchestration
+**Status:** Current baseline (pre-2026-01-03)
+
+Human initiates every action. AI tools are reactive—they respond to prompts but do not act independently. GL manually shuttles context between Claude, ChatGPT, and other agents.
+
+**Human role:** Initiator, executor, coordinator
+**Agent role:** Responder
+
+### Rung 1: Triggered Autonomy
+**Status:** Validated (2026-01-03)
+
+Agent executes a defined task when triggered by CI, cron, or command. Human reviews output asynchronously. The agent cannot initiate work, but can complete work without supervision during execution.
+
+**Human role:** Trigger, async reviewer
+**Agent role:** Executor
+
+**Demonstrated capability:** OpenCode created file and committed via CI runner.
+
+**Next target task:** Documentation hygiene—lint markdown, update timestamps, flag broken links. Low stakes, high repetition, clear success criteria.
+
+### Rung 2: Supervised Chains
+**Status:** Not yet attempted
+
+Agent executes multi-step workflows with human approval at defined checkpoints. For example: receive spec → implement → run tests → open PR → await review → merge on approval.
+
+**Human role:** Checkpoint approver, exception handler
+**Agent role:** Workflow executor
+
+**Target task:** Build cycle for small features—agent receives a specification, implements it, validates with tests, and submits for review.
+
+**Governance integration:** Council review process (F3 spec) applies to significant changes at this rung.
+
+### Rung 3: Delegated Domains
+**Status:** Future
+
+Agent owns a domain end-to-end within defined constraints. Human intervenes by exception, not by routine. Agent handles the normal case autonomously.
+
+**Human role:** Exception handler, constraint setter
+**Agent role:** Domain owner
+
+**Target domains:** Repository maintenance (dependency updates, test coverage, doc sync), routine administrative tasks.
+
+### Rung 4: Autonomous Initiative
+**Status:** Future
+
+Agent identifies tasks worth doing, proposes them, and executes approved proposals. Human defines goals and constraints; agent determines actions.
+
+**Human role:** Goal setter, proposal approver
+**Agent role:** Initiator, planner, executor
+
+This rung emerges from patterns discovered at Rung 3. Premature to specify further.
+
+---
+
+## 6. Implementation Plan
+
+### Phase 1: Validate the Loop (Weeks 1-2)
+**Objective:** Demonstrate end-to-end autonomous execution with test verification.
+
+| Action | Status | Exit Criterion |
+|--------|--------|----------------|
+| Validate OpenCode CI connectivity | ✓ Complete | Server responds, session created |
+| Execute trivial task (create file) | ✓ Complete | File exists, commit verified |
+| Integrate test suite execution | Pending | CI runs `pytest`, results logged |
+| Execute substantive task (doc hygiene) | Pending | Meaningful changes, tests pass |
+| Schedule overnight run | Pending | GL wakes to committed, passing changes |
+
+**Phase 1 exit criteria:** Scheduled job runs without human intervention; GL reviews results next morning.
+
+### Phase 2: Raise the Stakes (Weeks 3-4)
+**Objective:** Autonomous execution of multi-file, testable changes with PR workflow.
+
+| Action | Exit Criterion |
+|--------|----------------|
+| Extend to multi-file modifications | Agent modifies 2+ files in single task |
+| Implement PR workflow | Agent commits to branch, opens PR |
+| Add notification on completion/failure | GL receives alert (email, webhook, etc.) |
+| Document observed failure modes | Failure catalog with mitigations |
+
+**Phase 2 exit criteria:** Agent submits PR with working code; GL reviews and merges.
+
+### Phase 3: Supervised Chains (Weeks 5-8)
+**Objective:** Multi-step workflows with checkpoint approval.
+
+| Action | Exit Criterion |
+|--------|----------------|
+| Define 2-3 step workflow | Spec exists with clear handoff points |
+| Implement checkpoint notifications | GL notified at each checkpoint |
+| Add rollback capability | Failed step reverts cleanly |
+| Extract reusable prompt templates | Documented patterns for common tasks |
+
+**Phase 3 exit criteria:** Agent completes chained workflow from single initial trigger; Rung 2 achieved.
+
+### Phase 4: Expand Scope (Month 3+)
+**Objective:** Multiple autonomous domains operating in parallel.
+
+| Action | Exit Criterion |
+|--------|----------------|
+| Identify second domain | Based on Phase 1-3 learnings |
+| Apply proven patterns | Reuse templates and workflows |
+| Evaluate multi-agent need | Documented decision with rationale |
+| Add infrastructure only if earned | Per §4.3 trigger conditions |
+
+**Phase 4 exit criteria:** 2+ domains operating autonomously; GL in async oversight role for routine operations.
+
+---
+
+## 7. Risk Register
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| **Agent produces broken code** | High | Medium | Test suite gates all merges; PR review for non-trivial changes; rollback capability |
+| **API costs exceed budget** | Medium | Medium | Hard quota on API keys; alert at 50% monthly threshold; fallback to smaller models |
+| **Agent hallucinates task completion** | Medium | High | Require artifact proof (commit, file, log); verification step in CI runner |
+| **Scope creep into enterprise architecture** | High | High | This document; explicit exclusion triggers in §4.3; 3-month hold on excluded components |
+| **Operator over-engineers instead of shipping** | High | High | Phase 1 has 2-week timebox; ship or retrospective |
+| **Single point of failure (OpenCode)** | Medium | High | Antigravity remains available as fallback; architecture is agent-agnostic |
+| **Security: agent with commit access** | Medium | High | Commits to branches only; merge requires human approval; audit via git history |
+
+---
+
+## 8. Governance Integration
+
+This operating model exists within the broader LifeOS governance framework. It does not replace governance—it provides the execution capability that governance oversees.
+
+### 8.1. Relationship to Existing Specs
+
+| Spec | Relevance to This Document |
+|------|---------------------------|
+| **F3 (Council Review)** | Applies to significant changes at Rung 2+; agent-submitted PRs for substantial features require council review |
+| **F4 (Inter-Agent Communication)** | Structured packet format used if/when multi-agent coordination is added |
+| **F7 (Audit Requirements)** | Git history + CI logs satisfy audit trail requirements |
+
+### 8.2. Governance Pause
+
+Per principle §3.3, new governance documentation is paused until Rung 2 is achieved. Current specs are sufficient to govern the execution capability being built. Additional governance would be premature.
+
+### 8.3. Audit Trail
+
+All agent actions produce auditable artifacts:
+
+| Action | Audit Artifact |
+|--------|---------------|
+| File creation/modification | Git diff in commit |
+| Task execution | CI runner logs |
+| Test results | GitHub Actions output |
+| Approval decisions | PR review comments |
+| Merge | Git merge commit with approver |
+
+No separate audit log is required; git history is the audit log.
+
+---
+
+## 9. Success and Failure Criteria
+
+### This Document Succeeds If:
+
+1. Phase 1 completes within 2 weeks of validation date (by 2026-01-17)
+2. GL spends less time on orchestration, more time on substantive decisions
+3. Excluded components (§4.3) remain excluded for at least 3 months
+4. Autonomy ladder rungs are climbed sequentially, not skipped
+5. The architecture remains simple enough to explain in 5 minutes
+
+### This Document Fails If:
+
+1. It spawns child architecture documents before Phase 2 completes
+2. Components are added speculatively ("just in case")
+3. GL is still manually orchestrating routine tasks after 30 days
+4. The test suite is bypassed or ignored
+5. No autonomous work ships in January 2026
+
+---
+
+## 10. Glossary
+
+| Term | Definition |
+|------|------------|
+| **Agent** | An AI system capable of executing tasks via API (e.g., OpenCode, Claude, ChatGPT) |
+| **Antigravity** | Previous build agent; lacks API access; being replaced by OpenCode |
+| **CI Runner** | Script that triggers agent execution in headless mode (`scripts/opencode_ci_runner.py`) |
+| **Council Review** | Governance process where multiple AI roles review significant changes (per F3 spec) |
+| **GL** | The operator; single user of LifeOS |
+| **Governance** | Framework of specs and processes ensuring safe, auditable agent operation |
+| **Headless** | Execution without interactive terminal; agent runs via API only |
+| **OpenCode** | Current build agent; has API access enabling autonomous operation |
+| **Rung** | A level on the Autonomy Ladder representing agent capability |
+| **Waterboy** | Manual orchestration pattern where human shuttles context between AI tools |
+
+---
+
+## Appendix A: OpenCode CI Runner Reference
+
+**Location:** `scripts/opencode_ci_runner.py`
+
+**Function:** Starts OpenCode server, creates session, sends task prompt, verifies output, commits result.
+
+**Invocation:**
+```bash
+python scripts/opencode_ci_runner.py --task "description of task"
+```
+
+**Server endpoint:** `http://127.0.0.1:4096`
+
+**Session management:** Runner creates new session per invocation; sessions are not persistent.
+
+**Commit identity:**
+```
+Author: OpenCode Robot <robot@lifeos.local>
+```
+
+---
+
+## Appendix B: Migration from Antigravity
+
+### B.1. Background
+
+Antigravity served as the initial build agent and document steward for LifeOS. It has extensive context on the codebase and governance specs but lacks API access—requiring interactive terminal sessions that block autonomous operation.
+
+### B.2. Migration Approach
+
+| Phase | Action | Status |
+|-------|--------|--------|
+| 1 | Validate OpenCode CI capability | ✓ Complete |
+| 2 | OpenCode assumes doc steward role | Pending |
+| 3 | Parallel operation during transition | Pending |
+| 4 | Antigravity deprecated for autonomous tasks | Future |
+
+### B.3. Contingency
+
+If OpenCode proves insufficient for complex tasks, Antigravity remains available for interactive sessions. The architecture is agent-agnostic—the CI runner pattern can wrap any agent with API access.
+
+---
+
+## Appendix C: Document History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 0.1 | — | Initial concept (not documented) |
+| 0.2 | 2026-01 | Enterprise architecture proposal (Kubernetes, SLSA, federated agents) — rejected as overcapitalized |
+| 0.3 | 2026-01-03 | Minimal viable architecture — validated but incomplete |
+| 0.4 | 2026-01-03 | Comprehensive operating model incorporating CI validation proof |
+
+---
+
+*End of document.*
 
 
 ---
@@ -446,6 +1406,169 @@ In any conflict, this Constitution prevails.
 
 **END OF CONSTITUTION**
 
+
+
+---
+
+# File: 00_foundations/SPEC-001_ LifeOS Operating Model - Agentic Platform & Evaluation Framework.md
+
+# **SPEC-001: LifeOS Operating Model (v0.3)**
+
+Status: Draft Specification  
+Domain: Agentic AI / Platform Engineering  
+Target Architecture: Federated Multi-Agent System on Kubernetes
+
+## ---
+
+**1\. Executive Summary & Core Concept**
+
+**LifeOS** is an AI-native operating system designed to manage complex human resources (time, capital, health, attention). Unlike traditional productivity software, which is passive and user-driven, LifeOS is **agentic and proactive**. It utilizes autonomous AI agents to perceive data, make decisions, and execute actions on behalf of the user.  
+The Core Engineering Challenge:  
+Traditional software is deterministic (Input A \+ Code B \= Output C). AI Agents are probabilistic (Input A \+ Context B \+ Model Variability \= Output C, D, or E).  
+The Solution:  
+This Operating Model shifts from a "Build Automation" paradigm (ensuring code compiles) to an "Evaluation Automation" paradigm (ensuring behavior is aligned). We define a Platform Engineering approach where a central kernel provides the "Physics" (security, memory, budget) within which autonomous agents (Health, Finance) operate.
+
+## ---
+
+**2\. Architectural Principles**
+
+### **2.1. The "Golden Path" (Not Golden Cage)**
+
+* **Principle:** The platform provides paved roads (standardized tools, APIs, and permissions) to make doing the right thing easy.  
+* **ADR (Architectural Decision Record):** *Contention exists between total agent autonomy and strict centralized control.*  
+  * **Decision:** We enforce a **Federated Governance** model. Agents are free to execute unique logic but must use the platform's standardized "Context Layer" and "Identity Layer." Agents attempting to bypass these layers will be terminated by the kernel.
+
+### **2.2. Probabilistic Reliability**
+
+* **Principle:** We cannot guarantee 100% correctness in agent reasoning. We instead manage **Risk Tolerance**.  
+* **Decision:** All deployments are gated by **Statistical Pass Rates** (e.g., "Agent must succeed in 95/100 simulations"), not binary unit tests.
+
+### **2.3. Data is State**
+
+* **Principle:** An agent's behavior is determined as much by its memory (Context) as its code.  
+* **Decision:** We treat the User Context (Vector Database) as a versioned artifact. A "Rollback" restores both the code *and* the memory state to a previous point in time.
+
+## ---
+
+**3\. Organizational Operating Model (Team Topologies)**
+
+To scale LifeOS without creating a monolithic bottleneck, we adopt the **Team Topologies** structure.
+
+### **3.1. The Platform Team (The Kernel)**
+
+* **Role:** The "City Planners." They build the infrastructure, the security gates, and the simulation environments.  
+* **Responsibility:**  
+  * Maintain the **Internal Developer Platform (IDP)**.  
+  * Enforce **Policy as Code (OPA)** (e.g., "No agent can spend \>$100 without approval").  
+  * Manage the **ContextOps** pipeline (RAG infrastructure).  
+* **Success Metric:** Developer/Agent Experience (DevEx) and Platform Stability.1
+
+### **3.2. Stream-Aligned Teams (The Agents)**
+
+* **Role:** The "Specialists." These are independent logic units focused on specific domains.  
+  * *Example:* The **Finance Agent Team** builds the model that optimizes tax strategy. They do not worry about *how* to connect to the database; the Platform handles that.  
+* **Responsibility:** Optimizing the reward function for their specific domain (Health, Wealth, Knowledge).  
+* **Success Metric:** Domain-specific KPIs (e.g., Savings Rate, VO2 Max improvement).
+
+## ---
+
+**4\. Technical Architecture Specification**
+
+### **4.1. The Infrastructure Plane (Substrate)**
+
+* **Compute:** **Kubernetes (K8s)** with **Knative** for serverless scaling. Agents scale to zero when inactive to minimize cost.2  
+* **Identity:** **SPIFFE/SPIRE**. Every agent is issued a short-lived cryptographic identity (SVID). This enables "Zero Trust"—the Finance Database accepts requests *only* from the Finance Agent SVID, rejecting the Health Agent.
+
+### **4.2. The Memory Plane (ContextOps)**
+
+* **Technology:** **GraphRAG** (Knowledge Graph \+ Vector Embeddings).  
+* **Spec:** Agents do not access raw data files. They query the **Semantic Layer**.  
+* **Versioning:** We use **DVC (Data Version Control)**. Every major decision made by an agent is linked to a snapshot of the memory state at that moment for auditability.
+
+### **4.3. The Reasoning Plane (Model Router)**
+
+* **ADR:** *Contention regarding model dependency (e.g., "All in on GPT-4").*  
+  * **Decision:** **Model Agnosticism via Router.** The platform uses a routing layer (e.g., LiteLLM).  
+* **Logic:**  
+  * *High Stakes (Medical/Legal):* Route to Frontier Model (e.g., Claude 3.5 Sonnet / GPT-4o).  
+  * *Low Stakes (Categorization/Summary):* Route to Small Language Model (e.g., Llama 3 8B) hosted locally or cheaply.
+
+## ---
+
+**5\. The "Evaluation Automation" Pipeline (CI/CE/CD)**
+
+We replace the standard CI/CD pipeline with **CI/CE/CD**. This is the most critical deviation from standard software engineering.
+
+### **Phase 1: Continuous Integration (CI) \- Deterministic**
+
+* **Scope:** Code syntax, dependency checks, linting.  
+* **Tooling:** GitHub Actions / Dagger.io.  
+* **Gate:** Standard binary Pass/Fail.
+
+### **Phase 2: Continuous Evaluation (CE) \- Probabilistic**
+
+* **Scope:** Behavioral alignment.  
+* **The "Gym" (Ephemeral Environments):** The pipeline spins up an isolated simulation environment populated by **Synthetic User Personas** (e.g., "Stressed User", "Frugal User").3  
+* **The Tests:**  
+  * *Drift Detection:* Does the agent suggest actions that violate the user's core values?  
+  * *Hallucination Check:* Does the agent cite non-existent data?  
+  * *Loop Detection:* Does the agent get stuck in a reasoning loop?  
+* **Gate:** Statistical Threshold. "Agent v2.1 must achieve \>90% alignment score across 50 Monte Carlo simulations."
+
+### **Phase 3: Continuous Deployment (CD) \- Gradual**
+
+* **Scope:** Production release.  
+* **Strategy:** **Canary Deployment**. The new agent version is given 5% of decisions (shadow mode) to verify real-world performance before full rollout.5
+
+## ---
+
+**6\. Governance & FinOps**
+
+### **6.1. Policy as Code (The Guardrails)**
+
+* **Tool:** **Open Policy Agent (OPA)**.  
+* **Implementation:** Policies are written in **Rego** and enforced at the API gateway level.  
+* **Spec Examples:**  
+  * allow \= false if cost \> budget  
+  * allow \= false if action \== "delete\_data" and user\_approval \== false  
+  * allow \= false if model\_confidence \< 0.7
+
+### **6.2. FinOps (The Economy)**
+
+* **Metric:** **Cost Per Insight**. We track not just cloud spend, but "Token Spend per successful outcome."  
+* **Circuit Breakers:** If an Agent enters a "Retry Storm" (rapidly failing and retrying, burning tokens), the platform automatically kills the container to prevent wallet drainage.6
+
+## ---
+
+**7\. Implementation Roadmap**
+
+For a team starting from scratch, execute in this order:
+
+1. **Month 1 (The Skeleton):** Deploy the IDP (Backstage/Port) and the K8s cluster. Establish the "Golden Path" for a simple "Hello World" agent.  
+2. **Month 2 (The Brain):** Implement the Vector Database and the Data Ingestion pipeline.  
+3. **Month 3 (The Guardrails):** Implement OPA policies and SPIFFE identity.  
+4. **Month 4 (The Gym):** Build the Evaluation Harness with synthetic personas. **Do not deploy autonomous agents before this step.**
+
+## ---
+
+**8\. Glossary**
+
+* **Agentic AI:** AI systems capable of autonomous perception, reasoning, and action execution, rather than just chat-based response.  
+* **CI/CE/CD:** Continuous Integration / Continuous Evaluation / Continuous Deployment. The pipeline for probabilistic software.  
+* **Ephemeral Environment:** A temporary, isolated infrastructure created solely for testing an agent and destroyed immediately after (The "Gym").  
+* **Golden Path:** A supported, standardized way of building software provided by the Platform Team to reduce friction for developers.  
+* **Hallucination:** When an AI agent generates incorrect or nonsensical information presented as fact.  
+* **IDP (Internal Developer Platform):** The self-service portal where developers (or users) manage their agents and infrastructure.  
+* **Policy as Code:** Defining governance rules (security, budget) in programming languages (Rego) to automate enforcement.
+
+#### **Works cited**
+
+1. DevEx Metrics Guide: How to Measure and Improve Developer Experience \- Shipyard.build, accessed January 3, 2026, [https://shipyard.build/blog/developer-experience-metrics/](https://shipyard.build/blog/developer-experience-metrics/)  
+2. Enterprise MLOps Platform on Kubernetes: Complete Machine Learning Life Cycle from Experimentation to Deployment | by Wltsankalpa | Medium, accessed January 3, 2026, [https://medium.com/@wltsankalpa/enterprise-mlops-platform-on-kubernetes-complete-machine-learning-life-cycle-from-experimentation-b78a1c21e7c5](https://medium.com/@wltsankalpa/enterprise-mlops-platform-on-kubernetes-complete-machine-learning-life-cycle-from-experimentation-b78a1c21e7c5)  
+3. Ephemeral Environments Explained: Benefits, Tools, and How to Get Started? \- Qovery, accessed January 3, 2026, [https://www.qovery.com/blog/ephemeral-environments](https://www.qovery.com/blog/ephemeral-environments)  
+4. Cut Dev Costs by 90% with Kubernetes Ephemeral Environments | Signadot, accessed January 3, 2026, [https://www.signadot.com/articles/reducing-costs-boosting-productivity-kubernetes-ephemeral-environments](https://www.signadot.com/articles/reducing-costs-boosting-productivity-kubernetes-ephemeral-environments)  
+5. Effective feature release strategies for successful software delivery… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/mastering-feature-release-strategies](https://www.harness.io/harness-devops-academy/mastering-feature-release-strategies)  
+6. 9 FinOps Best Practices to Optimize and Cut Cloud Costs | DoiT, accessed January 3, 2026, [https://www.doit.com/blog/9-finops-best-practices-to-optimize-and-cut-cloud-costs/](https://www.doit.com/blog/9-finops-best-practices-to-optimize-and-cut-cloud-costs/)
 
 
 ---
@@ -1953,6 +3076,48 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 
 Red-Team concerns are valuable but, when reconciled with the canonical packets and majority reviews, **none constitute a blocking Tier-2 defect**. They translate into governance and documentation work, plus optional future micro-hardening, not into a requirement to hold activation.
 
+
+
+---
+
+# File: 01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md
+
+# Final Council Ruling — Reactive Task Layer v0.1 (Core Autonomy Surface)
+
+**Date:** 2026-01-03 (Australia/Sydney)
+**Track:** Core
+**Operating phase:** Phase 0–1 (human-in-loop) 
+
+### Council Verdict
+
+**ACCEPT** 
+
+### Basis for Acceptance (council synthesis)
+
+* The delivered surface is **definition-only** and contains **no execution, I/O, or side effects**. 
+* Determinism is explicit (canonical JSON + sha256) and backed by tests (ordering/invariance coverage included). 
+* Public API is coherent: the “only supported external entrypoint” is implemented and tested, reducing bypass risk in Phase 0–1. 
+* Documentation is truthful regarding scope (Reactive only; registry/executor excluded) and includes required metadata headers. 
+
+### Blocking Issues
+
+**None.**
+
+### Non-Blocking Hygiene (optional, schedule later)
+
+1. Tighten the Unicode canonical JSON assertion to require the explicit escape sequence for the known non-ASCII input (remove permissive fallback). 
+2. Replace/verify the README Authority pointer to ensure it remains stable (prefer canonical authority anchor). 
+
+### Risks (accepted for Phase 0–1)
+
+* Canonical JSON setting changes would invalidate historical hashes; treat as governance-gated. 
+* `to_plan_surface()` remains callable; enforcement is contractual (“supported entrypoint”) until later hardening. 
+
+---
+
+## Chair Sign-off
+
+This build is **approved for merge/activation within Phase 0–1**. Council sign-off granted. Proceed to the next Core task.
 
 
 ---
