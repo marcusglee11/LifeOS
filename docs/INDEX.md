@@ -1,6 +1,6 @@
 # LifeOS Documentation Index
 
-**Last Updated**: 2026-01-02T18:56+11:00  
+**Last Updated**: 2026-01-03T14:20+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
@@ -16,6 +16,25 @@ LifeOS Constitution v2.0 (Supreme)
                 ├── DAP v2.0
                 └── COO Runtime Spec v1.0
 ```
+
+---
+
+## Strategic Context
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Strategic_Corpus.md](./LifeOS_Strategic_Corpus.md) | **Primary Context for the LifeOS Project** |
+
+---
+
+## 00_admin — Project Admin (Thin Control Plane)
+
+| Document | Purpose |
+|----------|---------|
+| [LIFEOS_STATE.md](./00_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions |
+| [BACKLOG.md](./00_admin/BACKLOG.md) | Actionable backlog (Now/Next/Later) — target ≤40 items |
+| [DECISIONS.md](./00_admin/DECISIONS.md) | Append-only decision log (low volume) |
+| [INBOX.md](./00_admin/INBOX.md) | Raw capture scratchpad for triage |
 
 ---
 
@@ -57,6 +76,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Tier1_Tier2_Activation_Ruling_v0.2.md](./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md) | Historical: Tier-2 activation ruling |
 | [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md) | Historical: Tier transition conditions |
 | [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
+| [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
 
 ---
 
@@ -67,6 +87,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
 | [Document_Steward_Protocol_v1.0.md](./02_protocols/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
 | [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
+| [Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md) | Tier-2 API Versioning, Deprecation, and Compatibility Rules |
 | [lifeos_packet_schemas_v1.yaml](./02_protocols/lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
 | [lifeos_packet_templates_v1.yaml](./02_protocols/lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
 | [example_converted_antigravity_packet.yaml](./02_protocols/example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
