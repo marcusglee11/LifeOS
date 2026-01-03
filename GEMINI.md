@@ -545,5 +545,28 @@ All emitted packets MUST:
 
 ---
 
-# **End of Constitution v2.5 (Packet Protocol Edition)**
+# **ARTICLE XVI — CONTROL PLANE PROTOCOLS (MANDATORY)**
+
+> [!IMPORTANT]
+> This article defines the operational "heartbeat" of the agent.
+
+## Section 1. Startup Protocol (The "Read State" Rule)
+At the beginning of every new session or chat context, Antigravity **MUST**:
+1. Read `docs/00_admin/LIFEOS_STATE.md`.
+2. Internalise the "Current Focus" and "Active WIP".
+3. Use this state to ground all subsequent actions.
+
+## Section 2. Admin Hygiene Protocol (The "Clean Close" Rule)
+Trigger: After any substantive commit (modifying docs, code, or tests).
+
+Antigravity **MUST** automatically:
+1. **Sort Inbox**: Move actionable items from `INBOX.md` to `BACKLOG.md`.
+2. **Update State**: Refine `LIFEOS_STATE.md` (Next Actions, WIP status).
+3. **Check Strays**: Scan repo root and `docs/` root for unallowed files; move/delete them.
+4. **Regenerate**: Run corpus generation scripts if docs changed.
+
+---
+
+# **End of Constitution v2.6 (Control Plane Edition)**
+
 
