@@ -1,16 +1,16 @@
 # LifeOS Universal Corpus
-**Generated**: 2026-01-03 14:50:13
+**Generated**: 2026-01-03 18:33:57
 **Steward**: Antigravity (Automated)
-**Version**: 087331f
+**Version**: 9af8539
 
 ---
 
 ## 📋 Table of Changes (Last 5 Commits)
+- `9af8539` 2026-01-03: **docs: regenerate corpuses post-governance-amendment**
 - `087331f` 2026-01-03: **gov: amend GEMINI.md with control plane protocols (startup + hygiene)**
 - `f232163` 2026-01-03: **docs: regenerate corpuses post-protocol-update**
 - `2e23b0c` 2026-01-03: **docs: enforce stray file checks in steward protocol**
 - `be29743` 2026-01-03: **docs: regenerate corpuses post-admin-refinement**
-- `88a2f91` 2026-01-03: **chore(admin): refine thin control plane alignment (v1.2 compliance)**
 
 ---
 
@@ -1558,7 +1558,7 @@ If any step fails, you MUST still attempt to emit a partial packet with a clear 
 **Source**: `docs/LifeOS_Strategic_Corpus.md`
 
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-03 14:41
+**Generated:** 2026-01-03 15:22
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -4804,6 +4804,8 @@ All tests passing ✅
 ## Next (valuable, but not imminent)
 - [ ] **Tier-3 planning** — Why Next: After Tier-2.5 Phase 2 completes, scope Tier-3 Autonomous Construction Layer
 - [ ] **Recursive Builder iteration** — Why Next: Recursive kernel exists but may need refinement
+- [ ] **OpenCode Sandbox Activation** — Why Next: Enable doc steward/builder via API; requested via Inbox
+
 
 ## Later (not actionable / unclear / exploratory)
 - [ ] **Fuel track exploration** — Why Later: Not blocking Core; future consideration per roadmap
@@ -4854,7 +4856,6 @@ All tests passing ✅
 
 # INBOX (raw capture; Antigravity triages)
 
-## Untriaged
 
 <hr>
 
@@ -4865,32 +4866,43 @@ All tests passing ✅
 # LIFEOS STATE — Last updated: 2026-01-03 by Antigravity
 
 ## Current Focus
-Tier-2.5 Semi-Autonomous Development Layer is **active**. Phase 1 (critical governance: F3, F4, F7) is complete. Currently executing Phase 2 cleanup and documentation items while maintaining doc stewardship discipline.
 
-## Active WIP (max 3–5)
+**Core Track: Tier-3 Bridge — Reactive Task Layer v0.1 (Spec + Boundaries)**
 
-- [WIP-1] Strategic Context Generator v1.2 refinements — Next: verify section-bounded extraction works correctly
-- [WIP-2] Tier2.5 Unified Fix Plan Phase 2 — Next: execute F2 (then F6)
+Tier-2.5 is active. Phase-2 items (F1/F5/F6) are non-blocking hygiene and will be closed in a single batch.
+
+## Active WIP (max 2)
+
+- **[WIP-1]** Core Track — Reactive Task Layer v0.1 (Spec + Boundaries)
+- **[WIP-2]** Tier-2.5 Hygiene Batch — close F1/F5/F6 + verify F2 complete (one-pass, timeboxed)
 
 ## Blockers
 - None
 
 ## Open Questions
-- (None)
+- None
 
 ## Next Actions (top 5–10)
-1. F2 — Create API Evolution & Versioning Strategy doc
-2. F6 — Add violation hierarchy docstrings (15 min)
-3. F1 — Update FP-4.x artefact manifest (docs only)
-4. F5 — Remove obsolete comment from test_tier2_daily_loop.py (5 min)
-5. Scan Phase 2 scope; add any missing Phase 2 items to BACKLOG (Next/Later)
+
+1. Draft Reactive Task Layer v0.1 spec + boundaries (definition-only, no execution)
+2. Implement tests for determinism/spec conformance for Reactive v0.1
+3. Run Tier-2 test suite (baseline) and lock green before any Tier-3 work continues
+4. Execute Tier-2.5 Hygiene Batch (F1/F5/F6; confirm F2 complete) in one pass
+5. (Next) Mission Registry v0.1 — only after Reactive v0.1 is pinned
 
 ## Context for Next Session
-- **Roadmap**: [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](../03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) — Tier-2.5 is active
-- **Fix Plan**: [Tier2.5_Unified_Fix_Plan_v1.0.md](../03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md) — Phase 1 complete, Phase 2 in progress
-- **Strategic Corpus**: [LifeOS_Strategic_Corpus.md](../LifeOS_Strategic_Corpus.md) — regenerated context artifact
+
+### Core-Track Next Milestones
+- Reactive Task Layer v0.1
+- Reactive Planner v0.2
+- Mission Registry v0.1
+- Mission Registry v0.2
+- Autonomous Execution Surface v0.1
+
+### References
+- **Roadmap**: [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](../03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) — Tier-2.5 active
+- **Fix Plan**: [Tier2.5_Unified_Fix_Plan_v1.0.md](../03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md) — Phase 1 complete, Phase 2 non-blocking hygiene
 - **Admin surface**: This file (`LIFEOS_STATE.md`) is the single state doc for cross-agent sync
-- **Git branch**: Assume `main` or `gov/repoint-canon` depending on recent work
 
 <hr>
 
@@ -12336,7 +12348,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 
 ---
 
-## F2 — API Evolution & Versioning Strategy (Claude – Architect)
+## F2 — API Evolution & Versioning Strategy (Claude – Architect) [COMPLETED]
 
 **Objective**: Create a short Tier-3-facing document / section:
 - Describing versioning for Tier-2 interfaces (e.g. `TestRunResult`, `run_test_run_from_config`).
@@ -23038,7 +23050,7 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
 
 # LifeOS Documentation Index
 
-**Last Updated**: 2026-01-03T14:50+11:00  
+**Last Updated**: 2026-01-03T18:32+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
