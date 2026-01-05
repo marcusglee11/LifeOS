@@ -1,5 +1,5 @@
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-05 13:09
+**Generated:** 2026-01-06 07:23
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -482,6 +482,18 @@ Requirements:
 - Must propose remediation steps.
 - Must distinguish critical vs informational gaps.
 
+### 6. TIERED FLATTENING
+
+Flattening requirements vary by mission type:
+
+| Mission Type | Flattening Approach |
+|-------------|---------------------|
+| Lightweight Stewardship | Diff-Based Context (Art. XVIII §3) |
+| Standard Mission | Full flattening for NEW files; diff for MODIFIED |
+| Council Review | Full flattening for ALL touched files |
+
+Agent must declare mission type in Review Packet header.
+
 ---
 
 # ARTICLE IV — DOCUMENTATION STEWARDSHIP
@@ -512,6 +524,14 @@ Drafts must:
 - Use clear structure and headings.
 - Avoid speculative or ambiguous language.
 - Maintain internal consistency and cross-references.
+
+## Section 4. File Organization
+
+Antigravity must keep `docs/` root clean:
+1. Only `INDEX.md` and `LifeOS_Universal_Corpus.md` at root
+2. All other files must be in appropriate subdirectories
+3. When stewarding new files, move to correct location before indexing
+4. **Protocol files** → `docs/02_protocols/`
 
 ---
 
@@ -602,15 +622,58 @@ Antigravity must not:
 
 1. Naming must follow repo conventions.
 2. Governance/spec files must use version suffixes.
-3. Artefacts use patterns:
-   - `Plan_<Topic>_vX.Y.md`
-   - `Diff_<Target>_vX.Y.md`
-   - `DocDraft_<Topic>_vX.Y.md`
-   - `TestDraft_<Module>_vX.Y.md`
-   - `GapAnalysis_<Scope>_vX.Y.md`
+3. Artefacts **MUST** conform to **Build Artifact Protocol v1.0**:
+   - **Protocol:** `docs/02_protocols/Build_Artifact_Protocol_v1.0.md`
+   - **Schema:** `docs/02_protocols/build_artifact_schemas_v1.yaml`
+   - **Templates:** `docs/02_protocols/templates/`
+   - All artifacts MUST include YAML frontmatter per schema
+   - Naming patterns:
+     - `Plan_<Topic>_vX.Y.md`
+     - `Review_Packet_<Mission>_vX.Y.md`
+     - `Walkthrough_<Topic>_vX.Y.md`
+     - `DocDraft_<Topic>_vX.Y.md`
+     - `TestDraft_<Module>_vX.Y.md`
+     - `GapAnalysis_<Scope>_vX.Y.md`
 4. Artefacts must contain full metadata and rationale.
 5. Index files must not be directly edited.
-6. Repo-local `GEMINI.md` must be copied from this template.**
+6. Repo-local `GEMINI.md` must be copied from this template.
+
+---
+
+# APPENDIX B — ARTIFACT DIRECTORY STRUCTURE (MANDATORY)
+
+> [!IMPORTANT]
+> All agent-generated artifacts MUST be placed in the correct folder.
+
+## Directory Map
+
+| Folder | Purpose | Naming |
+|--------|---------|--------|
+| `artifacts/plans/` | Implementation/architecture plans | `Plan_<Topic>_v<X.Y>.md` |
+| `artifacts/review_packets/` | Completed work for CEO review | `Review_Packet_<Mission>_v<X.Y>.md` |
+| `artifacts/context_packs/` | Agent-to-agent handoff context | `ContextPack_<Type>_<UUID>.yaml` |
+| `artifacts/bundles/` | Zipped multi-file handoffs | `Bundle_<Topic>_<Date>.zip` |
+| `artifacts/missions/` | Mission telemetry logs | `<Date>_<Type>_<UUID>.yaml` |
+| `artifacts/packets/` | Structured YAML packets | Per schema naming |
+| `artifacts/gap_analyses/` | Gap analysis artifacts | `GapAnalysis_<Scope>_v<X.Y>.md` |
+| `artifacts/for_ceo/` | **CEO pickup folder** | Copies of files needing CEO action |
+
+## CEO Pickup Protocol
+
+> **Note**: This appendix provides implementation guidance subordinate to Article XVII §8. The invariant is that CEO must not hunt for outputs.
+
+When ANY file requires CEO action:
+1. Place canonical copy in appropriate folder (e.g., `plans/`)
+2. **Copy** to `artifacts/for_ceo/`
+3. Include raw copyable path in notification message
+4. Provide PathsToReview in notify_user (appears in preview pane)
+
+**Default behavior**: No auto-open. No surprise windows.
+
+**Optional** (only when explicitly requested by CEO or `--auto-open` flag):
+- Open Explorer to `artifacts/for_ceo/` using `explorer.exe`
+
+CEO clears `for_ceo/` after pickup. Agent MUST NOT delete from this folder.
 
 ---
 
@@ -680,8 +743,9 @@ Before calling `notify_user` to signal mission completion, Antigravity **MUST**:
    - Issue catalogue
    - Acceptance criteria with pass/fail status
    - Non-goals (explicit)
-   - **Appendix with flattened code** for ALL created/modified files
+   - **Appendix with flattened code** for ALL created/modified files (or Diff-Based Context for Lightweight missions)
 3. Verify the packet is valid per Appendix A Section 6 requirements
+4. **Exception**: Lightweight Stewardship missions (Art. XVIII) may use the simplified template
 
 ## Section 2. notify_user Gate
 
@@ -774,8 +838,12 @@ These paths ALWAYS require Plan Artefact approval:
 After modifying ANY file in `docs/`, Antigravity **MUST**:
 
 1. Update the timestamp in `docs/INDEX.md`
-2. Regenerate `docs/LifeOS_Universal_Corpus.md`
+2. Regenerate `docs/LifeOS_Strategic_Corpus.md` (the lightweight strategic context)
 3. Include both updated files in the Review Packet appendix
+
+> [!NOTE]
+> The full `LifeOS_Universal_Corpus.md` is **NOT** regenerated automatically.
+> It is regenerated only on explicit user request or scheduled runs.
 
 ## Section 2. Self-Check Sequence
 
@@ -784,7 +852,7 @@ Before completing any mission that touched `docs/`, execute:
 ```
 □ Did I modify any file in docs/? → If no, skip
 □ Did I update docs/INDEX.md timestamp? → If no, STOP
-□ Did I regenerate LifeOS_Universal_Corpus.md? → If no, STOP
+□ Did I regenerate LifeOS_Strategic_Corpus.md? → If no, STOP
 □ Are both files in my Review Packet appendix? → If no, STOP
 □ Only then: proceed to Review Packet creation
 ```
@@ -798,7 +866,223 @@ This protocol triggers automatically when:
 
 ---
 
-# **End of Constitution v2.4 (Full Enforcement Edition)**
+# **ARTICLE XV — AGENT PACKET PROTOCOL (MANDATORY)**
+
+> [!IMPORTANT]
+> This article defines structured communication formats for inter-agent exchanges.
+
+## Section 1. Protocol Reference
+
+Antigravity must use the **LifeOS Agent Packet Protocol v1.0**:
+
+| Resource | Path |
+|----------|------|
+| Schemas | `docs/02_protocols/lifeos_packet_schemas_v1.yaml` |
+| Templates | `docs/02_protocols/lifeos_packet_templates_v1.yaml` |
+| Example | `docs/02_protocols/example_converted_antigravity_packet.yaml` |
+
+## Section 2. Role Packet Bindings
+
+When operating in a specific role, Antigravity SHOULD emit the corresponding packet types:
+
+| Role | Packet Types to Emit |
+|------|---------------------|
+| **Doc Steward** | `REVIEW_PACKET` for completed stewardship missions |
+| **Builder** | `BUILD_PACKET` when receiving specs, `REVIEW_PACKET` for delivery |
+| **Reviewer** | `FIX_PACKET` for remediation requests, `COUNCIL_REVIEW_PACKET` for council reviews |
+| **Orchestrator** | `TASK_DECOMPOSITION_PACKET`, `CHECKPOINT_PACKET`, `JOURNEY_TRACKER` |
+
+## Section 3. Packet Emission Requirements
+
+1. **Mission Completion**: When completing a mission that involves inter-agent handoff or formal review, emit a structured YAML packet in addition to the markdown Review Packet.
+2. **Escalation**: When escalating, emit an `ESCALATION_PACKET`.
+3. **Rollback**: When triggering rollback, emit a `ROLLBACK_PACKET`.
+4. **Handoff**: When handing off to another agent, emit a `HANDOFF_PACKET`.
+
+## Section 4. Packet Validation
+
+All emitted packets MUST:
+1. Include all required envelope fields per schema
+2. Use valid UUIDs for `packet_id` and `chain_id`
+3. Use ISO 8601 timestamps
+4. Reference parent packets when in a chain
+
+---
+
+# **ARTICLE XVI — CONTROL PLANE PROTOCOLS (MANDATORY)**
+
+> [!IMPORTANT]
+> This article defines the operational "heartbeat" of the agent.
+
+## Section 1. Startup Protocol (The "Read State" Rule)
+At the beginning of every new session or chat context, Antigravity **MUST**:
+1. Read `docs/11_admin/LIFEOS_STATE.md`.
+2. Internalise the "Current Focus" and "Active WIP".
+3. Use this state to ground all subsequent actions.
+
+## Section 2. Admin Hygiene Protocol (The "Clean Close" Rule)
+Trigger: After any substantive commit (modifying docs, code, or tests).
+
+Antigravity **MUST** automatically:
+1. **Sort Inbox**: Move actionable items from `docs/11_admin/INBOX.md` to `docs/11_admin/BACKLOG.md`.
+2. **Update State**: Refine `docs/11_admin/LIFEOS_STATE.md` (Next Actions, WIP status).
+3. **Check Strays**: Scan repo root and `docs/` root for unallowed files; move/delete them.
+4. **Regenerate**: Run `docs/scripts/generate_strategic_context.py` if docs changed. (Universal Corpus is on-demand only.)
+5. **Archive Superseded Artifacts**: Move Review Packets with superseded versions (e.g., v0.1 when v0.2+ exists) to `artifacts/99_archive/review_packets/`.
+
+---
+
+# **ARTICLE XVII — BUILD HANDOFF PROTOCOL (MANDATORY)**
+
+> [!IMPORTANT]
+> This article defines agent behavior for build handoffs and context packaging.
+
+## Section 1. Internal Lineage Rules
+
+Internal lineage IDs link artifacts in a build cycle. Never surfaced to CEO.
+
+- **Mode 0**: Builder MAY generate new lineage for new workstream; MUST inherit for continuation
+- **Mode 1+**: Builder MUST NOT invent lineage; must accept from context packet
+
+## Section 2. Preflight Priority
+
+Before any substantive implementation:
+
+1. Run `docs/scripts/check_readiness.py` (if exists)
+2. Else run `pytest runtime/tests -q`
+3. Check `docs/11_admin/LIFEOS_STATE.md` for blockers
+4. Check `artifacts/packets/blocked/` for unresolved BLOCKED packets
+5. If any fail → emit BLOCKED, STOP
+
+## Section 3. Evidence Requirement
+
+- **Mode 0**: Evidence log path required (`logs/preflight/test_output_<ts>.log`)
+- **Mode 1**: Hash attestation required in READINESS packet
+- CEO rejects Review Packets missing preflight evidence
+
+## Section 4. ACK Handshake
+
+When loading any context pointer, reply:
+```
+ACK loaded <path>. Goal: <1 line>. Constraints: <N>.
+```
+
+## Section 5. TTL Behavior
+
+- Default: 72 hours
+- Stale context blocks by default
+- CEO override required to proceed with stale context
+
+## Section 6. CT-5 Restriction
+
+CT-5 (agent recommends council) requires:
+- At least one objective trigger CT-1..CT-4 is true
+- Objective `council_review_rationale` supplied
+- Council may reject CT-5 without objective linkage
+
+## Section 7. No Internal IDs to CEO
+
+Agent MUST NOT:
+- Surface lineage IDs, workstream slugs, or internal paths to CEO
+- Request CEO to provide, confirm, or copy/paste internal IDs
+- All resolution is internal via `artifacts/workstreams.yaml`
+
+## Section 8. Clickable Pickup Links (Zero-Friction Delivery)
+
+> **Normative Layering**: This constitution defines the invariant (CEO must be able to pick up outputs without hunting). The Build Handoff Protocol defines the mechanism.
+
+**Invariant**: CEO must be able to pick up outputs without hunting; delivery always includes a clickable path.
+
+When delivering ANY file the CEO may need to pick up, Agent MUST:
+
+1. **Provide PathsToReview** in notify_user — appears in preview pane
+2. **Provide raw copyable path** in message text (example is illustrative):
+   ```
+   📦 Path: C:\Users\cabra\Projects\LifeOS\artifacts\bundles\<name>.zip
+   ```
+3. **Bundle when multiple files**: Create zip in `artifacts/bundles/` with manifest
+4. **Copy to CEO pickup folder**: Copy deliverables to `artifacts/for_ceo/` for easy access
+
+**Optional** (only when explicitly requested by CEO or via `--auto-open` flag):
+- Open Explorer to the bundle location via `explorer.exe`
+
+**Default behavior**: No surprise windows. CEO clicks path or navigates to `artifacts/for_ceo/`.
+
+---
+
+# **ARTICLE XVIII — LIGHTWEIGHT STEWARDSHIP MODE**
+
+> [!NOTE]
+> This article provides a fast-path for routine operations without full gate compliance.
+
+## Section 1. Eligibility Criteria
+
+A mission qualifies for Lightweight Mode if ALL of the following are true:
+
+1. No governance-controlled paths modified (see Article XIII §4)
+2. Total files modified ≤ 5
+3. No new code logic introduced (moves, renames, index updates only)
+4. No council trigger conditions (CT-1 through CT-4) apply
+
+## Section 2. Gate Relaxations
+
+When in Lightweight Mode:
+
+| Standard Gate | Lightweight Behavior |
+|--------------|---------------------|
+| Plan Artefact (Art. XIII) | SKIPPED — proceed directly to execution |
+| Full Flattening (Art. IX) | REPLACED — use Diff-Based Context (see §3) |
+| Review Packet Structure | SIMPLIFIED — Summary + Diff Appendix only |
+| Agent Packet Protocol (Art. XV) | SKIPPED — no YAML packets required |
+
+## Section 3. Diff-Based Context Rules
+
+Instead of verbatim flattening, include:
+
+1. **NEW files (≤100 lines)**: Full content
+2. **NEW files (>100 lines)**: Outline/signatures + first 50 lines
+3. **MODIFIED files**: Unified diff with 10 lines context
+4. **MOVED/RENAMED**: `Before: path → After: path`
+5. **DELETED**: Path only
+
+Format:
+```diff
+--- a/path/to/file.md
++++ b/path/to/file.md
+@@ -10,7 +10,7 @@
+ context line
+-removed line
++added line
+ context line
+```
+
+## Section 4. Lightweight Review Packet Template
+
+```markdown
+# Review Packet: [Mission Name]
+
+**Mode**: Lightweight Stewardship
+**Date**: YYYY-MM-DD
+**Files Changed**: N
+
+## Summary
+[1-3 sentences describing what was done]
+
+## Changes
+
+| File | Change Type |
+|------|-------------|
+| path/to/file | MODIFIED |
+
+## Diff Appendix
+
+[Diff-based context per Section 3]
+```
+
+---
+
+# **End of Constitution v3.0 (Lightweight Stewardship Edition)**
+
 
 
 
@@ -2505,7 +2789,7 @@ Refine the COO's behaviour based on the CEO's preferences.
 
 ---
 
-# File: 01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md
+# File: 01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md
 
 *[Reference Pointer: See full text in Universal Corpus for implementation details]*
 
@@ -2660,6 +2944,25 @@ This constitution is **implementation-agnostic**. The current implementation use
 
 ---
 
+## 1A. Activation Envelope
+
+> [!IMPORTANT]
+> Only missions listed under **ACTIVATED** are authorized for autonomous execution.
+
+| Category | Missions | Status |
+|----------|----------|--------|
+| **ACTIVATED** | `INDEX_UPDATE` | Live (`apply_writes=false` default) |
+| **RESERVED** | `CORPUS_REGEN`, `DOC_MOVE` | Non-authoritative; requires CT-2 activation |
+
+**Defaults:**
+- `apply_writes`: `false` (dry-run by default; live commits require explicit flag)
+- `allowed_paths`: per §4
+- `forbidden_paths`: per §4
+
+> Reserved missions are defined for future expansion but are NOT authorized until separately activated via CT-2 Council review. See **Annex A**.
+
+---
+
 ## 2. Responsibilities
 
 DOC_STEWARD is authorized to:
@@ -2796,6 +3099,25 @@ Changes to this constitution require:
 1. Proposal via DOC_STEWARD_REQUEST (ironic, but deterministic)
 2. CT-2 Council Review
 3. Merge to repo-canonical location
+
+---
+
+## Annex A — Reserved Missions (Non-Authoritative)
+
+> [!WARNING]
+> The following missions are defined but **NOT ACTIVATED**. They require separate CT-2 Council approval before use.
+
+### A.1 CORPUS_REGEN
+
+- **Purpose**: Regenerate `LifeOS_Universal_Corpus.md` and `LifeOS_Strategic_Corpus.md`
+- **Status**: RESERVED (pending G1/G2 spike)
+- **Activation Requirements**: CT-2 Council review demonstrating deterministic regeneration with hash chain evidence
+
+### A.2 DOC_MOVE
+
+- **Purpose**: Move documents between directories with automatic index updates
+- **Status**: RESERVED (pending G1/G2 spike)
+- **Activation Requirements**: CT-2 Council review demonstrating safe file relocation with bidirectional reference updates
 
 ---
 
@@ -3528,9 +3850,269 @@ This build is **approved for merge/activation within Phase 0–1**. Council sign
 
 ---
 
-# File: 02_protocols/AI_Council_Procedural_Spec_v1.0.md
+# File: 02_protocols/AI_Council_Procedural_Spec_v1.1.md
 
 *[Reference Pointer: See full text in Universal Corpus for implementation details]*
+
+
+---
+
+# File: 02_protocols/Build_Artifact_Protocol_v1.0.md
+
+# Build Artifact Protocol v1.0
+
+| Field | Value |
+|-------|-------|
+| **Version** | 1.0 |
+| **Date** | 2026-01-05 |
+| **Author** | Antigravity |
+| **Status** | CANONICAL |
+| **Governance** | CT-2 Council Review Required |
+
+---
+
+## 1. Purpose
+
+This protocol defines the formal structure, versioning, and validation requirements for all build artifacts produced by LifeOS agents. It ensures artifacts are:
+
+- **Deterministic** — Consistent structure across all agents
+- **Versioned** — Tracked via semver and audit trail
+- **Traceable** — Linked to missions, packets, and workflows
+- **Machine-Parseable** — YAML frontmatter enables automation
+- **Auditable** — UUID identity and parent tracking
+
+---
+
+## 2. Scope
+
+This protocol governs **markdown artifacts** produced during build workflows:
+
+| Artifact Type | Purpose | Canonical Path |
+|---------------|---------|----------------|
+| **Plan** | Implementation/architecture proposals | `artifacts/plans/` |
+| **Review Packet** | Mission completion summaries | `artifacts/review_packets/` |
+| **Walkthrough** | Post-verification documentation | `artifacts/walkthroughs/` |
+| **Gap Analysis** | Inconsistency/coverage analysis | `artifacts/gap_analyses/` |
+| **Doc Draft** | Documentation change proposals | `artifacts/doc_drafts/` |
+| **Test Draft** | Test specification proposals | `artifacts/test_drafts/` |
+
+> [!NOTE]
+> YAML inter-agent packets (BUILD_PACKET, REVIEW_PACKET, etc.) are governed by the separate **Agent Packet Protocol v1.0** in `lifeos_packet_schemas_v1.yaml`.
+
+---
+
+## 3. Mandatory Frontmatter
+
+All artifacts **MUST** include a YAML frontmatter block at the top of the file:
+
+```yaml
+---
+artifact_id: "550e8400-e29b-41d4-a716-446655440000"  # [REQUIRED] UUID v4
+artifact_type: "PLAN"                                 # [REQUIRED] See Section 2
+schema_version: "1.0.0"                               # [REQUIRED] Protocol version
+created_at: "2026-01-05T18:00:00+11:00"               # [REQUIRED] ISO 8601
+author: "Antigravity"                                  # [REQUIRED] Agent identifier
+version: "0.1"                                         # [REQUIRED] Artifact version
+status: "DRAFT"                                        # [REQUIRED] See Section 4
+
+# Optional fields
+chain_id: ""                    # Links to packet workflow chain
+mission_ref: ""                 # Mission this artifact belongs to
+council_trigger: ""             # CT-1 through CT-5 if applicable
+parent_artifact: ""             # Path to superseded artifact
+tags: []                        # Freeform categorization
+---
+```
+
+---
+
+## 4. Status Values
+
+| Status | Meaning |
+|--------|---------|
+| `DRAFT` | Work in progress, not reviewed |
+| `PENDING_REVIEW` | Submitted for CEO/Council review |
+| `APPROVED` | Reviewed and accepted |
+| `APPROVED_WITH_CONDITIONS` | Accepted with follow-up required |
+| `REJECTED` | Reviewed and not accepted |
+| `SUPERSEDED` | Replaced by newer version |
+
+---
+
+## 5. Naming Conventions
+
+All artifacts **MUST** follow these naming patterns:
+
+| Artifact Type | Pattern | Example |
+|---------------|---------|---------|
+| Plan | `Plan_<Topic>_v<X.Y>.md` | `Plan_Artifact_Formalization_v0.1.md` |
+| Review Packet | `Review_Packet_<Mission>_v<X.Y>.md` | `Review_Packet_Registry_Build_v1.0.md` |
+| Walkthrough | `Walkthrough_<Topic>_v<X.Y>.md` | `Walkthrough_API_Integration_v1.0.md` |
+| Gap Analysis | `GapAnalysis_<Scope>_v<X.Y>.md` | `GapAnalysis_Doc_Coverage_v0.1.md` |
+| Doc Draft | `DocDraft_<Topic>_v<X.Y>.md` | `DocDraft_README_Update_v0.1.md` |
+| Test Draft | `TestDraft_<Module>_v<X.Y>.md` | `TestDraft_Registry_v0.1.md` |
+
+**Rules:**
+- Topic/Mission names use PascalCase or snake_case
+- Version follows semver (`X.Y` for drafts, `X.Y.Z` for releases)
+- No spaces in filenames
+
+---
+
+## 6. Required Sections by Type
+
+### 6.1 Plan Artifact
+
+| Section | Required | Description |
+|---------|----------|-------------|
+| Executive Summary | ✅ | 2-5 sentence overview |
+| Problem Statement | ✅ | What problem this solves |
+| Proposed Changes | ✅ | Detailed change list by component |
+| Verification Plan | ✅ | How changes will be tested |
+| User Review Required | ❌ | Decisions needing CEO input |
+| Alternatives Considered | ❌ | Other approaches evaluated |
+| Rollback Plan | ❌ | How to undo if failed |
+| Success Criteria | ❌ | Measurable outcomes |
+| Non-Goals | ❌ | Explicit exclusions |
+
+---
+
+### 6.2 Review Packet
+
+| Section | Required | Description |
+|---------|----------|-------------|
+| Executive Summary | ✅ | Mission outcome summary |
+| Issue Catalogue | ✅ | Table of issues and resolutions |
+| Acceptance Criteria | ✅ | Pass/fail status for each criterion |
+| Verification Proof | ✅ | Test results, command outputs |
+| Flattened Code Appendix | ✅ | All created/modified files |
+| Stewardship Evidence | ✅* | Required if docs were modified |
+| Constraints & Boundaries | ❌ | Runtime limits if applicable |
+| Non-Goals | ❌ | Explicit out-of-scope items |
+
+---
+
+### 6.3 Walkthrough
+
+| Section | Required | Description |
+|---------|----------|-------------|
+| Summary | ✅ | What was accomplished |
+| Changes Made | ✅ | List of changes with rationale |
+| Verification Results | ✅ | What was tested and outcomes |
+| Screenshots | ❌ | Embedded visual evidence |
+| Recordings | ❌ | Paths to browser recordings |
+| Known Issues | ❌ | Issues discovered but not fixed |
+| Next Steps | ❌ | Suggested follow-up work |
+
+---
+
+### 6.4 Gap Analysis
+
+| Section | Required | Description |
+|---------|----------|-------------|
+| Scope | ✅ | What was scanned |
+| Findings | ✅ | Table of gaps with severity |
+| Remediation Recommendations | ✅ | Proposed fixes |
+| Methodology | ❌ | How analysis was performed |
+| Priority Matrix | ❌ | Critical vs informational breakdown |
+
+---
+
+### 6.5 Doc Draft
+
+| Section | Required | Description |
+|---------|----------|-------------|
+| Target Document | ✅ | Path to document being drafted |
+| Change Type | ✅ | ADDITIVE, MODIFYING, or REPLACING |
+| Draft Content | ✅ | The actual proposed content |
+| Dependencies | ✅ | What this depends on |
+
+---
+
+### 6.6 Test Draft
+
+| Section | Required | Description |
+|---------|----------|-------------|
+| Target Modules | ✅ | What's being tested |
+| Test Cases | ✅ | Detailed test specifications |
+| Coverage Targets | ✅ | Expected coverage level |
+| Edge Cases | ❌ | Boundary condition tests |
+| Integration Points | ❌ | Cross-module test needs |
+
+---
+
+## 7. Validation Rules
+
+### 7.1 Structural Validation
+
+Agents **SHOULD** validate artifacts before submission:
+
+1. Frontmatter is valid YAML
+2. All required fields present
+3. `artifact_id` is valid UUID v4
+4. `created_at` is valid ISO 8601
+5. `status` is valid enum value
+6. File is in correct canonical directory
+7. Filename matches naming convention
+
+### 7.2 Validation Mode
+
+| Mode | Behavior |
+|------|----------|
+| `WARN` | Log validation errors, continue execution |
+| `FAIL` | Block submission on validation errors |
+
+**Default:** `WARN` (can be upgraded to `FAIL` via governance decision)
+
+---
+
+## 8. Version Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> DRAFT: Create
+    DRAFT --> PENDING_REVIEW: Submit
+    PENDING_REVIEW --> APPROVED: Accept
+    PENDING_REVIEW --> APPROVED_WITH_CONDITIONS: Accept with conditions
+    PENDING_REVIEW --> REJECTED: Reject
+    PENDING_REVIEW --> DRAFT: Revise
+    APPROVED --> SUPERSEDED: New version
+    APPROVED_WITH_CONDITIONS --> APPROVED: Conditions met
+    SUPERSEDED --> [*]
+    REJECTED --> [*]
+```
+
+When creating a new version:
+1. Increment version number (e.g., `v0.1` → `v0.2`)
+2. Set `parent_artifact` to path of previous version
+3. Set previous version's status to `SUPERSEDED`
+
+---
+
+## 9. Extensibility
+
+To add a new artifact type:
+
+1. Add schema to `build_artifact_schemas_v1.yaml`
+2. Create template in `docs/02_protocols/templates/`
+3. Create canonical directory in `artifacts/`
+4. Update this protocol document
+5. Council review for CT-2 (protocol change)
+
+---
+
+## 10. Related Documents
+
+| Document | Purpose |
+|----------|---------|
+| [build_artifact_schemas_v1.yaml](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/build_artifact_schemas_v1.yaml) | Machine-readable schemas |
+| [lifeos_packet_schemas_v1.yaml](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/lifeos_packet_schemas_v1.yaml) | YAML packet schemas |
+| [GEMINI.md](file:///c:/Users/cabra/Projects/LifeOS/GEMINI.md) | Agent constitution |
+| [Document Steward Protocol v1.0](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/Document_Steward_Protocol_v1.0.md) | Documentation governance |
+
+---
+
+*This protocol was created under LifeOS governance. Changes require Council review (CT-2).*
 
 
 ---
@@ -3665,6 +4247,7 @@ At mission completion, Builder MUST:
    - Council packets (if CT-triggered)
    - Readiness packets + evidence logs
    - Modified governance docs (for review)
+   - **G-CBS Compliance**: Bundle MUST be built via `python scripts/closure/build_closure_bundle.py`.
 
 2. **Manifest**: Create `artifacts/bundles/MANIFEST.md` listing bundle contents
 
@@ -3690,11 +4273,24 @@ CEO clears `artifacts/for_ceo/` after pickup. Agent MUST NOT delete from this fo
 
 ---
 
-# File: 02_protocols/Council_Context_Pack_Schema_v0.2.md
+# File: 02_protocols/Council_Context_Pack_Schema_v0.3.md
 
-# Council Context Pack — Schema v0.2 (Template)
+# Council Context Pack — Schema v0.3 (Template)
 
-This file is a template for assembling a CCP that satisfies Council Protocol v1.1.
+This file is a template for assembling a CCP that satisfies Council Protocol v1.2.
+
+---
+
+## Promotion Criteria (v0.3 → v1.0)
+
+This schema may be promoted to v1.0 when the following are satisfied:
+
+1. **Mode selection test suite**: Automated tests covering all `mode_selection_rules_v1` logic paths with input YAML → expected mode verification
+2. **Template validation test**: Parser that validates CCP structure against required sections
+3. **REF parsing test**: Parser that extracts and validates REF citations in all three permitted formats
+4. **Adversarial review**: At least one council review of the schema itself with Governance and Risk seats on independent models
+
+Status: [ ] Mode selection tests  [ ] Template validation  [ ] REF parsing  [ ] Adversarial review
 
 ---
 
@@ -3702,7 +4298,7 @@ This file is a template for assembling a CCP that satisfies Council Protocol v1.
 
 ```yaml
 council_run:
-  aur_id: "AUR_20260105_<slug>"
+  aur_id: "AUR_20260106_<slug>"
   aur_type: "governance|spec|code|doc|plan|other"
   change_class: "new|amend|refactor|hygiene|bugfix"
   touches: ["docs_only"]
@@ -3762,7 +4358,7 @@ model_plan_v1:
 
 ## Objective (REQUIRED)
 - What is being reviewed?
-- What does “success” mean?
+- What does "success" mean?
 
 ---
 
@@ -3787,7 +4383,7 @@ aur_inventory:
       - name: "<file>"
         kind: "markdown|code|diff|notes|other"
         source: "attached|embedded|link"
-        hash: null|"sha256:..."
+        hash: "sha256:..." # SHOULD be populated per AI_Council_Procedural_Spec §3.2
 ```
 
 ---
@@ -3807,18 +4403,26 @@ Attach or embed the AUR. If embedded, include clear section headings for referen
   - `## Seat: <Name>`
 - Then include Chair synthesis and the filled Council Run Log.
 
+---
+
+## Amendment record
+
+**v0.3 (2026-01-06)** — Fix Pack AUR_20260105_council_process_review:
+- F7: Added Promotion Criteria section with v1.0 requirements
+- Updated to reference Council Protocol v1.2
+- Updated example date to 2026-01-06
 
 
 ---
 
-# File: 02_protocols/Council_Protocol_v1.1.md
+# File: 02_protocols/Council_Protocol_v1.2.md
 
-# Council Protocol v1.1 (Amendment)
+# Council Protocol v1.2 (Amendment)
 
 **System**: LifeOS Governance Hub  
 **Status**: Proposed for Canonical Promotion  
-**Effective date**: 2026-01-05 (upon CEO promotion)  
-**Amends**: Council Protocol v1.0  
+**Effective date**: 2026-01-06 (upon CEO promotion)  
+**Amends**: Council Protocol v1.1  
 **Change type**: Constitutional amendment (CEO-only)
 
 ---
@@ -3833,7 +4437,7 @@ This document defines the binding constitutional procedure for conducting **Coun
 - Any amendment must be versioned, auditable, and explicitly promoted to canonical.
 
 **Primary objectives**
-1. Provide high-quality reviews, ideation, and advice using explicit lenses (“seats”).
+1. Provide high-quality reviews, ideation, and advice using explicit lenses ("seats").
 2. When practical, use diversified AI models to reduce correlated error and improve the efficient frontier of review quality vs. cost.
 3. Minimise human friction while preserving auditability and control.
 
@@ -3867,7 +4471,7 @@ A rule that major claims and proposed fixes must cite the AUR via explicit refer
 - Every council run must produce a **Council Run Log** with:
   - AUR identifier(s) and hash(es) (when available),
   - selected mode and topology,
-  - model plan (which model ran which seats, even if “MONO”),
+  - model plan (which model ran which seats, even if "MONO"),
   - a synthesis verdict and explicit fix plan.
 
 ### 2.2 Evidence gating
@@ -3879,7 +4483,12 @@ A rule that major claims and proposed fixes must cite the AUR via explicit refer
 - The Chair must reject malformed outputs and request correction.
 
 ### 2.4 Human control (StepGate)
-- The council does not infer “go”. Any gating or irreversible action requires explicit CEO approval in the relevant StepGate, if StepGate is in force.
+- The council does not infer "go". Any gating or irreversible action requires explicit CEO approval in the relevant StepGate, if StepGate is in force.
+    
+### 2.5 Closure Discipline (G-CBS)
+- **DONE requires Validation**: A "Done" or "Go" ruling is VALID ONLY if accompanied by a G-CBS compliant closure bundle that passes `validate_closure_bundle.py`.
+- **No Ad-Hoc Bundles**: Ad-hoc zips are forbidden. All closures must be built via `build_closure_bundle.py`.
+- **Max Cycles**: A prompt/closure cycle is capped at 2 attempts. Residual issues must then be waived (with debt record) or blocked.
 
 ---
 
@@ -3893,12 +4502,12 @@ Every council run MUST begin with a complete CCP containing:
    - any supporting context artefacts (optional but explicit).
 
 2. **Council objective**
-   - what is being evaluated (e.g., “promote to canonical”, “approve build plan”, “stress-test invariants”),
+   - what is being evaluated (e.g., "promote to canonical", "approve build plan", "stress-test invariants"),
    - success criteria.
 
 3. **Scope boundaries**
    - what is in scope / out of scope,
-   - any non‑negotiable constraints (“invariants”).
+   - any non‑negotiable constraints ("invariants").
 
 4. **Run metadata (machine‑discernable)**
    - the CCP YAML header (Section 4).
@@ -3979,6 +4588,19 @@ model_plan_v1:
 Notes:
 - In MONO topology, `constraints.mono_mode.all_roles_use` governs; `role_to_model` remains required for logging consistency.
 
+**Field enumerations (normative):**
+
+| Field | Allowed Values |
+|-------|----------------|
+| `aur_type` | governance, spec, code, doc, plan, other |
+| `change_class` | new, amend, refactor, hygiene, bugfix |
+| `blast_radius` | local, module, system, ecosystem |
+| `reversibility` | easy, moderate, hard |
+| `uncertainty` | low, medium, high |
+| `touches` | governance_protocol, tier_activation, runtime_core, interfaces, prompts, tests, docs_only |
+
+Mode selection rules are only valid when field values match these enumerations exactly.
+
 ---
 
 ## 5. Seats (roles) and responsibilities
@@ -4004,8 +4626,17 @@ Process integrity, lifecycle semantics, operational failure modes.
 **Technical Reviewer**  
 Implementation feasibility, integration, maintainability (for code/spec).
 
-**Testing Reviewer (NEW)**  
-Test strategy, verification, or validation plan adequacy.
+**Testing Reviewer**  
+Test strategy, verification, and validation plan adequacy.
+
+*Responsibilities:*
+- Evaluate whether testable claims in the AUR have corresponding test specifications
+- Identify gaps in test coverage for critical paths
+- Assess reproducibility of test execution
+- Flag untestable requirements
+
+*Inputs:* AUR, any referenced test artifacts  
+*Output focus:* Fixes should specify concrete test cases or coverage requirements
 
 **Risk / Adversarial Reviewer**  
 Adversarial analysis, threat models, misuse and failure scenarios.
@@ -4016,8 +4647,17 @@ Complexity reduction, sharp boundaries, minimal moving parts.
 **Determinism Reviewer**  
 Determinism, auditability, reproducibility, side-effect control.
 
-**Governance Reviewer (NEW)**  
+**Governance Reviewer**  
 Authority chain compliance, amendment hygiene, governance drift detection.
+
+*Responsibilities:*
+- Verify all documents correctly cite their authority chain
+- Confirm amendment rights are preserved (CEO-only where required)
+- Detect scope creep where subordinate documents exceed granted authority
+- Validate versioning hygiene and cross-reference consistency
+
+*Inputs:* AUR, Authority Chain documents  
+*Output focus:* Fixes should cite specific authority chain violations with remediation
 
 ### 5.3 Fast-mode seat
 **L1 Unified Reviewer** (permitted in M0_FAST only)  
@@ -4043,13 +4683,29 @@ Therefore:
 
 - For **M1_STANDARD** and **M2_FULL**:
   1) A **distinct Co‑Chair challenge pass** is mandatory (even if same model).
-  2) The Chair must produce a **Contradiction Ledger** (Section 8.3).
-- For **M2_FULL**, if any of the following are true:
-  - touches includes governance_protocol OR tier_activation OR runtime_core, OR
+  2) The Chair must produce a **Contradiction Ledger** (Section 8.1).
+
+- For **M2_FULL**, the following independence rules apply:
+
+  **MUST (hard requirement):**
+  If any of the following are true:
   - safety_critical == true, OR
+  - touches includes governance_protocol, OR
+  - touches includes tier_activation,
+  
+  then at least one of **Risk/Adversarial** or **Governance** seats MUST be executed on an independent model (different vendor/model family). No override permitted.
+
+  **SHOULD (soft requirement with logging):**
+  If any of the following are true:
+  - touches includes runtime_core, OR
   - uncertainty == high and blast_radius != local,
-  then at least one of **Risk/Adversarial** or **Governance** seats SHOULD be executed on an independent model (different vendor/model family) when practical.
+  
+  then at least one of **Risk/Adversarial** or **Governance** seats SHOULD be executed on an independent model when practical.
   - If not practical, the CCP must record: `override.rationale` explaining why independence was not used.
+  - CSO may audit override patterns; systemic waivers (>50% of applicable runs) trigger escalation.
+
+**Audit requirement:**
+Independence waivers under SHOULD conditions are recorded in the Council Run Log `notes.override_rationale` field. CSO audits waiver frequency. If safety_critical == true AND independence is waived due to emergency, the run summary is forwarded to CSO for review.
 
 ---
 
@@ -4086,6 +4742,14 @@ Use one of:
 - Execute seats according to topology.
 - Chair rejects malformed outputs and re-requests.
 
+**Step 1.5 — Seat completion validation**
+Before synthesis, Chair MUST verify:
+- All seats assigned in the CCP header `model_plan_v1.role_to_model` have submitted outputs
+- All outputs conform to the required schema (§7)
+- Any missing seats are either: (a) explicitly waived with rationale, or (b) flagged as blocking
+
+Chair may not proceed to synthesis with missing seats unless topology permits reduced seat count (M0_FAST or explicit M1_STANDARD seat selection).
+
 **Step 2 — Synthesis**
 - Chair produces:
   - Consolidated verdict,
@@ -4101,8 +4765,10 @@ Use one of:
 
 ### 8.1 Contradiction Ledger (mandatory in M1/M2)
 Chair must list:
-- conflicts between seats (e.g., “Architect recommends X; Governance flags authority conflict”),
-- resolution approach: evidence-backed choice OR “needs CEO decision”.
+- conflicts between seats (e.g., "Architect recommends X; Governance flags authority conflict"),
+- resolution approach: evidence-backed choice OR "needs CEO decision".
+
+**MONO topology requirement:** In MONO topology, Co-Chair must independently verify Contradiction Ledger completeness before synthesis is finalized. Co-Chair signs off with: "Contradiction Ledger verified complete" or flags omissions.
 
 ---
 
@@ -4110,19 +4776,33 @@ Chair must list:
 
 If canonical prompt artefacts or canonical governance artefacts cannot be fetched:
 - Council may run under a **BOOTSTRAP CCP** that embeds the required prompt snapshots inline.
-- The run MUST include a fix item: “Restore canonical artefacts and re-run validation (if required).”
-- BOOTSTRAP runs are auditable but are not grounds to claim “canonical compliance” unless the missing canon is restored and validated.
+- The run MUST include a fix item: "Restore canonical artefacts and re-run validation (if required)."
+- BOOTSTRAP runs are auditable but are not grounds to claim "canonical compliance" unless the missing canon is restored and validated.
+
+**Restrictions:**
+- BOOTSTRAP mode must be logged in Council Run Log with `notes.bootstrap_used: true`
+- Canonical artefacts must be restored within 24 hours of BOOTSTRAP run
+- No more than 2 consecutive council runs may use BOOTSTRAP mode without CSO review
+- If `safety_critical == true`, BOOTSTRAP mode requires explicit CEO approval before execution
 
 ---
 
 ## 10. Amendment record (this document)
 
-This v1.1 amendment introduces:
+**v1.2 (2026-01-06)** — Fix Pack AUR_20260105_council_process_review:
+- F3: Hardened independence rule §6.3 (SHOULD→MUST for safety_critical, governance_protocol, tier_activation)
+- F4: Added waiver logging and CSO audit requirement
+- F5: Expanded Testing Reviewer and Governance Reviewer definitions with responsibilities
+- F6: Added Step 1.5 (Seat completion validation) before synthesis
+- F8: Added Co-Chair verification requirement for Contradiction Ledger in MONO topology
+- F10: Added explicit enum definitions for CCP header fields
+- F12: Added bootstrap mode restrictions
+
+**v1.1 (2026-01-05)**:
 - Machine-discernable CCP header schema (mode + topology + model plan),
 - Independence rule for hallucination mitigation,
 - New seats: Governance Reviewer and Testing Reviewer,
-- Explicit “Bootstrap” clause.
-
+- Explicit "Bootstrap" clause.
 
 
 ---
@@ -4448,6 +5128,21 @@ If sync requires more than 2 human steps, the workflow must be automated.
 ## 10. Automated Stewardship Interface (Agent Delegation)
 
 When document stewardship is delegated to an automated agent (e.g., OpenCode via orchestrator), the following additional requirements apply.
+
+### 10.0 Activation Envelope
+
+> [!IMPORTANT]
+> Only missions listed under **ACTIVATED** are authorized for autonomous execution.
+
+| Category | Missions | Status |
+|----------|----------|--------|
+| **ACTIVATED** | `INDEX_UPDATE` | Live (`apply_writes=false` default) |
+| **RESERVED** | `CORPUS_REGEN`, `DOC_MOVE` | Non-authoritative; requires CT-2 activation |
+
+**Boundary Enforcement (Fail-Closed):**
+1. If file outside `allowed_paths` → ERROR: `OUTSIDE_ALLOWED_PATHS`
+2. Else if file outside `scope_paths` → ERROR: `OUTSIDE_SCOPE_PATHS`
+3. Both orchestrator AND verifier enforce this.
 
 ### 10.1 Packet Taxonomy
 
@@ -4776,6 +5471,361 @@ F2 is complete when:
 
 ---
 
+# File: 02_protocols/build_artifact_schemas_v1.yaml
+
+# ============================================================================
+# LifeOS Build Artifact Schemas v1.0
+# ============================================================================
+# Purpose: Formal schema definitions for markdown build artifacts
+# Companion to: lifeos_packet_schemas_v1.yaml (YAML inter-agent packets)
+# Principle: All artifacts deterministic, versioned, traceable, auditable
+# ============================================================================
+
+# ============================================================================
+# COMMON METADATA (Required YAML frontmatter for ALL artifacts)
+# ============================================================================
+# Every markdown artifact MUST include this frontmatter block.
+# Agents MUST validate presence of required fields before submission.
+
+_common_metadata:
+  artifact_id: string        # [REQUIRED] UUID v4. Unique identifier.
+  artifact_type: string      # [REQUIRED] One of 6 defined types.
+  schema_version: string     # [REQUIRED] Semver. Protocol version (e.g., "1.0.0")
+  created_at: datetime       # [REQUIRED] ISO 8601. When artifact was created.
+  author: string             # [REQUIRED] Agent identifier (e.g., "Antigravity")
+  version: string            # [REQUIRED] Artifact version (e.g., "0.1")
+  status: string             # [REQUIRED] One of: DRAFT, PENDING_REVIEW, APPROVED,
+                             #   APPROVED_WITH_CONDITIONS, REJECTED, SUPERSEDED
+
+  # Optional fields
+  chain_id: string           # Links to packet workflow chain (UUID v4)
+  mission_ref: string        # Mission this artifact belongs to
+  council_trigger: string    # CT-1 through CT-5 if applicable
+  parent_artifact: string    # Path to artifact this supersedes
+  tags: list[string]         # Freeform categorization tags
+
+# ============================================================================
+# ARTIFACT TYPE DEFINITIONS
+# ============================================================================
+
+_artifact_types:
+  - PLAN                     # Implementation/architecture proposals
+  - REVIEW_PACKET            # Mission completion summaries
+  - WALKTHROUGH              # Post-verification documentation
+  - GAP_ANALYSIS             # Inconsistency/coverage analysis
+  - DOC_DRAFT                # Documentation change proposals
+  - TEST_DRAFT               # Test specification proposals
+
+_status_values:
+  - DRAFT                    # Work in progress, not reviewed
+  - PENDING_REVIEW           # Submitted for CEO/Council review
+  - APPROVED                 # Reviewed and accepted
+  - APPROVED_WITH_CONDITIONS # Accepted with follow-up required
+  - REJECTED                 # Reviewed and not accepted
+  - SUPERSEDED               # Replaced by newer version
+
+# ============================================================================
+# SCHEMA 1: PLAN ARTIFACT
+# ============================================================================
+# Purpose: Propose implementations, architecture changes, or new features
+# Flow: Agent creates → CEO reviews → Council review (if CT trigger) → Execute
+
+plan_artifact_schema:
+  artifact_type: "PLAN"
+  naming_pattern: "Plan_<Topic>_v<X.Y>.md"
+  canonical_path: "artifacts/plans/"
+  
+  required_sections:
+    - section_id: executive_summary
+      description: "2-5 sentence overview of goal and approach"
+      example_heading: "## Executive Summary"
+      
+    - section_id: problem_statement
+      description: "What problem this solves, why it matters"
+      example_heading: "## Problem Statement"
+      
+    - section_id: proposed_changes
+      description: "Detailed changes by component, including file paths"
+      example_heading: "## Proposed Changes"
+      subsections:
+        - component_name: string
+        - file_changes: list  # [NEW], [MODIFY], [DELETE] markers
+        
+    - section_id: verification_plan
+      description: "How changes will be tested"
+      example_heading: "## Verification Plan"
+      subsections:
+        - automated_tests: list
+        - manual_verification: list
+        
+  optional_sections:
+    - section_id: user_review_required
+      description: "Decisions requiring CEO input"
+      
+    - section_id: alternatives_considered
+      description: "Other approaches evaluated and why rejected"
+      
+    - section_id: rollback_plan
+      description: "How to undo changes if failed"
+      
+    - section_id: success_criteria
+      description: "Measurable outcomes"
+      
+    - section_id: non_goals
+      description: "Explicit exclusions from this plan"
+
+# ============================================================================
+# SCHEMA 2: REVIEW PACKET
+# ============================================================================
+# Purpose: Summarize completed mission for CEO review
+# Flow: Agent completes work → Creates packet → CEO reviews → Approve/Reject
+
+review_packet_schema:
+  artifact_type: "REVIEW_PACKET"
+  naming_pattern: "Review_Packet_<Mission>_v<X.Y>.md"
+  canonical_path: "artifacts/review_packets/"
+  
+  required_sections:
+    - section_id: executive_summary
+      description: "Mission outcome summary, 2-5 sentences"
+      example_heading: "## Executive Summary"
+      
+    - section_id: issue_catalogue
+      description: "Table of issues/resolutions with status"
+      example_heading: "## Issue Catalogue"
+      table_columns:
+        - Issue ID
+        - Description
+        - Resolution
+        - Status
+        
+    - section_id: acceptance_criteria
+      description: "Pass/fail status for each criterion"
+      example_heading: "## Acceptance Criteria"
+      table_columns:
+        - Criterion
+        - Description
+        - Status
+        - Verification Method
+        
+    - section_id: verification_proof
+      description: "Test results, command outputs, evidence"
+      example_heading: "## Verification Proof"
+      
+    - section_id: flattened_code_appendix
+      description: "All created/modified files with full content"
+      example_heading: "## Appendix — Flattened Code"
+      
+  conditionally_required:
+    - section_id: stewardship_evidence
+      condition: "Mission modified files in docs/"
+      description: "Proof of INDEX update and corpus regeneration"
+      
+  optional_sections:
+    - section_id: constraints_boundaries
+      description: "Runtime limits if applicable"
+      
+    - section_id: non_goals
+      description: "Explicit out-of-scope items"
+
+# ============================================================================
+# SCHEMA 3: WALKTHROUGH
+# ============================================================================
+# Purpose: Document completed work with visual evidence
+# Flow: Post-verification → Document what was done → CEO can review
+
+walkthrough_schema:
+  artifact_type: "WALKTHROUGH"
+  naming_pattern: "Walkthrough_<Topic>_v<X.Y>.md"
+  canonical_path: "artifacts/walkthroughs/"
+  
+  required_sections:
+    - section_id: summary
+      description: "What was accomplished"
+      example_heading: "## Summary"
+      
+    - section_id: changes_made
+      description: "List of changes with rationale"
+      example_heading: "## Changes Made"
+      
+    - section_id: verification_results
+      description: "What was tested and outcomes"
+      example_heading: "## Verification Results"
+      
+  optional_sections:
+    - section_id: screenshots
+      description: "Embedded visual evidence"
+      format: "![description](path)"
+      
+    - section_id: recordings
+      description: "Paths to browser recording files"
+      format: "WebP video paths"
+      
+    - section_id: known_issues
+      description: "Issues discovered but not fixed"
+      
+    - section_id: next_steps
+      description: "Suggested follow-up work"
+
+# ============================================================================
+# SCHEMA 4: GAP ANALYSIS
+# ============================================================================
+# Purpose: Identify inconsistencies, missing coverage, or structural issues
+# Flow: Agent scans → Documents gaps → Proposes remediation
+
+gap_analysis_schema:
+  artifact_type: "GAP_ANALYSIS"
+  naming_pattern: "GapAnalysis_<Scope>_v<X.Y>.md"
+  canonical_path: "artifacts/gap_analyses/"
+  
+  required_sections:
+    - section_id: scope
+      description: "What was scanned (directories, files, topics)"
+      example_heading: "## Scope"
+      
+    - section_id: findings
+      description: "Table of gaps with severity"
+      example_heading: "## Findings"
+      table_columns:
+        - Finding ID
+        - Description
+        - Severity   # P0_BLOCKER, P1_CRITICAL, P2_MAJOR, P3_MINOR, P4_TRIVIAL
+        - Location
+        
+    - section_id: remediation_recommendations
+      description: "Proposed fixes for each finding"
+      example_heading: "## Remediation Recommendations"
+      
+  optional_sections:
+    - section_id: methodology
+      description: "How analysis was performed"
+      
+    - section_id: priority_matrix
+      description: "Critical vs informational breakdown"
+
+# ============================================================================
+# SCHEMA 5: DOC DRAFT
+# ============================================================================
+# Purpose: Propose documentation changes before applying
+# Flow: Agent drafts → CEO/governance reviews → Apply if approved
+
+doc_draft_schema:
+  artifact_type: "DOC_DRAFT"
+  naming_pattern: "DocDraft_<Topic>_v<X.Y>.md"
+  canonical_path: "artifacts/doc_drafts/"
+  
+  required_sections:
+    - section_id: target_document
+      description: "Path to document being drafted"
+      example_heading: "## Target Document"
+      
+    - section_id: change_type
+      description: "ADDITIVE, MODIFYING, or REPLACING"
+      example_heading: "## Change Type"
+      enum_values:
+        - ADDITIVE           # Adding new content
+        - MODIFYING          # Changing existing content
+        - REPLACING          # Full replacement
+        
+    - section_id: draft_content
+      description: "The actual proposed content"
+      example_heading: "## Draft Content"
+      
+    - section_id: dependencies
+      description: "What this depends on"
+      example_heading: "## Dependencies"
+
+# ============================================================================
+# SCHEMA 6: TEST DRAFT
+# ============================================================================
+# Purpose: Propose new tests before implementing
+# Flow: Agent designs tests → Review → Implement
+
+test_draft_schema:
+  artifact_type: "TEST_DRAFT"
+  naming_pattern: "TestDraft_<Module>_v<X.Y>.md"
+  canonical_path: "artifacts/test_drafts/"
+  
+  required_sections:
+    - section_id: target_modules
+      description: "What's being tested"
+      example_heading: "## Target Modules"
+      
+    - section_id: test_cases
+      description: "Detailed test specifications"
+      example_heading: "## Test Cases"
+      format:
+        - test_id: string
+        - description: string
+        - preconditions: list
+        - input: string
+        - expected_output: string
+        - verification: string
+        
+    - section_id: coverage_targets
+      description: "Expected coverage level"
+      example_heading: "## Coverage Targets"
+      
+  optional_sections:
+    - section_id: edge_cases
+      description: "Boundary condition tests"
+      
+    - section_id: integration_points
+      description: "Cross-module test needs"
+
+# ============================================================================
+# VALIDATION RULES
+# ============================================================================
+# Agents MUST enforce these rules when producing artifacts.
+
+_validation_rules:
+  frontmatter:
+    - All _common_metadata fields marked [REQUIRED] MUST be present.
+    - artifact_id MUST be valid UUID v4.
+    - created_at MUST be valid ISO 8601 datetime.
+    - schema_version MUST be valid semver.
+    - status MUST be one of _status_values.
+    - artifact_type MUST be one of _artifact_types.
+    
+  structure:
+    - All required_sections for artifact_type MUST be present.
+    - Section headings MUST match example_heading patterns.
+    - Tables MUST include specified columns.
+    
+  naming:
+    - Filename MUST match naming_pattern for artifact_type.
+    - File MUST be in canonical_path directory.
+    
+  mode:
+    - default: WARN   # Log errors, continue
+    - strict: FAIL    # Block on errors
+
+# ============================================================================
+# FRONTMATTER TEMPLATE
+# ============================================================================
+# Copy this block to start any new artifact.
+
+_frontmatter_template: |
+  ---
+  artifact_id: ""              # [REQUIRED] Generate UUID v4
+  artifact_type: ""            # [REQUIRED] PLAN | REVIEW_PACKET | WALKTHROUGH | GAP_ANALYSIS | DOC_DRAFT | TEST_DRAFT
+  schema_version: "1.0.0"
+  created_at: ""               # [REQUIRED] ISO 8601
+  author: "Antigravity"
+  version: "0.1"
+  status: "DRAFT"
+  
+  # Optional
+  chain_id: ""
+  mission_ref: ""
+  council_trigger: ""
+  parent_artifact: ""
+  tags: []
+  ---
+
+
+---
+
 # File: 02_protocols/example_converted_antigravity_packet.yaml
 
 *[Reference Pointer: Raw schema/example omitted for strategic clarity]*
@@ -4793,6 +5843,569 @@ F2 is complete when:
 # File: 02_protocols/lifeos_packet_templates_v1.yaml
 
 *[Reference Pointer: See full text in Universal Corpus for implementation details]*
+
+
+---
+
+# File: 02_protocols/templates/doc_draft_template.md
+
+---
+artifact_id: ""              # [REQUIRED] Generate UUID v4
+artifact_type: "DOC_DRAFT"
+schema_version: "1.0.0"
+created_at: ""               # [REQUIRED] ISO 8601
+author: "Antigravity"
+version: "0.1"
+status: "DRAFT"
+
+# Optional
+chain_id: ""
+mission_ref: ""
+parent_artifact: ""
+tags: []
+---
+
+# Documentation Draft: <Topic>
+
+**Date:** YYYY-MM-DD
+**Author:** Antigravity
+**Version:** 0.1
+
+---
+
+## Target Document
+
+**Path:** `<!-- docs/path/to/document.md -->`
+
+**Current Status:** <!-- EXISTS / NEW -->
+
+---
+
+## Change Type
+
+<!-- One of: ADDITIVE, MODIFYING, REPLACING -->
+
+| Type | Description |
+|------|-------------|
+| **ADDITIVE** | Adding new content to existing document |
+| **MODIFYING** | Changing existing content |
+| **REPLACING** | Full replacement of document |
+
+**This Draft:** <!-- ADDITIVE / MODIFYING / REPLACING -->
+
+---
+
+## Draft Content
+
+<!-- The actual proposed content below -->
+
+```markdown
+<!-- Your documentation content here -->
+```
+
+---
+
+## Dependencies
+
+### Documents This Depends On
+
+- `<!-- docs/path/to/dependency1.md -->`
+- `<!-- docs/path/to/dependency2.md -->`
+
+### Documents That Depend On This
+
+- `<!-- docs/path/to/dependent1.md -->`
+
+### Code References
+
+- `<!-- runtime/path/to/module.py -->`
+
+---
+
+## Diff Preview
+
+<!-- If MODIFYING, show what changes -->
+
+```diff
+-<!-- old content -->
++<!-- new content -->
+```
+
+---
+
+*This documentation draft was created under LifeOS Build Artifact Protocol v1.0.*
+
+
+---
+
+# File: 02_protocols/templates/gap_analysis_template.md
+
+---
+artifact_id: ""              # [REQUIRED] Generate UUID v4
+artifact_type: "GAP_ANALYSIS"
+schema_version: "1.0.0"
+created_at: ""               # [REQUIRED] ISO 8601
+author: "Antigravity"
+version: "0.1"
+status: "DRAFT"
+
+# Optional
+chain_id: ""
+mission_ref: ""
+parent_artifact: ""
+tags: []
+---
+
+# Gap Analysis: <Scope>
+
+**Date:** YYYY-MM-DD
+**Author:** Antigravity
+**Version:** 0.1
+
+---
+
+## Scope
+
+### Directories Scanned
+
+- `<!-- path/to/dir1 -->`
+- `<!-- path/to/dir2 -->`
+
+### Analysis Focus
+
+<!-- What aspects were analyzed (coverage, consistency, completeness, etc.) -->
+
+---
+
+## Findings
+
+| Finding ID | Description | Severity | Location |
+|------------|-------------|----------|----------|
+| GAP-001 | <!-- Description --> | P1_CRITICAL | `<!-- path:line -->` |
+| GAP-002 | <!-- Description --> | P2_MAJOR | `<!-- path:line -->` |
+| GAP-003 | <!-- Description --> | P3_MINOR | `<!-- path:line -->` |
+
+### Severity Legend
+
+| Severity | Meaning |
+|----------|---------|
+| P0_BLOCKER | Must fix before any progress |
+| P1_CRITICAL | Must fix before merge/deploy |
+| P2_MAJOR | Should fix, may proceed with tracking |
+| P3_MINOR | Nice to fix, non-blocking |
+| P4_TRIVIAL | Cosmetic/style only |
+
+---
+
+## Remediation Recommendations
+
+### GAP-001: <Title>
+
+**Issue:** <!-- Detailed description -->
+
+**Recommended Fix:**
+<!-- How to fix -->
+
+**Effort:** <!-- T-shirt size or hours -->
+
+---
+
+### GAP-002: <Title>
+
+**Issue:** <!-- Detailed description -->
+
+**Recommended Fix:**
+<!-- How to fix -->
+
+**Effort:** <!-- T-shirt size or hours -->
+
+---
+
+<!-- ============ OPTIONAL SECTIONS BELOW ============ -->
+
+## Methodology
+
+<!-- How the analysis was performed -->
+
+1. <!-- Step 1 -->
+2. <!-- Step 2 -->
+
+---
+
+## Priority Matrix
+
+| Priority | Count | Action |
+|----------|-------|--------|
+| P0_BLOCKER | 0 | Immediate |
+| P1_CRITICAL | <!-- N --> | This sprint |
+| P2_MAJOR | <!-- N --> | Next sprint |
+| P3_MINOR | <!-- N --> | Backlog |
+| P4_TRIVIAL | <!-- N --> | Optional |
+
+---
+
+*This gap analysis was created under LifeOS Build Artifact Protocol v1.0.*
+
+
+---
+
+# File: 02_protocols/templates/plan_template.md
+
+---
+artifact_id: ""              # [REQUIRED] Generate UUID v4
+artifact_type: "PLAN"
+schema_version: "1.0.0"
+created_at: ""               # [REQUIRED] ISO 8601
+author: "Antigravity"
+version: "0.1"
+status: "DRAFT"
+
+# Optional
+chain_id: ""
+mission_ref: ""
+council_trigger: ""          # CT-1 through CT-5 if applicable
+parent_artifact: ""
+tags: []
+---
+
+# <Topic> — Implementation Plan
+
+| Field | Value |
+|-------|-------|
+| **Version** | 0.1 |
+| **Date** | YYYY-MM-DD |
+| **Author** | Antigravity |
+| **Status** | DRAFT — Awaiting CEO Review |
+| **Council Trigger** | <!-- CT-1..CT-5 or "None" --> |
+
+---
+
+## Executive Summary
+
+<!-- 2-5 sentences summarizing the goal and approach -->
+
+---
+
+## Problem Statement
+
+<!-- What problem does this solve? Why is it important? -->
+
+---
+
+## Proposed Changes
+
+### Component 1: <Name>
+
+#### [NEW] [filename](file:///path/to/file)
+
+<!-- Description of changes -->
+
+---
+
+### Component 2: <Name>
+
+#### [MODIFY] [filename](file:///path/to/file)
+
+<!-- Description of changes -->
+
+---
+
+## Verification Plan
+
+### Automated Tests
+
+| Test | Command | Expected |
+|------|---------|----------|
+| <!-- Test name --> | `<!-- command -->` | <!-- expected outcome --> |
+
+### Manual Verification
+
+1. <!-- Step 1 -->
+2. <!-- Step 2 -->
+
+---
+
+<!-- ============ OPTIONAL SECTIONS BELOW ============ -->
+
+## User Review Required
+
+> [!IMPORTANT]
+> <!-- Key decisions requiring CEO input -->
+
+### Key Decisions Needed
+
+1. <!-- Decision 1 -->
+2. <!-- Decision 2 -->
+
+---
+
+## Alternatives Considered
+
+| Alternative | Pros | Cons | Rejection Reason |
+|-------------|------|------|------------------|
+| <!-- Alt 1 --> | <!-- pros --> | <!-- cons --> | <!-- why rejected --> |
+
+---
+
+## Rollback Plan
+
+If this plan fails:
+
+1. <!-- Rollback step 1 -->
+2. <!-- Rollback step 2 -->
+
+---
+
+## Success Criteria
+
+| Criterion | Measurement |
+|-----------|-------------|
+| <!-- Criterion 1 --> | <!-- How measured --> |
+
+---
+
+## Non-Goals
+
+- <!-- Explicit exclusion 1 -->
+- <!-- Explicit exclusion 2 -->
+
+---
+
+*This plan was drafted by Antigravity under LifeOS Build Artifact Protocol v1.0.*
+
+
+---
+
+# File: 02_protocols/templates/review_packet_template.md
+
+*[Reference Pointer: See full text in Universal Corpus for implementation details]*
+
+
+---
+
+# File: 02_protocols/templates/test_draft_template.md
+
+---
+artifact_id: ""              # [REQUIRED] Generate UUID v4
+artifact_type: "TEST_DRAFT"
+schema_version: "1.0.0"
+created_at: ""               # [REQUIRED] ISO 8601
+author: "Antigravity"
+version: "0.1"
+status: "DRAFT"
+
+# Optional
+chain_id: ""
+mission_ref: ""
+parent_artifact: ""
+tags: []
+---
+
+# Test Draft: <Module>
+
+**Date:** YYYY-MM-DD
+**Author:** Antigravity
+**Version:** 0.1
+
+---
+
+## Target Modules
+
+| Module | Path | Current Coverage |
+|--------|------|------------------|
+| `<!-- module_name -->` | `<!-- runtime/path/to/module.py -->` | <!-- X% or "None" --> |
+
+---
+
+## Coverage Targets
+
+| Metric | Current | Target |
+|--------|---------|--------|
+| Line Coverage | <!-- X% --> | <!-- Y% --> |
+| Branch Coverage | <!-- X% --> | <!-- Y% --> |
+| Function Coverage | <!-- X% --> | <!-- Y% --> |
+
+---
+
+## Test Cases
+
+### TC-001: <Test Name>
+
+| Field | Value |
+|-------|-------|
+| **Description** | <!-- What this tests --> |
+| **Preconditions** | <!-- Required setup --> |
+| **Input** | <!-- Test input --> |
+| **Expected Output** | <!-- Expected result --> |
+| **Verification** | `<!-- assertion or command -->` |
+
+---
+
+### TC-002: <Test Name>
+
+| Field | Value |
+|-------|-------|
+| **Description** | <!-- What this tests --> |
+| **Preconditions** | <!-- Required setup --> |
+| **Input** | <!-- Test input --> |
+| **Expected Output** | <!-- Expected result --> |
+| **Verification** | `<!-- assertion or command -->` |
+
+---
+
+### TC-003: <Test Name>
+
+| Field | Value |
+|-------|-------|
+| **Description** | <!-- What this tests --> |
+| **Preconditions** | <!-- Required setup --> |
+| **Input** | <!-- Test input --> |
+| **Expected Output** | <!-- Expected result --> |
+| **Verification** | `<!-- assertion or command -->` |
+
+---
+
+<!-- ============ OPTIONAL SECTIONS BELOW ============ -->
+
+## Edge Cases
+
+| Case | Input | Expected Behavior |
+|------|-------|-------------------|
+| Empty input | `<!-- empty -->` | <!-- Behavior --> |
+| Boundary value | `<!-- max/min -->` | <!-- Behavior --> |
+| Invalid input | `<!-- invalid -->` | <!-- Error handling --> |
+
+---
+
+## Integration Points
+
+### External Dependencies
+
+| Dependency | Mock/Real | Notes |
+|------------|-----------|-------|
+| `<!-- dependency -->` | MOCK | <!-- Why mocked --> |
+
+### Cross-Module Tests
+
+| Test | Modules Involved | Purpose |
+|------|------------------|---------|
+| `<!-- test_name -->` | `<!-- mod1, mod2 -->` | <!-- What it verifies --> |
+
+---
+
+## Test Implementation Notes
+
+<!-- Any special considerations for implementing these tests -->
+
+- <!-- Note 1 -->
+- <!-- Note 2 -->
+
+---
+
+*This test draft was created under LifeOS Build Artifact Protocol v1.0.*
+
+
+---
+
+# File: 02_protocols/templates/walkthrough_template.md
+
+---
+artifact_id: ""              # [REQUIRED] Generate UUID v4
+artifact_type: "WALKTHROUGH"
+schema_version: "1.0.0"
+created_at: ""               # [REQUIRED] ISO 8601
+author: "Antigravity"
+version: "1.0"
+status: "APPROVED"
+
+# Optional
+chain_id: ""
+mission_ref: ""
+parent_artifact: ""
+tags: []
+---
+
+# Walkthrough: <Topic>
+
+**Date:** YYYY-MM-DD
+**Author:** Antigravity
+**Version:** 1.0
+
+---
+
+## Summary
+
+<!-- What was accomplished, 2-5 sentences -->
+
+---
+
+## Changes Made
+
+### 1. <Change Category>
+
+| File | Change | Rationale |
+|------|--------|-----------|
+| `<!-- path -->` | <!-- What changed --> | <!-- Why --> |
+
+### 2. <Change Category>
+
+| File | Change | Rationale |
+|------|--------|-----------|
+| `<!-- path -->` | <!-- What changed --> | <!-- Why --> |
+
+---
+
+## Verification Results
+
+### Tests Run
+
+| Test Suite | Passed | Failed | Skipped |
+|------------|--------|--------|---------|
+| `<!-- suite -->` | <!-- N --> | <!-- N --> | <!-- N --> |
+
+### Manual Verification
+
+- ✅ <!-- Verification step 1 -->
+- ✅ <!-- Verification step 2 -->
+
+---
+
+<!-- ============ OPTIONAL SECTIONS BELOW ============ -->
+
+## Screenshots
+
+<!-- Embed images demonstrating UI changes or results -->
+
+![Description](file:///path/to/screenshot.png)
+
+---
+
+## Recordings
+
+<!-- Links to browser recordings -->
+
+| Recording | Description |
+|-----------|-------------|
+| [recording_name.webp](file:///path/to/recording.webp) | <!-- What it shows --> |
+
+---
+
+## Known Issues
+
+| Issue | Severity | Notes |
+|-------|----------|-------|
+| <!-- Issue --> | P3_MINOR | <!-- Context --> |
+
+---
+
+## Next Steps
+
+- [ ] <!-- Suggested follow-up 1 -->
+- [ ] <!-- Suggested follow-up 2 -->
+
+---
+
+*This walkthrough was created under LifeOS Build Artifact Protocol v1.0.*
 
 
 ---

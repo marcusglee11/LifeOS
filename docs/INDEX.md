@@ -1,6 +1,4 @@
-# LifeOS Documentation Index
-
-> **Last Updated:** 2026-01-05 12:40 UTC+11:00  
+# LifeOS Documentation Index — Last Updated: 2026-01-06T07:30+11:00
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
@@ -60,7 +58,7 @@ LifeOS Constitution v2.0 (Supreme)
 ### Council & Review
 | Document | Purpose |
 |----------|---------|
-| [Council_Invocation_Runtime_Binding_Spec_v1.0.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md) | Council invocation and runtime binding |
+| [Council_Invocation_Runtime_Binding_Spec_v1.1.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md) | Council invocation and runtime binding |
 | [Antigravity_Council_Review_Packet_Spec_v1.0.md](./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md) | Council review packet format |
 | [ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md) | Monthly/quarterly alignment review template |
 
@@ -91,21 +89,24 @@ LifeOS Constitution v2.0 (Supreme)
 | [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
 | [Document_Steward_Protocol_v1.0.md](./02_protocols/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
 | [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
+| [Build_Artifact_Protocol_v1.0.md](./02_protocols/Build_Artifact_Protocol_v1.0.md) | **NEW** — Formal schemas/templates for Plans, Review Packets, Walkthroughs, etc. |
 | [Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md) | Tier-2 API Versioning, Deprecation, and Compatibility Rules |
 | [Build_Handoff_Protocol_v1.0.md](./02_protocols/Build_Handoff_Protocol_v1.0.md) | Messaging & handoff architecture for agent coordination |
 
 ### Council Protocols
 | Document | Purpose |
 |----------|---------|
-| [Council_Protocol_v1.1.md](./02_protocols/Council_Protocol_v1.1.md) | **Canonical** — Council review procedure, modes, topologies |
-| [AI_Council_Procedural_Spec_v1.0.md](./02_protocols/AI_Council_Procedural_Spec_v1.0.md) | Runbook for executing Council Protocol v1.1 |
-| [Council_Context_Pack_Schema_v0.2.md](./02_protocols/Council_Context_Pack_Schema_v0.2.md) | CCP template schema for council reviews |
+| [Council_Protocol_v1.2.md](./02_protocols/Council_Protocol_v1.2.md) | **Canonical** — Council review procedure, modes, topologies |
+| [AI_Council_Procedural_Spec_v1.1.md](./02_protocols/AI_Council_Procedural_Spec_v1.1.md) | Runbook for executing Council Protocol v1.2 |
+| [Council_Context_Pack_Schema_v0.3.md](./02_protocols/Council_Context_Pack_Schema_v0.3.md) | CCP template schema for council reviews |
 
-### Packet Schemas
+### Packet & Artifact Schemas
 | Document | Purpose |
 |----------|---------|
 | [lifeos_packet_schemas_v1.yaml](./02_protocols/lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
 | [lifeos_packet_templates_v1.yaml](./02_protocols/lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
+| [build_artifact_schemas_v1.yaml](./02_protocols/build_artifact_schemas_v1.yaml) | **NEW** — Build artifact schema definitions (6 artifact types) |
+| [templates/](./02_protocols/templates/) | **NEW** — Markdown templates for all artifact types |
 | [example_converted_antigravity_packet.yaml](./02_protocols/example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
 
 ---
