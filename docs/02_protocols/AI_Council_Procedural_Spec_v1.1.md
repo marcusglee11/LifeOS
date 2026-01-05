@@ -214,6 +214,7 @@ council_run_log:
     override_rationale: null|"..."
     independence_waived: true|false
     waiver_reason: null|"..."
+    compliance_status: "compliant"|"non-compliant-ceo-authorized"  # Required if MUST independence waived
 ```
 
 ---

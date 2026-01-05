@@ -274,7 +274,13 @@ Therefore:
   - touches includes governance_protocol, OR
   - touches includes tier_activation,
   
-  then at least one of **Risk/Adversarial** or **Governance** seats MUST be executed on an independent model (different vendor/model family). No override permitted.
+  then at least one of **Risk/Adversarial** or **Governance** seats MUST be executed on an independent model (different vendor/model family). No Chair/operator override permitted.
+
+  **Emergency CEO override (exceptional):**
+  In declared emergencies only, CEO may authorize proceeding without independence. If CEO authorizes:
+  - The run is marked `compliance_status: "non-compliant-ceo-authorized"` in Council Run Log
+  - CSO is automatically notified
+  - A follow-up compliant run SHOULD be scheduled within 48 hours
 
   **SHOULD (soft requirement with logging):**
   If any of the following are true:
@@ -286,7 +292,7 @@ Therefore:
   - CSO may audit override patterns; systemic waivers (>50% of applicable runs) trigger escalation.
 
 **Audit requirement:**
-Independence waivers under SHOULD conditions are recorded in the Council Run Log `notes.override_rationale` field. CSO audits waiver frequency. If safety_critical == true AND independence is waived due to emergency, the run summary is forwarded to CSO for review.
+Independence waivers under SHOULD conditions are recorded in the Council Run Log `notes.override_rationale` field. CSO audits waiver frequency.
 
 ---
 
