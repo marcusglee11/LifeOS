@@ -59,10 +59,10 @@ Executed CEO-approved Fix Pack containing 12 fixes (F1–F12) across 4 governanc
 
 | File | Fixes Applied |
 |------|---------------|
-| [Council_Invocation_Runtime_Binding_Spec_v1.1.md](file:///c:/Users/cabra/Projects/LifeOS/docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md) | F1, F2 |
-| [Council_Protocol_v1.2.md](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/Council_Protocol_v1.2.md) | F3, F4, F5, F6, F8, F10, F12 |
-| [AI_Council_Procedural_Spec_v1.1.md](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/AI_Council_Procedural_Spec_v1.1.md) | F4, F9, F11 |
-| [Council_Context_Pack_Schema_v0.3.md](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/Council_Context_Pack_Schema_v0.3.md) | F7 |
+| [Council_Invocation_Runtime_Binding_Spec_v1.1.md](docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md) | F1, F2 |
+| [Council_Protocol_v1.2.md](docs/02_protocols/Council_Protocol_v1.2.md) | F3, F4, F5, F6, F8, F10, F12 |
+| [AI_Council_Procedural_Spec_v1.1.md](docs/02_protocols/AI_Council_Procedural_Spec_v1.1.md) | F4, F9, F11 |
+| [Council_Context_Pack_Schema_v0.3.md](docs/02_protocols/Council_Context_Pack_Schema_v0.3.md) | F7 |
 
 ### Archived Files
 
@@ -77,8 +77,8 @@ Executed CEO-approved Fix Pack containing 12 fixes (F1–F12) across 4 governanc
 
 | File | Change |
 |------|--------|
-| [INDEX.md](file:///c:/Users/cabra/Projects/LifeOS/docs/INDEX.md) | Updated timestamp and version references |
-| [LifeOS_Strategic_Corpus.md](file:///c:/Users/cabra/Projects/LifeOS/docs/LifeOS_Strategic_Corpus.md) | Regenerated |
+| [INDEX.md](docs/INDEX.md) | Updated timestamp and version references |
+| [LifeOS_Strategic_Corpus.md](docs/LifeOS_Strategic_Corpus.md) | Regenerated |
 
 ---
 
