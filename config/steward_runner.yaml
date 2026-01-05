@@ -1,6 +1,9 @@
 # Stewardship Runner Configuration v0.2
 # All paths are repo-root relative. Repo root is determined at runtime via:
 #   git rev-parse --show-toplevel
+#
+# Platform: Linux/macOS only. Windows paths rejected as safety net.
+# Windows users: use WSL2. See docs/01_governance/PLATFORM_POLICY.md
 
 tests:
   # Command to run tests. Uses -q for reduced output noise per D3.
@@ -48,6 +51,7 @@ logging:
   streams_dir: "logs/steward_runner/streams"
   # Log format
   format: "jsonl"
+  # Retention: 30 days local, 90 days CI. See docs/01_governance/LOG_RETENTION.md
 
 determinism:
   # Run ID is required (C1)

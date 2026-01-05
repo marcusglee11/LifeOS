@@ -1,0 +1,219 @@
+findings:
+- category: PATCH_APPLICATION
+  location: ''
+  message: Patch applied successfully
+  severity: INFO
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: LifeOS Constitution v2.0 -> ./00_foundations/LifeOS_Constitution_v2.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: LifeOS_Strategic_Corpus.md -> ./LifeOS_Strategic_Corpus.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: LIFEOS_STATE.md -> ./11_admin/LIFEOS_STATE.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: BACKLOG.md -> ./11_admin/BACKLOG.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: DECISIONS.md -> ./11_admin/DECISIONS.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: INBOX.md -> ./11_admin/INBOX.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: LifeOS_Constitution_v2.0.md -> ./00_foundations/LifeOS_Constitution_v2.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Anti_Failure_Operational_Packet_v0.1.md -> ./00_foundations/Anti_Failure_Operational_Packet_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Architecture_Skeleton_v1.0.md -> ./00_foundations/Architecture_Skeleton_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: ARCH_Future_Build_Automation_Operating_Model_v0.2.md
+    -> ./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: COO_Operating_Contract_v1.0.md -> ./01_governance/COO_Operating_Contract_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: AgentConstitution_GEMINI_Template_v1.0.md -> ./01_governance/AgentConstitution_GEMINI_Template_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Council_Invocation_Runtime_Binding_Spec_v1.0.md
+    -> ./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Antigravity_Council_Review_Packet_Spec_v1.0.md ->
+    ./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: ALIGNMENT_REVIEW_TEMPLATE_v1.0.md -> ./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: COO_Expectations_Log_v1.0.md -> ./01_governance/COO_Expectations_Log_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Antigrav_Output_Hygiene_Policy_v0.1.md -> ./01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Tier1_Hardening_Council_Ruling_v0.1.md -> ./01_governance/Tier1_Hardening_Council_Ruling_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Tier1_Tier2_Activation_Ruling_v0.2.md -> ./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md ->
+    ./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md
+    -> ./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md
+    -> ./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Council_Review_Stewardship_Runner_v1.0.md -> ./01_governance/Council_Review_Stewardship_Runner_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Council_Ruling_Build_Handoff_v1.0.md -> ./01_governance/Council_Ruling_Build_Handoff_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Governance_Protocol_v1.0.md -> ./02_protocols/Governance_Protocol_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Document_Steward_Protocol_v1.0.md -> ./02_protocols/Document_Steward_Protocol_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Deterministic_Artefact_Protocol_v2.0.md -> ./02_protocols/Deterministic_Artefact_Protocol_v2.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md
+    -> ./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Build_Handoff_Protocol_v1.0.md -> ./02_protocols/Build_Handoff_Protocol_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: lifeos_packet_schemas_v1.yaml -> ./02_protocols/lifeos_packet_schemas_v1.yaml'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: lifeos_packet_templates_v1.yaml -> ./02_protocols/lifeos_packet_templates_v1.yaml'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: example_converted_antigravity_packet.yaml -> ./02_protocols/example_converted_antigravity_packet.yaml'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: COO_Runtime_Spec_v1.0.md -> ./03_runtime/COO_Runtime_Spec_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: COO_Runtime_Implementation_Packet_v1.0.md -> ./03_runtime/COO_Runtime_Implementation_Packet_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: COO_Runtime_Core_Spec_v1.0.md -> ./03_runtime/COO_Runtime_Core_Spec_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: COO_Runtime_Spec_Index_v1.0.md -> ./03_runtime/COO_Runtime_Spec_Index_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md
+    -> ./03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: LifeOS_Recursive_Improvement_Architecture_v0.2.md
+    -> ./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md
+    -> ./03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Hardening_Backlog_v0.1.md -> ./03_runtime/Hardening_Backlog_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Tier1_Hardening_Work_Plan_v0.1.md -> ./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Tier2.5_Unified_Fix_Plan_v1.0.md -> ./03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md
+    -> ./03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md
+    -> ./03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: F7_Runtime_Antigrav_Mission_Protocol_v1.0.md ->
+    ./03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: Runtime_Hardening_Fix_Pack_v0.1.md -> ./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: fixpacks/FP-4x_Implementation_Packet_v0.1.md ->
+    ./03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md -> ./03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md -> ./03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md'
+  severity: WARNING
+- category: LINK_INTEGRITY
+  location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+  message: 'Broken relative link: COO_Runtime_Walkthrough_v1.0.md -> ./03_runtime/COO_Runtime_Walkthrough_v1.0.md'
+  severity: WARNING

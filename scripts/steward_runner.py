@@ -18,9 +18,18 @@ Options:
 Exit codes:
     0 - Pipeline completed successfully
     1 - Pipeline failed (see logs for details)
+
+Log Determinism Contract (P1-B):
+--------------------------------
+- Timestamps: ISO 8601 UTC with Z suffix (e.g., "2026-01-02T14:30:00Z")
+- File lists: Always sorted lexicographically before logging
+- Git hashes: Logged for audit trail, never used in control flow
+- Run-id: Externally provided, deterministic input
+- No locale/timezone/ordering dependencies in decision logic
 """
 
 import argparse
+import datetime
 import hashlib
 import json
 import os
@@ -65,12 +74,18 @@ class DeterministicLogger:
     def log(self, event: str, step: str, status: str, **kwargs: Any) -> None:
         """Write a JSONL event line."""
         record: dict[str, Any] = {
+            "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "run_id": self.run_id,
             "event": event,
             "step": step,
             "status": status,
         }
         record.update(kwargs)
+        
+        # P1-B: Enforce sorted file lists for determinism
+        for key in ("files", "changed_files", "staged_files", "validated_files", "unexpected_files", "disallowed_files", "commit_paths"):
+            if key in record and isinstance(record[key], list):
+                record[key] = sorted(record[key])
         
         # Remove None values for cleaner logs
         record = {k: v for k, v in record.items() if v is not None}
@@ -338,36 +353,41 @@ def normalize_commit_path(path: str) -> tuple[str, str | None]:
     - Absolute paths (Unix: /..., Windows: C:\, UNC: \\server, //server)
     - Path traversal (.. segment)
     - Current dir (. segment)
-    - Glob patterns (* or ?)
     """
+    # Keep original for error returns (P2-C)
+    original = path
     # Normalize backslashes to forward slashes
     normalized = path.replace("\\", "/")
     
     # --- Fail-closed checks ---
     
+    # URL encoded chars rejection (P2-B)
+    if "%" in normalized:
+        return original, "url_encoded_chars"
+    
     # UNC path (//server or after backslash normalization) - check BEFORE Unix
     if normalized.startswith("//"):
-        return normalized, "absolute_path_unc"
+        return original, "absolute_path_unc"
     
     # Unix absolute path
     if normalized.startswith("/"):
-        return normalized, "absolute_path_unix"
+        return original, "absolute_path_unix"
     
     # Windows drive absolute (C:/ or C:)
     if len(normalized) >= 2 and normalized[1] == ":":
-        return normalized, "absolute_path_windows"
+        return original, "absolute_path_windows"
     
     # Glob patterns
     if "*" in normalized or "?" in normalized:
-        return normalized, "glob_pattern"
+        return original, "glob_pattern"
     
     # Segment-based path traversal and current-dir check
     segments = normalized.rstrip("/").split("/")
     for segment in segments:
         if segment == "..":
-            return normalized, "path_traversal"
+            return original, "path_traversal"
         if segment == ".":
-            return normalized, "current_dir_segment"
+            return original, "current_dir_segment"
     
     # --- Normalization ---
     
@@ -477,6 +497,17 @@ def run_commit(
     message = commit_message_template.format(run_id=run_id)
     
     # Stage all changes under allowed roots
+    # P1-A: Re-check for dirty state before commit to prevent race conditions
+    current_changed = get_changed_files()
+    unexpected = set(current_changed) - set(changed_files)
+    if unexpected:
+        logger.log(
+            "commit", "commit", "fail",
+            reason="repo_dirty_during_run",
+            unexpected_files=list(unexpected),
+        )
+        return False, None
+
     add_cmd = ["git", "add", "-A", "--"] + roots
     result = subprocess.run(
         add_cmd,
@@ -555,16 +586,20 @@ def main() -> int:
         required=True,
         help="Required. Unique identifier for this run.",
     )
-    parser.add_argument(
+    
+    # P1-D: Mutually exclusive commit control
+    commit_group = parser.add_mutually_exclusive_group()
+    commit_group.add_argument(
         "--dry-run",
         action="store_true",
-        help="Skip commit even if enabled.",
+        help="Run all stages but skip git commit (default behavior)",
     )
-    parser.add_argument(
-        "--no-commit",
+    commit_group.add_argument(
+        "--commit",
         action="store_true",
-        help="Skip commit even if enabled.",
+        help="Actually commit changes (explicit opt-in required)",
     )
+    
     parser.add_argument(
         "--step",
         choices=["preflight", "tests", "validators", "corpus", "change_detect", "commit", "postflight"],
@@ -649,9 +684,14 @@ def main() -> int:
     
     # COMMIT
     if single_step is None or single_step == "commit":
+        # P1-D: Default is dry-run. Commit requires explicit --commit flag.
+        actually_commit = args.commit
+        # dry_run arg is redundant if commit arg is not present, but for compatibility/clarity:
+        dry_run = args.dry_run or (not actually_commit)
+        
         success, git_head_after = run_commit(
             config, logger, repo_root, args.run_id,
-            changed_files, args.dry_run, args.no_commit,
+            changed_files, dry_run, False, # no_commit removed, logic handled by dry_run
         )
         if not success:
             run_postflight(logger, False, git_head_before, None)

@@ -840,7 +840,7 @@ The CEO must never manually shuffle documents, update indices, or run git comman
 **Canonical Locations**:
 1. **Local Repository**: `docs`
 2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
-3. **Google Drive**: https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5
+3. **Google Drive**: [REDACTED_DRIVE_LINK]
 
 ---
 
@@ -951,7 +951,7 @@ Google Drive for Desktop is configured to automatically sync the local repositor
 
 **Configuration:**
 - **Local folder**: `docs`
-- **Drive folder**: [LifeOS/docs](https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5)
+- **Drive folder**: [LifeOS/docs]([REDACTED_DRIVE_LINK]))
 - **Sync mode**: Mirror (bidirectional)
 
 **Behavior:**

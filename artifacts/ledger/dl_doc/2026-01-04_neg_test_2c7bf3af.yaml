@@ -1,0 +1,65 @@
+case_id: 2c7bf3af-e0c0-44b9-b06b-159323457d0f
+entry_type: neg_test
+ledger: DL_DOC
+recorded_at: '2026-01-04T11:14:55.766144+00:00'
+request:
+  case_id: 2c7bf3af-e0c0-44b9-b06b-159323457d0f
+  constraints:
+    allowed_paths:
+    - docs/
+    apply_writes: false
+    forbidden_paths:
+    - docs/00_foundations/
+    - docs/01_governance/
+    max_files: 10
+    mode: dry-run
+  input_refs:
+  - path: docs/INDEX.md
+    sha256: 4009c50d4d53ac8a5ffd98ea5ff828ea08bfb860a754438f01923b756a67ff86
+  issued_at: '2026-01-04T11:14:55.758902+00:00'
+  issuer_role: ORCHESTRATOR
+  mission_type: INDEX_UPDATE
+  packet_id: req_51fc524747fb
+  packet_type: DOC_STEWARD_REQUEST
+  scope_paths:
+  - docs/INDEX.md
+result:
+  case_id: 2c7bf3af-e0c0-44b9-b06b-159323457d0f
+  completed_at: '2026-01-04T11:14:55.760440+00:00'
+  diff_evidence_sha256: ''
+  files_modified:
+  - after_sha256: ''
+    before_sha256: 4009c50d4d53ac8a5ffd98ea5ff828ea08bfb860a754438f01923b756a67ff86
+    change_type: MODIFIED
+    description: ''
+    diff_sha256: ''
+    hunk_errors:
+    - 'Hunk 0: Search block not found in docs/INDEX.md'
+    path: docs/INDEX.md
+  latency_ms: 0
+  packet_id: res_b8c1a49dc51f
+  packet_type: DOC_STEWARD_RESULT
+  proposed_diffs: ''
+  reason_code: HUNK_APPLICATION_FAILED
+  request_ref: req_51fc524747fb
+  status: FAILED
+  steward_raw_response: '{"status": "SUCCESS", "files_modified": [{"path": "docs/INDEX.md",
+    "change_type": "MODIFIED", "hunks": [{"search": "THIS_STRING_DOES_NOT_EXIST_XYZ_123",
+    "replace": "SHOULD_FAIL"}]}], "summary": "Simulated negative test with invalid
+    hunk"}'
+  verifier_details:
+    findings_count: 0
+    passed: true
+    summary: 0 errors, 0 warnings
+  verifier_outcome: PASS
+verifier_outcome:
+  details:
+    error_count: 0
+    warning_count: 0
+  findings: []
+  findings_count: 0
+  findings_ref: ''
+  findings_ref_sha256: ''
+  findings_truncated: false
+  passed: true
+  summary: 0 errors, 0 warnings

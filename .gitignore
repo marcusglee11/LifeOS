@@ -32,6 +32,7 @@ credentials.json
 .vscode/
 *.swp
 *.swo
+docs/.obsidian/
 
 # OS files
 .DS_Store

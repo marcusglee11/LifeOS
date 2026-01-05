@@ -15,27 +15,13 @@ from typing import Any, Dict, List, Optional
 
 
 # =============================================================================
-# Exceptions
+# Exceptions (imported from shared module to avoid cross-tier coupling)
 # =============================================================================
 
-class AntiFailureViolation(Exception):
-    """Raised when workflow violates Anti-Failure constraints.
-    
-    Anti-Failure violations relate to step-count and human-step limits:
-    - Exceeding maximum total steps (default: 5)
-    - Exceeding maximum human steps (default: 2)
-    """
-    pass
+from runtime.errors import AntiFailureViolation, EnvelopeViolation
 
-
-class EnvelopeViolation(Exception):
-    """Raised when workflow violates execution envelope constraints.
-    
-    Envelope violations relate to forbidden operations and step kinds:
-    - Using disallowed step kinds (only 'runtime' and 'human' permitted)
-    - Attempting forbidden I/O operations
-    """
-    pass
+# Re-export for backwards compatibility
+__all_exceptions__ = ["AntiFailureViolation", "EnvelopeViolation"]
 
 
 # =============================================================================

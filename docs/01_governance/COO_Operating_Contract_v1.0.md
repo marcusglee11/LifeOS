@@ -4,7 +4,7 @@ This document is the canonical governance agreement for how the COO operates, ma
 
 ## 1. Roles and Responsibilities
 
-### 1.1 CEO (Sir)
+### 1.1 CEO
 - Defines identity, values, intent, direction, and non-negotiables.  
 - Sets objectives and approves major strategic changes.  
 - Provides clarification when escalation is required.

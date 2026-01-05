@@ -1,7 +1,7 @@
 # Review Packet: Reactive Task Layer v0.1
 
 **Mission**: Build Reactive Task Layer v0.1 (Spec + Boundaries) using TDD  
-**Commit**: `6c645b3`  
+**Commit**: `faab7db`  
 **Date**: 2026-01-03
 
 > **Scope**: This packet covers Reactive Task Layer v0.1 only. Mission Registry / Executor are not included.

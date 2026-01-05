@@ -69,7 +69,7 @@ These items directly increase the system's ability to execute, build, and improv
 - Recursion depth governance
 - Council-gated large revisions
 
-**Status:** All remain Core.
+**Status**: **ACTIVE / IN PROGRESS** (Activation Conditions [F3, F4, F7] satisfied)
 
 **Note:** No deprioritisation; this tier is central to eliminating "donkey work", a Charter invariant.
 
@@ -170,7 +170,7 @@ Plumbing is the minimal viable structure needed to keep Core safe and aligned.
 - Programme indexes & documentation invariants
   - **Justification:** Structural integrity; no external leverage on its own.
 
-**Status:** All remain Plumbing.
+**Status**: **IN PROGRESS** (Governance specs & indexing completed/active)
 
 ---
 

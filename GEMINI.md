@@ -318,6 +318,43 @@ Antigravity must not:
 
 ---
 
+# APPENDIX B — ARTIFACT DIRECTORY STRUCTURE (MANDATORY)
+
+> [!IMPORTANT]
+> All agent-generated artifacts MUST be placed in the correct folder.
+
+## Directory Map
+
+| Folder | Purpose | Naming |
+|--------|---------|--------|
+| `artifacts/plans/` | Implementation/architecture plans | `Plan_<Topic>_v<X.Y>.md` |
+| `artifacts/review_packets/` | Completed work for CEO review | `Review_Packet_<Mission>_v<X.Y>.md` |
+| `artifacts/context_packs/` | Agent-to-agent handoff context | `ContextPack_<Type>_<UUID>.yaml` |
+| `artifacts/bundles/` | Zipped multi-file handoffs | `Bundle_<Topic>_<Date>.zip` |
+| `artifacts/missions/` | Mission telemetry logs | `<Date>_<Type>_<UUID>.yaml` |
+| `artifacts/packets/` | Structured YAML packets | Per schema naming |
+| `artifacts/gap_analyses/` | Gap analysis artifacts | `GapAnalysis_<Scope>_v<X.Y>.md` |
+| `artifacts/for_ceo/` | **CEO pickup folder** | Copies of files needing CEO action |
+
+## CEO Pickup Protocol
+
+> **Note**: This appendix provides implementation guidance subordinate to Article XVII §8. The invariant is that CEO must not hunt for outputs.
+
+When ANY file requires CEO action:
+1. Place canonical copy in appropriate folder (e.g., `plans/`)
+2. **Copy** to `artifacts/for_ceo/`
+3. Include raw copyable path in notification message
+4. Provide PathsToReview in notify_user (appears in preview pane)
+
+**Default behavior**: No auto-open. No surprise windows.
+
+**Optional** (only when explicitly requested by CEO or `--auto-open` flag):
+- Open Explorer to `artifacts/for_ceo/` using `explorer.exe`
+
+CEO clears `for_ceo/` after pickup. Agent MUST NOT delete from this folder.
+
+---
+
 ## Section 6 — Stewardship Validation Rule
 
 A Review Packet is **invalid** if the mission modified any documentation but failed to:
@@ -478,8 +515,12 @@ These paths ALWAYS require Plan Artefact approval:
 After modifying ANY file in `docs/`, Antigravity **MUST**:
 
 1. Update the timestamp in `docs/INDEX.md`
-2. Regenerate `docs/LifeOS_Universal_Corpus.md`
+2. Regenerate `docs/LifeOS_Strategic_Corpus.md` (the lightweight strategic context)
 3. Include both updated files in the Review Packet appendix
+
+> [!NOTE]
+> The full `LifeOS_Universal_Corpus.md` is **NOT** regenerated automatically.
+> It is regenerated only on explicit user request or scheduled runs.
 
 ## Section 2. Self-Check Sequence
 
@@ -488,7 +529,7 @@ Before completing any mission that touched `docs/`, execute:
 ```
 □ Did I modify any file in docs/? → If no, skip
 □ Did I update docs/INDEX.md timestamp? → If no, STOP
-□ Did I regenerate LifeOS_Universal_Corpus.md? → If no, STOP
+□ Did I regenerate LifeOS_Strategic_Corpus.md? → If no, STOP
 □ Are both files in my Review Packet appendix? → If no, STOP
 □ Only then: proceed to Review Packet creation
 ```
@@ -552,7 +593,7 @@ All emitted packets MUST:
 
 ## Section 1. Startup Protocol (The "Read State" Rule)
 At the beginning of every new session or chat context, Antigravity **MUST**:
-1. Read `docs/00_admin/LIFEOS_STATE.md`.
+1. Read `docs/11_admin/LIFEOS_STATE.md`.
 2. Internalise the "Current Focus" and "Active WIP".
 3. Use this state to ground all subsequent actions.
 
@@ -560,13 +601,91 @@ At the beginning of every new session or chat context, Antigravity **MUST**:
 Trigger: After any substantive commit (modifying docs, code, or tests).
 
 Antigravity **MUST** automatically:
-1. **Sort Inbox**: Move actionable items from `INBOX.md` to `BACKLOG.md`.
-2. **Update State**: Refine `LIFEOS_STATE.md` (Next Actions, WIP status).
+1. **Sort Inbox**: Move actionable items from `docs/11_admin/INBOX.md` to `docs/11_admin/BACKLOG.md`.
+2. **Update State**: Refine `docs/11_admin/LIFEOS_STATE.md` (Next Actions, WIP status).
 3. **Check Strays**: Scan repo root and `docs/` root for unallowed files; move/delete them.
-4. **Regenerate**: Run corpus generation scripts if docs changed.
+4. **Regenerate**: Run `docs/scripts/generate_strategic_context.py` if docs changed. (Universal Corpus is on-demand only.)
 
 ---
 
-# **End of Constitution v2.6 (Control Plane Edition)**
+# **ARTICLE XVII — BUILD HANDOFF PROTOCOL (MANDATORY)**
+
+> [!IMPORTANT]
+> This article defines agent behavior for build handoffs and context packaging.
+
+## Section 1. Internal Lineage Rules
+
+Internal lineage IDs link artifacts in a build cycle. Never surfaced to CEO.
+
+- **Mode 0**: Builder MAY generate new lineage for new workstream; MUST inherit for continuation
+- **Mode 1+**: Builder MUST NOT invent lineage; must accept from context packet
+
+## Section 2. Preflight Priority
+
+Before any substantive implementation:
+
+1. Run `docs/scripts/check_readiness.py` (if exists)
+2. Else run `pytest runtime/tests -q`
+3. Check `docs/11_admin/LIFEOS_STATE.md` for blockers
+4. Check `artifacts/packets/blocked/` for unresolved BLOCKED packets
+5. If any fail → emit BLOCKED, STOP
+
+## Section 3. Evidence Requirement
+
+- **Mode 0**: Evidence log path required (`logs/preflight/test_output_<ts>.log`)
+- **Mode 1**: Hash attestation required in READINESS packet
+- CEO rejects Review Packets missing preflight evidence
+
+## Section 4. ACK Handshake
+
+When loading any context pointer, reply:
+```
+ACK loaded <path>. Goal: <1 line>. Constraints: <N>.
+```
+
+## Section 5. TTL Behavior
+
+- Default: 72 hours
+- Stale context blocks by default
+- CEO override required to proceed with stale context
+
+## Section 6. CT-5 Restriction
+
+CT-5 (agent recommends council) requires:
+- At least one objective trigger CT-1..CT-4 is true
+- Objective `council_review_rationale` supplied
+- Council may reject CT-5 without objective linkage
+
+## Section 7. No Internal IDs to CEO
+
+Agent MUST NOT:
+- Surface lineage IDs, workstream slugs, or internal paths to CEO
+- Request CEO to provide, confirm, or copy/paste internal IDs
+- All resolution is internal via `artifacts/workstreams.yaml`
+
+## Section 8. Clickable Pickup Links (Zero-Friction Delivery)
+
+> **Normative Layering**: This constitution defines the invariant (CEO must be able to pick up outputs without hunting). The Build Handoff Protocol defines the mechanism.
+
+**Invariant**: CEO must be able to pick up outputs without hunting; delivery always includes a clickable path.
+
+When delivering ANY file the CEO may need to pick up, Agent MUST:
+
+1. **Provide PathsToReview** in notify_user — appears in preview pane
+2. **Provide raw copyable path** in message text (example is illustrative):
+   ```
+   📦 Path: C:\Users\cabra\Projects\LifeOS\artifacts\bundles\<name>.zip
+   ```
+3. **Bundle when multiple files**: Create zip in `artifacts/bundles/` with manifest
+4. **Copy to CEO pickup folder**: Copy deliverables to `artifacts/for_ceo/` for easy access
+
+**Optional** (only when explicitly requested by CEO or via `--auto-open` flag):
+- Open Explorer to the bundle location via `explorer.exe`
+
+**Default behavior**: No surprise windows. CEO clicks path or navigates to `artifacts/for_ceo/`.
+
+---
+
+# **End of Constitution v2.9 (Council Fix Pack Edition)**
 
 

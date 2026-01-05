@@ -21,7 +21,7 @@ The CEO must never manually shuffle documents, update indices, or run git comman
 **Canonical Locations**:
 1. **Local Repository**: `docs`
 2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
-3. **Google Drive**: https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5
+3. **Google Drive**: [REDACTED_DRIVE_LINK]
 
 ---
 
@@ -138,7 +138,7 @@ Google Drive for Desktop is configured to automatically sync the local repositor
 
 **Configuration:**
 - **Local folder**: `docs`
-- **Drive folder**: [LifeOS/docs](https://drive.google.com/drive/folders/1KHUBAOlH6UuJBzGGMevZ27qKO50ebrQ5)
+- **Drive folder**: [LifeOS/docs]([REDACTED_DRIVE_LINK])
 - **Sync mode**: Mirror (bidirectional)
 
 **Behavior:**
@@ -220,5 +220,66 @@ If sync requires more than 2 human steps, the workflow must be automated.
 
 ---
 
+## 10. Automated Stewardship Interface (Agent Delegation)
+
+When document stewardship is delegated to an automated agent (e.g., OpenCode via orchestrator), the following additional requirements apply.
+
+### 10.1 Packet Taxonomy
+
+**DOC_STEWARD_REQUEST**: Orchestrator → Agent
+- `mission_type`: INDEX_UPDATE | CORPUS_REGEN | DOC_MOVE
+- `scope_paths`: Files in scope
+- `input_refs`: List of `{path, sha256}` for audit
+- `constraints`: mode, allowed_paths, forbidden_paths, max_files
+
+**DOC_STEWARD_RESULT**: Agent → Orchestrator
+- `status`: SUCCESS | PARTIAL | FAILED
+- `reason_code`: SUCCESS | PARSE_ERROR | HUNK_APPLICATION_FAILED | API_UNREACHABLE
+- `files_modified`: List with before/after/diff hashes and hunk_errors
+- `proposed_diffs`: Generated unified diff content
+
+### 10.2 Structured Patch List Interface
+
+The agent responds with a JSON object containing `hunks` (search/replace blocks):
+```json
+{
+  "status": "SUCCESS",
+  "files_modified": [
+    {
+      "path": "docs/INDEX.md",
+      "change_type": "MODIFIED",
+      "hunks": [
+        {"search": "old text", "replace": "new text"}
+      ]
+    }
+  ],
+  "summary": "Description"
+}
+```
+
+The **orchestrator** (not the agent) converts these hunks to a valid unified diff.
+
+### 10.3 Ledger Topology (DL_DOC)
+
+All automated stewardship runs are recorded in `artifacts/ledger/dl_doc/`:
+- Filename pattern: `YYYY-MM-DD_<trial_type>_<case_id>.yaml`
+- Contains: request, result, verifier_outcome
+- Findings truncation: If findings exceed inline limit, store in `*_findings.yaml` with `findings_ref_sha256`
+
+### 10.4 Verification Requirements
+
+1. **Fail-closed hunk application**: If any search block is not found, the run FAILS
+2. **Post-change temp apply**: `git apply` must succeed in temp workspace
+3. **Hash chain**: before_sha256 → diff_sha256 → after_sha256 must be deterministically derivable
+
+### 10.5 Reference Documents
+
+- Role Constitution: `docs/01_governance/DOC_STEWARD_Constitution_v1.0.md`
+- Orchestrator Implementation: `scripts/delegate_to_doc_steward.py`
+- Verifier Implementation: `runtime/verifiers/doc_verifier.py`
+
+---
+
 **END OF PROTOCOL**
+
 

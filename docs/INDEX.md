@@ -1,6 +1,6 @@
 # LifeOS Documentation Index
 
-> **Last Updated:** 2026-01-04 10:41 UTC+11:00  
+> **Last Updated:** 2026-01-05 12:40 UTC+11:00  
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---
@@ -79,17 +79,31 @@ LifeOS Constitution v2.0 (Supreme)
 | [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
 | [Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md](./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md) | **Active**: Reactive Task Layer v0.1 Signoff |
 | [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
+| [Council_Ruling_Build_Handoff_v1.0.md](./01_governance/Council_Ruling_Build_Handoff_v1.0.md) | **Approved**: Build Handoff Protocol v1.0 activation-canonical |
 
 ---
 
 ## 02_protocols — Protocols & Agent Communication
 
+### Core Protocols
 | Document | Purpose |
 |----------|---------|
 | [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
 | [Document_Steward_Protocol_v1.0.md](./02_protocols/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
 | [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
 | [Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md) | Tier-2 API Versioning, Deprecation, and Compatibility Rules |
+| [Build_Handoff_Protocol_v1.0.md](./02_protocols/Build_Handoff_Protocol_v1.0.md) | Messaging & handoff architecture for agent coordination |
+
+### Council Protocols
+| Document | Purpose |
+|----------|---------|
+| [Council_Protocol_v1.1.md](./02_protocols/Council_Protocol_v1.1.md) | **Canonical** — Council review procedure, modes, topologies |
+| [AI_Council_Procedural_Spec_v1.0.md](./02_protocols/AI_Council_Procedural_Spec_v1.0.md) | Runbook for executing Council Protocol v1.1 |
+| [Council_Context_Pack_Schema_v0.2.md](./02_protocols/Council_Context_Pack_Schema_v0.2.md) | CCP template schema for council reviews |
+
+### Packet Schemas
+| Document | Purpose |
+|----------|---------|
 | [lifeos_packet_schemas_v1.yaml](./02_protocols/lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
 | [lifeos_packet_templates_v1.yaml](./02_protocols/lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
 | [example_converted_antigravity_packet.yaml](./02_protocols/example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
@@ -142,6 +156,14 @@ LifeOS Constitution v2.0 (Supreme)
 
 ---
 
+## 07_productisation — Productisation & Marketing
+
+| Document | Purpose |
+|----------|---------|
+| [An_OS_for_Life.mp4](./07_productisation/assets/An_OS_for_Life.mp4) | **Promotional Video** — An introduction to LifeOS |
+
+---
+
 ## internal — Internal Reports
 
 | Document | Purpose |
@@ -165,8 +187,8 @@ Archived documents are in `99_archive/`. Key locations:
 | `04_project_builder/` | Project builder specs |
 | `05_agents/` | Agent architecture |
 | `06_user_surface/` | User surface specs |
-| `07_productisation/` | Productisation briefs |
 | `08_manuals/` | Manuals |
-| `09_prompts/` | Prompt templates and protocols |
+| `09_prompts/v1.0/` | Legacy v1.0 prompt templates |
+| `09_prompts/v1.2/` | **Current** — Council role prompts (Chair, Co-Chair, 10 reviewer seats) |
 | `10_meta/` | Meta documents, reviews, tasks |
 

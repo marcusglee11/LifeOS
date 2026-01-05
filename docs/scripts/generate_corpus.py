@@ -148,11 +148,28 @@ def main():
     gov_files = set()
     gov_index = load_governance_index()
     
-    # Process Governance Index first
+    # Priority Order for Governance Artefacts (Authority Chain)
+    AUTHORITY_ORDER = [
+        "constitution",         # 1. Supreme Law
+        "governance_protocol",  # 2. How we change law
+        "coo_contract",         # 3. How we operate
+        "agent_constitution",   # 4. How workers behave
+        "document_steward_protocol", # 5. How we manage docs
+        "dap",                  # 6. How we manage artefacts
+        "spec_review_packet",   # 7. How we spec changes
+        "strategic_context"     # 8. Comparison baseline
+    ]
+
+    # Process Governance Index first (Enforcing Authority Order)
     if gov_index:
         content_body.append("\n## 🏛️ Priority Governance Artefacts\n")
-        # Ensure we sort the governance index by key for determinism
-        for key in sorted(gov_index.keys()):
+        
+        # Create ordered list of keys: Authority Order first, then any remainders sorted alphabetically
+        ordered_keys = [k for k in AUTHORITY_ORDER if k in gov_index]
+        remaining_keys = sorted([k for k in gov_index.keys() if k not in AUTHORITY_ORDER])
+        final_keys = ordered_keys + remaining_keys
+
+        for key in final_keys:
             rel_path_str = gov_index[key]
             full_path = ROOT_DIR / rel_path_str
             
