@@ -46,10 +46,11 @@ import yaml
 class DeterministicLogger:
     """JSONL logger with content-addressed stream storage."""
     
-    def __init__(self, log_dir: Path, streams_dir: Path, run_id: str):
+    def __init__(self, log_dir: Path, streams_dir: Path, run_id: str, timestamps_enabled: bool = True):
         self.log_dir = log_dir
         self.streams_dir = streams_dir
         self.run_id = run_id
+        self.timestamps_enabled = timestamps_enabled
         self.log_file = log_dir / f"{run_id}.jsonl"
         
         # Ensure directories exist
@@ -73,8 +74,14 @@ class DeterministicLogger:
     
     def log(self, event: str, step: str, status: str, **kwargs: Any) -> None:
         """Write a JSONL event line."""
+        
+        if self.timestamps_enabled:
+            ts = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        else:
+            ts = "1970-01-01T00:00:00Z"  # Deterministic fixed timestamp
+            
         record: dict[str, Any] = {
-            "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "timestamp": ts,
             "run_id": self.run_id,
             "event": event,
             "step": step,
@@ -630,7 +637,12 @@ def main() -> int:
     log_dir = repo_root / logging_config.get("log_dir", "logs/steward_runner")
     streams_dir = repo_root / logging_config.get("streams_dir", "logs/steward_runner/streams")
     
-    logger = DeterministicLogger(log_dir, streams_dir, args.run_id)
+    logger = DeterministicLogger(
+        log_dir, 
+        streams_dir, 
+        args.run_id,
+        timestamps_enabled=config.get("determinism", {}).get("timestamps", True)
+    )
     
     # --- Pipeline Execution ---
     
