@@ -1,12 +1,147 @@
 # Council Context Pack — CT-2 DOC_STEWARD Activation
 
-**Purpose**: Binding Full Council Review for CT-2 DOC_STEWARD Activation
-**Date**: 2026-01-05
-**Target AUR**: [CT2_Activation_Packet_DocSteward_G3.md](file:///c:/Users/cabra/Projects/LifeOS/artifacts/for_ceo/CT2_Activation_Packet_DocSteward_G3.md)
+```yaml
+# CCP YAML Header (Machine-Discernable) — Council Protocol v1.1 §4
+council_run:
+  aur_id: "AUR_20260105_CT2_DOCSTEWARD"
+  aur_type: "governance"
+  change_class: "new"
+  touches:
+    - "tier_activation"
+    - "prompts"
+  blast_radius: "module"
+  reversibility: "easy"
+  safety_critical: false
+  uncertainty: "low"
+  override:
+    mode: null
+    topology: null
+    rationale: null
+
+mode_selection_rules_v1:
+  default: "M1_STANDARD"
+  M2_FULL_if_any:
+    - touches includes "governance_protocol"
+    - touches includes "tier_activation"
+    - touches includes "runtime_core"
+    - safety_critical == true
+    - (blast_radius in ["system","ecosystem"] and reversibility == "hard")
+    - (uncertainty == "high" and blast_radius != "local")
+  M0_FAST_if_all:
+    - aur_type in ["doc","plan","other"]
+    - (touches == ["docs_only"] or (touches excludes "runtime_core" and touches excludes "interfaces" and touches excludes "governance_protocol"))
+    - blast_radius == "local"
+    - reversibility == "easy"
+    - safety_critical == false
+    - uncertainty == "low"
+  operator_override:
+    if override.mode != null: "use override.mode"
+  # COMPUTED: touches includes "tier_activation" → M2_FULL
+
+model_plan_v1:
+  topology: "MONO"
+  models:
+    primary: "Gemini 2.5 Pro"
+    adversarial: "Gemini 2.5 Pro"
+    implementation: "Gemini 2.5 Pro"
+    governance: "Gemini 2.5 Pro"
+  role_to_model:
+    Chair: "primary"
+    CoChair: "primary"
+    Architect: "primary"
+    Alignment: "primary"
+    StructuralOperational: "primary"
+    Technical: "implementation"
+    Testing: "implementation"
+    RiskAdversarial: "adversarial"
+    Simplicity: "primary"
+    Determinism: "adversarial"
+    Governance: "governance"
+  constraints:
+    mono_mode:
+      all_roles_use: "primary"
+```
 
 ---
 
-## 1. Document Inventory (Stable Ordering by Path)
+## 0. AUR Inventory
+
+| AUR ID | Path | SHA256 |
+|--------|------|--------|
+| `AUR_20260105_CT2_DOCSTEWARD` | `artifacts/for_ceo/CT2_Activation_Packet_DocSteward_G3.md` | `B9A6AF3627170EAFFE4F1A5B5BF03BCEBF6A5C14DE81B4224BBD3ACDE6E4732F` |
+
+---
+
+## 1. Objective & Success Criteria
+
+**Objective**: Conduct a binding Full Council review (M2_FULL) to determine whether the DOC_STEWARD role should be activated for INDEX_UPDATE missions under the specified constraints.
+
+**Success Criteria**:
+1. Council produces a consolidated verdict: Accept / Go with Fixes / Reject
+2. All material claims in reviewer outputs include `REF:` citations
+3. Contradiction Ledger is produced (mandatory for M2)
+4. Co-Chair challenge pass is executed
+5. Council Run Log is completed
+
+---
+
+## 2. Scope Boundaries
+
+**In Scope**:
+- Ratification of `DOC_STEWARD_Constitution_v1.0.md`
+- Approval of `Document_Steward_Protocol_v1.0.md` (Section 10: Automated Interface)
+- Activation of DOC_STEWARD role for `INDEX_UPDATE` missions only
+
+**Out of Scope**:
+- Expansion to other mission types (code/refactor)
+- Enablement of live commits (must remain `--dry-run` or monitored until G4)
+- Changes to existing manual stewardship rules
+
+---
+
+## 3. Invariants (Non-Negotiables)
+
+1. **Fail-Closed**: If any hunk search block is missing, the orchestrator must FAIL
+2. **Audit-Grade Ledger**: Full hashes (before/diff/after), raw logs, full findings
+3. **True Post-Change Verification**: `git apply` to temp workspace + semantic checks on result
+4. **CEO Control**: No autonomous commits without explicit CEO approval
+5. **Evidence Gating**: All claims require `REF:` citations per Protocol v1.1 §2.2
+
+---
+
+## 4. Execution Instructions
+
+### 4.1 Mode & Topology
+- **Mode**: M2_FULL (triggered by `touches includes "tier_activation"`)
+- **Topology**: MONO (single model)
+- **Independence Rule**: MONO does not provide seat independence. Therefore:
+  - Co-Chair challenge pass is MANDATORY
+  - Contradiction Ledger is MANDATORY
+
+### 4.2 Seats to Execute (M2_FULL)
+1. Chair (synthesis)
+2. Co-Chair (validation + challenge)
+3. Architect
+4. Alignment
+5. Structural & Operational
+6. Technical
+7. Testing
+8. Risk / Adversarial
+9. Simplicity
+10. Determinism
+11. Governance
+
+### 4.3 MONO Run Order
+1. Chair pre-flight (validate CCP header)
+2. Co-Chair validation (packet audit + prompt blocks)
+3. Execute seats sequentially (as separate sections)
+4. Chair synthesis + Fix Plan + Contradiction Ledger
+5. Co-Chair challenge to synthesis (hallucination hunt)
+6. Chair finalises Council Run Log
+
+---
+
+## 5. Document Inventory (Stable Ordering by Path)
 
 | Path | Document Name | SHA256 |
 |------|---------------|--------|
@@ -28,221 +163,82 @@
 
 ---
 
-## 2. Council Protocol v1.1 (Excerpt: L1–L100)
+## 6. Council Protocol v1.1 (Excerpt: L1–L100)
+
+> REF: `docs/02_protocols/Council_Protocol_v1.1.md#L1-L100`
 
 ```markdown
-1: # Council Protocol v1.1 (Amendment)
-2: 
-3: **System**: LifeOS Governance Hub  
-4: **Status**: Proposed for Canonical Promotion  
-5: **Effective date**: 2026-01-05 (upon CEO promotion)  
-6: **Amends**: Council Protocol v1.0  
-7: **Change type**: Constitutional amendment (CEO-only)
-8: 
-9: ---
-10: 
-11: ## 0. Purpose and authority
-12: 
-13: This document defines the binding constitutional procedure for conducting **Council Reviews** within LifeOS.
-14: 
-15: **Authority**
-16: - This protocol is binding across all projects, agents, and models operating under the LifeOS governance system.
-17: - Only the CEO may amend this document.
-18: - Any amendment must be versioned, auditable, and explicitly promoted to canonical.
-19: 
-20: **Primary objectives**
-21: 1. Provide high-quality reviews, ideation, and advice using explicit lenses ("seats").
-22: 2. When practical, use diversified AI models to reduce correlated error and improve the efficient frontier of review quality vs. cost.
-23: 3. Minimise human friction while preserving auditability and control.
-24: 
-25: ---
-26: 
-27: ## 1. Definitions
-28: 
-29: **AUR (Artefact Under Review)**  
-30: The specific artefact(s) being evaluated (document, spec, code, plan, ruling, etc.).
-31: 
-32: **Council Context Pack (CCP)**  
-33: A packet containing the AUR and all run metadata needed to execute a council review deterministically.
-34: 
-35: **Seat**  
-36: A defined reviewer role/lens with a fixed output schema.
-37: 
-38: **Mode**  
-39: A rigor profile selected via deterministic rules: M0_FAST, M1_STANDARD, M2_FULL.
-40: 
-41: **Topology**  
-42: The execution layout: MONO (single model sequential), HYBRID (chair/co-chair + some external), DISTRIBUTED (per-seat external).
-43: 
-44: ---
-45: 
-46: ## 2. Non‑negotiable invariants
-47: 
-48: ### 2.1 Determinism and auditability
-49: - Every council run must produce a **Council Run Log** with:
-50:   - AUR identifier(s) and hash(es) (when available),
-51:   - selected mode and topology,
-52:   - model plan (which model ran which seats, even if "MONO"),
-53:   - a synthesis verdict and explicit fix plan.
-54: 
-55: ### 2.2 Evidence gating
-56: - Any *material* claim (i.e., claim that influences verdict, risk rating, or fix plan) must include an explicit AUR reference.
-57: - Claims without evidence must be labelled **ASSUMPTION** and must not be used as the basis for a binding verdict or fix, unless explicitly accepted by the CEO.
-58: 
-59: ### 2.3 Template compliance
-60: - Seat outputs must follow the required output schema (Section 7).
-61: - The Chair must reject malformed outputs and request correction.
-62: 
-63: ### 2.4 Human control (StepGate)
-64: - The council does not infer "go". Any gating or irreversible action requires explicit CEO approval in the relevant StepGate, if StepGate is in force.
-65: 
-66: ---
-67: 
-68: ## 3. Inputs (mandatory)
-69: 
-70: Every council run MUST begin with a complete CCP containing:
-71: 
-72: 1. **AUR package**
-73:    - AUR identifier(s) (file names, paths, commits if applicable),
-74:    - artefact contents attached or linked,
-75:    - any supporting context artefacts (optional but explicit).
-76: 
-77: 2. **Council objective**
-78:    - what is being evaluated (e.g., "promote to canonical", "approve build plan", "stress-test invariants"),
-79:    - success criteria.
-80: 
-81: 3. **Scope boundaries**
-82:    - what is in scope / out of scope,
-83:    - any non‑negotiable constraints ("invariants").
-84: 
-85: 4. **Run metadata (machine‑discernable)**
-86:    - the CCP YAML header (Section 4).
-87: 
-88: The Chair must verify all four exist prior to initiating reviews.
-89: 
-90: ---
-91: 
-92: ## 4. Council Context Pack (CCP) header schema (machine‑discernable)
-93: 
-94: The CCP MUST include a YAML header with the following minimum keys:
-95: 
-96: ```yaml
-97: council_run:
-98:   aur_id: "AUR_YYYYMMDD_<slug>"
-99:   aur_type: "governance|spec|code|doc|plan|other"
-100:   change_class: "new|amend|refactor|hygiene|bugfix"
+# Council Protocol v1.1 (Amendment)
+
+**System**: LifeOS Governance Hub  
+**Status**: Proposed for Canonical Promotion  
+**Effective date**: 2026-01-05 (upon CEO promotion)  
+**Amends**: Council Protocol v1.0  
+**Change type**: Constitutional amendment (CEO-only)
+
+---
+
+## 0. Purpose and authority
+
+This document defines the binding constitutional procedure for conducting **Council Reviews** within LifeOS.
+
+**Authority**
+- This protocol is binding across all projects, agents, and models operating under the LifeOS governance system.
+- Only the CEO may amend this document.
+- Any amendment must be versioned, auditable, and explicitly promoted to canonical.
+
+**Primary objectives**
+1. Provide high-quality reviews, ideation, and advice using explicit lenses ("seats").
+2. When practical, use diversified AI models to reduce correlated error and improve the efficient frontier of review quality vs. cost.
+3. Minimise human friction while preserving auditability and control.
+
+---
+
+## 1. Definitions
+
+**AUR (Artefact Under Review)**  
+The specific artefact(s) being evaluated (document, spec, code, plan, ruling, etc.).
+
+**Council Context Pack (CCP)**  
+A packet containing the AUR and all run metadata needed to execute a council review deterministically.
+
+**Seat**  
+A defined reviewer role/lens with a fixed output schema.
+
+**Mode**  
+A rigor profile selected via deterministic rules: M0_FAST, M1_STANDARD, M2_FULL.
+
+**Topology**  
+The execution layout: MONO (single model sequential), HYBRID (chair/co-chair + some external), DISTRIBUTED (per-seat external).
+
+---
+
+## 2. Non‑negotiable invariants
+
+### 2.1 Determinism and auditability
+- Every council run must produce a **Council Run Log** with:
+  - AUR identifier(s) and hash(es) (when available),
+  - selected mode and topology,
+  - model plan (which model ran which seats, even if "MONO"),
+  - a synthesis verdict and explicit fix plan.
+
+### 2.2 Evidence gating
+- Any *material* claim (i.e., claim that influences verdict, risk rating, or fix plan) must include an explicit AUR reference.
+- Claims without evidence must be labelled **ASSUMPTION** and must not be used as the basis for a binding verdict or fix, unless explicitly accepted by the CEO.
+
+### 2.3 Template compliance
+- Seat outputs must follow the required output schema (Section 7).
+- The Chair must reject malformed outputs and request correction.
+
+### 2.4 Human control (StepGate)
+- The council does not infer "go". Any gating or irreversible action requires explicit CEO approval in the relevant StepGate, if StepGate is in force.
 ```
 
 ---
 
-## 3. AI Council Procedural Spec v1.0 (Excerpt: L1–L100)
+## 7. Reviewer Output Template (from Protocol v1.1 §7)
 
-```markdown
-1: # AI Council — Procedural Specification v1.0
-2: 
-3: **System**: LifeOS Governance Hub  
-4: **Status**: Proposed for Canonical Promotion (operational layer)  
-5: **Effective date**: 2026-01-05 (upon CEO promotion)  
-6: **Scope**: Runbook for executing Council Protocol v1.1
-7: 
-8: ---
-9: 
-10: ## 1. Purpose
-11: 
-12: This document operationalises **Council Protocol v1.1**. It specifies how to:
-13: - assemble a Council Context Pack (CCP),
-14: - select mode/topology deterministically,
-15: - run council reviews under MONO, HYBRID, or DISTRIBUTED topologies,
-16: - enforce evidence gating and output templates,
-17: - produce audit-ready Council Run Logs.
-18: 
-19: ---
-20: 
-21: ## 2. Inputs
-22: 
-23: You need:
-24: 1. AUR artefact(s) (files, diffs, or pasted content).
-25: 2. CCP header YAML (machine-discernable).
-26: 3. Seat prompt artefacts (Chair, Co-Chair, reviewers).
-27: 
-28: If canonical artefacts are unavailable, use **BOOTSTRAP CCP** (Protocol §9).
-29: 
-30: ---
-31: 
-32: ## 3. CCP assembly (deterministic)
-33: 
-34: ### 3.1 CCP structure
-35: A CCP is a single packet containing:
-36: 
-37: 1) YAML header (required)  
-38: 2) AUR inventory (required)  
-39: 3) Objective + scope boundaries (required)  
-40: 4) Attachments or embedded content (required)  
-41: 5) Execution instructions (topology + prompts)  
-42: 6) Output collection plan (where seat outputs go)  
-43: 7) Council Run Log template (blank, to fill)
-44: 
-45: ---
-46: 
-47: ## 4. Mode selection (mechanical)
-48: 
-49: Apply `mode_selection_rules_v1` from CCP header:
-50: - If override provided, record rationale.
-51: - Otherwise compute mode.
-52: 
-53: Operational guideline:
-54: - M0_FAST: L1 Unified only.
-55: - M1_STANDARD: Chair + Co-Chair + 3–5 key seats.
-56: - M2_FULL: Chair + Co-Chair + all canonical seats (9).
-57: 
-58: ---
-59: 
-60: ## 5. Topology selection (mechanical)
-61: 
-62: ### 5.1 MONO topology (single-model run)
-63: Use when:
-64: - copy/paste friction must be minimal, or
-65: - external models are unavailable, or
-66: - you are doing an initial pass before distributing.
-67: 
-68: **Important**: MONO does not create independence. Therefore:
-69: - For M1/M2, you must run the Co‑Chair **challenge pass** as a separate pass (even if same model).
-70: - Produce a Contradiction Ledger.
-71: 
-72: #### MONO run order (recommended)
-73: 1) Chair pre-flight (assemble CCP, validate header)
-74: 2) Co-Chair validation (packet audit + prompt blocks)
-75: 3) Execute seats sequentially (as separate sections)
-76: 4) Chair synthesis + Fix Plan + Contradiction Ledger
-77: 5) Co-Chair challenge to synthesis (hallucination hunt)
-78: 6) Chair finalises Council Run Log
-79: 
-80: ### 5.2 HYBRID topology (chair/co-chair + selective external seats)
-81: Use when:
-82: - you want some independence, but not full distribution.
-83: 
-84: Recommended externalisation:
-85: - Risk/Adversarial seat (independent model)
-86: - Governance seat (independent model)
-87: - Technical/Testing seats (implementation-focused model)
-88: 
-89: Chair/Co-Chair remain on `models.primary`.
-90: 
-91: ### 5.3 DISTRIBUTED topology (per-seat external)
-92: Use when:
-93: - stakes are high (often M2),
-94: - you want maximum diversification.
-95: 
-96: Rule of thumb:
-97: - at minimum, put Risk or Governance on a different model family for independence when practical.
-98: 
-99: ---
-100: 
-```
-
----
-
-## 4. Reviewer Output Template (from Protocol v1.1 §7)
+> REF: `docs/02_protocols/Council_Protocol_v1.1.md#L241-L261`
 
 Every seat output **MUST** be structured as follows:
 
@@ -282,9 +278,9 @@ Explicit list; do not hide assumptions in prose.
 
 ---
 
-## 5. Role Prompt Inventory (v1.2)
+## 8. Role Prompt Inventory (v1.2)
 
-All prompts located in `docs/09_prompts/v1.2/`:
+All prompts located at `docs/09_prompts/v1.2/`:
 
 | Role | File | Purpose |
 |------|------|---------|
@@ -303,12 +299,12 @@ All prompts located in `docs/09_prompts/v1.2/`:
 
 ---
 
-## 6. CT-2 Rubric for Activation Decisions
+## 9. CT-2 Rubric for Activation Decisions
 
 Per Council Protocol v1.1 §2, the council must evaluate:
 
-1. **Evidence gating**: Does the activation packet include REF citations for all material claims?
-2. **Invariant compliance**: Does the proposal preserve LifeOS invariants?
+1. **Evidence gating** (§2.2): Does the activation packet include REF citations for all material claims?
+2. **Invariant compliance** (§2.1): Does the proposal preserve LifeOS invariants?
 3. **Safety**: Are fail-closed mechanisms proven?
 4. **Determinism**: Are hashes verifiable? Are outputs reproducible?
 5. **Scope boundaries**: Are non-goals explicit?
@@ -317,11 +313,53 @@ Per Council Protocol v1.1 §2, the council must evaluate:
 
 ---
 
+## 10. Council Run Log Template
+
+```yaml
+council_run_log:
+  aur_id: "AUR_20260105_CT2_DOCSTEWARD"
+  mode: "M2_FULL"
+  topology: "MONO"
+  models_used:
+    - role: "Chair"
+      model: "Gemini 2.5 Pro"
+    - role: "CoChair"
+      model: "Gemini 2.5 Pro"
+    - role: "Architect"
+      model: "Gemini 2.5 Pro"
+    - role: "Alignment"
+      model: "Gemini 2.5 Pro"
+    - role: "StructuralOperational"
+      model: "Gemini 2.5 Pro"
+    - role: "Technical"
+      model: "Gemini 2.5 Pro"
+    - role: "Testing"
+      model: "Gemini 2.5 Pro"
+    - role: "RiskAdversarial"
+      model: "Gemini 2.5 Pro"
+    - role: "Simplicity"
+      model: "Gemini 2.5 Pro"
+    - role: "Determinism"
+      model: "Gemini 2.5 Pro"
+    - role: "Governance"
+      model: "Gemini 2.5 Pro"
+  date: "2026-01-05"
+  verdict: "PENDING"
+  key_decisions: []
+  fixes: []
+  contradictions: []
+  notes:
+    bootstrap_used: false
+    override_rationale: null
+```
+
+---
+
 ## Pack Metadata
 
-- **Pack SHA256**: `D6494E66CCDB7DC0DDF94BCEE6DC25942FC668B120F41CC9E143E6030DA8C162`
+- **Pack SHA256**: `D7059EA9EF3E17EB48D9F08C245FC2E68F4B12E3AA026FD0DF12DAD7820DF427`
 - **Generated by**: Antigravity (Stewardship Mission)
-- **Date**: 2026-01-05 12:45 UTC+11
+- **Date**: 2026-01-05
 
 ---
 
