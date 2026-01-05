@@ -1,4 +1,4 @@
-# LifeOS Documentation Index — Last Updated: 2026-01-06T07:30+11:00
+# LifeOS Documentation Index — Last Updated: 2026-01-06T08:35+11:00
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
 ---

@@ -43,6 +43,7 @@ Confirm CCP includes:
 - [ ] Apply deterministic mode rules unless `override.mode` exists (then record rationale).
 - [ ] Confirm topology is set (MONO/HYBRID/DISTRIBUTED).
 - [ ] If MONO and mode is M1/M2: schedule a distinct Co‑Chair challenge pass.
+- [ ] **Independence Check (Protocol v1.2 §6.3)**: If `safety_critical` OR `touches: [governance_protocol, tier_activation]`: Governance & Risk MUST be independent models. **NO OVERRIDE PERMITTED.**
 
 ### 2.3 Evidence gating policy
 State explicitly at the top of the run:
@@ -53,6 +54,8 @@ State explicitly at the top of the run:
 ## 3) Orchestration rules (deterministic)
 
 ### 3.1 MONO topology (single model)
+**Step 1.5 — Seat Completion Validation**: Before synthesis, verify ALL assigned seats have submitted valid outputs. Do not proceed with partial results.
+
 Run seats sequentially and compartmentalise. Use this header before each seat:
 
 `## Seat: <Name> (v1.2)`

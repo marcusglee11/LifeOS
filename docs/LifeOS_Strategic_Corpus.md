@@ -1,5 +1,5 @@
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-06 07:23
+**Generated:** 2026-01-06 08:20
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -4693,7 +4693,13 @@ Therefore:
   - touches includes governance_protocol, OR
   - touches includes tier_activation,
   
-  then at least one of **Risk/Adversarial** or **Governance** seats MUST be executed on an independent model (different vendor/model family). No override permitted.
+  then at least one of **Risk/Adversarial** or **Governance** seats MUST be executed on an independent model (different vendor/model family). No Chair/operator override permitted.
+
+  **Emergency CEO override (exceptional):**
+  In declared emergencies only, CEO may authorize proceeding without independence. If CEO authorizes:
+  - The run is marked `compliance_status: "non-compliant-ceo-authorized"` in Council Run Log
+  - CSO is automatically notified
+  - A follow-up compliant run SHOULD be scheduled within 48 hours
 
   **SHOULD (soft requirement with logging):**
   If any of the following are true:
@@ -4705,7 +4711,7 @@ Therefore:
   - CSO may audit override patterns; systemic waivers (>50% of applicable runs) trigger escalation.
 
 **Audit requirement:**
-Independence waivers under SHOULD conditions are recorded in the Council Run Log `notes.override_rationale` field. CSO audits waiver frequency. If safety_critical == true AND independence is waived due to emergency, the run summary is forwarded to CSO for review.
+Independence waivers under SHOULD conditions are recorded in the Council Run Log `notes.override_rationale` field. CSO audits waiver frequency.
 
 ---
 
@@ -7269,6 +7275,7 @@ Confirm CCP includes:
 - [ ] Apply deterministic mode rules unless `override.mode` exists (then record rationale).
 - [ ] Confirm topology is set (MONO/HYBRID/DISTRIBUTED).
 - [ ] If MONO and mode is M1/M2: schedule a distinct Co‑Chair challenge pass.
+- [ ] **Independence Check (Protocol v1.2 §6.3)**: If `safety_critical` OR `touches: [governance_protocol, tier_activation]`: Governance & Risk MUST be independent models. **NO OVERRIDE PERMITTED.**
 
 ### 2.3 Evidence gating policy
 State explicitly at the top of the run:
@@ -7279,6 +7286,8 @@ State explicitly at the top of the run:
 ## 3) Orchestration rules (deterministic)
 
 ### 3.1 MONO topology (single model)
+**Step 1.5 — Seat Completion Validation**: Before synthesis, verify ALL assigned seats have submitted valid outputs. Do not proceed with partial results.
+
 Run seats sequentially and compartmentalise. Use this header before each seat:
 
 `## Seat: <Name> (v1.2)`
