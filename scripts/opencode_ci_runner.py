@@ -38,6 +38,8 @@ EVIDENCE_DIR = "artifacts/evidence/"  # READ-ONLY for steward
 REVIEW_PACKETS_DIR = "artifacts/review_packets/"
 
 # Review Packet schema requirements
+
+# Review Packet schema requirements
 REQUIRED_PACKET_SECTIONS = [
     r"##\s*(Summary|Executive Summary)",
     r"##\s*(Changes|Evidence)",
@@ -56,13 +58,32 @@ class Colors:
     RESET = '\033[0m'
 
 def log(msg, level="info"):
-    prefix = {"info": "->", "ok": "[OK]", "error": "[ERROR]", "warn": "[WARN]", "gov": "[GOVERNANCE-ALERT]"}
-    color = {"info": Colors.BLUE, "ok": Colors.GREEN, "error": Colors.RED, "warn": Colors.YELLOW, "gov": Colors.YELLOW}
-    timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    try:
-        print(f"{color.get(level, '')}{prefix.get(level, '')} [{timestamp}] {msg}{Colors.RESET}", flush=True)
-    except UnicodeEncodeError:
-        print(f"{prefix.get(level, '')} [{timestamp}] {msg}", flush=True)
+    timestamp = datetime.now().isoformat(sep="T", timespec="seconds")
+    color = Colors.RESET
+    if level == "error": color = Colors.RED
+    elif level == "ok": color = Colors.GREEN
+    elif level == "gov": color = Colors.YELLOW
+    elif level == "info": color = Colors.BLUE
+    print(f"{color}[{level.upper()}] [{timestamp}] {msg}{Colors.RESET}")
+
+def load_steward_key():
+    """Load the steward API key from env or .env file."""
+    key = os.environ.get("STEWARD_OPENROUTER_KEY")
+    if not key:
+        try:
+            with open(".env", "r") as f:
+                for line in f:
+                    if line.startswith("STEWARD_OPENROUTER_KEY="):
+                        key = line.split("=", 1)[1].strip()
+                        break
+        except FileNotFoundError:
+            pass
+    
+    if key:
+        log(f"Steward API Key loaded (starts with {key[:8]}...)", "info")
+    else:
+        log("Steward API Key NOT found", "warn")
+    return key
 
 # ============================================================================
 # INPUT VALIDATION (P0.1 - JSON-Only)
@@ -283,6 +304,110 @@ def check_staged_packet():
     return packet_found
 
 # ============================================================================
+# EPHEMERAL SERVER LIFECYCLE (Usage Tracking Isolation)
+# ============================================================================
+import tempfile
+import shutil
+
+def create_isolated_config(api_key, model):
+    """Create a temporary, isolated OpenCode config directory.
+    
+    This ensures the ephemeral server ONLY has access to the OpenRouter
+    credentials and cannot fall back to any other provider.
+    OpenCode on Windows uses:
+    - Config: %APPDATA%/opencode/ or %USERPROFILE%/.config/opencode/
+    - Data: %LOCALAPPDATA%/opencode/ or %USERPROFILE%/.local/share/opencode/
+    """
+    temp_dir = tempfile.mkdtemp(prefix="opencode_steward_")
+    
+    # Create the config subdirectory (for opencode.json)
+    config_subdir = os.path.join(temp_dir, "opencode")
+    os.makedirs(config_subdir, exist_ok=True)
+    
+    # Create the data subdirectory (for auth.json)
+    data_subdir = os.path.join(temp_dir, ".local", "share", "opencode")
+    os.makedirs(data_subdir, exist_ok=True)
+    
+    # Create auth.json with only OpenRouter credentials (matching OpenCode's format)
+    auth_data = {
+        "openrouter": {
+            "type": "api",
+            "key": api_key
+        }
+    }
+    with open(os.path.join(data_subdir, "auth.json"), "w") as f:
+        json.dump(auth_data, f, indent=2)
+    
+    # Create opencode.json with forced model
+    # Note: OpenCode does NOT support baseURL in provider config
+    model_id = model.replace("openrouter/", "") if model.startswith("openrouter/") else model
+    config_data = {
+        "model": f"openrouter/{model_id}",
+        "$schema": "https://opencode.ai/config.json"
+    }
+    with open(os.path.join(config_subdir, "opencode.json"), "w") as f:
+        json.dump(config_data, f, indent=2)
+    
+    log(f"Created isolated config at: {temp_dir}", "info")
+    log(f"  Config: {config_subdir}", "info")
+    log(f"  Data: {data_subdir}", "info")
+    log(f"  Model: openrouter/{model_id}", "info")
+    return temp_dir
+
+def cleanup_isolated_config(config_dir):
+    """Remove the temporary config directory."""
+    if config_dir and os.path.exists(config_dir):
+        try:
+            shutil.rmtree(config_dir)
+            log("Cleaned up isolated config directory.", "info")
+        except Exception as e:
+            log(f"Warning: Failed to clean up config dir: {e}", "warn")
+
+def start_ephemeral_server(port, config_dir, api_key):
+    """Start an ephemeral OpenCode server with an isolated config."""
+    log(f"Starting ephemeral OpenCode server on port {port}...", "info")
+    
+    env = os.environ.copy()
+    
+    # Point OpenCode at our isolated directories
+    env["APPDATA"] = os.path.join(config_dir)
+    env["XDG_CONFIG_HOME"] = os.path.join(config_dir)
+    env["USERPROFILE"] = config_dir
+    env["HOME"] = config_dir
+    
+    # DIRECTLY SET the OpenRouter key - this is the only reliable method!
+    env["OPENROUTER_API_KEY"] = api_key
+    log(f"Set OPENROUTER_API_KEY to {api_key[:15]}...{api_key[-8:]}", "info")
+    
+    # Clear other provider keys to force OpenRouter usage
+    env["OPENAI_API_KEY"] = ""
+    env["ANTHROPIC_API_KEY"] = ""
+    
+    try:
+        process = subprocess.Popen(
+            ["opencode", "serve", "--port", str(port)],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            shell=True if os.name == "nt" else False,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
+        )
+        return process
+    except Exception as e:
+        log(f"Failed to start ephemeral server: {e}", "error")
+        return None
+
+def stop_ephemeral_server(process):
+    """Terminate the ephemeral server."""
+    if process:
+        log("Stopping ephemeral server...", "info")
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+
+# ============================================================================
 # OPENCODE SERVER INTERFACE
 # ============================================================================
 def wait_for_server(base_url, timeout=30):
@@ -303,7 +428,7 @@ def wait_for_server(base_url, timeout=30):
 
 def run_mission(base_url, model, instruction):
     """Send instruction to OpenCode server."""
-    log("Starting mission...", "info")
+    log(f"Starting mission with model: {model}...", "info")
     
     try:
         resp = requests.post(
@@ -417,14 +542,20 @@ def rollback():
 # ============================================================================
 def main():
     parser = argparse.ArgumentParser(description="OpenCode CI Runner (Hardened - CT-2 Phase 2)")
-    parser.add_argument("--port", type=int, default=62585)
-    parser.add_argument("--model", type=str, default="google/gemini-2.0-flash-001")
+    parser.add_argument("--port", type=int, default=62586)
+    parser.add_argument("--model", type=str, default="openrouter/x-ai/grok-4.1-fast")
     parser.add_argument("--task", type=str, required=True, help="JSON-structured task (required)")
     parser.add_argument("--override-foundations", action="store_true", help="Allow access to docs/00_foundations/** (requires confirmation)")
+    parser.add_argument("--use-project-server", action="store_true", help="Use the global project server instead of an ephemeral one")
     args = parser.parse_args()
     
     repo_root = os.getcwd()
     base_url = f"http://127.0.0.1:{args.port}"
+    server_process = None
+    config_dir = None
+    
+    # Load key
+    steward_api_key = load_steward_key()
     
     # ========== INPUT VALIDATION ==========
     task = validate_task_input(args.task)
@@ -450,30 +581,63 @@ def main():
         if not check_evidence_readonly(path):
             sys.exit(1)
     
+    # ========== SERVER SETUP (Isolated Config Approach) ==========
+    model_to_use = args.model
+    if not args.use_project_server:
+        if not steward_api_key:
+            log("STEWARD_OPENROUTER_KEY not found in environment or .env", "error")
+            sys.exit(1)
+        
+        # Create isolated config directory
+        config_dir = create_isolated_config(steward_api_key, model_to_use)
+        
+        # Start ephemeral server with isolated config and API key
+        server_process = start_ephemeral_server(args.port, config_dir, steward_api_key)
+        if not server_process:
+            cleanup_isolated_config(config_dir)
+            sys.exit(1)
+    
     # ========== SERVER CONNECTION ==========
     if not wait_for_server(base_url):
+        if server_process: stop_ephemeral_server(server_process)
+        if config_dir: cleanup_isolated_config(config_dir)
         sys.exit(1)
     
     # ========== EXECUTE MISSION ==========
-    session_id = run_mission(base_url, args.model, task["instruction"])
-    if not session_id:
-        sys.exit(1)
-    
-    time.sleep(1)  # Allow fs to settle
-    
-    # ========== REVIEW PACKET GATE ==========
-    if check_packet_required(task, args.override_foundations):
-        log("Review Packet required. Checking staged files...", "info")
-        if not check_staged_packet():
-            log("Review Packet gate FAILED. Mission aborted.", "error")
-            rollback() # Fail-Closed
-            cleanup(base_url, session_id)
+    session_id = None
+    try:
+        session_id = run_mission(base_url, model_to_use, task["instruction"])
+        if not session_id:
+            if server_process: stop_ephemeral_server(server_process)
+            if config_dir: cleanup_isolated_config(config_dir)
             sys.exit(1)
-        log("Review Packet validated.", "ok")
-    
-    cleanup(base_url, session_id)
-    log("MISSION SUCCESS", "ok")
-    sys.exit(0)
+        
+        time.sleep(1)  # Allow fs to settle
+        
+        # ========== REVIEW PACKET GATE ==========
+        if check_packet_required(task, args.override_foundations):
+            log("Review Packet required. Checking staged files...", "info")
+            if not check_staged_packet():
+                log("Review Packet gate FAILED. Mission aborted.", "error")
+                rollback() # Fail-Closed
+                if session_id: cleanup(base_url, session_id)
+                if server_process: stop_ephemeral_server(server_process)
+                if config_dir: cleanup_isolated_config(config_dir)
+                sys.exit(1)
+            log("Review Packet validated.", "ok")
+        
+        if session_id: cleanup(base_url, session_id)
+        if server_process: stop_ephemeral_server(server_process)
+        if config_dir: cleanup_isolated_config(config_dir)
+        log("MISSION SUCCESS", "ok")
+        sys.exit(0)
+        
+    except Exception as e:
+        log(f"Unexpected error: {e}", "error")
+        if session_id: cleanup(base_url, session_id)
+        if server_process: stop_ephemeral_server(server_process)
+        if config_dir: cleanup_isolated_config(config_dir)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
