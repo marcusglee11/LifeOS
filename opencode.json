@@ -1,0 +1,7 @@
+{
+  "instructions": [
+    "AGENTS.md",
+    "docs/11_admin/LIFEOS_STATE.md"
+  ],
+  "$schema": "https://opencode.ai/config.json"
+}

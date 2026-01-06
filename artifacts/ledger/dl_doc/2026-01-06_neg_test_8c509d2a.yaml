@@ -1,0 +1,65 @@
+case_id: 8c509d2a-6edf-42e0-aa21-845f83ca6f4d
+entry_type: neg_test
+ledger: DL_DOC
+recorded_at: '2026-01-05T14:15:18.620974+00:00'
+request:
+  case_id: 8c509d2a-6edf-42e0-aa21-845f83ca6f4d
+  constraints:
+    allowed_paths:
+    - docs/
+    apply_writes: false
+    forbidden_paths:
+    - docs/00_foundations/
+    - docs/01_governance/
+    max_files: 10
+    mode: dry-run
+  input_refs:
+  - path: docs/INDEX.md
+    sha256: 0cf1179212a82366ee40089cfb8899aa46b31117b6e6996b47ddf7ab82a5c8f0
+  issued_at: '2026-01-05T14:15:18.615168+00:00'
+  issuer_role: ORCHESTRATOR
+  mission_type: INDEX_UPDATE
+  packet_id: req_3aa381d883cd
+  packet_type: DOC_STEWARD_REQUEST
+  scope_paths:
+  - docs/INDEX.md
+result:
+  case_id: 8c509d2a-6edf-42e0-aa21-845f83ca6f4d
+  completed_at: '2026-01-05T14:15:18.616201+00:00'
+  diff_evidence_sha256: ''
+  files_modified:
+  - after_sha256: ''
+    before_sha256: 0cf1179212a82366ee40089cfb8899aa46b31117b6e6996b47ddf7ab82a5c8f0
+    change_type: MODIFIED
+    description: ''
+    diff_sha256: ''
+    hunk_errors:
+    - 'Hunk 0: Match count mismatch - found 0, expected 1'
+    match_count_expected: 1
+    match_count_found: 0
+    path: docs/INDEX.md
+  latency_ms: 0
+  packet_id: res_8a032301f1d9
+  packet_type: DOC_STEWARD_RESULT
+  proposed_diffs: ''
+  reason_code: HUNK_MATCH_COUNT_MISMATCH
+  request_ref: req_3aa381d883cd
+  status: FAILED
+  steward_raw_response: '{"status": "SUCCESS", "files_modified": [{"path": "docs/INDEX.md",
+    "change_type": "MODIFIED", "hunks": [{"search": "THIS_STRING_DOES_NOT_EXIST_XYZ_123",
+    "replace": "SHOULD_FAIL"}]}], "summary": "Simulated negative test with invalid
+    hunk"}'
+  verifier_details:
+    findings_count: 0
+    passed: true
+    summary: 'SKIPPED: no proposed diffs to verify'
+  verifier_outcome: SKIPPED
+verifier_outcome:
+  details: {}
+  findings: []
+  findings_count: 0
+  findings_ref: ''
+  findings_ref_sha256: ''
+  findings_truncated: false
+  passed: true
+  summary: 'SKIPPED: no proposed diffs to verify'

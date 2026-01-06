@@ -19,3 +19,8 @@
   - **Why:** Refine evidence rules (anchoring), clarify hygiene triggers, adopt default sequencing rule
   - **Scope:** Admin hygiene protocols and evidence standards
   - **Evidence:** `3e545f7`, `docs/11_admin/`
+
+- **2026-01-06 — Decision:** Activate Core TDD Design Principles v1.0
+  - **Why:** Governance-first determinism for Core Track (runtime/mission, runtime/reactive); fail-closed enforcement scanner
+  - **Scope:** TDD principles, allowlist governance, deterministic harness discipline
+  - **Evidence:** [Council_Ruling_Core_TDD_Principles_v1.0.md](../01_governance/Council_Ruling_Core_TDD_Principles_v1.0.md)

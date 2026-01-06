@@ -1,87 +1,100 @@
-# CT-2 COUNCIL REVIEW PACKET: DOC_STEWARD v1.0
+# CT-2 Activation Packet: DOC_STEWARD G3
 
-**Target**: Activation of DOC_STEWARD Role & Protocol
-**Authority**: Antigravity Phase 1 StrictDiff Spike
-**Date**: 2026-01-04
+**Status**: PENDING COUNCIL REVIEW  
+**Created**: 2026-01-06  
+**Author**: Antigravity (Doc Steward Orchestrator)
 
 ---
 
 ## 1. DECISION REQUEST
 
-**WE ASK THE COUNCIL TO:**
-1. **RATIFY** `DOC_STEWARD_Constitution_v1.0.md` as the canonical role definition.
-2. **APPROVE** the updated `Document_Steward_Protocol_v1.0.md` (Section 10: Automated Interface).
-3. **ACTIVATE** the DOC_STEWARD role for `INDEX_UPDATE` missions.
+Activate DOC_STEWARD for `INDEX_UPDATE` mission at G3 (live dry-run with verification).
 
-**BOUNDARIES & NON-GOALS:**
-- **NO** expansion to other mission types (code/refactor) at this time.
-- **NO** enablement of live commits (must remain `--dry-run` or monitored until G4).
-- **NO** change to existing manual stewardship rules.
+**Council Triggers**: CT-2 (Capability Promotion), CT-3 (Interface Definition)
 
 ---
 
-## 2. CHANGE SUMMARY (Phase 1 Fixes)
+## 2. CHANGE SUMMARY
 
-We have implemented a **Strict Verification Pipeline** to address Phase 1 defects:
+### Governance Documents
+- **DOC_STEWARD_Constitution_v1.0.md**: Added Activation Envelope (§1A) + Annex A (Reserved Missions)
+- **Document_Steward_Protocol_v1.0.md**: Added Activation Envelope (§10.0) with boundary enforcement rules
 
-| Defect | Fix Implemented | Proven By |
-|--------|-----------------|-----------|
-| **Brittle Diffs** | **Structured Patch List Protocol**: Agent returns JSON hunks; Orchestrator generates canonical unified diff. | G1 Smoke, G2 Trials |
-| **Silent Failures** | **Fail-Closed Hunk Application**: If search block missing -> FAIL. | Code Audit, Neg Test |
-| **Evidence Gaps** | **Audit-Grade Ledger**: Full hashes (before/diff/after), raw logs (uncapped), full findings. | Ledger Artifacts |
-| **Blind Verification** | **True Post-Change Verify**: `git apply` to temp workspace + semantic checks on *result*. | Verifier Logs |
-
----
-
-## 3. EVIDENCE (Phase 1 StrictDiff)
-
-All evidence allows `git apply` verification and hash chain validation.
-
-### 3.1 Ledger Entries (DL_DOC)
-| Trial | Case ID | Result | Diff Hash (SHA256) | Ledger Ref |
-|-------|---------|--------|---------------------|------------|
-| **G1 Smoke** | `8828d442` | ✅ PASS | `7967b53d76a477a24b0178a8bcc02196ecb3e81847691ae5fd713921cd9aa92a` | `dl_doc/2026-01-04_smoke_test_8828d442.yaml` |
-| **G2 Shadow 1** | `13d754dc` | ✅ PASS | `7967b53d76a477a24b0178a8bcc02196ecb3e81847691ae5fd713921cd9aa92a` | `dl_doc/2026-01-04_shadow_trial_13d754dc.yaml` |
-| **G2 Shadow 2** | `b0675d55` | ✅ PASS | `7967b53d76a477a24b0178a8bcc02196ecb3e81847691ae5fd713921cd9aa92a` | `dl_doc/2026-01-04_shadow_trial_b0675d55.yaml` |
-| **G2 Shadow 3** | `c820444f` | ✅ PASS | `7967b53d76a477a24b0178a8bcc02196ecb3e81847691ae5fd713921cd9aa92a` | `dl_doc/2026-01-04_shadow_trial_c820444f.yaml` |
-| **Neg Test** | `2c7bf3af` | 🛑 FAIL | (N/A - Hunk Rejection) | `dl_doc/2026-01-04_neg_test_2c7bf3af.yaml` |
-
-**Hash Verification Chain (Positive Runs):**
-- **Before SHA**: `4009c50d4d53ac8a5ffd98ea5ff828ea08bfb860a754438f01923b756a67ff86`
-- **Diff SHA**: `7967b53d76a477a24b0178a8bcc02196ecb3e81847691ae5fd713921cd9aa92a`
-- **After SHA**: `86907447d8ce7f3ef39399111269f1c071a33886d9bf57844ffdb98b825506e9`
-
-### 3.2 Evidence Map (Audit Trace)
-
-**1. Fail-Closed Proof (Neg Test)**
-- **Claim**: Orchestrator fails if any hunk search block is missing.
-- **Evidence**: `2026-01-04_neg_test_2c7bf3af.yaml`
-- **Observation**: Status `FAILED`, Reason `HUNK_APPLICATION_FAILED`.
-- **Log Excerpt**: `[TEST] Injecting NEGATIVE TEST response... Result status: FAILED... Reason code: HUNK_APPLICATION_FAILED`
-
-**2. True Post-Change Verification (Positive Runs)**
-- **Claim**: Verifier acts on *result* of `git apply` in temp workspace.
-- **Evidence**: `verifier_outcome` block in all successful ledger entries.
-- **Observation**: `findings_count: 51` (includes LINK_INTEGRITY warnings), `passed: true`.
-
-**3. Determinism**
-- **Claim**: Identical inputs produce identical diff hashes.
-- **Evidence**: G1 Smoke matches G2 Shadows (Diff SHA `7967...`).
+### Code Hardening
+- **Match-Count Enforcement**: Fails on match_count = 0 OR match_count > 1, reason_code: `HUNK_MATCH_COUNT_MISMATCH`
+- **Boundary Enforcement**: Orchestrator pre-check + Verifier ERROR for files outside `allowed_paths` or `scope_paths`
+- **Verifier Constraints**: Verifier now accepts and enforces request constraints
+- **Fail-Closed Import**: Verifier import failure now returns `passed=False`
+- **SKIPPED Logic**: Verifier outcome `SKIPPED` when no diffs generated
+- **Structured Error Reporting**: `HUNK_MATCH_COUNT_MISMATCH` now details `match_count_found` and `match_count_expected`
 
 ---
 
-## 4. CONSTITUTIONAL ARTEFACTS
+## 3. EVIDENCE MAP (Audit Trace)
 
-1. **DOC_STEWARD_Constitution_v1.0.md**
-   - Defines logical role, strict interface, and governance alignment.
-   
-2. **Document_Steward_Protocol_v1.0.md (Update)**
-   - Added Section 10: Automated Stewardship Interface.
-   - Mandates: DOC_STEWARD_REQUEST/RESULT schema, DL_DOC ledger, Post-change verification.
+### 3.1 Hashing Policy
+
+SHA256 is computed on **exact file bytes at repo path**. No transformation.
+
+### 3.2 Proof Runs Summary
+
+| Run Type | Case ID | Status | Reason Code | Verifier |
+|----------|---------|--------|-------------|----------|
+| **Positive Smoke** | `7a7c1afa` | SUCCESS | SUCCESS | PASS |
+| **Neg: Match=0** | `58338342` | FAILED | HUNK_MATCH_COUNT_MISMATCH | SKIPPED |
+| **Neg: Boundary** | `71a50370` | FAILED | OUTSIDE_SCOPE_PATHS | SKIPPED |
+| **Neg: Match>1** | `dfb3279f` | FAILED | HUNK_MATCH_COUNT_MISMATCH | SKIPPED |
+
+### 3.3 Ledger Evidence (Sorted by Path)
+
+| Artifact Path | SHA256 |
+|---------------|--------|
+| `artifacts/ledger/dl_doc/2026-01-06_neg_test_58338342.yaml` | `F7322365E48B2D13881A41628EAC77652E9A8653697A142E269E23472AF94CCF` |
+| `artifacts/ledger/dl_doc/2026-01-06_neg_test_boundary_71a50370.yaml` | `D6AF32FEBB1E6BAE1D4C18EE308D97B10D7CE5CDBC341900BE12AA3C67B00B8F` |
+| `artifacts/ledger/dl_doc/2026-01-06_neg_test_multi_dfb3279f.yaml` | `2CBEBA995941BE7B52BF3D39431845B58C686B92B30C606FFC06AC26B312C610` |
+| `artifacts/ledger/dl_doc/2026-01-06_smoke_test_7a7c1afa.yaml` | `A4C2B4704786A20F5B253B79D13DA13EF8172C8555676F7267BD978DCB2CC67B` |
+| `artifacts/ledger/dl_doc/2026-01-06_smoke_test_7a7c1afa_findings.yaml` | `60CAA0B8B8411F95AAC42ABD5929D18744770D1E82292E789A25F8DE50E981E7` |
+
+### 3.4 Fail-Closed Proof
+
+**Match-Count = 0 (neg_test_58338342):**
+- Result: `FAILED` with `HUNK_MATCH_COUNT_MISMATCH`
+- Hunk error: Search block not found in file
+
+**Match-Count > 1 (neg_test_multi_dfb3279f):**
+- Result: `FAILED` with `HUNK_MATCH_COUNT_MISMATCH`
+- Hunk error: "Match count mismatch - found 17, expected 1"
+- Ledger fields: `match_count_found: 17`, `match_count_expected: 1`
+
+**Boundary Violation (neg_test_boundary_71a50370):**
+- Result: `FAILED` with `OUTSIDE_SCOPE_PATHS`
 
 ---
 
-## 5. RECOMMENDATION
+## 4. CONSTITUTIONAL ARTIFACTS
 
-**GO** for Activation. 
-The pipeline is now audit-grade, fail-closed, and deterministic. The interfaces are constitutionalized and ready for governance ratification.
+| Artifact | Location |
+|----------|----------|
+| Constitution | `docs/01_governance/DOC_STEWARD_Constitution_v1.0.md` |
+| Protocol | `docs/02_protocols/Document_Steward_Protocol_v1.0.md` |
+| Orchestrator | `scripts/delegate_to_doc_steward.py` |
+| Verifier | `runtime/verifiers/doc_verifier.py` |
+
+---
+
+## 5. ACTIVATION ENVELOPE
+
+| Category | Missions | Status |
+|----------|----------|--------|
+| **ACTIVATED** | `INDEX_UPDATE` | Live (`apply_writes=false` default) |
+| **RESERVED** | `CORPUS_REGEN`, `DOC_MOVE` | Non-authoritative; requires separate CT-2 |
+
+---
+
+## 6. RECOMMENDATION
+
+**GO for G3 Activation** — INDEX_UPDATE mission only.
+
+---
+
+**END OF PACKET**

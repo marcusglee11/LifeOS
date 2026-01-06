@@ -2,6 +2,14 @@
 
 ## Now (ready soon; not in WIP yet)
 
+### P0 (Critical)
+- [ ] **G-CBS v1.0: Implement closure_manifest + validate_closure_bundle + build_closure_bundle** — DoD: validator PASS on A1/A2 — Owner: antigravity
+- [ ] **G-CBS Invariant: Max 2 closure cycles then WAIVER or BLOCKED** — DoD: Hardcoded limit enforced — Owner: antigravity
+- [ ] **G-CBS: Enforce no forbidden tokens in closure artefacts** — DoD: Scan for ellipses, PENDING, TBD, TODO — Owner: antigravity
+
+### P1 (High)
+- [ ] **Re-close A1/A2 using G-CBS** — DoD: Convert or rerun cleanly; replace waiver with strict PASS — Owner: antigravity
+- [ ] **Standardize raw capture primitive** — DoD: cmd redirection + explicit exitcode file + hashes as reusable helper — Owner: antigravity
 
 ## Next (valuable, but not imminent)
 - [ ] **Reactive Layer Hygiene: Tighten Canonical JSON** — DoD: Require explicit escape sequence for non-ASCII input (no permissive fallback) — Owner: antigravity

@@ -1,5 +1,5 @@
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-06 08:20
+**Generated:** 2026-01-07 00:26
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -2725,7 +2725,7 @@ LifeOS Governance Council
 
 ---
 
-# File: 01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md
+# File: 01_governance/Antigravity_Council_Review_Packet_Spec_v1.1.md
 
 *[Reference Pointer: See full text in Universal Corpus for implementation details]*
 
@@ -2918,6 +2918,73 @@ The following are now **canonical and active**:
 - **Readiness**: READY
 - **stdout_hash**: sha256:a0b00e8ac9549022686eba81e042847cf821f0b8f51a2266316e9fa0f8516f97
 - **stderr_hash**: sha256:08ec8d0ea8421750fad9981494f38ac9dbb9f38d1f5f381081b068016b928636
+
+---
+
+**END OF RULING**
+
+
+---
+
+# File: 01_governance/Council_Ruling_Core_TDD_Principles_v1.0.md
+
+# Council Ruling: Core TDD Design Principles v1.0 — APPROVED
+
+**Ruling**: GO (Activation-Canonical)  
+**Date**: 2026-01-06  
+**Artefacts Under Review**: Bundle_TDD_Hardening_Enforcement_v1.3.zip  
+**Trigger Class**: CT-2 (Governance Protocol) + CT-3 (Enforcement Scanner)
+
+---
+
+## Council Composition
+
+| Role | Verdict |
+|------|---------|
+| Chair | GO |
+| System Architect | GO |
+| Governance / Alignment | GO |
+| Risk / Security | GO |
+| Lead Developer / QA | GO |
+
+---
+
+## Closed Items
+
+1. **Envelope SSoT Split-Brain (P0)**: Resolved — Allowlist externalized to `tdd_compliance_allowlist.yaml` with integrity lock
+2. **Determinism Optionality (P1)**: Resolved — "(if enabled)" removed; CI MUST run twice unconditionally
+3. **Zip Path Separators (P0)**: Resolved — POSIX forward slashes in v1.2+
+4. **Helper Ambiguity (P0)**: Resolved — Strict pinned-clock interface definition
+
+---
+
+## Non-Blocking Notes (Captured for Hygiene)
+
+| Source | Note | Status |
+|--------|------|--------|
+| Architect | Filesystem I/O policy clarified | Addressed |
+| Governance | Envelope Policy added as governance-controlled surface | Addressed |
+| Testing | Dynamic detection (exec/eval/__import__) added | Addressed |
+
+---
+
+## Activation Status
+
+The following are now **canonical and active**:
+
+- `docs/02_protocols/Core_TDD_Design_Principles_v1.0.md` — **CANONICAL**
+- `tests_doc/test_tdd_compliance.py` — Enforcement scanner
+- `tests_doc/tdd_compliance_allowlist.yaml` — Governance-controlled allowlist
+- `tests_doc/tdd_compliance_allowlist.lock.json` — Integrity lock
+
+---
+
+## Evidence
+
+- **Bundle**: `Bundle_TDD_Hardening_Enforcement_v1.3.zip`
+- **Bundle SHA256**: `75c41b2a4f9d95341a437f870e45901d612ed7d839c02f37aa2965a77107981f`
+- **pytest**: 12 passed (enforcement self-tests)
+- **Allowlist SHA256**: `d33c0d79695675d97dbcd2684321bf6587db6197f791be7c134ea0bbfb3f41c9`
 
 ---
 
@@ -3134,6 +3201,9 @@ Changes to this constitution require:
 - [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md)
 - [Tier1_Tier2_Activation_Ruling_v0.2.md](./Tier1_Tier2_Activation_Ruling_v0.2.md) (Active)
 - [Council_Review_Stewardship_Runner_v1.0.md](./Council_Review_Stewardship_Runner_v1.0.md) (Approved)
+
+### Sign-Offs (Closed Amendments)
+- [AUR_20260105 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)
 
 
 
@@ -3954,7 +4024,10 @@ All artifacts **MUST** follow these naming patterns:
 
 **Rules:**
 - Topic/Mission names use PascalCase or snake_case
-- Version follows semver (`X.Y` for drafts, `X.Y.Z` for releases)
+- **Sequential Versioning Only:** v1.0 → v1.1 → v1.2. Never skip numbers.
+- **No Overwrites:** Always create a new file for a new version.
+- **No Suffixes:** Do NOT add adjectives or descriptors (e.g., `_Final`, `_Updated`) to the filename.
+- **Strict Pattern:** `[Type]_[Topic]_v[Major].[Minor].md`
 - No spaces in filenames
 
 ---
@@ -4117,12 +4190,12 @@ To add a new artifact type:
 
 ---
 
-# File: 02_protocols/Build_Handoff_Protocol_v1.0.md
+# File: 02_protocols/Build_Handoff_Protocol_v1.1.md
 
-# Build Handoff Protocol v1.0
+# Build Handoff Protocol v1.1
 
-**Version**: 1.0  
-**Date**: 2026-01-04  
+**Version**: 1.1  
+**Date**: 2026-01-06  
 **Status**: Active  
 **Authority**: [LifeOS Constitution v2.0](../00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -4150,35 +4223,44 @@ Defines the messaging architecture for agent-to-agent handoffs in LifeOS build c
 
 ---
 
-## 3. Context Retrieval Loop
+## 3. Context Retrieval Loop (Packet-Based)
 
-```
-1. CEO attaches LIFEOS_STATE.md, asks normally
-2. IF more context needed:
-   → ChatGPT outputs: "Generate Context Pack for <role> regarding <component>"
-3. CEO pastes to Builder
-4. Builder returns Context Pack
-5. CEO attaches pack to ChatGPT
-6. ChatGPT proceeds
-```
+The ad-hoc "Generate Context Pack" prompt is replaced by a canonical packet flow (P1.1).
+
+**Trigger**: Agent (Architect/Builder) determines missing info.
+
+**Flow**:
+1. **Agent** emits `CONTEXT_REQUEST_PACKET`:
+   - `requester_role`: ("Builder")
+   - `topic`: ("Authentication")
+   - `query`: ("Need auth schemas and user implementation")
+2. **CEO** conveys packet to Builder/Architect (Mode 0) or routes automatically (Mode 2).
+3. **Responder** (Builder/Architect) emits `CONTEXT_RESPONSE_PACKET`:
+   - `request_packet_id`: (matches Request)
+   - `repo_refs`: List of relevant file paths + summaries.
+4. **Agent** ingestion:
+   - "ACK loaded context <packet_id>."
+
+**Constraint**: NO internal prompts. All context requests must be structural packets.
+
 
 ---
 
-## 4. Packet Schemas
+## 4. Packet Types (Canonical)
 
-### 4.1 ARCHITECT_CONTEXT_PACKET
-- `component_human_name`, `workstream_slug` (internal)
-- `goal_summary` (≤5 lines), `constraints` (≤12), `success_criteria` (≤10)
-- `state_ref`, `recent_work_refs` (≤5), `required_templates_refs` (≤5)
-- `context_ttl_hours`: 72h default
+All packet schemas are defined authoritatively in [lifeos_packet_schemas_v1.1.yaml](lifeos_packet_schemas_v1.1.yaml).
+This protocol utilizes:
 
-### 4.2 BUILDER_CONTEXT_PACKET
-- `state_ref`, `architect_context_ref`, `readiness_ref`, `last_review_packet_ref`
-- `constraints_summary` (≤10), `success_criteria` (≤5)
+### 4.1 CONTEXT_REQUEST_PACKET
+- Used when an agent needs more information from the repository.
+- Replaces ad-hoc "Generate Context" prompts.
 
-### 4.3 COUNCIL_REVIEW_PACKET
-- `artefact_under_review_ref`, `trigger_reasons`
-- `required_decision_questions` (≤5)
+### 4.2 CONTEXT_RESPONSE_PACKET
+- Returns the requested context (files, summaries, or prior packets).
+- Replaces ad-hoc context dumps.
+
+### 4.3 HANDOFF_PACKET
+- Used to transfer control and state between agents (e.g. Architect -> Builder).
 
 ---
 
@@ -4222,19 +4304,27 @@ Defines the messaging architecture for agent-to-agent handoffs in LifeOS build c
 
 ## 9. TTL and Staleness
 
-- Default: 72 hours
-- Council extension: until outcome (max +72h)
-- Stale: BLOCK by default
+- Defined by:
+| Resource | Path |
+|----------|------|
+| **Canonical Schema** | `docs/02_protocols/lifeos_packet_schemas_v1.1.yaml` |
+| Templates | `docs/02_protocols/lifeos_packet_templates_v1.yaml` |
+- Default TTL: 72h.
+- Stale: BLOCK by default.
 
 ---
 
 ## 10. Workstream Resolution
 
-Via `artifacts/workstreams.yaml`:
-1. Exact match on `component_human_name`
-2. Alias match
-3. Slugify + add as PROVISIONAL
-4. BLOCK only on true ambiguity
+**Zero-Friction Rule**: CEO provides loose "human intent" strings. Agents MUST resolve these to strict internal IDs.
+
+Resolution Logic (via `artifacts/workstreams.yaml` or repo scan):
+1. Exact match on `human_name`
+2. Fuzzy/Alias match
+3. Create PROVISIONAL entry if ambiguous
+4. BLOCK only if resolution is impossible without input.
+
+**CEO MUST NEVER be asked for a `workstream_slug`.**
 
 ---
 
@@ -4251,9 +4341,9 @@ At mission completion, Builder MUST:
 
 2. **Manifest**: Create `artifacts/bundles/MANIFEST.md` listing bundle contents
 
-3. **Copy to CEO Pickup**: Copy deliverables to `artifacts/for_ceo/` for easy access
-
-4. **Delivery**: Provide CEO:
+3. **Copy to CEO Pickup (MANDATORY)**: You MUST copy the BUNDLE and the REVIEW PACKET to `artifacts/for_ceo/`.
+   - The CEO should NOT have to hunt in `artifacts/bundles/` or `artifacts/review_packets/`.
+   - The `artifacts/for_ceo/` directory is the **primary delivery interface**.
    - PathsToReview in notify_user (preview pane)
    - Raw copyable path in message text:
      ```
@@ -4268,7 +4358,143 @@ CEO clears `artifacts/for_ceo/` after pickup. Agent MUST NOT delete from this fo
 
 ---
 
+## Changes in v1.1
+- **Schema Unification**: Removed shadow schemas in Section 4; referenced `lifeos_packet_schemas_v1.1.yaml`.
+- **Context Canonicalization**: Adopted `CONTEXT_REQUEST` / `CONTEXT_RESPONSE` packets.
+- **Zero Friction**: Removed requirement for internal IDs in Section 10; strictly enforced agent-side resolution.
+
+---
+
 **END OF PROTOCOL**
+
+
+---
+
+# File: 02_protocols/Core_TDD_Design_Principles_v1.0.md
+
+# Core Track — TDD Design Principles v1.0
+
+**Status**: CANONICAL (Council Approved 2026-01-06)
+**Effective**: 2026-01-06
+**Purpose**: Define strict TDD principles for Core-track deterministic systems to ensure governance and reliability.
+
+---
+
+## 1. Purpose & Scope
+
+This protocol establishes the non-negotiable Test-Driven Development (TDD) principles for the LifeOS Core Track. 
+
+The primary goal is **governance-first determinism**: tests must prove that the system behaves deterministically within its allowed envelope, not just that it "works".
+
+### 1.1 Applies Immediately To
+Per `LIFEOS_STATE.md` (Reactive Planner v0.2 / Mission Registry v0.2 transition):
+- `runtime/mission` (Tier-2)
+- `runtime/reactive` (Tier-2.5)
+
+### 1.2 Deterministic Envelope Definition (Allowlist)
+The **Deterministic Envelope** is the subset of the repository where strict determinism (no I/O, no unpinned time/randomness) is enforced.
+
+*   **Mechanism**: An explicit **Allowlist** defined in the Enforcement Test configuration (`tests_doc/test_tdd_compliance.py`).
+*   **Ownership**: Changes to the allowlist (adding new roots) require **Governance Review** (Council or Tier ratification).
+*   **Fail-Closed**: If a module's status is ambiguous, it is assumed to be **OUTSIDE** the envelope until explicitly added; however, Core Track modules MUST be inside the envelope to reach `v0.x` milestones.
+
+### 1.3 Envelope Policy
+The Allowlist is a **governance-controlled policy surface**.
+- It MUST NOT be modified merely to make tests pass.
+- Changes to the allowlist require governance review consistent with protected document policies.
+
+### 1.4 I/O Policy
+- **Network I/O**: Explicitly **prohibited** within the envelope.
+- **Filesystem I/O**: Permitted only via deterministic, explicit interfaces approved by the architecture board. Direct `open()` calls are discouraged in logic paths.
+
+---
+
+## 2. Definitions
+
+| Term | Definition |
+|------|------------|
+| **Invariant** | A condition that must ALWAYS be true, regardless of input or state. |
+| **Oracle** | The single source of truth for expected behavior. Ideally a function `f(input) -> expected`. |
+| **Golden Fixture** | A static file containing the authoritative expected output (byte-for-byte) for a given input. |
+| **Negative-Path Parity** | Tests for failure modes must be as rigorous as tests for success paths. |
+| **Regression Test** | A test case explicitly added to reproduce a bug before fixing it. |
+| **Deterministic Envelope** | The subset of code allowed to execute without side effects (no I/O, no randomness, no wall-clock time). |
+
+---
+
+## 3. Principles (The Core-8)
+
+### a) Boundary-First Tests
+Write tests that verify the **governance envelope** first. Before testing logic, verify the module does not import restricted libraries (e.g., `requests`, `time`) or access restricted state.
+
+### b) Invariants over Examples
+Prefer property-based tests (invariant-style) or exhaustive assertions over single examples.
+*   **Determinism Rule**: Property-based tests are allowed **only with pinned seeds / deterministic example generation**; otherwise forbidden in the envelope.
+*   *Bad*: `assert add(1, 1) == 2`
+*   *Good*: `assert add(a, b) == add(b, a)` (Commutativity Invariant)
+
+### c) Meaningful Red Tests
+A test must fail (Red) for the **right reason** before passing (Green). A test that fails due to a syntax error does not count as a "Red" state.
+
+### d) One Contract → One Canonical Oracle
+Do not split truth. If a function defines a contract, there must be **exactly one** canonical oracle (reference implementation or golden fixture) used consistently. Avoid "split-brain" verification logic.
+
+### e) Golden Fixtures for Deterministic Artefacts
+For any output that is serialized (JSON, YAML, Markdown), use **Golden Fixtures**.
+- **Byte-for-byte matching**: No fuzzy matching.
+- **Stable Ordering**: All lists/keys must be sorted (see §5).
+
+### f) Negative-Path Parity
+For every P0 invariant, there must be a corresponding negative test proving the system rejects violations.
+*Example*: If `Input` must be `< 10`, test `Input = 10` rejects, not just `Input = 5` accepts.
+
+### g) Regression Test Mandatory
+Every fix requires a pre-fix failing test case. **No fix without reproduction.**
+
+### h) Deterministic Harness Discipline
+Tests must run primarily in the **Deterministic Harness**.
+- **No Wall-Clock**: Only `runtime.tests.conftest.pinned_clock` is allowed (or the repo's canonical pinned-clock helper). Direct calls to `time.time`, `datetime.now`, `time.monotonic`, etc., are prohibited. Equivalent means: all time sources route through a pinned-clock interface whose `now()`/`time()` is fixed by test fixture.
+- **No Randomness**: Use seeded random helpers. Usage of `random` (unseeded), `uuid.uuid4`, `secrets`, or `numpy.random` is prohibited.
+- **No Network**: Network calls must be mocked or forbidden.
+
+---
+
+## 4. Core TDD DONE Checklist
+
+No functionality is "DONE" until:
+
+- [ ] **Envelope Verified**: Code does not violate import restrictions (verified by `test_tdd_compliance.py`).
+- [ ] **Golden Fixtures Updated**: Serialization changes are captured in versioned fixtures.
+- [ ] **Negative Paths Covered**: Error handling is explicitly tested.
+- [ ] **Determinism Proven**: CI runs the suite twice with randomized order (if enabled) and fixed seeds; both runs must match exactly (or manual verification if CI support is pending).
+- [ ] **Strict CI Pass**: Test suite passes strictly (no flakes allowed as "done").
+
+---
+
+## 5. Stable Ordering Rule
+
+Unless otherwise specified by a schema:
+- **Keys in Dicts/JSON**: Lexicographic sort (`A-Z`).
+- **Lists/Arrays**: Stable sort by primary key or value.
+- **Files/Paths**: Lexicographic sort by full path.
+- **Serialization**: Output encoding must be **UTF-8**; newlines must be normalized to **LF** before hashing.
+
+**Rationale**: Ensures generated artifacts (hashes, diffs) are deterministic across platforms.
+
+---
+
+## 6. Enforcement
+
+Violations of Principle (h) (Determinism) are enforced by `tests_doc/test_tdd_compliance.py`.
+
+The scanner **MUST** only inspect the **Deterministic Envelope allowlist** (defined in §1.2). It **MUST NOT** scan the whole repo.
+
+**Prohibited Surface (Minimum Set)**:
+- Time: `time.time`, `time.monotonic`, `time.perf_counter`, `datetime.now`, `datetime.utcnow`, `date.today`
+- Random: `random` (module), `uuid.uuid4`, `secrets`, `numpy.random`
+- I/O: `import requests`, `import urllib`, `import socket`
+
+**End of Protocol**
 
 
 ---
@@ -4907,13 +5133,13 @@ Return to Gate 0, regenerate plan deterministically.
 
 ---
 
-# File: 02_protocols/Document_Steward_Protocol_v1.0.md
+# File: 02_protocols/Document_Steward_Protocol_v1.1.md
 
-# Document Steward Protocol v1.0
+# Document Steward Protocol v1.1
 
 **Status**: Active  
 **Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
-**Effective**: 2026-01-01
+**Effective**: 2026-01-06
 
 ---
 
@@ -5131,84 +5357,363 @@ If sync requires more than 2 human steps, the workflow must be automated.
 
 ---
 
-## 10. Automated Stewardship Interface (Agent Delegation)
+## 10. Automated Stewardship Interface (Canonical Packet)
 
-When document stewardship is delegated to an automated agent (e.g., OpenCode via orchestrator), the following additional requirements apply.
+The **primary interface** for automated stewardship is now the **DOC_STEWARD_REQUEST_PACKET**.
 
-### 10.0 Activation Envelope
+### 10.1 Interaction Flow
+1. **Orchestrator** emits `DOC_STEWARD_REQUEST_PACKET` (defined in `lifeos_packet_schemas_v1.1.yaml`).
+2. **Doc Steward** processes the request (Index update, Corpus regen, etc.).
+3. **Doc Steward** emits `DOC_STEWARD_RESULT` (embedded in payload or as a generic Result packet).
 
-> [!IMPORTANT]
-> Only missions listed under **ACTIVATED** are authorized for autonomous execution.
-
-| Category | Missions | Status |
-|----------|----------|--------|
-| **ACTIVATED** | `INDEX_UPDATE` | Live (`apply_writes=false` default) |
-| **RESERVED** | `CORPUS_REGEN`, `DOC_MOVE` | Non-authoritative; requires CT-2 activation |
-
-**Boundary Enforcement (Fail-Closed):**
-1. If file outside `allowed_paths` → ERROR: `OUTSIDE_ALLOWED_PATHS`
-2. Else if file outside `scope_paths` → ERROR: `OUTSIDE_SCOPE_PATHS`
-3. Both orchestrator AND verifier enforce this.
-
-### 10.1 Packet Taxonomy
-
-**DOC_STEWARD_REQUEST**: Orchestrator → Agent
-- `mission_type`: INDEX_UPDATE | CORPUS_REGEN | DOC_MOVE
-- `scope_paths`: Files in scope
-- `input_refs`: List of `{path, sha256}` for audit
-- `constraints`: mode, allowed_paths, forbidden_paths, max_files
-
-**DOC_STEWARD_RESULT**: Agent → Orchestrator
-- `status`: SUCCESS | PARTIAL | FAILED
-- `reason_code`: SUCCESS | PARSE_ERROR | HUNK_APPLICATION_FAILED | API_UNREACHABLE
-- `files_modified`: List with before/after/diff hashes and hunk_errors
-- `proposed_diffs`: Generated unified diff content
-
-### 10.2 Structured Patch List Interface
-
-The agent responds with a JSON object containing `hunks` (search/replace blocks):
-```json
-{
-  "status": "SUCCESS",
-  "files_modified": [
-    {
-      "path": "docs/INDEX.md",
-      "change_type": "MODIFIED",
-      "hunks": [
-        {"search": "old text", "replace": "new text"}
-      ]
-    }
-  ],
-  "summary": "Description"
-}
-```
-
-The **orchestrator** (not the agent) converts these hunks to a valid unified diff.
+### 10.2 Legacy Support (Structured Patch List)
+The Structured Patch List format (Section 3.1-3.2 of v1.0) is maintained as the internal payload structure but must be wrapped in the canonical packet envelope.
 
 ### 10.3 Ledger Topology (DL_DOC)
-
 All automated stewardship runs are recorded in `artifacts/ledger/dl_doc/`:
 - Filename pattern: `YYYY-MM-DD_<trial_type>_<case_id>.yaml`
-- Contains: request, result, verifier_outcome
-- Findings truncation: If findings exceed inline limit, store in `*_findings.yaml` with `findings_ref_sha256`
+- Contains: Full Packet content + Verifier Outcome.
 
-### 10.4 Verification Requirements
+---
 
-1. **Fail-closed hunk application**: If any search block is not found, the run FAILS
-2. **Post-change temp apply**: `git apply` must succeed in temp workspace
-3. **Hash chain**: before_sha256 → diff_sha256 → after_sha256 must be deterministically derivable
-
-### 10.5 Reference Documents
-
-- Role Constitution: `docs/01_governance/DOC_STEWARD_Constitution_v1.0.md`
-- Orchestrator Implementation: `scripts/delegate_to_doc_steward.py`
-- Verifier Implementation: `runtime/verifiers/doc_verifier.py`
+## Changes in v1.1
+- **Canonical Packets**: Adopted `DOC_STEWARD_REQUEST_PACKET` as primary interface.
+- **Envelope Wrapping**: Legacy Structured Patch List JSON must be wrapped in canonical envelope.
 
 ---
 
 **END OF PROTOCOL**
 
 
+---
+
+# File: 02_protocols/G-CBS_Standard_v1.0.md
+
+# Generic Closure Bundle Standard (G-CBS) v1.0
+
+| Field | Value |
+|-------|-------|
+| **Version** | 1.0 |
+| **Date** | 2026-01-06 |
+| **Author** | Antigravity |
+| **Status** | DRAFT |
+| **Governance** | CT-2 Council Review Required for Activation |
+
+---
+
+## 1. Overview
+
+The Generic Closure Bundle Standard (G-CBS) defines the schema, validation rules, and attestation model for closure bundles in LifeOS. Closure bundles provide auditable, deterministic evidence packages for step gates, council rulings, and other governance actions.
+
+**Authority:** This protocol becomes binding when (1) approved via CT-2 council review and (2) listed in `docs/01_governance/ARTEFACT_INDEX.json`.
+
+---
+
+## 2. Detached Digest Mode
+
+### 2.1 Purpose
+
+Detached digest mode resolves circular dependencies when the validator transcript is embedded inside the bundle it validates.
+
+### 2.2 Marker
+
+**Manifest Field:** `zip_sha256`
+**Detached Value:** `"DETACHED_SEE_SIBLING_FILE"`
+
+When this marker is present, container integrity is attested by an external sidecar file.
+
+### 2.3 Sidecar Specification
+
+| Aspect | Requirement |
+|--------|-------------|
+| **Naming** | `<bundle_filename>.sha256` (e.g., `Bundle_v1.0.zip.sha256`) |
+| **Content** | `<lowercase_hex_sha256>  <filename>` (two-space separator) |
+| **Encoding** | UTF-8, LF line endings |
+| **Location** | Same directory as bundle |
+
+**Example:**
+```
+a1b2c3d4e5f6...  Bundle_v1.0.zip
+```
+
+### 2.4 Validator Requirements
+
+| Condition | Behavior |
+|-----------|----------|
+| Sidecar missing | FAIL: `E_DIGEST_SIDECAR_MISSING` |
+| Sidecar malformed | FAIL: `E_DIGEST_SIDECAR_MALFORMED` |
+| Hash mismatch | FAIL: `E_DIGEST_MISMATCH` |
+| Hash match | Print: `Sidecar digest verified: <sha256>` |
+
+### 2.5 Backward Compatibility
+
+If `zip_sha256` contains an actual hash (not the detached marker), the validator computes and compares directly (embedded mode). Embedded mode is DEPRECATED for new bundles.
+
+---
+
+## 3. Two-Part Attestation Model
+
+### 3.1 Overview
+
+G-CBS separates attestation into two distinct claims to eliminate circularity:
+
+| Attestation | What is Validated | Evidence |
+|-------------|-------------------|----------|
+| **Payload Compliance** | Evidence files per manifest | Embedded transcript |
+| **Container Integrity** | Shipped ZIP bytes | Detached sidecar |
+
+### 3.2 Payload Compliance Attestation
+
+**Domain:** All evidence files listed in `closure_manifest.json`
+**Checks:**
+- Schema validity
+- Evidence SHA256 match
+- Profile-specific rules
+- Forbidden token scan
+
+**Evidence Role:** `validator_payload_pass`
+
+The embedded transcript MUST NOT claim to validate the final ZIP bytes (that's container integrity).
+
+### 3.3 Container Integrity Attestation
+
+**Domain:** Shipped ZIP file bytes
+**Evidence:** Sidecar digest verification
+**Validator Output:**
+```
+Detached digest mode: true
+Sidecar digest path: <path>
+Sidecar digest verified: <sha256>
+```
+
+---
+
+## 4. Evidence Roles
+
+### 4.1 Required Role
+
+| Role | Description | Status |
+|------|-------------|--------|
+| `validator_payload_pass` | Payload compliance attestation | **REQUIRED** |
+
+### 4.2 Legacy Role (Compatibility Window)
+
+| Role | Description | Status |
+|------|-------------|--------|
+| `validator_final_shipped` | Legacy role | DEPRECATED |
+
+**Compatibility Policy:**
+- G-CBS v1.0: Accept both roles; emit warning for legacy
+- G-CBS v1.1+: Reject `validator_final_shipped` with `E_ROLE_DEPRECATED`
+
+### 4.3 Validator Behavior
+
+```
+IF neither role present:
+  → E_REQUIRED_EVIDENCE_MISSING (exit 1)
+
+IF validator_final_shipped AND gcbs_version < 1.1:
+  → WARN: "Deprecated role, use validator_payload_pass"
+
+IF validator_final_shipped AND gcbs_version >= 1.1:
+  → E_ROLE_DEPRECATED (exit 1)
+
+IF validator_payload_pass:
+  → Accept (no warning)
+```
+
+---
+
+## 5. Provenance Fields
+
+### 5.1 Required Manifest Fields
+
+| Field | Description |
+|-------|-------------|
+| `activated_protocols_ref` | Repo-relative path to `ARTEFACT_INDEX.json` |
+| `activated_protocols_sha256` | SHA-256 of raw file bytes (uppercase hex) |
+| `gcbs_standard_version` | Version of this standard (e.g., `"1.0"`) |
+
+### 5.2 Optional Fields
+
+| Field | Description |
+|-------|-------------|
+| `gcbs_standard_ref` | Path to this document |
+| `validator_version` | Validator script version |
+
+### 5.3 Validation
+
+| Condition | Behavior |
+|-----------|----------|
+| `gcbs_standard_version` missing | FAIL: `E_GCBS_STANDARD_VERSION_MISSING` |
+| `activated_protocols_sha256` mismatch | FAIL: `E_PROTOCOLS_PROVENANCE_MISMATCH` |
+
+---
+
+## 6. Validator Output Contract
+
+### 6.1 Deterministic Stdout Lines
+
+On detached digest mode success:
+```
+Detached digest mode: true
+Sidecar digest path: <path>
+Sidecar digest verified: <sha256>
+```
+
+On payload compliance success:
+```
+Payload compliance: PASS
+Evidence roles verified: [validator_payload_pass]
+```
+
+### 6.2 Audit Report
+
+| Mode | Bundle Hash Field |
+|------|-------------------|
+| Detached | `**Digest Strategy**: Detached (Sidecar Verified)` |
+| Embedded (deprecated) | `**Bundle SHA256**: <hash>` |
+
+---
+
+## 7. Deterministic Error Codes
+
+| Code | Condition | Message |
+|------|-----------|---------|
+| `E_DIGEST_SIDECAR_MISSING` | Sidecar file not found | `Sidecar not found: {path}` |
+| `E_DIGEST_SIDECAR_MALFORMED` | Invalid sidecar format | `Malformed sidecar: {detail}` |
+| `E_DIGEST_MISMATCH` | Expected vs actual mismatch | `Digest mismatch` |
+| `E_REQUIRED_EVIDENCE_MISSING` | No valid payload role | `Missing evidence: {role}` |
+| `E_ROLE_DEPRECATED` | Legacy role after cutoff | `Deprecated role: {role}` |
+| `E_GCBS_STANDARD_VERSION_MISSING` | No gcbs_standard_version | `Missing: gcbs_standard_version` |
+| `E_PROTOCOLS_PROVENANCE_MISMATCH` | Index hash mismatch | `Provenance mismatch: {detail}` |
+
+---
+
+## 8. Amendment
+
+### 8.1 Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 2026-01-06 | Initial release |
+
+### 8.2 Future Versions
+
+- **v1.1:** Reject `validator_final_shipped` role (cutoff anchor)
+
+---
+
+*This protocol was created under LifeOS governance. Changes require Council review (CT-2).*
+
+
+---
+
+# File: 02_protocols/Packet_Schema_Versioning_Policy_v1.0.md
+
+# Packet Schema Versioning Policy v1.0
+
+**Status**: Active  
+**Authority**: [Governance Protocol v1.0](../01_governance/Governance_Protocol_v1.0.md)  
+**Date**: 2026-01-06
+
+---
+
+## 1. Purpose
+Defines the semantic versioning and amendment rules for `lifeos_packet_schemas`.
+
+## 2. Versioning Scheme (SemVer)
+Format: `MAJOR.MINOR.PATCH`
+
+### MAJOR (Breaking)
+Increment when:
+- Removing a field that was previously required.
+- Renaming a field.
+- Removing an enum value.
+- Removing a packet type.
+- Changing validation logic to be strictly more restrictive (e.g. decreasing max payload).
+
+**Migration**: Requires a migration map and potentially a validator update to flag deprecated usage.
+
+### MINOR (Additive)
+Increment when:
+- Adding a new optional field.
+- Adding a new enum value.
+- Adding a new packet type.
+- Relaxing validation logic.
+
+**Compatibility**: Backward compatible. Old validators may warn on "unknown field" (if strict) or ignore it.
+
+### PATCH (Fixes)
+Increment when:
+- Updating descriptions/comments.
+- Fixing typos.
+- Adding non-normative examples.
+
+**Compatibility**: Fully compatible.
+
+## 3. Amendment Process
+
+1. **Proposal**: Submit a `COUNCIL_REVIEW_PACKET` (Governance) with the proposed schema change.
+2. **Review**: Council evaluates impact on existing agents/tooling.
+3. **Approval**: `COUNCIL_APPROVAL_PACKET` authorizes the merge.
+4. **Merge**:
+   - Update `lifeos_packet_schemas_vX.Y.yaml`.
+   - Update `Packet_Schema_Versioning_Policy` (if policy itself changes).
+   - Bump version number in the schema file header.
+
+## 4. Deprecation Policy
+- Deprecated fields/types must be marked with `# DEPRECATED: <Reason>`.
+- Must remain valid for at least one MAJOR cycle unless critical security flaw exists.
+
+---
+**END OF POLICY**
+
+
+---
+
+# File: 02_protocols/Test_Protocol_v1.0.md
+
+# Test Protocol
+## Purpose
+Testing.
+
+
+---
+
+# File: 02_protocols/Test_Protocol_v2.0.md
+
+# Test Protocol v2.0
+
+## Purpose
+Defines the canonical testing protocol for LifeOS components, ensuring determinism, evidence integrity, and governance-aligned verification across tiers.
+
+## Scope
+Applies to all automated and semi-automated tests executed within the LifeOS repository, including CI, certification, and audit gates.
+
+## Principles
+- Determinism over stochastic validation
+- Evidence-first execution
+- Reproducibility as a hard requirement
+- Governance-aligned pass/fail semantics
+
+## Protocol Steps
+1. **Preconditions**: Validate environment invariants and approved entrypoints.
+2. **Execution**: Run tests using approved runners and fixed seeds where applicable.
+3. **Evidence Capture**: Persist logs, artifacts, and hashes to the evidence ledger.
+4. **Verification**: Apply validator rulesets corresponding to the active tier.
+5. **Outcome Declaration**: Emit PASS/FAIL with immutable references.
+
+## Failure Handling
+- Any non-deterministic outcome is an automatic FAIL.
+- Partial execution is invalid.
+- Missing evidence invalidates results.
+
+## Versioning
+This document is versioned. Superseded versions remain authoritative for historical audits.
+
+## Authority
+This protocol is subordinate to Council rulings and the LifeOS governance framework.
 
 
 ---
@@ -5473,6 +5978,56 @@ F2 is complete when:
 4) Deprecation warnings flag and event format (Section 6.2) are standardized.
 5) Schema versioning rules (Section 9) are applied to all Protected result/evidence serializers moving forward.
 6) Compatibility test matrix fixtures + tests (Section 11) exist and run in CI.
+
+
+---
+
+# File: 02_protocols/VALIDATION_IMPLEMENTATION_NOTES.md
+
+# Validation Implementation Notes (v1.1)
+
+## 1. Canonical Packet Hashing (Lineage Verification)
+
+To verify `COUNCIL_APPROVAL_PACKET` -> `COUNCIL_REVIEW_PACKET` lineage:
+
+1.  **Extract Packet Data**:
+    *   Parse YAML or Markdown Frontmatter into a Python Dictionary.
+2.  **Canonicalize**:
+    *   Re-serialize the dictionary to a JSON-compatible YAML string.
+    *   **Rules**:
+        *   `sort_keys=True` (Deterministic field ordering)
+        *   `allow_unicode=True` (UTF-8 preservation)
+        *   `width=Infinity` (No wrapping/newlines for structure)
+3.  **Hash**:
+    *   Apply `SHA-256` to the UTF-8 encoded bytes of the canonical string.
+4.  **Verify**:
+    *   The `subject_hash` in the Approval packet MUST match this calculated hash.
+
+## 2. Validation Logic
+*   **Schema-Driven**: The validator loads rules (limits, taxonomy, payload requirements, signature policy) from `docs/02_protocols/lifeos_packet_schemas_v1.1.yaml` at runtime.
+*   **Fail-Closed**: Any unknown field, schema violation, or security check failure exits with a non-zero code.
+*   **Bundle Validation**: Iterates all files, validates each individually, checks for nonce collisions (Replay), and verifies hash linkage.
+
+## 3. Schema-Driven Enforcement Details
+The following parameters are derived from the canonical schema YAML (no hardcoding in validator):
+
+| Parameter | Schema Key Path |
+|-----------|-----------------|
+| Max Payload Size | `limits.max_payload_size_kb` |
+| Max Clock Skew | `limits.max_clock_skew_seconds` |
+| Required Envelope Fields | `envelope.required` |
+| Optional Envelope Fields | `envelope.optional` |
+| Core Packet Types | `taxonomy.core_packet_types` |
+| Deprecated Packet Types | `taxonomy.deprecated_packet_types` |
+| Payload Allow/Required | `payloads.<packet_type>.allow`, `.required` |
+| Signature Policy (Non-Draft) | `signature_policy.require_for_non_draft` |
+| Signature Policy (Types) | `signature_policy.require_for_packet_types` |
+
+**Flat Frontmatter Model**:
+- `ALLOWED_KEYS(ptype)` = `envelope.required` + `envelope.optional` + `payloads.<ptype>.allow`
+- `REQUIRED_KEYS(ptype)` = `envelope.required` + `payloads.<ptype>.required`
+- Any key not in `ALLOWED_KEYS` → `EXIT_SCHEMA_VIOLATION`
+- Any key missing from `REQUIRED_KEYS` → `EXIT_SCHEMA_VIOLATION`
 
 
 ---
@@ -5839,7 +6394,14 @@ _frontmatter_template: |
 
 ---
 
-# File: 02_protocols/lifeos_packet_schemas_v1.yaml
+# File: 02_protocols/lifeos_packet_schemas_CURRENT.yaml
+
+*[Reference Pointer: Raw schema/example omitted for strategic clarity]*
+
+
+---
+
+# File: 02_protocols/lifeos_packet_schemas_v1.2.yaml
 
 *[Reference Pointer: Raw schema/example omitted for strategic clarity]*
 
@@ -6490,6 +7052,8 @@ These items directly increase the system's ability to execute, build, and improv
 - Council-gated large revisions
 
 **Status**: **ACTIVE / IN PROGRESS** (Activation Conditions [F3, F4, F7] satisfied)
+
+**Milestone Completed (2026-01-06):** OpenCode Phase 1 — Governance service skeleton + evidence capture verification. Evidence: `docs/03_runtime/OpenCode_Phase1_Approval_v1.0.md`.
 
 **Note:** No deprioritisation; this tier is central to eliminating "donkey work", a Charter invariant.
 

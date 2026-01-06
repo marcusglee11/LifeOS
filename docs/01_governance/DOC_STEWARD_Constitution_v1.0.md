@@ -14,6 +14,25 @@ This constitution is **implementation-agnostic**. The current implementation use
 
 ---
 
+## 1A. Activation Envelope
+
+> [!IMPORTANT]
+> Only missions listed under **ACTIVATED** are authorized for autonomous execution.
+
+| Category | Missions | Status |
+|----------|----------|--------|
+| **ACTIVATED** | `INDEX_UPDATE` | Live (`apply_writes=false` default) |
+| **RESERVED** | `CORPUS_REGEN`, `DOC_MOVE` | Non-authoritative; requires CT-2 activation |
+
+**Defaults:**
+- `apply_writes`: `false` (dry-run by default; live commits require explicit flag)
+- `allowed_paths`: per §4
+- `forbidden_paths`: per §4
+
+> Reserved missions are defined for future expansion but are NOT authorized until separately activated via CT-2 Council review. See **Annex A**.
+
+---
+
 ## 2. Responsibilities
 
 DOC_STEWARD is authorized to:
@@ -150,6 +169,25 @@ Changes to this constitution require:
 1. Proposal via DOC_STEWARD_REQUEST (ironic, but deterministic)
 2. CT-2 Council Review
 3. Merge to repo-canonical location
+
+---
+
+## Annex A — Reserved Missions (Non-Authoritative)
+
+> [!WARNING]
+> The following missions are defined but **NOT ACTIVATED**. They require separate CT-2 Council approval before use.
+
+### A.1 CORPUS_REGEN
+
+- **Purpose**: Regenerate `LifeOS_Universal_Corpus.md` and `LifeOS_Strategic_Corpus.md`
+- **Status**: RESERVED (pending G1/G2 spike)
+- **Activation Requirements**: CT-2 Council review demonstrating deterministic regeneration with hash chain evidence
+
+### A.2 DOC_MOVE
+
+- **Purpose**: Move documents between directories with automatic index updates
+- **Status**: RESERVED (pending G1/G2 spike)
+- **Activation Requirements**: CT-2 Council review demonstrating safe file relocation with bidirectional reference updates
 
 ---
 

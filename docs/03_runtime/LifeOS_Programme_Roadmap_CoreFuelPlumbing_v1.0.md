@@ -71,6 +71,8 @@ These items directly increase the system's ability to execute, build, and improv
 
 **Status**: **ACTIVE / IN PROGRESS** (Activation Conditions [F3, F4, F7] satisfied)
 
+**Milestone Completed (2026-01-06):** OpenCode Phase 1 — Governance service skeleton + evidence capture verification. Evidence: `docs/03_runtime/OpenCode_Phase1_Approval_v1.0.md`.
+
 **Note:** No deprioritisation; this tier is central to eliminating "donkey work", a Charter invariant.
 
 ---

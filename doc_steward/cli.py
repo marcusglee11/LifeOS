@@ -20,6 +20,23 @@ from .dap_validator import check_dap_compliance
 from .index_checker import check_index
 from .link_checker import check_links
 
+def cmd_opencode_validate(args: argparse.Namespace) -> int:
+    """Run OpenCode artefact validation."""
+    # args.doc_root is historically named, but here acts as repo_root or context root
+    root = Path(args.doc_root).resolve()
+    target = root / "artifacts" / "opencode"
+    
+    if not target.exists():
+        print(f"[FAILED] Missing required directory: {target}")
+        return 1
+        
+    if not target.is_dir():
+        print(f"[FAILED] Target is not a directory: {target}")
+        return 1
+        
+    print(f"[PASSED] OpenCode artefact root exists: {target}")
+    return 0
+
 
 def cmd_dap_validate(args: argparse.Namespace) -> int:
     """Run DAP compliance validation."""
@@ -89,6 +106,11 @@ def main() -> int:
     p_link = subparsers.add_parser("link-check", help="Check for broken links")
     p_link.add_argument("doc_root", help="Root directory to validate")
     p_link.set_defaults(func=cmd_link_check)
+
+    # opencode-validate
+    p_oc = subparsers.add_parser("opencode-validate", help="Validate OpenCode artefacts")
+    p_oc.add_argument("doc_root", help="Repo root directory")
+    p_oc.set_defaults(func=cmd_opencode_validate)
     
     args = parser.parse_args()
     return args.func(args)

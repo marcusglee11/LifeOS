@@ -1,0 +1,9 @@
+[GOVERNANCE-LOG: 2026-01-07T00:27:00+11:00]
+Mission: Post-GO Hardening (v0.5)
+Outcome: APPROVED
+Changes:
+- Enforced LF line endings for governance indices (.gitattributes + validator)
+- Updated sha256_policy in ARTEFACT_INDEX.json
+- Fixed fixpack packaging script for admissibility
+State: HARDENED
+Next: Council Review (CT-2 Phase 2)

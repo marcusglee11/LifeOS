@@ -178,6 +178,18 @@ Requirements:
 - Must propose remediation steps.
 - Must distinguish critical vs informational gaps.
 
+### 6. TIERED FLATTENING
+
+Flattening requirements vary by mission type:
+
+| Mission Type | Flattening Approach |
+|-------------|---------------------|
+| Lightweight Stewardship | Diff-Based Context (Art. XVIII §3) |
+| Standard Mission | Full flattening for NEW files; diff for MODIFIED |
+| Council Review | Full flattening for ALL touched files |
+
+Agent must declare mission type in Review Packet header.
+
 ---
 
 # ARTICLE IV — DOCUMENTATION STEWARDSHIP
@@ -306,15 +318,26 @@ Antigravity must not:
 
 1. Naming must follow repo conventions.
 2. Governance/spec files must use version suffixes.
-3. Artefacts use patterns:
-   - `Plan_<Topic>_vX.Y.md`
-   - `Diff_<Target>_vX.Y.md`
-   - `DocDraft_<Topic>_vX.Y.md`
-   - `TestDraft_<Module>_vX.Y.md`
-   - `GapAnalysis_<Scope>_vX.Y.md`
+3. Artefacts **MUST** conform to **Build Artifact Protocol v1.0**:
+   - **Protocol:** `docs/02_protocols/Build_Artifact_Protocol_v1.0.md`
+   - **Schema:** `docs/02_protocols/build_artifact_schemas_v1.yaml`
+   - **Templates:** `docs/02_protocols/templates/`
+   - All artifacts MUST include YAML frontmatter per schema
+   - Naming patterns:
+     - `Plan_<Topic>_vX.Y.md`
+     - `Review_Packet_<Mission>_vX.Y.md`
+     - `Walkthrough_<Topic>_vX.Y.md`
+     - `DocDraft_<Topic>_vX.Y.md`
+     - `TestDraft_<Module>_vX.Y.md`
+     - `GapAnalysis_<Scope>_vX.Y.md`
+   - **Versioning Rules:**
+     - **Sequential Only:** v1.0 → v1.1 → v1.2. Never skip numbers.
+     - **No Overwrites:** Always create a new file for a new version.
+     - **No Suffixes:** Do NOT add adjectives or descriptors (e.g., `_Final`, `_Updated`) to the filename.
+     - **Strict Pattern:** `[Type]_[Topic]_v[Major].[Minor].md`
 4. Artefacts must contain full metadata and rationale.
 5. Index files must not be directly edited.
-6. Repo-local `GEMINI.md` must be copied from this template.**
+6. Repo-local `GEMINI.md` must be copied from this template.
 
 ---
 
@@ -421,8 +444,9 @@ Before calling `notify_user` to signal mission completion, Antigravity **MUST**:
    - Issue catalogue
    - Acceptance criteria with pass/fail status
    - Non-goals (explicit)
-   - **Appendix with flattened code** for ALL created/modified files
+   - **Appendix with flattened code** for ALL created/modified files (or Diff-Based Context for Lightweight missions)
 3. Verify the packet is valid per Appendix A Section 6 requirements
+4. **Exception**: Lightweight Stewardship missions (Art. XVIII) may use the simplified template
 
 ## Section 2. notify_user Gate
 
@@ -605,6 +629,7 @@ Antigravity **MUST** automatically:
 2. **Update State**: Refine `docs/11_admin/LIFEOS_STATE.md` (Next Actions, WIP status).
 3. **Check Strays**: Scan repo root and `docs/` root for unallowed files; move/delete them.
 4. **Regenerate**: Run `docs/scripts/generate_strategic_context.py` if docs changed. (Universal Corpus is on-demand only.)
+5. **Archive Superseded Artifacts**: Move Review Packets with superseded versions (e.g., v0.1 when v0.2+ exists) to `artifacts/99_archive/review_packets/`.
 
 ---
 
@@ -686,6 +711,77 @@ When delivering ANY file the CEO may need to pick up, Agent MUST:
 
 ---
 
-# **End of Constitution v2.9 (Council Fix Pack Edition)**
+# **ARTICLE XVIII — LIGHTWEIGHT STEWARDSHIP MODE**
+
+> [!NOTE]
+> This article provides a fast-path for routine operations without full gate compliance.
+
+## Section 1. Eligibility Criteria
+
+A mission qualifies for Lightweight Mode if ALL of the following are true:
+
+1. No governance-controlled paths modified (see Article XIII §4)
+2. Total files modified ≤ 5
+3. No new code logic introduced (moves, renames, index updates only)
+4. No council trigger conditions (CT-1 through CT-4) apply
+
+## Section 2. Gate Relaxations
+
+When in Lightweight Mode:
+
+| Standard Gate | Lightweight Behavior |
+|--------------|---------------------|
+| Plan Artefact (Art. XIII) | SKIPPED — proceed directly to execution |
+| Full Flattening (Art. IX) | REPLACED — use Diff-Based Context (see §3) |
+| Review Packet Structure | SIMPLIFIED — Summary + Diff Appendix only |
+| Agent Packet Protocol (Art. XV) | SKIPPED — no YAML packets required |
+
+## Section 3. Diff-Based Context Rules
+
+Instead of verbatim flattening, include:
+
+1. **NEW files (≤100 lines)**: Full content
+2. **NEW files (>100 lines)**: Outline/signatures + first 50 lines
+3. **MODIFIED files**: Unified diff with 10 lines context
+4. **MOVED/RENAMED**: `Before: path → After: path`
+5. **DELETED**: Path only
+
+Format:
+```diff
+--- a/path/to/file.md
++++ b/path/to/file.md
+@@ -10,7 +10,7 @@
+ context line
+-removed line
++added line
+ context line
+```
+
+## Section 4. Lightweight Review Packet Template
+
+```markdown
+# Review Packet: [Mission Name]
+
+**Mode**: Lightweight Stewardship
+**Date**: YYYY-MM-DD
+**Files Changed**: N
+
+## Summary
+[1-3 sentences describing what was done]
+
+## Changes
+
+| File | Change Type |
+|------|-------------|
+| path/to/file | MODIFIED |
+
+## Diff Appendix
+
+[Diff-based context per Section 3]
+```
+
+---
+
+# **End of Constitution v3.0 (Lightweight Stewardship Edition)**
 
 

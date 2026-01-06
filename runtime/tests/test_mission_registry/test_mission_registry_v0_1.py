@@ -222,7 +222,7 @@ class TestCycle5ValidationBoundaries:
         """Empty name raises MissionBoundaryViolation."""
         mid = MissionId(value="valid-id")
         defn = MissionDefinition(id=mid, name="")
-        with pytest.raises(MissionBoundaryViolation, match="name must not be empty"):
+        with pytest.raises(MissionBoundaryViolation, match="Name must not be empty"):
             validate_mission_definition(defn)
     
     def test_validate_definition_rejects_overlong_name(self):
@@ -230,7 +230,7 @@ class TestCycle5ValidationBoundaries:
         config = MissionBoundaryConfig(max_name_chars=10)
         mid = MissionId(value="valid-id")
         defn = MissionDefinition(id=mid, name="x" * 11)
-        with pytest.raises(MissionBoundaryViolation, match="name exceeds"):
+        with pytest.raises(MissionBoundaryViolation, match="Name exceeds"):
             validate_mission_definition(defn, config)
     
     def test_validate_definition_rejects_overlong_description(self):
@@ -238,7 +238,7 @@ class TestCycle5ValidationBoundaries:
         config = MissionBoundaryConfig(max_description_chars=10)
         mid = MissionId(value="valid-id")
         defn = MissionDefinition(id=mid, name="Valid", description="x" * 11)
-        with pytest.raises(MissionBoundaryViolation, match="description exceeds"):
+        with pytest.raises(MissionBoundaryViolation, match="Description exceeds"):
             validate_mission_definition(defn, config)
     
     def test_validate_definition_rejects_too_many_tags(self):
@@ -246,7 +246,7 @@ class TestCycle5ValidationBoundaries:
         config = MissionBoundaryConfig(max_tags=2)
         mid = MissionId(value="valid-id")
         defn = MissionDefinition(id=mid, name="Valid", tags=("a", "b", "c"))
-        with pytest.raises(MissionBoundaryViolation, match="too many tags"):
+        with pytest.raises(MissionBoundaryViolation, match="Too many tags"):
             validate_mission_definition(defn, config)
     
     def test_validate_definition_rejects_overlong_tag(self):
@@ -254,7 +254,7 @@ class TestCycle5ValidationBoundaries:
         config = MissionBoundaryConfig(max_tag_chars=5)
         mid = MissionId(value="valid-id")
         defn = MissionDefinition(id=mid, name="Valid", tags=("toolong",))
-        with pytest.raises(MissionBoundaryViolation, match="tag\\[0\\] exceeds"):
+        with pytest.raises(MissionBoundaryViolation, match="Tag\\[0\\] exceeds"):
             validate_mission_definition(defn, config)
 
 
@@ -381,8 +381,8 @@ class TestCycle9RegistryOperations:
         long_name = "N" * 150 # Max 100
         m_bad = MissionDefinition.create(id="M1", name=long_name, goal="OK")
         
-        # Note: boundaries.py raises lower-case "name exceeds..."
-        with pytest.raises(MissionBoundaryViolation, match="name exceeds"):
+        # Note: boundaries.py raises "Name exceeds..."
+        with pytest.raises(MissionBoundaryViolation, match="Name exceeds"):
             registry.update(m_bad)
 
     def test_remove_raises_on_missing_id(self):
@@ -438,7 +438,7 @@ class TestCycle10ChairConditions:
             id="M1", name="T", goal="G", 
             metadata={long_key: "val"}
         )
-        with pytest.raises(MissionBoundaryViolation, match="key exceeds"):
+        with pytest.raises(MissionBoundaryViolation, match="Metadata.*key exceeds"):
             validate_mission_definition(m_long_key, config)
 
         # Case 2: Value too long
@@ -447,7 +447,7 @@ class TestCycle10ChairConditions:
             id="M2", name="T", goal="G", 
             metadata={"key": long_val}
         )
-        with pytest.raises(MissionBoundaryViolation, match="value exceeds"):
+        with pytest.raises(MissionBoundaryViolation, match="Metadata.*value exceeds"):
             validate_mission_definition(m_long_val, config)
 
         # Case 3: Too many pairs
@@ -457,7 +457,7 @@ class TestCycle10ChairConditions:
             metadata={"k1": "v1", "k2": "v2", "k3": "v3"}
         )
         # Note: create sorts keys, returns tuple of 3 items
-        with pytest.raises(MissionBoundaryViolation, match="too many metadata pairs"):
+        with pytest.raises(MissionBoundaryViolation, match="Too many metadata pairs"):
             validate_mission_definition(m_many_pairs, config_pairs)
 
 

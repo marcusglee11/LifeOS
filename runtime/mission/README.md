@@ -75,6 +75,46 @@ When first external consumer outside `runtime/mission/` appears:
 - Map `MissionBoundaryViolation` → `AntiFailureViolation` (already is)
 - No changes needed; exceptions are already in the shared hierarchy
 
+---
+
+## v0.2 Delta — Synthesis + Validation
+
+v0.2 adds deterministic mission synthesis and explicit validation:
+
+### New Public API
+
+- **`MissionSynthesisRequest`** — Structured input for synthesis
+- **`synthesize_mission(request, config=None)`** — Single entrypoint (validate → build → validate)
+- **`validate_mission_definition_v0_2(defn, config=None)`** — Explicit validation entrypoint
+
+### Contract Lock (v0.2.3)
+- **ID Contract**: Whitespace-only IDs REJECTED/
+- **Hygiene**: Empty/whitespace-only tags and metadata keys REJECTED.
+- **Defaults**: Restored to v0.1 values (`max_description_chars=4000`, `max_tags=25`).
+
+### Synthesis Pattern
+
+```python
+from runtime.mission import MissionSynthesisRequest, synthesize_mission
+
+req = MissionSynthesisRequest(
+    id="my-mission",
+    name="My Mission",
+    description="A deterministic mission",
+    tags=("core", "automated"),
+    metadata={"author": "antigravity"},
+)
+defn = synthesize_mission(req)  # Returns validated MissionDefinition
+```
+
+### Evidence
+
+- **Tests**: `runtime/tests/test_mission_registry/test_mission_registry_v0_2.py` (24 tests)
+- **Golden Hash**: `4907f6d1d305089e05d16cb3e89fde4b7b200db8173b3734e2ebebe2222751b7`
+
+---
+
 ## Version
 
 `TIER3_MISSION_REGISTRY_VERSION` is defined in `runtime/api/__init__.py` and re-exported here as `__version__`.
+

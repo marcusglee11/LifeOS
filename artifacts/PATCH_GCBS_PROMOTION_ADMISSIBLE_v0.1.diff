@@ -1,0 +1,146 @@
+diff --git a/docs/01_governance/ARTEFACT_INDEX.json b/docs/01_governance/ARTEFACT_INDEX.json
+index d80cdf0..fe57e99 100644
+--- a/docs/01_governance/ARTEFACT_INDEX.json
++++ b/docs/01_governance/ARTEFACT_INDEX.json
+@@ -1,16 +1,42 @@
+ {
+     "meta": {
+-        "version": "2.2.0",
+-        "updated": "2026-01-01"
++        "version": "3.1.0",
++        "updated": "2026-01-06",
++        "description": "Canonical Binding Artefacts Index (17 artefacts, 9 protocols)",
++        "sha256_policy": "Hash raw file bytes for provenance in closure bundles",
++        "counting_rule": "artefacts_count = count of non-comment keys in 'artefacts'; protocols_count = count of keys whose path starts with 'docs/02_protocols/'",
++        "binding_classes": {
++            "FOUNDATIONAL": "Core principles; immutable except via constitutional amendment",
++            "GOVERNANCE": "Contracts and rulings; CEO-controlled amendments",
++            "PROTOCOL": "Active protocols; binding for agents and runtime",
++            "RUNTIME": "Runtime specifications; binding for implementation"
++        }
+     },
+     "artefacts": {
++        "_comment_foundations": "=== 00_foundations: Core Principles ===",
+         "constitution": "docs/00_foundations/LifeOS_Constitution_v2.0.md",
+-        "governance_protocol": "docs/02_protocols/Governance_Protocol_v1.0.md",
+-        "document_steward_protocol": "docs/02_protocols/Document_Steward_Protocol_v1.0.md",
++        "anti_failure": "docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md",
++        "architecture_skeleton": "docs/00_foundations/Architecture_Skeleton_v1.0.md",
++        "_comment_governance": "=== 01_governance: Governance Contracts ===",
+         "coo_contract": "docs/01_governance/COO_Operating_Contract_v1.0.md",
+-        "dap": "docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md",
+         "agent_constitution": "docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md",
+-        "spec_review_packet": "docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md",
++        "council_invocation": "docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md",
++        "doc_steward_constitution": "docs/01_governance/DOC_STEWARD_Constitution_v1.0.md",
++        "_comment_protocols": "=== 02_protocols: Active Protocols ===",
++        "governance_protocol": "docs/02_protocols/Governance_Protocol_v1.0.md",
++        "document_steward_protocol": "docs/02_protocols/Document_Steward_Protocol_v1.1.md",
++        "dap": "docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md",
++        "council_protocol": "docs/02_protocols/Council_Protocol_v1.2.md",
++        "build_artifact_protocol": "docs/02_protocols/Build_Artifact_Protocol_v1.0.md",
++        "build_handoff_protocol": "docs/02_protocols/Build_Handoff_Protocol_v1.1.md",
++        "core_tdd_principles": "docs/02_protocols/Core_TDD_Design_Principles_v1.0.md",
++        "packet_schema_versioning": "docs/02_protocols/Packet_Schema_Versioning_Policy_v1.0.md",
++        "tier2_api_versioning": "docs/02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md",
++        "_comment_runtime": "=== 03_runtime: Runtime Specifications ===",
++        "coo_runtime_spec_index": "docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md",
++        "tier25_activation": "docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md",
++        "antigrav_mission_protocol": "docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md",
++        "_comment_context": "=== Strategic Context ===",
+         "strategic_context": "docs/LifeOS_Strategic_Corpus.md"
+     }
+ }
+\ No newline at end of file
+diff --git a/docs/INDEX.md b/docs/INDEX.md
+index b75aec4..b17ff1cb8 100644
+--- a/docs/INDEX.md
++++ b/docs/INDEX.md
+@@ -1,4 +1,8 @@
+-# LifeOS Documentation Index — Last Updated: 2026-01-06T08:35+11:00
++# LifeOS# Documentation Index
++
++**Last Updated:** 2026-01-06
++**Status:** ACTIVE
++**Maintainer:** Antigravity
+ **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
+ 
+ ---
+@@ -25,6 +29,15 @@ LifeOS Constitution v2.0 (Supreme)
+ 
+ ---
+ 
++## Repository Configuration
++
++| File | Purpose |
++|------|---------|
++| [AGENTS.md](../AGENTS.md) | Agent instructions and stewardship constraints |
++| [opencode.json](../opencode.json) | OpenCode agent configuration and instruction roots |
++
++---
++
+ ## 00_admin — Project Admin (Thin Control Plane)
+ 
+ | Document | Purpose |
+@@ -59,7 +72,7 @@ LifeOS Constitution v2.0 (Supreme)
+ | Document | Purpose |
+ |----------|---------|
+ | [Council_Invocation_Runtime_Binding_Spec_v1.1.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md) | Council invocation and runtime binding |
+-| [Antigravity_Council_Review_Packet_Spec_v1.0.md](./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md) | Council review packet format |
++| [Antigravity_Council_Review_Packet_Spec_v1.1.md](./01_governance/Antigravity_Council_Review_Packet_Spec_v1.1.md) | **Canonical** — Council review packet format (Markdown + Frontmatter) |
+ | [ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md) | Monthly/quarterly alignment review template |
+ 
+ ### Policies & Logs
+@@ -78,6 +91,7 @@ LifeOS Constitution v2.0 (Supreme)
+ | [Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md](./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md) | **Active**: Reactive Task Layer v0.1 Signoff |
+ | [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
+ | [Council_Ruling_Build_Handoff_v1.0.md](./01_governance/Council_Ruling_Build_Handoff_v1.0.md) | **Approved**: Build Handoff Protocol v1.0 activation-canonical |
++| [Council_Ruling_Core_TDD_Principles_v1.0.md](./01_governance/Council_Ruling_Core_TDD_Principles_v1.0.md) | **Approved**: Core TDD Design Principles v1.0 — fail-closed enforcement |
+ 
+ ---
+ 
+@@ -87,11 +101,13 @@ LifeOS Constitution v2.0 (Supreme)
+ | Document | Purpose |
+ |----------|---------|
+ | [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
+-| [Document_Steward_Protocol_v1.0.md](./02_protocols/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
++| [Document_Steward_Protocol_v1.1.md](./02_protocols/Document_Steward_Protocol_v1.1.md) | **Active** — Document creation, indexing, GitHub/Drive sync |
+ | [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
+-| [Build_Artifact_Protocol_v1.0.md](./02_protocols/Build_Artifact_Protocol_v1.0.md) | **NEW** — Formal schemas/templates for Plans, Review Packets, Walkthroughs, etc. |
++| [Core_TDD_Design_Principles_v1.0.md](./02_protocols/Core_TDD_Design_Principles_v1.0.md) | **Canonical** — Strict TDD principles for Core determinism |
++| [Build_Artifact_Protocol_v1.0.md](./02_protocols/Build_Artifact_Protocol_v1.0.md) | Formal schemas/templates for Plan/Review artifacts |
+ | [Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md) | Tier-2 API Versioning, Deprecation, and Compatibility Rules |
+-| [Build_Handoff_Protocol_v1.0.md](./02_protocols/Build_Handoff_Protocol_v1.0.md) | Messaging & handoff architecture for agent coordination |
++| [Build_Handoff_Protocol_v1.1.md](./02_protocols/Build_Handoff_Protocol_v1.1.md) | **Active** — Messaging & handoff architecture (Canonical Context Packets) |
++| [Packet_Schema_Versioning_Policy_v1.0.md](./02_protocols/Packet_Schema_Versioning_Policy_v1.0.md) | **New** — Semantic versioning policy for packet schemas |
+ 
+ ### Council Protocols
+ | Document | Purpose |
+@@ -103,10 +119,10 @@ LifeOS Constitution v2.0 (Supreme)
+ ### Packet & Artifact Schemas
+ | Document | Purpose |
+ |----------|---------|
+-| [lifeos_packet_schemas_v1.yaml](./02_protocols/lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
++| [lifeos_packet_schemas_CURRENT.yaml](./02_protocols/lifeos_packet_schemas_CURRENT.yaml) | **Canonical** — Agent packet schema definitions (alias to v1.2) |
+ | [lifeos_packet_templates_v1.yaml](./02_protocols/lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
+-| [build_artifact_schemas_v1.yaml](./02_protocols/build_artifact_schemas_v1.yaml) | **NEW** — Build artifact schema definitions (6 artifact types) |
+-| [templates/](./02_protocols/templates/) | **NEW** — Markdown templates for all artifact types |
++| [build_artifact_schemas_v1.yaml](./02_protocols/build_artifact_schemas_v1.yaml) | Build artifact schema definitions (6 artifact types) |
++| [templates/](./02_protocols/templates/) | Markdown templates for all artifact types |
+ | [example_converted_antigravity_packet.yaml](./02_protocols/example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
+ 
+ ---
+@@ -176,6 +192,8 @@ LifeOS Constitution v2.0 (Supreme)
+ ## 99_archive — Historical Documents
+ 
+ Archived documents are in `99_archive/`. Key locations:
++- `99_archive/superseded/` — Superseded versions of protocols and specs (v1.0 replaced by v1.1, etc.)
++- `99_archive/meta_historical/` — Historical 10_meta documents (drafts, old review packets)
+ - `99_archive/superseded_by_constitution_v2/` — Documents superseded by Constitution v2.0
+ - `99_archive/legacy_structures/` — Legacy governance and specs
+ 
+@@ -192,4 +210,3 @@ Archived documents are in `99_archive/`. Key locations:
+ | `09_prompts/v1.0/` | Legacy v1.0 prompt templates |
+ | `09_prompts/v1.2/` | **Current** — Council role prompts (Chair, Co-Chair, 10 reviewer seats) |
+ | `10_meta/` | Meta documents, reviews, tasks |
+-

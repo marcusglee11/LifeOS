@@ -49,3 +49,13 @@ tests/_artifacts/
 # Temp files
 *.tmp
 .tmp/
+temp_staging/
+temp_verification/
+*.patch
+
+# Ephemeral test reports (root level)
+test_output.txt
+test_report_*.txt
+
+# Drive upload temp
+docs/.tmp.driveupload/

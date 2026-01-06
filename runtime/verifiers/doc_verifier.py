@@ -81,18 +81,69 @@ class DocVerifier:
         )
     
     def verify_with_proposed_changes(self, files_modified: List[Dict], 
-                                      proposed_diffs: str) -> VerifierOutcome:
+                                      proposed_diffs: str,
+                                      constraints: Dict[str, Any] = None) -> VerifierOutcome:
         """
         Verify proposed changes by applying them to a temp workspace.
         This validates the POST-change state, not current state.
         Returns outcome and populates after_sha256 in files_modified if successful.
+        
+        Args:
+            files_modified: List of file change dicts
+            proposed_diffs: Unified diff content
+            constraints: Dict with allowed_paths, scope_paths, forbidden_paths (optional, uses defaults if None)
         """
         findings = []
+        
+        # P0.1: Extract constraints (use defaults if not provided for backward compat)
+        constraints = constraints or {}
+        allowed_paths = constraints.get("allowed_paths", ["docs/"])
+        scope_paths = constraints.get("scope_paths", [])
+        forbidden_paths = constraints.get("forbidden_paths", ["docs/00_foundations/", "docs/01_governance/", "GEMINI.md"])
         
         # Validate we have something to verify
         if not files_modified and not proposed_diffs:
             findings.append(Finding("WARNING", "DIFF_VALIDATION", "No changes proposed to verify"))
             return VerifierOutcome(True, findings, "No changes proposed", {"proposed_files": 0})
+        
+        # P0.1: Early boundary enforcement (before expensive patch apply)
+        for fm in files_modified:
+            path = fm.get("path", "")
+            
+            # Check forbidden_paths first
+            for fp in forbidden_paths:
+                if path.startswith(fp) or path == fp:
+                    findings.append(Finding(
+                        severity="ERROR",
+                        category="BOUNDARY_VIOLATION",
+                        message=f"FORBIDDEN_PATH_TOUCHED: {path} is in forbidden paths",
+                        location=path
+                    ))
+                    break
+            
+            # Check allowed_paths (hard envelope)
+            in_allowed = any(path.startswith(a) for a in allowed_paths)
+            if not in_allowed and path:
+                findings.append(Finding(
+                    severity="ERROR",
+                    category="BOUNDARY_VIOLATION",
+                    message=f"OUTSIDE_ALLOWED_PATHS: {path} is not within allowed paths: {allowed_paths}",
+                    location=path
+                ))
+            
+            # Check scope_paths (run-level subset) — only if scope_paths is non-empty
+            if scope_paths and path and path not in scope_paths:
+                findings.append(Finding(
+                    severity="ERROR",
+                    category="BOUNDARY_VIOLATION",
+                    message=f"OUTSIDE_SCOPE_PATHS: {path} is not in scope paths: {scope_paths}",
+                    location=path
+                ))
+        
+        # Fail fast if boundary violations detected
+        if any(f.severity == "ERROR" and f.category == "BOUNDARY_VIOLATION" for f in findings):
+            error_count = sum(1 for f in findings if f.severity == "ERROR")
+            return VerifierOutcome(False, findings, f"{error_count} boundary violations", {"error_count": error_count})
         
         # Validate diff format
         if proposed_diffs:
@@ -101,10 +152,6 @@ class DocVerifier:
             # Fail fast if diff is invalid (P0 requirement)
             if any(f.severity == "ERROR" for f in diff_findings):
                 return VerifierOutcome(False, findings, "Invalid diff format", {"error_count": 1})
-        
-        # Validate proposed file paths are allowed
-        path_findings = self._validate_proposed_paths(files_modified)
-        findings.extend(path_findings)
         
         # Create temp workspace and apply patch
         try:
@@ -374,13 +421,13 @@ class DocVerifier:
                     ))
                     break
             
-            # Check allowed
+            # Check allowed (P3.2: Upgraded from WARNING to ERROR)
             in_allowed = any(path.startswith(a) for a in allowed)
             if not in_allowed and path:
                 findings.append(Finding(
-                    severity="WARNING",
-                    category="DIFF_VALIDATION",
-                    message=f"Proposed change outside allowed paths: {path}",
+                    severity="ERROR",  # P3.2: Fail-closed on boundary violations
+                    category="BOUNDARY_VIOLATION",
+                    message=f"OUTSIDE_ALLOWED_PATHS: {path} is not within allowed paths: {allowed}",
                     location=path
                 ))
         
