@@ -1,5 +1,5 @@
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-07 11:47
+**Generated:** 2026-01-07 18:57
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -2564,7 +2564,7 @@ For a team starting from scratch, execute in this order:
 
 ---
 
-# File: 00_foundations/Tier_Definition_Spec_v1.0.md
+# File: 00_foundations/Tier_Definition_Spec_v1.1.md
 
 *[Reference Pointer: See full text in Universal Corpus for implementation details]*
 
@@ -3210,6 +3210,140 @@ The following are now **canonical and active**:
 
 ---
 
+# File: 01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md
+
+# Council Ruling: OpenCode Document Steward CT-2 Phase 2 — PASS (GO)
+
+**Ruling**: PASS (GO)  
+**Date**: 2026-01-07 (Australia/Sydney)  
+**Subject**: CT-2 Phase 2 (P0) — OpenCode Doc Steward Activation: Enforced Gate + Passage Fixes  
+**Bundle Accepted**: Bundle_CT2_Phase2_Passage_v2.4_20260107.zip  
+
+---
+
+## Scope Passed
+
+- Post-run git diff is the source of truth for enforcement.
+- Phase 2 envelope enforced (denylist-first, allowlist enforced, docs `.md`-only, `artifacts/review_packets/` add-only `.md`).
+- Structural ops blocked in Phase 2 (delete/rename/move/copy) derived from git name-status.
+- Packet discovery remains explicit `packet_paths` only (no convention fallback).
+- Symlink defense is fail-closed (git index mode + filesystem checks; unverifiable => BLOCK).
+- CI diff acquisition is fail-closed with explicit reason codes.
+- Evidence contract satisfied:
+  - deterministic artefact set produced (exit_report, changed_files, classification, runner.log, hashes)
+  - truncation footer is machine-readable (cap/observed fields present)
+  - no ellipses (`...` / `…`) appear in evidence-captured outputs
+- Passage evidence bundles included in the accepted bundle (PASS + required BLOCK cases) with hashes.
+
+## Non-goals Confirmed
+
+- No override mechanism introduced.
+- No expansion of activation envelope.
+- No permission for delete/rename/move in Phase 2.
+
+## Recordkeeping
+
+- The accepted bundle is archived under the canonical stewardship evidence root: `artifacts/ct2/Bundle_CT2_Phase2_Passage_v2.4_20260107.zip`.
+- Timestamps in `exit_report.json` are operationally accepted; byte-for-byte reproducibility across reruns is not required for this passage.
+
+---
+
+## Sign-Off
+
+**Chair (Architect/Head of Dev/Head of Testing)** — APPROVED FOR PASSAGE  
+**Date**: 2026-01-07 (Australia/Sydney)
+
+---
+
+**END OF RULING**
+
+
+---
+
+# File: 01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.0.md
+
+# Council Ruling: OpenCode-First Doc Stewardship Policy (Phase 2) — PASS (GO)
+
+**Ruling**: PASS (GO)  
+**Date**: 2026-01-07  
+**Subject**: Adoption of "OpenCode-First Doc Stewardship" Routing Mandate  
+**Related Policy**: [OpenCode_First_Stewardship_Policy_v1.0.md](./OpenCode_First_Stewardship_Policy_v1.0.md)  
+**Related Protocol**: [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](../03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md)  
+
+---
+
+## Decision Summary
+
+The Council approves the adoption of the **OpenCode-First Doc Stewardship** policy. This mandate requires Antigravity to route all documentation changes that fall within the authorized CT-2 Phase 2 envelope through the OpenCode steward and its associated audit gate.
+
+## Rationale
+
+- **Risk Reduction**: Eliminates ambiguity in documentation routing.
+- **Auditability**: Ensures all eligible changes produce standardized, high-quality evidence bundles (v2.4+ hygiene).
+- **Consistency**: Prevents drift between manual and agentic stewardship processes.
+
+## Impact
+
+- Antigravity MUST now route in-envelope doc changes through `scripts/opencode_ci_runner.py`.
+- Any attempt to bypass this for in-envelope changes will be flagged as a process failure.
+- Out-of-envelope changes continue to require explicit Council rulings.
+
+---
+
+## Sign-Off
+
+**Chair (Architect/Head of Dev/Head of Testing)** — APPROVED FOR ADOPTION  
+**Date**: 2026-01-07  
+
+---
+
+**END OF RULING**
+
+
+---
+
+# File: 01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md
+
+# Council Ruling: OpenCode-First Doc Stewardship Policy (Phase 2) — v1.1
+
+**Ruling**: PASS (GO)
+**Date**: 2026-01-07
+**Subject**: Adoption of "OpenCode-First Doc Stewardship" Routing Mandate
+**Related Policy**: [OpenCode_First_Stewardship_Policy_v1.1.md](./OpenCode_First_Stewardship_Policy_v1.1.md)
+**Related Protocol**: [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](../03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md) (Section 7.3)
+
+---
+
+## Decision Summary
+
+The Council approves the adoption of the **OpenCode-First Doc Stewardship** policy (v1.1). This mandate, hardened for mechanical auditability, requires Antigravity to route all documentation changes within the authorized CT-2 Phase 2 envelope through the OpenCode steward and its associated audit gate.
+
+## Rationale
+
+- **Mechanical Auditability**: Eliminates ambiguity in documentation routing via explicit envelope checks.
+- **Evidence Quality**: Ensures all eligible changes produce standardized, no-ellipsis evidence bundles.
+- **Governance Integrity**: Explicitly separates protected surfaces (councils-only) from steward surfaces.
+
+## Scope & Implementation
+
+- **Rule**: Antigravity MUST route in-envelope doc changes through `scripts/opencode_ci_runner.py`.
+- **Demo Validated**: Demonstration run on `docs/08_manuals/Governance_Runtime_Manual_v1.0.md` passed with a complete evidence bundle.
+- **Mechanical Inputs**: Authoritative spec SHAs recorded in the Implementation Report.
+
+---
+
+## Sign-Off
+
+**Chair (Architect/Head of Dev/Head of Testing)** — APPROVED FOR ACTIVATION
+**Date**: 2026-01-07
+
+---
+
+**END OF RULING**
+
+
+---
+
 # File: 01_governance/DOC_STEWARD_Constitution_v1.0.md
 
 # DOC_STEWARD Role Constitution v1.0
@@ -3418,6 +3552,10 @@ Changes to this constitution require:
 - [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md)
 - [Tier1_Tier2_Activation_Ruling_v0.2.md](./Tier1_Tier2_Activation_Ruling_v0.2.md) (Active)
 - [Council_Review_Stewardship_Runner_v1.0.md](./Council_Review_Stewardship_Runner_v1.0.md) (Approved)
+- [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md](./Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md) (Superseded by v1.1)
+- [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](./Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md) (Active; Hardened Gate)
+- [OpenCode_First_Stewardship_Policy_v1.1.md](./OpenCode_First_Stewardship_Policy_v1.1.md) (Active)
+- [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./Council_Ruling_OpenCode_First_Stewardship_v1.1.md) (Active)
 
 ### Sign-Offs (Closed Amendments)
 - [AUR_20260105 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)
@@ -3460,6 +3598,125 @@ Each JSONL entry contains:
 
 Logs are append-only during a run. The `run_id` ties all entries together.
 For governance audits, the complete log for a run provides deterministic replay evidence.
+
+
+---
+
+# File: 01_governance/OpenCode_First_Stewardship_Policy_v1.0.md
+
+# Policy: OpenCode-First Doc Stewardship (Phase 2 Envelope) v1.0
+
+**Status**: Active  
+**Authority**: LifeOS Governance Council  
+**Date**: 2026-01-07  
+
+---
+
+## 1. Purpose
+This policy reduces drift and eliminates ambiguity in the LifeOS documentation lifecycle by making OpenCode the mandatory default steward for all changes within its authorized Phase 2 envelope. By enforcing this routing, the repository ensures that all eligible documentation updates are processed through the CT-2 gate, producing deterministic evidence bundles for audit.
+
+## 2. Definitions
+- **"Phase 2 Doc-Steward Envelope"**: The set of patterns and constraints currently authorized for the OpenCode Document Steward, as defined in the following canonical sources:
+  - **Runner**: [scripts/opencode_ci_runner.py](file:///c:/Users/cabra/Projects/LifeOS/scripts/opencode_ci_runner.py)
+  - **Policy**: [scripts/opencode_gate_policy.py](file:///c:/Users/cabra/Projects/LifeOS/scripts/opencode_gate_policy.py)
+  - **Ruling**: [docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](file:///c:/Users/cabra/Projects/LifeOS/docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md)
+- **"In-envelope doc change"**: Any modification that the CT-2 gate would classify as ALLOWED. Specifically:
+  - Targets the `docs/` subtree (excluding protected roots).
+  - Uses only `.md` extensions.
+  - Does not involve structural operations (delete, rename, move, copy).
+  - Does not touch denylisted roots (`docs/00_foundations/`, `docs/01_governance/`, `scripts/`, `config/`).
+
+## 3. Default Routing Rule (MUST)
+For any in-envelope documentation change (including index updates and doc propagation tasks), Antigravity **MUST**:
+1. **Invoke OpenCode** to perform the stewardship edit(s).
+2. **Run the CT-2 gate runner** (`scripts/opencode_ci_runner.py`) to validate the change.
+3. **Produce and retain** the full CT-2 evidence bundle outputs (including `exit_report.json`, `changed_files.json`, `classification.json`, `runner.log`, and `hashes.json`).
+
+## 4. Explicit Exceptions (MUST, fail-closed)
+- **Out-of-envelope changes**: If a change involves denylisted/protected surfaces, non-`.md` files, or structural operations, Antigravity **MUST NOT** attempt OpenCode stewardship. It **MUST BLOCK** the operation, emit a minimal "blocked report", and generate a governance packet request per repository convention.
+- **Structural operations**: Deletions, renames, moves, and copies are strictly blocked in Phase 2. Antigravity **MUST BLOCK** and report these attempts.
+- **System unavailability**: If OpenCode, the gate runner, or critical CI references are unavailable, Antigravity **MUST BLOCK** and return detailed diagnostics and next-action instructions. Bypassing the gate is forbidden.
+
+## 5. Mixed Changes Rule (docs + code)
+In mission blocks containing both documentation and code edits:
+- Documentation edits that fall within the Phase 2 envelope **MUST** be executed via OpenCode stewardship and satisfy CT-2 evidence requirements.
+- Code changes must follow standard build/test/verification gates as defined in their respective protocols.
+
+## 6. Evidence and Audit Requirements (MUST)
+All mandated stewardship runs must provide deterministic capture of:
+- Full file list of modified artifacts.
+- Explicit classification decisions (A/M/D).
+- Precise reason codes for any BLOCK decisions.
+- SHA-256 hashes of all inputs and outputs.
+- No-ellipsis outputs as enforced by the CT-2 passage fixes (v2.4).
+
+## 7. Adoption and Enforcement
+Antigravity’s own operating protocols (including F7) are binding to this policy. Any documentation update performed outside this routing without explicit Council waiver is treated as a process failure and requires immediate remediation and audit.
+
+---
+
+**Signed**,  
+LifeOS Governance Council
+
+
+---
+
+# File: 01_governance/OpenCode_First_Stewardship_Policy_v1.1.md
+
+# Policy: OpenCode-First Doc Stewardship (Phase 2 Envelope) v1.1
+
+**Status**: Active  
+**Authority**: LifeOS Governance Council  
+**Date**: 2026-01-07  
+**Activated by**: [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./Council_Ruling_OpenCode_First_Stewardship_v1.1.md)
+
+---
+
+## 1. Purpose
+This policy reduces drift and eliminates ambiguity in the LifeOS documentation lifecycle by making OpenCode the mandatory default steward for all changes within its authorized Phase 2 envelope. By enforcing this routing, the repository ensures that all eligible documentation updates are processed through the CT-2 gate, producing deterministic evidence bundles for audit.
+
+## 2. Definitions
+- **"Phase 2 Doc-Steward Envelope"**: The set of patterns and constraints currently authorized for the OpenCode Document Steward, as defined in:
+  - **Runner**: `scripts/opencode_ci_runner.py`
+  - **Policy**: `scripts/opencode_gate_policy.py`
+  - **Ruling**: `docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md`
+- **"In-envelope doc change"**: Any modification that the CT-2 gate would classify as ALLOWED. Specifically:
+  - Targets the `docs/` subtree (excluding protected roots).
+  - Uses only `.md` extensions.
+  - Does not involve structural operations (delete, rename, move, copy).
+  - Does not touch denylisted roots (`docs/00_foundations/`, `docs/01_governance/`, `scripts/`, `config/`).
+
+## 3. Default Routing Rule (MUST)
+For any in-envelope documentation change (including index updates and doc propagation tasks), Antigravity **MUST**:
+1. **Invoke OpenCode** to perform the stewardship edit(s).
+2. **Run the CT-2 gate runner** (`scripts/opencode_ci_runner.py`) to validate the change.
+3. **Produce and retain** the full CT-2 evidence bundle outputs.
+
+## 4. Explicit Exceptions (MUST, fail-closed)
+- **Out-of-envelope changes**: If a change involves denylisted/protected surfaces, non-`.md` files, or structural operations, Antigravity **MUST NOT** attempt OpenCode stewardship. It **MUST BLOCK** the operation, emit a "Blocked Report", and generate a "Governance Request" per:
+  - **Templates**: `docs/02_protocols/templates/`
+- **Structural operations**: Deletions, renames, moves, and copies are strictly blocked in Phase 2. Antigravity **MUST BLOCK** and report these attempts.
+
+## 5. Mixed Changes Rule (docs + code)
+In mission blocks containing both documentation and code edits:
+- Documentation edits that fall within the Phase 2 envelope **MUST** be executed via OpenCode stewardship.
+- Code changes follow standard build/test/verification gates.
+
+## 6. Evidence and Audit Requirements (MUST)
+All mandated stewardship runs must provide deterministic capture of:
+- Full file list of modified artifacts.
+- Explicit classification decisions (A/M/D).
+- Precise reason codes for any BLOCK decisions.
+- SHA-256 hashes of all inputs and outputs.
+- No-ellipsis outputs enforced by CT-2 v2.4+ hygiene.
+
+## 7. Adoption and Enforcement
+Antigravity’s own operating protocols (including F7) are binding to this policy. Any documentation update performed outside this routing without explicit Council waiver is treated as a process failure.
+
+---
+
+**Signed**,  
+LifeOS Governance Council
 
 
 ---
@@ -6849,6 +7106,54 @@ _frontmatter_template: |
 
 ---
 
+# File: 02_protocols/templates/blocked_report_template_v1.0.md
+
+# Template: Blocked Report v1.0
+
+---
+artifact_id: ""  # Generate UUID v4
+artifact_type: "REVIEW_PACKET"
+schema_version: "1.0.0"
+created_at: ""   # ISO 8601
+author: "Antigravity"
+version: "1.0"
+status: "DRAFT"
+tags: ["blocked", "gate-violation", "fail-closed"]
+---
+
+## Executive Summary
+This execution was halted by the security gate due to an envelope violation or environmental failure. No changes were applied to the repository.
+
+## Gate Context
+- **Gate Runner**: `scripts/opencode_ci_runner.py`
+- **Gate Policy**: `scripts/opencode_gate_policy.py`
+- **Current Branch**: `[GIT_BRANCH]`
+- **Merge Base**: `[GIT_MERGE_BASE]`
+
+## Block Details
+| Field | Value |
+| :--- | :--- |
+| **Reason Code** | `[REASON_CODE]` |
+| **Violating Path** | `[PATH]` |
+| **Classification** | `[A/M/D]` |
+| **Envelope Requirement** | `[REQUIREMENT_EXPLANATION]` |
+
+## Diagnostics
+```text
+[UNELIDED_GATE_LOG_OR_ERROR_TRACE]
+```
+
+## Next Actions
+- [ ] If out-of-envelope: Submit a Governance Packet Request.
+- [ ] If structural op: Re-structure changes to avoid delete/rename in Phase 2.
+- [ ] If environmental failure: Escalate to CEO for CI/ref repair.
+
+---
+**END OF REPORT**
+
+
+---
+
 # File: 02_protocols/templates/doc_draft_template.md
 
 ---
@@ -7047,6 +7352,48 @@ tags: []
 ---
 
 *This gap analysis was created under LifeOS Build Artifact Protocol v1.0.*
+
+
+---
+
+# File: 02_protocols/templates/governance_request_template_v1.0.md
+
+# Template: Governance Request v1.0
+
+---
+artifact_id: ""  # Generate UUID v4
+artifact_type: "DOC_DRAFT"
+schema_version: "1.0.0"
+created_at: ""   # ISO 8601
+author: "Antigravity"
+version: "1.0"
+status: "DRAFT"
+tags: ["governance", "out-of-envelope", "council-review"]
+---
+
+## Executive Summary
+Formal request for Council review of out-of-envelope changes that cannot be stewarded via OpenCode.
+
+## Target Document
+- **Path**: `[PATH_TO_PROTECTED_DOC]`
+- **Change Type**: `[ADDITIVE/MODIFYING/REPLACING]`
+
+## Governance Rationale
+- **Reason for Out-of-Envelope**: `[e.g., Target in docs/01_governance, Non-MD file, Structural Op]`
+- **Policy Reference**: `[POLICY_NAME_AND_VERSION]`
+- **Urgency**: `[LOW/MEDIUM/HIGH]`
+
+## Draft Content
+```markdown
+[PROPOSED_CHANGES_IN_FLATTENED_FORMAT]
+```
+
+## Dependencies
+- [ ] Related Council Ruling: `[PATH]`
+- [ ] Related Plan: `[PATH]`
+
+---
+**END OF REQUEST**
 
 
 ---

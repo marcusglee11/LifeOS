@@ -1,3 +1,29 @@
+# Review Packet: Phase 4 COO Runtime Plan Fix v1.0
+
+## Summary
+Resolved mechanical inconsistencies in the COO Runtime Implementation Packet and inlined governance rules from deprecated specs to ensure a self-contained, auditable build. Applied Hygiene Patch to remove cryptographic signature requirements and tighten governance scanner scope.
+
+## Issue Catalogue
+| ID | Title | Status | Resolution |
+|----|-------|--------|------------|
+| I1 | ERROR -> QUESTION routing | RESOLVED | Changed Section 4.1 to escalate ambiguity to CEO. |
+| I2 | 7-Step Sequence Mismatch | RESOLVED | Corrected Section 9.1 to match Alignment Layer 1.4 atomicity. |
+| I3 | Gate Lettering Drift | RESOLVED | Re-lettered Gate A-F for sequential ordering. |
+| I4 | Abstract Freeze Semantics | RESOLVED | Reframed Section 11 as "Controlled Inputs/Assert Match". |
+| I5 | Missing CEO Signature Key | CEO OVERRIDE | Removed Signature Requirement. Replaced with Manual Confirmation Contract. |
+| I6 | Scanner False Positives | RESOLVED | Tightened scope to `docs/01_governance` and `docs/02_protocols`. |
+
+## Canonical Dependency Table
+| Authority | Repository Source | Note |
+|-----------|-------------------|------|
+| Alignment Layer v1.4 | `docs/99_archive/.../Alignment_Layer_v1.4.md` | Inlined into packet Section 5. |
+| Manual Confirmation | `COO_Runtime_Implementation_Packet_v1.0.md` | Section 12 acts as the authority. |
+| Reference Mission | `runtime/tests/archive_legacy_r6x/test_replay.py` | Implementation bound to this generator. |
+
+## Appendix — Flattened Code Snapshots
+
+### File: `docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md`
+```markdown
 IMPLEMENTATION PACKET v1.0
 
 Mechanical Execution Guide for COO Runtime v1.0
@@ -202,7 +228,7 @@ When `MissingAnchor` or `AmbiguousAnchor` is detected:
    - `candidates_found`: List of candidate matches (for AmbiguousAnchor)
 2. **Halt Execution**: Raise `AmendmentHaltException` (a Python exception).
 3. **Do NOT Proceed**: The amendment engine MUST NOT continue to the next amendment.
-
+4. 
 This contract is mechanically testable: unit tests MUST assert that the engine raises `AmendmentHaltException` and produces the escalation artefact when fed ambiguous inputs.
 
 4.4 Outputs
@@ -480,13 +506,20 @@ Rollback MUST:
 Antigravity MUST implement deterministic log formats with:
 
 - sequence_id
-- config SHA256
-- environment SHA256
-- FSM transitions
-- DB transaction logs
-- Gate results
-- Replay results
-- Rollback logs
+
+config SHA256
+
+environment SHA256
+
+FSM transitions
+
+DB transaction logs
+
+Gate results
+
+Replay results
+
+Rollback logs
 
 Logs MUST be immutable and sorted.
 
@@ -541,3 +574,19 @@ The following modules MUST be implemented in dependency order:
 9. **`rollback.py`**: Verified restoration from AMU₀.
 
 END OF IMPLEMENTATION PACK v1.0
+```
+
+### File: `docs/INDEX.md`
+(Self-contained in BRAIN state but omitted here for brevity; full file is in artifacts/review_packets/)
+
+### File: `docs/LifeOS_Strategic_Corpus.md`
+(Regenerated via script; 343KB. Available in artifacts/review_packets/)
+
+### File: `.gitignore`
+```gitignore
+# Drive upload temp
+docs/.tmp.driveupload/
+
+# COO Runtime Ephemeral
+coo/manifests/normalized/
+```
