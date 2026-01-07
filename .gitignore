@@ -59,3 +59,6 @@ test_report_*.txt
 
 # Drive upload temp
 docs/.tmp.driveupload/
+
+# COO Runtime Ephemeral
+coo/manifests/normalized/
