@@ -98,7 +98,9 @@ LifeOS Constitution v2.0 (Supreme)
 | [Build_Artifact_Protocol_v1.0.md](./02_protocols/Build_Artifact_Protocol_v1.0.md) | **NEW** — Formal schemas/templates for Plans, Review Packets, Walkthroughs, etc. |
 | [Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md) | Tier-2 API Versioning, Deprecation, and Compatibility Rules |
 | [Build_Handoff_Protocol_v1.0.md](./02_protocols/Build_Handoff_Protocol_v1.0.md) | Messaging & handoff architecture for agent coordination |
-| [Test_Protocol_v2.0.md](./02_protocols/Test_Protocol_v2.0.md) | Test protocol definition (v2.0) |
+| [Intent_Routing_Rule_v1.0.md](./02_protocols/Intent_Routing_Rule_v1.0.md) | **WIP** — Decision routing (CEO/CSO/Council/Runtime) |
+| [Emergency_Declaration_Protocol_v1.0.md](./02_protocols/Emergency_Declaration_Protocol_v1.0.md) | **WIP** — Emergency override and auto-revert procedures |
+| [Test_Protocol_v2.0.md](./02_protocols/Test_Protocol_v2.0.md) | **WIP** — Test categories, coverage, and flake policy |
 
 ### Council Protocols
 | Document | Purpose |

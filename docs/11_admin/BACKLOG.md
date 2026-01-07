@@ -10,6 +10,15 @@
 ### P1 (High)
 - [ ] **Re-close A1/A2 using G-CBS** — DoD: Convert or rerun cleanly; replace waiver with strict PASS — Owner: antigravity
 - [ ] **Standardize raw capture primitive** — DoD: cmd redirection + explicit exitcode file + hashes as reusable helper — Owner: antigravity
+- [ ] **Finalize CSO_Role_Constitution v1.0** — DoD: CEO approved; markers removed — Owner: antigravity
+- [ ] **Finalize Emergency_Declaration_Protocol v1.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize Intent_Routing_Rule v1.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize Test_Protocol v2.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize Tier_Definition_Spec v1.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize ARTEFACT_INDEX_SCHEMA v1.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize QUICKSTART v1.0** — DoD: Context scan pass complete — Owner: antigravity
+- [x] **Suspend OpenCode Robot** — DoD: Processes killed, runners disabled — Owner: antigravity
+- [ ] **Review OpenCode deletion logic** — DoD: Root cause of `git clean` found — Owner: antigravity
 
 ## Next (valuable, but not imminent)
 - [ ] **Reactive Layer Hygiene: Tighten Canonical JSON** — DoD: Require explicit escape sequence for non-ASCII input (no permissive fallback) — Owner: antigravity

@@ -8,8 +8,7 @@
 - CEO decisions isolated and capped (max 3)
 
 ## Current Focus
-
-**OpenCode Document Steward — ACTIVE (CT-2 Phase 2)**
+Restoring lost protocols and suspending unauthorized OpenCode Robot activity.
 
 ## Active Agents
 

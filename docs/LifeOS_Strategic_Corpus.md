@@ -1,5 +1,5 @@
 # ⚡ LifeOS Strategic Dashboard
-**Generated:** 2026-01-07 10:21
+**Generated:** 2026-01-07 11:47
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
@@ -2564,6 +2564,13 @@ For a team starting from scratch, execute in this order:
 
 ---
 
+# File: 00_foundations/Tier_Definition_Spec_v1.0.md
+
+*[Reference Pointer: See full text in Universal Corpus for implementation details]*
+
+
+---
+
 # File: 01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md
 
 # **LifeOS Alignment Review — TEMPLATE (v1.0)**  
@@ -2688,6 +2695,64 @@ _Concise statement integrating: outcomes → alignment → required corrections.
 
 ---
 
+# File: 01_governance/ARTEFACT_INDEX_SCHEMA.md
+
+# ARTEFACT_INDEX Schema v1.0
+
+**Status**: WIP (Non-Canonical)  
+**Authority**: LifeOS Constitution v2.0 → Document Steward Protocol v1.1  
+**Effective**: 2026-01-07 (Provisional)
+
+---
+
+## 1. Purpose
+
+Defines the structure and validation rules for `ARTEFACT_INDEX.json`, the canonical source of truth for LifeOS binding artefacts.
+
+---
+
+## 2. Schema Structure (YAML Representation)
+
+```yaml
+meta:
+  version: "string (SemVer)"
+  updated: "string (ISO 8601)"
+  description: "string"
+  sha256_policy: "string"
+  counting_rule: "string"
+  binding_classes:
+    FOUNDATIONAL: "string"
+    GOVERNANCE: "string"
+    PROTOCOL: "string"
+    RUNTIME: "string"
+artefacts:
+  _comment_<class>: "string (Visual separator)"
+  <doc_key>: "string (Repo-relative path)"
+```
+
+---
+
+## 3. Validation Rules
+
+1. **Path Resolvability**: All paths in `artefacts` MUST resolve to valid files on disk.
+2. **Unique Keys**: No duplicate keys allowed in `artefacts`.
+3. **Unique Paths**: No duplicate paths allowed in `artefacts`.
+4. **Binding Class Alignment**: Artefacts should be grouped by their binding class comments.
+5. **Version Increments**: Any modification to the indexing structure or counting rules MUST increment the `meta.version`.
+
+---
+
+## 4. Stewardship
+
+The Document Steward is responsible for maintaining the index and ensuring parity with the filesystem. Automated validators MUST verify this schema before any commit involving governance docs.
+
+---
+
+**END OF SCHEMA**
+
+
+---
+
 # File: 01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md
 
 # Antigravity Output Hygiene Policy v0.1
@@ -2785,6 +2850,89 @@ Refine the COO's behaviour based on the CEO's preferences.
 - Consolidate outputs into single artefacts.
 - Carry context proactively.
 - Recommend alternatives when workflows increase friction.
+
+
+---
+
+# File: 01_governance/CSO_Role_Constitution_v1.0.md
+
+# CSO Role Constitution v1.0
+
+**Status**: WIP (Non-Canonical)  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+**Effective**: 2026-01-07 (Provisional)
+
+---
+
+## 1. Role Definition
+
+**CSO** (Chief Strategy Officer) is the advisory and representative role that:
+- Advises the CEO on strategic matters
+- Represents CEO intent within defined envelopes
+- Operates with delegated authority per §3
+
+---
+
+## 2. Responsibilities
+
+### 2.1 Advisory Function
+- Strategic advice on direction, prioritisation, and resource allocation
+- Risk assessment for strategic decisions (Category 3 per Intent Routing)
+- Governance hygiene review and escalation
+
+### 2.2 Representative Function
+- Acts on CEO's behalf within delegated envelopes
+- Surfaces CEO Decision Packets for strategic matters
+- Coordinates between Council and operational layers
+
+### 2.3 Audit Function
+- Audits waiver frequency (Council Protocol §6.3)
+- Reviews bootstrap mode usage (Council Protocol §9)
+- Monitors envelope boundary compliance
+
+---
+
+## 3. Delegated Authority Envelope
+
+| Category | Scope | Authority |
+|----------|-------|-----------|
+| **Routine** | Operational coordination, scheduling | Full autonomy |
+| **Standard** | Council routing, waiver tracking | Autonomy with logging |
+| **Significant** | Strategic recommendations, escalations | Recommend only; CEO decides |
+| **Strategic** | Direction changes, identity, governance | CEO decision only |
+
+---
+
+## 4. Notification Channels
+
+| Trigger | Channel |
+|---------|---------|
+| Emergency CEO override (Council Protocol §6.3) | Immediate notification |
+| Bootstrap mode activation (Council Protocol §9) | Same-session notification |
+| Independence waiver audit (>50% rate) | Weekly summary |
+| Strategic escalation (Category 3) | CEO Decision Packet |
+
+---
+
+## 5. Constraints
+
+CSO **may not**:
+- Override CEO decisions
+- Expand own envelope without CEO approval
+- Commit governance changes autonomously
+- Bypass Council for Category 2 matters
+
+---
+
+## 6. Amendment
+
+Changes to this constitution require:
+1. CEO explicit authorization, OR
+2. Council recommendation approved by CEO
+
+---
+
+**END OF CONSTITUTION**
 
 
 ---
@@ -5456,6 +5604,97 @@ All automated stewardship runs are recorded in `artifacts/ledger/dl_doc/`:
 
 ---
 
+# File: 02_protocols/Emergency_Declaration_Protocol_v1.0.md
+
+# Emergency Declaration Protocol v1.0
+
+**Status**: WIP (Non-Canonical)  
+**Authority**: LifeOS Constitution v2.0 → Council Protocol v1.2  
+**Effective**: 2026-01-07 (Provisional)
+
+---
+
+## 1. Purpose
+
+Defines the procedure for declaring and operating under emergency conditions that permit CEO override of Council Protocol invariants.
+
+---
+
+## 2. Emergency Trigger Conditions
+
+An emergency MAY be declared when **any** of:
+1. **Time-Critical**: Decision required before normal council cycle can complete
+2. **Infrastructure Failure**: Council model(s) unavailable
+3. **Cascading Risk**: Delay would cause escalating harm
+4. **External Deadline**: Contractual or regulatory constraint
+
+---
+
+## 3. Declaration Procedure
+
+### 3.1 Declaration Format
+
+```yaml
+emergency_declaration:
+  id: "EMERG_YYYYMMDD_<slug>"
+  declared_by: "CEO"
+  declared_at: "<ISO8601 timestamp>"
+  trigger_condition: "<one of: time_critical|infrastructure|cascading|external>"
+  justification: "<brief description>"
+  scope: "<what invariants are being overridden>"
+  expected_duration: "<hours or 'until resolved'>"
+  auto_revert: true|false
+```
+
+### 3.2 Recording
+- Declaration MUST be recorded in `artifacts/emergencies/`
+- CSO is automatically notified
+- Council Run Log must include `compliance_status: "non-compliant-ceo-authorized"`
+
+---
+
+## 4. Operating Under Emergency
+
+During declared emergency:
+- CEO may authorize Council runs without model independence
+- Bootstrap mode limits are suspended
+- Normal waiver justification requirements relaxed
+
+**Preserved invariants** (never suspended):
+- CEO Supremacy
+- Audit Completeness
+- Amendment logging
+
+---
+
+## 5. Resolution
+
+### 5.1 Mandatory Follow-Up
+Within 48 hours of emergency resolution:
+- [ ] Compliant re-run scheduled (if council decision)
+- [ ] Emergency record closed with outcome
+- [ ] CSO review completed
+
+### 5.2 Auto-Revert
+If `auto_revert: true`, emergency expires after `expected_duration` and normal governance resumes automatically.
+
+---
+
+## 6. Audit Trail
+
+| Event | Record Location |
+|-------|-----------------|
+| Declaration | `artifacts/emergencies/<id>.yaml` |
+| Council runs during | Council Run Log `notes.emergency_id` |
+| Resolution | Same file, `resolution` block added |
+
+---
+
+**END OF PROTOCOL**
+
+
+---
+
 # File: 02_protocols/G-CBS_Standard_v1.0.md
 
 # Generic Closure Bundle Standard (G-CBS) v1.0
@@ -5678,6 +5917,94 @@ Evidence roles verified: [validator_payload_pass]
 
 ---
 
+# File: 02_protocols/Intent_Routing_Rule_v1.0.md
+
+# Intent Routing Rule v1.0
+
+**Status**: WIP (Non-Canonical)  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+**Effective**: 2026-01-07 (Provisional)
+
+---
+
+## 1. Purpose
+
+Defines how issues, requests, and outputs are routed between:
+- **CEO** — Strategic intent layer
+- **CSO** — Advisory and representation layer
+- **Council** — Deliberative and review layer
+- **COO Runtime** — Operational execution layer
+
+---
+
+## 2. Category Definitions
+
+| Category | Description | Examples |
+|----------|-------------|----------|
+| **Category 1** | Technical/Operational | Bug fixes, implementation details, routine automation |
+| **Category 2** | Structural/Governance/Safety | Protocol changes, tier activation, envelope modifications |
+| **Category 3** | Strategic/Intent | Direction changes, identity questions, priority shifts |
+
+---
+
+## 3. Routing Rules
+
+### 3.1 Category 1 → COO Runtime
+- Routed directly to COO/Runtime
+- CEO not surfaced unless escalation triggered
+- Logged but not requiring approval
+
+### 3.2 Category 2 → Council + CSO
+- Requires Council review (mode determined by CCP)
+- CSO notified for oversight
+- CEO receives synthesized verdict and fix plan
+
+### 3.3 Category 3 → CSO for CEO Decision Packet
+- CSO prepares CEO Decision Packet
+- Framed in CEO-impact terms
+- CEO provides strategic decision
+- Decision flows back through layers
+
+---
+
+## 4. Output Framing
+
+### 4.1 CEO-Facing Outputs
+- Summarized, not raw technical detail
+- Impact-oriented language
+- Options with tradeoffs
+- Clear decision points
+
+### 4.2 Technical Outputs
+- Stay within COO/Runtime layer
+- May be surfaced via Reference links
+- Never dumped directly to CEO
+
+---
+
+## 5. Escalation Triggers
+
+Route upward (increase category) when:
+- Action would exceed envelope
+- Irreversible high-impact decision needed
+- Prior similar decision was overridden
+- Ambiguity in strategic intent
+
+---
+
+## 6. Cross-Reference
+
+- Council Protocol v1.2 §2.4 (StepGate)
+- Council Invocation Binding v1.1 §5
+- Governance Protocol v1.0 §2
+
+---
+
+**END OF PROTOCOL**
+
+
+---
+
 # File: 02_protocols/Packet_Schema_Versioning_Policy_v1.0.md
 
 # Packet Schema Versioning Policy v1.0
@@ -5754,35 +6081,73 @@ Testing.
 
 # Test Protocol v2.0
 
-## Purpose
-Defines the canonical testing protocol for LifeOS components, ensuring determinism, evidence integrity, and governance-aligned verification across tiers.
+**Status**: WIP (Non-Canonical)  
+**Authority**: LifeOS Constitution v2.0 → Core TDD Principles v1.0  
+**Effective**: 2026-01-07 (Provisional)  
+**Supersedes**: Test Protocol v1.0
 
-## Scope
-Applies to all automated and semi-automated tests executed within the LifeOS repository, including CI, certification, and audit gates.
+---
 
-## Principles
-- Determinism over stochastic validation
-- Evidence-first execution
-- Reproducibility as a hard requirement
-- Governance-aligned pass/fail semantics
+## 1. Purpose
 
-## Protocol Steps
-1. **Preconditions**: Validate environment invariants and approved entrypoints.
-2. **Execution**: Run tests using approved runners and fixed seeds where applicable.
-3. **Evidence Capture**: Persist logs, artifacts, and hashes to the evidence ledger.
-4. **Verification**: Apply validator rulesets corresponding to the active tier.
-5. **Outcome Declaration**: Emit PASS/FAIL with immutable references.
+Defines test governance for LifeOS: categories, coverage requirements, execution rules, and CI integration.
 
-## Failure Handling
-- Any non-deterministic outcome is an automatic FAIL.
-- Partial execution is invalid.
-- Missing evidence invalidates results.
+---
 
-## Versioning
-This document is versioned. Superseded versions remain authoritative for historical audits.
+## 2. Test Categories
 
-## Authority
-This protocol is subordinate to Council rulings and the LifeOS governance framework.
+| Category | Location | Purpose |
+|----------|----------|--------|
+| **Unit** | `runtime/tests/test_*.py` | Module-level correctness |
+| **TDD Compliance** | `tests_doc/test_tdd_compliance.py` | Deterministic envelope enforcement |
+| **Integration** | `runtime/tests/test_*_integration.py` | Cross-module behaviour |
+| **Governance** | `runtime/tests/test_governance_*.py` | Protected surface enforcement |
+
+---
+
+## 3. Coverage Requirements
+
+### 3.1 Core Track (Deterministic Envelope)
+- 100% of public functions must have tests
+- All invariants must have negative tests (Negative-Path Parity)
+- Golden fixtures required for serialized outputs
+
+### 3.2 Support Track
+- Coverage goal: 80%+
+- Critical paths require tests
+
+---
+
+## 4. Execution Rules
+
+### 4.1 CI Requirements
+- All tests run on every PR
+- Flaky tests are P0 bugs (no flake tolerance)
+- Determinism: suite must pass twice with randomized order
+
+### 4.2 Local Development
+- Run relevant tests before commit: `pytest runtime/tests -q`
+- TDD compliance check: `pytest tests_doc/test_tdd_compliance.py`
+
+---
+
+## 5. Flake Policy
+
+- **Definition**: Test that passes/fails non-deterministically
+- **Response**: Immediate quarantine and P0 fix ticket
+- **No skip**: Flakes may not be marked `@pytest.mark.skip` without governance approval
+
+---
+
+## 6. Test Naming
+
+Pattern: `test_<module>_<behaviour>_<condition>`
+
+Example: `test_orchestrator_execute_fails_on_envelope_violation`
+
+---
+
+**END OF PROTOCOL**
 
 
 ---

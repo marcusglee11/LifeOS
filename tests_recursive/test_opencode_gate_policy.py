@@ -25,6 +25,7 @@ from scripts.opencode_gate_policy import (
     parse_git_status_z,
     detect_blocked_ops,
     execute_diff_and_parse,
+    get_diff_command,
     compute_hash,
     truncate_log,
     ReasonCode,
@@ -402,8 +403,9 @@ class TestBoundarySafeMatching:
         """configs/ does NOT match config/ denylist."""
         matched, reason = matches_denylist("configs/test.yaml")
         # 'configs/' starts with 'config' but not 'config/'
-        # This should NOT match denylist
-        assert not matched or reason != ReasonCode.DENYLIST_ROOT_BLOCKED
+        # This should NOT match denylist because it's a different path
+        # Strict assertion: must NOT match
+        assert matched is False, f"configs/ should NOT match config/ denylist, got reason={reason}"
 
 
 class TestCIDiffFailClosed:
@@ -423,5 +425,189 @@ class TestCIDiffFailClosed:
         assert hasattr(ReasonCode, 'MERGE_BASE_FAILED')
 
 
+class TestCIDiffFailClosedMocked:
+    """P0.2 — Mock-based behavioral tests for CI diff fail-closed."""
+    
+    def test_refs_unavailable_when_github_base_ref_missing(self, monkeypatch):
+        """Missing GITHUB_BASE_REF in CI => REFS_UNAVAILABLE."""
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        monkeypatch.setenv("GITHUB_SHA", "abc123")
+        monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+        
+        cmd, mode = get_diff_command()
+        
+        assert cmd is None, "Command must be None when refs unavailable"
+        assert mode == ReasonCode.REFS_UNAVAILABLE, f"Expected REFS_UNAVAILABLE, got {mode}"
+    
+    def test_refs_unavailable_when_github_sha_missing(self, monkeypatch):
+        """Missing GITHUB_SHA in CI => REFS_UNAVAILABLE."""
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        monkeypatch.setenv("GITHUB_BASE_REF", "main")
+        monkeypatch.delenv("GITHUB_SHA", raising=False)
+        
+        cmd, mode = get_diff_command()
+        
+        assert cmd is None, "Command must be None when refs unavailable"
+        assert mode == ReasonCode.REFS_UNAVAILABLE, f"Expected REFS_UNAVAILABLE, got {mode}"
+    
+    def test_merge_base_failed_on_subprocess_error(self, monkeypatch, tmp_path):
+        """Subprocess merge-base failure => terminal BLOCK with MERGE_BASE_FAILED."""
+        from unittest.mock import patch, MagicMock
+        
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        monkeypatch.setenv("GITHUB_BASE_REF", "main")
+        monkeypatch.setenv("GITHUB_SHA", "abc123")
+        
+        # Mock subprocess.run to simulate merge-base failure
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stdout = ""
+        mock_result.stderr = "fatal: not a valid object name"
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result) as mock_run:
+            parsed, mode, error = execute_diff_and_parse(str(tmp_path))
+            
+            assert parsed is None, "Parsed must be None on merge-base failure"
+            assert error == ReasonCode.MERGE_BASE_FAILED or error == ReasonCode.DIFF_EXEC_FAILED, \
+                f"Expected MERGE_BASE_FAILED or DIFF_EXEC_FAILED, got {error}"
+    
+    def test_diff_exec_failed_on_exception(self, monkeypatch, tmp_path):
+        """Exception during diff execution => terminal BLOCK with DIFF_EXEC_FAILED."""
+        from unittest.mock import patch
+        
+        # Use LOCAL mode to avoid merge-base call in get_diff_command()
+        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+        monkeypatch.delenv("CI", raising=False)
+        monkeypatch.delenv("CI_MERGE_REQUEST_TARGET_BRANCH_SHA", raising=False)
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', side_effect=Exception("Subprocess crashed")):
+            parsed, mode, error = execute_diff_and_parse(str(tmp_path))
+            
+            assert parsed is None, "Parsed must be None on exception"
+            assert mode == "LOCAL", f"Expected LOCAL mode, got {mode}"
+            assert error == ReasonCode.DIFF_EXEC_FAILED, f"Expected DIFF_EXEC_FAILED, got {error}"
+    
+    def test_successful_diff_returns_parsed_list(self, monkeypatch, tmp_path):
+        """Successful diff execution returns parsed list with no error."""
+        from unittest.mock import patch, MagicMock
+        
+        # Use local mode (no CI env vars)
+        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+        monkeypatch.delenv("CI", raising=False)
+        
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "M\tdocs/test.md\0"
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
+            parsed, mode, error = execute_diff_and_parse(str(tmp_path))
+            
+            assert error is None, f"Expected no error, got {error}"
+            assert parsed is not None, "Parsed should not be None on success"
+            assert mode == "LOCAL", f"Expected LOCAL mode, got {mode}"
+
+
+class TestSymlinkGitIndexMocked:
+    """P0.3 — Mock-based tests for git-index symlink detection (deterministic)."""
+    
+    def test_git_index_symlink_mode_120000_detected(self, tmp_path):
+        """Git index mode 120000 => SYMLINK_BLOCKED."""
+        from unittest.mock import patch, MagicMock
+        
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "120000 abc123def456 0\tdocs/link.md"
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
+            is_sym, reason = check_symlink_git_index("docs/link.md", str(tmp_path))
+            
+            assert is_sym is True, "Mode 120000 must be detected as symlink"
+            assert reason == ReasonCode.SYMLINK_BLOCKED, f"Expected SYMLINK_BLOCKED, got {reason}"
+    
+    def test_git_index_regular_file_mode_100644_not_flagged(self, tmp_path):
+        """Git index mode 100644 (regular file) => NOT a symlink."""
+        from unittest.mock import patch, MagicMock
+        
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "100644 abc123def456 0\tdocs/file.md"
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
+            is_sym, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
+            
+            assert is_sym is False, "Mode 100644 must NOT be flagged as symlink"
+            assert reason is None, f"Expected no reason, got {reason}"
+    
+    def test_git_index_executable_mode_100755_not_flagged(self, tmp_path):
+        """Git index mode 100755 (executable) => NOT a symlink."""
+        from unittest.mock import patch, MagicMock
+        
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "100755 abc123def456 0\tscripts/run.sh"
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
+            is_sym, reason = check_symlink_git_index("scripts/run.sh", str(tmp_path))
+            
+            assert is_sym is False, "Mode 100755 must NOT be flagged as symlink"
+            assert reason is None
+    
+    def test_git_index_empty_response_not_flagged(self, tmp_path):
+        """Empty git ls-files response => NOT a symlink (untracked file)."""
+        from unittest.mock import patch, MagicMock
+        
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = ""
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
+            is_sym, reason = check_symlink_git_index("docs/new.md", str(tmp_path))
+            
+            assert is_sym is False, "Empty response must NOT be flagged"
+            assert reason is None
+    
+    def test_git_index_exception_not_flagged(self, tmp_path):
+        """Exception during git ls-files => NOT flagged (fail-open for detection only)."""
+        from unittest.mock import patch
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', side_effect=Exception("Git not available")):
+            is_sym, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
+            
+            # Note: check_symlink_git_index fails open (returns False on exception)
+            # The combined check_symlink() will still use filesystem check as backup
+            assert is_sym is False, "Exception should not flag as symlink"
+            assert reason is None
+
+
+class TestBoundaryMatchingStrict:
+    """P1.1 — Strict boundary-safe matching assertions (replaces weak tests)."""
+    
+    def test_docsx_strictly_not_allowed(self):
+        """docsx/ must STRICTLY NOT match docs/ allowlist."""
+        result = matches_allowlist("docsx/test.md")
+        assert result is False, "STRICT: docsx/ must return False, not truthy-falsy"
+    
+    def test_artifacts_review_packets_underscore_strictly_blocked(self):
+        """artifacts_review_packets/ STRICTLY not allowed."""
+        result = matches_allowlist("artifacts_review_packets/test.md")
+        assert result is False, "STRICT: artifacts_review_packets/ must return False"
+    
+    def test_docs_strictly_allowed(self):
+        """docs/ STRICTLY allowed."""
+        result = matches_allowlist("docs/test.md")
+        assert result is True, "STRICT: docs/test.md must return True"
+    
+    def test_artifacts_review_packets_strictly_allowed(self):
+        """artifacts/review_packets/ STRICTLY allowed."""
+        result = matches_allowlist("artifacts/review_packets/Review_Packet_Test_v1.0.md")
+        assert result is True, "STRICT: artifacts/review_packets/ must return True"
+    
+    def test_root_file_strictly_blocked(self):
+        """Root-level files STRICTLY blocked."""
+        result = matches_allowlist("README.md")
+        assert result is False, "STRICT: root-level files must return False"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

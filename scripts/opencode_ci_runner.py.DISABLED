@@ -37,6 +37,9 @@ class Colors:
     YELLOW = '\033[93m'
     RESET = '\033[0m'
 
+# Global log buffer for evidence bundle
+_log_buffer = []
+
 def log(msg, level="info"):
     timestamp = datetime.now().isoformat(sep="T", timespec="seconds")
     color = Colors.RESET
@@ -44,7 +47,18 @@ def log(msg, level="info"):
     elif level == "ok": color = Colors.GREEN
     elif level == "gov": color = Colors.YELLOW
     elif level == "info": color = Colors.BLUE
-    print(f"{color}[{level.upper()}] [{timestamp}] {msg}{Colors.RESET}")
+    
+    log_line = f"[{level.upper()}] [{timestamp}] {msg}"
+    _log_buffer.append(log_line)
+    print(f"{color}{log_line}{Colors.RESET}")
+
+def get_log_buffer() -> str:
+    """Get accumulated log buffer content."""
+    return "\n".join(_log_buffer)
+
+def clear_log_buffer():
+    """Clear the log buffer."""
+    _log_buffer.clear()
 
 def load_steward_key():
     """Load the steward API key from env or .env file."""
@@ -106,9 +120,15 @@ def generate_evidence_bundle(status: str, reason: Optional[str], mode: str, task
     with open(os.path.join(evidence_path, "classification.json"), "w") as f:
         json.dump(classification, f, indent=2)
     
-    # hashes.json
+    # runner.log (accumulated log buffer, truncated if needed)
+    log_content = get_log_buffer()
+    truncated_log, was_truncated = policy.truncate_log(log_content)
+    with open(os.path.join(evidence_path, "runner.log"), "w") as f:
+        f.write(truncated_log)
+    
+    # hashes.json (include runner.log)
     hashes = {}
-    for filename in ["exit_report.json", "changed_files.json", "classification.json"]:
+    for filename in ["exit_report.json", "changed_files.json", "classification.json", "runner.log"]:
         p = os.path.join(evidence_path, filename)
         if os.path.exists(p):
             hashes[filename] = policy.compute_file_hash(p)
