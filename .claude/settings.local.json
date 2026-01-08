@@ -61,7 +61,9 @@
       "Bash(uniq:*)",
       "Bash(xargs:*)",
       "Bash(zip:*)",
-      "Bash(.venv/bin/python -m pytest runtime/tests/test_llm_call_operation.py -v)"
+      "Bash(.venv/bin/python -m pytest runtime/tests/test_llm_call_operation.py -v)",
+      "Bash(tee:*)",
+      "Bash(/mnt/c/Users/cabra/projects/lifeos/.venv/bin/python:*)"
     ],
     "deny": [
       "Bash(rm -rf /*)",

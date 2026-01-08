@@ -26,6 +26,11 @@ INCLUDE_DIRS = [
     DOCS_DIR / "09_prompts",
 ]
 
+# Strategic Thresholds
+MAX_CONTENT_CHARS = 5000  # ~80 lines
+PROMPT_PREVIEW_LINES = 50 
+EXEMPT_FILES = ["LifeOS_Constitution", "Governance_Protocol", "COO_Operating_Contract"]
+
 # Patterns
 SUPERSEDED_PATTERN = re.compile(r'(?:\*\*Status\*\*|Status):\s*Superseded', re.IGNORECASE)
 TASK_DONE_PATTERN = re.compile(r'^\s*[-*]\s*\[x\]', re.IGNORECASE | re.MULTILINE)
@@ -224,11 +229,31 @@ def process_file(file_path: Path) -> str:
         print(f"Pruning Tasks: {filename}")
         clean_content = prune_tasks_content(content)
 
+    # Logic for Prompts (Preview only)
+    elif "09_prompts" in str(file_path):
+        print(f"Thinning Prompt: {filename}")
+        lines = content.splitlines()
+        if len(lines) > PROMPT_PREVIEW_LINES:
+            clean_content = "\n".join(lines[:PROMPT_PREVIEW_LINES])
+            clean_content += f"\n\n> [!NOTE]\n> **TRUNCATED**: Only first {PROMPT_PREVIEW_LINES} lines included. See Universal Corpus for full prompt details.\n"
+        else:
+            clean_content = content
+
     # General: prune completed tasks from any file
     else:
         lines = content.splitlines()
         filtered_lines = [line for line in lines if not TASK_DONE_PATTERN.match(line)]
         clean_content = "\n".join(filtered_lines)
+
+    # 5. Smart Truncation (Except for Exempt Files)
+    if not any(exempt in filename for exempt in EXEMPT_FILES):
+        if len(clean_content) > MAX_CONTENT_CHARS:
+            print(f"Truncating Large File: {filename}")
+            # Truncate to max chars but try to keep complete lines
+            trunc_point = clean_content.rfind('\n', 0, MAX_CONTENT_CHARS)
+            if trunc_point == -1: trunc_point = MAX_CONTENT_CHARS
+            clean_content = clean_content[:trunc_point]
+            clean_content += f"\n\n> [!IMPORTANT]\n> **STRATEGIC TRUNCATION**: Content exceedes {MAX_CONTENT_CHARS} characters. Only strategic overview included. See full text in Universal Corpus.\n"
 
     return f"\n# File: {file_path.relative_to(DOCS_DIR).as_posix()}\n\n{clean_content}\n\n"
 
@@ -252,6 +277,13 @@ def main():
         f"\n---\n"
     )
     full_content.append(dashboard)
+
+    # 2. Strategic Rules Overview (Internal)
+    full_content.append(
+        f"> [!NOTE]\n"
+        f"> **Strategic Thinning Active:** Only latest document versions included. "
+        f"Large docs truncated at {MAX_CONTENT_CHARS} chars. Prompts limited to {PROMPT_PREVIEW_LINES} lines.\n\n---\n"
+    )
 
     # Collect files
     files_to_process = []
@@ -278,8 +310,25 @@ def main():
         if status_file and status_file != tasks:
             files_to_process.append(status_file)
 
-    # Deduplicate
+    # Deduplicate by absolute path first
     files_to_process = list(dict.fromkeys(files_to_process))
+    
+    # Version-aware grouping: Only keep latest version of each logical file
+    # Map from "base name" (no version) to (version_tuple, actual_path)
+    version_groups = {}
+    
+    for f in files_to_process:
+        # Strip version from name (e.g., "Doc_v1.2.md" -> "Doc.md")
+        base_name = VERSION_PATTERN.sub("", f.name)
+        ver = parse_version(f.name) or (0, 0, 0)
+        
+        # Use full relative path for grouping to avoid collisions between directories
+        rel_base = f.parent / base_name
+        
+        if rel_base not in version_groups or ver > version_groups[rel_base][0]:
+            version_groups[rel_base] = (ver, f)
+            
+    files_to_process = [v[1] for v in version_groups.values()]
     
     # Sort with Priority
     PRIORITY_ORDER = [

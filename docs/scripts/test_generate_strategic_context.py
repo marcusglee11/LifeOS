@@ -179,3 +179,109 @@ def test_get_latest_file_fallback_to_mtime():
         # Should return one of them (mtime-based, but both created nearly simultaneously)
         assert result is not None
         assert result.suffix == ".md"
+
+
+# --- D) New Trimming & Deduplication Logic ---
+
+def test_version_deduplication_keeps_latest_only():
+    """Verify that only the highest version of a file is kept across the whole list."""
+    from generate_strategic_context import VERSION_PATTERN, parse_version
+    
+    files = [
+        Path("docs/00_foundations/ARCH_Doc_v0.1.md"),
+        Path("docs/00_foundations/ARCH_Doc_v0.2.md"),
+        Path("docs/01_governance/Rule_v1.0.md"),
+        Path("docs/01_governance/Rule_v1.1.md"),
+    ]
+    
+    version_groups = {}
+    for f in files:
+        base_name = VERSION_PATTERN.sub("", f.name)
+        ver = parse_version(f.name) or (0, 0, 0)
+        rel_base = f.parent / base_name
+        if rel_base not in version_groups or ver > version_groups[rel_base][0]:
+            version_groups[rel_base] = (ver, f)
+            
+    result = [v[1] for v in version_groups.values()]
+    
+    result_names = [f.name for f in result]
+    assert "ARCH_Doc_v0.2.md" in result_names
+    assert "ARCH_Doc_v0.1.md" not in result_names
+    assert "Rule_v1.1.md" in result_names
+    assert "Rule_v1.0.md" not in result_names
+
+
+def test_process_file_truncates_large_content():
+    """Verify that non-exempt files are truncated if they exceed MAX_CONTENT_CHARS."""
+    from generate_strategic_context import process_file, MAX_CONTENT_CHARS
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        docs_dir = Path(tmpdir)
+        (docs_dir / "large_file.md").write_text("A" * (MAX_CONTENT_CHARS + 100))
+        
+        # We need to mock DOCS_DIR in the module for process_file to work with relative_to
+        import generate_strategic_context
+        original_docs_dir = generate_strategic_context.DOCS_DIR
+        generate_strategic_context.DOCS_DIR = docs_dir
+        
+        try:
+            result = process_file(docs_dir / "large_file.md")
+            assert "STRATEGIC TRUNCATION" in result
+            assert len(result) < (MAX_CONTENT_CHARS + 500) # +500 for headers/markers
+        finally:
+            generate_strategic_context.DOCS_DIR = original_docs_dir
+
+
+def test_process_file_exempts_constitution_from_truncation():
+    """Verify that LifeOS_Constitution is NOT truncated even if large."""
+    from generate_strategic_context import process_file, MAX_CONTENT_CHARS
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        docs_dir = Path(tmpdir)
+        const_file = docs_dir / "LifeOS_Constitution.md"
+        const_file.write_text("A" * (MAX_CONTENT_CHARS + 100))
+        
+        import generate_strategic_context
+        original_docs_dir = generate_strategic_context.DOCS_DIR
+        generate_strategic_context.DOCS_DIR = docs_dir
+        
+        try:
+            result = process_file(const_file)
+            assert "STRATEGIC TRUNCATION" not in result
+            assert len(result) > MAX_CONTENT_CHARS
+        finally:
+            generate_strategic_context.DOCS_DIR = original_docs_dir
+
+
+def test_process_file_thins_prompts():
+    """Verify that files in 09_prompts are limited to PROMPT_PREVIEW_LINES."""
+    from generate_strategic_context import process_file, PROMPT_PREVIEW_LINES
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        docs_dir = Path(tmpdir)
+        prompts_dir = docs_dir / "09_prompts"
+        prompts_dir.mkdir()
+        prompt_file = prompts_dir / "system_prompt_v1.0.md"
+        prompt_file.write_text("Line\n" * (PROMPT_PREVIEW_LINES + 10))
+        
+        import generate_strategic_context
+        original_docs_dir = generate_strategic_context.DOCS_DIR
+        generate_strategic_context.DOCS_DIR = docs_dir
+        
+        try:
+            result = process_file(prompt_file)
+            assert "TRUNCATED" in result
+            # Count lines in content (excluding header)
+            lines = [l for l in result.splitlines() if l and not l.startswith("# File:")]
+            assert len(lines) >= PROMPT_PREVIEW_LINES
+            # It should have exactly PROMPT_PREVIEW_LINES of original content + note
+            # find original content end
+            content_lines = result.splitlines()
+            header_idx = [i for i, l in enumerate(content_lines) if l.startswith("# File:")][0]
+            actual_content = content_lines[header_idx+2:]
+            # The first PROMPT_PREVIEW_LINES should be original, then the note
+            assert actual_content[PROMPT_PREVIEW_LINES-1] == "Line"
+            # The marker should be around here
+            assert any("TRUNCATED" in line for line in actual_content[PROMPT_PREVIEW_LINES:])
+        finally:
+            generate_strategic_context.DOCS_DIR = original_docs_dir

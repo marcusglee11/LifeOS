@@ -6,6 +6,10 @@
 **Authority Chain:** Constitution (Supreme) → Governance → Runtime (Mechanical)
 
 ---
+> [!NOTE]
+> **Strategic Thinning Active:** Only latest document versions included. Large docs truncated at 5000 chars. Prompts limited to 50 lines.
+
+---
 
 # File: 00_foundations/LifeOS_Constitution_v2.0.md
 
@@ -423,665 +427,10 @@ Before any `notify_user call signaling completion, Antigravity must mentally exe
 > [!CAUTION]
 > This article defines a **hard gate**. Violating it is a critical constitutional failure.
 
-## Section 1. Pre-Implementation Requirement
-
-Before creating or modifying any code, test, or documentation file, Antigravity **MUST**:
-
-1. Determine if the change is "substantive" (more than trivial formatting/typos)
-2. If substantive: Create `implementation_plan.md` in the artifacts directory
-3. Request user approval via `notify_user` with `BlockedOnUser=true`
-4. Wait for explicit approval before proceeding
-
-## Section 2. What Counts as Substantive
-
-Substantive changes include:
-- New files of any kind
-- Logic changes (code behavior, test assertions, documentation meaning)
-- Structural changes (moving files, renaming, reorganizing)
-- Any change to governance-controlled paths (see Section 4)
-
-Non-substantive (planning NOT required):
-- Fixing typos in non-governance files
-- Formatting adjustments
-- Adding comments that don't change meaning
-
-## Section 3. Self-Check Sequence
-
-Before any file modification, Antigravity must mentally execute:
-
-```
-□ Is this a substantive change? → If unclear, treat as substantive
-□ Does an approved implementation_plan.md exist? → If no, STOP
-□ Did the user explicitly approve proceeding? → If no, STOP
-□ Only then: proceed to implementation
-```
-
-## Section 4. Governance-Controlled Paths
-
-These paths ALWAYS require Plan Artefact approval:
-
-- `docs/00_foundations/`
-- `docs/01_governance/`
-- `runtime/governance/`
-- `GEMINI.md`
-- Any file matching `*Constitution*.md`
-- Any file matching `*Protocol*.md`
-
----
-
-# **ARTICLE XIV — DOCUMENT STEWARD PROTOCOL GATE (MANDATORY)**
-
-> [!CAUTION]
-> This article defines a **hard gate**. Violating it is a critical constitutional failure.
-
-## Section 1. Post-Documentation-Change Requirement
-
-After modifying ANY file in `docs/`, Antigravity **MUST**:
-
-1. Update the timestamp in `docs/INDEX.md`
-2. Regenerate `docs/LifeOS_Strategic_Corpus.md` (the lightweight strategic context)
-3. Include both updated files in the Review Packet appendix
-
-> [!NOTE]
-> The full `LifeOS_Universal_Corpus.md` is **NOT** regenerated automatically.
-> It is regenerated only on explicit user request or scheduled runs.
-
-## Section 2. Self-Check Sequence
-
-Before completing any mission that touched `docs/`, execute:
-
-```
-□ Did I modify any file in docs/? → If no, skip
-□ Did I update docs/INDEX.md timestamp? → If no, STOP
-□ Did I regenerate LifeOS_Strategic_Corpus.md? → If no, STOP
-□ Are both files in my Review Packet appendix? → If no, STOP
-□ Only then: proceed to Review Packet creation
-```
-
-## Section 3. Automatic Triggering
-
-This protocol triggers automatically when:
-- Any `.md` file is created in `docs/`
-- Any `.md` file is modified in `docs/`
-- Any `.md` file is deleted from `docs/`
-
----
-
-# **ARTICLE X — MISSION OUTPUT CONTRACT**
-
-At the end of every mission:
-
-1. Antigravity must produce **exactly one** valid Review Packet.  
-2. It must **automatically** determine all created/modified files and flatten them.  
-3. It must **automatically** execute the Document Steward Protocol (update Index + Corpus) if docs changed.
-4. It must **not** require the human to specify or confirm any file list.  
-5. It must **not** produce multiple competing outputs.  
-6. It must ensure the Review Packet is fully deterministic and review-ready.
-
-This replaces all previous loose conventions.
-
----
-
-# **ARTICLE XI — ZERO-FRICTION HUMAN INTERACTION RULE**
-
-To comply with Anti-Failure and Human Preservation:
-
-1. The human may provide **only the mission instruction**, nothing more.  
-2. Antigravity must:  
-   - infer *all* needed file discovery,  
-   - produce *all* required artefacts,  
-   - execute *all* stewardship protocols,
-   - include flattened files without being asked.  
-
-3. The human must never be asked to:  
-   - enumerate changed modules  
-   - confirm lists  
-   - provide paths  
-   - supply filenames  
-   - restate outputs  
-   - clarify which files should be flattened  
-   - remind the agent to update the index or corpus
-   - **remind the agent to produce the Review Packet**
-
-4. All operational friction must be borne by Antigravity, not the human.
-
----
-
-## Section 6 — Stewardship Validation Rule
-
-A Review Packet is **invalid** if the mission modified any documentation but failed to:
-1. Update `docs/INDEX.md` timestamp
-2. Regenerate `LifeOS_Universal_Corpus.md`
-3. Include these updated files in the Appendix
-
-Antigravity must treat this as a **critical failure** and self-correct before presenting the packet. See **Article XIV** for enforcement.
-
----
-
-# ARTICLE VII — PROHIBITED ACTIONS
-
-Antigravity must not:
-
-1. Modify foundational or governance-controlled files.
-2. Skip the Plan Artefact step.
-3. Persist conflicting long-term knowledge.
-4. Introduce nondeterministic code or tests.
-5. Commit changes directly.
-6. Infer authority from past approvals.
-7. Modify version numbers unsafely.
-8. Write or delete files without artefact flow.
-9. Combine unrelated changes in one artefact.
-10. Assume permission from silence.
-11. **Call `notify_user` to signal completion without first producing a Review Packet** (see Article XII).
-12. **Begin substantive implementation without an approved Plan Artefact** (see Article XIII).
-
----
-
-# **ARTICLE XVI — CONTROL PLANE PROTOCOLS (MANDATORY)**
 
 > [!IMPORTANT]
-> This article defines the operational "heartbeat" of the agent.
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-## Section 1. Startup Protocol (The "Read State" Rule)
-At the beginning of every new session or chat context, Antigravity **MUST**:
-1. Read `docs/11_admin/LIFEOS_STATE.md`.
-2. Internalise the "Current Focus" and "Active WIP".
-3. Use this state to ground all subsequent actions.
-
-## Section 2. Admin Hygiene Protocol (The "Clean Close" Rule)
-Trigger: After any substantive commit (modifying docs, code, or tests).
-
-Antigravity **MUST** automatically:
-1. **Sort Inbox**: Move actionable items from `docs/11_admin/INBOX.md` to `docs/11_admin/BACKLOG.md`.
-2. **Update State**: Refine `docs/11_admin/LIFEOS_STATE.md` (Next Actions, WIP status).
-3. **Check Strays**: Scan repo root and `docs/` root for unallowed files; move/delete them.
-4. **Regenerate**: Run `docs/scripts/generate_strategic_context.py` if docs changed. (Universal Corpus is on-demand only.)
-5. **Archive Superseded Artifacts**: Move Review Packets with superseded versions (e.g., v0.1 when v0.2+ exists) to `artifacts/99_archive/review_packets/`.
-
----
-
-# **ARTICLE XVIII — LIGHTWEIGHT STEWARDSHIP MODE**
-
-> [!NOTE]
-> This article provides a fast-path for routine operations without full gate compliance.
-
-## Section 1. Eligibility Criteria
-
-A mission qualifies for Lightweight Mode if ALL of the following are true:
-
-1. No governance-controlled paths modified (see Article XIII §4)
-2. Total files modified ≤ 5
-3. No new code logic introduced (moves, renames, index updates only)
-4. No council trigger conditions (CT-1 through CT-4) apply
-
-## Section 2. Gate Relaxations
-
-When in Lightweight Mode:
-
-| Standard Gate | Lightweight Behavior |
-|--------------|---------------------|
-| Plan Artefact (Art. XIII) | SKIPPED — proceed directly to execution |
-| Full Flattening (Art. IX) | REPLACED — use Diff-Based Context (see §3) |
-| Review Packet Structure | SIMPLIFIED — Summary + Diff Appendix only |
-| Agent Packet Protocol (Art. XV) | SKIPPED — no YAML packets required |
-
-## Section 3. Diff-Based Context Rules
-
-Instead of verbatim flattening, include:
-
-1. **NEW files (≤100 lines)**: Full content
-2. **NEW files (>100 lines)**: Outline/signatures + first 50 lines
-3. **MODIFIED files**: Unified diff with 10 lines context
-4. **MOVED/RENAMED**: `Before: path → After: path`
-5. **DELETED**: Path only
-
-Format:
-```diff
---- a/path/to/file.md
-+++ b/path/to/file.md
-@@ -10,7 +10,7 @@
- context line
--removed line
-+added line
- context line
-```
-
-## Section 4. Lightweight Review Packet Template
-
-```markdown
-# Review Packet: [Mission Name]
-
-**Mode**: Lightweight Stewardship
-**Date**: YYYY-MM-DD
-**Files Changed**: N
-
-## Summary
-[1-3 sentences describing what was done]
-
-## Changes
-
-| File | Change Type |
-|------|-------------|
-| path/to/file | MODIFIED |
-
-## Diff Appendix
-
-[Diff-based context per Section 3]
-```
-
----
-
-# ARTICLE II — GOVERNANCE PROTOCOLS
-
-## Section 1. StepGate Compatibility
-
-Antigravity must:
-
-1. Produce a **Plan Artefact** before any substantive proposed change.
-2. Await human or LifeOS Document Steward review before generating diffs, code, or documentation drafts that are intended to be applied.
-3. Treat each plan-to-execution cycle as a gated sequence with no autonomous escalation.
-4. Never infer permission based on prior messages, past approvals, or behavioural patterns.
-
-## Section 2. Deterministic Artefact Protocol Alignment (DAP v2.0)
-
-Antigravity must generate artefacts with:
-
-- Deterministic formatting
-- Explicit versioning
-- Explicit rationale
-- Explicit scope of change
-- Explicit file targets
-
-Artefacts must be self-contained, clearly scoped, and non-ambiguous, so they can be frozen, audited, and replayed by the LifeOS runtime.
-
-## Section 3. Change Governance
-
-All proposed changes to any file under governance must be expressed through one or more of:
-
-- **Plan Artefacts**
-- **Diff Artefacts**
-- **Documentation Draft Artefacts**
-- **Test Draft Artefacts**
-- **Gap Analysis Artefacts**
-
-No direct writes are permitted for:
-
-- Governance specs
-- Protocols
-- Indices
-- Constitutional documents
-- Alignment, governance, runtime, or meta-layer definitions
-
----
-
-# ARTICLE IV — DOCUMENTATION STEWARDSHIP
-
-## Section 1. Gap Detection
-
-Antigravity must:
-
-- Compare documentation to source code and tests.
-- Detect outdated specifications.
-- Identify missing conceptual documentation.
-- Validate index completeness and correctness.
-- **Enforce Document Steward Protocol v1.0**: Ensure `LifeOS_Universal_Corpus.md` and indexes are regenerated on every change (see Article XIV).
-
-## Section 2. Documentation Proposals
-
-Must be delivered as:
-
-- Plan Artefacts
-- Documentation Draft Artefacts
-- Diff Artefacts (non-governance)
-
-## Section 3. Documentation Standards
-
-Drafts must:
-
-- Follow naming and versioning conventions.
-- Use clear structure and headings.
-- Avoid speculative or ambiguous language.
-- Maintain internal consistency and cross-references.
-
-## Section 4. File Organization
-
-Antigravity must keep `docs/` root clean:
-1. Only `INDEX.md` and `LifeOS_Universal_Corpus.md` at root
-2. All other files must be in appropriate subdirectories
-3. When stewarding new files, move to correct location before indexing
-4. **Protocol files** → `docs/02_protocols/`
-
----
-
-# ARTICLE V — CODE & TESTING STEWARDSHIP
-
-## Section 1. Code Interaction
-
-Agent may:
-
-- Read, analyse, and propose improvements.
-- Generate DIFF artefacts for non-governance code.
-
-Agent may not:
-
-- Directly apply changes.
-- Modify governance or runtime-critical code without explicit instruction.
-- Introduce unapproved dependencies.
-
-## Section 2. Testing Stewardship
-
-Agent may:
-
-- Identify missing or insufficient test coverage.
-- Propose new tests with explicit rationale.
-
-Agent may not:
-
-- Introduce nondeterministic test patterns.
-- Imply new runtime behaviour through tests.
-
----
-
-# ARTICLE VI — REPO SURVEILLANCE & GAP ANALYSIS
-
-## Section 1. Repo Scanning
-
-Agent may scan:
-
-- Entire directory tree
-- Docs
-- Code
-- Tests
-- Configs
-
-Must:
-
-- Produce a Gap Analysis Artefact for issues.
-- Separate observations from proposals.
-
-## Section 2. Index Integrity
-
-Agent must:
-
-- Detect mismatches between tree and index.
-- Surface missing or obsolete entries.
-- Propose fixes only via artefacts.
-
-## Section 3. Structural Governance
-
-Agent should surface:
-
-- Deprecated or unused files.
-- Naming inconsistencies.
-- Duplicated or conflicting documentation.
-
----
-
-# **ARTICLE XV — AGENT PACKET PROTOCOL (MANDATORY)**
-
-> [!IMPORTANT]
-> This article defines structured communication formats for inter-agent exchanges.
-
-## Section 1. Protocol Reference
-
-Antigravity must use the **LifeOS Agent Packet Protocol v1.0**:
-
-| Resource | Path |
-|----------|------|
-| Schemas | `docs/02_protocols/lifeos_packet_schemas_v1.yaml` |
-| Templates | `docs/02_protocols/lifeos_packet_templates_v1.yaml` |
-| Example | `docs/02_protocols/example_converted_antigravity_packet.yaml` |
-
-## Section 2. Role Packet Bindings
-
-When operating in a specific role, Antigravity SHOULD emit the corresponding packet types:
-
-| Role | Packet Types to Emit |
-|------|---------------------|
-| **Doc Steward** | `REVIEW_PACKET` for completed stewardship missions |
-| **Builder** | `BUILD_PACKET` when receiving specs, `REVIEW_PACKET` for delivery |
-| **Reviewer** | `FIX_PACKET` for remediation requests, `COUNCIL_REVIEW_PACKET` for council reviews |
-| **Orchestrator** | `TASK_DECOMPOSITION_PACKET`, `CHECKPOINT_PACKET`, `JOURNEY_TRACKER` |
-
-## Section 3. Packet Emission Requirements
-
-1. **Mission Completion**: When completing a mission that involves inter-agent handoff or formal review, emit a structured YAML packet in addition to the markdown Review Packet.
-2. **Escalation**: When escalating, emit an `ESCALATION_PACKET`.
-3. **Rollback**: When triggering rollback, emit a `ROLLBACK_PACKET`.
-4. **Handoff**: When handing off to another agent, emit a `HANDOFF_PACKET`.
-
-## Section 4. Packet Validation
-
-All emitted packets MUST:
-1. Include all required envelope fields per schema
-2. Use valid UUIDs for `packet_id` and `chain_id`
-3. Use ISO 8601 timestamps
-4. Reference parent packets when in a chain
-
----
-
-# **ARTICLE XVII — BUILD HANDOFF PROTOCOL (MANDATORY)**
-
-> [!IMPORTANT]
-> This article defines agent behavior for build handoffs and context packaging.
-
-## Section 1. Internal Lineage Rules
-
-Internal lineage IDs link artifacts in a build cycle. Never surfaced to CEO.
-
-- **Mode 0**: Builder MAY generate new lineage for new workstream; MUST inherit for continuation
-- **Mode 1+**: Builder MUST NOT invent lineage; must accept from context packet
-
-## Section 2. Preflight Priority
-
-Before any substantive implementation:
-
-1. Run `docs/scripts/check_readiness.py` (if exists)
-2. Else run `pytest runtime/tests -q`
-3. Check `docs/11_admin/LIFEOS_STATE.md` for blockers
-4. Check `artifacts/packets/blocked/` for unresolved BLOCKED packets
-5. If any fail → emit BLOCKED, STOP
-
-## Section 3. Evidence Requirement
-
-- **Mode 0**: Evidence log path required (`logs/preflight/test_output_<ts>.log`)
-- **Mode 1**: Hash attestation required in READINESS packet
-- CEO rejects Review Packets missing preflight evidence
-
-## Section 4. ACK Handshake
-
-When loading any context pointer, reply:
-```
-ACK loaded <path>. Goal: <1 line>. Constraints: <N>.
-```
-
-## Section 5. TTL Behavior
-
-- Default: 72 hours
-- Stale context blocks by default
-- CEO override required to proceed with stale context
-
-## Section 6. CT-5 Restriction
-
-CT-5 (agent recommends council) requires:
-- At least one objective trigger CT-1..CT-4 is true
-- Objective `council_review_rationale` supplied
-- Council may reject CT-5 without objective linkage
-
-## Section 7. No Internal IDs to CEO
-
-Agent MUST NOT:
-- Surface lineage IDs, workstream slugs, or internal paths to CEO
-- Request CEO to provide, confirm, or copy/paste internal IDs
-- All resolution is internal via `artifacts/workstreams.yaml`
-
-## Section 8. Clickable Pickup Links (Zero-Friction Delivery)
-
-> **Normative Layering**: This constitution defines the invariant (CEO must be able to pick up outputs without hunting). The Build Handoff Protocol defines the mechanism.
-
-**Invariant**: CEO must be able to pick up outputs without hunting; delivery always includes a clickable path.
-
-When delivering ANY file the CEO may need to pick up, Agent MUST:
-
-1. **Provide PathsToReview** in notify_user — appears in preview pane
-2. **Provide raw copyable path** in message text (example is illustrative):
-   ```
-   📦 Path: artifacts/bundles/<name>.zip
-   ```
-3. **Bundle when multiple files**: Create zip in `artifacts/bundles/` with manifest
-4. **Copy to CEO pickup folder**: Copy deliverables to `artifacts/for_ceo/` for easy access
-
-**Optional** (only when explicitly requested by CEO or via `--auto-open` flag):
-- Open Explorer to the bundle location via `explorer.exe`
-
-**Default behavior**: No surprise windows. CEO clicks path or navigates to `artifacts/for_ceo/`.
-
----
-
-# ARTICLE III — ARTEFACT TYPES & REQUIREMENTS
-
-Antigravity may generate the following artefacts. Each artefact must include at minimum:
-
-- Title
-- Version
-- Date
-- Author (Antigravity Agent)
-- Purpose
-- Scope
-- Target files or directories
-- Proposed changes or findings
-- Rationale
-
-### 1. PLAN ARTEFACT
-
-Used for: analysis, proposals, restructuring, test plans, documentation outlines.
-
-Requirements:
-
-- Must precede any implementation or diff artefact.
-- Must identify all files or areas involved.
-- Must outline intended artefact outputs.
-- Must list risks, assumptions, and uncertainties.
-
-### 2. DIFF ARTEFACT
-
-Used for: proposing modifications to code, tests, or documentation.
-
-Requirements:
-
-- Must reference specific file paths.
-- Must present changes as diffs or clearly separated blocks.
-- Must include justification for each cluster of changes.
-- Must not target governance-controlled files.
-
-### 3. DOCUMENTATION DRAFT ARTEFACT
-
-Used for: drafting missing documentation, updating outdated documentation, proposing reorganisations.
-
-Requirements:
-
-- Must specify doc category (spec, guide, reference, index, note).
-- Must indicate whether content is additive, modifying, or replacing.
-- Must call out dependencies.
-- Must not assume acceptance.
-
-### 4. TEST DRAFT ARTEFACT
-
-Used for: generating unit, integration, or system test proposals.
-
-Requirements:
-
-- Must specify target modules.
-- Must describe expected behaviours and edge cases.
-- Must link tests to requirements, gaps, or bugs.
-- Must avoid nondeterministic behaviours.
-
-### 5. GAP ANALYSIS ARTEFACT
-
-Used for: identifying inconsistencies or missing coverage.
-
-Requirements:
-
-- Must include a map of the scanned scope.
-- Must list findings with precise references.
-- Must propose remediation steps.
-- Must distinguish critical vs informational gaps.
-
-### 6. TIERED FLATTENING
-
-Flattening requirements vary by mission type:
-
-| Mission Type | Flattening Approach |
-|-------------|---------------------|
-| Lightweight Stewardship | Diff-Based Context (Art. XVIII §3) |
-| Standard Mission | Full flattening for NEW files; diff for MODIFIED |
-| Council Review | Full flattening for ALL touched files |
-
-Agent must declare mission type in Review Packet header.
-
----
-
-# APPENDIX A — NAMING & FILE CONVENTIONS
-
-1. Naming must follow repo conventions.
-2. Governance/spec files must use version suffixes.
-3. Artefacts **MUST** conform to **Build Artifact Protocol v1.0**:
-   - **Protocol:** `docs/02_protocols/Build_Artifact_Protocol_v1.0.md`
-   - **Schema:** `docs/02_protocols/build_artifact_schemas_v1.yaml`
-   - **Templates:** `docs/02_protocols/templates/`
-   - All artifacts MUST include YAML frontmatter per schema
-   - Naming patterns:
-     - `Plan_<Topic>_vX.Y.md`
-     - `Review_Packet_<Mission>_vX.Y.md`
-     - `Walkthrough_<Topic>_vX.Y.md`
-     - `DocDraft_<Topic>_vX.Y.md`
-     - `TestDraft_<Module>_vX.Y.md`
-     - `GapAnalysis_<Scope>_vX.Y.md`
-   - **Versioning Rules:**
-     - **Sequential Only:** v1.0 → v1.1 → v1.2. Never skip numbers.
-     - **No Overwrites:** Always create a new file for a new version.
-     - **No Suffixes:** Do NOT add adjectives or descriptors (e.g., `_Final`, `_Updated`) to the filename.
-     - **Strict Pattern:** `[Type]_[Topic]_v[Major].[Minor].md`
-4. Artefacts must contain full metadata and rationale.
-5. Index files must not be directly edited.
-6. Repo-local `GEMINI.md` must be copied from this template.
-
----
-
-# APPENDIX B — ARTIFACT DIRECTORY STRUCTURE (MANDATORY)
-
-> [!IMPORTANT]
-> All agent-generated artifacts MUST be placed in the correct folder.
-
-## Directory Map
-
-| Folder | Purpose | Naming |
-|--------|---------|--------|
-| `artifacts/plans/` | Implementation/architecture plans | `Plan_<Topic>_v<X.Y>.md` |
-| `artifacts/review_packets/` | Completed work for CEO review | `Review_Packet_<Mission>_v<X.Y>.md` |
-| `artifacts/context_packs/` | Agent-to-agent handoff context | `ContextPack_<Type>_<UUID>.yaml` |
-| `artifacts/bundles/` | Zipped multi-file handoffs | `Bundle_<Topic>_<Date>.zip` |
-| `artifacts/missions/` | Mission telemetry logs | `<Date>_<Type>_<UUID>.yaml` |
-| `artifacts/packets/` | Structured YAML packets | Per schema naming |
-| `artifacts/gap_analyses/` | Gap analysis artifacts | `GapAnalysis_<Scope>_v<X.Y>.md` |
-| `artifacts/for_ceo/` | **CEO pickup folder** | Copies of files needing CEO action |
-
-## CEO Pickup Protocol
-
-> **Note**: This appendix provides implementation guidance subordinate to Article XVII §8. The invariant is that CEO must not hunt for outputs.
-
-When ANY file requires CEO action:
-1. Place canonical copy in appropriate folder (e.g., `plans/`)
-2. **Copy** to `artifacts/for_ceo/`
-3. Include raw copyable path in notification message
-4. Provide PathsToReview in notify_user (appears in preview pane)
-
-**Default behavior**: No auto-open. No surprise windows.
-
-**Optional** (only when explicitly requested by CEO or via `--auto-open` flag):
-- Open Explorer to `artifacts/for_ceo/` using `explorer.exe`
-
-CEO clears `for_ceo/` after pickup. Agent MUST NOT delete from this folder.
 
 
 ---
@@ -1184,253 +533,10 @@ Evolve to physical separation when it materially improves:
 
 ### 3.1 Ledgers
 
-**Executive Index Ledger (EIL)** — global spine
-- `case_id` creation
-- authority grants / approvals
-- dispatches to domain ledgers (with `dispatch_id`)
-- domain outcomes (refs only)
-- global state transitions
-- escalations and resolutions
 
-**Domain ledgers** — detailed operational truth per domain
-- **DL_BUILD:** build/verify/integration execution packets + evidence refs
-- **DL_GOV:** council cycles, rulings, dispositions + evidence refs
-- **DL_DOC:** doc stewardship requests/results + reports
-- (future) DL_FIN, DL_BIZOPS, etc.
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-### 3.2 Cross-ledger anchoring invariant
-
-Every domain run must be anchored to EIL via:
-- shared `case_id`
-- `eil_anchor_ref` (the EIL entry that authorised/started the run)
-- domain root entry hash/packet ref
-
-Every EIL outcome entry must reference:
-- `domain_ledger_id`
-- `domain_entry_hash` or `packet_ref`
-- outcome classification (pass/fail/fix_required/escalate)
-
-### 3.3 Why Council separation is mandatory now
-
-- Maintains governance independence (no repo write access required)
-- Enables clear governance gating: only DL_GOV dispositions advance governance gates in EIL
-- Prevents “build loop” and “governance loop” from collapsing into one opaque loop
-
----
-
-## 4. Packet taxonomy (north-star contracts)
-
-### 4.1 Packet families (minimum viable set)
-
-1) **Intent / Authority**
-- `INTENT_PROPOSAL`
-- `AUTH_GRANTED` (authority envelope, constraints, escalation rules)
-
-2) **Planning / Tasking**
-- `WORKPLAN`
-- `TASK_ORDER`
-
-3) **Build execution**
-- `BUILD_REQUEST`
-- `BUILD_RESULT`
-
-4) **Verification**
-- `VERIFY_REQUEST`
-- `VERIFY_RESULT`
-
-5) **Review / Governance**
-- `REVIEW_REQUEST` / `REVIEW_FINDINGS` (architect/peer)
-- `COUNCIL_REVIEW_REQUEST`
-- `COUNCIL_RULING`
-- `COUNCIL_DISPOSITION`
-
-6) **Change instruction**
-- `FIX_PACK` (the only post-finding/ruling change authorisation)
-
-7) **Integration / Release**
-- `INTEGRATION_REQUEST` / `INTEGRATION_RESULT`
-- `RELEASE_APPROVAL` / `RELEASE_RECORD`
-
-8) **Stewardship**
-- `DOC_STEWARD_REQUEST` / `DOC_STEWARD_RESULT`
-
-### 4.2 Required common fields (all packets)
-
-- `packet_id` (prefer content-addressed)
-- `packet_type`, `schema_version`
-- `issued_at`, `issuer_role`, `issuer_identity`
-- `case_id`
-- `authority_refs` (what grant/decision authorises this)
-- `input_refs` (immutable refs to artefacts, repo state, prior packets)
-- `constraints` (permissions/side-effects allowed; determinism envelope)
-- `expected_outputs` (declared artefact classes + evidence requirements)
-- `evidence_manifest_ref`
-- `signature` (canonical serialisation)
-
-### 4.3 Evidence manifests (by reference)
-
-Evidence is stored as typed objects and referenced from packets:
-- `TEST_LOG`, `LINT_REPORT`, `DIFF_BUNDLE`, `METRICS`, `TRACE`, `ARTEFACT_BUNDLE`, etc.
-- Packets contain summaries + refs, not bulk payloads.
-
----
-
-## 5. End-to-end build lifecycle (case flow)
-
-### 5.1 High-level flow (conceptual)
-
-```
-CEO → COO(Control Plane)
-   → EIL: CASE_OPENED / AUTH_GRANTED
-   → DL_BUILD: BUILD_REQUEST → BUILD_RESULT
-   → DL_BUILD: VERIFY_REQUEST → VERIFY_RESULT
-   → DL_GOV: COUNCIL_REVIEW_REQUEST → COUNCIL_RULING/DISPOSITION
-   → (if fix) Architect → FIX_PACK → DL_BUILD rebuild/verify
-   → EIL: STATE_ADVANCED → INTEGRATION → RELEASE_RECORD
-   → DL_DOC: DOC_STEWARD_REQUEST → DOC_STEWARD_RESULT
-```
-
-### 5.2 Gate ownership
-
-- **Architect gate:** acceptance criteria clarity (“done means…”) and fix pack authorisation
-- **Verifier gate:** tests/determinism/regression evidence
-- **Council gate:** policy compliance and disposition (DL_GOV)
-- **COO gate:** global state advancement recorded in EIL
-
----
-
-## 6. Convergence, termination, and deadlocks
-
-### 6.1 Anti-ping-pong rules
-
-- Council/review outputs are **batch rulings** per cycle (no drip-feed).
-- Architect responses are **batch fix packs** mapping each item → change → evidence.
-
-### 6.2 Bounded cycles and monotonic progress
-
-Each loop defines:
-- max cycles `N`
-- a monotonic progress signal (must improve per cycle, or within `M` cycles)
-- escalation triggers when bounds are violated
-
-Progress signal examples:
-- decreasing failing test count (or closure of specific failing IDs)
-- decreasing open ruling item count (or closure of specific `item_id`s)
-- decreasing schema conformance errors
-- improving determinism checks (replay success / stable hashes)
-
-### 6.3 Deadlock triggers (deterministic)
-
-A deadlock trigger may fire when (examples):
-- cycles ≥ `N` with no reduction in open items
-- no monotonic progress for `M` cycles
-- repeated re-litigation (same item IDs recur without new admissible evidence)
-- cross-domain dependency loop (build ↔ council stalemate)
-
-### 6.4 CSO intervention (post-trigger only)
-
-When a deadlock trigger fires, CSO is invoked to **reframe and re-dispatch**, not to decide.
-
-CSO outputs (ordered preference):
-1) `CSO_REFRAME_DIRECTIVE` (narrow / split / clarify / repackage evidence) + remaining-cycle bounds
-2) `CSO_ROUTING_CHANGE` (redirect to the correct authority: Architect vs Council vs Verifier)
-3) `CEO_ESCALATION_REQUIRED` (only if outside authorised envelope)
-
----
-
-## 7. Escalation policy (CEO by exception)
-
-### 7.1 Levels
-
-- **L0:** Auto-resolve within bounded cycles
-- **L1:** Internal escalation → Architect (spec/design ambiguity; routine non-convergence)
-- **L1b:** Deadlock escalation → CSO (post-trigger reframing)
-- **L2:** Governance escalation → Council (policy/authority conflicts)
-- **L3:** CEO escalation → CEO (safety boundaries or governance-required decisions)
-
-### 7.2 CEO escalation packet standard (required)
-
-Any CEO escalation must include:
-- escalation class + why triggered
-- decision required (single sentence)
-- ≤3 options, with effects (not implementation detail)
-- recommendation + rationale
-- ledger refs (EIL + domain refs only)
-- safe default if no response (pause affected case)
-
----
-
-## 8. Autonomy ladder (capability rungs)
-
-The ladder measures capability, not architectural sophistication. Each rung “earns” additional infrastructure only when it reduces CEO burden and improves auditability.
-
-### Rung 0 — Manual orchestration
-Human initiates and executes; AI responds. No durable ledgering beyond ad hoc notes.
-
-### Rung 1 — Triggered autonomy (single task, single loop)
-Agent executes a defined task when triggered (CI/cron/command). Outputs are reviewable artefacts.  
-**Minimum machinery:** `BUILD_REQUEST/RESULT`, `VERIFY_REQUEST/RESULT`, evidence refs.
-
-### Rung 2 — Supervised chains (multi-step workflow with checkpoints)
-Multi-step workflows with explicit checkpoints; agent can run several steps autonomously but must satisfy gates before advancing.  
-**Minimum machinery:** EIL case spine + dispatch/outcome recording; structured fix packs.
-
-### Rung 3 — Delegated domains (domain ownership within constraints)
-Agent owns a domain end-to-end within constraints; human involvement by exception.  
-**Minimum machinery:** domain ledgers + cross-ledger anchoring; council gating for significant changes; bounded escalation.
-
-### Rung 4 — Autonomous initiative (proposal → approval → execution)
-Agent identifies tasks worth doing, proposes them, and executes after approval, within delegation envelopes.  
-**Minimum machinery:** proposal packets + delegated authority grants + robust deadlock handling.
-
----
-
-## 9. Security and safety boundaries (north-star posture)
-
-This operating model assumes explicit constraints in `AUTH_GRANTED`:
-- no spend / no external comms / no secrets changes unless explicitly delegated
-- branch-only writes and controlled merge/release gates (implementation choice, but the authority must exist)
-- least privilege credentials and blast-radius partitioning (especially as endpoints become physical services)
-
-(Concrete delegation envelopes and enforcement live in governance/risk artefacts, not here.)
-
----
-
-## 10. Glossary (minimal)
-
-- **Artefact:** A durable output (code, doc, report, bundle) referenced immutably.
-- **Packet:** A typed, schema-led message with signatures, refs, and constraints.
-- **Invariant:** A rule that must hold across implementations and rungs.
-- **EIL:** Executive Index Ledger (global spine for cases, gates, escalation).
-- **Domain ledger:** Append-only ledger for a specific operational domain (build, gov, docs).
-- **Disposition:** Council outcome that advances/blocks a governance gate.
-
----
-
-# Annexes (supporting material; not part of the north-star core)
-
-## Annex A — Validation record (from v0.4 “Validated Foundation”)
-This annex preserves proof-of-concept notes and should be maintained in an audit-grade “Validation Record” format:
-- environment topology (self-hosted vs hosted runner)
-- exact invocations
-- immutable evidence refs (logs, commit SHAs, run IDs)
-- reproducibility notes
-
-## Annex B — Implementation roadmap (from v0.4 “Implementation Plan”)
-Timeboxes are non-durable; preserve as a working plan, but prefer capability exit criteria:
-- validate the loop
-- raise the stakes (PR workflow, notifications)
-- supervised chains
-- expand scope
-
-## Annex C — Risk register (from v0.4)
-Keep operational and governance risks here, tied to mitigations and triggers.
-
-## Annex D — Migration notes (from v0.4 Appendix B “Migration from Antigravity”)
-Tool migrations and endpoint selection belong here. Roles remain stable; implementations swap.
-
-## Annex E — Document history
-Version log and major structural changes.
 
 
 ---
@@ -1527,347 +633,10 @@ Refining the "Meta-Optimization" concept from v0.1 into a rigorous **MLOps** pip
 
 Instead of a "nightly script," we implement **Trigger-Based Retraining**.13
 
-* **Drift Detection:** If the correlation between "Sleep" and "Productivity" drops below threshold $r \< 0.3$, a retraining job is triggered.  
-* **Evaluation Gate:** The new model is tested against a "Golden Dataset" of historical user preferences. It is only promoted to production if it outperforms the previous model without violating safety constraints.
 
-### **4.2. Synthetic Stakeholders (Simulation)**
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-Before an Agent changes a major life parameter (e.g., "Switch to Vegan Diet"), it runs a simulation against **Synthetic Personas** (e.g., "Stressed User," "Athletic User") to predict failure modes.
-
-## ---
-
-**5\. FinOps: Economic Governance**
-
-A "LifeOS" must not bankrupt its user. Cost is a first-class metric.4
-
-* **Unit Economics:** Track Cost\_Per\_Insight and Cost\_Per\_Routine.  
-* **Budget Guardrails:** Agents have token limits. If the "Research Agent" hits 80% of its monthly API budget, it automatically switches from GPT-4 to a cheaper model (e.g., Llama 3 70B) or requires manual approval.14  
-* **Ephemeral Efficiency:** Test environments have a strict **TTL (Time-To-Live)** of 2 hours to prevent zombie infrastructure costs.15
-
-## ---
-
-**6\. Implementation Roadmap**
-
-### **Phase 1: Foundation (Months 1-3)**
-
-* **Objective:** Stabilize the "Primitives."  
-* **Actions:**  
-  * Deploy **Internal Developer Platform (IDP)** (Backstage/Port).  
-  * Containerize all existing scripts into Docker images.  
-  * Implement **GitOps** flow (ArgoCD/Flux) for the "Life Database."
-
-### **Phase 2: Governance (Months 4-6)**
-
-* **Objective:** Secure the Supply Chain.  
-* **Actions:**  
-  * Implement **OPA** Policy Gates.  
-  * Achieve **SLSA Level 2** (Hosted, signed builds).  
-  * Deploy **FinOps** tagging strategy.
-
-### **Phase 3: Agency (Months 7+)**
-
-* **Objective:** Autonomous Optimization.  
-* **Actions:**  
-  * Deploy **Federated Agents** on Knative.  
-  * Enable **GraphRAG** for shared memory.  
-  * Activate **MLOps** auto-retraining loops.
-
-## ---
-
-**7\. Critical Risk Register**
-
-| Risk | Probability | Mitigation Strategy |
-| :---- | :---- | :---- |
-| **Model Hallucination** | High | **Strict Policy Gates (OPA).** No AI decision \>$50 or involving health safety executes without human-in-the-loop.7 |
-| **Cost Blowout** | Medium | **FinOps Budget Caps.** Hard API limits and "Scale-to-Zero" architecture.14 |
-| **"Golden Cage"** | Medium | **InnerSource Model.** Allow "forking" of standard routines to create custom variations.16 |
-| **Complexity Overload** | High | **Golden Paths.** The IDP must provide simple "One-Click" templates for 90% of user needs.17 |
-
-#### **Works cited**
-
-1. The PolyInnovation Operating System \#PIOS as a Second Brain or LifeOS, accessed January 3, 2026, [https://polyinnovator.space/the-polyinnovation-operating-system-pios-as-a-second-brain-or-lifeos/](https://polyinnovator.space/the-polyinnovation-operating-system-pios-as-a-second-brain-or-lifeos/)  
-2. Application Release Engineering \- Best Practices and Tools \- XenonStack, accessed January 3, 2026, [https://www.xenonstack.com/insights/application-release-engineering](https://www.xenonstack.com/insights/application-release-engineering)  
-3. William Whatley | Fractional Engineering, accessed January 3, 2026, [https://www.gofractional.com/member/william-whatley](https://www.gofractional.com/member/william-whatley)  
-4. AI's Next Act: 4 AI Trends That Will Redefine 2026 | Zinnov, accessed January 3, 2026, [https://zinnov.com/automation/ais-next-act-4-ai-trends-that-will-redefine-2026-blog/](https://zinnov.com/automation/ais-next-act-4-ai-trends-that-will-redefine-2026-blog/)  
-5. InnerSource and Agile, accessed January 3, 2026, [https://innersourcecommons.org/learn/learning-path/project-leader/02/](https://innersourcecommons.org/learn/learning-path/project-leader/02/)  
-6. 15 DevEx Metrics for Engineering Leaders to Consider: Because 14 Wasn't Enough, accessed January 3, 2026, [https://jellyfish.co/library/developer-experience-metrics/](https://jellyfish.co/library/developer-experience-metrics/)  
-7. Enforcing Policy as Code in Terraform: A Comprehensive Guide \- Scalr, accessed January 3, 2026, [https://scalr.com/learning-center/enforcing-policy-as-code-in-terraform-a-comprehensive-guide/](https://scalr.com/learning-center/enforcing-policy-as-code-in-terraform-a-comprehensive-guide/)  
-8. Building an AI-Native Engineering Team \- OpenAI for developers, accessed January 3, 2026, [https://developers.openai.com/codex/guides/build-ai-native-engineering-team/](https://developers.openai.com/codex/guides/build-ai-native-engineering-team/)  
-9. What is Policy as Code? \- XenonStack, accessed January 3, 2026, [https://www.xenonstack.com/blog/policy-as-code](https://www.xenonstack.com/blog/policy-as-code)  
-10. What is Build Automation?… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/what-is-build-automation](https://www.harness.io/harness-devops-academy/what-is-build-automation)  
-11. Becoming an Autonomous Enterprise: How to Build an AI-Infused Operating Model, accessed January 3, 2026, [https://www.automationanywhere.com/company/blog/automation-ai/becoming-autonomous-enterprise-how-build-ai-infused-operating-model](https://www.automationanywhere.com/company/blog/automation-ai/becoming-autonomous-enterprise-how-build-ai-infused-operating-model)  
-12. What is the SLSA Framework? \- JFrog, accessed January 3, 2026, [https://jfrog.com/learn/grc/slsa-framework/](https://jfrog.com/learn/grc/slsa-framework/)  
-13. Enterprise MLOps Platform on Kubernetes: Complete Machine Learning Life Cycle from Experimentation to Deployment | by Wltsankalpa | Medium, accessed January 3, 2026, [https://medium.com/@wltsankalpa/enterprise-mlops-platform-on-kubernetes-complete-machine-learning-life-cycle-from-experimentation-b78a1c21e7c5](https://medium.com/@wltsankalpa/enterprise-mlops-platform-on-kubernetes-complete-machine-learning-life-cycle-from-experimentation-b78a1c21e7c5)  
-14. The top 10 fallacies in platform engineering \- Humanitec, accessed January 3, 2026, [https://humanitec.com/blog/top-10-fallacies-in-platform-engineering](https://humanitec.com/blog/top-10-fallacies-in-platform-engineering)  
-15. How to Build Enterprise Workflow Automation: Tools & Best Practices | Bika.ai, accessed January 3, 2026, [https://bika.ai/blog/how-to-build-enterprise-workflow-automation-tools-best-practices](https://bika.ai/blog/how-to-build-enterprise-workflow-automation-tools-best-practices)  
-16. 9 FinOps Best Practices to Optimize and Cut Cloud Costs | DoiT, accessed January 3, 2026, [https://www.doit.com/blog/9-finops-best-practices-to-optimize-and-cut-cloud-costs/](https://www.doit.com/blog/9-finops-best-practices-to-optimize-and-cut-cloud-costs/)  
-17. Mastering Infrastructure as Code Best Practices for Modern DevOps… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/infrastructure-as-code-best-practices](https://www.harness.io/harness-devops-academy/infrastructure-as-code-best-practices)
-
-
----
-
-# File: 00_foundations/ARCH_LifeOS_Operating_Model_v0.3.md
-
-# ARCH_LifeOS_Operating_Model_v0.3: The Shipping Edition
-
-**Version:** 0.3  
-**Status:** Architecture Proposal  
-**Strategic Focus:** Minimal viable autonomy, then iterate.
-
----
-
-## 1. Executive Summary
-
-**The Problem:** LifeOS has extensive governance documentation, 316 passing tests, and zero autonomous operation. The operator (GL) remains the waterboy shuttling context between AI collaborators.
-
-**The Goal:** One agent doing one thing end-to-end without human intervention. Then two things. Then patterns emerge.
-
-**The Pivot from v0.2:** v0.2 proposed enterprise-grade infrastructure (Kubernetes, SLSA L3, Federated Agents, FinOps governance) for a single-user system. This is architectural overcapitalization. v0.3 proposes the minimum viable stack that achieves autonomy, with complexity added only when earned by actual bottlenecks.
-
-**Success Metric:** GL wakes up to completed work he didn't manually orchestrate.
-
----
-
-## 2. Architectural Principles
-
-### 2.1. Complexity is Debt
-
-Every component added is a component that can break, requires maintenance, and delays shipping. The architecture should be as simple as possible while achieving autonomy—and no simpler.
-
-**Heuristic:** If you can't explain why a component is necessary in one sentence tied to a concrete problem, remove it.
-
-### 2.2. Earn Your Infrastructure
-
-| Trigger | Response |
-|---------|----------|
-| "We might need X" | Don't build X |
-| "X broke twice this week" | Now build X |
-| "X is a bottleneck" | Now optimize X |
-
-### 2.3. One Path, Not Golden Paths
-
-"Golden Paths" and Internal Developer Platforms serve teams with divergent needs. LifeOS has one user. There is one path: the one that works.
-
-### 2.4. Governance Follows Capability
-
-The existing governance framework is ahead of execution capability. New governance documentation is blocked until execution catches up. Govern what exists, not what might exist.
-
----
-
-## 3. Technical Architecture
-
-### 3.1. The Stack
-
-```
-┌─────────────────────────────────────────────────┐
-│                    OPERATOR                      │
-│              (GL - async oversight)              │
-└─────────────────────┬───────────────────────────┘
-                      │ reviews / approves
-                      ▼
-┌─────────────────────────────────────────────────┐
-│                 ORCHESTRATOR                     │
-│         (Single agent with API access)           │
-│    Currently: OpenCode migrating from Antigravity│
-└─────────────────────┬───────────────────────────┘
-                      │ executes
-                      ▼
-┌─────────────────────────────────────────────────┐
-│                   RUNTIME                        │
-│     Git repo + GitHub Actions + test suite       │
-└─────────────────────┬───────────────────────────┘
-                      │ persists
-                      ▼
-┌─────────────────────────────────────────────────┐
-│                    STATE                         │
-│   Filesystem (repo) + lightweight DB if needed   │
-└─────────────────────────────────────────────────┘
-```
-
-**That's it.** No Kubernetes. No Knative. No Terraform modules. No OPA policy engine. No vector database. No GraphRAG.
-
-### 3.2. Component Specifications
-
-**Orchestrator (OpenCode)**
-- Has API access (the capability Antigravity lacked)
-- Receives task via structured prompt or queue
-- Executes using standard tools (file I/O, git, shell)
-- Commits results to repo
-- Signals completion
-
-**Runtime (GitHub Actions)**
-- Triggered by commits or schedule
-- Runs test suite (316 existing tests)
-- Deploys/executes approved changes
-- Posts results to notification channel
-
-**State (Git Repository)**
-- Single source of truth
-- All changes via commits (auditable by default)
-- No separate "Life Database" to sync
-
-**Governance (Embedded, Not Layered)**
-- Approval gates are GitHub PR reviews, not OPA policies
-- Cost limits are API key quotas, not FinOps dashboards
-- Safety constraints are test assertions, not policy-as-code
-
-### 3.3. What's Explicitly Excluded (For Now)
-
-| Component | Why Excluded | Trigger to Add |
-|-----------|--------------|----------------|
-| Kubernetes | Orchestration overhead exceeds value at n=1 agents | Multiple long-running agents competing for resources |
-| Vector DB / RAG | No retrieval bottleneck yet | Agent struggles with context window limits |
-| Policy-as-Code (OPA) | Test assertions + PR review sufficient | Automated decisions with financial/safety impact bypass human review |
-| IDP (Backstage) | One user, one path | Never (this is a team tool) |
-| Terraform/IaC | No infrastructure to manage | Cloud resources beyond single VM |
-| Multi-agent federation | Coordination overhead without proven single-agent success | One agent is bottlenecked and task is cleanly separable |
-
----
-
-## 4. The Autonomy Ladder
-
-Progress is measured by climbing rungs, not by architectural sophistication.
-
-### Rung 0: Manual Orchestration (Current State)
-GL shuttles context between Claude, ChatGPT, and specialized agents. Every action requires human initiation.
-
-### Rung 1: Triggered Autonomy
-Agent executes a defined task when triggered (cron, webhook, or GL command). Human reviews output async.
-
-**First target:** Doc steward hygiene—lint, format, update timestamps, flag inconsistencies. Low stakes, high repetition, clear success criteria.
-
-### Rung 2: Supervised Chains
-Agent executes multi-step workflows. Human approves at checkpoints (e.g., PR review before merge).
-
-**Target:** Build cycle—receive instruction, implement, test, submit PR, await approval, merge.
-
-### Rung 3: Delegated Domains
-Agent owns a domain end-to-end within defined constraints. Human intervenes by exception.
-
-**Target:** Repository maintenance—dependency updates, test coverage gaps, documentation sync.
-
-### Rung 4: Autonomous Initiative
-Agent identifies tasks, proposes them, and executes approved proposals without GL defining the work.
-
-**Target:** TBD—this emerges from Rung 3 patterns.
-
----
-
-## 5. Implementation Plan
-
-### Phase 1: Prove the Loop (Week 1-2)
-
-**Objective:** One autonomous execution, any task, any stakes.
-
-**Actions:**
-1. Validate OpenCode API connectivity
-2. Define single task with clear input/output (doc hygiene recommended)
-3. Write GitHub Action that: triggers agent → agent executes → commits result → runs tests
-4. Execute manually once. Then schedule.
-
-**Exit Criteria:** Scheduled job runs overnight, GL wakes to committed changes that pass tests.
-
-### Phase 2: Raise the Stakes (Week 3-4)
-
-**Objective:** Autonomous execution of substantive work.
-
-**Actions:**
-1. Extend to multi-file changes
-2. Add PR workflow (agent commits to branch, opens PR, awaits review)
-3. Implement notification on completion/failure
-4. Document failure modes encountered
-
-**Exit Criteria:** Agent submits PR with working code change. GL reviews and merges.
-
-### Phase 3: Chain Tasks (Week 5-8)
-
-**Objective:** Multi-step workflows with checkpoints.
-
-**Actions:**
-1. Define 2-3 step workflow (e.g., receive spec → implement → test → PR)
-2. Implement checkpoint notifications
-3. Add rollback capability on failure
-4. Begin extracting patterns into reusable prompts/templates
-
-**Exit Criteria:** Agent completes chained workflow with single initial trigger.
-
-### Phase 4: Expand Scope (Month 3+)
-
-**Objective:** Second and third autonomous domains.
-
-**Actions:**
-1. Identify next domain based on Phase 1-3 learnings
-2. Apply proven patterns
-3. Evaluate whether multi-agent coordination is now justified
-4. Add infrastructure only if concrete bottleneck demands it
-
-**Exit Criteria:** Multiple domains operating autonomously with GL in async oversight role.
-
----
-
-## 6. Risk Register
-
-| Risk | Probability | Mitigation |
-|------|-------------|------------|
-| Agent produces broken code | High | Test suite gates all merges. PR review for non-trivial changes. |
-| API costs spike | Medium | Hard quota on API keys. Alert at 50% monthly budget. |
-| Agent hallucinates task completion | Medium | Require artifact (commit, file, log) as proof of execution. |
-| Scope creep into enterprise architecture | High | This document. Refer to §3.3 exclusion triggers. |
-| GL over-engineers instead of shipping | High | Phase 1 has 2-week timebox. Ship or retro. |
-
----
-
-## 7. What This Document Is Not
-
-**Not a platform strategy.** There is no platform. There is a repo and an agent.
-
-**Not a team topology.** There is no team. There is GL and his AI collaborators.
-
-**Not a long-term architecture.** This is the minimum structure to achieve autonomy. Architecture evolves from working systems, not from documents.
-
-**Not comprehensive.** It deliberately excludes most of what a "complete" operating model would contain. Completeness is not the goal. Shipping is.
-
----
-
-## 8. Success Criteria for This Document
-
-This document succeeds if:
-
-1. Phase 1 completes within 2 weeks
-2. GL spends less time on infrastructure and more time on substantive work
-3. The excluded components (§3.3) remain excluded for at least 3 months
-4. Autonomy ladder rungs are climbed, not skipped
-
-This document fails if:
-
-1. It spawns child documents before Phase 1 ships
-2. Components are added "just in case"
-3. GL is still the waterboy in 30 days
-
----
-
-## Appendix A: Migration Notes (Antigravity → OpenCode)
-
-Current state: Antigravity is build agent but lacks API access for autonomous operation.
-
-Migration approach:
-1. OpenCode assumes doc steward role first (low-risk validation)
-2. Parallel operation during transition
-3. Antigravity deprecated once OpenCode proves equivalent capability
-4. COO orchestrator layer added only if multi-agent coordination becomes necessary
-
----
-
-## Appendix B: Governance Integration
-
-Existing governance specs (F3, F4, F7, etc.) remain authoritative. This operating model does not replace governance—it provides execution capability for governance to govern.
-
-Integration points:
-- Council review process applies to significant changes (Rung 2+)
-- Structured packet format used for agent ↔ agent communication when multi-agent is justified
-- Audit trail is git history (commit log, PR discussion, CI results)
-
-New governance documentation is paused until Rung 2 is achieved. Govern what runs, not what might run.
 
 
 ---
@@ -1988,353 +757,10 @@ All agent actions must produce artifacts that can be reviewed after the fact. Gi
 ### 4.1. System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         OPERATOR                             │
-│                    (GL — async oversight)                    │
-│                                                              │
-│   Defines tasks • Reviews PRs • Approves merges • Exceptions │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              │ intent / review
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       ORCHESTRATOR                           │
-│                   (OpenCode via CI Runner)                   │
-│                                                              │
-│   Receives prompts • Executes via tools • Commits results    │
-│   API endpoint: http://127.0.0.1:4096                        │
-│   Trigger: scripts/opencode_ci_runner.py                     │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              │ file I/O / git / shell
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                         RUNTIME                              │
-│              (Git Repository + GitHub Actions)               │
-│                                                              │
-│   Source of truth • CI/CD pipeline • Test execution          │
-│   Test suite: 316 tests (Tier-1 + Tier-2)                    │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              │ persists
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                          STATE                               │
-│                (Filesystem + Git History)                    │
-│                                                              │
-│   All state is files • All changes are commits • Auditable   │
-└─────────────────────────────────────────────────────────────┘
-```
 
-### 4.2. Component Specifications
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-#### 4.2.1. Orchestrator: OpenCode
-
-OpenCode is an AI coding agent with API access, enabling headless (non-interactive) operation.
-
-| Property | Value |
-|----------|-------|
-| Server endpoint | `http://127.0.0.1:4096` |
-| Trigger mechanism | `scripts/opencode_ci_runner.py` |
-| Capabilities | File read/write, shell commands, git operations |
-| Commit identity | `OpenCode Robot <robot@lifeos.local>` |
-
-**Why OpenCode (not Antigravity):** The previous build agent (Antigravity) lacked API access, requiring interactive terminal sessions. This blocked autonomous operation. OpenCode's API enables the CI runner pattern demonstrated in §2.
-
-**Migration status:** OpenCode is now primary for autonomous tasks. Antigravity remains available for interactive sessions during transition.
-
-#### 4.2.2. Runtime: Git + GitHub Actions
-
-| Function | Implementation |
-|----------|----------------|
-| Source of truth | Git repository (GitHub-hosted) |
-| CI trigger | Push to branch, scheduled cron, or manual dispatch |
-| Test execution | `pytest` running 316 existing tests |
-| Deployment | Merge to main after PR approval |
-
-**Workflow pattern:**
-1. CI runner triggers OpenCode with task prompt
-2. OpenCode executes, commits to feature branch
-3. GitHub Action runs test suite
-4. If tests pass: PR opened for review
-5. GL reviews async, approves or requests changes
-6. Merge to main on approval
-
-#### 4.2.3. State: Filesystem as Database
-
-LifeOS does not use a separate database. All state is stored as files in the repository.
-
-- **Configuration:** YAML/JSON files in `/config`
-- **Documentation:** Markdown in `/docs`
-- **Code:** Python in `/src`
-- **Audit trail:** Git commit history
-
-This eliminates sync problems between code and data, ensures all changes are versioned, and makes the system trivially portable.
-
-### 4.3. Explicitly Excluded Components
-
-The following are intentionally not part of the current architecture. Each has a defined trigger condition for future inclusion.
-
-| Component | Rationale for Exclusion | Trigger to Reconsider |
-|-----------|------------------------|----------------------|
-| **Kubernetes** | Container orchestration overhead exceeds value for single-agent workloads | Multiple long-running agents competing for compute resources |
-| **Vector database / RAG** | No retrieval bottleneck observed; context window sufficient | Agent consistently fails due to context limits on large codebases |
-| **Policy-as-Code (OPA)** | Test assertions + PR review provide sufficient safety gates | Automated decisions with financial or safety impact must bypass human review |
-| **Terraform / IaC** | No cloud infrastructure to manage; runs on local/single VM | Deployment to multiple cloud resources required |
-| **Multi-agent federation** | Single-agent capability unproven; coordination adds complexity | One agent is bottlenecked and task is cleanly separable |
-| **Internal Developer Platform** | Single user, single path; IDP solves team divergence problems | Never (wrong tool for single-operator system) |
-
----
-
-## 5. The Autonomy Ladder
-
-Progress is measured by capability level, not architectural sophistication. Each rung represents increased agent autonomy and decreased human involvement in routine execution.
-
-### Rung 0: Manual Orchestration
-**Status:** Current baseline (pre-2026-01-03)
-
-Human initiates every action. AI tools are reactive—they respond to prompts but do not act independently. GL manually shuttles context between Claude, ChatGPT, and other agents.
-
-**Human role:** Initiator, executor, coordinator
-**Agent role:** Responder
-
-### Rung 1: Triggered Autonomy
-**Status:** Validated (2026-01-03)
-
-Agent executes a defined task when triggered by CI, cron, or command. Human reviews output asynchronously. The agent cannot initiate work, but can complete work without supervision during execution.
-
-**Human role:** Trigger, async reviewer
-**Agent role:** Executor
-
-**Demonstrated capability:** OpenCode created file and committed via CI runner.
-
-**Next target task:** Documentation hygiene—lint markdown, update timestamps, flag broken links. Low stakes, high repetition, clear success criteria.
-
-### Rung 2: Supervised Chains
-**Status:** Not yet attempted
-
-Agent executes multi-step workflows with human approval at defined checkpoints. For example: receive spec → implement → run tests → open PR → await review → merge on approval.
-
-**Human role:** Checkpoint approver, exception handler
-**Agent role:** Workflow executor
-
-**Target task:** Build cycle for small features—agent receives a specification, implements it, validates with tests, and submits for review.
-
-**Governance integration:** Council review process (F3 spec) applies to significant changes at this rung.
-
-### Rung 3: Delegated Domains
-**Status:** Future
-
-Agent owns a domain end-to-end within defined constraints. Human intervenes by exception, not by routine. Agent handles the normal case autonomously.
-
-**Human role:** Exception handler, constraint setter
-**Agent role:** Domain owner
-
-**Target domains:** Repository maintenance (dependency updates, test coverage, doc sync), routine administrative tasks.
-
-### Rung 4: Autonomous Initiative
-**Status:** Future
-
-Agent identifies tasks worth doing, proposes them, and executes approved proposals. Human defines goals and constraints; agent determines actions.
-
-**Human role:** Goal setter, proposal approver
-**Agent role:** Initiator, planner, executor
-
-This rung emerges from patterns discovered at Rung 3. Premature to specify further.
-
----
-
-## 6. Implementation Plan
-
-### Phase 1: Validate the Loop (Weeks 1-2)
-**Objective:** Demonstrate end-to-end autonomous execution with test verification.
-
-| Action | Status | Exit Criterion |
-|--------|--------|----------------|
-| Validate OpenCode CI connectivity | ✓ Complete | Server responds, session created |
-| Execute trivial task (create file) | ✓ Complete | File exists, commit verified |
-| Integrate test suite execution | Pending | CI runs `pytest`, results logged |
-| Execute substantive task (doc hygiene) | Pending | Meaningful changes, tests pass |
-| Schedule overnight run | Pending | GL wakes to committed, passing changes |
-
-**Phase 1 exit criteria:** Scheduled job runs without human intervention; GL reviews results next morning.
-
-### Phase 2: Raise the Stakes (Weeks 3-4)
-**Objective:** Autonomous execution of multi-file, testable changes with PR workflow.
-
-| Action | Exit Criterion |
-|--------|----------------|
-| Extend to multi-file modifications | Agent modifies 2+ files in single task |
-| Implement PR workflow | Agent commits to branch, opens PR |
-| Add notification on completion/failure | GL receives alert (email, webhook, etc.) |
-| Document observed failure modes | Failure catalog with mitigations |
-
-**Phase 2 exit criteria:** Agent submits PR with working code; GL reviews and merges.
-
-### Phase 3: Supervised Chains (Weeks 5-8)
-**Objective:** Multi-step workflows with checkpoint approval.
-
-| Action | Exit Criterion |
-|--------|----------------|
-| Define 2-3 step workflow | Spec exists with clear handoff points |
-| Implement checkpoint notifications | GL notified at each checkpoint |
-| Add rollback capability | Failed step reverts cleanly |
-| Extract reusable prompt templates | Documented patterns for common tasks |
-
-**Phase 3 exit criteria:** Agent completes chained workflow from single initial trigger; Rung 2 achieved.
-
-### Phase 4: Expand Scope (Month 3+)
-**Objective:** Multiple autonomous domains operating in parallel.
-
-| Action | Exit Criterion |
-|--------|----------------|
-| Identify second domain | Based on Phase 1-3 learnings |
-| Apply proven patterns | Reuse templates and workflows |
-| Evaluate multi-agent need | Documented decision with rationale |
-| Add infrastructure only if earned | Per §4.3 trigger conditions |
-
-**Phase 4 exit criteria:** 2+ domains operating autonomously; GL in async oversight role for routine operations.
-
----
-
-## 7. Risk Register
-
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| **Agent produces broken code** | High | Medium | Test suite gates all merges; PR review for non-trivial changes; rollback capability |
-| **API costs exceed budget** | Medium | Medium | Hard quota on API keys; alert at 50% monthly threshold; fallback to smaller models |
-| **Agent hallucinates task completion** | Medium | High | Require artifact proof (commit, file, log); verification step in CI runner |
-| **Scope creep into enterprise architecture** | High | High | This document; explicit exclusion triggers in §4.3; 3-month hold on excluded components |
-| **Operator over-engineers instead of shipping** | High | High | Phase 1 has 2-week timebox; ship or retrospective |
-| **Single point of failure (OpenCode)** | Medium | High | Antigravity remains available as fallback; architecture is agent-agnostic |
-| **Security: agent with commit access** | Medium | High | Commits to branches only; merge requires human approval; audit via git history |
-
----
-
-## 8. Governance Integration
-
-This operating model exists within the broader LifeOS governance framework. It does not replace governance—it provides the execution capability that governance oversees.
-
-### 8.1. Relationship to Existing Specs
-
-| Spec | Relevance to This Document |
-|------|---------------------------|
-| **F3 (Council Review)** | Applies to significant changes at Rung 2+; agent-submitted PRs for substantial features require council review |
-| **F4 (Inter-Agent Communication)** | Structured packet format used if/when multi-agent coordination is added |
-| **F7 (Audit Requirements)** | Git history + CI logs satisfy audit trail requirements |
-
-### 8.2. Governance Pause
-
-Per principle §3.3, new governance documentation is paused until Rung 2 is achieved. Current specs are sufficient to govern the execution capability being built. Additional governance would be premature.
-
-### 8.3. Audit Trail
-
-All agent actions produce auditable artifacts:
-
-| Action | Audit Artifact |
-|--------|---------------|
-| File creation/modification | Git diff in commit |
-| Task execution | CI runner logs |
-| Test results | GitHub Actions output |
-| Approval decisions | PR review comments |
-| Merge | Git merge commit with approver |
-
-No separate audit log is required; git history is the audit log.
-
----
-
-## 9. Success and Failure Criteria
-
-### This Document Succeeds If:
-
-1. Phase 1 completes within 2 weeks of validation date (by 2026-01-17)
-2. GL spends less time on orchestration, more time on substantive decisions
-3. Excluded components (§4.3) remain excluded for at least 3 months
-4. Autonomy ladder rungs are climbed sequentially, not skipped
-5. The architecture remains simple enough to explain in 5 minutes
-
-### This Document Fails If:
-
-1. It spawns child architecture documents before Phase 2 completes
-2. Components are added speculatively ("just in case")
-3. GL is still manually orchestrating routine tasks after 30 days
-4. The test suite is bypassed or ignored
-5. No autonomous work ships in January 2026
-
----
-
-## 10. Glossary
-
-| Term | Definition |
-|------|------------|
-| **Agent** | An AI system capable of executing tasks via API (e.g., OpenCode, Claude, ChatGPT) |
-| **Antigravity** | Previous build agent; lacks API access; being replaced by OpenCode |
-| **CI Runner** | Script that triggers agent execution in headless mode (`scripts/opencode_ci_runner.py`) |
-| **Council Review** | Governance process where multiple AI roles review significant changes (per F3 spec) |
-| **GL** | The operator; single user of LifeOS |
-| **Governance** | Framework of specs and processes ensuring safe, auditable agent operation |
-| **Headless** | Execution without interactive terminal; agent runs via API only |
-| **OpenCode** | Current build agent; has API access enabling autonomous operation |
-| **Rung** | A level on the Autonomy Ladder representing agent capability |
-| **Waterboy** | Manual orchestration pattern where human shuttles context between AI tools |
-
----
-
-## Appendix A: OpenCode CI Runner Reference
-
-**Location:** `scripts/opencode_ci_runner.py`
-
-**Function:** Starts OpenCode server, creates session, sends task prompt, verifies output, commits result.
-
-**Invocation:**
-```bash
-python scripts/opencode_ci_runner.py --task "description of task"
-```
-
-**Server endpoint:** `http://127.0.0.1:4096`
-
-**Session management:** Runner creates new session per invocation; sessions are not persistent.
-
-**Commit identity:**
-```
-Author: OpenCode Robot <robot@lifeos.local>
-```
-
----
-
-## Appendix B: Migration from Antigravity
-
-### B.1. Background
-
-Antigravity served as the initial build agent and document steward for LifeOS. It has extensive context on the codebase and governance specs but lacks API access—requiring interactive terminal sessions that block autonomous operation.
-
-### B.2. Migration Approach
-
-| Phase | Action | Status |
-|-------|--------|--------|
-| 1 | Validate OpenCode CI capability | ✓ Complete |
-| 2 | OpenCode assumes doc steward role | Pending |
-| 3 | Parallel operation during transition | Pending |
-| 4 | Antigravity deprecated for autonomous tasks | Future |
-
-### B.3. Contingency
-
-If OpenCode proves insufficient for complex tasks, Antigravity remains available for interactive sessions. The architecture is agent-agnostic—the CI runner pattern can wrap any agent with API access.
-
----
-
-## Appendix C: Document History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 0.1 | — | Initial concept (not documented) |
-| 0.2 | 2026-01 | Enterprise architecture proposal (Kubernetes, SLSA, federated agents) — rejected as overcapitalized |
-| 0.3 | 2026-01-03 | Minimal viable architecture — validated but incomplete |
-| 0.4 | 2026-01-03 | Comprehensive operating model incorporating CI validation proof |
-
----
-
-*End of document.*
 
 
 ---
@@ -2486,78 +912,10 @@ To scale LifeOS without creating a monolithic bottleneck, we adopt the **Team To
 
 **5\. The "Evaluation Automation" Pipeline (CI/CE/CD)**
 
-We replace the standard CI/CD pipeline with **CI/CE/CD**. This is the most critical deviation from standard software engineering.
 
-### **Phase 1: Continuous Integration (CI) \- Deterministic**
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-* **Scope:** Code syntax, dependency checks, linting.  
-* **Tooling:** GitHub Actions / Dagger.io.  
-* **Gate:** Standard binary Pass/Fail.
-
-### **Phase 2: Continuous Evaluation (CE) \- Probabilistic**
-
-* **Scope:** Behavioral alignment.  
-* **The "Gym" (Ephemeral Environments):** The pipeline spins up an isolated simulation environment populated by **Synthetic User Personas** (e.g., "Stressed User", "Frugal User").3  
-* **The Tests:**  
-  * *Drift Detection:* Does the agent suggest actions that violate the user's core values?  
-  * *Hallucination Check:* Does the agent cite non-existent data?  
-  * *Loop Detection:* Does the agent get stuck in a reasoning loop?  
-* **Gate:** Statistical Threshold. "Agent v2.1 must achieve \>90% alignment score across 50 Monte Carlo simulations."
-
-### **Phase 3: Continuous Deployment (CD) \- Gradual**
-
-* **Scope:** Production release.  
-* **Strategy:** **Canary Deployment**. The new agent version is given 5% of decisions (shadow mode) to verify real-world performance before full rollout.5
-
-## ---
-
-**6\. Governance & FinOps**
-
-### **6.1. Policy as Code (The Guardrails)**
-
-* **Tool:** **Open Policy Agent (OPA)**.  
-* **Implementation:** Policies are written in **Rego** and enforced at the API gateway level.  
-* **Spec Examples:**  
-  * allow \= false if cost \> budget  
-  * allow \= false if action \== "delete\_data" and user\_approval \== false  
-  * allow \= false if model\_confidence \< 0.7
-
-### **6.2. FinOps (The Economy)**
-
-* **Metric:** **Cost Per Insight**. We track not just cloud spend, but "Token Spend per successful outcome."  
-* **Circuit Breakers:** If an Agent enters a "Retry Storm" (rapidly failing and retrying, burning tokens), the platform automatically kills the container to prevent wallet drainage.6
-
-## ---
-
-**7\. Implementation Roadmap**
-
-For a team starting from scratch, execute in this order:
-
-1. **Month 1 (The Skeleton):** Deploy the IDP (Backstage/Port) and the K8s cluster. Establish the "Golden Path" for a simple "Hello World" agent.  
-2. **Month 2 (The Brain):** Implement the Vector Database and the Data Ingestion pipeline.  
-3. **Month 3 (The Guardrails):** Implement OPA policies and SPIFFE identity.  
-4. **Month 4 (The Gym):** Build the Evaluation Harness with synthetic personas. **Do not deploy autonomous agents before this step.**
-
-## ---
-
-**8\. Glossary**
-
-* **Agentic AI:** AI systems capable of autonomous perception, reasoning, and action execution, rather than just chat-based response.  
-* **CI/CE/CD:** Continuous Integration / Continuous Evaluation / Continuous Deployment. The pipeline for probabilistic software.  
-* **Ephemeral Environment:** A temporary, isolated infrastructure created solely for testing an agent and destroyed immediately after (The "Gym").  
-* **Golden Path:** A supported, standardized way of building software provided by the Platform Team to reduce friction for developers.  
-* **Hallucination:** When an AI agent generates incorrect or nonsensical information presented as fact.  
-* **IDP (Internal Developer Platform):** The self-service portal where developers (or users) manage their agents and infrastructure.  
-* **Policy as Code:** Defining governance rules (security, budget) in programming languages (Rego) to automate enforcement.
-
-#### **Works cited**
-
-1. DevEx Metrics Guide: How to Measure and Improve Developer Experience \- Shipyard.build, accessed January 3, 2026, [https://shipyard.build/blog/developer-experience-metrics/](https://shipyard.build/blog/developer-experience-metrics/)  
-2. Enterprise MLOps Platform on Kubernetes: Complete Machine Learning Life Cycle from Experimentation to Deployment | by Wltsankalpa | Medium, accessed January 3, 2026, [https://medium.com/@wltsankalpa/enterprise-mlops-platform-on-kubernetes-complete-machine-learning-life-cycle-from-experimentation-b78a1c21e7c5](https://medium.com/@wltsankalpa/enterprise-mlops-platform-on-kubernetes-complete-machine-learning-life-cycle-from-experimentation-b78a1c21e7c5)  
-3. Ephemeral Environments Explained: Benefits, Tools, and How to Get Started? \- Qovery, accessed January 3, 2026, [https://www.qovery.com/blog/ephemeral-environments](https://www.qovery.com/blog/ephemeral-environments)  
-4. Cut Dev Costs by 90% with Kubernetes Ephemeral Environments | Signadot, accessed January 3, 2026, [https://www.signadot.com/articles/reducing-costs-boosting-productivity-kubernetes-ephemeral-environments](https://www.signadot.com/articles/reducing-costs-boosting-productivity-kubernetes-ephemeral-environments)  
-5. Effective feature release strategies for successful software delivery… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/mastering-feature-release-strategies](https://www.harness.io/harness-devops-academy/mastering-feature-release-strategies)  
-6. 9 FinOps Best Practices to Optimize and Cut Cloud Costs | DoiT, accessed January 3, 2026, [https://www.doit.com/blog/9-finops-best-practices-to-optimize-and-cut-cloud-costs/](https://www.doit.com/blog/9-finops-best-practices-to-optimize-and-cut-cloud-costs/)
 
 
 ---
@@ -3072,6 +1430,85 @@ The following are now **canonical and active**:
 
 ---
 
+# File: 01_governance/Council_Ruling_Build_Loop_Architecture_v1.0.md
+
+# Council Ruling: Autonomous Build Loop Architecture v0.3 — PASS (GO)
+
+**Ruling ID**: CR-BLA-v0.3-2026-01-08  
+**Verdict**: PASS (GO)  
+**Date**: 2026-01-08 (Australia/Sydney)  
+**Mode**: Mono council (single model performing all seats) + integrated chair verdict  
+**Subject**: LifeOS Autonomous Build Loop Architecture v0.3
+
+---
+
+## Artefact Under Review
+
+| Field | Value |
+|-------|-------|
+| **Document** | `docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md` |
+| **Version** | v0.3 |
+| **SHA256** | `8e6807b4dfc259b5dee800c2efa2b4ffff3a38d80018b57d9d821c4dfa8387ba` |
+
+---
+
+## Phase 1a Implementation SHA256
+
+| Module | SHA256 |
+|--------|--------|
+| `runtime/orchestration/run_controller.py` | `795bc609428ea69ee8df6f6b8e6c3da5ffab0106f07f50837a306095e0d6e30d` |
+| `runtime/agents/api.py` | `eaf9a081bfbeebbc1aa301caf18d54a90a06d9fdd64b23c459e7f2585849b868` |
+| `runtime/governance/baseline_checker.py` | `6a1289efd9d577b5a3bf19e1068ab45d945d7281d6b93151684173ed62ad6c8c` |
+
+---
+
+## Scope Authorised
+
+Authorised for programme build; proceed to Phase 1 implementation.
+
+The following are explicitly within scope per v0.3:
+
+1. **Governance Baseline Ceremony** (§2.5) — CEO-rooted creation/update procedure
+2. **Compensation Verification** (§5.2.2) — Post-state checks with escalation on failure
+3. **Canonical JSON & Replay** (§5.1.4) — Deterministic serialization and replay equivalence
+4. **Kill Switch & Lock Ordering** (§5.6.1) — Race-safe startup sequence
+5. **Model "auto" Semantics** (§5.1.5) — Deterministic fallback resolution
+
+---
+
+## Non-Blocking Residual Risks
+
+| Risk | Mitigation |
+|------|------------|
+| Baseline bootstrap is a CEO-rooted ceremony | Requires explicit CEO action; cannot be automated |
+| Implementation complexity schedule risk | Phase 1 is scaffold-only; later phases gated by Council |
+
+---
+
+## Supporting Evidence
+
+| Artefact | Path | SHA256 |
+|----------|------|--------|
+| v0.2→v0.3 Diff | `artifacts/review_packets/diff_architecture_v0.2_to_v0.3.txt` | `c01ad16c9dd5f57406cf5ae93cf1ed1ce428f5ea48794b087d03d988b5adcb7b` |
+| Review Packet | `artifacts/review_packets/Review_Packet_Build_Loop_Architecture_v0.3.md` | (see file) |
+
+---
+
+## Sign-Off
+
+**Chair (Mono Council)** — APPROVED FOR PASSAGE  
+**Date**: 2026-01-08 (Australia/Sydney)
+
+> [!IMPORTANT]
+> This ruling authorises Phase 1 implementation only. Subsequent phases require additional Council review.
+
+---
+
+**END OF RULING**
+
+
+---
+
 # File: 01_governance/Council_Ruling_Core_TDD_Principles_v1.0.md
 
 # Council Ruling: Core TDD Design Principles v1.0 — APPROVED
@@ -3139,75 +1576,6 @@ The following are now **canonical and active**:
 
 ---
 
-# File: 01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md
-
-# Council Ruling: OpenCode Document Steward CT-2 Phase 2 — APPROVED
-
-**Ruling**: GO (Activation-Canonical)  
-**Date**: 2026-01-07 (Australia/Sydney)  
-**Artefacts Under Review**: Bundle_OpenCode_Steward_Hardening_CT2_v1.4.2.zip  
-**Trigger Class**: CT-2 (Tier Activation) + Governance Protocol
-
----
-
-## Council Composition
-
-| Role | Verdict |
-|------|---------|
-| Chair | GO |
-
----
-
-## Scope Summary
-
-**Phase 2: Human-Triggered Document Steward**
-
-| Aspect | Constraint |
-|--------|------------|
-| Trigger | Human invokes `scripts/opencode_ci_runner.py --task "<JSON>"` |
-| Input | JSON-only (free-text rejected) |
-| Git Operations | Stage-only; commit/push blocked |
-| Allowlist | `docs/**`, `artifacts/review_packets/**` (create-only), `artifacts/evidence/**` (read-only) |
-| Denylist | `docs/00_foundations/**` (override required), `config/**`, `scripts/**`, `**/*.py`, `GEMINI.md` |
-| Packet Requirement | ANY delete, >1 file, override, or governance touch |
-
----
-
-## Waivers (Accepted)
-
-| Waiver | Rationale | Status |
-|--------|-----------|--------|
-| Windows Kill Switch | `taskkill` only; cross-platform deferred to P3 | ACCEPTED |
-| Destructive Rollback | `git reset --hard` is acceptable fail-closed behavior | ACCEPTED |
-| Concurrency Prohibited | No lockfile in Phase 2; single-run only | ACCEPTED |
-
----
-
-## Activation Status
-
-The following are now **canonical and active**:
-
-- **CCP**: `artifacts/review_packets/CCP_OpenCode_Steward_Activation_CT2_Phase2.md`
-- **Runner**: `scripts/opencode_ci_runner.py`
-- **Harness**: `scripts/run_certification_tests.py`
-- **Certification Report**: `artifacts/evidence/opencode_steward_certification/CERTIFICATION_REPORT_v1_4.json`
-- **Hash Manifest**: `artifacts/evidence/opencode_steward_certification/HASH_MANIFEST_v1.4.2.json`
-
----
-
-## Evidence
-
-- **Bundle**: `artifacts/bundles/Bundle_OpenCode_Steward_Hardening_CT2_v1.4.2.zip`
-- **Certification**: 13/13 PASS (v1.4 suite)
-- **Manifest SHA-256 (CCP)**: `072705d8306c2747f6901a2c915eaecd37dc0ad56ae5745f38dff5c8ab762e38`
-
----
-
-**END OF RULING**
-
-
----
-
 # File: 01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md
 
 # Council Ruling: OpenCode Document Steward CT-2 Phase 2 — PASS (GO)
@@ -3250,48 +1618,6 @@ The following are now **canonical and active**:
 
 **Chair (Architect/Head of Dev/Head of Testing)** — APPROVED FOR PASSAGE  
 **Date**: 2026-01-07 (Australia/Sydney)
-
----
-
-**END OF RULING**
-
-
----
-
-# File: 01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.0.md
-
-# Council Ruling: OpenCode-First Doc Stewardship Policy (Phase 2) — PASS (GO)
-
-**Ruling**: PASS (GO)  
-**Date**: 2026-01-07  
-**Subject**: Adoption of "OpenCode-First Doc Stewardship" Routing Mandate  
-**Related Policy**: [OpenCode_First_Stewardship_Policy_v1.0.md](./OpenCode_First_Stewardship_Policy_v1.0.md)  
-**Related Protocol**: [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](../03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md)  
-
----
-
-## Decision Summary
-
-The Council approves the adoption of the **OpenCode-First Doc Stewardship** policy. This mandate requires Antigravity to route all documentation changes that fall within the authorized CT-2 Phase 2 envelope through the OpenCode steward and its associated audit gate.
-
-## Rationale
-
-- **Risk Reduction**: Eliminates ambiguity in documentation routing.
-- **Auditability**: Ensures all eligible changes produce standardized, high-quality evidence bundles (v2.4+ hygiene).
-- **Consistency**: Prevents drift between manual and agentic stewardship processes.
-
-## Impact
-
-- Antigravity MUST now route in-envelope doc changes through `scripts/opencode_ci_runner.py`.
-- Any attempt to bypass this for in-envelope changes will be flagged as a process failure.
-- Out-of-envelope changes continue to require explicit Council rulings.
-
----
-
-## Sign-Off
-
-**Chair (Architect/Head of Dev/Head of Testing)** — APPROVED FOR ADOPTION  
-**Date**: 2026-01-07  
 
 ---
 
@@ -3511,33 +1837,9 @@ Expansion to new mission types requires:
 
 ## 8. Amendment Process
 
-Changes to this constitution require:
-1. Proposal via DOC_STEWARD_REQUEST (ironic, but deterministic)
-2. CT-2 Council Review
-3. Merge to repo-canonical location
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
----
-
-## Annex A — Reserved Missions (Non-Authoritative)
-
-> [!WARNING]
-> The following missions are defined but **NOT ACTIVATED**. They require separate CT-2 Council approval before use.
-
-### A.1 CORPUS_REGEN
-
-- **Purpose**: Regenerate `LifeOS_Universal_Corpus.md` and `LifeOS_Strategic_Corpus.md`
-- **Status**: RESERVED (pending G1/G2 spike)
-- **Activation Requirements**: CT-2 Council review demonstrating deterministic regeneration with hash chain evidence
-
-### A.2 DOC_MOVE
-
-- **Purpose**: Move documents between directories with automatic index updates
-- **Status**: RESERVED (pending G1/G2 spike)
-- **Activation Requirements**: CT-2 Council review demonstrating safe file relocation with bidirectional reference updates
-
----
-
-**END OF CONSTITUTION**
 
 
 ---
@@ -3596,65 +1898,6 @@ Each JSONL entry contains:
 
 Logs are append-only during a run. The `run_id` ties all entries together.
 For governance audits, the complete log for a run provides deterministic replay evidence.
-
-
----
-
-# File: 01_governance/OpenCode_First_Stewardship_Policy_v1.0.md
-
-# Policy: OpenCode-First Doc Stewardship (Phase 2 Envelope) v1.0
-
-**Status**: Active  
-**Authority**: LifeOS Governance Council  
-**Date**: 2026-01-07  
-
----
-
-## 1. Purpose
-This policy reduces drift and eliminates ambiguity in the LifeOS documentation lifecycle by making OpenCode the mandatory default steward for all changes within its authorized Phase 2 envelope. By enforcing this routing, the repository ensures that all eligible documentation updates are processed through the CT-2 gate, producing deterministic evidence bundles for audit.
-
-## 2. Definitions
-- **"Phase 2 Doc-Steward Envelope"**: The set of patterns and constraints currently authorized for the OpenCode Document Steward, as defined in the following canonical sources:
-  - **Runner**: [scripts/opencode_ci_runner.py](scripts/opencode_ci_runner.py)
-  - **Policy**: [scripts/opencode_gate_policy.py](scripts/opencode_gate_policy.py)
-  - **Ruling**: [docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md)
-- **"In-envelope doc change"**: Any modification that the CT-2 gate would classify as ALLOWED. Specifically:
-  - Targets the `docs/` subtree (excluding protected roots).
-  - Uses only `.md` extensions.
-  - Does not involve structural operations (delete, rename, move, copy).
-  - Does not touch denylisted roots (`docs/00_foundations/`, `docs/01_governance/`, `scripts/`, `config/`).
-
-## 3. Default Routing Rule (MUST)
-For any in-envelope documentation change (including index updates and doc propagation tasks), Antigravity **MUST**:
-1. **Invoke OpenCode** to perform the stewardship edit(s).
-2. **Run the CT-2 gate runner** (`scripts/opencode_ci_runner.py`) to validate the change.
-3. **Produce and retain** the full CT-2 evidence bundle outputs (including `exit_report.json`, `changed_files.json`, `classification.json`, `runner.log`, and `hashes.json`).
-
-## 4. Explicit Exceptions (MUST, fail-closed)
-- **Out-of-envelope changes**: If a change involves denylisted/protected surfaces, non-`.md` files, or structural operations, Antigravity **MUST NOT** attempt OpenCode stewardship. It **MUST BLOCK** the operation, emit a minimal "blocked report", and generate a governance packet request per repository convention.
-- **Structural operations**: Deletions, renames, moves, and copies are strictly blocked in Phase 2. Antigravity **MUST BLOCK** and report these attempts.
-- **System unavailability**: If OpenCode, the gate runner, or critical CI references are unavailable, Antigravity **MUST BLOCK** and return detailed diagnostics and next-action instructions. Bypassing the gate is forbidden.
-
-## 5. Mixed Changes Rule (docs + code)
-In mission blocks containing both documentation and code edits:
-- Documentation edits that fall within the Phase 2 envelope **MUST** be executed via OpenCode stewardship and satisfy CT-2 evidence requirements.
-- Code changes must follow standard build/test/verification gates as defined in their respective protocols.
-
-## 6. Evidence and Audit Requirements (MUST)
-All mandated stewardship runs must provide deterministic capture of:
-- Full file list of modified artifacts.
-- Explicit classification decisions (A/M/D).
-- Precise reason codes for any BLOCK decisions.
-- SHA-256 hashes of all inputs and outputs.
-- No-ellipsis outputs as enforced by the CT-2 passage fixes (v2.4).
-
-## 7. Adoption and Enforcement
-Antigravity’s own operating protocols (including F7) are binding to this policy. Any documentation update performed outside this routing without explicit Council waiver is treated as a process failure and requires immediate remediation and audit.
-
----
-
-**Signed**,  
-LifeOS Governance Council
 
 
 ---
@@ -3953,24 +2196,9 @@ This ruling:
 
 - **Enacts Tier-2 activation**
 - **Supersedes** Tier-1 Hardening Council Ruling v0.1
-- Establishes **Runtime v1.1** as the first Tier-2-ready release
 
-Next governance milestone:
-
-> **Tier-2 Operational Review (v0.1)** — due after first sustained Tier-2 run cycles.
-
-------------------------------------------------------------
-# 6. CLOSING
-------------------------------------------------------------
-
-The Council acknowledges the Runtime team’s completion of the FP-4.x hardening cycle
-and confirms that the LifeOS Runtime is now structurally, deterministically, and
-governance-safely prepared for Tier-2 orchestration.
-
-Tier-2 activation is now active and authorized.
-
-Signed,  
-**LifeOS Governance Council**
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
 
 
@@ -4200,92 +2428,9 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 
 **Claim**: Snapshots can still be mutated if StepSpec is accessed directly.
 
-**Spec says**: `executed_steps` is stored via deep copy, and external surfaces are exposed via `to_dict()` on result objects; the public contract is immutable and serialised.
 
-**Council majority**: Treats snapshots as an internal implementation detail; only the serialised views are part of the governance surface.
-
-**Chair classification**:
-- As a governance surface risk: **Non-blocking**.
-- As a code improvement: can be considered in a future micro-fix if we ever expose raw StepSpec snapshots.
-
-### 2. "Tier-2.5 escalation vector: Builder bypass via direct run_mission"
-
-**Claim**: Runtime could bypass Anti-Failure constraints by calling a lower-level mission entrypoint.
-
-**Spec says**: Anti-Failure invariants are enforced at Builder and Orchestrator level; Tier-2.5 introduces no new entrypoint or unchecked path.
-
-**Council majority** (Gemini Risk, Claude Architect, Kimi Risk): Current enforcement is sufficient for Tier-2; Tier-2.5 does not loosen constraints.
-
-**Chair classification**:
-- Valid threat model thought experiment, but no evidence of such a bypass in the actual Tier-2 interfaces as documented.
-- Converted into a governance item: "explicitly document which entrypoints are allowed to be called by Tier-2.5 missions."
-
-### 3. "Duplicate scenario ordering nondeterminism"
-
-**Claim**: last-write-wins could drift if scenario iteration order is nondeterministic.
-
-**Spec says**: Suite behaviour is explicitly documented as deterministic last-write-wins, and registry/suite ordering is described as canonical and tested.
-
-**Chair classification**:
-- Spec already commits to deterministic ordering; any nondeterministic implementation would already violate Tier-2 tests.
-- **Non-blocking**; no extra fix required beyond current tests.
-
-### 4. "Governance loophole: Runtime can self-authorize mission types via registry"
-
-**Claim**: Registry is mutable at runtime; Runtime may self-register missions.
-
-**Spec says**: Mission Registry is explicitly "static/read-only mission table"; registration is via code/fix-packs, not live mutation.
-
-**Chair classification**:
-- Based on the canonical packet, this is out of scope for Tier-2 and not supported by the design.
-- However, the concern is valuable as a Tier-2.5 governance constraint: document that mission definitions can only change via Fix Packs + Council approval.
-
-### 5. "Envelope crack in daily_loop (time-dependent logic)"
-
-**Claim**: `daily_loop` may embed time logic; determinism not proven.
-
-**Spec says**: `daily_loop` is explicitly deterministic, deep-copies params, and has hash stability tests; no time/env/random usage.
-
-**Chair classification**:
-- Already addressed by the existing test suite; no new technical fix required.
-- **Non-blocking**.
-
-### 6. "Test fragility – reliance on internal payload details"
-
-**Claim**: Tests assert on internal payload shapes; refactors could break tests.
-
-**Council majority**: Agrees this is a maintainability concern, not a determinism/envelope defect.
-
-**Chair classification**:
-- **Non-blocking** for Tier-2 certification.
-- Reasonable suggestion for future test-hygiene improvements.
-
-### 7. "Ambiguous AntiFailureViolation vs EnvelopeViolation split"
-
-**Claim**: semantics unclear.
-
-**Council majority**: Sees this as a documentation nit.
-
-**Chair classification**:
-- **Non-blocking**; to be handled by a doc clarification.
-
-### 8. "Runtime ↔ Antigrav attack surface undefined"
-
-**Claim**: No explicit mission validation protocol for Antigrav.
-
-**Spec says**: Tier-2.5 is governance-only; runtime remains deterministic and envelope-pure, but Tier-2.5 protocol is indeed high-level.
-
-**Council majority** (Alignment, Autonomy, Risk): This is a Tier-2.5 governance spec gap, not a Tier-2 runtime defect.
-
-**Chair classification**:
-- Important for Tier-2.5 operations, but solvable via documentation and process.
-- **Non-blocking** for Tier-2 certification and Tier-2.5 activation, provided it is scheduled as a first governance mission.
-
----
-
-## Conclusion
-
-Red-Team concerns are valuable but, when reconciled with the canonical packets and majority reviews, **none constitute a blocking Tier-2 defect**. They translate into governance and documentation work, plus optional future micro-hardening, not into a requirement to hold activation.
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
 
 
@@ -4531,133 +2676,10 @@ All artifacts **MUST** follow these naming patterns:
 | Acceptance Criteria | ✅ | Pass/fail status for each criterion |
 | Verification Proof | ✅ | Test results, command outputs |
 | Flattened Code Appendix | ✅ | All created/modified files |
-| Stewardship Evidence | ✅* | Required if docs were modified |
-| Constraints & Boundaries | ❌ | Runtime limits if applicable |
-| Non-Goals | ❌ | Explicit out-of-scope items |
 
----
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-### 6.3 Walkthrough
-
-| Section | Required | Description |
-|---------|----------|-------------|
-| Summary | ✅ | What was accomplished |
-| Changes Made | ✅ | List of changes with rationale |
-| Verification Results | ✅ | What was tested and outcomes |
-| Screenshots | ❌ | Embedded visual evidence |
-| Recordings | ❌ | Paths to browser recordings |
-| Known Issues | ❌ | Issues discovered but not fixed |
-| Next Steps | ❌ | Suggested follow-up work |
-
----
-
-### 6.4 Gap Analysis
-
-| Section | Required | Description |
-|---------|----------|-------------|
-| Scope | ✅ | What was scanned |
-| Findings | ✅ | Table of gaps with severity |
-| Remediation Recommendations | ✅ | Proposed fixes |
-| Methodology | ❌ | How analysis was performed |
-| Priority Matrix | ❌ | Critical vs informational breakdown |
-
----
-
-### 6.5 Doc Draft
-
-| Section | Required | Description |
-|---------|----------|-------------|
-| Target Document | ✅ | Path to document being drafted |
-| Change Type | ✅ | ADDITIVE, MODIFYING, or REPLACING |
-| Draft Content | ✅ | The actual proposed content |
-| Dependencies | ✅ | What this depends on |
-
----
-
-### 6.6 Test Draft
-
-| Section | Required | Description |
-|---------|----------|-------------|
-| Target Modules | ✅ | What's being tested |
-| Test Cases | ✅ | Detailed test specifications |
-| Coverage Targets | ✅ | Expected coverage level |
-| Edge Cases | ❌ | Boundary condition tests |
-| Integration Points | ❌ | Cross-module test needs |
-
----
-
-## 7. Validation Rules
-
-### 7.1 Structural Validation
-
-Agents **SHOULD** validate artifacts before submission:
-
-1. Frontmatter is valid YAML
-2. All required fields present
-3. `artifact_id` is valid UUID v4
-4. `created_at` is valid ISO 8601
-5. `status` is valid enum value
-6. File is in correct canonical directory
-7. Filename matches naming convention
-
-### 7.2 Validation Mode
-
-| Mode | Behavior |
-|------|----------|
-| `WARN` | Log validation errors, continue execution |
-| `FAIL` | Block submission on validation errors |
-
-**Default:** `WARN` (can be upgraded to `FAIL` via governance decision)
-
----
-
-## 8. Version Lifecycle
-
-```mermaid
-stateDiagram-v2
-    [*] --> DRAFT: Create
-    DRAFT --> PENDING_REVIEW: Submit
-    PENDING_REVIEW --> APPROVED: Accept
-    PENDING_REVIEW --> APPROVED_WITH_CONDITIONS: Accept with conditions
-    PENDING_REVIEW --> REJECTED: Reject
-    PENDING_REVIEW --> DRAFT: Revise
-    APPROVED --> SUPERSEDED: New version
-    APPROVED_WITH_CONDITIONS --> APPROVED: Conditions met
-    SUPERSEDED --> [*]
-    REJECTED --> [*]
-```
-
-When creating a new version:
-1. Increment version number (e.g., `v0.1` → `v0.2`)
-2. Set `parent_artifact` to path of previous version
-3. Set previous version's status to `SUPERSEDED`
-
----
-
-## 9. Extensibility
-
-To add a new artifact type:
-
-1. Add schema to `build_artifact_schemas_v1.yaml`
-2. Create template in `docs/02_protocols/templates/`
-3. Create canonical directory in `artifacts/`
-4. Update this protocol document
-5. Council review for CT-2 (protocol change)
-
----
-
-## 10. Related Documents
-
-| Document | Purpose |
-|----------|---------|
-| [build_artifact_schemas_v1.yaml](docs/02_protocols/build_artifact_schemas_v1.yaml) | Machine-readable schemas |
-| [lifeos_packet_schemas_v1.yaml](docs/02_protocols/lifeos_packet_schemas_v1.yaml) | YAML packet schemas |
-| [GEMINI.md](GEMINI.md) | Agent constitution |
-| [Document Steward Protocol v1.1](docs/02_protocols/Document_Steward_Protocol_v1.1.md) | Documentation governance |
-
----
-
-*This protocol was created under LifeOS governance. Changes require Council review (CT-2).*
 
 
 ---
@@ -4833,11 +2855,10 @@ CEO clears `artifacts/for_ceo/` after pickup. Agent MUST NOT delete from this fo
 ## Changes in v1.1
 - **Schema Unification**: Removed shadow schemas in Section 4; referenced `lifeos_packet_schemas_v1.1.yaml`.
 - **Context Canonicalization**: Adopted `CONTEXT_REQUEST` / `CONTEXT_RESPONSE` packets.
-- **Zero Friction**: Removed requirement for internal IDs in Section 10; strictly enforced agent-side resolution.
 
----
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-**END OF PROTOCOL**
 
 
 ---
@@ -4935,38 +2956,10 @@ Tests must run primarily in the **Deterministic Harness**.
 
 No functionality is "DONE" until:
 
-- [ ] **Envelope Verified**: Code does not violate import restrictions (verified by `test_tdd_compliance.py`).
-- [ ] **Golden Fixtures Updated**: Serialization changes are captured in versioned fixtures.
-- [ ] **Negative Paths Covered**: Error handling is explicitly tested.
-- [ ] **Determinism Proven**: CI runs the suite twice with randomized order (if enabled) and fixed seeds; both runs must match exactly (or manual verification if CI support is pending).
-- [ ] **Strict CI Pass**: Test suite passes strictly (no flakes allowed as "done").
 
----
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-## 5. Stable Ordering Rule
-
-Unless otherwise specified by a schema:
-- **Keys in Dicts/JSON**: Lexicographic sort (`A-Z`).
-- **Lists/Arrays**: Stable sort by primary key or value.
-- **Files/Paths**: Lexicographic sort by full path.
-- **Serialization**: Output encoding must be **UTF-8**; newlines must be normalized to **LF** before hashing.
-
-**Rationale**: Ensures generated artifacts (hashes, diffs) are deterministic across platforms.
-
----
-
-## 6. Enforcement
-
-Violations of Principle (h) (Determinism) are enforced by `tests_doc/test_tdd_compliance.py`.
-
-The scanner **MUST** only inspect the **Deterministic Envelope allowlist** (defined in §1.2). It **MUST NOT** scan the whole repo.
-
-**Prohibited Surface (Minimum Set)**:
-- Time: `time.time`, `time.monotonic`, `time.perf_counter`, `datetime.now`, `datetime.utcnow`, `date.today`
-- Random: `random` (module), `uuid.uuid4`, `secrets`, `numpy.random`
-- I/O: `import requests`, `import urllib`, `import socket`
-
-**End of Protocol**
 
 
 ---
@@ -5113,14 +3106,14 @@ Attach or embed the AUR. If embedded, include clear section headings for referen
 
 ---
 
-# File: 02_protocols/Council_Protocol_v1.2.md
+# File: 02_protocols/Council_Protocol_v1.3.md
 
-# Council Protocol v1.2 (Amendment)
+# Council Protocol v1.3 (Amendment)
 
 **System**: LifeOS Governance Hub  
-**Status**: Proposed for Canonical Promotion  
-**Effective date**: 2026-01-06 (upon CEO promotion)  
-**Amends**: Council Protocol v1.1  
+**Status**: Canonical  
+**Effective date**: 2026-01-08 (upon CEO promotion)  
+**Amends**: Council Protocol v1.2  
 **Change type**: Constitutional amendment (CEO-only)
 
 ---
@@ -5251,262 +3244,10 @@ mode_selection_rules_v1:
     - (uncertainty == "high" and blast_radius != "local")
   M0_FAST_if_all:
     - aur_type in ["doc","plan","other"]
-    - (touches == ["docs_only"] or (touches excludes "runtime_core" and touches excludes "interfaces" and touches excludes "governance_protocol"))
-    - blast_radius == "local"
-    - reversibility == "easy"
-    - safety_critical == false
-    - uncertainty == "low"
-  operator_override:
-    if override.mode != null: "use override.mode"
 
-model_plan_v1:
-  topology: "MONO|HYBRID|DISTRIBUTED"
-  models:
-    primary: "<model_name>"
-    adversarial: "<model_name>"
-    implementation: "<model_name>"
-    governance: "<model_name>"
-  role_to_model:
-    Chair: "primary"
-    CoChair: "primary"
-    Architect: "primary"
-    Alignment: "primary"
-    StructuralOperational: "primary"
-    Technical: "implementation"
-    Testing: "implementation"
-    RiskAdversarial: "adversarial"
-    Simplicity: "primary"
-    Determinism: "adversarial"
-    Governance: "governance"
-  constraints:
-    mono_mode:
-      all_roles_use: "primary"
-```
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-Notes:
-- In MONO topology, `constraints.mono_mode.all_roles_use` governs; `role_to_model` remains required for logging consistency.
-
-**Field enumerations (normative):**
-
-| Field | Allowed Values |
-|-------|----------------|
-| `aur_type` | governance, spec, code, doc, plan, other |
-| `change_class` | new, amend, refactor, hygiene, bugfix |
-| `blast_radius` | local, module, system, ecosystem |
-| `reversibility` | easy, moderate, hard |
-| `uncertainty` | low, medium, high |
-| `touches` | governance_protocol, tier_activation, runtime_core, interfaces, prompts, tests, docs_only |
-
-Mode selection rules are only valid when field values match these enumerations exactly.
-
----
-
-## 5. Seats (roles) and responsibilities
-
-### 5.1 Council officers
-**Chair (mandatory)**
-- Assembles CCP, enforces protocol invariants, manages topology, rejects malformed outputs, synthesizes verdict and Fix Plan.
-
-**Co‑Chair (mandatory for M1/M2; optional for M0)**
-- Validates CCP completeness, challenges Chair synthesis, hunts hallucinations, and produces concise role prompt blocks for execution.
-
-### 5.2 Reviewer seats (canonical seat map)
-
-**Architect Reviewer**  
-Structural coherence and long-horizon architecture.
-
-**Alignment Reviewer**  
-Goal fidelity, control surfaces, incentives, human oversight.
-
-**Structural & Operational Reviewer**  
-Process integrity, lifecycle semantics, operational failure modes.
-
-**Technical Reviewer**  
-Implementation feasibility, integration, maintainability (for code/spec).
-
-**Testing Reviewer**  
-Test strategy, verification, and validation plan adequacy.
-
-*Responsibilities:*
-- Evaluate whether testable claims in the AUR have corresponding test specifications
-- Identify gaps in test coverage for critical paths
-- Assess reproducibility of test execution
-- Flag untestable requirements
-
-*Inputs:* AUR, any referenced test artifacts  
-*Output focus:* Fixes should specify concrete test cases or coverage requirements
-
-**Risk / Adversarial Reviewer**  
-Adversarial analysis, threat models, misuse and failure scenarios.
-
-**Simplicity Reviewer**  
-Complexity reduction, sharp boundaries, minimal moving parts.
-
-**Determinism Reviewer**  
-Determinism, auditability, reproducibility, side-effect control.
-
-**Governance Reviewer**  
-Authority chain compliance, amendment hygiene, governance drift detection.
-
-*Responsibilities:*
-- Verify all documents correctly cite their authority chain
-- Confirm amendment rights are preserved (CEO-only where required)
-- Detect scope creep where subordinate documents exceed granted authority
-- Validate versioning hygiene and cross-reference consistency
-
-*Inputs:* AUR, Authority Chain documents  
-*Output focus:* Fixes should cite specific authority chain violations with remediation
-
-### 5.3 Fast-mode seat
-**L1 Unified Reviewer** (permitted in M0_FAST only)  
-Single integrated review that combines multiple lenses into one output.
-
----
-
-## 6. Modes and topologies
-
-### 6.1 Mode selection (binding)
-- Mode is chosen deterministically from CCP header rules unless overridden.
-- If overridden, the override must include rationale in the CCP header.
-
-### 6.2 Topology selection (binding)
-Topology can be:
-- **MONO**: single model executes all seats sequentially.
-- **HYBRID**: Chair/Co-Chair on one model; selected seats executed externally.
-- **DISTRIBUTED**: seats executed externally (per-seat), Chair synthesizes.
-
-### 6.3 Independence rule (hallucination mitigation)
-**Critical point**: MONO topology does **not** provide independence between seats.  
-Therefore:
-
-- For **M1_STANDARD** and **M2_FULL**:
-  1) A **distinct Co‑Chair challenge pass** is mandatory (even if same model).
-  2) The Chair must produce a **Contradiction Ledger** (Section 8.1).
-
-- For **M2_FULL**, the following independence rules apply:
-
-  **MUST (hard requirement):**
-  If any of the following are true:
-  - safety_critical == true, OR
-  - touches includes governance_protocol, OR
-  - touches includes tier_activation,
-  
-  then at least one of **Risk/Adversarial** or **Governance** seats MUST be executed on an independent model (different vendor/model family). No Chair/operator override permitted.
-
-  **Emergency CEO override (exceptional):**
-  In declared emergencies only, CEO may authorize proceeding without independence. If CEO authorizes:
-  - The run is marked `compliance_status: "non-compliant-ceo-authorized"` in Council Run Log
-  - CSO is automatically notified
-  - A follow-up compliant run SHOULD be scheduled within 48 hours
-
-  **SHOULD (soft requirement with logging):**
-  If any of the following are true:
-  - touches includes runtime_core, OR
-  - uncertainty == high and blast_radius != local,
-  
-  then at least one of **Risk/Adversarial** or **Governance** seats SHOULD be executed on an independent model when practical.
-  - If not practical, the CCP must record: `override.rationale` explaining why independence was not used.
-  - CSO may audit override patterns; systemic waivers (>50% of applicable runs) trigger escalation.
-
-**Audit requirement:**
-Independence waivers under SHOULD conditions are recorded in the Council Run Log `notes.override_rationale` field. CSO audits waiver frequency.
-
----
-
-## 7. Required output schema (per seat)
-
-Every seat output MUST be structured as follows:
-
-1. **Verdict**: Accept | Go with Fixes | Reject  
-2. **Key findings (3–10 bullets)**  
-   - Each bullet must include at least one `REF:` citation.
-3. **Risks / failure modes (as applicable)**  
-   - Each must include `REF:` or explicit **ASSUMPTION**.
-4. **Fixes (prioritised)**  
-   - Format: `F1`, `F2`, ... with impact and `REF:`.
-5. **Open questions (if any)**  
-6. **Confidence**: Low | Medium | High  
-7. **Assumptions** (explicit list)
-
-### 7.1 Reference format
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly` (if line numbers exist)
-- `REF: git:<commit>:<path>#Lx-Ly` (for code)
-
----
-
-## 8. Council sequence (deterministic)
-
-**Step 0 — CCP Assembly**
-- Chair assembles CCP and selects mode/topology per CCP rules.
-- Co‑Chair validates CCP (mandatory for M1/M2).
-
-**Step 1 — Seat execution**
-- Execute seats according to topology.
-- Chair rejects malformed outputs and re-requests.
-
-**Step 1.5 — Seat completion validation**
-Before synthesis, Chair MUST verify:
-- All seats assigned in the CCP header `model_plan_v1.role_to_model` have submitted outputs
-- All outputs conform to the required schema (§7)
-- Any missing seats are either: (a) explicitly waived with rationale, or (b) flagged as blocking
-
-Chair may not proceed to synthesis with missing seats unless topology permits reduced seat count (M0_FAST or explicit M1_STANDARD seat selection).
-
-**Step 2 — Synthesis**
-- Chair produces:
-  - Consolidated verdict,
-  - Fix Plan (prioritised),
-  - Decision points requiring CEO input,
-  - Contradiction Ledger (mandatory M1/M2).
-
-**Step 3 — CEO decision (if required)**
-- CEO accepts/rejects/defers fix plan and any amendments.
-
-**Step 4 — Close-out**
-- Council Run Log is finalised and attached to the CCP.
-
-### 8.1 Contradiction Ledger (mandatory in M1/M2)
-Chair must list:
-- conflicts between seats (e.g., "Architect recommends X; Governance flags authority conflict"),
-- resolution approach: evidence-backed choice OR "needs CEO decision".
-
-**MONO topology requirement:** In MONO topology, Co-Chair must independently verify Contradiction Ledger completeness before synthesis is finalized. Co-Chair signs off with: "Contradiction Ledger verified complete" or flags omissions.
-
----
-
-## 9. Bootstrap clause (to prevent blockage)
-
-If canonical prompt artefacts or canonical governance artefacts cannot be fetched:
-- Council may run under a **BOOTSTRAP CCP** that embeds the required prompt snapshots inline.
-- The run MUST include a fix item: "Restore canonical artefacts and re-run validation (if required)."
-- BOOTSTRAP runs are auditable but are not grounds to claim "canonical compliance" unless the missing canon is restored and validated.
-
-**Restrictions:**
-- BOOTSTRAP mode must be logged in Council Run Log with `notes.bootstrap_used: true`
-- Canonical artefacts must be restored within 24 hours of BOOTSTRAP run
-- No more than 2 consecutive council runs may use BOOTSTRAP mode without CSO review
-- If `safety_critical == true`, BOOTSTRAP mode requires explicit CEO approval before execution
-
----
-
-## 10. Amendment record (this document)
-
-**v1.2 (2026-01-06)** — Fix Pack AUR_20260105_council_process_review:
-- F3: Hardened independence rule §6.3 (SHOULD→MUST for safety_critical, governance_protocol, tier_activation)
-- F4: Added waiver logging and CSO audit requirement
-- F5: Expanded Testing Reviewer and Governance Reviewer definitions with responsibilities
-- F6: Added Step 1.5 (Seat completion validation) before synthesis
-- F8: Added Co-Chair verification requirement for Contradiction Ledger in MONO topology
-- F10: Added explicit enum definitions for CCP header fields
-- F12: Added bootstrap mode restrictions
-
-**v1.1 (2026-01-05)**:
-- Machine-discernable CCP header schema (mode + topology + model plan),
-- Independence rule for hallucination mitigation,
-- New seats: Governance Reviewer and Testing Reviewer,
-- Explicit "Bootstrap" clause.
 
 
 ---
@@ -5762,99 +3503,10 @@ The steward does NOT need to manually sync to Google Drive. The workflow is:
 3. Google Drive syncs automatically
 
 ### 5.3 Verification
-To verify sync is working:
-- Check Google Drive for Desktop tray icon (green checkmark = synced)
-- Spot-check recent file in Drive web interface
 
----
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-## 6. Verification Checklist
-
-After any document operation, verify:
-
-- [ ] File exists in correct local path
-- [ ] `docs/INDEX.md` is current
-- [ ] `ARTEFACT_INDEX.json` is current (if governance)
-- [ ] Git commit created
-- [ ] Corpus generated (`LifeOS_Universal_Corpus.md` updated)
-- [ ] Pushed to GitHub
-- [ ] Synced to Google Drive
-- [ ] Stray files checked and cleaned (repo root + docs root)
-- [ ] No broken links in related documents
-
----
-
-## 7. Naming Conventions
-
-| Type | Pattern | Example |
-|------|---------|---------|
-| Specification | `Name_Spec_vX.Y.md` | `COO_Runtime_Spec_v1.0.md` |
-| Protocol | `Name_Protocol_vX.Y.md` | `Governance_Protocol_v1.0.md` |
-| Packet | `Name_Packet_vX.Y.md` | `Implementation_Packet_v1.0.md` |
-| Template | `Name_TEMPLATE_vX.Y.md` | `ALIGNMENT_REVIEW_TEMPLATE_v1.0.md` |
-| Ruling | `Name_Ruling_vX.Y.md` | `Tier1_Hardening_Council_Ruling_v0.1.md` |
-| Work Plan | `Name_Work_Plan_vX.Y.md` | `Tier1_Hardening_Work_Plan_v0.1.md` |
-
----
-
-## 8. Directory Structure
-
-```
-docs/
-├── 00_foundations/     ← Core principles, Constitution
-├── 01_governance/      ← Contracts, policies, rulings, templates
-├── 02_protocols/       ← Protocols and agent communication schemas
-├── 03_runtime/         ← Runtime specs, roadmaps, work plans
-├── 04_project_builder/ ← Builder specs
-├── 05_agents/          ← Agent architecture
-├── 06_user_surface/    ← User surface specs
-├── 07_productisation/  ← Productisation briefs
-├── 08_manuals/         ← Manuals
-├── 09_prompts/         ← Prompt templates
-├── 10_meta/            ← Meta docs, reviews, tasks
-└── 99_archive/         ← Historical documents (immutable)
-```
-
----
-
-## 9. Anti-Failure Constraints
-
-Per Constitution v2.0 and Anti-Failure Operational Packet:
-
-- **Human performs**: Intent, approval, governance decisions only
-- **System performs**: File creation, indexing, syncing, commit, push
-- **Maximum human steps**: ≤ 2 (approve sync, confirm if needed)
-
-If sync requires more than 2 human steps, the workflow must be automated.
-
----
-
-## 10. Automated Stewardship Interface (Canonical Packet)
-
-The **primary interface** for automated stewardship is now the **DOC_STEWARD_REQUEST_PACKET**.
-
-### 10.1 Interaction Flow
-1. **Orchestrator** emits `DOC_STEWARD_REQUEST_PACKET` (defined in `lifeos_packet_schemas_v1.1.yaml`).
-2. **Doc Steward** processes the request (Index update, Corpus regen, etc.).
-3. **Doc Steward** emits `DOC_STEWARD_RESULT` (embedded in payload or as a generic Result packet).
-
-### 10.2 Legacy Support (Structured Patch List)
-The Structured Patch List format (Section 3.1-3.2 of v1.0) is maintained as the internal payload structure but must be wrapped in the canonical packet envelope.
-
-### 10.3 Ledger Topology (DL_DOC)
-All automated stewardship runs are recorded in `artifacts/ledger/dl_doc/`:
-- Filename pattern: `YYYY-MM-DD_<trial_type>_<case_id>.yaml`
-- Contains: Full Packet content + Verifier Outcome.
-
----
-
-## Changes in v1.1
-- **Canonical Packets**: Adopted `DOC_STEWARD_REQUEST_PACKET` as primary interface.
-- **Envelope Wrapping**: Legacy Structured Patch List JSON must be wrapped in canonical envelope.
-
----
-
-**END OF PROTOCOL**
 
 
 ---
@@ -6135,39 +3787,10 @@ Evidence roles verified: [validator_payload_pass]
 | Mode | Bundle Hash Field |
 |------|-------------------|
 | Detached | `**Digest Strategy**: Detached (Sidecar Verified)` |
-| Embedded (deprecated) | `**Bundle SHA256**: <hash>` |
 
----
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-## 7. Deterministic Error Codes
-
-| Code | Condition | Message |
-|------|-----------|---------|
-| `E_DIGEST_SIDECAR_MISSING` | Sidecar file not found | `Sidecar not found: {path}` |
-| `E_DIGEST_SIDECAR_MALFORMED` | Invalid sidecar format | `Malformed sidecar: {detail}` |
-| `E_DIGEST_MISMATCH` | Expected vs actual mismatch | `Digest mismatch` |
-| `E_REQUIRED_EVIDENCE_MISSING` | No valid payload role | `Missing evidence: {role}` |
-| `E_ROLE_DEPRECATED` | Legacy role after cutoff | `Deprecated role: {role}` |
-| `E_GCBS_STANDARD_VERSION_MISSING` | No gcbs_standard_version | `Missing: gcbs_standard_version` |
-| `E_PROTOCOLS_PROVENANCE_MISMATCH` | Index hash mismatch | `Provenance mismatch: {detail}` |
-
----
-
-## 8. Amendment
-
-### 8.1 Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | 2026-01-06 | Initial release |
-
-### 8.2 Future Versions
-
-- **v1.1:** Reject `validator_final_shipped` role (cutoff anchor)
-
----
-
-*This protocol was created under LifeOS governance. Changes require Council review (CT-2).*
 
 
 ---
@@ -6287,96 +3910,140 @@ When CSO handles (not escalates), the primary function is **not to decide**, but
 2. **Narrow** - Reduce the decision surface until consensus is reachable
 3. **Sequence** - Convert blocking decision into staged/reversible steps
 4. **Defer** - Identify what information would resolve it; pause until available
-5. **Decide** - Only when above fail; log reasoning extensively
 
-### 5.3 CSO Decision Constraints
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-When CSO decides (rather than escalates):
 
-**Primary criterion**: Align with CEO intent. CSO acts as CEO's representative - the governing question is "what would the CEO decide here?"
-
-**Supporting heuristics** (when intent is ambiguous):
-- Choose the more reversible option
-- Choose the option that preserves more future options
-- Consider risk-adjusted cost-benefit
-- If still unclear, choose option closer to status quo
-- If still equal, escalate to CEO
-
-### 5.4 CSO Envelope
-
-CSO envelope boundaries (spend limits, commitment types, authority scope) are defined in **CSO Role Constitution v1.0**. This section is a stub pending that document's ratification.
 
 ---
 
-## 6. Early-Stage Overrides
+# File: 02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md
 
-During system immaturity, tighter escalation applies. CEO releases these as confidence builds.
+# LifeOS Design Principles Protocol
 
-### 6.1 Current Overrides (Active)
-
-| Override | Effect | Release Criteria |
-|----------|--------|------------------|
-| **Structural changes → CEO** | Any change to governance docs, protocols, tier definitions requires CEO approval | CEO discretion |
-| **New agent activation → CEO** | Activating new autonomous capability requires CEO approval | CEO discretion |
-| **External actions → CEO** | Any action visible outside system (commits, communications) requires CEO approval | CEO discretion |
-| **CSO decisions → CEO review** | CSO logs all decisions; CEO reviews async | CEO satisfied with CSO calibration |
-
-### 6.2 Maturity Indicators (Informational)
-
-Suggested indicators that may inform CEO release decisions:
-- Consistent track record (N decisions without override)
-- Error rate below threshold
-- Escalation quality (appropriate, not excessive)
-- CSO interpretations align with CEO intent on review
-
-CEO retains sole authority to release overrides regardless of indicators.
+**Version:** v1.1  
+**Status:** Canonical  
+**Date:** 2026-01-08  
+**Author:** Claude (Execution Partner)  
+**Canonical Path:** `docs/02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md`
 
 ---
 
-## 7. Routing Flow
+## 1. Purpose
 
+This document establishes design principles for LifeOS development that prioritize working software over comprehensive documentation, while maintaining appropriate governance for production systems.
+
+**The Problem It Solves:**
+
+Council reviews produce thorough, hardened specifications. This is correct for production systems. However, applying full council rigor to unproven concepts creates:
+
+- Weeks of specification work before any code runs
+- Governance overhead for systems that don't exist
+- Edge case handling for scenarios never encountered
+- Analysis paralysis disguised as thoroughness
+
+**The Principle:**
+
+> Governance follows capability. Prove it works, then harden it.
+
+---
+
+## 2. Authority & Binding
+
+### 2.1 Subordination
+
+This document is subordinate to:
+
+1. LifeOS Constitution v2.0 (Supreme)
+2. Council Protocol v1.2
+3. Tier Definition Spec v1.1
+4. GEMINI.md Agent Constitution
+
+### 2.2 Scope
+
+This protocol applies to:
+
+- New capability development (features, systems, integrations)
+- Architectural exploration
+- Prototypes and proofs of concept
+
+This protocol does NOT override:
+
+- Existing governance surface protections
+- Council authority for production deployments
+- CEO authority invariants
+
+### 2.3 Development Sandbox
+
+MVP and spike work MUST occur in locations that:
+
+1. **Are not under governance control** — Not in `docs/00_foundations/`, `docs/01_governance/`, `runtime/governance/`, or any path matching `*Constitution*.md` or `*Protocol*.md`
+2. **Are explicitly marked as experimental** — Permitted locations (exhaustive list):
+   - `runtime/experimental/`
+   - `spikes/`
+   - `sandbox/`
+3. **Can be deleted without triggering governance alerts** — Sandbox code may be deleted without governance alerts, PROVIDED:
+   - Spike Declaration lives in `artifacts/spikes/<YYYYMMDD>_<short_slug>/SPIKE_DECLARATION.md`
+   - Lightweight Review Packet (with proof_evidence) lives in `artifacts/spikes/<YYYYMMDD>_<short_slug>/REVIEW_PACKET.md`
+   - Evidence files (logs, test outputs) are preserved in `artifacts/spikes/<YYYYMMDD>_<short_slug>/evidence/`
+   
+   > These durable artefact locations are NOT part of the deletable sandbox.
+4. **Do NOT trigger Document Steward Protocol** — Files in sandbox locations are exempt from `INDEX.md` updates and corpus regeneration until promoted
+
+> [!IMPORTANT]
+> Sandbox locations provide a "proving ground" where full governance protocol does not apply until the capability seeks production status.
+
+### 2.4 GEMINI.md Reconciliation (Plan Artefact Gate)
+
+This protocol establishes the **Spike Declaration** as the authorized Plan Artefact format for Spike Mode, consistent with GEMINI.md Article XVIII (Lightweight Stewardship). It is not an exception for governance-surface work.
+
+**Spike Mode:**
+
+For time-boxed explorations (≤3 days), agents MUST use a **Spike Declaration** as the Plan Artefact:
+
+```markdown
+## Spike Declaration
+**Question:** [Single question to answer]
+**Time Box:** [Duration: 2 hours / 1 day / 3 days]
+**Success Criteria:** [Observable result]
+**Sandbox Location:** [Path within permitted sandbox — see §2.3]
 ```
-Input received
-    ↓
-Can T4 (deterministic) handle? → Yes → Execute, log
-    ↓ No
-Can T3 (agent) handle within envelope? → Yes → Execute, log
-    ↓ No
-Does T2 (council) have jurisdiction? → Yes → Review, approve/reject/revise
-    ↓ No or Deadlock
-CSO: Reframe/narrow/sequence/defer/decide
-    ↓ If unresolvable
-CEO: Final decision
-```
 
----
+**Conditions:**
+- Spike Declaration MUST be recorded **before execution** at: `artifacts/spikes/<YYYYMMDD>_<short_slug>/SPIKE_DECLARATION.md`
+- Work must remain within declared sandbox location (§2.3 permitted roots only)
+- CEO retains authority to cancel at any time
+- Upon spike completion, a Lightweight Review Packet is required (see §4.1)
 
-## 8. Logging Requirements
+> [!CAUTION]
+> **Spike Mode is prohibited for governance surfaces.** If work touches any path listed in §5.5, full Plan Artefact (implementation_plan.md) and Council review are required. No spike exception applies.
 
-All tiers log to system record. Minimum fields:
+### 2.5 Council Protocol Reconciliation (CT-1 Trigger)
 
-| Field | Required |
-|-------|----------|
-| Timestamp | Yes |
-| Tier | Yes |
-| Action/Decision | Yes |
-| Reasoning | T1-T3 |
-| Escalation (if any) | Yes |
-| Outcome | Yes |
+Council Protocol v1.2 CT-1 triggers on "new capability introduction." This protocol clarifies:
 
-Logs are immutable. CEO has full access. Lower tiers have read access to own logs.
+1. **MVP work in sandbox locations does NOT trigger CT-1** — Exploratory work is not a capability until it seeks production status
+2. **Integration with governance surfaces triggers CT-1** — See §2.5.1 for definition
+3. **Council reviews working systems** — Hardening reviews evaluate running code with test evidence, not theoretical architectures
 
----
+#### 2.5.1 Definition: Integration with Governance Surfaces
 
-## 9. Cross-Reference
+"Integration with governance surfaces" means ANY of the following:
 
-- CSO Role Constitution v1.0 (WIP)
-- Council Protocol v1.2
-- Governance Protocol v1.0
+- **Importing/calling** governance-controlled modules or functions
+- **Reading/writing** governance-controlled files or paths at runtime
+- **Staging/merging** changes that touch governance surfaces (per §5.5)
+- **Promoting** capability into `runtime/` or `docs/` paths outside sandbox roots (§2.3)
 
----
+This definition is consistent with §5.5 (Governance Surface Definition).
 
-**END OF RULE**
+### 2.6 Output-First Default
+
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
 
 
 ---
@@ -6440,15 +4107,6 @@ Increment when:
 
 ---
 **END OF POLICY**
-
-
----
-
-# File: 02_protocols/Test_Protocol_v1.0.md
-
-# Test Protocol
-## Purpose
-Testing.
 
 
 ---
@@ -6652,142 +4310,10 @@ Any feature planned for removal must pass through two interface ticks:
 
 **Tick 2 — Removal**
 - Feature removed or disabled by default
-- Any use raises deterministic failure (`GovernanceViolation` or `NotImplementedError`)
-- Removal occurs only at the next MINOR or MAJOR bump consistent with classification
 
-### 6.2 Deterministic Deprecation Warnings (single flag, deterministic format)
-Deprecation warnings are OFF by default.
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-If enabled via a single explicit flag:
-- **Flag name (standard)**: `debug.deprecation_warnings = true`
-- Warning emission must be deterministic and replay-safe:
-  - Emit as a structured timeline event (not stdout)
-  - Event type: `deprecation_warning`
-  - Event JSON MUST include:
-    - `interface_version` (current)
-    - `deprecated_surface`
-    - `replacement_surface`
-    - `removal_target_version`
-    - `first_seen_at` (deterministic: derived from run start / mission metadata, not ad hoc wall-clock time)
-
-**Hash impact note**: enabling warnings changes evidence (timeline) and therefore changes hashes; that is acceptable only because the flag is an explicit input and must be preserved across replay.
-
-### 6.3 Immutable History Exception (Legacy Mode)
-If a deprecated feature is required to replay a historical `AMU₀` snapshot:
-- Move implementation to `runtime/legacy/`
-- Expose it only through an explicit replay path (“Legacy Mode”)
-- Legacy Mode must be auditable and explicit (no silent fallback)
-
----
-
-## 7. Hash-Impact Guardrail (enforceable rule)
-
-**Rule (load-bearing)**:  
-Any Tier-2 change that alters emitted evidence for an already-recorded run (e.g., `timeline_events` shape/content, result serialization, receipts) is **MAJOR by default**, unless:
-1) the change is confined to a newly versioned schema branch (Section 9), or  
-2) the historical behaviour is preserved via Legacy Mode (Section 6.3).
-
-This prevents accidental replay invalidation and makes “contracts of evidence” operational rather than rhetorical.
-
----
-
-## 8. Change Requirements (artefacts and tests)
-
-Every Tier-2 interface change must include:
-- Classified bump type: PATCH/MINOR/MAJOR (default to MAJOR if uncertain)
-- Updated Interface Version (single authoritative location; Section 10)
-- Updated interface documentation and (if relevant) a migration note
-- Test coverage demonstrating:
-  - backward compatibility (MINOR/PATCH), or
-  - explicit break + migration/legacy path (MAJOR)
-- Deprecation Ledger entry if any surface is deprecated
-
----
-
-## 9. Schema Versioning Inside Artefacts
-
-All Protected structured artefacts MUST carry explicit schema versioning in their serialized forms.
-
-### 9.1 Standard field
-Every `to_dict()` / serialized payload for Protected result/evidence types must include:
-
-- `schema_version`: string (e.g., `"orchestration_result@1"`, `"scenario_result@1"`, `"test_run_result@1"`)
-
-### 9.2 Relationship to Interface Version
-- `schema_version` is per-object-type and increments only when that object’s serialized contract changes.
-- Interface Version increments according to Section 4 based on governance impact.
-
-### 9.3 Config schema versioning
-Protected config schemas must include either:
-- a `schema_version` key, or
-- an explicit top-level `version` key
-
-Additive introduction is MINOR; removal/rename is MAJOR.
-
----
-
-## 10. Interface Version Location (single source of truth)
-
-Tier-2 MUST expose the **current Interface Version** from exactly one authoritative location. This location must be:
-- deterministic (no environment-dependent mutation),
-- importable/parseable by Tier-3+ consumers, and
-- testable in CI.
-
-**Steward decision required**: the Doc Steward will select the lowest-friction authoritative location (doc field vs code constant) that preserves auditability and minimizes recurring operator effort. Once chosen, the exact path and access method must be recorded here:
-
-- **Authoritative interface version location**: `runtime.api.TIER2_INTERFACE_VERSION` (code constant)
-- **How consumers read it**: `from runtime.api import TIER2_INTERFACE_VERSION`
-- **How CI asserts it**: `runtime/tests/test_compatibility_matrix.py` asserts validity and semantic versioning.
-
-After this decision, Tier-3+ surfaces must fail-fast when encountering an unsupported interface version range.
-
----
-
-## 11. Compatibility Test Matrix
-
-Tier-2 must maintain a small, explicit compatibility suite to prevent accidental breaks.
-
-### 11.1 Required fixtures
-Maintain fixtures for:
-- prior `schema_version` payloads for each Protected result type
-- prior config schema examples for each Protected config
-
-### 11.2 Required tests
-- **Decode compatibility**: current code can load/parse prior fixtures
-- **Serialize stability**: `to_dict()` produces canonical ordering / stable shape
-- **Replay invariants**: where applicable, evidence/event emission matches expectations under the same inputs and flags
-
-### 11.3 Storage convention (recommended)
-- `runtime/tests/fixtures/interface_v{X}/...`
-- Each fixture file name includes:
-  - object type
-  - schema_version
-  - short provenance note
-
----
-
-## 12. Deprecation Ledger (append-only)
-
-| Date | Interface Version | Deprecated Surface | Replacement | Removal Target | Hash Impact? | Notes |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
-
-Ledger rules:
-- Append-only (supersede by adding rows)
-- Every deprecation must specify replacement + removal target
-- “Hash Impact?” must be explicitly marked `yes/no/unknown` (unknown defaults to MAJOR until resolved)
-
----
-
-## 13. Adoption Checklist (F2 completion)
-
-F2 is complete when:
-1) This document is filed under the canonical runtime docs location.
-2) The Protected Interface Registry (Section 3) is adopted as authoritative.
-3) Interface Version location is selected and recorded (Section 10).
-4) Deprecation warnings flag and event format (Section 6.2) are standardized.
-5) Schema versioning rules (Section 9) are applied to all Protected result/evidence serializers moving forward.
-6) Compatibility test matrix fixtures + tests (Section 11) exist and run in CI.
 
 
 ---
@@ -6954,245 +4480,10 @@ plan_artifact_schema:
 review_packet_schema:
   artifact_type: "REVIEW_PACKET"
   naming_pattern: "Review_Packet_<Mission>_v<X.Y>.md"
-  canonical_path: "artifacts/review_packets/"
-  
-  required_sections:
-    - section_id: executive_summary
-      description: "Mission outcome summary, 2-5 sentences"
-      example_heading: "## Executive Summary"
-      
-    - section_id: issue_catalogue
-      description: "Table of issues/resolutions with status"
-      example_heading: "## Issue Catalogue"
-      table_columns:
-        - Issue ID
-        - Description
-        - Resolution
-        - Status
-        
-    - section_id: acceptance_criteria
-      description: "Pass/fail status for each criterion"
-      example_heading: "## Acceptance Criteria"
-      table_columns:
-        - Criterion
-        - Description
-        - Status
-        - Verification Method
-        
-    - section_id: verification_proof
-      description: "Test results, command outputs, evidence"
-      example_heading: "## Verification Proof"
-      
-    - section_id: flattened_code_appendix
-      description: "All created/modified files with full content"
-      example_heading: "## Appendix — Flattened Code"
-      
-  conditionally_required:
-    - section_id: stewardship_evidence
-      condition: "Mission modified files in docs/"
-      description: "Proof of INDEX update and corpus regeneration"
-      
-  optional_sections:
-    - section_id: constraints_boundaries
-      description: "Runtime limits if applicable"
-      
-    - section_id: non_goals
-      description: "Explicit out-of-scope items"
 
-# ============================================================================
-# SCHEMA 3: WALKTHROUGH
-# ============================================================================
-# Purpose: Document completed work with visual evidence
-# Flow: Post-verification → Document what was done → CEO can review
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-walkthrough_schema:
-  artifact_type: "WALKTHROUGH"
-  naming_pattern: "Walkthrough_<Topic>_v<X.Y>.md"
-  canonical_path: "artifacts/walkthroughs/"
-  
-  required_sections:
-    - section_id: summary
-      description: "What was accomplished"
-      example_heading: "## Summary"
-      
-    - section_id: changes_made
-      description: "List of changes with rationale"
-      example_heading: "## Changes Made"
-      
-    - section_id: verification_results
-      description: "What was tested and outcomes"
-      example_heading: "## Verification Results"
-      
-  optional_sections:
-    - section_id: screenshots
-      description: "Embedded visual evidence"
-      format: "![description](path)"
-      
-    - section_id: recordings
-      description: "Paths to browser recording files"
-      format: "WebP video paths"
-      
-    - section_id: known_issues
-      description: "Issues discovered but not fixed"
-      
-    - section_id: next_steps
-      description: "Suggested follow-up work"
-
-# ============================================================================
-# SCHEMA 4: GAP ANALYSIS
-# ============================================================================
-# Purpose: Identify inconsistencies, missing coverage, or structural issues
-# Flow: Agent scans → Documents gaps → Proposes remediation
-
-gap_analysis_schema:
-  artifact_type: "GAP_ANALYSIS"
-  naming_pattern: "GapAnalysis_<Scope>_v<X.Y>.md"
-  canonical_path: "artifacts/gap_analyses/"
-  
-  required_sections:
-    - section_id: scope
-      description: "What was scanned (directories, files, topics)"
-      example_heading: "## Scope"
-      
-    - section_id: findings
-      description: "Table of gaps with severity"
-      example_heading: "## Findings"
-      table_columns:
-        - Finding ID
-        - Description
-        - Severity   # P0_BLOCKER, P1_CRITICAL, P2_MAJOR, P3_MINOR, P4_TRIVIAL
-        - Location
-        
-    - section_id: remediation_recommendations
-      description: "Proposed fixes for each finding"
-      example_heading: "## Remediation Recommendations"
-      
-  optional_sections:
-    - section_id: methodology
-      description: "How analysis was performed"
-      
-    - section_id: priority_matrix
-      description: "Critical vs informational breakdown"
-
-# ============================================================================
-# SCHEMA 5: DOC DRAFT
-# ============================================================================
-# Purpose: Propose documentation changes before applying
-# Flow: Agent drafts → CEO/governance reviews → Apply if approved
-
-doc_draft_schema:
-  artifact_type: "DOC_DRAFT"
-  naming_pattern: "DocDraft_<Topic>_v<X.Y>.md"
-  canonical_path: "artifacts/doc_drafts/"
-  
-  required_sections:
-    - section_id: target_document
-      description: "Path to document being drafted"
-      example_heading: "## Target Document"
-      
-    - section_id: change_type
-      description: "ADDITIVE, MODIFYING, or REPLACING"
-      example_heading: "## Change Type"
-      enum_values:
-        - ADDITIVE           # Adding new content
-        - MODIFYING          # Changing existing content
-        - REPLACING          # Full replacement
-        
-    - section_id: draft_content
-      description: "The actual proposed content"
-      example_heading: "## Draft Content"
-      
-    - section_id: dependencies
-      description: "What this depends on"
-      example_heading: "## Dependencies"
-
-# ============================================================================
-# SCHEMA 6: TEST DRAFT
-# ============================================================================
-# Purpose: Propose new tests before implementing
-# Flow: Agent designs tests → Review → Implement
-
-test_draft_schema:
-  artifact_type: "TEST_DRAFT"
-  naming_pattern: "TestDraft_<Module>_v<X.Y>.md"
-  canonical_path: "artifacts/test_drafts/"
-  
-  required_sections:
-    - section_id: target_modules
-      description: "What's being tested"
-      example_heading: "## Target Modules"
-      
-    - section_id: test_cases
-      description: "Detailed test specifications"
-      example_heading: "## Test Cases"
-      format:
-        - test_id: string
-        - description: string
-        - preconditions: list
-        - input: string
-        - expected_output: string
-        - verification: string
-        
-    - section_id: coverage_targets
-      description: "Expected coverage level"
-      example_heading: "## Coverage Targets"
-      
-  optional_sections:
-    - section_id: edge_cases
-      description: "Boundary condition tests"
-      
-    - section_id: integration_points
-      description: "Cross-module test needs"
-
-# ============================================================================
-# VALIDATION RULES
-# ============================================================================
-# Agents MUST enforce these rules when producing artifacts.
-
-_validation_rules:
-  frontmatter:
-    - All _common_metadata fields marked [REQUIRED] MUST be present.
-    - artifact_id MUST be valid UUID v4.
-    - created_at MUST be valid ISO 8601 datetime.
-    - schema_version MUST be valid semver.
-    - status MUST be one of _status_values.
-    - artifact_type MUST be one of _artifact_types.
-    
-  structure:
-    - All required_sections for artifact_type MUST be present.
-    - Section headings MUST match example_heading patterns.
-    - Tables MUST include specified columns.
-    
-  naming:
-    - Filename MUST match naming_pattern for artifact_type.
-    - File MUST be in canonical_path directory.
-    
-  mode:
-    - default: WARN   # Log errors, continue
-    - strict: FAIL    # Block on errors
-
-# ============================================================================
-# FRONTMATTER TEMPLATE
-# ============================================================================
-# Copy this block to start any new artifact.
-
-_frontmatter_template: |
-  ---
-  artifact_id: ""              # [REQUIRED] Generate UUID v4
-  artifact_type: ""            # [REQUIRED] PLAN | REVIEW_PACKET | WALKTHROUGH | GAP_ANALYSIS | DOC_DRAFT | TEST_DRAFT
-  schema_version: "1.0.0"
-  created_at: ""               # [REQUIRED] ISO 8601
-  author: "Antigravity"
-  version: "0.1"
-  status: "DRAFT"
-  
-  # Optional
-  chain_id: ""
-  mission_ref: ""
-  council_trigger: ""
-  parent_artifact: ""
-  tags: []
-  ---
 
 
 ---
@@ -8038,91 +5329,9 @@ None of the roadmap items listed in the original roadmap are explicitly Fuel. Ho
 
 ## 3. PLUMBING TRACK
 
-**Purpose:** Minimal governance, specs, tests, structure required for safe scaling of Core.
 
-Plumbing is the minimal viable structure needed to keep Core safe and aligned.
-
-### Tier-2 and Tier-2.5 Plumbing
-
-**Components:**
-- Governance specs, invariants
-  - **Justification:** Enforces deterministic safety envelope; supports Core autonomy safely.
-- Test frameworks (deterministic harness, scenario harness, recursive tests)
-  - **Justification:** Required for safe autonomous builds.
-- Council protocols
-  - **Justification:** Governance backbone; ensures alignment with North Star.
-- Programme indexes & documentation invariants
-  - **Justification:** Structural integrity; no external leverage on its own.
-
-**Status**: **IN PROGRESS** (Governance specs & indexing completed/active)
-
----
-
-### Tier-3+ Plumbing
-
-**Components:**
-- Fix Pack mechanism
-  - **Justification:** Formal governance for changes; prevents drift.
-- Provenance chain rules
-  - **Justification:** Ensures trustworthiness and traceability for autonomous construction.
-- Lifecycle metadata (birth/eval/deprecate/archival)
-  - **Justification:** Needed for safe project management but not leverage-bearing.
-
-**Status:** All remain Plumbing.
-
-**Note:** None violate the Charter as they enable Core.
-
----
-
-## 4. ITEMS TO FLAG FOR POTENTIAL REMOVAL / DOWN-PRIORITISATION
-
-Anything not clearly contributing to external leverage, agency, autonomy, wealth, esteem, or reduced user burden.
-
-### Flagged Items:
-
-1. **Visual elegance, aesthetic refactoring, or "pretty documentation"** that is not required for deterministic governance.
-   - **Reason:** Violates "no elegance for its own sake" invariant.
-
-2. **Feature richness that does not accelerate autonomy** (e.g., non-deterministic convenience wrappers).
-   - **Reason:** Drift risk; pulls attention away from autonomy trajectory.
-
-3. **Non-deterministic agent experiments** that do not contribute to recursive system self-building.
-   - **Reason:** Does not support North Star; creates confusion.
-
-4. **Extended effort toward advisory products** without direct Core acceleration justification.
-   - **Reason:** Fuel items must never delay Core.
-
-5. **"Research-only" explorations** without clear tie to autonomy or external leverage.
-   - **Reason:** Violates External Outcomes invariant.
-
----
-
-## 5. REVISED CANONICAL ROADMAP (Core / Fuel / Plumbing Integrated)
-
-### CORE
-- Tier-1: Deterministic Kernel
-- Tier-2: Runtime Orchestration
-- Tier-2.5: Semi-Autonomous Development Layer
-- Tier-3: Autonomous Construction Layer
-- Tier-4: Governance-Aware Agentic System
-- Tier-5: Self-Improving Organisation Engine
-
-### FUEL
-- Productisation tracks (optional, later)
-- Advisory monetisation (optional)
-
-### PLUMBING
-- Council protocols
-- Governance specs
-- Invariants
-- Deterministic test frameworks
-- Indexing & documentation structure
-- Fix Packs and provenance chain rules
-- Lifecycle metadata & governance controls
-
----
-
-**End of LifeOS Programme Roadmap — Core/Fuel/Plumbing v1.0**
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
 
 
@@ -8163,6 +5372,7 @@ Apply these rules:
 Assume StepGate Protocol v1.0 and Discussion Protocol v1.0 are in force.
 
 
+
 ---
 
 # File: 09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md
@@ -8200,6 +5410,7 @@ Assume that **StepGate Protocol v1.0**, **Discussion Protocol v1.0**, and the re
 
 
 
+
 ---
 
 # File: 09_prompts/v1.0/initialisers/master_initialiser_v1.0.md
@@ -8207,6 +5418,7 @@ Assume that **StepGate Protocol v1.0**, **Discussion Protocol v1.0**, and the re
 # Master Initialiser v1.0
 
 Minimal behavioural initialiser.
+
 
 
 ---
@@ -8228,6 +5440,7 @@ Minimal behavioural initialiser.
 
 
 
+
 ---
 
 # File: 09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md
@@ -8244,6 +5457,7 @@ Minimal behavioural initialiser.
 6. Ask before expanding breadth or depth.
 7. If uncertain about user intent, ask instead of inferring.
 8. When the user shifts into actionable tasks, confirm whether to begin StepGate in a new thread.
+
 
 
 
@@ -8284,6 +5498,7 @@ A disciplined, low-friction framework for exploratory or conceptual dialogues. P
    Keep outputs small and bounded. Avoid surprising the user with unexpected scope or volume.
 
 ---
+
 
 
 
@@ -8342,6 +5557,7 @@ Do not proceed without it.
 
 
 
+
 ---
 
 # File: 09_prompts/v1.0/roles/chair_prompt_v1.0.md
@@ -8396,18 +5612,9 @@ You are not the CEO and not the system designer. You are a process governor and 
 
 5. **Summarisation & Handoff**
    - Aggregate role outputs into:
-     - A clear verdict or recommendation set.
-     - A small number of action items (A1, A2, …).
-   - Present succinctly so the human can decide quickly.
 
----
-
-## Style & Constraints
-
-- Be concise but rigorous.
-- Do not redesign artefacts unless explicitly asked.
-- Escalate ambiguity instead of guessing.
-- Avoid overproducing branches; default to the single path the user appears to favour, then ask if alternatives are needed.
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -8465,9 +5672,9 @@ You are not a rubber stamp. You are a second line of defence.
 ## Style & Constraints
 
 - Default to suggestions, not unilateral changes.
-- Do not expand packet scope without explicit user approval.
-- Prefer clear bullet points over prose.
-- Always highlight “What the human must do next” when relevant.
+
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -8526,20 +5733,8 @@ You sit above technical detail reviewers and focus on what the system should be,
 
 Classify ambiguity as:
 
-- **Missing Context** — information not provided.
-- **Underspecified Requirement** — unclear or incomplete contract.
-- **Contradiction** — two or more statements that cannot both be true.
-
-Escalate these explicitly to the user.
-
----
-
-## Constraints
-
-- Do not redesign the entire architecture.
-- Do not add new requirements not implied by the packet.
-- Do not fill gaps using speculative assumptions.
-- Do not drift into low-level implementation details except to illustrate structural issues.
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -8597,29 +5792,9 @@ Trust the artefact where it contradicts hand-wavy descriptions, but call out the
 - Each bullet should:
   - State the issue.
   - Explain impact.
-  - Suggest a direction for remediation (not full design).
 
-### Section 3 — Risks
-- Concrete ways the system could fail, be misused, or drift from the user’s goals.
-
-### Section 4 — Required Changes
-- Numbered list of changes required for:
-  - Structural soundness,
-  - Safety,
-  - Alignment.
-
-### Section 5 — Questions / Ambiguities
-- Questions that must be answered by the human or future work.
-- Separate **“must answer now”** vs **“can defer”**.
-
----
-
-## Constraints
-
-- Do not attempt to rewrite the entire system.
-- Do not speculate beyond the packet and artefact.
-- Escalate missing context rather than guessing.
-- Maintain a neutral, analytic tone.
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -8655,6 +5830,7 @@ Provide a model-agnostic behavioural shell for AI assistants working within the 
 
 
 
+
 ---
 
 # File: 09_prompts/v1.0/system/modes_overview_v1.0.md
@@ -8687,6 +5863,7 @@ Behaviours:
 - Progress only on the gate phrase **"go"**.
 - Keep each step atomic and clear.
 - Call out what the human must do at each step.
+
 
 
 
@@ -8745,72 +5922,8 @@ Confirm CCP includes:
 State explicitly at the top of the run:
 - “Material claims MUST include `REF:`. Unreferenced claims are ASSUMPTION and cannot drive binding fixes/verdict.”
 
----
-
-## 3) Orchestration rules (deterministic)
-
-### 3.1 MONO topology (single model)
-**Step 1.5 — Seat Completion Validation**: Before synthesis, verify ALL assigned seats have submitted valid outputs. Do not proceed with partial results.
-
-Run seats sequentially and compartmentalise. Use this header before each seat:
-
-`## Seat: <Name> (v1.2)`
-
-Rules:
-- Do not reuse conclusions from prior seats without re-checking references.
-- If a seat claims something without `REF:`, force it into Assumptions.
-
-### 3.2 HYBRID / DISTRIBUTED topology
-- Produce seat prompt blocks (or request Co‑Chair to do so).
-- Collect seat outputs; reject malformed outputs; re-request corrections.
-
----
-
-## 4) Enforcement (MANDATORY)
-
-Reject a seat output if:
-- missing required sections (Verdict/Findings/Fixes/etc.)
-- material claims lack `REF:`
-- scope creep beyond CCP boundaries
-- “Accept” verdict conflicts with major fix list without explanation
-
-Correction protocol (minimal):
-- “Rejected due to: <reason>. Resubmit using required schema and add `REF:` for all material claims.”
-
----
-
-## 5) Synthesis requirements (MANDATORY)
-
-Your synthesis MUST include:
-
-### A) Consolidated Verdict
-Accept / Go with Fixes / Reject
-
-### B) Fix Plan (prioritised)
-- F1..Fn (5–12 preferred)
-- Each fix includes impact + minimal change + `REF:`.
-
-### C) CEO Decision Points (only if required)
-- D1..Dn
-- Provide options and consequences, not recommendations framed as decisions.
-
-### D) Contradiction Ledger (MANDATORY for M1/M2)
-- CL1..CLn
-- For each: seats in conflict + what evidence resolves it OR why CEO decision is required.
-
-### E) Hallucination Scrub Summary (MANDATORY for M1/M2)
-- HS1..HSn
-- List any removed/flagged unsupported claims and why.
-
-### F) Council Run Log (YAML)
-- Fill the run log per Procedural Spec.
-
----
-
-## 6) Chair anti-patterns (avoid)
-- Do not “average” opinions. Resolve with evidence or escalate.
-- Do not introduce new requirements not present in CCP objective/scope.
-- Do not accept vague fixes (must be minimal, actionable, testable/validatable).
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -8868,38 +5981,9 @@ For each hotspot, propose a minimal CCP edit that removes ambiguity.
 
 ---
 
-## 3) Prompt blocks (HYBRID/DISTRIBUTED)
 
-If external seats will be run, produce one prompt block per seat:
-- include objective + scope + invariants,
-- include the required output schema,
-- include a “REF required” reminder,
-- avoid boilerplate.
-
----
-
-## 4) Synthesis challenge pass (MANDATORY for M1/M2)
-
-After Chair synthesis, do a challenge pass:
-- Identify unsupported claims (no `REF:`) that impacted verdict/fixes.
-- Identify missing contradictions the Chair failed to surface.
-- Provide alternative interpretations backed by `REF:` or mark **ASSUMPTION**.
-
----
-
-## 5) Output format
-
-### A) CCP Issues
-- P1..Pn: what to change and why
-
-### B) Hallucination Hotspots
-- H1..Hn: ambiguity + minimal correction
-
-### C) Prompt Blocks (if needed)
-- `PROMPT — Seat: <Name>`
-
-### D) Synthesis Challenge
-- SC1..SCn with `REF:` or **ASSUMPTION**
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -8958,28 +6042,8 @@ One of: **Accept / Go with Fixes / Reject**
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
 - For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -9037,30 +6101,9 @@ One of: **Accept / Go with Fixes / Reject**
 
 ### 3) Risks / Failure Modes (as applicable)
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
-- For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -9119,28 +6162,8 @@ One of: **Accept / Go with Fixes / Reject**
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
 - For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -9199,28 +6222,8 @@ One of: **Accept / Go with Fixes / Reject**
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
 - For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -9278,17 +6281,10 @@ Low | Medium | High
 ### 7) Assumptions
 Explicit list; do not hide assumptions in prose.
 
-## Reference Format
 
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
-
-## Additional constraint (Fast mode)
-- Keep the entire output under ~700–1200 words unless the CCP explicitly requests depth.
-- Prioritise the 5–10 most consequential points; do not spray minor nits.
 
 
 ---
@@ -9346,28 +6342,8 @@ One of: **Accept / Go with Fixes / Reject**
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
 - For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -9426,28 +6402,8 @@ One of: **Accept / Go with Fixes / Reject**
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
 - For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -9506,28 +6462,8 @@ One of: **Accept / Go with Fixes / Reject**
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
 - For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -9586,28 +6522,8 @@ One of: **Accept / Go with Fixes / Reject**
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
 - For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 
@@ -9666,28 +6582,8 @@ One of: **Accept / Go with Fixes / Reject**
 - Each item MUST include `REF:` or be labeled **ASSUMPTION**.
 - For **ASSUMPTION**, include: what evidence would resolve it.
 
-### 4) Fixes (prioritised)
-- Use IDs `F1`, `F2`, ...
-- Each fix MUST include:
-  - **Impact** (what it prevents/enables),
-  - **Minimal change** (smallest concrete action),
-  - **REF:** citation(s).
-
-### 5) Open Questions (if any)
-- Only questions that block an evidence-backed verdict/fix.
-
-### 6) Confidence
-Low | Medium | High
-
-### 7) Assumptions
-Explicit list; do not hide assumptions in prose.
-
-## Reference Format
-
-Use one of:
-- `REF: <AUR_ID>:<file>:§<section>`
-- `REF: <AUR_ID>:<file>:#Lx-Ly`
-- `REF: git:<commit>:<path>#Lx-Ly`
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 

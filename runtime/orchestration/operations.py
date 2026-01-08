@@ -314,6 +314,7 @@ class OperationExecutor:
             "tool_invoke": self._handle_tool_invoke,
             "packet_route": self._handle_packet_route,
             "gate_check": self._handle_gate_check,
+            "run_tests": self._handle_run_tests,
         }
         
         handler = handlers.get(operation.type)
@@ -327,14 +328,52 @@ class OperationExecutor:
         operation: Operation,
         ctx: ExecutionContext
     ) -> tuple[Any, Dict[str, Any]]:
-        """Handle llm_call operation. Stub for Phase 2."""
-        # Phase 2: Return stub, actual LLM integration in Phase 3+
+        """
+        Handle llm_call operation.
+        
+        Wires to runtime.agents.api.call_agent() for actual LLM invocation.
+        Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.1
+        """
+        from runtime.agents.api import call_agent, AgentCall
+        
+        # Extract params from operation
+        role = operation.params.get("role")
+        packet = operation.params.get("packet", {})
+        model = operation.params.get("model", "auto")
+        temperature = operation.params.get("temperature", 0.0)
+        max_tokens = operation.params.get("max_tokens", 8192)
+        
+        if not role:
+            raise OperationError("llm_call requires 'role' parameter")
+        
+        # Check role is allowed by envelope
+        if ctx.envelope.allowed_roles and role not in ctx.envelope.allowed_roles:
+            raise EnvelopeViolation(f"Role not allowed: {role}")
+        
+        # Build call
+        call = AgentCall(
+            role=role,
+            packet=packet,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        
+        # Execute call
+        response = call_agent(call, run_id=ctx.run_id)
+        
         return {
-            "status": "stub",
-            "message": "LLM call stub - integration pending",
+            "call_id": response.call_id,
+            "content": response.content,
+            "packet": response.packet,
+            "model_used": response.model_used,
         }, {
             "handler": "llm_call",
-            "stub": True,
+            "model_used": response.model_used,
+            "model_version": response.model_version,
+            "latency_ms": response.latency_ms,
+            "input_tokens": response.usage.get("input_tokens", 0),
+            "output_tokens": response.usage.get("output_tokens", 0),
         }
     
     def _handle_tool_invoke(
@@ -367,17 +406,31 @@ class OperationExecutor:
         ctx: ExecutionContext
     ) -> tuple[Any, Dict[str, Any]]:
         """Handle packet_route operation."""
+        from runtime.orchestration.transforms.base import execute_transform
+        
         transform = operation.params.get("transform")
         input_packet = operation.params.get("input")
         
-        # Phase 2: Return stub
+        if not transform:
+            raise OperationError("packet_route requires 'transform'")
+        if input_packet is None:
+            raise OperationError("packet_route requires 'input'")
+        
+        context = {
+            "run_id": ctx.run_id,
+            "mission_id": ctx.mission_id,
+            "step_id": ctx.step_id,
+            "mission_type": ctx.mission_type,
+        }
+        
+        output_packet, evidence = execute_transform(transform, input_packet, context)
+        
         return {
             "transform": transform,
-            "status": "stub",
+            "output": output_packet,
         }, {
             "handler": "packet_route",
-            "transform": transform,
-            "stub": True,
+            **evidence,
         }
     
     def _handle_gate_check(
@@ -386,17 +439,101 @@ class OperationExecutor:
         ctx: ExecutionContext
     ) -> tuple[Any, Dict[str, Any]]:
         """Handle gate_check operation."""
-        check = operation.params.get("check")
-        condition = operation.params.get("condition")
+        from runtime.orchestration.validation import gate_check, GateValidationError
         
-        # Phase 2: Simple condition evaluation
-        result = True  # Stub: always pass
+        schema = operation.params.get("check")
+        payload = operation.params.get("condition")
+        
+        if not schema:
+            raise OperationError("gate_check requires 'check' (schema name)")
+        if payload is None:
+            raise OperationError("gate_check requires 'condition' (payload)")
+        
+        try:
+            gate_check(payload, schema)
+            passed = True
+            error = None
+        except GateValidationError as e:
+            passed = False
+            error = str(e)
         
         return {
-            "check": check,
-            "passed": result,
+            "check": schema,
+            "passed": passed,
+            "error": error,
         }, {
             "handler": "gate_check",
-            "check": check,
-            "passed": result,
+            "schema": schema,
+            "passed": passed,
+            "error": error,
         }
+    
+    def _handle_run_tests(
+        self,
+        operation: Operation,
+        ctx: ExecutionContext
+    ) -> tuple[Any, Dict[str, Any]]:
+        """
+        Handle run_tests operation.
+        
+        Executes pytest on specified test paths within envelope constraints.
+        Per LifeOS Build Loop Phase 3 requirements.
+        
+        Params:
+            test_paths: List of test file/directory paths (relative to repo_root)
+            pytest_args: Optional list of additional pytest arguments
+        """
+        test_paths = operation.params.get("test_paths", ["tests/"])
+        pytest_args = operation.params.get("pytest_args", ["-v", "-q"])
+        
+        # Validate test_paths are within allowed paths
+        for test_path in test_paths:
+            # Normalize path for comparison
+            norm_path = test_path.replace("\\", "/")
+            allowed = False
+            for allowed_path in ctx.envelope.allowed_paths:
+                allowed_norm = allowed_path.replace("\\", "/")
+                if norm_path.startswith(allowed_norm) or allowed_norm.startswith(norm_path):
+                    allowed = True
+                    break
+            
+            if not allowed and ctx.envelope.allowed_paths:
+                raise EnvelopeViolation(
+                    f"Test path '{test_path}' not in allowed paths: {ctx.envelope.allowed_paths}"
+                )
+        
+        # Build pytest command
+        cmd = ["python", "-m", "pytest"] + pytest_args + test_paths
+        
+        # Execute pytest
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(ctx.repo_root),
+                capture_output=True,
+                text=True,
+                timeout=ctx.envelope.timeout_seconds,
+            )
+            
+            passed = result.returncode == 0
+            
+            return {
+                "passed": passed,
+                "exit_code": result.returncode,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "test_paths": test_paths,
+            }, {
+                "handler": "run_tests",
+                "passed": passed,
+                "exit_code": result.returncode,
+                "stdout_lines": len(result.stdout.splitlines()),
+                "stderr_lines": len(result.stderr.splitlines()),
+            }
+        
+        except subprocess.TimeoutExpired as e:
+            raise OperationFailed(
+                f"Test execution timed out after {ctx.envelope.timeout_seconds}s"
+            )
+        except Exception as e:
+            raise OperationFailed(f"Failed to execute tests: {str(e)}")

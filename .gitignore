@@ -62,3 +62,8 @@ docs/.tmp.driveupload/
 
 # COO Runtime Ephemeral
 coo/manifests/normalized/
+
+# Artifacts
+artifacts/bundles/*.zip
+artifacts/bundles/*.sha256
+artifacts/for_ceo/
