@@ -247,10 +247,10 @@ To add a new artifact type:
 
 | Document | Purpose |
 |----------|---------|
-| [build_artifact_schemas_v1.yaml](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/build_artifact_schemas_v1.yaml) | Machine-readable schemas |
-| [lifeos_packet_schemas_v1.yaml](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/lifeos_packet_schemas_v1.yaml) | YAML packet schemas |
-| [GEMINI.md](file:///c:/Users/cabra/Projects/LifeOS/GEMINI.md) | Agent constitution |
-| [Document Steward Protocol v1.0](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/Document_Steward_Protocol_v1.0.md) | Documentation governance |
+| [build_artifact_schemas_v1.yaml](docs/02_protocols/build_artifact_schemas_v1.yaml) | Machine-readable schemas |
+| [lifeos_packet_schemas_v1.yaml](docs/02_protocols/lifeos_packet_schemas_v1.yaml) | YAML packet schemas |
+| [GEMINI.md](GEMINI.md) | Agent constitution |
+| [Document Steward Protocol v1.1](docs/02_protocols/Document_Steward_Protocol_v1.1.md) | Documentation governance |
 
 ---
 

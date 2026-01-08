@@ -24,6 +24,8 @@ from pathlib import Path
 # --- Constants ---
 REQUIRED_ROOT_FILES = ['closure_manifest.json', 'closure_addendum.md']
 FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+# P0.4: Portability forbidden patterns (for canonical docs in bundle)
+PORTABILITY_FORBIDDEN = [r'file:///[a-zA-Z]:', r'C:\\Users\\', r'c:\\users\\']
 MANIFEST_SCHEMA_VERSION = "G-CBS-1.0"
 
 class ValidationFailure:
@@ -72,6 +74,19 @@ def scan_for_tokens(content, filename):
         pass # Binary file, skip token scan
     return failures
 
+def scan_for_portability(content, filename):
+    """P0.4: Scan for non-portable file:/// URIs and machine-local paths."""
+    failures = []
+    try:
+        text = content.decode('utf-8')
+        for pattern in PORTABILITY_FORBIDDEN:
+            if re.search(pattern, text, re.IGNORECASE):
+                failures.append(ValidationFailure("E_PORTABILITY_LOCAL_PATH", 
+                    f"Non-portable path pattern '{pattern}' found", path=filename))
+    except UnicodeDecodeError:
+        pass
+    return failures
+
 def validate_profile(profile_name, manifest, zf):
     failures = []
     profile_path = os.path.join(os.path.dirname(__file__), "profiles", f"{profile_name.lower()}.py")
@@ -101,6 +116,8 @@ def main():
     args = parser.parse_args()
 
     failures = []
+    # F11: Provenance tracking (v1.1+)
+    provenance_evidence = {}
     manifest = {}
     
     print(f"Validating bundle: {args.bundle_path}")
@@ -133,6 +150,36 @@ def main():
                     failures.extend(validate_manifest_schema(manifest))
                 except json.JSONDecodeError:
                     failures.append(ValidationFailure("MANIFEST_INVALID_JSON", "closure_manifest.json is not valid JSON"))
+            
+            # F3.1: ADDENDUM_CHECKS (P0.2)
+            if 'closure_addendum.md' in namelist:
+                addendum_content = zf.read('closure_addendum.md').decode('utf-8')
+                
+                # Check 1: No elisions ("...")
+                if '...' in addendum_content:
+                    elision_count = addendum_content.count('...')
+                    failures.append(ValidationFailure("E_ADDENDUM_ELISION", 
+                        f"closure_addendum.md contains {elision_count} elision(s) ('...')", 
+                        path="closure_addendum.md", actual=elision_count))
+                
+                # Check 2: Evidence table row count matches manifest
+                manifest_evidence_count = len(manifest.get("evidence", []))
+                # Count table rows (lines matching "| role | path | sha |")
+                table_rows = [line for line in addendum_content.split('\n') 
+                              if line.startswith('|') and '`' in line and not line.startswith('|---')]
+                addendum_row_count = len(table_rows)
+                
+                if addendum_row_count != manifest_evidence_count:
+                    failures.append(ValidationFailure("E_ADDENDUM_ROW_MISMATCH", 
+                        f"Addendum has {addendum_row_count} evidence rows but manifest has {manifest_evidence_count}",
+                        path="closure_addendum.md", expected=manifest_evidence_count, actual=addendum_row_count))
+                
+                # Check 3: Each table row parses cleanly into (role, path, sha256)
+                for row in table_rows:
+                    parts = [p.strip().strip('`') for p in row.split('|') if p.strip()]
+                    if len(parts) != 3:
+                        failures.append(ValidationFailure("E_ADDENDUM_PARSE_FAIL", 
+                            f"Cannot parse evidence row: {row[:60]}", path="closure_addendum.md"))
             
             # F6: ZIP_SHA256_INTEGRITY (v1.1 Detached Digest)
             if not args.skip_digest_verification:
@@ -176,6 +223,10 @@ def main():
                         # F7: TRUNCATION_TOKENS
                         if ev.get("role") in ["raw_log", "state", "packet", "report", "manifest", "validator_final", "validator_final_shipped"]:
                             failures.extend(scan_for_tokens(content, path))
+                        
+                        # P0.4: PORTABILITY CHECK (for .md files)
+                        if path.endswith(".md"):
+                            failures.extend(scan_for_portability(content, path))
                             
                         # F9: TRANSCRIPT_COMPLETENESS (v1.2.1/v1.2.2)
                         if ev.get("role") in ["validator_final", "validator_final_shipped"]:
@@ -216,6 +267,12 @@ def main():
                             path=activated_ref, expected=activated_sha, actual=actual_hash))
                     else:
                         print(f"Protocols provenance verified: {activated_sha[:16]}...")
+                    
+                    provenance_evidence['protocols'] = {
+                        'ref': activated_ref,
+                        'expected': activated_sha,
+                        'actual': actual_hash
+                    }
             
             # F12: EVIDENCE_ROLE_VALIDATION (v0.2.2 - compat window)
             if manifest:
@@ -268,7 +325,30 @@ def main():
                 bundle_hash = calculate_sha256(f.read())
             report_lines.append(f"**Bundle SHA256**: `{bundle_hash}`")
     
-    report_lines.append("\n## Validation Findings")
+    report_lines.append("")
+    report_lines.append("## Checks Performed")
+    report_lines.append("- ZIP path canonicalization (no backslashes, no .., no absolute)")
+    report_lines.append("- Required root files (closure_manifest.json, closure_addendum.md)")
+    report_lines.append("- Manifest schema validation (G-CBS-1.0)")
+    report_lines.append("- Addendum elision check (no '...' allowed)")
+    report_lines.append("- Addendum row count vs manifest evidence count")
+    report_lines.append("- Addendum table parsing (role, path, sha256)")
+    report_lines.append("- Portability check (.md files: no file:///, no C:\\\\Users\\\\)")
+    report_lines.append("- Evidence file integrity (SHA256 verification)")
+    report_lines.append("- Transcript completeness (Exit Code presence)")
+    report_lines.append("- Protocols provenance hash")
+    
+    if provenance_evidence:
+        report_lines.append("")
+        report_lines.append("## Provenance Evidence")
+        report_lines.append("| Component | Reference | Expected SHA256 | Actual SHA256 | Status |")
+        report_lines.append("|-----------|-----------|-----------------|---------------|--------|")
+        for comp, data in provenance_evidence.items():
+            status_cell = "PASS" if data['expected'].upper() == data['actual'].upper() else "FAIL"
+            report_lines.append(f"| {comp} | {data['ref']} | `{data['expected'][:16]}...` | `{data['actual'][:16]}...` | {status_cell} |")
+
+    report_lines.append("")
+    report_lines.append("## Validation Findings")
     if not failures:
         report_lines.append("No issues found. Bundle is COMPLIANT.")
     else:

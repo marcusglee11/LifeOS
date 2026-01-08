@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "reason_code": null,
+  "mode": "LOCAL",
+  "timestamp": "2026-01-07T23:55:47.269303",
+  "task": {
+    "files": [
+      "docs/internal/test.md"
+    ],
+    "action": "modify",
+    "instruction": "test"
+  },
+  "blocked_entries": []
+}

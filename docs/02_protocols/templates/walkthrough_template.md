@@ -65,7 +65,7 @@ tags: []
 
 <!-- Embed images demonstrating UI changes or results -->
 
-![Description](file:///path/to/screenshot.png)
+![Description](artifacts/screenshots/example.png)
 
 ---
 
@@ -75,7 +75,7 @@ tags: []
 
 | Recording | Description |
 |-----------|-------------|
-| [recording_name.webp](file:///path/to/recording.webp) | <!-- What it shows --> |
+| [recording_name.webp](artifacts/recordings/example.webp) | <!-- What it shows --> |
 
 ---
 

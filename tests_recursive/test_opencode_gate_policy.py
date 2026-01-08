@@ -288,6 +288,50 @@ class TestTruncation:
         assert "[TRUNCATED]" in result
         assert f"cap_lines={LOG_MAX_LINES}" in result
         assert f"cap_bytes={LOG_MAX_BYTES}" in result
+        assert "observed_lines=" in result
+        assert "observed_bytes=" in result
+        # STRICT: No ellipses in footer
+        assert "..." not in result
+        assert result.endswith("observed_bytes=" + str(len(large_content.encode('utf-8'))))
+
+
+class TestRunnerLogHygiene:
+    """P0.3 — Verify runner logs do not contain ellipses."""
+    
+    def test_runner_source_no_ellipses_in_logs(self):
+        """Scan opencode_ci_runner.py to ensure no log() calls contain partial ellipses."""
+        import scripts.opencode_ci_runner as runner_module
+        import inspect
+        
+        # Static scan of the source file
+        source = inspect.getsource(runner_module)
+        
+        # Find all log("...") calls
+        import re
+        # Look for log("text...") or log('text...')
+        # Note: We want to catch the literal sequence "..." inside quotes passed to log()
+        
+        # Simple check: does the file contain '..."' inside a log call?
+        # This is hard to regex perfectly, but we can search for the specific lines we removed.
+        
+        forbidden = [
+            'Executing mission...',
+            'Validating post-execution diff against envelope...',
+            'Simulating server response...',
+            'Starting ephemeral OpenCode server on port {port}...',
+            'key[:8]...'
+        ]
+        
+        for phrase in forbidden:
+            assert phrase not in source, f"Found forbidden ellipsis phrase: {phrase}"
+        
+        # General regex check for log() calls with trailing ellipses
+        # Matches: log("text...", ...) or log(f"text...", ...) or log(f'text...', ...)
+        ellipsis_log_pattern = re.compile(r'log\s*\(\s*f?["\'].*\.\.\.["\']')
+        matches = ellipsis_log_pattern.findall(source)
+        
+        # We allow "..." in comments or docstrings, but pattern above targets log() calls
+        assert not matches, f"Found log() calls with trailing ellipses: {matches}"
 
 
 class TestSymlinkDefense:
@@ -566,17 +610,31 @@ class TestSymlinkGitIndexMocked:
             assert is_sym is False, "Empty response must NOT be flagged"
             assert reason is None
     
-    def test_git_index_exception_not_flagged(self, tmp_path):
-        """Exception during git ls-files => NOT flagged (fail-open for detection only)."""
+    def test_git_index_exception_blocks_fail_closed(self, tmp_path):
+        """Exception during git ls-files => BLOCK with SYMLINK_CHECK_FAILED (fail-closed)."""
         from unittest.mock import patch
         
         with patch('scripts.opencode_gate_policy.subprocess.run', side_effect=Exception("Git not available")):
             is_sym, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
             
-            # Note: check_symlink_git_index fails open (returns False on exception)
-            # The combined check_symlink() will still use filesystem check as backup
-            assert is_sym is False, "Exception should not flag as symlink"
-            assert reason is None
+            # Phase 2: fail-closed - if we can't verify, we BLOCK
+            assert is_sym is True, "Exception must trigger BLOCK (fail-closed)"
+            assert reason == ReasonCode.SYMLINK_CHECK_FAILED
+    
+    def test_git_index_nonzero_return_blocks_fail_closed(self, tmp_path):
+        """Nonzero return code from git ls-files => BLOCK with SYMLINK_CHECK_FAILED."""
+        from unittest.mock import patch, MagicMock
+        
+        mock_result = MagicMock()
+        mock_result.returncode = 128  # Git error
+        mock_result.stdout = ""
+        
+        with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
+            is_sym, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
+            
+            assert is_sym is True, "Nonzero return code must trigger BLOCK"
+            assert reason == ReasonCode.SYMLINK_CHECK_FAILED
+
 
 
 class TestBoundaryMatchingStrict:
@@ -608,6 +666,109 @@ class TestBoundaryMatchingStrict:
         assert result is False, "STRICT: root-level files must return False"
 
 
+class TestRunnerEnvelopeEnforcement:
+    """P0.3 — Runner-level tests proving no envelope bypass."""
+    
+    @pytest.fixture
+    def validate_entry(self):
+        """Import validate_diff_entry from runner."""
+        from scripts.opencode_ci_runner import validate_diff_entry
+        return validate_diff_entry
+    
+    def test_denylisted_path_blocked(self, validate_entry):
+        """Denylisted path change => BLOCK with DENYLIST_ROOT_BLOCKED."""
+        allowed, reason = validate_entry("M", "docs/00_foundations/test.md")
+        assert allowed is False, "Denylisted path must be blocked"
+        assert reason == ReasonCode.DENYLIST_ROOT_BLOCKED
+    
+    def test_denylisted_governance_blocked(self, validate_entry):
+        """Governance path change => BLOCK."""
+        allowed, reason = validate_entry("A", "docs/01_governance/new.md")
+        assert allowed is False, "Governance path must be blocked"
+        assert reason == ReasonCode.DENYLIST_ROOT_BLOCKED
+    
+    def test_denylisted_scripts_blocked(self, validate_entry):
+        """Scripts path change => BLOCK."""
+        allowed, reason = validate_entry("M", "scripts/test.py")
+        assert allowed is False, "Scripts path must be blocked"
+        # Could be DENYLIST_ROOT_BLOCKED or DENYLIST_EXT_BLOCKED
+        assert reason in [ReasonCode.DENYLIST_ROOT_BLOCKED, ReasonCode.DENYLIST_EXT_BLOCKED]
+    
+    def test_outside_allowlist_blocked(self, validate_entry):
+        """Out-of-allowlist path => BLOCK with OUTSIDE_ALLOWLIST_BLOCKED."""
+        allowed, reason = validate_entry("M", "src/main.py")
+        assert allowed is False, "Out-of-allowlist path must be blocked"
+        # Could be DENYLIST_EXT_BLOCKED first or OUTSIDE
+        assert reason in [ReasonCode.OUTSIDE_ALLOWLIST_BLOCKED, ReasonCode.DENYLIST_EXT_BLOCKED]
+    
+    def test_non_md_under_docs_blocked(self, validate_entry):
+        """Non-.md under docs/ => BLOCK with NON_MD_EXTENSION_BLOCKED."""
+        allowed, reason = validate_entry("A", "docs/test.txt")
+        assert allowed is False, "Non-.md under docs must be blocked"
+        assert reason == ReasonCode.NON_MD_EXTENSION_BLOCKED
+    
+    def test_yaml_under_docs_blocked(self, validate_entry):
+        """YAML under docs/ => BLOCK."""
+        allowed, reason = validate_entry("M", "docs/config.yaml")
+        assert allowed is False, "YAML under docs must be blocked"
+        assert reason == ReasonCode.NON_MD_EXTENSION_BLOCKED
+    
+    def test_review_packets_modify_blocked(self, validate_entry):
+        """Review packets modify => BLOCK with REVIEW_PACKET_NOT_ADD_ONLY."""
+        allowed, reason = validate_entry("M", "artifacts/review_packets/Review_Packet_Test_v1.0.md")
+        assert allowed is False, "Review packets modify must be blocked"
+        assert reason == ReasonCode.REVIEW_PACKET_NOT_ADD_ONLY
+    
+    def test_review_packets_delete_blocked(self, validate_entry):
+        """Review packets delete => BLOCK with PH2_DELETE_BLOCKED."""
+        allowed, reason = validate_entry("D", "artifacts/review_packets/old.md")
+        assert allowed is False, "Review packets delete must be blocked"
+        assert reason == ReasonCode.PH2_DELETE_BLOCKED
+    
+    def test_review_packets_rename_blocked(self, validate_entry):
+        """Review packets rename => BLOCK with PH2_RENAME_BLOCKED."""
+        allowed, reason = validate_entry("R100", "artifacts/review_packets/renamed.md")
+        assert allowed is False, "Review packets rename must be blocked"
+        assert reason == ReasonCode.PH2_RENAME_BLOCKED
+    
+    def test_review_packets_add_non_md_blocked(self, validate_entry):
+        """Review packets add non-.md => BLOCK with NON_MD_IN_REVIEW_PACKETS."""
+        allowed, reason = validate_entry("A", "artifacts/review_packets/data.json")
+        assert allowed is False, "Review packets add non-.md must be blocked"
+        assert reason == ReasonCode.NON_MD_IN_REVIEW_PACKETS
+    
+    def test_review_packets_add_md_allowed(self, validate_entry):
+        """Review packets add .md => ALLOWED."""
+        allowed, reason = validate_entry("A", "artifacts/review_packets/Review_Packet_New_v1.0.md")
+        assert allowed is True, "Review packets add .md must be allowed"
+        assert reason is None
+    
+    def test_docs_add_md_allowed(self, validate_entry):
+        """docs/ add .md => ALLOWED."""
+        allowed, reason = validate_entry("A", "docs/new_doc.md")
+        assert allowed is True, "docs add .md must be allowed"
+        assert reason is None
+    
+    def test_docs_modify_md_allowed(self, validate_entry):
+        """docs/ modify .md => ALLOWED."""
+        allowed, reason = validate_entry("M", "docs/existing.md")
+        assert allowed is True, "docs modify .md must be allowed"
+        assert reason is None
+    
+    def test_any_delete_blocked(self, validate_entry):
+        """Any delete operation => BLOCK."""
+        allowed, reason = validate_entry("D", "docs/test.md")
+        assert allowed is False, "Delete must always be blocked"
+        assert reason == ReasonCode.PH2_DELETE_BLOCKED
+    
+    def test_any_copy_blocked(self, validate_entry):
+        """Any copy operation => BLOCK."""
+        allowed, reason = validate_entry("C100", "docs/copy.md")
+        assert allowed is False, "Copy must always be blocked"
+        assert reason == ReasonCode.PH2_COPY_BLOCKED
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
 

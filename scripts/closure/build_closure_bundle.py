@@ -220,7 +220,7 @@ def main():
         "waiver": None,
         "gcbs_standard_version": "1.0",
         "activated_protocols_ref": "docs/01_governance/ARTEFACT_INDEX.json",
-        "activated_protocols_sha256": "5A5B11D89F234DEF7CFE812C57364F3C5BBD4769A389674802D7B80FA0E67EB7"
+        "activated_protocols_sha256": "74BBF6A08C5D37968F77E48C28AB5F19E960140A368A3ABB6F4826B806D316BE"
     }
     
     # Candidate Build (Correct Filename for Transcript Accuracy)

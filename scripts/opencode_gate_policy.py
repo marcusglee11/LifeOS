@@ -65,11 +65,15 @@ class ReasonCode:
     PATH_ABSOLUTE_BLOCKED = "PATH_ABSOLUTE_BLOCKED"
     PATH_ESCAPE_BLOCKED = "PATH_ESCAPE_BLOCKED"
     SYMLINK_BLOCKED = "SYMLINK_BLOCKED"
+    SYMLINK_CHECK_FAILED = "SYMLINK_CHECK_FAILED"  # Fail-closed on git ls-files failure
     
     # Denylist
     DENYLIST_ROOT_BLOCKED = "DENYLIST_ROOT_BLOCKED"
     DENYLIST_FILE_BLOCKED = "DENYLIST_FILE_BLOCKED"
     DENYLIST_EXT_BLOCKED = "DENYLIST_EXT_BLOCKED"
+    
+    # Allowlist
+    OUTSIDE_ALLOWLIST_BLOCKED = "OUTSIDE_ALLOWLIST_BLOCKED"
     
     # Extension
     NON_MD_EXTENSION_BLOCKED = "NON_MD_EXTENSION_BLOCKED"
@@ -156,14 +160,18 @@ def check_symlink_git_index(path: str, repo_root: str) -> Tuple[bool, Optional[s
             ["git", "ls-files", "-s", "--", path],
             capture_output=True, text=True, cwd=repo_root
         )
-        if result.returncode == 0 and result.stdout.strip():
+        # Fail-closed: nonzero return code means we cannot verify, so BLOCK
+        if result.returncode != 0:
+            return (True, ReasonCode.SYMLINK_CHECK_FAILED)
+        if result.stdout.strip():
             # Format: mode SP hash SP stage TAB path
             # Symlink mode is 120000
             mode = result.stdout.strip().split()[0]
             if mode == "120000":
                 return (True, ReasonCode.SYMLINK_BLOCKED)
     except Exception:
-        pass  # Fall through to filesystem check
+        # Fail-closed: exception means we cannot verify, so BLOCK
+        return (True, ReasonCode.SYMLINK_CHECK_FAILED)
     return (False, None)
 
 def check_symlink_filesystem(path: str, repo_root: str) -> Tuple[bool, Optional[str]]:

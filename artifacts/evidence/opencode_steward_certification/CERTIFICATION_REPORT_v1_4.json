@@ -1,101 +1,101 @@
 {
   "suite_version": "1.4",
-  "timestamp": "2026-01-07T00:25:18.981223",
+  "timestamp": "2026-01-07T23:55:19.383834",
   "isolation": "enabled",
   "total": 13,
-  "passed": 13,
-  "failed": 0,
+  "passed": 12,
+  "failed": 1,
   "results": [
     {
       "id": "T-INPUT-1",
       "name": "Valid JSON Accepted",
-      "status": "PASS",
+      "status": "FAIL",
       "details": "",
-      "timestamp": "2026-01-07T00:25:11.797522"
+      "timestamp": "2026-01-07T23:55:13.914861"
     },
     {
       "id": "T-INPUT-2",
       "name": "Free-Text Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:12.317802"
+      "timestamp": "2026-01-07T23:55:14.384500"
     },
     {
       "id": "T-SEC-1",
       "name": "Path Traversal Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:12.848391"
+      "timestamp": "2026-01-07T23:55:14.849538"
     },
     {
       "id": "T-SEC-2",
       "name": "Absolute Path Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:13.368320"
+      "timestamp": "2026-01-07T23:55:15.331871"
     },
     {
       "id": "T-SEC-3",
       "name": "Denylist *.py Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:13.924931"
+      "timestamp": "2026-01-07T23:55:15.800675"
     },
     {
       "id": "T-SEC-4",
       "name": "Denylist scripts/** Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:14.683337"
+      "timestamp": "2026-01-07T23:55:16.267285"
     },
     {
       "id": "T-SEC-5",
       "name": "Denylist config/** Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:15.516547"
+      "timestamp": "2026-01-07T23:55:16.733764"
     },
     {
       "id": "T-SEC-6",
       "name": "Denylist GEMINI.md Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:16.204674"
+      "timestamp": "2026-01-07T23:55:17.209053"
     },
     {
       "id": "T-SEC-7",
       "name": "Denylist Foundations Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:16.856007"
+      "timestamp": "2026-01-07T23:55:17.672568"
     },
     {
       "id": "T-SEC-8",
       "name": "Evidence Read-Only Enforced",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:17.528541"
+      "timestamp": "2026-01-07T23:55:18.152495"
     },
     {
       "id": "T-SEC-9",
       "name": "Outside Allowed Roots Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:18.089940"
+      "timestamp": "2026-01-07T23:55:18.617295"
     },
     {
       "id": "T-SEC-10",
       "name": "Git Index Symlink (120000) Rejected",
       "status": "PASS",
       "details": "",
-      "timestamp": "2026-01-07T00:25:18.855249"
+      "timestamp": "2026-01-07T23:55:19.260945"
     },
     {
       "id": "T-GIT-1",
       "name": "Clean Tree Start (Isolated)",
       "status": "PASS",
       "details": "Dirty: []",
-      "timestamp": "2026-01-07T00:25:18.980685"
+      "timestamp": "2026-01-07T23:55:19.382823"
     }
   ]
 }

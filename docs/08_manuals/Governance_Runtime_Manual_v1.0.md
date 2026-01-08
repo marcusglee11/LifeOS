@@ -117,3 +117,5 @@ When changes are needed:
 
 This preserves determinism and makes it possible to reproduce prior decisions and workflows.
 
+<!-- Demo stewardship update: 2026-01-07T14:28:00+11:00 -->
+

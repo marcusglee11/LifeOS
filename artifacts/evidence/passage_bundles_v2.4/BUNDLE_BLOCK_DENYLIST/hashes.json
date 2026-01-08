@@ -1,0 +1,18 @@
+{
+  "exit_report.json": {
+    "algorithm": "sha256",
+    "hex": "e45aedf7a75a0ca5d3c31a76b9918fc9448cd4e45c43eef1a06f6ba9ccbbd1c1"
+  },
+  "changed_files.json": {
+    "algorithm": "sha256",
+    "hex": "f993f14cf5c94e5fb7ea56dcc0dacec4d4eb2879df8dae6026da71004b154c57"
+  },
+  "classification.json": {
+    "algorithm": "sha256",
+    "hex": "ebb92dabc1b225f5ef0d164b0a015c4150e5a1cf3038c6e1c269514ba72f95c6"
+  },
+  "runner.log": {
+    "algorithm": "sha256",
+    "hex": "52e14768e9bbabc95446edcd8dea22735bc92db8eef70d35e9b60b71e72e892e"
+  }
+}

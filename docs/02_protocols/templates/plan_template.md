@@ -43,7 +43,7 @@ tags: []
 
 ### Component 1: <Name>
 
-#### [NEW] [filename](file:///path/to/file)
+#### [NEW] [filename](path/to/new/file)
 
 <!-- Description of changes -->
 
@@ -51,7 +51,7 @@ tags: []
 
 ### Component 2: <Name>
 
-#### [MODIFY] [filename](file:///path/to/file)
+#### [MODIFY] [filename](path/to/modified/file)
 
 <!-- Description of changes -->
 

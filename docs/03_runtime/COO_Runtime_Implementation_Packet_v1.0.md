@@ -263,7 +263,7 @@ Forbidden strings (case-insensitive):
       "excerpt": "..."
     }
   ],
-  "scanned_paths": ["coo/runtime/**/*.py", "coo/scripts/**/*.py", "docs/**/*.md"],
+  "scanned_paths": ["coo/runtime/**/*.py", "coo/scripts/**/*.py", "docs/01_governance/**/*.md", "docs/02_protocols/**/*.md"],
   "ruleset_sha256": "..."
 }
 ```

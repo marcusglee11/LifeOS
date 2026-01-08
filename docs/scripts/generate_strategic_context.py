@@ -241,11 +241,9 @@ def main():
 
     full_content = []
 
-    # Preamble (Dashboard)
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    # Preamble (Dashboard) - Note: No volatile timestamp per deterministic bundle conventions
     dashboard = (
         f"# ⚡ LifeOS Strategic Dashboard\n"
-        f"**Generated:** {timestamp}\n"
         f"**Current Tier:** {dash['tier']}\n"
         f"**Active Roadmap Phase:** {dash['roadmap']}\n"
         f"**Current Governance Mode:** {dash['mode']}\n"
