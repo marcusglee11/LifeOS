@@ -18,6 +18,7 @@ from runtime.agents.logging import (
     AgentCallLogger,
 )
 from runtime.agents.api import canonical_json
+from runtime.agents.models import DEFAULT_MODEL
 
 
 class TestHashChainGenesis:
@@ -53,8 +54,8 @@ class TestAgentCallLogger:
             call_id_audit="uuid-456",
             role="designer",
             model_requested="auto",
-            model_used="x-ai/grok-4.1-fast",
-            model_version="grok-4.1-fast",
+            model_used="minimax-m2.1-free",
+            model_version="minimax-m2.1-free",
             input_packet_hash="sha256:input",
             prompt_hash="sha256:prompt",
             input_tokens=100,
@@ -255,8 +256,8 @@ class TestAgentCallLogEntry:
             timestamp="2026-01-08T12:00:00Z",
             role="designer",
             model_requested="auto",
-            model_used="x-ai/grok-4.1-fast",
-            model_version="grok-4.1-fast",
+            model_used="minimax-m2.1-free",
+            model_version="minimax-m2.1-free",
             input_packet_hash="sha256:input",
             prompt_hash="sha256:prompt",
             input_tokens=100,

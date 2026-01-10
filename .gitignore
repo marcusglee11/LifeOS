@@ -66,4 +66,5 @@ coo/manifests/normalized/
 # Artifacts
 artifacts/bundles/*.zip
 artifacts/bundles/*.sha256
+artifacts/evidence/
 artifacts/for_ceo/

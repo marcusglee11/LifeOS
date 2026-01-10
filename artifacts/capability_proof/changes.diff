@@ -1,0 +1,86 @@
+diff --git a/runtime/orchestration/operations.py b/runtime/orchestration/operations.py
+index afbcf11..2055b48 100644
+--- a/runtime/orchestration/operations.py
++++ b/runtime/orchestration/operations.py
+@@ -314,6 +314,7 @@ class OperationExecutor:
+             "tool_invoke": self._handle_tool_invoke,
+             "packet_route": self._handle_packet_route,
+             "gate_check": self._handle_gate_check,
++            "run_tests": self._handle_run_tests,
+         }
+         
+         handler = handlers.get(operation.type)
+@@ -400,3 +401,73 @@ class OperationExecutor:
+             "check": check,
+             "passed": result,
+         }
++    
++    def _handle_run_tests(
++        self,
++        operation: Operation,
++        ctx: ExecutionContext
++    ) -> tuple[Any, Dict[str, Any]]:
++        """
++        Handle run_tests operation.
++        
++        Executes pytest on specified test paths within envelope constraints.
++        Per LifeOS Build Loop Phase 3 requirements.
++        
++        Params:
++            test_paths: List of test file/directory paths (relative to repo_root)
++            pytest_args: Optional list of additional pytest arguments
++        """
++        test_paths = operation.params.get("test_paths", ["tests/"])
++        pytest_args = operation.params.get("pytest_args", ["-v", "-q"])
++        
++        # Validate test_paths are within allowed paths
++        for test_path in test_paths:
++            # Normalize path for comparison
++            norm_path = test_path.replace("\\", "/")
++            allowed = False
++            for allowed_path in ctx.envelope.allowed_paths:
++                allowed_norm = allowed_path.replace("\\", "/")
++                if norm_path.startswith(allowed_norm) or allowed_norm.startswith(norm_path):
++                    allowed = True
++                    break
++            
++            if not allowed and ctx.envelope.allowed_paths:
++                raise EnvelopeViolation(
++                    f"Test path '{test_path}' not in allowed paths: {ctx.envelope.allowed_paths}"
++                )
++        
++        # Build pytest command
++        cmd = ["python", "-m", "pytest"] + pytest_args + test_paths
++        
++        # Execute pytest
++        try:
++            result = subprocess.run(
++                cmd,
++                cwd=str(ctx.repo_root),
++                capture_output=True,
++                text=True,
++                timeout=ctx.envelope.timeout_seconds,
++            )
++            
++            passed = result.returncode == 0
++            
++            return {
++                "passed": passed,
++                "exit_code": result.returncode,
++                "stdout": result.stdout,
++                "stderr": result.stderr,
++                "test_paths": test_paths,
++            }, {
++                "handler": "run_tests",
++                "passed": passed,
++                "exit_code": result.returncode,
++                "stdout_lines": len(result.stdout.splitlines()),
++                "stderr_lines": len(result.stderr.splitlines()),
++            }
++        
++        except subprocess.TimeoutExpired as e:
++            raise OperationFailed(
++                f"Test execution timed out after {ctx.envelope.timeout_seconds}s"
++            )
++        except Exception as e:
++            raise OperationFailed(f"Failed to execute tests: {str(e)}")

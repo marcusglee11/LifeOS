@@ -28,7 +28,7 @@ from runtime.agents.api import (
     AgentTimeoutError,
     call_agent,
 )
-from runtime.agents.models import ModelConfig
+from runtime.agents.models import ModelConfig, DEFAULT_MODEL
 
 
 class TestCanonicalJson:
@@ -177,7 +177,7 @@ class TestCallAgent:
         """Standard successful OpenRouter response."""
         return {
             "id": "gen-123",
-            "model": "x-ai/grok-4.1-fast",
+            "model": "minimax-m2.1-free",
             "choices": [
                 {
                     "index": 0,
@@ -235,12 +235,12 @@ class TestCallAgent:
         
         with patch("runtime.agents.api.httpx.Client", mock_client):
             call = AgentCall(role="designer", packet={"task": "test"})
-            config = ModelConfig(default_chain=["x-ai/grok-4.1-fast"])
+            config = ModelConfig(default_chain=["minimax-m2.1-free"])
             
             response = call_agent(call, run_id="test-run", config=config)
         
         assert response.role == "designer"
-        assert response.model_used == "x-ai/grok-4.1-fast"
+        assert response.model_used == "minimax-m2.1-free"
         assert "implementation_plan" in response.content
         assert response.call_id.startswith("sha256:")
         assert response.latency_ms >= 0  # May be 0 in mocked tests
@@ -258,7 +258,7 @@ class TestCallAgent:
                     },
                 }
             ],
-            "model": "x-ai/grok-4.1-fast",
+            "model": "minimax-m2.1-free",
             "usage": {"prompt_tokens": 10, "completion_tokens": 5},
         }
         
@@ -270,7 +270,7 @@ class TestCallAgent:
         
         with patch("runtime.agents.api.httpx.Client", mock_client):
             call = AgentCall(role="designer", packet={"task": "test"})
-            config = ModelConfig(default_chain=["x-ai/grok-4.1-fast"])
+            config = ModelConfig(default_chain=["minimax-m2.1-free"])
             
             response = call_agent(call, config=config)
         
@@ -294,7 +294,7 @@ class TestCallAgent:
                 return resp
             resp = httpx.Response(200, json={
                 "choices": [{"message": {"content": "ok"}}],
-                "model": "x-ai/grok-4.1-fast",
+                "model": "minimax-m2.1-free",
                 "usage": {}
             })
             resp._request = httpx.Request("POST", f"{config.base_url}/chat/completions")
@@ -309,7 +309,7 @@ class TestCallAgent:
             
             call = AgentCall(role="designer", packet={"task": "test"})
             config = ModelConfig(
-                default_chain=["x-ai/grok-4.1-fast"],
+                default_chain=["minimax-m2.1-free"],
                 backoff_base_seconds=0.01  # Fast backoff for test
             )
             
@@ -352,7 +352,7 @@ class TestCallAgentReplayMode:
         cached = CachedResponse(
             call_id_deterministic="sha256:test123",
             role="designer",
-            model_version="x-ai/grok-4.1-fast",
+            model_version="minimax-m2.1-free",
             input_packet_hash="sha256:input",
             prompt_hash="sha256:prompt",
             response_content="cached content",

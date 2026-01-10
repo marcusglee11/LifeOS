@@ -19,6 +19,7 @@ from runtime.agents.fixtures import (
     is_replay_mode,
     get_cached_response,
 )
+from runtime.agents.models import DEFAULT_MODEL
 
 
 class TestIsReplayMode:
@@ -59,7 +60,7 @@ class TestCachedResponse:
         cached = CachedResponse(
             call_id_deterministic="sha256:test123",
             role="designer",
-            model_version="x-ai/grok-4.1-fast",
+            model_version="minimax-m2.1-free",
             input_packet_hash="sha256:input",
             prompt_hash="sha256:prompt",
             response_content="test content",
@@ -99,7 +100,7 @@ class TestReplayFixtureCache:
         cached = CachedResponse(
             call_id_deterministic="sha256:test123",
             role="designer",
-            model_version="x-ai/grok-4.1-fast",
+            model_version="minimax-m2.1-free",
             input_packet_hash="sha256:input",
             prompt_hash="sha256:prompt",
             response_content="test content",
@@ -122,7 +123,7 @@ class TestReplayFixtureCache:
         cached = CachedResponse(
             call_id_deterministic="sha256:abc123def456",
             role="designer",
-            model_version="x-ai/grok-4.1-fast",
+            model_version="minimax-m2.1-free",
             input_packet_hash="sha256:input",
             prompt_hash="sha256:prompt",
             response_content="saved content",

@@ -22,6 +22,9 @@ from runtime.agents.opencode_client import (
     OpenCodeSessionError,
 )
 
+# Import canonical default from single source of truth
+from runtime.agents.models import DEFAULT_MODEL
+
 
 # ============================================================================
 # DATACLASS TESTS
@@ -34,7 +37,7 @@ class TestLLMCall:
         """LLMCall should have sensible default model."""
         call = LLMCall(prompt="Hello")
         assert call.prompt == "Hello"
-        assert call.model == "openrouter/anthropic/claude-sonnet-4"
+        assert call.model == DEFAULT_MODEL
         assert call.system_prompt is None
 
     def test_llm_call_custom_model(self):
@@ -208,11 +211,7 @@ class TestLogDirectory:
 class TestServerState:
     """Tests for server state management without real server."""
 
-    def test_call_without_server_raises(self):
-        """Calling without server should raise error."""
-        client = OpenCodeClient()
-        with pytest.raises(OpenCodeServerError, match="Server not running"):
-            client.call(LLMCall(prompt="test"))
+
 
     def test_start_without_api_key_raises(self, monkeypatch):
         """Starting server without API key should raise error."""

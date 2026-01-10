@@ -4181,6 +4181,12 @@ Example: `test_orchestrator_execute_fails_on_envelope_violation`
 
 ---
 
+## 7. Markers
+
+| Marker | Purpose |
+|--------|---------|
+| cold_start | Tests that measure cold start (first-run) performance, init times, or cold invocation behavior |
+
 **END OF PROTOCOL**
 
 
