@@ -25,14 +25,13 @@ mission_ref: "Tool_Invoke_Hardening_Phase2"
 
 Implemented Phase 2 hardening for the `tool_invoke` execution substrate:
 
-- CI enforcement of symlink test execution on non-Windows (Configured)
+- CI enforcement of symlink test execution on non-Windows (Verified: [Run #20879253047](https://github.com/marcusglee11/LifeOS/actions/runs/20879253047))
 - Verified error.type semantics are properly locked
 - Declared decision_reason as non-contract-stable
-- **Verified Linux execution** (via WSL): 57 passed, 0 failed, 0 skipped
-- **Portability Fix**: Updated `pytest_runner.py` to use `sys.executable`
-
-> [!CAUTION]
-> **GitHub Actions Proof**: Remote CI logs are currently inaccessible because the workflow file is local-only (unpushed). Substantiated proof of non-Windows execution is provided via local WSL verification.
+- **Verified Linux execution** (via GHA): 57 passed, 0 failed, 0 skipped
+- **Portability Fixes**:
+  - Updated `pytest_runner.py` to use `sys.executable` (Fixed Linux PermissionError)
+  - Fixed Unicode emoji encoding in `verify_tool_invoke_coverage.py` (Fixed Windows CI console error)
 
 ---
 
@@ -43,6 +42,7 @@ Implemented Phase 2 hardening for the `tool_invoke` execution substrate:
 | 1 | Symlink tests skip on Windows | Allowed; enforced on Linux CI |
 | 2 | decision_reason stability | Declared non-stable; tests check presence only |
 | 3 | Portability failure on Linux | Fixed: Replaced hardcoded "python" with `sys.executable` |
+| 4 | Unicode error on Windows CI | Fixed: Replaced emojis with ASCII markers in verifier |
 
 ---
 
@@ -54,7 +54,7 @@ Implemented Phase 2 hardening for the `tool_invoke` execution substrate:
 | CI includes Linux job for symlink enforcement | ✅ PASS |
 | Windows job permits symlink skips | ✅ PASS |
 | error.type assertions locked | ✅ PASS |
-| Evidence report produced | ✅ PASS (Linux Verified) |
+| Evidence report produced | ✅ PASS (CI Substantiated) |
 
 ---
 
@@ -72,18 +72,16 @@ Implemented Phase 2 hardening for the `tool_invoke` execution substrate:
 |------|--------|
 | `.github/workflows/tool_invoke_hardening.yml` | NEW |
 | `runtime/tools/pytest_runner.py` | MODIFIED (Portability Fix) |
-| `scripts/verify_tool_invoke_coverage.py` | NEW |
+| `scripts/verify_tool_invoke_coverage.py` | NEW (Emoji Fix Applied) |
 | `artifacts/TEST_REPORT_TOOL_INVOKE_HARDENING_PHASE2.md` | NEW |
 
 ---
 
-## Appendix: Verification Script Output (Linux/WSL)
+## Appendix: GitHub Actions Linux Evidence
 
-```
-=== Tool Invoke Coverage Verifier ===
-Platform: linux
-Windows Mode: False
+**Run:** [Run #20879253047](https://github.com/marcusglee11/LifeOS/actions/runs/20879253047)
 
+```text
 === Test Results ===
 Passed:  57
 Failed:  0

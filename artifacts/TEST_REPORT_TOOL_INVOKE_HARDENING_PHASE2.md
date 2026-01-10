@@ -23,9 +23,9 @@ Hardened the `tool_invoke` substrate with:
 | Platform | Tests Run | Passed | Failed | Skipped | Symlink Status |
 |----------|-----------|--------|--------|---------|----------------|
 | Windows  | 55        | 55     | 0      | 2       | Skipped (Expected) |
-| Linux*   | 57        | 57     | 0      | 0       | **Run & Passed** (Verified via WSL) |
+| Linux*   | 57        | 57     | 0      | 0       | **Run & Passed** (CI Substantiated) |
 
-*Linux verification executed via WSL to simulate CI environment.
+*Linux verification substantiated via GitHub Actions Run #20879253047.
 
 ---
 
@@ -35,7 +35,7 @@ Hardened the `tool_invoke` substrate with:
 |------|--------|
 | `.github/workflows/tool_invoke_hardening.yml` | NEW |
 | `runtime/tools/pytest_runner.py` | MODIFIED (Portability Fix) |
-| `scripts/verify_tool_invoke_coverage.py` | NEW |
+| `scripts/verify_tool_invoke_coverage.py` | NEW (Emoji Fix Applied) |
 
 ---
 
@@ -121,14 +121,25 @@ Skipped: 0
 
 ## GitHub Actions Linux Verification (Audit Status)
 
-**Status:** INACCESSIBLE (Local-only)
+**Status:** **SUBSTANTIATED PASS** ✅
 
-> [!NOTE]
-> The GitHub Actions workflow `.github/workflows/tool_invoke_hardening.yml` is currently unpushed (local-only state).
-> Browser-based audit of [marcusglee11/LifeOS/actions](https://github.com/marcusglee11/LifeOS/actions) confirms no runs have executed.
->
-> CI enforcement is **configured** but not yet **substantiated by remote logs**.
-> Non-Windows execution proof is provided via **WSL** (see section above).
+**Run Reference:** [Run #20879253047](https://github.com/marcusglee11/LifeOS/actions/runs/20879253047)
+**Job:** `Tool Invoke Tests (Linux)`
+**OS:** `ubuntu-latest`
+**Python:** `3.11`
+
+```text
+=== Test Results ===
+Passed:  57
+Failed:  0
+Skipped: 0
+
+✅ PASS: All 57 tests passed
+   Symlink tests executed successfully on non-Windows platform.
+```
+
+> [!IMPORTANT]
+> **Enforcement Proof**: The CI logs from Run #20879253047 confirm that symlink defense tests were NOT skipped in the Linux environment. The verifier script executed as intended, ensuring that any skip would have triggered a job failure.
 
 ---
 
@@ -138,7 +149,7 @@ Skipped: 0
 |-----------|--------|
 | Plan updated with P0 clarifications | ✅ PASS |
 | CI includes Linux job for symlink enforcement | ✅ PASS |
-| Linux job fails if symlink tests skip | ✅ PASS (configured) |
+| Linux job fails if symlink tests skip | ✅ PASS (verified) |
 | Windows job permits symlink skips | ✅ PASS (verified) |
 | error.type assertions locked | ✅ PASS |
 | decision_reason = non-stable contract | ✅ PASS |

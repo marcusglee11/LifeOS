@@ -123,7 +123,7 @@ def main():
     
     # Check for failures
     if stats['failed'] > 0:
-        print(f"\n❌ FAIL: {stats['failed']} test(s) failed")
+        print(f"\n[FAIL]: {stats['failed']} test(s) failed")
         print(result.stdout[-2000:] if len(result.stdout) > 2000 else result.stdout)
         return 1
     
@@ -132,19 +132,19 @@ def main():
     
     if skipped_symlink:
         if is_windows:
-            print(f"\n⚠️  Windows: {len(skipped_symlink)} symlink test(s) skipped (expected)")
+            print(f"\n[SKIP] Windows: {len(skipped_symlink)} symlink test(s) skipped (expected)")
             for test in skipped_symlink:
                 print(f"  - {test}")
-            print("\n✅ PASS (Windows mode - symlink skips allowed)")
+            print("\n[PASS] (Windows mode - symlink skips allowed)")
             return 0
         else:
-            print(f"\n❌ FAIL: {len(skipped_symlink)} symlink test(s) skipped on non-Windows!")
+            print(f"\n[FAIL]: {len(skipped_symlink)} symlink test(s) skipped on non-Windows!")
             print("Symlink tests MUST run and pass on Linux/macOS.")
             for test in skipped_symlink:
                 print(f"  - {test}")
             return 1
     
-    print(f"\n✅ PASS: All {stats['passed']} tests passed")
+    print(f"\n[PASS]: All {stats['passed']} tests passed")
     if not is_windows:
         print("   Symlink tests executed successfully on non-Windows platform.")
     
