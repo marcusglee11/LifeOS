@@ -68,3 +68,10 @@ artifacts/bundles/*.zip
 artifacts/bundles/*.sha256
 artifacts/evidence/
 artifacts/for_ceo/
+
+# Archive bundles (ephemeral)
+artifacts/99_archive/bundles/*.zip
+artifacts/99_archive/review_packets/
+
+# Root-level bundles (should be moved to artifacts/)
+/*.zip
