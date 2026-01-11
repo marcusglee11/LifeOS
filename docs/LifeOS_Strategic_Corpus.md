@@ -4374,6 +4374,57 @@ The following parameters are derived from the canonical schema YAML (no hardcodi
 
 ---
 
+# File: 02_protocols/backlog_schema_v1.0.yaml
+
+# Backlog Schema v1.0
+# ===================
+# Strict, fail-closed schema for mission synthesis.
+# No inference, no unknown fields, deterministic ordering.
+
+schema_version: "1.0"
+
+task:
+  required:
+    - id           # Unique identifier (string, alphanumeric + hyphen + underscore)
+    - description  # Human-readable task description (string, non-empty)
+    - priority     # P0 | P1 | P2 | P3 (enum)
+  optional:
+    - constraints      # List of constraint strings
+    - context_hints    # List of repo-relative paths (explicit only)
+    - owner            # Agent or human owner
+    - status           # TODO | IN_PROGRESS | DONE | BLOCKED
+    - due_date         # ISO 8601 date (optional)
+    - tags             # List of tag strings
+
+priority_order:
+  - P0  # Critical / Blocking
+  - P1  # High
+  - P2  # Normal
+  - P3  # Low
+
+validation_rules:
+  id:
+    pattern: "^[a-zA-Z0-9_-]+$"
+    max_length: 64
+  description:
+    min_length: 1
+    max_length: 2000
+  constraints:
+    max_items: 20
+    item_max_length: 500
+  context_hints:
+    max_items: 50
+    # Each hint must be repo-relative path, validated at runtime
+  
+fail_closed:
+  unknown_fields: HALT
+  invalid_priority: HALT
+  missing_required: HALT
+  invalid_id_format: HALT
+
+
+---
+
 # File: 02_protocols/build_artifact_schemas_v1.yaml
 
 # ============================================================================
@@ -5210,6 +5261,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Kernel determinism is the substrate enabling autonomous execution loops; without it, no compounding leverage.
 
 **Components:**
+
 - Deterministic Orchestrator
 - Deterministic Builder
 - Deterministic Daily Loop
@@ -5227,6 +5279,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Establishes the runtime that will eventually be agentic; still Core because it directly increases execution capacity under governance.
 
 **Components:**
+
 - Mission Registry
 - Config-driven entrypoints
 - Stable deterministic test harness
@@ -5240,6 +5293,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Directly reduces human bottlenecks and begins recursive self-maintenance, which is explicitly required by the Charter (autonomy expansion, user stays at intent layer).
 
 **Components:**
+
 - Recursive Builder / Recursive Kernel
 - Agentic Doc Steward (Antigrav integration)
 - Deterministic docmaps / hygiene missions
@@ -5261,6 +5315,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** This is the first true autonomy tier; creates compounding leverage. Fully aligned with autonomy, agency, and externalisation of cognition.
 
 **Components:**
+
 - Mission Synthesis Engine
 - Policy Engine v1 (execution-level governance)
 - Self-testing & provenance chain
@@ -5268,6 +5323,8 @@ These items directly increase the system's ability to execute, build, and improv
 - Human-in-loop governance via Fix Packs + Council Gates
 
 **Status:** All remain Core.
+
+**Milestone Completed (2026-01-11):** Tier-3 CLI & Config Loader Skeleton — Deterministic repo-root detection, global flag placement, and canonical JSON config output. Evidence: `artifacts/review_packets/Review_Packet_WIP1_Tier3_CLI_Config_Loader_Skeleton_v1.1.md`.
 
 **Note:** This is the first tier that produces meaningful external acceleration.
 
@@ -5278,6 +5335,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Adds organisational-level autonomy and planning. Required for the system to run projects, not just missions, which increases output and reduces user involvement.
 
 **Components:**
+
 - Policy Engine v2
 - Mission Prioritisation Engine
 - Lifecycle Engine (birth → evaluation → archival)
@@ -5295,6 +5353,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** This is the LifeOS vision tier; directly serves North Star: external impact, autonomy, leverage, compounding improvement.
 
 **Components:**
+
 - Recursive Strategic Engine
 - Recursive Governance Engine
 - Multi-Agent Operations Layer (LLMs, Antigrav, scripts, APIs)
@@ -5324,16 +5383,6 @@ None of the roadmap items listed in the original roadmap are explicitly Fuel. Ho
 ### Advisory or Implementation Services (Optional)
 
 **Justification:** Fuel to accelerate Core; not strategically central.
-
-**Status:** Future consideration.
-
----
-
-**Flag:** Fuel items must never interrupt or delay Core. They are not present in the canonical roadmap, so no deprioritisation required.
-
----
-
-## 3. PLUMBING TRACK
 
 
 > [!IMPORTANT]
