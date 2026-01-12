@@ -52,6 +52,28 @@ LOG_MAX_LINES = 500
 LOG_MAX_BYTES = 100000  # 100KB
 
 # ============================================================================
+# MODES & BUILDER CONFIG
+# ============================================================================
+MODE_STEWARD = "steward"
+MODE_BUILDER = "builder"
+VALID_MODES = [MODE_STEWARD, MODE_BUILDER]
+
+# Builder Allowlist Roots (Authorized Phase 3 writes)
+BUILDER_ALLOWLIST_ROOTS = [
+    "runtime/",
+    "tests/",
+]
+
+# Critical Enforcement Files (ALWAYS BLOCKED, even in Builder)
+# Protects the gate itself and governance references
+CRITICAL_ENFORCEMENT_FILES = [
+    "scripts/opencode_gate_policy.py",
+    "scripts/opencode_ci_runner.py",
+    "docs/01_governance/opencode_first_stewardship_policy_v1.1.md",
+]
+
+
+# ============================================================================
 # REASON CODES
 # ============================================================================
 class ReasonCode:
@@ -94,6 +116,11 @@ class ReasonCode:
     
     # Packet
     PACKET_PATHS_MISSING = "PACKET_PATHS_MISSING"
+
+    # Critical / Builder
+    CRITICAL_FILE_BLOCKED = "CRITICAL_FILE_BLOCKED"
+    BUILDER_OUTSIDE_ALLOWLIST = "BUILDER_OUTSIDE_ALLOWLIST"
+    BUILDER_STRUCTURAL_BLOCKED = "BUILDER_STRUCTURAL_BLOCKED"
 
 # ============================================================================
 # PATH NORMALIZATION
@@ -149,11 +176,14 @@ def check_path_security(path: str, repo_root: str) -> Tuple[bool, Optional[str]]
 # ============================================================================
 # SYMLINK DEFENSE
 # ============================================================================
+# ============================================================================
+# SYMLINK DEFENSE
+# ============================================================================
 def check_symlink_git_index(path: str, repo_root: str) -> Tuple[bool, Optional[str]]:
     """Check if path is a symlink using git ls-files -s (mode 120000).
     
     Primary symlink detection using git index mode.
-    Returns (is_symlink, reason_code or None).
+    Returns (safe, reason_code or None).
     """
     try:
         result = subprocess.run(
@@ -162,29 +192,29 @@ def check_symlink_git_index(path: str, repo_root: str) -> Tuple[bool, Optional[s
         )
         # Fail-closed: nonzero return code means we cannot verify, so BLOCK
         if result.returncode != 0:
-            return (True, ReasonCode.SYMLINK_CHECK_FAILED)
+            return (False, ReasonCode.SYMLINK_CHECK_FAILED)
         if result.stdout.strip():
             # Format: mode SP hash SP stage TAB path
             # Symlink mode is 120000
             mode = result.stdout.strip().split()[0]
             if mode == "120000":
-                return (True, ReasonCode.SYMLINK_BLOCKED)
+                return (False, ReasonCode.SYMLINK_BLOCKED)
     except Exception:
         # Fail-closed: exception means we cannot verify, so BLOCK
-        return (True, ReasonCode.SYMLINK_CHECK_FAILED)
-    return (False, None)
+        return (False, ReasonCode.SYMLINK_CHECK_FAILED)
+    return (True, None)
 
 def check_symlink_filesystem(path: str, repo_root: str) -> Tuple[bool, Optional[str]]:
     """Check if path is a symlink using filesystem (os.path.islink).
     
     Secondary symlink detection using filesystem.
-    Returns (is_symlink, reason_code or None).
+    Returns (safe, reason_code or None).
     """
     full_path = os.path.join(repo_root, path)
     
     # Check direct symlink
     if os.path.islink(full_path):
-        return (True, ReasonCode.SYMLINK_BLOCKED)
+        return (False, ReasonCode.SYMLINK_BLOCKED)
     
     # Check path components for symlinks
     parts = path.replace("\\", "/").split("/")
@@ -192,27 +222,29 @@ def check_symlink_filesystem(path: str, repo_root: str) -> Tuple[bool, Optional[
     for part in parts[:-1]:  # All parent components
         check_path = os.path.join(check_path, part)
         if os.path.islink(check_path):
-            return (True, ReasonCode.SYMLINK_BLOCKED)
+            return (False, ReasonCode.SYMLINK_BLOCKED)
     
-    return (False, None)
+    return (True, None)
 
 def check_symlink(path: str, repo_root: str) -> Tuple[bool, Optional[str]]:
     """Check if path is a symlink using both git index and filesystem.
     
     Uses git index mode as primary signal, filesystem as secondary.
-    Returns (is_symlink, reason_code or None).
+    Returns (safe, reason_code or None).
+    False = Symlink detected (UNSAFE/BLOCKED)
+    True = No symlink detected (SAFE)
     """
     # Primary: git index mode
-    is_sym, reason = check_symlink_git_index(path, repo_root)
-    if is_sym:
-        return (True, reason)
+    safe, reason = check_symlink_git_index(path, repo_root)
+    if not safe:
+        return (False, reason)
     
     # Secondary: filesystem
-    is_sym, reason = check_symlink_filesystem(path, repo_root)
-    if is_sym:
-        return (True, reason)
+    safe, reason = check_symlink_filesystem(path, repo_root)
+    if not safe:
+        return (False, reason)
     
-    return (False, None)
+    return (True, None)
 
 # ============================================================================
 # DENYLIST/ALLOWLIST MATCHING
@@ -436,3 +468,75 @@ def truncate_log(content: str) -> Tuple[str, bool]:
     
     footer = f"\n[TRUNCATED] cap_lines={LOG_MAX_LINES}, cap_bytes={LOG_MAX_BYTES}, observed_lines={observed_lines}, observed_bytes={observed_bytes}"
     return (truncated + footer, True)
+
+# ============================================================================
+# OPERATIONS VALIDATION
+# ============================================================================
+def validate_operation(status: str, path: str, mode: str = MODE_STEWARD) -> Tuple[bool, Optional[str]]:
+    """
+    Validate a single operation against the policy envelope for the given mode.
+    
+    Args:
+        status: A/M/D/R/C status code
+        path: Path to check
+        mode: MODE_STEWARD or MODE_BUILDER
+        
+    Returns: (allowed, reason_code or None)
+    """
+    norm_path = normalize_path(path)
+    
+    # 0. Critical Enforcement Check (Global override)
+    # Protects the gate logic itself from modification
+    if norm_path in CRITICAL_ENFORCEMENT_FILES:
+        return (False, ReasonCode.CRITICAL_FILE_BLOCKED)
+    
+    # 1. Path Security (Global enforced)
+    # P0.2 Fix: Use original `path` (or OS-joined path) for filesystem checks to respect case sensitivity
+    # while using `norm_path` for policy matching.
+    safe, security_reason = check_path_security(path, os.getcwd())
+    if not safe:
+        return (False, security_reason)
+
+    if mode == MODE_BUILDER:
+        # --- BUILDER POLICY ---
+        
+        # P0.1 Fix: Fail-closed for structural operations
+        # No waiver found for D/R/C in Phase 3. Block by default.
+        if status not in ["A", "M"]:
+            return (False, ReasonCode.BUILDER_STRUCTURAL_BLOCKED)
+
+        # Must be in authorized builder roots
+        if not any(norm_path.startswith(root) for root in BUILDER_ALLOWLIST_ROOTS):
+            return (False, ReasonCode.BUILDER_OUTSIDE_ALLOWLIST)
+            
+        # If in runtime/ or tests/, it is allowed.
+        return (True, None)
+
+    else:
+        # --- STEWARD POLICY (Phase 2 Default) ---
+        # 2. Denylist
+        is_denied, deny_reason = matches_denylist(norm_path)
+        if is_denied:
+            return (False, deny_reason)
+        
+        # 3. Allowlist check
+        if not matches_allowlist(norm_path):
+            return (False, ReasonCode.OUTSIDE_ALLOWLIST_BLOCKED)
+        
+        # 4. Extension check (Docs only)
+        ext_ok, ext_reason = check_extension_under_docs(norm_path)
+        if not ext_ok:
+            return (False, ext_reason)
+        
+        # 5. Structural Ops (Global Phase 2 Block)
+        if status not in ["A", "M"]:
+            if status.startswith("D"): return (False, ReasonCode.PH2_DELETE_BLOCKED)
+            if status.startswith("R"): return (False, ReasonCode.PH2_RENAME_BLOCKED)
+            if status.startswith("C"): return (False, ReasonCode.PH2_COPY_BLOCKED)
+
+        # 6. Review packets (Add-only)
+        rp_ok, rp_reason = check_review_packets_addonly(norm_path, status)
+        if not rp_ok:
+            return (False, rp_reason)
+        
+        return (True, None)
