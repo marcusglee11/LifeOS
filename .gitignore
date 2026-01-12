@@ -66,12 +66,21 @@ coo/manifests/normalized/
 # Artifacts
 artifacts/bundles/*.zip
 artifacts/bundles/*.sha256
+artifacts/bundles/*.txt
 artifacts/evidence/
 artifacts/for_ceo/
+artifacts/plans/Plan_*.md
+artifacts/test_reports/
 
 # Archive bundles (ephemeral)
-artifacts/99_archive/bundles/*.zip
-artifacts/99_archive/review_packets/
+artifacts/99_archive/
+artifacts/review_packets/Review_Packet_*.md
 
 # Root-level bundles (should be moved to artifacts/)
 /*.zip
+/nul
+
+# Temporary test/dev files
+temp_*
+*.log
+nul

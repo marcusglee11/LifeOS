@@ -8,6 +8,8 @@ Comprehensive tests for mission modules per AGENT INSTRUCTION BLOCK:
 - Registry fail-closed tests
 """
 import pytest
+import sys
+import subprocess
 from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import patch, MagicMock
@@ -102,7 +104,7 @@ class TestMissionType:
     
     def test_all_types_defined(self):
         """Verify all required mission types are defined."""
-        expected = {"design", "review", "build", "steward", "autonomous_build_cycle"}
+        expected = {"design", "review", "build", "steward", "autonomous_build_cycle", "build_with_validation"}
         actual = {t.value for t in MissionType}
         assert actual == expected
     
@@ -121,7 +123,7 @@ class TestMissionRegistry:
     
     def test_contains_all_mission_types(self):
         """Verify registry contains all Phase 3 mission types."""
-        expected = {"design", "review", "build", "steward", "autonomous_build_cycle"}
+        expected = {"design", "review", "build", "steward", "autonomous_build_cycle", "build_with_validation"}
         actual = set(list_mission_types())
         assert expected.issubset(actual)
     
@@ -132,6 +134,8 @@ class TestMissionRegistry:
         assert get_mission_class("build") == BuildMission
         assert get_mission_class("steward") == StewardMission
         assert get_mission_class("autonomous_build_cycle") == AutonomousBuildCycleMission
+        from runtime.orchestration.missions.build_with_validation import BuildWithValidationMission
+        assert get_mission_class("build_with_validation") == BuildWithValidationMission
     
     def test_get_mission_class_unknown_fails_closed(self):
         """Verify get_mission_class fails closed on unknown type."""
@@ -495,9 +499,9 @@ class TestStewardMission:
         assert result.mission_type == MissionType.STEWARD
         # HARDENING: Output is simulated_commit_hash, not commit_hash
         assert "simulated_commit_hash" in result.outputs
-        # HARDENING: Steps have _stub suffix
+        # HARDENING: Steps have _stub suffix (except target validation which is real)
         assert "commit_stub" in result.executed_steps
-        assert "check_envelope_stub" in result.executed_steps
+        assert "validate_steward_targets" in result.executed_steps  # Real step now
         assert "stage_changes_stub" in result.executed_steps
         assert "record_completion_stub" in result.executed_steps
         assert "verify_repo_clean" in result.executed_steps  # Real step, no stub
@@ -524,6 +528,269 @@ class TestStewardMission:
         assert "Uncommitted changes" in result.error
         # HARDENING: Evidence includes repo_clean_result
         assert result.evidence.get("repo_clean_result") is not None
+
+
+# =============================================================================
+# Test: Steward Target Validation (Fail-Closed Semantics)
+# =============================================================================
+
+class TestStewardTargetValidation:
+    """Tests for steward target validation with fail-closed semantics.
+    
+    Classification per P0.1:
+        A) in_envelope: docs/**/*.md excluding protected roots → BLOCK (requires OpenCode)
+        B) protected: docs/00_foundations/**, docs/01_governance/**, scripts/**, config/** → BLOCK
+        C) disallowed: Everything else → BLOCK
+    """
+
+    # test_steward_blocks_in_envelope_docs_without_opencode REMOVED - now supported via routing
+
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_blocks_protected_roots(
+        self, mock_verify, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any]
+    ):
+        """Category B: Protected roots are BLOCKED unconditionally."""
+        mock_verify.return_value = None
+        valid_review_packet["payload"]["artifacts_produced"] = [
+            "docs/01_governance/protected.md",
+        ]
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        result = mission.run(mock_context, inputs)
+        
+        assert result.success is False
+        assert "protected root" in result.error.lower()
+        assert "docs/01_governance/protected.md" in result.error
+        assert "governance authorization" in result.error.lower()
+        # Evidence includes classified paths
+        assert "classified_paths" in result.evidence
+        assert "docs/01_governance/protected.md" in result.evidence["classified_paths"]["protected"]
+
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_blocks_disallowed_paths(
+        self, mock_verify, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any]
+    ):
+        """Category C: Non-doc/non-allowlisted paths are BLOCKED."""
+        mock_verify.return_value = None
+        valid_review_packet["payload"]["artifacts_produced"] = [
+            "runtime/module.py",
+        ]
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        result = mission.run(mock_context, inputs)
+        
+        assert result.success is False
+        assert "disallowed" in result.error.lower()
+        assert "runtime/module.py" in result.error
+        # Evidence includes classified paths
+        assert "classified_paths" in result.evidence
+        assert "runtime/module.py" in result.evidence["classified_paths"]["disallowed"]
+
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_succeeds_with_empty_artifact_list(
+        self, mock_verify, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any]
+    ):
+        """Only empty artifact list is explicitly allowed (no modifications)."""
+        mock_verify.return_value = None
+        valid_review_packet["payload"]["artifacts_produced"] = []
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        result = mission.run(mock_context, inputs)
+        
+        # Empty artifact list proceeds (stub commits nothing)
+        assert result.success is True
+        assert "classified_paths" in result.evidence
+        assert result.evidence["classified_paths"]["in_envelope"] == []
+        assert result.evidence["classified_paths"]["protected"] == []
+        assert result.evidence["classified_paths"]["disallowed"] == []
+
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_rejects_payload_handler_override(
+        self, mock_verify, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any]
+    ):
+        """No payload-driven handler override allowed - still blocked."""
+        mock_verify.return_value = None
+        valid_review_packet["_handler_override"] = "bypass"
+        valid_review_packet["_skip_opencode"] = True
+        # Even with injection, disallowed paths still fail
+        valid_review_packet["payload"]["artifacts_produced"] = [
+            "runtime/some.py"
+        ]
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        result = mission.run(mock_context, inputs)
+        
+        # Should FAIL - disallowed paths are blocked regardless of injection
+        assert result.success is False
+        assert "disallowed" in result.error.lower()
+        # No bypass occurred
+        assert result.evidence.get("handler_override") is None
+
+    def test_path_classification_all_categories(self, mock_context: MissionContext):
+        """Verify path classification covers all A/B/C categories correctly."""
+        mission = StewardMission()
+        
+        # Category B: Protected roots
+        protected = [
+            ("docs/00_foundations/spec.md", "protected"),
+            ("docs/01_governance/policy.md", "protected"),
+            ("scripts/runner.py", "protected"),
+            ("config/models.yaml", "protected"),
+        ]
+        for path, expected in protected:
+            assert mission._classify_path(path) == expected, f"{path} should be {expected}"
+        
+        # Category A: In-envelope docs
+        in_envelope = [
+            ("docs/03_runtime/feature.md", "in_envelope"),
+            ("docs/02_protocols/protocol.md", "in_envelope"),
+            ("docs/11_admin/STATE.md", "in_envelope"),
+        ]
+        for path, expected in in_envelope:
+            assert mission._classify_path(path) == expected, f"{path} should be {expected}"
+        
+        # Category C: Disallowed (non-doc paths)
+        disallowed = [
+            ("runtime/engine.py", "disallowed"),
+            ("tests/test_foo.py", "disallowed"),
+            ("docs/readme.txt", "disallowed"),  # Non-.md in docs
+        ]
+        for path, expected in disallowed:
+            assert mission._classify_path(path) == expected, f"{path} should be {expected}"
+
+
+# =============================================================================
+# Test: Steward Routing (P0 Implementation)
+# =============================================================================
+
+class TestStewardRouting:
+    """Tests for Steward OpenCode routing integration (P0)."""
+
+    @patch("runtime.orchestration.missions.steward.subprocess.run")
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_routes_success(
+        self, mock_verify, mock_run, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+    ):
+        """Verify successful routing to OpenCode runner."""
+        mock_verify.return_value = None
+        # Setup in-envelope artifact
+        valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
+        
+        # Mock successful runner execution
+        mock_run.return_value = MagicMock(
+            returncode=0, 
+            stdout="Success log", 
+            stderr="No errors"
+        )
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        # P0: Mock sys.executable for assertion
+        with patch("sys.executable", "python_exe"):
+            result = mission.run(mock_context, inputs)
+        
+        assert result.success is True
+        assert "invoke_opencode_steward" in result.executed_steps
+        assert "opencode_result" in result.evidence
+        assert result.evidence["opencode_result"]["exit_code"] == 0
+        
+        # P0: Verify invocation args
+        mock_run.assert_called_once()
+        args, kwargs = mock_run.call_args
+        cmd = args[0]
+        assert cmd[0] == "python_exe"
+        assert "opencode_ci_runner.py" in cmd[1]
+        assert "--task-file" in cmd
+        assert "artifacts/steward_tasks/steward_task_v" in cmd[3].replace("\\", "/") # versioned
+        
+        # P0: Verify safety args
+        assert kwargs["cwd"] == mock_context.repo_root
+        assert kwargs["timeout"] == 300
+        assert kwargs["check"] is False
+
+    @patch("runtime.orchestration.missions.steward.subprocess.run")
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_routes_failure_exit_code(
+        self, mock_verify, mock_run, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+    ):
+        """Verify fail-closed on non-zero exit code."""
+        mock_verify.return_value = None
+        valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
+        
+        # Mock failure runner execution
+        mock_run.return_value = MagicMock(
+            returncode=1, 
+            stdout="Partial log", 
+            stderr="Validation failed"
+        )
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        result = mission.run(mock_context, inputs)
+        
+        # Fail-closed
+        assert result.success is False
+        assert "OpenCode routing failed" in result.error
+        assert "exit code 1" in result.error
+        assert "invoke_opencode_steward" in result.executed_steps
+        assert result.evidence["opencode_result"]["exit_code"] == 1
+
+    @patch("runtime.orchestration.missions.steward.subprocess.run")
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_routes_timeout(
+        self, mock_verify, mock_run, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+    ):
+        """Verify fail-closed on timeout."""
+        mock_verify.return_value = None
+        valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
+        
+        # Mock timeout
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd="runner", timeout=300)
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        result = mission.run(mock_context, inputs)
+        
+        # Fail-closed
+        assert result.success is False
+        assert "OpenCode routing failed" in result.error
+        assert "timed out after 300s" in result.error or "timed out" in result.error
 
 
 # =============================================================================
@@ -606,6 +873,116 @@ class TestAutonomousBuildCycleMission:
         assert result.success is True
         assert "commit_hash" in result.outputs
         assert "steward" in result.executed_steps
+
+
+# =============================================================================
+# Test: Steward Routing (P0 Implementation)
+# =============================================================================
+
+class TestStewardRouting:
+    """Tests for Steward OpenCode routing integration (P0)."""
+
+    @patch("runtime.orchestration.missions.steward.subprocess.run")
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_routes_success(
+        self, mock_verify, mock_run, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+    ):
+        """Verify successful routing to OpenCode runner."""
+        mock_verify.return_value = None
+        # Setup in-envelope artifact
+        valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
+        
+        # Mock successful runner execution
+        mock_run.return_value = MagicMock(
+            returncode=0, 
+            stdout="Success log", 
+            stderr="No errors"
+        )
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        # P0: Mock sys.executable for assertion
+        with patch("sys.executable", "python_exe"):
+            result = mission.run(mock_context, inputs)
+        
+        assert result.success is True
+        assert "invoke_opencode_steward" in result.executed_steps
+        assert "opencode_result" in result.evidence
+        assert result.evidence["opencode_result"]["exit_code"] == 0
+        
+        # P0: Verify invocation args
+        mock_run.assert_called_once()
+        args, kwargs = mock_run.call_args
+        cmd = args[0]
+        assert cmd[0] == "python_exe"
+        assert "opencode_ci_runner.py" in cmd[1]
+        assert "--task-file" in cmd
+        assert "artifacts/steward_tasks/steward_task_v" in cmd[3].replace("\\", "/") # versioned
+        
+        # P0: Verify safety args
+        assert kwargs["cwd"] == mock_context.repo_root
+        assert kwargs["timeout"] == 300
+        assert kwargs["check"] is False
+
+    @patch("runtime.orchestration.missions.steward.subprocess.run")
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_routes_failure_exit_code(
+        self, mock_verify, mock_run, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+    ):
+        """Verify fail-closed on non-zero exit code."""
+        mock_verify.return_value = None
+        valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
+        
+        # Mock failure runner execution
+        mock_run.return_value = MagicMock(
+            returncode=1, 
+            stdout="Partial log", 
+            stderr="Validation failed"
+        )
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        result = mission.run(mock_context, inputs)
+        
+        # Fail-closed
+        assert result.success is False
+        assert "OpenCode routing failed" in result.error
+        assert "exit code 1" in result.error
+        assert "invoke_opencode_steward" in result.executed_steps
+        assert result.evidence["opencode_result"]["exit_code"] == 1
+
+    @patch("runtime.orchestration.missions.steward.subprocess.run")
+    @patch("runtime.orchestration.run_controller.verify_repo_clean")
+    def test_steward_routes_timeout(
+        self, mock_verify, mock_run, mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+    ):
+        """Verify fail-closed on timeout."""
+        mock_verify.return_value = None
+        valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
+        
+        # P0: Mock timeout exception
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd="runner", timeout=300)
+        
+        mission = StewardMission()
+        inputs = {
+            "review_packet": valid_review_packet,
+            "approval": approved_decision,
+        }
+        result = mission.run(mock_context, inputs)
+        
+        # Fail-closed
+        assert result.success is False
+        assert "OpenCode routing failed" in result.error
+        assert "timed out after 300s" in result.error or "timed out" in result.error
 
 
 # =============================================================================
