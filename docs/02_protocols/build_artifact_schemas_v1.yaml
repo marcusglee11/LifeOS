@@ -1,0 +1,349 @@
+# ============================================================================
+# LifeOS Build Artifact Schemas v1.0
+# ============================================================================
+# Purpose: Formal schema definitions for markdown build artifacts
+# Companion to: lifeos_packet_schemas_v1.yaml (YAML inter-agent packets)
+# Principle: All artifacts deterministic, versioned, traceable, auditable
+# ============================================================================
+
+# ============================================================================
+# COMMON METADATA (Required YAML frontmatter for ALL artifacts)
+# ============================================================================
+# Every markdown artifact MUST include this frontmatter block.
+# Agents MUST validate presence of required fields before submission.
+
+_common_metadata:
+  artifact_id: string        # [REQUIRED] UUID v4. Unique identifier.
+  artifact_type: string      # [REQUIRED] One of 6 defined types.
+  schema_version: string     # [REQUIRED] Semver. Protocol version (e.g., "1.0.0")
+  created_at: datetime       # [REQUIRED] ISO 8601. When artifact was created.
+  author: string             # [REQUIRED] Agent identifier (e.g., "Antigravity")
+  version: string            # [REQUIRED] Artifact version (e.g., "0.1")
+  status: string             # [REQUIRED] One of: DRAFT, PENDING_REVIEW, APPROVED,
+                             #   APPROVED_WITH_CONDITIONS, REJECTED, SUPERSEDED
+
+  # Optional fields
+  chain_id: string           # Links to packet workflow chain (UUID v4)
+  mission_ref: string        # Mission this artifact belongs to
+  council_trigger: string    # CT-1 through CT-5 if applicable
+  parent_artifact: string    # Path to artifact this supersedes
+  tags: list[string]         # Freeform categorization tags
+
+# ============================================================================
+# ARTIFACT TYPE DEFINITIONS
+# ============================================================================
+
+_artifact_types:
+  - PLAN                     # Implementation/architecture proposals
+  - REVIEW_PACKET            # Mission completion summaries
+  - WALKTHROUGH              # Post-verification documentation
+  - GAP_ANALYSIS             # Inconsistency/coverage analysis
+  - DOC_DRAFT                # Documentation change proposals
+  - TEST_DRAFT               # Test specification proposals
+
+_status_values:
+  - DRAFT                    # Work in progress, not reviewed
+  - PENDING_REVIEW           # Submitted for CEO/Council review
+  - APPROVED                 # Reviewed and accepted
+  - APPROVED_WITH_CONDITIONS # Accepted with follow-up required
+  - REJECTED                 # Reviewed and not accepted
+  - SUPERSEDED               # Replaced by newer version
+
+# ============================================================================
+# SCHEMA 1: PLAN ARTIFACT
+# ============================================================================
+# Purpose: Propose implementations, architecture changes, or new features
+# Flow: Agent creates → CEO reviews → Council review (if CT trigger) → Execute
+
+plan_artifact_schema:
+  artifact_type: "PLAN"
+  naming_pattern: "Plan_<Topic>_v<X.Y>.md"
+  canonical_path: "artifacts/plans/"
+  
+  required_sections:
+    - section_id: executive_summary
+      description: "2-5 sentence overview of goal and approach"
+      example_heading: "## Executive Summary"
+      
+    - section_id: problem_statement
+      description: "What problem this solves, why it matters"
+      example_heading: "## Problem Statement"
+      
+    - section_id: proposed_changes
+      description: "Detailed changes by component, including file paths"
+      example_heading: "## Proposed Changes"
+      subsections:
+        - component_name: string
+        - file_changes: list  # [NEW], [MODIFY], [DELETE] markers
+        
+    - section_id: verification_plan
+      description: "How changes will be tested"
+      example_heading: "## Verification Plan"
+      subsections:
+        - automated_tests: list
+        - manual_verification: list
+        
+  optional_sections:
+    - section_id: user_review_required
+      description: "Decisions requiring CEO input"
+      
+    - section_id: alternatives_considered
+      description: "Other approaches evaluated and why rejected"
+      
+    - section_id: rollback_plan
+      description: "How to undo changes if failed"
+      
+    - section_id: success_criteria
+      description: "Measurable outcomes"
+      
+    - section_id: non_goals
+      description: "Explicit exclusions from this plan"
+
+# ============================================================================
+# SCHEMA 2: REVIEW PACKET
+# ============================================================================
+# Purpose: Summarize completed mission for CEO review
+# Flow: Agent completes work → Creates packet → CEO reviews → Approve/Reject
+
+review_packet_schema:
+  artifact_type: "REVIEW_PACKET"
+  naming_pattern: "Review_Packet_<Mission>_v<X.Y>.md"
+  canonical_path: "artifacts/review_packets/"
+  
+  required_sections:
+    - section_id: executive_summary
+      description: "Mission outcome summary, 2-5 sentences"
+      example_heading: "## Executive Summary"
+      
+    - section_id: issue_catalogue
+      description: "Table of issues/resolutions with status"
+      example_heading: "## Issue Catalogue"
+      table_columns:
+        - Issue ID
+        - Description
+        - Resolution
+        - Status
+        
+    - section_id: acceptance_criteria
+      description: "Pass/fail status for each criterion"
+      example_heading: "## Acceptance Criteria"
+      table_columns:
+        - Criterion
+        - Description
+        - Status
+        - Verification Method
+        
+    - section_id: verification_proof
+      description: "Test results, command outputs, evidence"
+      example_heading: "## Verification Proof"
+      
+    - section_id: flattened_code_appendix
+      description: "All created/modified files with full content"
+      example_heading: "## Appendix — Flattened Code"
+      
+  conditionally_required:
+    - section_id: stewardship_evidence
+      condition: "Mission modified files in docs/"
+      description: "Proof of INDEX update and corpus regeneration"
+      
+  optional_sections:
+    - section_id: constraints_boundaries
+      description: "Runtime limits if applicable"
+      
+    - section_id: non_goals
+      description: "Explicit out-of-scope items"
+
+# ============================================================================
+# SCHEMA 3: WALKTHROUGH
+# ============================================================================
+# Purpose: Document completed work with visual evidence
+# Flow: Post-verification → Document what was done → CEO can review
+
+walkthrough_schema:
+  artifact_type: "WALKTHROUGH"
+  naming_pattern: "Walkthrough_<Topic>_v<X.Y>.md"
+  canonical_path: "artifacts/walkthroughs/"
+  
+  required_sections:
+    - section_id: summary
+      description: "What was accomplished"
+      example_heading: "## Summary"
+      
+    - section_id: changes_made
+      description: "List of changes with rationale"
+      example_heading: "## Changes Made"
+      
+    - section_id: verification_results
+      description: "What was tested and outcomes"
+      example_heading: "## Verification Results"
+      
+  optional_sections:
+    - section_id: screenshots
+      description: "Embedded visual evidence"
+      format: "![description](path)"
+      
+    - section_id: recordings
+      description: "Paths to browser recording files"
+      format: "WebP video paths"
+      
+    - section_id: known_issues
+      description: "Issues discovered but not fixed"
+      
+    - section_id: next_steps
+      description: "Suggested follow-up work"
+
+# ============================================================================
+# SCHEMA 4: GAP ANALYSIS
+# ============================================================================
+# Purpose: Identify inconsistencies, missing coverage, or structural issues
+# Flow: Agent scans → Documents gaps → Proposes remediation
+
+gap_analysis_schema:
+  artifact_type: "GAP_ANALYSIS"
+  naming_pattern: "GapAnalysis_<Scope>_v<X.Y>.md"
+  canonical_path: "artifacts/gap_analyses/"
+  
+  required_sections:
+    - section_id: scope
+      description: "What was scanned (directories, files, topics)"
+      example_heading: "## Scope"
+      
+    - section_id: findings
+      description: "Table of gaps with severity"
+      example_heading: "## Findings"
+      table_columns:
+        - Finding ID
+        - Description
+        - Severity   # P0_BLOCKER, P1_CRITICAL, P2_MAJOR, P3_MINOR, P4_TRIVIAL
+        - Location
+        
+    - section_id: remediation_recommendations
+      description: "Proposed fixes for each finding"
+      example_heading: "## Remediation Recommendations"
+      
+  optional_sections:
+    - section_id: methodology
+      description: "How analysis was performed"
+      
+    - section_id: priority_matrix
+      description: "Critical vs informational breakdown"
+
+# ============================================================================
+# SCHEMA 5: DOC DRAFT
+# ============================================================================
+# Purpose: Propose documentation changes before applying
+# Flow: Agent drafts → CEO/governance reviews → Apply if approved
+
+doc_draft_schema:
+  artifact_type: "DOC_DRAFT"
+  naming_pattern: "DocDraft_<Topic>_v<X.Y>.md"
+  canonical_path: "artifacts/doc_drafts/"
+  
+  required_sections:
+    - section_id: target_document
+      description: "Path to document being drafted"
+      example_heading: "## Target Document"
+      
+    - section_id: change_type
+      description: "ADDITIVE, MODIFYING, or REPLACING"
+      example_heading: "## Change Type"
+      enum_values:
+        - ADDITIVE           # Adding new content
+        - MODIFYING          # Changing existing content
+        - REPLACING          # Full replacement
+        
+    - section_id: draft_content
+      description: "The actual proposed content"
+      example_heading: "## Draft Content"
+      
+    - section_id: dependencies
+      description: "What this depends on"
+      example_heading: "## Dependencies"
+
+# ============================================================================
+# SCHEMA 6: TEST DRAFT
+# ============================================================================
+# Purpose: Propose new tests before implementing
+# Flow: Agent designs tests → Review → Implement
+
+test_draft_schema:
+  artifact_type: "TEST_DRAFT"
+  naming_pattern: "TestDraft_<Module>_v<X.Y>.md"
+  canonical_path: "artifacts/test_drafts/"
+  
+  required_sections:
+    - section_id: target_modules
+      description: "What's being tested"
+      example_heading: "## Target Modules"
+      
+    - section_id: test_cases
+      description: "Detailed test specifications"
+      example_heading: "## Test Cases"
+      format:
+        - test_id: string
+        - description: string
+        - preconditions: list
+        - input: string
+        - expected_output: string
+        - verification: string
+        
+    - section_id: coverage_targets
+      description: "Expected coverage level"
+      example_heading: "## Coverage Targets"
+      
+  optional_sections:
+    - section_id: edge_cases
+      description: "Boundary condition tests"
+      
+    - section_id: integration_points
+      description: "Cross-module test needs"
+
+# ============================================================================
+# VALIDATION RULES
+# ============================================================================
+# Agents MUST enforce these rules when producing artifacts.
+
+_validation_rules:
+  frontmatter:
+    - All _common_metadata fields marked [REQUIRED] MUST be present.
+    - artifact_id MUST be valid UUID v4.
+    - created_at MUST be valid ISO 8601 datetime.
+    - schema_version MUST be valid semver.
+    - status MUST be one of _status_values.
+    - artifact_type MUST be one of _artifact_types.
+    
+  structure:
+    - All required_sections for artifact_type MUST be present.
+    - Section headings MUST match example_heading patterns.
+    - Tables MUST include specified columns.
+    
+  naming:
+    - Filename MUST match naming_pattern for artifact_type.
+    - File MUST be in canonical_path directory.
+    
+  mode:
+    - default: WARN   # Log errors, continue
+    - strict: FAIL    # Block on errors
+
+# ============================================================================
+# FRONTMATTER TEMPLATE
+# ============================================================================
+# Copy this block to start any new artifact.
+
+_frontmatter_template: |
+  ---
+  artifact_id: ""              # [REQUIRED] Generate UUID v4
+  artifact_type: ""            # [REQUIRED] PLAN | REVIEW_PACKET | WALKTHROUGH | GAP_ANALYSIS | DOC_DRAFT | TEST_DRAFT
+  schema_version: "1.0.0"
+  created_at: ""               # [REQUIRED] ISO 8601
+  author: "Antigravity"
+  version: "0.1"
+  status: "DRAFT"
+  
+  # Optional
+  chain_id: ""
+  mission_ref: ""
+  council_trigger: ""
+  parent_artifact: ""
+  tags: []
+  ---

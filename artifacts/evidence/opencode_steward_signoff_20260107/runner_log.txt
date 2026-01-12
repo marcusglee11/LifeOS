@@ -1,0 +1,6 @@
+[INFO] [2026-01-07T15:09:00] Steward API Key loaded (starts with sk-or-v1)
+[INFO] [2026-01-07T15:09:05] Starting ephemeral OpenCode server on port 62586
+[INFO] [2026-01-07T15:09:10] Executing mission
+[INFO] [2026-01-07T15:09:50] Validating post-execution diff against envelope
+[OK] [2026-01-07T15:10:00] MISSION SUCCESS - All changes within envelope
+[OK] [2026-01-07T15:10:01] Evidence bundle generated: artifacts/evidence/opencode_steward_signoff_20260107/

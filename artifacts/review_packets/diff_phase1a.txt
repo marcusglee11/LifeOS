@@ -1,0 +1,1767 @@
+diff --git a/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/changed_files.json b/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/changed_files.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/changed_files.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/classification.json b/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/classification.json
+new file mode 100644
+index 0000000..ce01168
+--- /dev/null
++++ b/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/classification.json
+@@ -0,0 +1,5 @@
++{
++  "is_governance": false,
++  "risk_level": "P1",
++  "envelope_violations": 0
++}
+\ No newline at end of file
+diff --git a/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/exit_report.json b/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/exit_report.json
+new file mode 100644
+index 0000000..85d784c
+--- /dev/null
++++ b/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/exit_report.json
+@@ -0,0 +1,17 @@
++{
++  "status": "PASS",
++  "reason_code": null,
++  "mode": "LOCAL",
++  "timestamp": "2026-01-07T19:09:50.587981",
++  "task": {
++    "action": "modify",
++    "instruction": "Validate stewardship updates for COO Runtime and Governance Index.",
++    "files": [
++      "docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md",
++      "docs/INDEX.md",
++      "docs/LifeOS_Strategic_Corpus.md",
++      "artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md"
++    ]
++  },
++  "blocked_entries": []
++}
+\ No newline at end of file
+diff --git a/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/hashes.json b/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/hashes.json
+new file mode 100644
+index 0000000..1a534aa
+--- /dev/null
++++ b/artifacts/evidence/opencode_steward_certification/mission_20260107_190950/hashes.json
+@@ -0,0 +1,18 @@
++{
++  "exit_report.json": {
++    "algorithm": "sha256",
++    "hex": "5a39232823a96020bc758845b83a0efe80d7eac8612a13f171804c7a9291c46e"
++  },
++  "changed_files.json": {
++    "algorithm": "sha256",
++    "hex": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
++  },
++  "classification.json": {
++    "algorithm": "sha256",
++    "hex": "9f6c31944e642bdb62d7d166f3540bb5eb38841e7ba6ebdee816758aff551860"
++  },
++  "runner.log": {
++    "algorithm": "sha256",
++    "hex": "70cb770080dbba377c40ee6bb4841e1f9064aafb96bb4507ed72912fd8aff4de"
++  }
++}
+\ No newline at end of file
+diff --git a/artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md b/artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md
+new file mode 100644
+index 0000000..92fee3b
+--- /dev/null
++++ b/artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md
+@@ -0,0 +1,592 @@
++# Review Packet: Phase 4 COO Runtime Plan Fix v1.0
++
++## Summary
++Resolved mechanical inconsistencies in the COO Runtime Implementation Packet and inlined governance rules from deprecated specs to ensure a self-contained, auditable build. Applied Hygiene Patch to remove cryptographic signature requirements and tighten governance scanner scope.
++
++## Issue Catalogue
++| ID | Title | Status | Resolution |
++|----|-------|--------|------------|
++| I1 | ERROR -> QUESTION routing | RESOLVED | Changed Section 4.1 to escalate ambiguity to CEO. |
++| I2 | 7-Step Sequence Mismatch | RESOLVED | Corrected Section 9.1 to match Alignment Layer 1.4 atomicity. |
++| I3 | Gate Lettering Drift | RESOLVED | Re-lettered Gate A-F for sequential ordering. |
++| I4 | Abstract Freeze Semantics | RESOLVED | Reframed Section 11 as "Controlled Inputs/Assert Match". |
++| I5 | Missing CEO Signature Key | CEO OVERRIDE | Removed Signature Requirement. Replaced with Manual Confirmation Contract. |
++| I6 | Scanner False Positives | RESOLVED | Tightened scope to `docs/01_governance` and `docs/02_protocols`. |
++
++## Canonical Dependency Table
++| Authority | Repository Source | Note |
++|-----------|-------------------|------|
++| Alignment Layer v1.4 | `docs/99_archive/.../Alignment_Layer_v1.4.md` | Inlined into packet Section 5. |
++| Manual Confirmation | `COO_Runtime_Implementation_Packet_v1.0.md` | Section 12 acts as the authority. |
++| Reference Mission | `runtime/tests/archive_legacy_r6x/test_replay.py` | Implementation bound to this generator. |
++
++## Appendix — Flattened Code Snapshots
++
++### File: `docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md`
++```markdown
++IMPLEMENTATION PACKET v1.0
++
++Mechanical Execution Guide for COO Runtime v1.0
++Subordinate to:
++
++LifeOS Constitution v2.0
++
++Governance Protocol v1.0
++
++COO Runtime Spec v1.0
++Prepared for: Antigravity
++
++## Patches Applied
++- Patch R6.5-C1A (Unified Import Update)
++  Applied: 2025-12-01
++  Reference: R6.5 Fix Pack
++- Patch P0-FIX (Consistency & Mechanical-Enforceability)
++  Applied: 2026-01-07
++  Reference: P0 Consistency Fix Pack
++- Patch P1-HYGIENE (Manual Rollback & Scope Tightening)
++  Applied: 2026-01-07
++  Reference: P1 Hygiene Patch
++
++0. PURPOSE
++
++A detailed, deterministic instruction set for Antigravity to implement the COO Runtime v1.0 and the PB→COO consolidation in a safe, reproducible, constitutional manner.
++
++This packet covers:
++
++Required directory structure
++
++Required files, manifests, and metadata
++
++Required deterministic algorithms
++
++Required test and replay harnesses
++
++Required environmental constraints
++
++Required migration scripts
++
++Required rollback scripts
++
++Required logging formats
++
++Required integration points with Antigravity's build system
++
++No governance or decision-making authority exists in this document.
++
++1. SUBORDINATION CLAUSE
++LifeOS Constitution v2.0 is supreme.  
++Governance Protocol v1.0 and COO Runtime Spec v1.0 define all governance, sequencing, authority, and determinism.  
++This Implementation Packet defines only mechanical behaviour.  
++If any instruction conflicts with a superior document, this packet yields without exception.
++
++2. DIRECTORY & FILE STRUCTURE
++
++Antigravity MUST create the following directory structure.
++
++**Canonical Runtime Package Namespace**: `coo/`
++
++All Python imports MUST use `coo.*` (e.g., `from coo.runtime import state_machine`).
++
++```
++coo/
++    runtime/
++        __init__.py
++        state_machine.py
++        amendment_engine.py
++        lint_engine.py
++        governance_leak_scanner.py
++        freeze.py
++        amu_capture.py
++        migration.py
++        gates.py
++        replay.py
++        rollback.py
++        logging.py
++
++    manifests/
++        tools_manifest.json
++        environment_manifest.json
++        hardware_manifest.json
++        sandbox_digest.txt
++        freeze_manifest.json
++
++    tests/
++        test_determinism.py
++        test_migration.py
++        test_replay.py
++        test_governance_integrity.py
++        test_sandbox_security.py
++
++    scripts/
++        apply_amendments.py
++        run_lint.py
++        run_scanner.py
++        run_tests.py
++        run_replay.py
++        run_migration.py
++        run_rollback.py
++
++    reference/
++        phase3_reference_mission.json
++        governance_leak_ruleset.json
++```
++
++No other directories are permitted unless explicitly added by future specs.
++
++2.1 UNIFIED IMPORT UPDATE (Patched by R6.5-C1A)
++
++Antigravity MUST implement a single deterministic AST transformation pass that:
++
++- Scans both the test modules and the runtime modules.
++- Updates all imports that reference pre-fix packet structures (e.g., `project_builder.*`) to the canonical namespace `coo.*`.
++- Applies identical transformation rules to tests and runtime in one atomic pass.
++- Ensures there is no intermediate state where tests and runtime disagree on canonical import paths.
++
++This unified pass is executed as **Migration Step 3** (see Section 9). It replaces the previously separate conceptual steps ("Update test imports" and "Update production imports") with a single atomic operation.
++
++3. REQUIRED MANIFESTS
++
++All manifests MUST be present before migration:
++
++3.1 tools_manifest.json
++
++Contains:
++
++- Full SHA256 of each executable
++- Version numbers
++- Build toolchain versions
++
++3.2 environment_manifest.json
++
++Contains:
++
++- OS version
++- Kernel version
++- Python version
++- Locale
++- PATH
++- Env vars relevant to runtime
++
++3.3 hardware_manifest.json
++
++Contains:
++
++- CPU ID
++- Microcode version
++- NUMA topology
++- Filesystem type
++- Virtualization flags
++
++3.4 sandbox_digest.txt
++
++SHA256 of OCI sandbox image.
++
++3.5 freeze_manifest.json
++
++Generated after CEO approval and Freeze activation.
++
++4. AMENDMENT ENGINE (MECHANICAL)
++
++Antigravity MUST implement a deterministic amendment engine:
++
++4.1 Deterministic Anchoring
++
++Anchor resolution MUST use:
++
++- Clause IDs (e.g., `[SPEC-1.2.3]`)
++- Header names (e.g., `## Section Title`)
++- Strict whitespace normalization
++- UTF-8 canonical encoding
++
++Anchoring resolution MUST be byte-exact without fuzzy matching.
++
++4.2 Amendment Application Algorithm
++
++Pseudo-code:
++
++```python
++for amendment in sorted(amendments, key=lambda a: a.id):
++    anchors = locate_anchor_deterministically(amendment.anchor)
++    if len(anchors) == 0:
++        emit_escalation_artefact("MissingAnchor", amendment)
++        raise AmendmentHaltException("MissingAnchor")
++    if len(anchors) > 1:
++        emit_escalation_artefact("AmbiguousAnchor", amendment)
++        raise AmendmentHaltException("AmbiguousAnchor")
++    apply_replacement_or_insertion(anchors[0], amendment)
++    update_amendment_log(amendment)
++```
++
++4.3 Ambiguity Handling Contract
++
++When `MissingAnchor` or `AmbiguousAnchor` is detected:
++
++1. **Emit Escalation Artefact**: Write `escalation_<amendment_id>.json` to `coo/manifests/` containing:
++   - `type`: "MissingAnchor" | "AmbiguousAnchor"
++   - `amendment_id`: The amendment that failed
++   - `searched_anchor`: The anchor pattern that was searched
++   - `candidates_found`: List of candidate matches (for AmbiguousAnchor)
++2. **Halt Execution**: Raise `AmendmentHaltException` (a Python exception).
++3. **Do NOT Proceed**: The amendment engine MUST NOT continue to the next amendment.
++4. 
++This contract is mechanically testable: unit tests MUST assert that the engine raises `AmendmentHaltException` and produces the escalation artefact when fed ambiguous inputs.
++
++4.4 Outputs
++
++- Amended PB
++- Amended IP
++- `amendment_log.json`
++- `amendment_diff.patch`
++
++5. GOVERNANCE-LEAK SCANNER
++
++Antigravity MUST implement scanner rules inlined from archived Alignment Layer v1.4 (Section 4.1):
++
++5.1 Scope Restriction
++
++The scanner MUST scan only the following paths:
++
++- `coo/runtime/**/*.py`
++- `coo/scripts/**/*.py`
++- `docs/01_governance/**/*.md`
++- `docs/02_protocols/**/*.md`
++
++Files outside this scope are explicitly excluded.
++
++5.2 Forbidden Patterns (Governance Leakage)
++
++A governance-leak is any statement that implies non-CEO discretion or autonomous approval.
++Forbidden strings (case-insensitive):
++- "must approve" / "approves"
++- "authorizes" / "validates" / "confirms"
++- "requires approval" / "requires confirmation"
++- Implicit role verbs: "review", "decide", "designate", "govern" (when applied to non-CEO agents)
++
++5.3 Permitted Patterns
++
++- "CEO approves"
++- "CEO authorizes"
++- Exact phrases required by LifeOS Constitution v2.0
++
++5.4 Ruleset Pinning
++
++- The scanner MUST load patterns from `coo/reference/governance_leak_ruleset.json`.
++- This file contains the canonical list of forbidden and permitted patterns.
++- "Inlined from archive" means the patterns from Alignment Layer v1.4 are copied into this JSON file.
++- The SHA256 of `governance_leak_ruleset.json` MUST be recorded in the mission configuration.
++- Deterministic reporting format is REQUIRED.
++
++5.5 Output Format
++
++```json
++{
++  "status": "PASS" | "FAIL",
++  "violations": [
++    {
++      "file": "...",
++      "line": number,
++      "pattern": "ForbiddenPatternName",
++      "excerpt": "..."
++    }
++  ],
++  "scanned_paths": ["coo/runtime/**/*.py", "coo/scripts/**/*.py", "docs/**/*.md"],
++  "ruleset_sha256": "..."
++}
++```
++
++6. CONSTITUTIONAL LINT ENGINE
++
++Lint engine MUST validate:
++
++- Invariant compliance
++- Forbidden constructs
++- Required clauses
++- Missing escalation paths
++
++Error = halt.
++
++7. FREEZE PREPARATION
++
++Antigravity MUST provide runtime calls to:
++
++- Halt async processes
++- Close file descriptors
++- Enforce read-only filesystem lock
++- Enforce DB quiescence
++- Compute SHA256 for tooling and sandbox
++- Produce freeze_manifest.json
++- Set FREEZE=TRUE
++
++No mutations allowed after FREEZE=TRUE.
++
++8. AMU₀ CAPTURE
++
++Antigravity MUST implement deterministic snapshot tools for:
++
++- Filesystem
++- Database
++- Sandbox digest
++- All manifests
++- Hardware identity
++- Reference missions
++
++All snapshots MUST be:
++
++- Byte-identical across captures
++- Stored in canonical sorted order
++- SHA256 hashed
++- Verified before and after capture
++
++9. MIGRATION ENGINE (Atomic 5-Step Sequence)
++
++The PB→COO consolidation MUST occur inside a single atomic operation following this strict sequence:
++
++1. **Create canonical coo/ directory**: `mkdir -p coo/`
++2. **Port PB code → coo/**: Port all modules using `sorted(os.walk)` to ensure byte-identical order.
++3. **Unified Import Update (R6.5-C1A)**: Execute single AST transformation pass to rewrite ALL imports from `project_builder.*` to `coo.*` across both tests and runtime simultaneously.
++4. **Pre-Deletion Verification**: Run full test suite; record as Snapshot 1.
++5. **Delete Legacy Path**: `rm -rf project_builder/`
++6. **Post-Deletion Verification**: Run full test suite; record as Snapshot 2.
++
++**Snapshot Equality Algorithm** (Section 9.1):
++
++If any failure occurs or Snapshot 1 != Snapshot 2 → rollback to AMU₀.
++
++9.1 Snapshot Equality Algorithm
++
++A **Snapshot** is defined as:
++
++```json
++{
++  "manifest_version": "1.0",
++  "files": [
++    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
++    ...
++  ],
++  "test_results": {
++    "passed": 42,
++    "failed": 0,
++    "skipped": 0,
++    "exit_code": 0
++  }
++}
++```
++
++**Equality Definition**:
++
++```python
++def snapshots_equal(s1: Snapshot, s2: Snapshot) -> bool:
++    # Files must be identical (sorted by path, compared by sha256)
++    if sorted(s1.files, key=lambda f: f.path) != sorted(s2.files, key=lambda f: f.path):
++        return False
++    # Test results must be identical
++    if s1.test_results != s2.test_results:
++        return False
++    return True
++```
++
++The `files` list MUST include all files in the `coo/` directory tree. Files are sorted lexicographically by path before comparison.
++
++10. GATES ENGINE
++
++Antigravity MUST implement each gate exactly in this order:
++
++**Gate A: Repo Unification Integrity**
++Validate directory structure, imports, and verify no legacy PB paths remain.
++
++**Gate B: Deterministic Modules**
++Hash of module outputs MUST match across repeated invocations.
++
++**Gate C: Sandbox Security**
++Validate sandbox digest and entrypoint integrity.
++
++**Gate D: Test Suite Integrity**
++Full test pass required (Snapshot 2 equivalence).
++
++**Gate E: Governance Integrity**
++Run governance-leak scanner (Section 5) and constitutional lint.
++
++**Gate F: Deterministic Replay**
++Call replay engine (Section 11) using reference mission contract.
++
++Failure at ANY gate triggers rollback engine.
++
++11. REPLAY ENGINE
++
++The replay engine MUST NOT rely on abstract "freezing" of the host OS. Instead, it MUST use **Deterministic Abstraction Layers** and **Metadata Assertions**:
++
++11.1 Controlled Inputs
++
++- **RNG Seed**: Fixed to `0xDEADBEEF`.
++- **System Time**: Mocked to `2025-01-01T00:00:00Z`.
++- **Environment**: Allowlist only (scrubbed of PATH drift).
++- **Filesystem**: Mocked or Read-Only Overlay with deterministic inode sorting.
++
++11.2 Comparison Surface
++
++The replay engine compares the following artefacts:
++
++| Artefact | Path | Format |
++|----------|------|--------|
++| Mission Output | `coo/manifests/mission_output.json` | JSON |
++| Gate Results | `coo/manifests/gate_results.json` | JSON |
++| Amendment Log | `coo/manifests/amendment_log.json` | JSON |
++| Scanner Report | `coo/manifests/scanner_report.json` | JSON |
++
++11.3 Normalization Algorithm
++
++Before byte-comparison, each artefact MUST be normalized using this algorithm:
++
++```python
++import json
++from datetime import datetime
++
++MASKED_FIELDS = ["timestamp", "created_at", "updated_at", "pid", "ppid", "hostname"]
++STABLE_REPLACEMENT = "<MASKED>"
++
++def normalize_artefact(data: dict) -> str:
++    """Produce canonical, comparable string from artefact."""
++    def mask_fields(obj):
++        if isinstance(obj, dict):
++            return {k: (STABLE_REPLACEMENT if k in MASKED_FIELDS else mask_fields(v)) 
++                    for k, v in obj.items()}
++        elif isinstance(obj, list):
++            return [mask_fields(item) for item in obj]
++        else:
++            return obj
++    
++    masked = mask_fields(data)
++    # Canonical JSON: sorted keys, no whitespace variation
++    return json.dumps(masked, sort_keys=True, separators=(',', ':'))
++
++def artefacts_equal(a1: dict, a2: dict) -> bool:
++    return normalize_artefact(a1) == normalize_artefact(a2)
++```
++
++Normalized artefacts are written to `coo/manifests/normalized/` for audit purposes.
++**Retention Policy**: This directory is **ephemeral**. It MUST be git-ignored and cleaned up after verification.
++
++11.4 Verification
++
++After normalization, outputs MUST be byte-identical. Any difference is a replay failure.
++
++12. ROLLBACK ENGINE & MANUAL CONFIRMATION CONTRACT
++
++12.1 Manual Confirmation Specification
++
++- **Algorithm**: Human-in-the-loop confirmation.
++- **Mechanism**: The Runtime MUST pause execution and await explicit user confirmation before applying any rollback.
++- **Input Channel**: CLI prompt ("Type 'CONFIRM_ROLLBACK' to proceed") or presence of `CONFIRM_ROLLBACK` file in the runtime root.
++
++12.2 Verification
++
++Before applying rollback:
++1. Runtime detects rollback condition (Gate Failure or Snapshot Mismatch).
++2. Runtime halts and requests confirmation.
++3. Runtime validates input matches `CONFIRM_ROLLBACK` exactly.
++4. If invalid: **HALT** with `RollbackAbortedException`.
++
++12.3 Rollback Operations
++
++Rollback MUST:
++
++1. Restore filesystem snapshot from AMU₀
++2. Restore DB dump from AMU₀
++3. Restore sandbox digest from AMU₀
++4. Restore all manifests from AMU₀
++5. Restore environment lock from AMU₀
++
++12.5 Rollback Count Rules
++
++- 1 automatic request allowed per migration attempt.
++- Rollback MUST be deterministic.
++
++13. LOGGING
++
++Antigravity MUST implement deterministic log formats with:
++
++- sequence_id
++
++config SHA256
++
++environment SHA256
++
++FSM transitions
++
++DB transaction logs
++
++Gate results
++
++Replay results
++
++Rollback logs
++
++Logs MUST be immutable and sorted.
++
++14. OUTPUT ARTEFACTS
++
++Antigravity MUST produce:
++
++14.1 Final COO Runtime Spec (regenerated)
++
++Regeneration MUST follow the COO Runtime Spec v1.0 generation template.
++
++14.2 Implementation Pack (this document)
++
++MUST be included in final migration bundle.
++
++14.3 Migration Log Bundle
++
++Contains:
++
++- All logs
++- Diff files
++- Manifests
++- Checksums
++- Replay results
++- Gate summaries
++
++15. PROHIBITED ACTIONS
++
++Antigravity MUST NOT:
++
++- Interpret governance logic
++- Infer missing intent
++- Skip steps
++- Execute nondeterministic sequences
++- Use heuristics
++- Allow environment drift
++- Allow sandbox rebuilds during Freeze
++- Allow deletion outside declared directories
++
++16. PHASE 4 P0 IMPLEMENTATION CHECKLIST (DOCUMENT-ONLY)
++
++The following modules MUST be implemented in dependency order:
++
++1. **`logging.py`**: Deterministic JSON logger with secret scrubbing.
++2. **`manifests/`**: Environment, Tools, and Hardware discovery scripts.
++3. **`amendment_engine.py`**: Deterministic anchoring via Clause IDs.
++4. **`governance_leak_scanner.py`**: Pattern-matching scanner with pinned ruleset.
++5. **`freeze.py`**: Quiescence and AMU₀ capture logic.
++6. **`migration.py`**: Atomic 5-step repo unification sequence.
++7. **`gates.py`**: Gate A-F verification sequence.
++8. **`replay.py`**: Execution under frozen RNG/Time with byte-comparison.
++9. **`rollback.py`**: Verified restoration from AMU₀.
++
++END OF IMPLEMENTATION PACK v1.0
++```
++
++### File: `docs/INDEX.md`
++(Self-contained in BRAIN state but omitted here for brevity; full file is in artifacts/review_packets/)
++
++### File: `docs/LifeOS_Strategic_Corpus.md`
++(Regenerated via script; 343KB. Available in artifacts/review_packets/)
++
++### File: `.gitignore`
++```gitignore
++# Drive upload temp
++docs/.tmp.driveupload/
++
++# COO Runtime Ephemeral
++coo/manifests/normalized/
++```
+diff --git a/docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md b/docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md
+index 11ad482..0e6dc45 100644
+--- a/docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md
++++ b/docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md
+@@ -14,6 +14,12 @@ Prepared for: Antigravity
+ - Patch R6.5-C1A (Unified Import Update)
+   Applied: 2025-12-01
+   Reference: R6.5 Fix Pack
++- Patch P0-FIX (Consistency & Mechanical-Enforceability)
++  Applied: 2026-01-07
++  Reference: P0 Consistency Fix Pack
++- Patch P1-HYGIENE (Manual Rollback & Scope Tightening)
++  Applied: 2026-01-07
++  Reference: P1 Hygiene Patch
+ 
+ 0. PURPOSE
+ 
+@@ -37,7 +43,7 @@ Required rollback scripts
+ 
+ Required logging formats
+ 
+-Required integration points with Antigravity’s build system
++Required integration points with Antigravity's build system
+ 
+ No governance or decision-making authority exists in this document.
+ 
+@@ -49,9 +55,14 @@ If any instruction conflicts with a superior document, this packet yields withou
+ 
+ 2. DIRECTORY & FILE STRUCTURE
+ 
+-Antigravity MUST create the following directory structure:
++Antigravity MUST create the following directory structure.
+ 
+-coo_runtime/
++**Canonical Runtime Package Namespace**: `coo/`
++
++All Python imports MUST use `coo.*` (e.g., `from coo.runtime import state_machine`).
++
++```
++coo/
+     runtime/
+         __init__.py
+         state_machine.py
+@@ -91,7 +102,8 @@ coo_runtime/
+ 
+     reference/
+         phase3_reference_mission.json
+-
++        governance_leak_ruleset.json
++```
+ 
+ No other directories are permitted unless explicitly added by future specs.
+ 
+@@ -100,16 +112,11 @@ No other directories are permitted unless explicitly added by future specs.
+ Antigravity MUST implement a single deterministic AST transformation pass that:
+ 
+ - Scans both the test modules and the runtime modules.
+-- Updates all imports that reference pre-fix packet structures to the new canonical module and symbol locations.
+-- Applies identical transformation rules to tests and runtime in one pass.
++- Updates all imports that reference pre-fix packet structures (e.g., `project_builder.*`) to the canonical namespace `coo.*`.
++- Applies identical transformation rules to tests and runtime in one atomic pass.
+ - Ensures there is no intermediate state where tests and runtime disagree on canonical import paths.
+ 
+-This unified pass replaces the previously separate conceptual steps:
+-
+-- “Update test imports” (old Step 3)
+-- “Update production imports” (old Step 5)
+-
+-This patch does not change behaviour; it declaratively unifies the steps for V1.0 simplicity and determinism.
++This unified pass is executed as **Migration Step 3** (see Section 9). It replaces the previously separate conceptual steps ("Update test imports" and "Update production imports") with a single atomic operation.
+ 
+ 3. REQUIRED MANIFESTS
+ 
+@@ -119,41 +126,30 @@ All manifests MUST be present before migration:
+ 
+ Contains:
+ 
+-Full SHA256 of each executable
+-
+-Version numbers
+-
+-Build toolchain versions
++- Full SHA256 of each executable
++- Version numbers
++- Build toolchain versions
+ 
+ 3.2 environment_manifest.json
+ 
+ Contains:
+ 
+-OS version
+-
+-Kernel version
+-
+-Python version
+-
+-Locale
+-
+-PATH
+-
+-Env vars relevant to runtime
++- OS version
++- Kernel version
++- Python version
++- Locale
++- PATH
++- Env vars relevant to runtime
+ 
+ 3.3 hardware_manifest.json
+ 
+ Contains:
+ 
+-CPU ID
+-
+-Microcode version
+-
+-NUMA topology
+-
+-Filesystem type
+-
+-Virtualization flags
++- CPU ID
++- Microcode version
++- NUMA topology
++- Filesystem type
++- Virtualization flags
+ 
+ 3.4 sandbox_digest.txt
+ 
+@@ -171,50 +167,92 @@ Antigravity MUST implement a deterministic amendment engine:
+ 
+ Anchor resolution MUST use:
+ 
+-Clause IDs
+-
+-Header names
+-
+-Strict whitespace normalization
++- Clause IDs (e.g., `[SPEC-1.2.3]`)
++- Header names (e.g., `## Section Title`)
++- Strict whitespace normalization
++- UTF-8 canonical encoding
+ 
+-UTF-8 canonical encoding
++Anchoring resolution MUST be byte-exact without fuzzy matching.
+ 
+ 4.2 Amendment Application Algorithm
+ 
+ Pseudo-code:
+ 
+-for amendment in sorted(amendments):
+-    locate anchor deterministically
+-    if zero anchors found: raise ERROR("MissingAnchor")
+-    if >1 anchor found: raise ERROR("AmbiguousAnchor")
+-    apply replacement/insertion exactly as specified
+-    update amendment log
++```python
++for amendment in sorted(amendments, key=lambda a: a.id):
++    anchors = locate_anchor_deterministically(amendment.anchor)
++    if len(anchors) == 0:
++        emit_escalation_artefact("MissingAnchor", amendment)
++        raise AmendmentHaltException("MissingAnchor")
++    if len(anchors) > 1:
++        emit_escalation_artefact("AmbiguousAnchor", amendment)
++        raise AmendmentHaltException("AmbiguousAnchor")
++    apply_replacement_or_insertion(anchors[0], amendment)
++    update_amendment_log(amendment)
++```
+ 
+-4.3 Outputs
++4.3 Ambiguity Handling Contract
+ 
+-Amended PB
++When `MissingAnchor` or `AmbiguousAnchor` is detected:
+ 
+-Amended IP
++1. **Emit Escalation Artefact**: Write `escalation_<amendment_id>.json` to `coo/manifests/` containing:
++   - `type`: "MissingAnchor" | "AmbiguousAnchor"
++   - `amendment_id`: The amendment that failed
++   - `searched_anchor`: The anchor pattern that was searched
++   - `candidates_found`: List of candidate matches (for AmbiguousAnchor)
++2. **Halt Execution**: Raise `AmendmentHaltException` (a Python exception).
++3. **Do NOT Proceed**: The amendment engine MUST NOT continue to the next amendment.
+ 
+-amendment_log.json
++This contract is mechanically testable: unit tests MUST assert that the engine raises `AmendmentHaltException` and produces the escalation artefact when fed ambiguous inputs.
+ 
+-amendment_diff.patch
++4.4 Outputs
++
++- Amended PB
++- Amended IP
++- `amendment_log.json`
++- `amendment_diff.patch`
+ 
+ 5. GOVERNANCE-LEAK SCANNER
+ 
+-Antigravity MUST implement scanner rules exactly as defined in Alignment Layer v1.4:
++Antigravity MUST implement scanner rules inlined from archived Alignment Layer v1.4 (Section 4.1):
++
++5.1 Scope Restriction
+ 
+-Forbidden semantic patterns
++The scanner MUST scan only the following paths:
+ 
+-Permitted patterns (CEO-only authority)
++- `coo/runtime/**/*.py`
++- `coo/scripts/**/*.py`
++- `docs/01_governance/**/*.md`
++- `docs/02_protocols/**/*.md`
+ 
+-Exact-match and pattern-match rulesets
++Files outside this scope are explicitly excluded.
+ 
+-SHA256-locked ruleset
++5.2 Forbidden Patterns (Governance Leakage)
+ 
+-Deterministic reporting format
++A governance-leak is any statement that implies non-CEO discretion or autonomous approval.
++Forbidden strings (case-insensitive):
++- "must approve" / "approves"
++- "authorizes" / "validates" / "confirms"
++- "requires approval" / "requires confirmation"
++- Implicit role verbs: "review", "decide", "designate", "govern" (when applied to non-CEO agents)
+ 
+-5.1 Output Format
++5.3 Permitted Patterns
++
++- "CEO approves"
++- "CEO authorizes"
++- Exact phrases required by LifeOS Constitution v2.0
++
++5.4 Ruleset Pinning
++
++- The scanner MUST load patterns from `coo/reference/governance_leak_ruleset.json`.
++- This file contains the canonical list of forbidden and permitted patterns.
++- "Inlined from archive" means the patterns from Alignment Layer v1.4 are copied into this JSON file.
++- The SHA256 of `governance_leak_ruleset.json` MUST be recorded in the mission configuration.
++- Deterministic reporting format is REQUIRED.
++
++5.5 Output Format
++
++```json
+ {
+   "status": "PASS" | "FAIL",
+   "violations": [
+@@ -225,20 +263,19 @@ Deterministic reporting format
+       "excerpt": "..."
+     }
+   ],
++  "scanned_paths": ["coo/runtime/**/*.py", "coo/scripts/**/*.py", "docs/**/*.md"],
+   "ruleset_sha256": "..."
+ }
++```
+ 
+ 6. CONSTITUTIONAL LINT ENGINE
+ 
+ Lint engine MUST validate:
+ 
+-Invariant compliance
+-
+-Forbidden constructs
+-
+-Required clauses
+-
+-Missing escalation paths
++- Invariant compliance
++- Forbidden constructs
++- Required clauses
++- Missing escalation paths
+ 
+ Error = halt.
+ 
+@@ -246,19 +283,13 @@ Error = halt.
+ 
+ Antigravity MUST provide runtime calls to:
+ 
+-Halt async processes
+-
+-Close file descriptors
+-
+-Enforce read-only filesystem lock
+-
+-Enforce DB quiescence
+-
+-Compute SHA256 for tooling and sandbox
+-
+-Produce freeze_manifest.json
+-
+-Set FREEZE=TRUE
++- Halt async processes
++- Close file descriptors
++- Enforce read-only filesystem lock
++- Enforce DB quiescence
++- Compute SHA256 for tooling and sandbox
++- Produce freeze_manifest.json
++- Set FREEZE=TRUE
+ 
+ No mutations allowed after FREEZE=TRUE.
+ 
+@@ -266,166 +297,196 @@ No mutations allowed after FREEZE=TRUE.
+ 
+ Antigravity MUST implement deterministic snapshot tools for:
+ 
+-Filesystem
+-
+-Database
+-
+-Sandbox digest
+-
+-All manifests
+-
+-Hardware identity
+-
+-Reference missions
++- Filesystem
++- Database
++- Sandbox digest
++- All manifests
++- Hardware identity
++- Reference missions
+ 
+ All snapshots MUST be:
+ 
+-Byte-identical across captures
+-
+-Stored in canonical sorted order
++- Byte-identical across captures
++- Stored in canonical sorted order
++- SHA256 hashed
++- Verified before and after capture
+ 
+-SHA256 hashed
++9. MIGRATION ENGINE (Atomic 5-Step Sequence)
+ 
+-Verified before and after capture
++The PB→COO consolidation MUST occur inside a single atomic operation following this strict sequence:
+ 
+-9. MIGRATION ENGINE
++1. **Create canonical coo/ directory**: `mkdir -p coo/`
++2. **Port PB code → coo/**: Port all modules using `sorted(os.walk)` to ensure byte-identical order.
++3. **Unified Import Update (R6.5-C1A)**: Execute single AST transformation pass to rewrite ALL imports from `project_builder.*` to `coo.*` across both tests and runtime simultaneously.
++4. **Pre-Deletion Verification**: Run full test suite; record as Snapshot 1.
++5. **Delete Legacy Path**: `rm -rf project_builder/`
++6. **Post-Deletion Verification**: Run full test suite; record as Snapshot 2.
+ 
+-Implements the PB→COO deterministic sequence.
++**Snapshot Equality Algorithm** (Section 9.1):
+ 
+-9.1 Canonical Porting
++If any failure occurs or Snapshot 1 != Snapshot 2 → rollback to AMU₀.
+ 
+-PB modules MUST port using:
++9.1 Snapshot Equality Algorithm
+ 
+-sorted(os.walk(...))
+-sorted(files)
++A **Snapshot** is defined as:
+ 
+-9.2 Test Harness Invocation
+-
+-Must run:
+-
+-First test pass pre-deletion
+-
+-Second test pass post-deletion
+-
+-Same test environment
+-
+-Zero stochastic tests
++```json
++{
++  "manifest_version": "1.0",
++  "files": [
++    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
++    ...
++  ],
++  "test_results": {
++    "passed": 42,
++    "failed": 0,
++    "skipped": 0,
++    "exit_code": 0
++  }
++}
++```
+ 
+-9.3 Delete PB Directory
++**Equality Definition**:
+ 
+-Deletion MUST be atomic and logged.
++```python
++def snapshots_equal(s1: Snapshot, s2: Snapshot) -> bool:
++    # Files must be identical (sorted by path, compared by sha256)
++    if sorted(s1.files, key=lambda f: f.path) != sorted(s2.files, key=lambda f: f.path):
++        return False
++    # Test results must be identical
++    if s1.test_results != s2.test_results:
++        return False
++    return True
++```
+ 
+-If ANY post-deletion test fails → rollback.
++The `files` list MUST include all files in the `coo/` directory tree. Files are sorted lexicographically by path before comparison.
+ 
+ 10. GATES ENGINE
+ 
+-Antigravity MUST implement each gate exactly:
+-
+-Gate A: Repo Unification Integrity
+-
+-Validate directory structure, imports, missing PB paths.
++Antigravity MUST implement each gate exactly in this order:
+ 
+-Gate B: Deterministic Modules
++**Gate A: Repo Unification Integrity**
++Validate directory structure, imports, and verify no legacy PB paths remain.
+ 
++**Gate B: Deterministic Modules**
+ Hash of module outputs MUST match across repeated invocations.
+ 
+-Gate D: Sandbox Security
++**Gate C: Sandbox Security**
++Validate sandbox digest and entrypoint integrity.
+ 
+-Validate sandbox digest and entrypoint.
++**Gate D: Test Suite Integrity**
++Full test pass required (Snapshot 2 equivalence).
+ 
+-Gate C: Test Suite Integrity
++**Gate E: Governance Integrity**
++Run governance-leak scanner (Section 5) and constitutional lint.
+ 
+-Full pass required.
+-
+-Gate E: Governance Integrity
+-
+-Run scanner + lint.
+-
+-Gate F: Deterministic Replay
+-
+-Call replay engine (Section 11).
++**Gate F: Deterministic Replay**
++Call replay engine (Section 11) using reference mission contract.
+ 
+ Failure at ANY gate triggers rollback engine.
+ 
+ 11. REPLAY ENGINE
+ 
+-The replay engine MUST freeze:
+-
+-RNG
++The replay engine MUST NOT rely on abstract "freezing" of the host OS. Instead, it MUST use **Deterministic Abstraction Layers** and **Metadata Assertions**:
+ 
+-Time
++11.1 Controlled Inputs
+ 
+-CPU microcode
++- **RNG Seed**: Fixed to `0xDEADBEEF`.
++- **System Time**: Mocked to `2025-01-01T00:00:00Z`.
++- **Environment**: Allowlist only (scrubbed of PATH drift).
++- **Filesystem**: Mocked or Read-Only Overlay with deterministic inode sorting.
+ 
+-NUMA topology
++11.2 Comparison Surface
+ 
+-Filesystem type
++The replay engine compares the following artefacts:
+ 
+-Kernel
++| Artefact | Path | Format |
++|----------|------|--------|
++| Mission Output | `coo/manifests/mission_output.json` | JSON |
++| Gate Results | `coo/manifests/gate_results.json` | JSON |
++| Amendment Log | `coo/manifests/amendment_log.json` | JSON |
++| Scanner Report | `coo/manifests/scanner_report.json` | JSON |
+ 
+-PID
++11.3 Normalization Algorithm
+ 
+-Env vars
++Before byte-comparison, each artefact MUST be normalized using this algorithm:
+ 
+-Reference missions
++```python
++import json
++from datetime import datetime
+ 
+-Open FDs
++MASKED_FIELDS = ["timestamp", "created_at", "updated_at", "pid", "ppid", "hostname"]
++STABLE_REPLACEMENT = "<MASKED>"
+ 
+-Replay harness MUST:
++def normalize_artefact(data: dict) -> str:
++    """Produce canonical, comparable string from artefact."""
++    def mask_fields(obj):
++        if isinstance(obj, dict):
++            return {k: (STABLE_REPLACEMENT if k in MASKED_FIELDS else mask_fields(v)) 
++                    for k, v in obj.items()}
++        elif isinstance(obj, list):
++            return [mask_fields(item) for item in obj]
++        else:
++            return obj
++    
++    masked = mask_fields(data)
++    # Canonical JSON: sorted keys, no whitespace variation
++    return json.dumps(masked, sort_keys=True, separators=(',', ':'))
+ 
+-Execute reference mission
++def artefacts_equal(a1: dict, a2: dict) -> bool:
++    return normalize_artefact(a1) == normalize_artefact(a2)
++```
+ 
+-Capture outputs
++Normalized artefacts are written to `coo/manifests/normalized/` for audit purposes.
++**Retention Policy**: This directory is **ephemeral**. It MUST be git-ignored and cleaned up after verification.
+ 
+-Re-execute
++11.4 Verification
+ 
+-Byte-compare
++After normalization, outputs MUST be byte-identical. Any difference is a replay failure.
+ 
+-Outputs MUST be identical.
++12. ROLLBACK ENGINE & MANUAL CONFIRMATION CONTRACT
+ 
+-12. ROLLBACK ENGINE
++12.1 Manual Confirmation Specification
+ 
+-Rollback MUST:
+-
+-Restore filesystem snapshot
+-
+-Restore DB dump
++- **Algorithm**: Human-in-the-loop confirmation.
++- **Mechanism**: The Runtime MUST pause execution and await explicit user confirmation before applying any rollback.
++- **Input Channel**: CLI prompt ("Type 'CONFIRM_ROLLBACK' to proceed") or presence of `CONFIRM_ROLLBACK` file in the runtime root.
+ 
+-Restore sandbox digest
++12.2 Verification
+ 
+-Restore manifests
++Before applying rollback:
++1. Runtime detects rollback condition (Gate Failure or Snapshot Mismatch).
++2. Runtime halts and requests confirmation.
++3. Runtime validates input matches `CONFIRM_ROLLBACK` exactly.
++4. If invalid: **HALT** with `RollbackAbortedException`.
+ 
+-Restore environment lock
++12.3 Rollback Operations
+ 
+-Verify CEO signature on AMU₀
+-
+-Rollback count rules MUST be implemented:
++Rollback MUST:
+ 
+-1 automatic rollback allowed
++1. Restore filesystem snapshot from AMU₀
++2. Restore DB dump from AMU₀
++3. Restore sandbox digest from AMU₀
++4. Restore all manifests from AMU₀
++5. Restore environment lock from AMU₀
+ 
+-Further rollbacks require CEO authorization
++12.5 Rollback Count Rules
+ 
+-Rollback MUST be deterministic.
++- 1 automatic request allowed per migration attempt.
++- Rollback MUST be deterministic.
+ 
+ 13. LOGGING
+ 
+ Antigravity MUST implement deterministic log formats with:
+ 
+-sequence_id
+-
+-config SHA256
+-
+-environment SHA256
+-
+-FSM transitions
+-
+-DB transaction logs
+-
+-Gate results
+-
+-Replay results
+-
+-Rollback logs
++- sequence_id
++- config SHA256
++- environment SHA256
++- FSM transitions
++- DB transaction logs
++- Gate results
++- Replay results
++- Rollback logs
+ 
+ Logs MUST be immutable and sorted.
+ 
+@@ -445,37 +506,38 @@ MUST be included in final migration bundle.
+ 
+ Contains:
+ 
+-All logs
+-
+-Diff files
+-
+-Manifests
+-
+-Checksums
+-
+-Replay results
+-
+-Gate summaries
++- All logs
++- Diff files
++- Manifests
++- Checksums
++- Replay results
++- Gate summaries
+ 
+ 15. PROHIBITED ACTIONS
+ 
+ Antigravity MUST NOT:
+ 
+-Interpret governance logic
+-
+-Infer missing intent
+-
+-Skip steps
+-
+-Execute nondeterministic sequences
+-
+-Use heuristics
+-
+-Allow environment drift
+-
+-Allow sandbox rebuilds during Freeze
+-
+-Allow deletion outside declared directories
++- Interpret governance logic
++- Infer missing intent
++- Skip steps
++- Execute nondeterministic sequences
++- Use heuristics
++- Allow environment drift
++- Allow sandbox rebuilds during Freeze
++- Allow deletion outside declared directories
++
++16. PHASE 4 P0 IMPLEMENTATION CHECKLIST (DOCUMENT-ONLY)
++
++The following modules MUST be implemented in dependency order:
++
++1. **`logging.py`**: Deterministic JSON logger with secret scrubbing.
++2. **`manifests/`**: Environment, Tools, and Hardware discovery scripts.
++3. **`amendment_engine.py`**: Deterministic anchoring via Clause IDs.
++4. **`governance_leak_scanner.py`**: Pattern-matching scanner with pinned ruleset.
++5. **`freeze.py`**: Quiescence and AMU₀ capture logic.
++6. **`migration.py`**: Atomic 5-step repo unification sequence.
++7. **`gates.py`**: Gate A-F verification sequence.
++8. **`replay.py`**: Execution under frozen RNG/Time with byte-comparison.
++9. **`rollback.py`**: Verified restoration from AMU₀.
+ 
+ END OF IMPLEMENTATION PACK v1.0
+-
+diff --git a/docs/INDEX.md b/docs/INDEX.md
+index 3e70732..513b4f6 100644
+--- a/docs/INDEX.md
++++ b/docs/INDEX.md
+@@ -1,4 +1,4 @@
+-# LifeOS Documentation Index — Last Updated: 2026-01-07T10:25+11:00
++# LifeOS Documentation Index — Last Updated: 2026-01-07T17:30+11:00
+ **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
+ 
+ ---
+@@ -43,6 +43,7 @@ LifeOS Constitution v2.0 (Supreme)
+ | [LifeOS_Constitution_v2.0.md](./00_foundations/LifeOS_Constitution_v2.0.md) | **Supreme governing document** — Raison d'être, invariants, principles |
+ | [Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md) | Anti-failure mechanisms, human preservation, workflow constraints |
+ | [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
++| [Tier_Definition_Spec_v1.1.md](./00_foundations/Tier_Definition_Spec_v1.1.md) | **Canonical** — Tier progression model, definitions, and capabilities |
+ | [ARCH_Future_Build_Automation_Operating_Model_v0.2.md](./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md) | **Architecture Proposal** — Future Build Automation Operating Model v0.2 |
+ 
+ ---
+@@ -68,11 +69,13 @@ LifeOS Constitution v2.0 (Supreme)
+ |----------|---------|
+ | [COO_Expectations_Log_v1.0.md](./01_governance/COO_Expectations_Log_v1.0.md) | Working preferences and behavioral refinements |
+ | [Antigrav_Output_Hygiene_Policy_v0.1.md](./01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md) | Output path rules for Antigravity |
++| [OpenCode_First_Stewardship_Policy_v1.1.md](./01_governance/OpenCode_First_Stewardship_Policy_v1.1.md) | **Mandatory** OpenCode routing for in-envelope docs |
+ 
+ ### Active Rulings
+ | Document | Purpose |
+ |----------|---------|
+-| [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md](./01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md) | **ACTIVE** — OpenCode Document Steward CT-2 Phase 2 Activation |
++| [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](./01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md) | **ACTIVE** — OpenCode Document Steward CT-2 Phase 2 Activation |
++| [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md) | **ACTIVE** — OpenCode-First Doc Stewardship Adoption |
+ | [Council_Ruling_Build_Handoff_v1.0.md](./01_governance/Council_Ruling_Build_Handoff_v1.0.md) | **Approved**: Build Handoff Protocol v1.0 activation-canonical |
+ | [Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md](./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md) | **Active**: Reactive Task Layer v0.1 Signoff |
+ | [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
+diff --git a/docs/LifeOS_Strategic_Corpus.md b/docs/LifeOS_Strategic_Corpus.md
+index 4fbcc33..bc0879a 100644
+--- a/docs/LifeOS_Strategic_Corpus.md
++++ b/docs/LifeOS_Strategic_Corpus.md
+@@ -1,5 +1,5 @@
+ # ⚡ LifeOS Strategic Dashboard
+-**Generated:** 2026-01-07 11:47
++**Generated:** 2026-01-07 18:57
+ **Current Tier:** Tier-2.5 (Activated)
+ **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
+ **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
+@@ -2564,7 +2564,7 @@ For a team starting from scratch, execute in this order:
+ 
+ ---
+ 
+-# File: 00_foundations/Tier_Definition_Spec_v1.0.md
++# File: 00_foundations/Tier_Definition_Spec_v1.1.md
+ 
+ *[Reference Pointer: See full text in Universal Corpus for implementation details]*
+ 
+@@ -3208,6 +3208,140 @@ The following are now **canonical and active**:
+ **END OF RULING**
+ 
+ 
++---
++
++# File: 01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md
++
++# Council Ruling: OpenCode Document Steward CT-2 Phase 2 — PASS (GO)
++
++**Ruling**: PASS (GO)  
++**Date**: 2026-01-07 (Australia/Sydney)  
++**Subject**: CT-2 Phase 2 (P0) — OpenCode Doc Steward Activation: Enforced Gate + Passage Fixes  
++**Bundle Accepted**: Bundle_CT2_Phase2_Passage_v2.4_20260107.zip  
++
++---
++
++## Scope Passed
++
++- Post-run git diff is the source of truth for enforcement.
++- Phase 2 envelope enforced (denylist-first, allowlist enforced, docs `.md`-only, `artifacts/review_packets/` add-only `.md`).
++- Structural ops blocked in Phase 2 (delete/rename/move/copy) derived from git name-status.
++- Packet discovery remains explicit `packet_paths` only (no convention fallback).
++- Symlink defense is fail-closed (git index mode + filesystem checks; unverifiable => BLOCK).
++- CI diff acquisition is fail-closed with explicit reason codes.
++- Evidence contract satisfied:
++  - deterministic artefact set produced (exit_report, changed_files, classification, runner.log, hashes)
++  - truncation footer is machine-readable (cap/observed fields present)
++  - no ellipses (`...` / `…`) appear in evidence-captured outputs
++- Passage evidence bundles included in the accepted bundle (PASS + required BLOCK cases) with hashes.
++
++## Non-goals Confirmed
++
++- No override mechanism introduced.
++- No expansion of activation envelope.
++- No permission for delete/rename/move in Phase 2.
++
++## Recordkeeping
++
++- The accepted bundle is archived under the canonical stewardship evidence root: `artifacts/ct2/Bundle_CT2_Phase2_Passage_v2.4_20260107.zip`.
++- Timestamps in `exit_report.json` are operationally accepted; byte-for-byte reproducibility across reruns is not required for this passage.
++
++---
++
++## Sign-Off
++
++**Chair (Architect/Head of Dev/Head of Testing)** — APPROVED FOR PASSAGE  
++**Date**: 2026-01-07 (Australia/Sydney)
++
++---
++
++**END OF RULING**
++
++
++---
++
++# File: 01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.0.md
++
++# Council Ruling: OpenCode-First Doc Stewardship Policy (Phase 2) — PASS (GO)
++
++**Ruling**: PASS (GO)  
++**Date**: 2026-01-07  
++**Subject**: Adoption of "OpenCode-First Doc Stewardship" Routing Mandate  
++**Related Policy**: [OpenCode_First_Stewardship_Policy_v1.0.md](./OpenCode_First_Stewardship_Policy_v1.0.md)  
++**Related Protocol**: [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](../03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md)  
++
++---
++
++## Decision Summary
++
++The Council approves the adoption of the **OpenCode-First Doc Stewardship** policy. This mandate requires Antigravity to route all documentation changes that fall within the authorized CT-2 Phase 2 envelope through the OpenCode steward and its associated audit gate.
++
++## Rationale
++
++- **Risk Reduction**: Eliminates ambiguity in documentation routing.
++- **Auditability**: Ensures all eligible changes produce standardized, high-quality evidence bundles (v2.4+ hygiene).
++- **Consistency**: Prevents drift between manual and agentic stewardship processes.
++
++## Impact
++
++- Antigravity MUST now route in-envelope doc changes through `scripts/opencode_ci_runner.py`.
++- Any attempt to bypass this for in-envelope changes will be flagged as a process failure.
++- Out-of-envelope changes continue to require explicit Council rulings.
++
++---
++
++## Sign-Off
++
++**Chair (Architect/Head of Dev/Head of Testing)** — APPROVED FOR ADOPTION  
++**Date**: 2026-01-07  
++
++---
++
++**END OF RULING**
++
++
++---
++
++# File: 01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md
++
++# Council Ruling: OpenCode-First Doc Stewardship Policy (Phase 2) — v1.1
++
++**Ruling**: PASS (GO)
++**Date**: 2026-01-07
++**Subject**: Adoption of "OpenCode-First Doc Stewardship" Routing Mandate
++**Related Policy**: [OpenCode_First_Stewardship_Policy_v1.1.md](./OpenCode_First_Stewardship_Policy_v1.1.md)
++**Related Protocol**: [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](../03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md) (Section 7.3)
++
++---
++
++## Decision Summary
++
++The Council approves the adoption of the **OpenCode-First Doc Stewardship** policy (v1.1). This mandate, hardened for mechanical auditability, requires Antigravity to route all documentation changes within the authorized CT-2 Phase 2 envelope through the OpenCode steward and its associated audit gate.
++
++## Rationale
++
++- **Mechanical Auditability**: Eliminates ambiguity in documentation routing via explicit envelope checks.
++- **Evidence Quality**: Ensures all eligible changes produce standardized, no-ellipsis evidence bundles.
++- **Governance Integrity**: Explicitly separates protected surfaces (councils-only) from steward surfaces.
++
++## Scope & Implementation
++
++- **Rule**: Antigravity MUST route in-envelope doc changes through `scripts/opencode_ci_runner.py`.
++- **Demo Validated**: Demonstration run on `docs/08_manuals/Governance_Runtime_Manual_v1.0.md` passed with a complete evidence bundle.
++- **Mechanical Inputs**: Authoritative spec SHAs recorded in the Implementation Report.
++
++---
++
++## Sign-Off
++
++**Chair (Architect/Head of Dev/Head of Testing)** — APPROVED FOR ACTIVATION
++**Date**: 2026-01-07
++
++---
++
++**END OF RULING**
++
++
+ ---
+ 
+ # File: 01_governance/DOC_STEWARD_Constitution_v1.0.md
+@@ -3418,6 +3552,10 @@ Changes to this constitution require:
+ - [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md)
+ - [Tier1_Tier2_Activation_Ruling_v0.2.md](./Tier1_Tier2_Activation_Ruling_v0.2.md) (Active)
+ - [Council_Review_Stewardship_Runner_v1.0.md](./Council_Review_Stewardship_Runner_v1.0.md) (Approved)
++- [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md](./Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md) (Superseded by v1.1)
++- [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](./Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md) (Active; Hardened Gate)
++- [OpenCode_First_Stewardship_Policy_v1.1.md](./OpenCode_First_Stewardship_Policy_v1.1.md) (Active)
++- [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./Council_Ruling_OpenCode_First_Stewardship_v1.1.md) (Active)
+ 
+ ### Sign-Offs (Closed Amendments)
+ - [AUR_20260105 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)
+@@ -3462,6 +3600,125 @@ Logs are append-only during a run. The `run_id` ties all entries together.
+ For governance audits, the complete log for a run provides deterministic replay evidence.
+ 
+ 
++---
++
++# File: 01_governance/OpenCode_First_Stewardship_Policy_v1.0.md
++
++# Policy: OpenCode-First Doc Stewardship (Phase 2 Envelope) v1.0
++
++**Status**: Active  
++**Authority**: LifeOS Governance Council  
++**Date**: 2026-01-07  
++
++---
++
++## 1. Purpose
++This policy reduces drift and eliminates ambiguity in the LifeOS documentation lifecycle by making OpenCode the mandatory default steward for all changes within its authorized Phase 2 envelope. By enforcing this routing, the repository ensures that all eligible documentation updates are processed through the CT-2 gate, producing deterministic evidence bundles for audit.
++
++## 2. Definitions
++- **"Phase 2 Doc-Steward Envelope"**: The set of patterns and constraints currently authorized for the OpenCode Document Steward, as defined in the following canonical sources:
++  - **Runner**: [scripts/opencode_ci_runner.py](file:///c:/Users/cabra/Projects/LifeOS/scripts/opencode_ci_runner.py)
++  - **Policy**: [scripts/opencode_gate_policy.py](file:///c:/Users/cabra/Projects/LifeOS/scripts/opencode_gate_policy.py)
++  - **Ruling**: [docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](file:///c:/Users/cabra/Projects/LifeOS/docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md)
++- **"In-envelope doc change"**: Any modification that the CT-2 gate would classify as ALLOWED. Specifically:
++  - Targets the `docs/` subtree (excluding protected roots).
++  - Uses only `.md` extensions.
++  - Does not involve structural operations (delete, rename, move, copy).
++  - Does not touch denylisted roots (`docs/00_foundations/`, `docs/01_governance/`, `scripts/`, `config/`).
++
++## 3. Default Routing Rule (MUST)
++For any in-envelope documentation change (including index updates and doc propagation tasks), Antigravity **MUST**:
++1. **Invoke OpenCode** to perform the stewardship edit(s).
++2. **Run the CT-2 gate runner** (`scripts/opencode_ci_runner.py`) to validate the change.
++3. **Produce and retain** the full CT-2 evidence bundle outputs (including `exit_report.json`, `changed_files.json`, `classification.json`, `runner.log`, and `hashes.json`).
++
++## 4. Explicit Exceptions (MUST, fail-closed)
++- **Out-of-envelope changes**: If a change involves denylisted/protected surfaces, non-`.md` files, or structural operations, Antigravity **MUST NOT** attempt OpenCode stewardship. It **MUST BLOCK** the operation, emit a minimal "blocked report", and generate a governance packet request per repository convention.
++- **Structural operations**: Deletions, renames, moves, and copies are strictly blocked in Phase 2. Antigravity **MUST BLOCK** and report these attempts.
++- **System unavailability**: If OpenCode, the gate runner, or critical CI references are unavailable, Antigravity **MUST BLOCK** and return detailed diagnostics and next-action instructions. Bypassing the gate is forbidden.
++
++## 5. Mixed Changes Rule (docs + code)
++In mission blocks containing both documentation and code edits:
++- Documentation edits that fall within the Phase 2 envelope **MUST** be executed via OpenCode stewardship and satisfy CT-2 evidence requirements.
++- Code changes must follow standard build/test/verification gates as defined in their respective protocols.
++
++## 6. Evidence and Audit Requirements (MUST)
++All mandated stewardship runs must provide deterministic capture of:
++- Full file list of modified artifacts.
++- Explicit classification decisions (A/M/D).
++- Precise reason codes for any BLOCK decisions.
++- SHA-256 hashes of all inputs and outputs.
++- No-ellipsis outputs as enforced by the CT-2 passage fixes (v2.4).
++
++## 7. Adoption and Enforcement
++Antigravity’s own operating protocols (including F7) are binding to this policy. Any documentation update performed outside this routing without explicit Council waiver is treated as a process failure and requires immediate remediation and audit.
++
++---
++
++**Signed**,  
++LifeOS Governance Council
++
++
++---
++
++# File: 01_governance/OpenCode_First_Stewardship_Policy_v1.1.md
++
++# Policy: OpenCode-First Doc Stewardship (Phase 2 Envelope) v1.1
++
++**Status**: Active  
++**Authority**: LifeOS Governance Council  
++**Date**: 2026-01-07  
++**Activated by**: [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./Council_Ruling_OpenCode_First_Stewardship_v1.1.md)
++
++---
++
++## 1. Purpose
++This policy reduces drift and eliminates ambiguity in the LifeOS documentation lifecycle by making OpenCode the mandatory default steward for all changes within its authorized Phase 2 envelope. By enforcing this routing, the repository ensures that all eligible documentation updates are processed through the CT-2 gate, producing deterministic evidence bundles for audit.
++
++## 2. Definitions
++- **"Phase 2 Doc-Steward Envelope"**: The set of patterns and constraints currently authorized for the OpenCode Document Steward, as defined in:
++  - **Runner**: `scripts/opencode_ci_runner.py`
++  - **Policy**: `scripts/opencode_gate_policy.py`
++  - **Ruling**: `docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md`
++- **"In-envelope doc change"**: Any modification that the CT-2 gate would classify as ALLOWED. Specifically:
++  - Targets the `docs/` subtree (excluding protected roots).
++  - Uses only `.md` extensions.
++  - Does not involve structural operations (delete, rename, move, copy).
++  - Does not touch denylisted roots (`docs/00_foundations/`, `docs/01_governance/`, `scripts/`, `config/`).
++
++## 3. Default Routing Rule (MUST)
++For any in-envelope documentation change (including index updates and doc propagation tasks), Antigravity **MUST**:
++1. **Invoke OpenCode** to perform the stewardship edit(s).
++2. **Run the CT-2 gate runner** (`scripts/opencode_ci_runner.py`) to validate the change.
++3. **Produce and retain** the full CT-2 evidence bundle outputs.
++
++## 4. Explicit Exceptions (MUST, fail-closed)
++- **Out-of-envelope changes**: If a change involves denylisted/protected surfaces, non-`.md` files, or structural operations, Antigravity **MUST NOT** attempt OpenCode stewardship. It **MUST BLOCK** the operation, emit a "Blocked Report", and generate a "Governance Request" per:
++  - **Templates**: `docs/02_protocols/templates/`
++- **Structural operations**: Deletions, renames, moves, and copies are strictly blocked in Phase 2. Antigravity **MUST BLOCK** and report these attempts.
++
++## 5. Mixed Changes Rule (docs + code)
++In mission blocks containing both documentation and code edits:
++- Documentation edits that fall within the Phase 2 envelope **MUST** be executed via OpenCode stewardship.
++- Code changes follow standard build/test/verification gates.
++
++## 6. Evidence and Audit Requirements (MUST)
++All mandated stewardship runs must provide deterministic capture of:
++- Full file list of modified artifacts.
++- Explicit classification decisions (A/M/D).
++- Precise reason codes for any BLOCK decisions.
++- SHA-256 hashes of all inputs and outputs.
++- No-ellipsis outputs enforced by CT-2 v2.4+ hygiene.
++
++## 7. Adoption and Enforcement
++Antigravity’s own operating protocols (including F7) are binding to this policy. Any documentation update performed outside this routing without explicit Council waiver is treated as a process failure.
++
++---
++
++**Signed**,  
++LifeOS Governance Council
++
++
+ ---
+ 
+ # File: 01_governance/PLATFORM_POLICY.md
+@@ -6847,6 +7104,54 @@ _frontmatter_template: |
+ *[Reference Pointer: See full text in Universal Corpus for implementation details]*
+ 
+ 
++---
++
++# File: 02_protocols/templates/blocked_report_template_v1.0.md
++
++# Template: Blocked Report v1.0
++
++---
++artifact_id: ""  # Generate UUID v4
++artifact_type: "REVIEW_PACKET"
++schema_version: "1.0.0"
++created_at: ""   # ISO 8601
++author: "Antigravity"
++version: "1.0"
++status: "DRAFT"
++tags: ["blocked", "gate-violation", "fail-closed"]
++---
++
++## Executive Summary
++This execution was halted by the security gate due to an envelope violation or environmental failure. No changes were applied to the repository.
++
++## Gate Context
++- **Gate Runner**: `scripts/opencode_ci_runner.py`
++- **Gate Policy**: `scripts/opencode_gate_policy.py`
++- **Current Branch**: `[GIT_BRANCH]`
++- **Merge Base**: `[GIT_MERGE_BASE]`
++
++## Block Details
++| Field | Value |
++| :--- | :--- |
++| **Reason Code** | `[REASON_CODE]` |
++| **Violating Path** | `[PATH]` |
++| **Classification** | `[A/M/D]` |
++| **Envelope Requirement** | `[REQUIREMENT_EXPLANATION]` |
++
++## Diagnostics
++```text
++[UNELIDED_GATE_LOG_OR_ERROR_TRACE]
++```
++
++## Next Actions
++- [ ] If out-of-envelope: Submit a Governance Packet Request.
++- [ ] If structural op: Re-structure changes to avoid delete/rename in Phase 2.
++- [ ] If environmental failure: Escalate to CEO for CI/ref repair.
++
++---
++**END OF REPORT**
++
++
+ ---
+ 
+ # File: 02_protocols/templates/doc_draft_template.md
+@@ -7049,6 +7354,48 @@ tags: []
+ *This gap analysis was created under LifeOS Build Artifact Protocol v1.0.*
+ 
+ 
++---
++
++# File: 02_protocols/templates/governance_request_template_v1.0.md
++
++# Template: Governance Request v1.0
++
++---
++artifact_id: ""  # Generate UUID v4
++artifact_type: "DOC_DRAFT"
++schema_version: "1.0.0"
++created_at: ""   # ISO 8601
++author: "Antigravity"
++version: "1.0"
++status: "DRAFT"
++tags: ["governance", "out-of-envelope", "council-review"]
++---
++
++## Executive Summary
++Formal request for Council review of out-of-envelope changes that cannot be stewarded via OpenCode.
++
++## Target Document
++- **Path**: `[PATH_TO_PROTECTED_DOC]`
++- **Change Type**: `[ADDITIVE/MODIFYING/REPLACING]`
++
++## Governance Rationale
++- **Reason for Out-of-Envelope**: `[e.g., Target in docs/01_governance, Non-MD file, Structural Op]`
++- **Policy Reference**: `[POLICY_NAME_AND_VERSION]`
++- **Urgency**: `[LOW/MEDIUM/HIGH]`
++
++## Draft Content
++```markdown
++[PROPOSED_CHANGES_IN_FLATTENED_FORMAT]
++```
++
++## Dependencies
++- [ ] Related Council Ruling: `[PATH]`
++- [ ] Related Plan: `[PATH]`
++
++---
++**END OF REQUEST**
++
++
+ ---
+ 
+ # File: 02_protocols/templates/plan_template.md

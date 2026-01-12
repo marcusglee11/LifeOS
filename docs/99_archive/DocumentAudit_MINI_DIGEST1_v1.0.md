@@ -22,7 +22,7 @@ MINI DIGEST LOG — INGESTED FILES (RAW INDEX)
 
 1. LifeOS / Governance Layer
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\Governance\
+Path: docs\Governance\
 
 Constitutional Core
 
@@ -114,7 +114,7 @@ Governance Load Balancer v1.0.md — Governance Routing Infrastructure
 
 2. LifeOS / Specs Layer
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\Specs\
+Path: docs\Specs\
 
 Alignment_Layer_v1.4.md — Alignment (Newer Variant)
 
@@ -128,7 +128,7 @@ LifeOS v1.0 — Full Specification.md — Constitutional Evolution Line
 
 3. LifeOS / Concept
 
-Path: C:\Users\cabra\Projects\LifeOS\Concept\
+Path: Concept\
 
 Distilled Opus Abstract.md — Conceptual Audit
 
@@ -138,25 +138,25 @@ Opus LifeOS Audit Prompt 2 and Response.md — External Audit
 
 4. LifeOS / Pipelines
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\pipelines\outward-facing\
+Path: docs\pipelines\outward-facing\
 
 Combined_Pipeline_For_Outward_Facing_Product_Generation_v1.md — Externalisation Pipeline
 
 5. LifeOS / CommunicationsProtocols
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\CommunicationsProtocols\
+Path: docs\CommunicationsProtocols\
 
 Communication_Protocol_v1.md — Protocol Layer
 
 6. LifeOS / Runtime
 
-Path: C:\Users\cabra\Projects\LifeOS\docs\Runtime\
+Path: docs\Runtime\
 
 Runtime–Subsystem Builder Interface v1.0.md — Runtime ↔ PB Bridge
 
 7. LifeOS / CSO Strategic Layer
 
-Path: C:\Users\cabra\Projects\LifeOS\CSO Strategic Layer\
+Path: CSO Strategic Layer\
 
 ChatGPTProjectPrimer.md — Ops Primer
 
@@ -168,13 +168,13 @@ Intent Routing Rule v1.0.md — Routing Layer (Mirror)
 
 8. LifeOS / Productisation
 
-Path: C:\Users\cabra\Projects\LifeOS\Productisation\
+Path: Productisation\
 
 PRODUCTISATION BRIEF v1.md — Product Strategy
 
 9. COOProject / coo-agent / docs / specs
 
-Path: C:\Users\cabra\Projects\COOProject\coo-agent\docs\specs\
+Path: [LOCAL]\\Projects\COOProject\coo-agent\docs\specs\
 
 COO_RUNTIME_SPECIFICATION_v1.0.md — Runtime Core Spec
 
@@ -184,7 +184,7 @@ IMPLEMENTATION PACKET v1.0.md — Runtime Implementation Contract
 
 10. COOProject / coo-agent / docs / governance
 
-Path: C:\Users\cabra\Projects\COOProject\coo-agent\docs\governance\
+Path: [LOCAL]\\Projects\COOProject\coo-agent\docs\governance\
 
 Judiciary_v1.0.md — Runtime-level Judiciary Integration Packet
 
@@ -192,7 +192,7 @@ Judiciary_v1.0_Verdict_Template.md — Mirror of Global Verdict Template
 
 11. COOProject / coo-agent / docs / project_builder
 
-Path: C:\Users\cabra\Projects\COOProject\coo-agent\docs\project_builder\
+Path: [LOCAL]\\Projects\COOProject\coo-agent\docs\project_builder\
 
 Antigravity_Implementation_Packet_v0_9_7.md — PB Implementation Contract
 
@@ -200,7 +200,7 @@ GPTCOO_v1_1_ProjectBuilder_v0_9_PatchedSpec.md — PB Spec (Patched)
 
 12. COOProject / coo-agent / docs (root)
 
-Path: C:\Users\cabra\Projects\COOProject\coo-agent\docs\
+Path: [LOCAL]\\Projects\COOProject\coo-agent\docs\
 
 Antigravity_Council_Review_Packet_Spec_v1.0.md — Council-PB Interface
 
@@ -239,3 +239,4 @@ COO_Project_Phase3_Status_Report.md — Status Snapshot
 LifeOS Core Specification v0.3.1.md — Historical Constitution
 
 GPTCOO_v1_1_ProjectBuilder_v0_9_FinalCleanSpec.md — PB Spec
+

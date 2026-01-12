@@ -1,0 +1,51 @@
+name: OpenCode CI Integration
+
+on:
+  workflow_dispatch:
+
+jobs:
+  validate-agent-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # allow push/commit
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: |
+          npm install -g opencode-ai
+          pip install requests
+
+      - name: Start OpenCode Server
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          opencode serve --port 4096 &
+          echo "Server started in background"
+
+      - name: Run CI Validation Script
+        run: python scripts/opencode_ci_runner.py --model google/gemini-2.0-flash-001
+        env:
+           # Explicitly passing environment just in case
+           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+      - name: Verify Commit and (Optional) Push
+        run: |
+           # The script verifies the commit locally.
+           # We can try to push to prove it works end-to-end, but we might need to reconcile remote.
+           # Since this is a test commit, we might NOT want to pollute the repo history permanently 
+           # on every test run. For now, we just verify local commit.
+           git log -1 --stat

@@ -1,0 +1,5 @@
+schema_version: "v1.0"
+enforcement_scope:
+  - "runtime/mission"
+  - "runtime/reactive"
+exemptions: []

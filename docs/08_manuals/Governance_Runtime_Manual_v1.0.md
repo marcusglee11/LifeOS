@@ -116,3 +116,6 @@ When changes are needed:
 - Update this manual (or create `governance_runtime_manual_v1.1.md`) with a short changelog.
 
 This preserves determinism and makes it possible to reproduce prior decisions and workflows.
+
+<!-- Demo stewardship update: 2026-01-07T14:28:00+11:00 -->
+

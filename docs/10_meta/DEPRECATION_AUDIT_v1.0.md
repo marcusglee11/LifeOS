@@ -78,7 +78,7 @@ These folders remain available for historical reference and selective re-promoti
 
 ### 3.1. governance-hub
 
-**Repository root:** `C:\Users\cabra\Projects\governance-hub\`
+**Repository root:** `[LOCAL]\\Projects\governance-hub\`
 
 #### 3.1.1. Prompt library duplication
 
@@ -109,7 +109,7 @@ Zipped prompt bundles:
 
 ### 3.2. COOProject
 
-**Repository root:** `C:\Users\cabra\Projects\COOProject\`  
+**Repository root:** `[LOCAL]\\Projects\COOProject\`  
 
 COOProject contains:
 
@@ -165,3 +165,5 @@ After Phase 1:
 - Anything under `/docs/99_archive/legacy_structures/` is a legacy layout that must not be used as a source of truth.
 - Any artefact that lives only in COOProject or governance-hub is **non-canonical** unless explicitly imported into `/docs` in a future phase.
 - Phase 2+ may promote selected external artefacts into `/docs` using strict `_vX.Y` naming and explicit index entries.
+
+

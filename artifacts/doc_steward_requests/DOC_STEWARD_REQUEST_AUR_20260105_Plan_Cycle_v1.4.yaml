@@ -1,0 +1,35 @@
+---
+packet_id: "c6e5d4c3-b2a1-4098-7654-3c2d1e0f9a9c"
+packet_type: "DOC_STEWARD_REQUEST_PACKET"
+schema_version: "1.2"
+created_at: "2026-01-06T18:00:00Z"
+source_agent: "Antigravity"
+target_agent: "DocSteward"
+chain_id: "d1605e12-6488-45a5-8001-d21ab9c7a493"
+priority: "P1_HIGH"
+nonce: "f6e5d4c3-b2a1-4098-7654-3c2d1e0f9b9c"
+ttl_hours: 72
+mission_type: "AMENDMENT_PROPAGATION"
+scope_paths:
+  - "docs/INDEX.md"
+  - "docs/01_governance/INDEX.md"
+  - "docs/11_admin/LIFEOS_STATE.md"
+  - "docs/10_meta/CODE_REVIEW_STATUS_v1.0.md"
+instructions: "Propagate Plan Cycle v1.4 CLOSED sign-off. Update canonical schemas (CURRENT/v1.2). Mark deprecated bundles."
+constraints: "No file:/// URIs. No ellipses. Deterministic lists."
+---
+
+# Doc Steward Request: Propagate Plan Cycle v1.4
+
+## Goal
+Propagate the "CLOSED / GO" decision for the Plan Cycle v1.4 Amendment. Update canonical references and indexes.
+
+## Patch List (Deterministic)
+1. **Update Indexes**:
+   - `docs/INDEX.md`: Update timestamp. Add/Ensure `artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md` is linked in relevant section (or `01_governance/INDEX.md`).
+   - `docs/01_governance/INDEX.md`: Link the Sign-Off artifact.
+2. **Canonical References**:
+   - Update any "Current Schema" refs to `docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml`.
+   - Update `docs/11_admin/LIFEOS_STATE.md`: Mark `AUR_20260105` as CLOSED (Evidence: v1.4 Sign-Off).
+3. **Status Updates**:
+   - MARK `Bundle_AUR_20260105_Plan_Cycle_v1.0` through `v1.3` as SUPERSEDED in any tracking lists.

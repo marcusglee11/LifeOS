@@ -1,0 +1,108 @@
+================================================================================
+                  EXECUTION EVIDENCE — CT-2 FIX PACK
+================================================================================
+Generated: 2026-01-05T18:30:00+11:00
+Run By: Antigravity (Doc Steward Orchestrator)
+
+================================================================================
+RUN 1: POSITIVE SMOKE TEST — INDEX_UPDATE
+================================================================================
+
+Command: python scripts/delegate_to_doc_steward.py --mission INDEX_UPDATE --trial-type smoke_test --dry-run
+
+Output:
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: 87ef958d...)
+[ORCHESTRATOR] Mode: dry-run
+[ORCHESTRATOR] Request created: req_845b26456863
+[ORCHESTRATOR] Input refs: 1 files captured
+[ORCHESTRATOR] Session created: ses_472f787d5ffeF5uOKS6FDB6WYq
+[ORCHESTRATOR] Result status: SUCCESS
+[ORCHESTRATOR] Reason code: SUCCESS
+[ORCHESTRATOR] Files modified: 1
+[ORCHESTRATOR] Latency: 9521ms
+[ORCHESTRATOR] Verifier outcome: PASS
+[ORCHESTRATOR] Verifier summary: 0 errors, 50 warnings (post-change verified)
+[ORCHESTRATOR] Ledger entry: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-05_smoke_test_87ef958d.yaml
+
+============================================================
+RESULT: PASS
+Case ID: 87ef958d-0e1a-4210-82d6-4995269b6fc1
+Status: SUCCESS
+Reason: SUCCESS
+Verifier: PASS
+Latency: 9521ms
+Files modified: 1
+Ledger: artifacts/ledger/dl_doc/2026-01-05_smoke_test_87ef958d.yaml
+============================================================
+
+Exit code: 0
+
+================================================================================
+RUN 2: NEGATIVE TEST — MATCH COUNT MISMATCH
+================================================================================
+
+Command: python scripts/delegate_to_doc_steward.py --mission INDEX_UPDATE --trial-type neg_test --dry-run
+
+Output:
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: 0f509303...)
+[ORCHESTRATOR] Mode: dry-run
+[ORCHESTRATOR] Request created: req_c9a1f0aa44d7
+[ORCHESTRATOR] Input refs: 1 files captured
+[TEST] Injecting NEGATIVE TEST response with invalid hunk...
+[ORCHESTRATOR] Result status: FAILED
+[ORCHESTRATOR] Reason code: HUNK_MATCH_COUNT_MISMATCH
+[ORCHESTRATOR] Files modified: 1
+[ORCHESTRATOR] Latency: 0ms
+[ORCHESTRATOR] Verifier outcome: PASS
+[ORCHESTRATOR] Verifier summary: 0 errors, 0 warnings
+[ORCHESTRATOR] Ledger entry: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-05_neg_test_0f509303.yaml
+
+============================================================
+RESULT: FAIL
+Case ID: 0f509303-dc14-44ba-a51d-8cef5eaf03de
+Status: FAILED
+Reason: HUNK_MATCH_COUNT_MISMATCH
+Verifier: PASS
+Latency: 0ms
+Files modified: 1
+Ledger: artifacts/ledger/dl_doc/2026-01-05_neg_test_0f509303.yaml
+============================================================
+
+Exit code: 1
+
+================================================================================
+RUN 3: NEGATIVE TEST — OUTSIDE SCOPE PATHS
+================================================================================
+
+Command: python scripts/delegate_to_doc_steward.py --mission INDEX_UPDATE --trial-type neg_test_boundary --dry-run
+
+Output:
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: 23ca96a5...)
+[ORCHESTRATOR] Mode: dry-run
+[ORCHESTRATOR] Request created: req_185b5b56ef0a
+[ORCHESTRATOR] Input refs: 1 files captured
+[TEST] Injecting BOUNDARY TEST response with file outside scope_paths...
+[ORCHESTRATOR] Result status: FAILED
+[ORCHESTRATOR] Reason code: OUTSIDE_SCOPE_PATHS
+[ORCHESTRATOR] Files modified: 0
+[ORCHESTRATOR] Latency: 2ms
+[ORCHESTRATOR] Verifier outcome: PASS
+[ORCHESTRATOR] Verifier summary: 0 errors, 0 warnings
+[ORCHESTRATOR] Ledger entry: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-05_neg_test_boundary_23ca96a5.yaml
+
+============================================================
+RESULT: FAIL
+Case ID: 23ca96a5-457c-4964-91a3-48c05f53f61d
+Status: FAILED
+Reason: OUTSIDE_SCOPE_PATHS
+Verifier: PASS
+Latency: 2ms
+Files modified: 0
+Ledger: artifacts/ledger/dl_doc/2026-01-05_neg_test_boundary_23ca96a5.yaml
+============================================================
+
+Exit code: 1
+
+================================================================================
+                           END OF EXECUTION EVIDENCE
+================================================================================

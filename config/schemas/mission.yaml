@@ -1,0 +1,49 @@
+# JSON Schema for mission YAML validation
+# Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.3.1
+
+$schema: "http://json-schema.org/draft-07/schema#"
+type: object
+required:
+  - id
+  - name
+  - type
+  - steps
+properties:
+  id:
+    type: string
+    minLength: 1
+  name:
+    type: string
+    minLength: 1
+  type:
+    type: string
+    enum: [design, review, build, steward]
+  steps:
+    type: array
+    items:
+      type: object
+      required:
+        - operation
+      properties:
+        operation:
+          type: string
+        params:
+          type: object
+  envelope:
+    type: object
+    properties:
+      allowed_roles:
+        type: array
+        items:
+          type: string
+      allowed_paths:
+        type: array
+        items:
+          type: string
+      forbidden_paths:
+        type: array
+        items:
+          type: string
+  context:
+    type: object
+additionalProperties: true

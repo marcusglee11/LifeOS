@@ -1,0 +1,45 @@
+# Backlog Schema v1.0
+# ===================
+# Strict, fail-closed schema for mission synthesis.
+# No inference, no unknown fields, deterministic ordering.
+
+schema_version: "1.0"
+
+task:
+  required:
+    - id           # Unique identifier (string, alphanumeric + hyphen + underscore)
+    - description  # Human-readable task description (string, non-empty)
+    - priority     # P0 | P1 | P2 | P3 (enum)
+  optional:
+    - constraints      # List of constraint strings
+    - context_hints    # List of repo-relative paths (explicit only)
+    - owner            # Agent or human owner
+    - status           # TODO | IN_PROGRESS | DONE | BLOCKED
+    - due_date         # ISO 8601 date (optional)
+    - tags             # List of tag strings
+
+priority_order:
+  - P0  # Critical / Blocking
+  - P1  # High
+  - P2  # Normal
+  - P3  # Low
+
+validation_rules:
+  id:
+    pattern: "^[a-zA-Z0-9_-]+$"
+    max_length: 64
+  description:
+    min_length: 1
+    max_length: 2000
+  constraints:
+    max_items: 20
+    item_max_length: 500
+  context_hints:
+    max_items: 50
+    # Each hint must be repo-relative path, validated at runtime
+  
+fail_closed:
+  unknown_fields: HALT
+  invalid_priority: HALT
+  missing_required: HALT
+  invalid_id_format: HALT

@@ -1,0 +1,7 @@
+
+logging:
+  log_dir: "C:/Users/cabra/Projects/LifeOS/artifacts/evidence/logs"
+  streams_dir: "C:/Users/cabra/Projects/LifeOS/artifacts/evidence/logs/streams"
+validators:
+  commands:
+    - ["C:/Python312/python.exe", "C:/Users/cabra/Projects/LifeOS/artifacts/evidence/print_100.py"]

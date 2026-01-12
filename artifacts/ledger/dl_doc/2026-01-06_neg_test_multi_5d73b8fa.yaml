@@ -1,0 +1,65 @@
+case_id: 5d73b8fa-4e7b-40a1-8682-33003c88191e
+entry_type: neg_test_multi
+ledger: DL_DOC
+recorded_at: '2026-01-05T14:15:19.581319+00:00'
+request:
+  case_id: 5d73b8fa-4e7b-40a1-8682-33003c88191e
+  constraints:
+    allowed_paths:
+    - docs/
+    apply_writes: false
+    forbidden_paths:
+    - docs/00_foundations/
+    - docs/01_governance/
+    max_files: 10
+    mode: dry-run
+  input_refs:
+  - path: docs/ct2_fixture.md
+    sha256: d28516173ea423cd253b105f0d68d3d296d337633055e715203ff9d094ecde63
+  issued_at: '2026-01-05T14:15:19.575694+00:00'
+  issuer_role: ORCHESTRATOR
+  mission_type: INDEX_UPDATE
+  packet_id: req_e2ff00b65cd3
+  packet_type: DOC_STEWARD_REQUEST
+  scope_paths:
+  - docs/ct2_fixture.md
+result:
+  case_id: 5d73b8fa-4e7b-40a1-8682-33003c88191e
+  completed_at: '2026-01-05T14:15:19.576212+00:00'
+  diff_evidence_sha256: ''
+  files_modified:
+  - after_sha256: ''
+    before_sha256: d28516173ea423cd253b105f0d68d3d296d337633055e715203ff9d094ecde63
+    change_type: MODIFIED
+    description: ''
+    diff_sha256: ''
+    hunk_errors:
+    - 'Hunk 0: Match count mismatch - found 2, expected 1'
+    match_count_expected: 1
+    match_count_found: 2
+    path: docs/ct2_fixture.md
+  latency_ms: 0
+  packet_id: res_422ed28c9243
+  packet_type: DOC_STEWARD_RESULT
+  proposed_diffs: ''
+  reason_code: HUNK_MATCH_COUNT_MISMATCH
+  request_ref: req_e2ff00b65cd3
+  status: FAILED
+  steward_raw_response: '{"status": "SUCCESS", "files_modified": [{"path": "docs/ct2_fixture.md",
+    "change_type": "MODIFIED", "hunks": [{"search": "TARGET_BLOCK", "replace": "TARGET_BLOCK_MODIFIED",
+    "match_count_expected": 1}]}], "summary": "Simulated multi-match test with search
+    block appearing twice"}'
+  verifier_details:
+    findings_count: 0
+    passed: true
+    summary: 'SKIPPED: no proposed diffs to verify'
+  verifier_outcome: SKIPPED
+verifier_outcome:
+  details: {}
+  findings: []
+  findings_count: 0
+  findings_ref: ''
+  findings_ref_sha256: ''
+  findings_truncated: false
+  passed: true
+  summary: 'SKIPPED: no proposed diffs to verify'

@@ -31,3 +31,4 @@ A disciplined, low-friction framework for exploratory or conceptual dialogues. P
    Keep outputs small and bounded. Avoid surprising the user with unexpected scope or volume.
 
 ---
+

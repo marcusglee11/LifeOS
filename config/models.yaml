@@ -1,0 +1,37 @@
+# LifeOS Model Configuration
+# Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.1.5
+
+model_selection:
+  # Default fallback chain for roles without overrides
+  # Primaried to grok-4.1-fast per user instruction
+  # Fallback to minimax/minimax-m2.1 per user instruction
+  default_chain:
+    - "x-ai/grok-4.1-fast"
+    - "minimax/minimax-m2.1"
+  
+  # Role-specific model chains
+  role_overrides:
+    designer:
+      - "x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+    
+    reviewer_architect:
+      - "x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+    
+    builder:
+      - "x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+    
+    steward:
+      - "x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+
+# OpenRouter configuration
+openrouter:
+  base_url: "https://openrouter.ai/api/v1"
+  timeout_seconds: 120
+  retry:
+    max_attempts: 3
+    backoff_base_seconds: 1.0
+    backoff_multiplier: 2.0

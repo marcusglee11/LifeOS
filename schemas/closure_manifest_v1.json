@@ -1,0 +1,179 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "G-CBS Closure Manifest v1.0",
+    "type": "object",
+    "required": [
+        "schema_version",
+        "closure_id",
+        "closure_type",
+        "run_commit",
+        "created_at",
+        "commands",
+        "evidence",
+        "zip_sha256",
+        "invariants_asserted",
+        "profile",
+        "cycle_policy"
+    ],
+    "properties": {
+        "schema_version": {
+            "type": "string",
+            "const": "G-CBS-1.0"
+        },
+        "closure_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "closure_type": {
+            "type": "string",
+            "enum": [
+                "STEP_GATE_CLOSURE",
+                "COUNCIL_DONE",
+                "ACTIVATION",
+                "PROCESS_CLOSEOUT"
+            ]
+        },
+        "run_commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+        },
+        "created_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "commands": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "evidence": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "path",
+                    "sha256",
+                    "role"
+                ],
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "pattern": "^[^\\\\]+$"
+                    },
+                    "sha256": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "raw_log",
+                            "exit_code",
+                            "packet",
+                            "inventory",
+                            "ledger",
+                            "diff",
+                            "state",
+                            "other"
+                        ]
+                    }
+                }
+            }
+        },
+        "zip_sha256": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+        },
+        "invariants_asserted": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "profile": {
+            "type": "object",
+            "required": [
+                "name",
+                "version"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "cycle_policy": {
+            "type": "object",
+            "required": [
+                "max_cycles",
+                "disposition"
+            ],
+            "properties": {
+                "max_cycles": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "disposition": {
+                    "type": "string",
+                    "enum": [
+                        "STRICT",
+                        "WAIVER_ALLOWED"
+                    ]
+                }
+            }
+        },
+        "waiver": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "required": [
+                "waived_checks",
+                "rationale",
+                "risk_acceptance_owner",
+                "repayment_trigger"
+            ],
+            "properties": {
+                "waived_checks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rationale": {
+                    "type": "string"
+                },
+                "risk_acceptance_owner": {
+                    "type": "string"
+                },
+                "repayment_trigger": {
+                    "type": "string"
+                },
+                "debt_items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "reason_code": {
+                                "type": "string"
+                            },
+                            "score": {
+                                "type": "integer"
+                            },
+                            "description": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

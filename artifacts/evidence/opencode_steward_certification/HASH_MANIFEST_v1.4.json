@@ -1,0 +1,12 @@
+{
+    "manifest_version": "1.4",
+    "generated_at": "2026-01-07T00:30:00Z",
+    "artifacts": {
+        "scripts/opencode_ci_runner.py": "b40bcec1f0b2c08416b18cded7f64fbed545b9a5862ebc97c1f49667698f961a",
+        "scripts/run_certification_tests.py": "24ae855b0234b4d23b9229b880895de41840e309df7993e4edf392d0b90de7bd",
+        "artifacts/plans/Plan_OpenCode_Steward_Hardening_v1.4.md": "43c16ddc35a8f87b9b0f6f6eba12d63b439035d1b605d09a79446211d980b28c",
+        "artifacts/review_packets/CCP_OpenCode_Steward_Activation_CT2_Phase2.md": "67c612f2ecb45ff644d6000a214f0d44f4f4c33daab1ac700f4c5199dded7c79",
+        "artifacts/evidence/opencode_steward_certification/CERTIFICATION_REPORT_v1_4.json": "5ffa02ded22723fddbd383982dc653b32a10f149f9e0737d8f78c1828182a0ee"
+    },
+    "status": "APPROVED_FOR_COUNCIL"
+}

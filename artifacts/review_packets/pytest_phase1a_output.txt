@@ -1,0 +1,52 @@
+C:\Users\cabra\AppData\Roaming\Python\Python312\site-packages\pytest_asyncio\plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts =============================
+platform win32 -- Python 3.12.6, pytest-8.3.4, pluggy-1.5.0 -- C:\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\cabra\Projects\LifeOS
+configfile: pytest.ini
+plugins: anyio-4.7.0, asyncio-1.3.0, cov-6.2.1, mockito-0.0.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 37 items
+
+runtime/tests/test_run_controller.py::TestKillSwitch::test_kill_switch_not_present PASSED [  2%]
+runtime/tests/test_run_controller.py::TestKillSwitch::test_kill_switch_present PASSED [  5%]
+runtime/tests/test_run_controller.py::TestKillSwitch::test_mission_startup_halts_before_lock_when_kill_switch_present PASSED [  8%]
+runtime/tests/test_run_controller.py::TestKillSwitch::test_mission_startup_halts_after_lock_if_kill_switch_created_between_checks PASSED [ 10%]
+runtime/tests/test_run_controller.py::TestRunLock::test_acquire_lock_success PASSED [ 13%]
+runtime/tests/test_run_controller.py::TestRunLock::test_acquire_lock_fails_when_held PASSED [ 16%]
+runtime/tests/test_run_controller.py::TestRunLock::test_stale_lock_detection PASSED [ 18%]
+runtime/tests/test_run_controller.py::TestRunLock::test_release_lock_success PASSED [ 21%]
+runtime/tests/test_run_controller.py::TestRunLock::test_release_lock_fails_if_not_owner PASSED [ 24%]
+runtime/tests/test_run_controller.py::TestRepoClean::test_repo_clean_passes_on_clean_repo PASSED [ 27%]
+runtime/tests/test_run_controller.py::TestRepoClean::test_repo_dirty_raises_on_staged_changes PASSED [ 29%]
+runtime/tests/test_run_controller.py::TestRepoClean::test_repo_dirty_raises_on_untracked_files PASSED [ 32%]
+runtime/tests/test_run_controller.py::TestGitFailClosed::test_git_status_nonzero_returncode_raises_halt PASSED [ 35%]
+runtime/tests/test_run_controller.py::TestGitFailClosed::test_git_not_found_raises_halt PASSED [ 37%]
+runtime/tests/test_run_controller.py::TestGitFailClosed::test_git_rev_parse_failure_raises_halt PASSED [ 40%]
+runtime/tests/test_agent_api.py::TestCanonicalJson::test_deterministic_output PASSED [ 43%]
+runtime/tests/test_agent_api.py::TestCanonicalJson::test_sorted_keys PASSED [ 45%]
+runtime/tests/test_agent_api.py::TestCanonicalJson::test_no_whitespace PASSED [ 48%]
+runtime/tests/test_agent_api.py::TestCanonicalJson::test_utf8_encoding PASSED [ 51%]
+runtime/tests/test_agent_api.py::TestCanonicalJson::test_preserves_array_order PASSED [ 54%]
+runtime/tests/test_agent_api.py::TestCanonicalJson::test_rejects_nan_fail_closed PASSED [ 56%]
+runtime/tests/test_agent_api.py::TestCanonicalJson::test_rejects_infinity_fail_closed PASSED [ 59%]
+runtime/tests/test_agent_api.py::TestDeterministicIds::test_run_id_deterministic_stability PASSED [ 62%]
+runtime/tests/test_agent_api.py::TestDeterministicIds::test_run_id_changes_with_different_inputs PASSED [ 64%]
+runtime/tests/test_agent_api.py::TestDeterministicIds::test_call_id_deterministic_stability PASSED [ 67%]
+runtime/tests/test_agent_api.py::TestDeterministicIds::test_call_id_changes_with_different_role PASSED [ 70%]
+runtime/tests/test_agent_api.py::TestHashChainLogging::test_genesis_constant PASSED [ 72%]
+runtime/tests/test_agent_api.py::TestHashChainLogging::test_first_entry_uses_genesis PASSED [ 75%]
+runtime/tests/test_agent_api.py::TestHashChainLogging::test_chain_integrity PASSED [ 78%]
+runtime/tests/test_agent_api.py::TestHashChainLogging::test_chain_detects_tampering PASSED [ 81%]
+runtime/tests/test_baseline_governance.py::TestBaselineMissing::test_raises_when_baseline_missing PASSED [ 83%]
+runtime/tests/test_baseline_governance.py::TestBaselineMissing::test_error_includes_expected_path PASSED [ 86%]
+runtime/tests/test_baseline_governance.py::TestBaselineMismatch::test_raises_when_file_hash_mismatch PASSED [ 89%]
+runtime/tests/test_baseline_governance.py::TestBaselineMismatch::test_raises_when_file_missing PASSED [ 91%]
+runtime/tests/test_baseline_governance.py::TestBaselineMismatch::test_error_includes_resolution_options PASSED [ 94%]
+runtime/tests/test_baseline_governance.py::TestBaselineMismatch::test_mismatch_error_contains_full_hashes PASSED [ 97%]
+runtime/tests/test_baseline_governance.py::TestBaselineValid::test_passes_when_all_hashes_match PASSED [100%]
+
+============================= 37 passed in 0.84s ==============================

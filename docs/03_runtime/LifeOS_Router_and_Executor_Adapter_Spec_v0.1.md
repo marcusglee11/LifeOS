@@ -152,3 +152,4 @@ Executor.report() -> status/artefacts
 - How much of the router’s logic should live in code vs in specs.
 - How to avoid overcomplicating the adapter before an actual API exists.
 - How to surface mission and executor state back to the user in a clean way (dashboards, logs, etc.).
+

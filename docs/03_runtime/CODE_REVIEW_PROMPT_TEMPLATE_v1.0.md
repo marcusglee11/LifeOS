@@ -60,3 +60,4 @@ Provide:
 3. **Fix Plan:** concrete instructions tied to file paths  
 4. **Risk Commentary:** autonomy, recursion, error surface  
 5. **Track Alignment Assessment:** Core/Fuel/Plumbing correctness
+

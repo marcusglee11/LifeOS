@@ -1,0 +1,33 @@
+packet_type: COUNCIL_REVIEW_PACKET
+packet_id: 931109c1-7c83-4d59-9e12-78cba7aaa31e
+component_human_name: Build Handoff
+workstream_slug: build_handoff
+created_at: '2026-01-04T05:38:00.334300+00:00'
+artefact_under_review_ref: artifacts/review_packets/Review_Packet_Build_Handoff_v0.5.1.md
+state_ref: docs/11_admin/LIFEOS_STATE.md
+trigger_reasons:
+- trigger_id: CT-2
+  description: Touches governance-protected paths (GEMINI.md, Protocol docs)
+- trigger_id: CT-3
+  description: New gating script (check_readiness.py enforces preflight)
+scope_boundaries:
+  paths_touched:
+  - GEMINI.md
+  - docs/02_protocols/Build_Handoff_Protocol_v1.0.md
+  - docs/11_admin/LIFEOS_STATE.md
+  - artifacts/workstreams.yaml
+  protected_paths_policy_ref: config/governance/protected_artefacts.json
+required_decision_questions:
+- Approve Article XVII as written?
+- Approve Build_Handoff_Protocol_v1.0 as controlling protocol?
+- Confirm trigger classification CT-2 is correct and sufficient?
+- Approve deferral posture (scripts implemented, pytest fallback acceptable)?
+- Any mandatory amendments before activation?
+required_role_prompts_refs:
+- docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md
+- docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md
+- docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md
+- docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md
+council_procedure_refs:
+- docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md
+- docs/99_archive/legacy_structures/Specs/council/Council_Protocol_v1.0.md

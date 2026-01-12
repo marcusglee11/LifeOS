@@ -1,0 +1,20 @@
+{
+  "status": "BLOCK",
+  "reason_code": "DENYLIST_ROOT_BLOCKED",
+  "mode": "MOCK_PASSAGE",
+  "timestamp": "2026-01-07T14:01:33.769576",
+  "task": {
+    "files": [
+      "docs/00_foundations/policy.md"
+    ],
+    "action": "modify",
+    "instruction": "Update policy"
+  },
+  "blocked_entries": [
+    [
+      "docs/00_foundations/policy.md",
+      "M",
+      "DENYLIST_ROOT_BLOCKED"
+    ]
+  ]
+}

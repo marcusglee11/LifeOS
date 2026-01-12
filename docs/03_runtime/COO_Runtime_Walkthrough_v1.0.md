@@ -7,9 +7,9 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 1. Secret Scrubbing (`structlog` Integration)
 **Files Modified:**
-- [coo/logging_utils.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/logging_utils.py) - NEW
-- [coo/main.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/main.py)
-- [tests/unit/test_scrubbing.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/unit/test_scrubbing.py) - NEW
+- [coo/logging_utils.py](coo-agent/coo/logging_utils.py) - NEW
+- [coo/main.py](coo-agent/coo/main.py)
+- [tests/unit/test_scrubbing.py](coo-agent/tests/unit/test_scrubbing.py) - NEW
 
 **Implementation:**
 - Created `scrub_secrets` processor for `structlog` that redacts sensitive information from logs
@@ -23,8 +23,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 2. Timeline Events
 **Files Modified:**
-- [coo/message_store.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/message_store.py)
-- [coo/orchestrator.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/orchestrator.py)
+- [coo/message_store.py](coo-agent/coo/message_store.py)
+- [coo/orchestrator.py](coo-agent/coo/orchestrator.py)
 
 **Implementation:**
 - Added `log_timeline_event(mission_id, event_type, data)` method to `MessageStore`
@@ -41,8 +41,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 3. CLI Commands
 **Files Modified:**
-- [coo/cli.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/cli.py)
-- [tests/unit/test_cli.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/unit/test_cli.py) - NEW
+- [coo/cli.py](coo-agent/coo/cli.py)
+- [tests/unit/test_cli.py](coo-agent/tests/unit/test_cli.py) - NEW
 
 **Commands Implemented:**
 - `coo mission <id>` - Show mission details, budget, and recent timeline
@@ -61,8 +61,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 4. Approval Flow & CONTROL Messages
 **Files Modified:**
-- [coo/agents/real_agents.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/agents/real_agents.py)
-- [coo/cli.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/cli.py)
+- [coo/agents/real_agents.py](coo-agent/coo/agents/real_agents.py)
+- [coo/cli.py](coo-agent/coo/cli.py)
 
 **Implementation:**
 - `RealCOO` now intercepts `CONTROL` messages before calling LLM
@@ -76,8 +76,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 5. Backpressure Hard Pause
 **Files Modified:**
-- [coo/message_store.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/message_store.py)
-- [tests/unit/test_control_flow.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/unit/test_control_flow.py) - NEW
+- [coo/message_store.py](coo-agent/coo/message_store.py)
+- [tests/unit/test_control_flow.py](coo-agent/tests/unit/test_control_flow.py) - NEW
 
 **Implementation:**
 - Modified `claim_pending_messages` to exclude messages from paused missions
@@ -91,8 +91,8 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 6. Sandbox Crash Recovery
 **Files Modified:**
-- [coo/sandbox.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/sandbox.py)
-- [coo/orchestrator.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/coo/orchestrator.py)
+- [coo/sandbox.py](coo-agent/coo/sandbox.py)
+- [coo/orchestrator.py](coo-agent/coo/orchestrator.py)
 
 **Implementation:**
 - `recover_crashed_runs` marks stale sandbox runs as failed
@@ -105,7 +105,7 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 
 ### 7. Integration Testing
 **Files Created:**
-- [tests/integration/test_full_system.py](file:///c:/Users/cabra/Projects/COOProject/coo-agent/tests/integration/test_full_system.py) - NEW
+- [tests/integration/test_full_system.py](coo-agent/tests/integration/test_full_system.py) - NEW
 
 **Implementation:**
 - Full system integration test using `DummyAgents`
@@ -147,3 +147,4 @@ All unit tests pass (25 tests):
 
 ## Next Steps
 The only remaining task in Phase 4 is creating a README and operations guide for deployment and usage instructions.
+

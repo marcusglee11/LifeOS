@@ -1,0 +1,239 @@
+# ============================================================================
+# CONVERTED EXAMPLE: Stewardship Runner Council Review
+# ============================================================================
+# Original: Review_Packet_Stewardship_Runner_Council_v0.3.md
+# Converted to: REVIEW_PACKET (schema v1.0.0)
+# ============================================================================
+
+packet_id: "a1b2c3d4-e5f6-4789-abcd-ef0123456789"
+packet_type: "REVIEW"
+schema_version: "1.0.0"
+created_at: "2026-01-02T12:00:00Z"
+source_agent: "antigravity-builder"
+target_agent: "council-aggregator"
+chain_id: "steward-runner-v03-chain"
+parent_packet_id: "build-steward-runner-p0p1"
+priority: "P2_NORMAL"
+ttl_hours: null
+tags:
+  - "steward-runner"
+  - "council-prep"
+  - "allowlist-hardening"
+
+review_meta:
+  mission: "Council-Prep Fixes (P0/P1) + Allowlist Normalization Hardening"
+  build_packet_id: "build-steward-runner-p0p1"
+  status: "COMPLETE"
+  summary: "All P0/P1 fixes implemented plus hardened allowlist normalization. 20 acceptance tests pass."
+
+implementation:
+  fixes_implemented:
+    - fix_id: "P0-1"
+      severity: "P0_BLOCKER"
+      issue: "tests.paths not used in test command"
+      fix_description: "argv = command + paths"
+      verification: "AT-11"
+      status: "FIXED"
+      
+    - fix_id: "P0-2"
+      severity: "P0_BLOCKER"
+      issue: "Logs not gitignored"
+      fix_description: "Added logs/steward_runner/ to .gitignore"
+      verification: "Clean-start test"
+      status: "FIXED"
+      
+    - fix_id: "P1-1"
+      severity: "P1_CRITICAL"
+      issue: "Commit staging fails on deletions"
+      fix_description: "Changed to git add -A -- <roots>"
+      verification: "AT-07"
+      status: "FIXED"
+      
+    - fix_id: "P1-2"
+      severity: "P1_CRITICAL"
+      issue: "Allowlist prefix fragile"
+      fix_description: "Hardened normalize_commit_path() function"
+      verification: "AT-12, AT-13"
+      status: "FIXED"
+      
+    - fix_id: "P1-3"
+      severity: "P1_CRITICAL"
+      issue: "repo_root config key misleading"
+      fix_description: "Removed from config"
+      verification: "Config v0.2"
+      status: "FIXED"
+      
+    - fix_id: "NEW-1"
+      severity: "P1_CRITICAL"
+      issue: "Exact-file normalization bug"
+      fix_description: "Only bare names (no /) get trailing / added"
+      verification: "AT-12"
+      status: "FIXED"
+      
+    - fix_id: "NEW-2"
+      severity: "P1_CRITICAL"
+      issue: "Windows absolute paths not detected"
+      fix_description: "Added detection for C:\\ and \\\\server patterns"
+      verification: "AT-13"
+      status: "FIXED"
+      
+    - fix_id: "NEW-3"
+      severity: "P1_CRITICAL"
+      issue: "Path traversal check not segment-based"
+      fix_description: "Split path and check each segment for .."
+      verification: "AT-13"
+      status: "FIXED"
+
+  contracts:
+    - contract_name: "Commit Paths Contract"
+      description: "Rules for normalizing and validating commit_paths entries"
+      rules:
+        - "Directory prefixes end with / (e.g., docs/)"
+        - "Exact files have no trailing / (e.g., docs/INDEX.md)"
+        - "Bare names normalized to directory if no . (e.g., docs → docs/)"
+      fail_cases:
+        - pattern: "//server/share/"
+          error_reason: "absolute_path_unc"
+        - pattern: "/absolute/path/"
+          error_reason: "absolute_path_unix"
+        - pattern: "C:/temp/"
+          error_reason: "absolute_path_windows"
+        - pattern: "../docs/"
+          error_reason: "path_traversal"
+        - pattern: "docs/../other/"
+          error_reason: "path_traversal"
+        - pattern: "docs/*.md"
+          error_reason: "glob_pattern"
+        - pattern: "./docs/"
+          error_reason: "current_dir_segment"
+
+test_results:
+  suite_name: "test_steward_runner.py"
+  total: 20
+  passed: 20
+  failed: 0
+  skipped: 0
+  test_details:
+    - test_id: "AT-01"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-02"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-03"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-04"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-05"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-06"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-07"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-08"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-09"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-10"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-11"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-12"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "AT-13"
+      status: "PASSED"
+      failure_reason: null
+    # AT-13 is parametrized with 8 cases; all pass
+
+file_manifest:
+  files:
+    - path: "scripts/steward_runner.py"
+      lines: 670
+      change_type: "MODIFIED"
+      change_summary: "Core fixes, normalization hardening"
+    - path: "config/steward_runner.yaml"
+      lines: 52
+      change_type: "MODIFIED"
+      change_summary: "Removed repo_root/timestamps, added contract docs"
+    - path: ".gitignore"
+      lines: 7
+      change_type: "MODIFIED"
+      change_summary: "Added steward logs exclusion"
+    - path: "tests_recursive/test_steward_runner.py"
+      lines: 675
+      change_type: "MODIFIED"
+      change_summary: "Added AT-11, AT-12, AT-13"
+  total_lines_changed: 1404
+
+code_appendix:
+  - function_name: "normalize_commit_path"
+    purpose: "Normalize a commit_paths entry per Commit Paths Contract. Returns (normalized_path, error_reason | None)."
+    code: |
+      def normalize_commit_path(path: str) -> tuple[str, str | None]:
+          """
+          Normalize a commit_paths entry per Commit Paths Contract.
+          Returns (normalized_path, error_reason | None).
+          """
+          normalized = path.replace("\\", "/")
+          
+          # UNC path - check BEFORE Unix (// starts with /)
+          if normalized.startswith("//"):
+              return normalized, "absolute_path_unc"
+          
+          # Unix absolute path
+          if normalized.startswith("/"):
+              return normalized, "absolute_path_unix"
+          
+          # Windows drive absolute (C:/ or C:)
+          if len(normalized) >= 2 and normalized[1] == ":":
+              return normalized, "absolute_path_windows"
+          
+          # Glob patterns
+          if "*" in normalized or "?" in normalized:
+              return normalized, "glob_pattern"
+          
+          # Segment-based path traversal and current-dir check
+          segments = normalized.rstrip("/").split("/")
+          for segment in segments:
+              if segment == "..":
+                  return normalized, "path_traversal"
+              if segment == ".":
+                  return normalized, "current_dir_segment"
+          
+          # Only normalize bare names (no / at all) that look like directories
+          if "/" not in path and not path.endswith("/"):
+              if "." not in path:
+                  normalized = normalized + "/"
+          
+          return normalized, None
+    notes:
+      - "UNC paths must be checked before Unix absolute because // starts with /"
+      - ".gitignore must include logs/steward_runner/ for require_clean_start=true"
+
+# ============================================================================
+# NOTES ON CONVERSION
+# ============================================================================
+# What changed:
+# 1. Structured envelope with packet_id, chain_id for traceability
+# 2. Fixes in structured list vs. markdown tables
+# 3. Test results enumerated for machine parsing
+# 4. File manifest structured for diff/audit
+# 5. Contracts formalized with explicit fail cases
+# 6. Code appendix structured for extraction
+#
+# What was preserved:
+# - All fix information
+# - All test results
+# - Contract documentation
+# - Key code with notes
+# ============================================================================

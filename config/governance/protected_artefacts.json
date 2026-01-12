@@ -1,11 +1,13 @@
 {
   "protected_paths": [
+    "GEMINI.md",
     "docs/00_foundations",
     "docs/01_governance",
     "docs/02_alignment",
     "docs/INDEX_v1.1.md",
     "config/governance/protected_artefacts.json"
   ],
-  "locked_at": "2025-12-09T19:09:00+11:00",
-  "locked_by": "Tier1_Hardening_v0.1"
+  "locked_at": "2026-01-04T15:55:00+11:00",
+  "locked_by": "Council_Ruling_Build_Handoff_v0.5.1",
+  "rationale": "GEMINI.md added per council ruling CT-2; agent constitution requires explicit protection"
 }

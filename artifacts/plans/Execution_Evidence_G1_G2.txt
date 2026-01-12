@@ -1,0 +1,123 @@
+# Execution Evidence: Phase 1 Evidence Loop Fix (REAL API)
+
+**Date**: 2026-01-04T17:25:00+11:00
+**Mode**: REAL API (--dry-run)
+
+---
+
+## G1 Smoke Test ✅ PASS
+
+**Command**:
+```
+python scripts/delegate_to_doc_steward.py --mission INDEX_UPDATE --dry-run --trial-type smoke_test
+```
+
+**Output**:
+```
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: e40ebec3...)
+[ORCHESTRATOR] Mode: dry-run
+[ORCHESTRATOR] Request created: req_b140601e00d4
+[ORCHESTRATOR] Input refs: 1 files captured
+[ORCHESTRATOR] Session created: ses_47854c85cffeP9nbADrMDGA1hR
+[ORCHESTRATOR] Result status: SUCCESS
+[ORCHESTRATOR] Reason code: SUCCESS
+[ORCHESTRATOR] Files modified: 1
+[ORCHESTRATOR] Latency: 4716ms
+[ORCHESTRATOR] Verifier outcome: PASS
+[ORCHESTRATOR] Verifier summary: 0 errors, 0 warnings (proposed changes validated)
+[ORCHESTRATOR] Ledger entry: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-04_smoke_test_e40ebec3.yaml
+
+============================================================
+RESULT: PASS
+Case ID: e40ebec3-376f-4c64-9b35-a0f720818471
+Status: SUCCESS
+Reason: SUCCESS
+Verifier: PASS
+Latency: 4716ms
+Files modified: 1
+============================================================
+Exit code: 0
+```
+
+---
+
+## G2 Shadow Trial 1 ✅ PASS
+
+**Command**:
+```
+python scripts/delegate_to_doc_steward.py --mission INDEX_UPDATE --dry-run --trial-type shadow_trial
+```
+
+**Output**:
+```
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: 45908ef7...)
+[ORCHESTRATOR] Session created: ses_478539fe3ffedpXb66njCmpT2D
+[ORCHESTRATOR] Result status: SUCCESS
+[ORCHESTRATOR] Reason code: SUCCESS
+[ORCHESTRATOR] Files modified: 1
+[ORCHESTRATOR] Latency: 6066ms
+[ORCHESTRATOR] Verifier outcome: PASS
+
+============================================================
+RESULT: PASS
+Case ID: 45908ef7-0751-4d14-a7b5-63345bc61a8e
+============================================================
+Exit code: 0
+```
+
+---
+
+## G2 Shadow Trial 2 ✅ PASS
+
+**Command**: Same as above
+
+**Ledger Entry**: `2026-01-04_shadow_trial_4e4b55c1.yaml`
+
+**Key Evidence**:
+```yaml
+status: SUCCESS
+reason_code: SUCCESS
+latency_ms: 4672
+files_modified:
+  - path: docs/INDEX.md
+    change_type: MODIFIED
+    before_sha256: 1cad97bf4fb7d5f9cbcad3dc64710eaec66b7ac1f2b56b230ed701999c9ffed2
+    diff_sha256: e477e4bc3a9b89012fc1aeb5bfa86212219b4d297e0d9f8857970854d5af0e5e
+proposed_diffs: "--- a/docs/INDEX.md\n+++ b/docs/INDEX.md\n@@\n-> **Last Updated:** 2026-01-04..."
+verifier_outcome: PASS
+```
+
+---
+
+## G2 Shadow Trial 3 ✅ PASS
+
+**Ledger Entry**: `2026-01-04_shadow_trial_7e1910e2.yaml`
+
+**Key Evidence**:
+```yaml
+status: SUCCESS
+reason_code: SUCCESS
+latency_ms: 4398
+steward_raw_response: |
+  ```json
+  {"status": "SUCCESS", "files_modified": [], "proposed_changes": "No changes required..."}
+  ```
+verifier_outcome: PASS
+```
+
+---
+
+## Summary
+
+| Trial | Case ID | Status | Latency | Files | Verifier |
+|-------|---------|--------|---------|-------|----------|
+| Smoke | e40ebec3 | SUCCESS | 4716ms | 1 | PASS |
+| Shadow 1 | 45908ef7 | SUCCESS | 6066ms | 1 | PASS |
+| Shadow 2 | 4e4b55c1 | SUCCESS | 4672ms | 1 | PASS |
+| Shadow 3 | 7e1910e2 | SUCCESS | 4398ms | 0 | PASS |
+
+**All 4 trials: PASS with real API round-trips**
+
+---
+
+*Evidence captured by Antigravity.*

@@ -1,0 +1,17 @@
+{
+    "schema_version": "scenario_result@1",
+    "scenario_name": "basic_scenario",
+    "mission_results": {
+        "mission_1": {
+            "id": "mission_1",
+            "success": true,
+            "executed_steps": [],
+            "final_state": {},
+            "lineage": {},
+            "receipt": {}
+        }
+    },
+    "metadata": {
+        "scenario_hash": "dummy_scenario_hash"
+    }
+}

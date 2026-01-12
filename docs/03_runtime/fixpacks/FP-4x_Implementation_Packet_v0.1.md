@@ -72,6 +72,11 @@
 - `test_safety_halt_procedure.py`
 - `test_detsort_consistency.py`
 
+### 2.8 Orchestration Adapters
+- `runtime/orchestration/config_adapter.py`
+- `runtime/orchestration/config_test_run.py`
+
+
 ---
 
 ## 3. IMPLEMENTATION BY CONDITION SET
@@ -118,3 +123,4 @@
 - [ ] Governance surface validation works
 - [ ] Health checks and halt procedure integrated
 - [ ] DAP and INDEX use shared detsort utilities
+

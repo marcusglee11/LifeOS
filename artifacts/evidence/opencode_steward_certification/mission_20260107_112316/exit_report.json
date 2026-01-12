@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "reason_code": null,
+  "mode": "LOCAL",
+  "timestamp": "2026-01-07T11:23:16.800107",
+  "task": {
+    "files": [
+      "docs/evidence_pass_v1.md"
+    ],
+    "action": "create",
+    "instruction": "Create a file docs/evidence_pass_v1.md with content 'Verified PASS case for CT-2 Phase 2 Passage Fixes.' and then git add it."
+  }
+}

@@ -1,1 +1,60 @@
-# GitHub Action Workflow
+name: Nightly Full Test Suite
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 3 AM UTC daily (2 PM AEDT)
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  full-test:
+    name: Complete Test Suite
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+      
+      - name: Full pytest suite
+        run: pytest -v --tb=long
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Verify Strategic Corpus is up-to-date
+        run: |
+          python docs/scripts/generate_strategic_context.py
+          if git diff --quiet docs/LifeOS_Strategic_Corpus.md; then
+            echo "✅ Strategic Corpus is up-to-date"
+          else
+            echo "::warning::Strategic Corpus is out of date - regenerate with: python docs/scripts/generate_strategic_context.py"
+          fi
+
+  coverage-report:
+    name: Test Coverage Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+      
+      - name: Run tests with coverage
+        run: pytest --cov=runtime --cov-report=term-missing -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}

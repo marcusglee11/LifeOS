@@ -1,0 +1,13 @@
+{
+  "status": "BLOCK",
+  "reason_code": "SYMLINK_BLOCKED",
+  "mode": "PRE_START",
+  "timestamp": "2026-01-07T11:23:50.810536",
+  "task": {
+    "files": [
+      "docs/banned_symlink.md"
+    ],
+    "action": "modify",
+    "instruction": "Try to modify the symlink."
+  }
+}
