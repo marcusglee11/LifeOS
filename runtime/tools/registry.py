@@ -25,7 +25,7 @@ from runtime.tools.schemas import (
     make_error_result,
     make_timestamp_utc,
 )
-from runtime.governance.tool_policy import (
+from runtime.api.governance_api import (
     resolve_sandbox_root,
     check_tool_action_allowed,
     GovernanceUnavailable,

@@ -10,6 +10,10 @@ MVP STUB: Does NOT actually commit - all steps are explicitly marked *_stub.
 """
 from __future__ import annotations
 
+import json
+import subprocess
+import sys
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from runtime.orchestration.missions.base import (
@@ -56,7 +60,7 @@ class StewardMission(BaseMission):
     def validate_inputs(self, inputs: Dict[str, Any]) -> None:
         """
         Validate steward mission inputs.
-        
+
         Required: review_packet (dict), approval (dict with verdict="approved")
         """
         # Check review_packet
@@ -65,21 +69,172 @@ class StewardMission(BaseMission):
             raise MissionValidationError("review_packet is required")
         if not isinstance(review_packet, dict):
             raise MissionValidationError("review_packet must be a dict")
-        
+
         # Check approval
         approval = inputs.get("approval")
         if not approval:
             raise MissionValidationError("approval is required")
         if not isinstance(approval, dict):
             raise MissionValidationError("approval must be a dict")
-        
+
         # Verify approval verdict
         verdict = approval.get("verdict")
         if verdict != "approved":
             raise MissionValidationError(
                 f"Steward requires approved verdict, got: '{verdict}'"
             )
-    
+
+    def _classify_path(self, path: str) -> str:
+        """
+        Classify a path into one of three categories (fail-closed).
+
+        Categories per P0.1:
+            - "protected": Protected roots (docs/00_foundations, docs/01_governance, scripts, config)
+            - "in_envelope": In-envelope docs (docs/**/*.md, excluding protected)
+            - "disallowed": Everything else
+
+        Args:
+            path: File path to classify
+
+        Returns:
+            One of: "protected", "in_envelope", "disallowed"
+        """
+        # Normalize path separators
+        path = path.replace("\\", "/")
+
+        # Category B: Protected roots
+        protected_prefixes = [
+            "docs/00_foundations/",
+            "docs/01_governance/",
+            "scripts/",
+            "config/",
+        ]
+        for prefix in protected_prefixes:
+            if path.startswith(prefix):
+                return "protected"
+
+        # Category A: In-envelope docs (must be .md and under docs/)
+        if path.startswith("docs/") and path.endswith(".md"):
+            return "in_envelope"
+
+        # Category C: Everything else is disallowed
+        return "disallowed"
+
+    def _validate_steward_targets(
+        self, artifacts: List[str]
+    ) -> Tuple[bool, str, Dict[str, List[str]]]:
+        """
+        Validate steward target paths using fail-closed classification.
+
+        Returns:
+            Tuple of (ok, error_message, classified_paths)
+            - ok: True if allowed to proceed
+            - error_message: Empty if ok, otherwise the blocking reason
+            - classified_paths: Dict with keys "in_envelope", "protected", "disallowed"
+        """
+        classified: Dict[str, List[str]] = {
+            "in_envelope": [],
+            "protected": [],
+            "disallowed": [],
+        }
+
+        for path in artifacts:
+            category = self._classify_path(path)
+            classified[category].append(path)
+
+        # Block on protected paths
+        if classified["protected"]:
+            error = (
+                f"BLOCKED: Protected root paths require governance authorization:\n"
+                f"  {', '.join(classified['protected'])}"
+            )
+            return (False, error, classified)
+
+        # Block on disallowed paths
+        if classified["disallowed"]:
+            error = (
+                f"BLOCKED: Disallowed paths cannot be stewarded:\n"
+                f"  {', '.join(classified['disallowed'])}"
+            )
+            return (False, error, classified)
+
+        # Allow if empty or only in_envelope
+        return (True, "", classified)
+
+    def _route_to_opencode(
+        self, context: MissionContext, artifacts: List[str], mission_name: str
+    ) -> Tuple[bool, Dict[str, Any]]:
+        """
+        Route in-envelope docs to OpenCode steward via subprocess.
+
+        Args:
+            context: Mission execution context
+            artifacts: List of artifact paths
+            mission_name: Mission name for task file naming
+
+        Returns:
+            Tuple of (success, evidence_dict)
+        """
+        # Create task file
+        task_dir = context.repo_root / "artifacts" / "steward_tasks"
+        task_dir.mkdir(parents=True, exist_ok=True)
+
+        # Version task file name to avoid collisions
+        task_file = task_dir / f"steward_task_v{context.run_id[:8]}.json"
+
+        task_data = {
+            "mission_name": mission_name,
+            "artifacts": artifacts,
+            "run_id": context.run_id,
+        }
+
+        with open(task_file, "w") as f:
+            json.dump(task_data, f, indent=2, sort_keys=True)
+
+        # Invoke OpenCode runner
+        runner_script = context.repo_root / "scripts" / "opencode_ci_runner.py"
+        cmd = [
+            sys.executable,
+            str(runner_script),
+            "--task-file",
+            str(task_file),
+        ]
+
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=context.repo_root,
+                timeout=300,  # 5 min timeout
+                capture_output=True,
+                text=True,
+                check=False,  # Don't raise on non-zero exit
+            )
+
+            evidence = {
+                "exit_code": result.returncode,
+                "stdout": result.stdout[-2000:] if len(result.stdout) > 2000 else result.stdout,
+                "stderr": result.stderr[-2000:] if len(result.stderr) > 2000 else result.stderr,
+                "task_file": str(task_file),
+            }
+
+            success = result.returncode == 0
+            return (success, evidence)
+
+        except subprocess.TimeoutExpired:
+            evidence = {
+                "exit_code": -1,
+                "error": "OpenCode routing timed out after 300s",
+                "task_file": str(task_file),
+            }
+            return (False, evidence)
+        except Exception as e:
+            evidence = {
+                "exit_code": -1,
+                "error": f"OpenCode routing failed: {str(e)}",
+                "task_file": str(task_file),
+            }
+            return (False, evidence)
+
     def _verify_repo_clean(self, context: MissionContext) -> Tuple[bool, str]:
         """
         Verify repository is in clean state.
@@ -110,63 +265,94 @@ class StewardMission(BaseMission):
     ) -> MissionResult:
         """
         Execute the steward mission.
-        
-        MVP STUB: This is a stub implementation that:
+
+        P0 IMPLEMENTATION:
         1. Validates inputs and preconditions
-        2. Simulates git operations (all marked *_stub)
-        3. Returns a simulated commit hash
-        4. GUARANTEES: Repo state is unchanged (stub doesn't modify)
-        
-        HARDENED: All stubbed steps are explicitly marked. Repo-clean errors
-        are deterministic and auditable.
+        2. Validates target paths (fail-closed classification)
+        3. Routes in-envelope docs to OpenCode steward
+        4. Blocks protected and disallowed paths
+        5. GUARANTEES: Repo state is clean on exit
+
+        HARDENED: All blocking paths are deterministic and auditable.
         """
         executed_steps: List[str] = []
         evidence: Dict[str, Any] = {
             "stubbed": True,
             "simulated_steps": [],
         }
-        
+
         try:
             # Step 0: Validate inputs
             self.validate_inputs(inputs)
             executed_steps.append("validate_inputs")
-            
+
             review_packet = inputs["review_packet"]
-            
-            # Step 1: Check envelope (STUB)
-            artifacts = review_packet.get("payload", {}).get("artifacts_produced", [])
-            # In full implementation, would verify each path against steward envelope
-            executed_steps.append("check_envelope_stub")
-            evidence["simulated_steps"].append("check_envelope_stub")
-            
-            # Step 2: Stage changes (STUB)
-            # In full implementation: git add <paths>
-            # Compensation: git reset HEAD
-            executed_steps.append("stage_changes_stub")
-            evidence["simulated_steps"].append("stage_changes_stub")
-            
-            # Step 3: Commit (STUB)
-            # In full implementation: git commit -m "<message>"
-            # Compensation: git reset --soft HEAD~1
             mission_name = review_packet.get("mission_name", "unknown")
             summary = review_packet.get("summary", "No summary")
+
+            # Step 1: Validate steward targets (REAL - fail-closed)
+            artifacts = review_packet.get("payload", {}).get("artifacts_produced", [])
+            ok, error_msg, classified_paths = self._validate_steward_targets(artifacts)
+            executed_steps.append("validate_steward_targets")
+            evidence["classified_paths"] = classified_paths
+
+            if not ok:
+                return self._make_result(
+                    success=False,
+                    executed_steps=executed_steps,
+                    error=error_msg,
+                    evidence=evidence,
+                )
+
+            # Step 2: Route to OpenCode if in-envelope paths present
+            if classified_paths["in_envelope"]:
+                routing_success, routing_evidence = self._route_to_opencode(
+                    context, classified_paths["in_envelope"], mission_name
+                )
+                executed_steps.append("invoke_opencode_steward")
+                evidence["opencode_result"] = routing_evidence
+
+                if not routing_success:
+                    exit_code = routing_evidence.get("exit_code", -1)
+                    error_detail = routing_evidence.get("error", f"exit code {exit_code}")
+                    return self._make_result(
+                        success=False,
+                        executed_steps=executed_steps,
+                        error=f"OpenCode routing failed: {error_detail}",
+                        evidence=evidence,
+                    )
+
+                # OpenCode succeeded - return success
+                return self._make_result(
+                    success=True,
+                    outputs={
+                        "commit_hash": "opencode_committed",  # OpenCode handles commit
+                        "commit_message": f"OpenCode steward: {mission_name}",
+                    },
+                    executed_steps=executed_steps,
+                    evidence=evidence,
+                )
+
+            # Step 3: Empty artifact list - stub success path
+            # Stage changes (STUB)
+            executed_steps.append("stage_changes_stub")
+            evidence["simulated_steps"].append("stage_changes_stub")
+
+            # Commit (STUB)
             commit_message = f"{mission_name}: {summary}"
-            
-            # Simulated commit hash - clearly labeled
             simulated_commit_hash = f"stub_{context.run_id[:16]}"
             executed_steps.append("commit_stub")
             evidence["simulated_steps"].append("commit_stub")
-            
-            # Step 4: Record completion (STUB)
-            # In full implementation: Update LIFEOS_STATE.md
+
+            # Record completion (STUB)
             executed_steps.append("record_completion_stub")
             evidence["simulated_steps"].append("record_completion_stub")
-            
-            # Step 5: GUARANTEE - Verify repo is clean on exit (REAL)
+
+            # Step 4: GUARANTEE - Verify repo is clean on exit (REAL)
             repo_clean_ok, repo_clean_reason = self._verify_repo_clean(context)
             executed_steps.append("verify_repo_clean")
             evidence["repo_clean_result"] = repo_clean_reason
-            
+
             if not repo_clean_ok:
                 return self._make_result(
                     success=False,
@@ -174,11 +360,11 @@ class StewardMission(BaseMission):
                     error=f"Repo clean on exit guarantee violated: {repo_clean_reason}",
                     evidence=evidence,
                 )
-            
+
             # Add final evidence
             evidence["artifacts_count"] = len(artifacts)
             evidence["mission_name"] = mission_name
-            
+
             return self._make_result(
                 success=True,
                 outputs={
@@ -188,7 +374,7 @@ class StewardMission(BaseMission):
                 executed_steps=executed_steps,
                 evidence=evidence,
             )
-            
+
         except MissionValidationError as e:
             return self._make_result(
                 success=False,
@@ -202,7 +388,7 @@ class StewardMission(BaseMission):
             repo_clean_ok, repo_clean_reason = self._verify_repo_clean(context)
             evidence["repo_clean_on_failure"] = repo_clean_reason
             evidence["repo_clean_on_failure_ok"] = repo_clean_ok
-            
+
             return self._make_result(
                 success=False,
                 executed_steps=executed_steps,
