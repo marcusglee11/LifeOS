@@ -16,13 +16,14 @@ from typing import Any, Dict, List, Optional
 class MissionType(str, Enum):
     """
     Enumeration of valid mission types.
-    
+
     Per architecture §5.3, these are the only valid mission types.
     Fail-closed: unknown types must raise an error.
     """
     DESIGN = "design"
     REVIEW = "review"
     BUILD = "build"
+    BUILD_WITH_VALIDATION = "build_with_validation"
     STEWARD = "steward"
     AUTONOMOUS_BUILD_CYCLE = "autonomous_build_cycle"
 

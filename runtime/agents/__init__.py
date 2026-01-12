@@ -43,6 +43,16 @@ from .models import (
     get_model_chain,
 )
 
+# OpenCode client
+from .opencode_client import (
+    OpenCodeClient,
+    LLMCall,
+    LLMResponse,
+    OpenCodeError,
+    OpenCodeServerError,
+    OpenCodeTimeoutError,
+)
+
 __all__ = [
     # api.py
     "canonical_json",
@@ -70,4 +80,11 @@ __all__ = [
     "load_model_config",
     "resolve_model_auto",
     "get_model_chain",
+    # opencode_client.py
+    "OpenCodeClient",
+    "LLMCall",
+    "LLMResponse",
+    "OpenCodeError",
+    "OpenCodeServerError",
+    "OpenCodeTimeoutError",
 ]

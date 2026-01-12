@@ -26,6 +26,7 @@ from runtime.orchestration.missions.base import (
 from runtime.orchestration.missions.design import DesignMission
 from runtime.orchestration.missions.review import ReviewMission
 from runtime.orchestration.missions.build import BuildMission
+from runtime.orchestration.missions.build_with_validation import BuildWithValidationMission
 from runtime.orchestration.missions.steward import StewardMission
 from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
 from runtime.orchestration.missions.schema import (
@@ -39,6 +40,7 @@ MISSION_TYPES = {
     MissionType.DESIGN: DesignMission,
     MissionType.REVIEW: ReviewMission,
     MissionType.BUILD: BuildMission,
+    MissionType.BUILD_WITH_VALIDATION: BuildWithValidationMission,
     MissionType.STEWARD: StewardMission,
     MissionType.AUTONOMOUS_BUILD_CYCLE: AutonomousBuildCycleMission,
 }
@@ -72,8 +74,9 @@ __all__ = [
     "MissionSchemaError",
     # Mission classes
     "DesignMission",
-    "ReviewMission", 
+    "ReviewMission",
     "BuildMission",
+    "BuildWithValidationMission",
     "StewardMission",
     "AutonomousBuildCycleMission",
     # Registry

@@ -1,6 +1,7 @@
 import pytest
 import subprocess
 import os
+import sys
 import uuid
 import yaml
 import hashlib
@@ -12,13 +13,13 @@ CURRENT_SCHEMA = "docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml"
 def run_validator(path, args=None):
     if args is None:
         args = ["--schema", CURRENT_SCHEMA]
-    cmd = ["python", VALIDATOR_SCRIPT, path] + args
+    cmd = [sys.executable, VALIDATOR_SCRIPT, path] + args
     print(f"Running: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     return result.returncode, result.stdout, result.stderr
 
 def run_bundle_validator(dir_path):
-    cmd = ["python", VALIDATOR_SCRIPT, "--bundle", dir_path, "--schema", CURRENT_SCHEMA]
+    cmd = [sys.executable, VALIDATOR_SCRIPT, "--bundle", dir_path, "--schema", CURRENT_SCHEMA]
     result = subprocess.run(cmd, capture_output=True, text=True)
     return result.returncode, result.stdout, result.stderr
 
