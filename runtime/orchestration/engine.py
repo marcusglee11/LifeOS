@@ -282,7 +282,184 @@ class Orchestrator:
             return False, f"Step '{step.id}' llm_call failed: {e}"
         except Exception as e:
             return False, f"Step '{step.id}' llm_call unexpected error: {e}"
-    
+
+    def _detect_git_context(self) -> tuple:
+        """
+        Detect git context using runtime detection (fail-soft).
+
+        Detection strategy (Option 2):
+        - repo_root: git rev-parse --show-toplevel, fallback to cwd
+        - baseline_commit: git rev-parse HEAD, fallback to None
+        - Use short timeout (2 seconds) and catch all errors
+
+        Returns:
+            Tuple of (repo_root: Path, baseline_commit: Optional[str])
+        """
+        import subprocess
+        from pathlib import Path
+
+        # Detect repo_root (fail-soft)
+        repo_root = Path.cwd()
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+            if result.returncode == 0:
+                repo_root = Path(result.stdout.strip())
+        except Exception:
+            pass  # Fail-soft: use cwd
+
+        # Detect baseline_commit (fail-soft)
+        # P1.1 Fix: Use repo_root as cwd to ensure we get commit from correct repo
+        baseline_commit = None
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                cwd=repo_root
+            )
+            if result.returncode == 0:
+                baseline_commit = result.stdout.strip()
+        except Exception:
+            pass  # Fail-soft: leave as None
+
+        return repo_root, baseline_commit
+
+    def _execute_mission(
+        self,
+        step: StepSpec,
+        state: Dict[str, Any],
+        ctx: ExecutionContext
+    ) -> tuple:
+        """
+        Execute a mission operation with tolerant interface.
+
+        CRITICAL: Reuses ctx from orchestrator (does NOT construct new ExecutionContext).
+
+        Payload fields:
+            - mission_type (required): Type of mission to execute
+            - inputs or params (optional): Mission input data (default: {})
+
+        Returns:
+            Tuple of (success: bool, error_message: Optional[str])
+        """
+        # Local imports to avoid cycles
+        from pathlib import Path
+
+        payload = step.payload
+
+        # Validate required fields
+        mission_type = payload.get("mission_type")
+        if not mission_type:
+            return False, "mission_type not specified in step payload"
+
+        # Get inputs (try both 'inputs' and 'params' keys)
+        inputs = payload.get("inputs") or payload.get("params", {})
+        if not isinstance(inputs, dict):
+            inputs = {}
+
+        # Detect git context OUTSIDE try block (fail-soft, no exception handling needed)
+        repo_root, baseline_commit = self._detect_git_context()
+
+        # Attach git context to ctx.metadata (OUTSIDE try block)
+        if hasattr(ctx, 'metadata'):
+            if ctx.metadata is None:
+                ctx.metadata = {}
+            ctx.metadata["repo_root"] = str(repo_root)
+            ctx.metadata["baseline_commit"] = baseline_commit
+
+        # Decide dispatch path OUTSIDE main try block
+        # P0.2 Fix: Only fallback on import failure or missing attribute,
+        # NOT on AttributeError from inside run_mission execution
+        use_direct_path = False
+        try:
+            from runtime.orchestration import registry
+            if not hasattr(registry, 'run_mission'):
+                use_direct_path = True
+        except ImportError:
+            use_direct_path = True
+
+        # Execute mission (with selective exception handling)
+        try:
+            if use_direct_path:
+                # Fallback path: Direct mission instantiation
+                from runtime.orchestration.missions import get_mission_class, MissionContext
+                import uuid
+
+                mission_class = get_mission_class(mission_type)
+                mission = mission_class()
+
+                # Optional validation (tolerant interface)
+                if hasattr(mission, 'validate_inputs'):
+                    mission.validate_inputs(inputs)
+
+                # CRITICAL: Missions may expect MissionContext, not ExecutionContext
+                # Build MissionContext from git context
+                mission_context = MissionContext(
+                    repo_root=repo_root,
+                    baseline_commit=baseline_commit,
+                    run_id=str(uuid.uuid4()),
+                    operation_executor=None,
+                    journal=None,
+                    metadata={"step_id": step.id}
+                )
+
+                # Execute mission with MissionContext
+                result = mission.run(mission_context, inputs)
+            else:
+                # Preferred path: Use registry dispatch
+                # AttributeError/TypeError here are programming bugs, not dispatch failures
+                result = registry.run_mission(mission_type, ctx, inputs)
+
+            # Normalize result to dict (uniform handling regardless of dispatch path)
+            if hasattr(result, 'to_dict'):
+                result_dict = result.to_dict()
+            elif isinstance(result, dict):
+                result_dict = result
+            else:
+                # Minimal dict from attributes
+                result_dict = {
+                    'success': bool(getattr(result, 'success', False)),
+                    'status': getattr(result, 'status', None),
+                    'output': getattr(result, 'output', None),
+                    'error': getattr(result, 'error', None)
+                }
+
+            # Determine success (uniform logic)
+            if 'success' in result_dict:
+                success = bool(result_dict['success'])
+            elif result_dict.get('status') is not None:
+                success = (result_dict['status'] == 'success')
+            else:
+                success = False
+
+            # Store result TWO ways (backward compat + correct)
+            state["mission_result"] = result_dict  # Legacy: last result
+            state.setdefault("mission_results", {})[step.id] = result_dict  # Correct: per-step
+
+            # Check success
+            if not success:
+                error = result_dict.get('error') or "Mission failed without error message"
+                return False, f"Mission '{mission_type}' failed: {error}"
+
+            return True, None
+
+        except (AttributeError, TypeError) as e:
+            # CRITICAL: When using registry path, these are programming bugs - RE-RAISE
+            if not use_direct_path:
+                raise
+            # For direct path, treat as mission error (may be mission implementation issue)
+            return False, f"Mission execution error: {str(e)}"
+
+        except Exception as e:
+            # Catch mission-level errors (MissionError, ValidationError, etc.)
+            return False, f"Mission execution error: {str(e)}"
+
     def run_workflow(
         self,
         workflow: WorkflowDefinition,
@@ -360,6 +537,15 @@ class Orchestrator:
                     elif operation == "llm_call":
                         # Execute LLM call operation
                         op_success, op_error = self._execute_llm_call(step, state)
+                        if not op_success:
+                            success = False
+                            failed_step_id = step.id
+                            error_message = op_error
+                            break
+
+                    elif operation == "mission":
+                        # CRITICAL: Pass ctx to helper (reuse existing ExecutionContext)
+                        op_success, op_error = self._execute_mission(step, state, ctx)
                         if not op_success:
                             success = False
                             failed_step_id = step.id

@@ -45,6 +45,147 @@ def cmd_config_show(args: argparse.Namespace, repo_root: Path, config: dict | No
     print(output)
     return 0
 
+def cmd_mission_list(args: argparse.Namespace) -> int:
+    """List all available mission types in sorted JSON."""
+    # Local import
+
+    # Get mission types from canonical registry (prefer registry keys over enum)
+    try:
+        from runtime.orchestration import registry
+        if hasattr(registry, 'MISSION_REGISTRY'):
+            mission_types = sorted(registry.MISSION_REGISTRY.keys())
+        else:
+            raise AttributeError
+    except (ImportError, AttributeError):
+        # Fallback: use MissionType enum
+        from runtime.orchestration.missions.base import MissionType
+        mission_types = sorted([mt.value for mt in MissionType])
+
+    # Output canonical JSON (indent=2, sort_keys=True)
+    output = json.dumps(mission_types, indent=2, sort_keys=True)
+    print(output)
+    return 0
+
+
+def cmd_mission_run(args: argparse.Namespace, repo_root: Path) -> int:
+    """
+    Run a mission with specified parameters.
+
+    Returns:
+        0 on success, 1 on failure
+    """
+    # Local imports
+    import uuid
+    import subprocess
+
+    # Parse --param flags into inputs dict
+    inputs = {}
+    if args.param:
+        for param in args.param:
+            if "=" not in param:
+                print(f"Error: Invalid parameter format '{param}'. Expected 'key=value'")
+                return 1
+            key, value = param.split("=", 1)
+            inputs[key] = value
+
+    try:
+        # Detect git context
+        baseline_commit = None
+        try:
+            cmd_result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                cwd=repo_root
+            )
+            if cmd_result.returncode == 0:
+                baseline_commit = cmd_result.stdout.strip()
+        except Exception:
+            pass  # Fail-soft
+
+        # Try registry path first (preferred)
+        try:
+            from runtime.orchestration import registry
+            from runtime.orchestration.engine import ExecutionContext
+
+            # CRITICAL (E4): Create proper ExecutionContext (empty state, metadata for git context)
+            ctx = ExecutionContext(
+                initial_state={},
+                metadata={"repo_root": str(repo_root), "baseline_commit": baseline_commit, "cli_invocation": True}
+            )
+            result = registry.run_mission(args.mission_type, ctx, inputs)
+
+            # Extract result dict (prefer to_dict)
+            if hasattr(result, 'to_dict'):
+                result_dict = result.to_dict()
+            elif isinstance(result, dict):
+                result_dict = result
+            else:
+                result_dict = {'success': False, 'error': 'Invalid result format'}
+
+            # Determine success (same logic as engine.py)
+            if 'success' in result_dict:
+                success = bool(result_dict['success'])
+            elif result_dict.get('status') is not None:
+                success = (result_dict['status'] == 'success')
+            else:
+                success = False
+        except (ImportError, AttributeError):
+            # Fall back to direct mission execution
+            from runtime.orchestration.missions import get_mission_class, MissionContext
+
+            mission_class = get_mission_class(args.mission_type)
+            mission = mission_class()
+
+            # Optional validation
+            if hasattr(mission, 'validate_inputs'):
+                mission.validate_inputs(inputs)
+
+            # Create MissionContext and execute
+            context = MissionContext(
+                repo_root=repo_root,
+                baseline_commit=baseline_commit,
+                run_id=str(uuid.uuid4()),
+                operation_executor=None,
+                journal=None,
+                metadata={"cli_invocation": True}
+            )
+
+            result = mission.run(context, inputs)
+
+            # Normalize result (same as registry path)
+            if hasattr(result, 'to_dict'):
+                result_dict = result.to_dict()
+            elif isinstance(result, dict):
+                result_dict = result
+            else:
+                result_dict = {
+                    'success': bool(getattr(result, 'success', False)),
+                    'status': getattr(result, 'status', None),
+                    'output': getattr(result, 'output', None),
+                    'error': getattr(result, 'error', None)
+                }
+
+            # Determine success (same logic as engine.py)
+            if 'success' in result_dict:
+                success = bool(result_dict['success'])
+            elif result_dict.get('status') is not None:
+                success = (result_dict['status'] == 'success')
+            else:
+                success = False
+
+        # Output canonical JSON (indent=2, sort_keys=True per instruction block)
+        output = json.dumps(result_dict, indent=2, sort_keys=True)
+        print(output)
+
+        return 0 if success else 1
+
+    except Exception as e:
+        print(f"Error: {type(e).__name__}: {e}")
+        return 1
+
+
 def cmd_run_mission(args: argparse.Namespace, repo_root: Path) -> int:
     """Run a mission from backlog via orchestrator."""
     from runtime.backlog.synthesizer import synthesize_mission, execute_mission, SynthesisError
@@ -124,7 +265,17 @@ def main() -> int:
     
     config_subparsers.add_parser("validate", help="Validate config file")
     config_subparsers.add_parser("show", help="Show config in canonical JSON")
-    
+
+    # mission group
+    p_mission = subparsers.add_parser("mission", help="Mission commands")
+    mission_subs = p_mission.add_subparsers(dest="mission_cmd", required=True)
+
+    mission_subs.add_parser("list", help="List mission types")
+
+    p_mission_run = mission_subs.add_parser("run", help="Run mission")
+    p_mission_run.add_argument("mission_type", help="Mission type")
+    p_mission_run.add_argument("--param", action="append", help="Parameter as key=value")
+
     # run-mission command
     p_run = subparsers.add_parser("run-mission", help="Run a mission from backlog")
     p_run.add_argument("--from-backlog", required=True, help="Task ID from backlog to execute")
@@ -153,7 +304,13 @@ def main() -> int:
                 return cmd_config_validate(args, repo_root, config, args.config)
             if args.config_command == "show":
                 return cmd_config_show(args, repo_root, config, args.config)
-        
+
+        if args.subcommand == "mission":
+            if args.mission_cmd == "list":
+                return cmd_mission_list(args)
+            elif args.mission_cmd == "run":
+                return cmd_mission_run(args, repo_root)
+
         if args.subcommand == "run-mission":
             return cmd_run_mission(args, repo_root)
                 
