@@ -123,6 +123,7 @@ payloads:
       - repro
       - terminal_outcome
       - closure_evidence
+    # Implementation Note: terminal_outcome MUST be PASS|BLOCKED|REJECTED per validator.
 
   FIX_PACKET:
     allow:

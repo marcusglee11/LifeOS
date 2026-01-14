@@ -35,9 +35,9 @@ closure_evidence: {}         # [REQUIRED] key-value pairs
 
 # Acceptance Criteria
 
-| Criterion | Status | Evidence Pointer | SHA-256 |
-|-----------|--------|------------------|---------|
-| AC1       | PASS   | logs/run.txt:L10 | a1b2... |
+| ID | Criterion | Status | Evidence Pointer | SHA-256 |
+|----|-----------|--------|------------------|---------|
+| AC1| AC1       | PASS   | logs/run.txt:L10 | a1b2... |
 
 # Closure Evidence Checklist
 

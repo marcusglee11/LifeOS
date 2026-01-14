@@ -23,8 +23,9 @@ S
 |---|---|---|---|
 
 # Acceptance Criteria
-| C | S | E | H |
-|---|---|---|---|
+| ID | Criterion | Status | Evidence Pointer | SHA-256 |
+|---|---|---|---|---|
+| AC1 | Criteria Description | PASS | bad pointer | 74BBF6A08C5D37968F77E48C28AB5F19E960140A368A3ABB6F4826B806D316BE |
 
 # Closure Evidence Checklist
 | Category | Requirement | Verified |
@@ -33,7 +34,7 @@ S
 | **Artifacts** | Ledger | [Path] |
 | **Repro** | Cmd | [Cmd] |
 | **Governance** | Routing | [Ref] |
-| **Outcome** | Proof | [PASS] | bad_pointer |
+| **Outcome** | Proof | [PASS] |
 
 # Non-Goals
 - N

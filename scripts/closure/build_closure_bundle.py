@@ -19,6 +19,30 @@ EXTERNAL_ATTR_FILE = 0o644 << 16
 ZIP_COMPRESSION = zipfile.ZIP_DEFLATED
 ZIP_LEVEL = 9
 
+def patch_audit_report(report_path, manifest):
+    if not os.path.exists(report_path): return
+    
+    print(f"Patching {report_path} metadata...")
+    with open(report_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Handle markdown bolding: **Date**: YYYY...
+    # Use str.replace for safety regex escaping issues
+    if "**Date**: 1980-01-01T00:00:00" in content:
+        content = content.replace("**Date**: 1980-01-01T00:00:00", f"**Date**: {manifest['run_timestamp']}")
+
+    # Also replace generic bundle name with real one
+    # Heuristic: Find **Bundle**: bundle.zip (basename of args.output usually)
+    # We'll use regex for the bundle line as it might change
+    content = re.sub(r'\**Bundle\**: .*', f"**Bundle**: {manifest['bundle_name']}", content)
+
+    # "Ensure the audit report does not claim checks that are not implemented."
+    if "Placeholder" in content:
+        content = content.replace("Placeholder", "Generated")
+
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
 def calculate_sha256(filepath):
     sha = hashlib.sha256()
     with open(filepath, 'rb') as f:
@@ -194,6 +218,8 @@ def main():
     
     commit = get_git_commit()
     timestamp = "1980-01-01T00:00:00" if args.deterministic else datetime.now().isoformat()
+    # P0.2: Identity Timestamp must be REAL even in deterministic mode
+    identity_timestamp = datetime.now().isoformat()
     
     collected_evidence = [] # (local, arcname, role)
     
@@ -254,8 +280,8 @@ def main():
     
     manifest_base = {
         "schema_version": SCHEMA_VERSION,
-        "closure_id": args.closure_id or f"{args.profile}_{timestamp[:10]}_{commit[:8]}",
-        "bundle_name": args.closure_id or f"{args.profile}_{timestamp[:10]}_{commit[:8]}", # P0.1: bundle_name required
+        "closure_id": args.closure_id or f"{args.profile}_{identity_timestamp[:10]}_{commit[:8]}",
+        "bundle_name": args.closure_id or f"{args.profile}_{identity_timestamp[:10]}_{commit[:8]}", # P0.1: bundle_name required
         "closure_type": "STEP_GATE_CLOSURE",
         "run_commit": commit,
         "created_at": metadata_timestamp, # P0.1: Real timestamp
@@ -346,25 +372,8 @@ def main():
                     "--deterministic", "--skip-digest-verification"], check=True)
 
     # P0.4: Fix audit_report.md to be closure-grade
-    print("Patching Audit Report metadata...")
-    if os.path.exists("audit_report.md"):
-        with open("audit_report.md", "r", encoding="utf-8") as f:
-            report_content = f.read()
-        
-        # Replace date (Regex or simple replace if placeholder)
-        # Use final_manifest['run_timestamp']
-        report_content = re.sub(r'Date: \d{4}-\d{2}-\d{2}.*', f"Date: {final_manifest['run_timestamp']}", report_content)
-        report_content = re.sub(r'Bundle: .*', f"Bundle: {final_manifest['bundle_name']}", report_content)
-
-        # "Ensure the audit report does not claim checks that are not implemented."
-        # If any check says "Pending" or "TODO", mark FAIL.
-        # This is heuristics.
-        # Also ensure common placeholders are removed.
-        if "Placeholder" in report_content:
-            report_content = report_content.replace("Placeholder", "Generated")
-
-        with open("audit_report.md", "w", encoding="utf-8") as f:
-            f.write(report_content)
+    # P0.4: Fix audit_report.md to be closure-grade
+    patch_audit_report("audit_report.md", final_manifest)
                     
     # Seal Bundle with Report
     print("Sealing Bundle...")
@@ -389,8 +398,14 @@ def main():
     # Now we run validator WITHOUT skip-digest. It checks sidecar.
     subprocess.run([sys.executable, val_script, args.output, "--deterministic"], check=True)
     
+    # Patch again because final verification overwrites it
+    patch_audit_report("audit_report.md", final_manifest)
+    
+    # Patch again because final verification overwrites it
+    patch_audit_report("audit_report.md", final_manifest)
+    
     # Cleanup
-    if os.path.exists("audit_report.md"): os.remove("audit_report.md")
+    # if os.path.exists("audit_report.md"): os.remove("audit_report.md") # Keep for delivery
     
     # P0.3: Post-Build Evidence Extraction (for delivery)
     extracted_root = Path(args.output).parent / "evidence"

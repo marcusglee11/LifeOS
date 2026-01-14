@@ -118,7 +118,7 @@ def validate_markdown(path):
                 # RPV004: Evidence Pointer Grammar
                 # path | path:Lx-Ly | path#sha256:<HEX64> | N/A(<reason>)
                 # Bare N/A invalid.
-                valid_ptr_regex = r'^(.+?(:L\d+(-L\d+)?)?|.+?#sha256:[a-fA-F0-9]{64}|N/A\(.+\))$'
+                valid_ptr_regex = r'^(?:[\w./-]+(?::L\d+(?:-L\d+)?)?|[\w./-]+#sha256:[a-fA-F0-9]{64}|N/A\(.+\))$'
                 if not re.match(valid_ptr_regex, ev_ptr, re.IGNORECASE):
                     fail('RPV004', f"Invalid Evidence Pointer '{ev_ptr}' (must be path | path:Lx-Ly | path#sha256:<HEX64> | N/A(<reason>)).")
                 

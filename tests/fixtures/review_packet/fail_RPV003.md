@@ -23,8 +23,9 @@ S
 |---|---|---|---|
 
 # Acceptance Criteria
-| C | S | E | H |
-|---|---|---|---|
+| ID | Criterion | Status | | SHA-256 |
+|---|---|---|---|---|
+| AC1 | Criteria Description | PASS | logs/run.txt:L10 | 74BBF6A08C5D37968F77E48C28AB5F19E960140A368A3ABB6F4826B806D316BE |
 
 # Closure Evidence Checklist
 | Category | Requirement | Verified |

@@ -7,7 +7,7 @@
 # Claims
 - **Claim**: C
   - **Type**: policy_mandate
-  - **Evidence Pointer**: 
+  
   - **Status**: proven
 
 # Targets
