@@ -1,5 +1,5 @@
 {
     "schema_version": "v1.0",
     "allowlist_path": "tests_doc/tdd_compliance_allowlist.yaml",
-    "allowlist_sha256": "d33c0d79695675d97dbcd2684321bf6587db6197f791be7c134ea0bbfb3f41c9"
+    "allowlist_sha256": "2088d285d408e97924c51d210f4a16ea52ff8c296a5da3f68538293e31e07427"
 }

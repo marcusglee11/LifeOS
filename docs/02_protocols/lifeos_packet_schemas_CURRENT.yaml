@@ -122,6 +122,7 @@ payloads:
       - scope_envelope
       - repro
       - terminal_outcome
+      - closure_evidence
 
   FIX_PACKET:
     allow:

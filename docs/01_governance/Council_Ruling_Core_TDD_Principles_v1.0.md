@@ -34,7 +34,7 @@
 |--------|------|--------|
 | Architect | Filesystem I/O policy clarified | Addressed |
 | Governance | Envelope Policy added as governance-controlled surface | Addressed |
-| Testing | Dynamic detection (exec/eval/__import__) added | Addressed |
+| Testing | Dynamic detection (exec/eval/**import**) added | Addressed |
 
 ---
 
@@ -54,7 +54,7 @@ The following are now **canonical and active**:
 - **Bundle**: `Bundle_TDD_Hardening_Enforcement_v1.3.zip`
 - **Bundle SHA256**: `75c41b2a4f9d95341a437f870e45901d612ed7d839c02f37aa2965a77107981f`
 - **pytest**: 12 passed (enforcement self-tests)
-- **Allowlist SHA256**: `d33c0d79695675d97dbcd2684321bf6587db6197f791be7c134ea0bbfb3f41c9`
+- **Allowlist SHA256**: `2088d285d408e97924c51d210f4a16ea52ff8c296a5da3f68538293e31e07427`
 
 ---
 

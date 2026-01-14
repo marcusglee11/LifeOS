@@ -83,6 +83,8 @@ FILES = {
     "pass_01.md": BASE,
     "fail_RPV001.md": BASE.replace("# Scope Envelope", ""),
     "fail_RPV002.md": BASE.replace("# Summary", "# Scope Envelope").replace("# Scope Envelope", "# Summary", 1),
+    "fail_RPV003.md": BASE.replace(r"| Status | Evidence Pointer |", "| Status | |"), # Missing Evidence Pointer column
+    "fail_RPV004.md": BASE.replace(r"| [PASS] |", r"| [PASS] | bad_pointer |"), # Bad grammar
     "fail_RPV005.md": BASE.replace("| **Provenance** |", "| **Missing** |"),
     "fail_RPV006.md": BASE.replace("| [Hash] |", "| |"),
     "fail_YPV013.md": BASE.replace('closure_evidence: {}', '') # was fail_11_yaml, now YPV013 per plan

@@ -76,9 +76,11 @@ FILES = {
     "pass_01.md": BASE,
     "fail_PPV001.md": BASE.replace("# Scope Envelope", ""),
     "fail_PPV002.md": BASE.replace("# Proposed Changes", "# Scope Envelope").replace("# Scope Envelope", "# Proposed Changes", 1),
-    "fail_PPV003.md": BASE.replace("asserted", "proven").replace("- **Evidence Pointer**: path/to/file:L1-L10", ""),
-    "fail_PPV004.md": BASE.replace("path/to/file:L1-L10", "bad pointer"),
-    "fail_PPV006.md": BASE.replace("| F5 | i | FAIL | C5 | |", "") # Less than 5 fails
+    "fail_PPV003.md": BASE.replace("asserted", "proven").replace("path/to/file:L1-L10", ""),
+    "fail_PPV005.md": BASE.replace("asserted", "proven").replace("path/to/file:L1-L10", "nonexistent_file.md"),
+    "fail_PPV006.md": BASE.replace("| F5 | i | FAIL | C5 | |", ""), # Less than 5 fails
+    "fail_PPV007.md": BASE.replace("# Validator Contract", "# Validator Contract\n FAIL RPV001"), # Drift
+    "fail_PPV008.md": BASE.replace("- T", "- **Target**: /absolute/path\n- **Mode**: discover") # Fixed path in discover mode
 }
 
 sorted_filenames = sorted(FILES.keys())
