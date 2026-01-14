@@ -12,6 +12,7 @@
 
 ### P1 (High)
 
+- [ ] **Recursive Builder iteration (Phase B)** — Why Now: Immediate focus (Refinement & Automation) — Owner: antigravity
 - [ ] **B1: Strengthen smoke_check failure-path evidence assertions** — DoD: Test computes sha256 of smoke_check.stderr — Owner: antigravity
 - [ ] **B2: Tighten validation exception specificity in tests** — DoD: Tests assert exact exception type (e.g., MissionValidationError) — Owner: antigravity
 - [ ] **B3: Clarify/standardize fail-closed boundary for filesystem errors** — DoD: Documented boundary + consistent behavior — Owner: antigravity
@@ -24,7 +25,6 @@
 
 ## Next (valuable, but not imminent)
 
-- [ ] **Recursive Builder iteration** — Why Next: Refine recursive kernel based on learnings
 - [ ] **Mission Type Extensions** — Why Next: Add new mission types based on backlog needs
 - [ ] **Integration Testing** — Why Next: Comprehensive end-to-end testing
 - [ ] **Reactive Layer Hygiene: Tighten Canonical JSON** — DoD: Require explicit escape sequence for non-ASCII input
