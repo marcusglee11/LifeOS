@@ -30,8 +30,8 @@ Implemented Deduplicated `AttemptLedger` (JSONL), `LoopPolicy`, and `BudgetContr
 | Requirement | Evidence | Hash (SHA-256) |
 |-------------|----------|----------------|
 | **Code Commit (Phase A)** | `e4cfa313e4d397d386ec4dfd9e689a2855320d7d` | `git show e4cfa31` |
-| **Attempt Ledger** | `demo_env/artifacts/loop_state/attempt_ledger.jsonl` | `c8e2c0ae744f299b78bdf90963acf1634d53edc3b1e2fdccdd8525cb89cec0c3` |
-| **CEO Terminal Packet** | `demo_env/artifacts/CEO_Terminal_Packet.md` | `b914fd1acc0d931cea1048164cfa798894e58c4e9d61cd4d7726fa466c1de1db` |
+| **Attempt Ledger** | `artifacts/samples/phase_a_loop/attempt_ledger.jsonl` | `c8e2c0ae744f299b78bdf90963acf1634d53edc3b1e2fdccdd8525cb89cec0c3` |
+| **CEO Terminal Packet** | `artifacts/samples/phase_a_loop/CEO_Terminal_Packet.md` | `b914fd1acc0d931cea1048164cfa798894e58c4e9d61cd4d7726fa466c1de1db` |
 | **Diff Budget Enforcement** | `test_diff_budget_exceeded` | Proven by test (400 line diff -> ESCALATION_REQUESTED) |
 | **Policy Hash Check** | `test_policy_changed_mid_run` | Proven by test (Hash Mismatch -> ESCALATION_REQUESTED) |
 | **Workspace Reset** | `test_workspace_reset_unavailable` | Proven by test (Logic Stub -> ESCALATION_REQUESTED) |
