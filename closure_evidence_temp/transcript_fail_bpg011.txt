@@ -1,0 +1,4 @@
+Command: python scripts\closure\validate_bundle_preflight_gate.py fail_bpg011.zip
+CWD: C:\Users\cabra\Projects\LifeOS
+
+FAIL BPG011: bundle_file_list incomplete. Missing entrie(s): evidence/rogue.txt...

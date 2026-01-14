@@ -136,6 +136,16 @@ Before any `notify_user` call signaling completion, Antigravity must mentally ex
 □ Only then: call notify_user
 ```
 
+## Section 5. Closure Invariants (MANDATORY)
+
+Any closure/return packet is automatically NO-GO unless:
+
+1. `git status --porcelain` is empty in the packaging worktree.
+2. The packet includes:
+   - `git_status_porcelain.txt`
+   - `git_diff.patch`
+   - `evidence_manifest.sha256` (covering every evidence file + the final zip)
+
 ---
 
 # **ARTICLE XIII — PLAN ARTEFACT GATE (MANDATORY)**

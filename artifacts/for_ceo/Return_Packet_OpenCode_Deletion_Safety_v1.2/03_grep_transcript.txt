@@ -1,0 +1,56 @@
+Binary file ./Bundle_OpenCode_E2E_Reliability_Fix_v1.2.zip matches
+./docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md:157:    * **Verify**: Ensure the working directory is clean via `git clean -nfd` (dry run) before switching.
+./docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:781:    GIT_CLEAN = "git_clean"      # git clean -fd
+./docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:793:    "git clean -fd",
+./docs/11_admin/BACKLOG.md:11:- [ ] **Review OpenCode deletion logic** — DoD: Root cause of `git clean` found — Owner: antigravity
+./docs/11_admin/LIFEOS_STATE.md:82:- [ ] **Review OpenCode Deletion Logic:** Investigate root cause of aggressive `git clean`.
+./docs/99_archive/BACKLOG_legacy_v1.0.md:22:- [ ] **Review OpenCode deletion logic** — DoD: Root cause of `git clean` found — Owner: antigravity
+./docs/LifeOS_Universal_Corpus.md:22412:    GIT_CLEAN = "git_clean"      # git clean -fd
+./docs/LifeOS_Universal_Corpus.md:22424:    "git clean -fd",
+./docs/LifeOS_Universal_Corpus.md:31128:- [ ] **Review OpenCode deletion logic** — DoD: Root cause of `git clean` found — Owner: antigravity
+./docs/LifeOS_Universal_Corpus.md:31296:- [ ] **Review OpenCode Deletion Logic:** Investigate root cause of aggressive `git clean`.
+./doc_steward/scripts/port_project_builder.py:21:        shutil.rmtree(TARGET_PB)
+./runtime/agents/opencode_client.py:354:                shutil.rmtree(self._config_dir)
+./runtime/migration.py:67:            shutil.rmtree(pb_path)
+./runtime/migration.py:191:            shutil.rmtree(pb_path)
+./runtime/orchestration/operations.py:43:    "git clean -fd",
+./runtime/rollback.py:111:            shutil.rmtree(staging_dir)
+./runtime/rollback.py:160:                            shutil.rmtree(backup_path)
+./runtime/rollback.py:171:                        shutil.rmtree(backup_path)
+./runtime/rollback.py:181:                shutil.rmtree(staging_dir)
+./runtime/rollback.py:187:                shutil.rmtree(staging_dir)
+./runtime/safety/halt.py:118:                shutil.rmtree(backup_path)
+./runtime/safety/path_guard.py:7:Enforces that ANY destructive operation (git clean, rm -rf) must occur
+./runtime/tests/archive_legacy_r6x/test_fsm_checkpoint_regression.py:40:        shutil.rmtree(self.test_dir)
+./runtime/tests/archive_legacy_r6x/test_migration.py:78:        shutil.rmtree(self.test_dir)
+./runtime/tests/archive_legacy_r6x/test_migration_snapshot_b.py:18:    @patch("shutil.rmtree")
+./runtime/tests/archive_legacy_r6x/test_r6_5_deep_replay_trace.py:32:        shutil.rmtree(self.test_dir)
+./runtime/tests/archive_legacy_r6x/test_r6_5_deep_replay_trace.py:84:            shutil.rmtree(amu_dir)
+./runtime/tests/archive_legacy_r6x/test_r6_integration_determinism.py:49:        shutil.rmtree(self.test_dir)
+./runtime/tests/archive_legacy_r6x/test_replay.py:40:            shutil.rmtree(self.amu0_path)
+./runtime/tests/test_amu0_lineage.py:24:        shutil.rmtree(self.temp_dir, ignore_errors=True)
+./runtime/tests/test_dap_gateway.py:31:        shutil.rmtree(self.temp_dir, ignore_errors=True)
+./runtime/tests/test_dap_gateway.py:139:        shutil.rmtree(self.temp_dir, ignore_errors=True)
+./runtime/tests/test_demo_approval_determinism.py:54:        shutil.rmtree(demo_dir)
+./runtime/tests/test_governance_protection.py:40:        shutil.rmtree(self.temp_dir, ignore_errors=True)
+./runtime/tests/test_opencode_safety.py:15:        shutil.rmtree(tmp)
+./scripts/audit_gate_build_loop_phase1a.py:103:                    shutil.rmtree(self.temp_dir)
+./scripts/audit_gate_build_loop_phase2.py:83:                    shutil.rmtree(self.temp_dir)
+./scripts/closure/build_closure_bundle.py:213:        shutil.rmtree(work_dir)
+./scripts/closure/build_closure_bundle.py:412:    if extracted_root.exists(): shutil.rmtree(extracted_root)
+./scripts/closure/build_closure_bundle.py:416:    if work_dir.exists(): shutil.rmtree(work_dir)
+./scripts/closure/tests/generate_closure_evidence.py:16:if EVIDENCE_DIR.exists(): shutil.rmtree(EVIDENCE_DIR)
+./scripts/closure/tests/verify_gcbs.py:134:        # shutil.rmtree(WORK_DIR) 
+./scripts/generate_bundle_v1_3_assets.py:35:    shutil.rmtree(log_dir, ignore_errors=True) # Clean start
+./scripts/generate_bundle_v1_4_assets.py:45:    shutil.rmtree(evidence_dir / "logs", ignore_errors=True)
+./scripts/generate_bundle_v1_5_assets.py:37:    shutil.rmtree(evidence_dir / "logs", ignore_errors=True)
+./scripts/generate_passage_bundles.py:29:        shutil.rmtree(bundles_dir)
+./scripts/manual/demo_loop.py:16:        shutil.rmtree(root)
+./scripts/opencode_ci_runner.py:291:            shutil.rmtree(config_dir)
+./scripts/opencode_ci_runner.py.DISABLED:192:        try: shutil.rmtree(config_dir)
+./scripts/run_certification_tests.py:346:    shutil.rmtree(temp_dir, onerror=on_rm_error)
+./scripts/smoke_opencode_safety.py:54:            shutil.rmtree(sandbox)
+./scripts/smoke_opencode_safety.py:61:            shutil.rmtree(tmp_root)
+./scripts/verify_a1a2_closure.py:63:        shutil.rmtree(WORK_DIR)
+./scripts/verify_mission_synthesis_mvp.py:92:        shutil.rmtree(tmp_parent, onerror=on_rm_error)
+./scripts/verify_mission_synthesis_mvp.py:291:        shutil.rmtree(scratch_dir, onerror=on_rm_error)

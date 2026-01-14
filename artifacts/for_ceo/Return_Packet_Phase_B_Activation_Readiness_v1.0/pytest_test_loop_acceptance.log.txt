@@ -1,0 +1,190 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/projects/lifeos
+configfile: pytest.ini
+plugins: anyio-4.12.1
+collecting ... collected 20 items
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_crash_and_resume PASSED [  5%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_acceptance_oscillation PASSED [ 10%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_verify_terminal_packet_structure PASSED [ 15%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_diff_budget_exceeded PASSED [ 20%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_policy_changed_mid_run PASSED [ 25%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_workspace_reset_unavailable PASSED [ 30%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_approval_pass_via_waiver_approved FAILED [ 35%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_rejection_blocked_via_waiver_rejected FAILED [ 40%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_ineligible_failure_blocked PASSED [ 45%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_surface_touched_escalation_override PASSED [ 50%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_protected_path_escalation PASSED [ 55%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_violation_immediate_escalation PASSED [ 60%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_blocks_invalid_packet_emission PASSED [ 65%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_determinism_anchors_missing PASSED [ 70%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_governance_surface_scan_detected PASSED [ 75%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_invalid_terminal_outcome_blocks PASSED [ 80%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_missing_next_actions_fails PASSED [ 85%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_debt_registration_validated PASSED [ 90%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_CanonicalHashing::test_phaseb_policy_hash_canonical_crlf_lf_stability PASSED [ 95%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_CanonicalHashing::test_phaseb_policy_hash_bytes_differs_from_canonical PASSED [100%]
+
+=================================== FAILURES ===================================
+_ TestPhaseB_WaiverWorkflow.test_phaseb_waiver_approval_pass_via_waiver_approved _
+
+self = <test_loop_acceptance.TestPhaseB_WaiverWorkflow object at 0x70da70ca3410>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-98/test_phaseb_waiver_approval_pa0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='124083496204912'>, <MagicMock name='BuildMission' id='124083496242160'>, <MagicMock name='ReviewMission' id='124083496245856'>, <MagicMock name='StewardMission' id='124083496249696'>)
+
+    def test_phaseb_waiver_approval_pass_via_waiver_approved(self, phaseb_context, mock_subs_phaseb):
+        """Waiver approval workflow results in PASS with WAIVER_APPROVED reason."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Counter for generating unique diffs (to avoid oscillation)
+        call_count = {"count": 0}
+        def build_with_unique_diff(ctx, inputs):
+            i = call_count["count"]
+            call_count["count"] += 1
+            return MissionResult(
+                True, MissionType.BUILD,
+                outputs={
+                    "review_packet": {
+                        "payload": {"content": f"diff{i}"},
+                        "diff_summary": f"Modified runtime/test{i}.py",
+                        "changed_files": [f"runtime/test{i}.py"]
+                    }
+                },
+                evidence={"usage": {"total": 300}}
+            )
+    
+        B.return_value.run.side_effect = build_with_unique_diff
+    
+        # Override review to ALWAYS reject (trigger retries)
+        R.return_value.run.return_value = MissionResult(
+            True, MissionType.REVIEW,
+            outputs={"verdict": "rejected", "council_decision": {"synthesis": "Test failure - needs retry"}},
+            evidence={"usage": {"total": 150}}
+        )
+    
+        # Mock BudgetController to allow limited attempts (enough for waiver)
+        with patch("runtime.orchestration.missions.autonomous_build_cycle.BudgetController") as MockBudget:
+            # Allow many attempts before budget exhaustion (enough for retry loop + waiver)
+            budget_calls = {"count": 0}
+            def check_budget_limited(attempt_id, tokens, **kwargs):
+                budget_calls["count"] += 1
+                if budget_calls["count"] > 50:  # Very generous limit to allow waiver emission
+                    return (True, TerminalReason.BUDGET_EXHAUSTED.value)
+                return (False, None)
+    
+            MockBudget.return_value.check_budget.side_effect = check_budget_limited
+            MockBudget.return_value.check_diff_budget.return_value = (False, None)
+    
+            # Run mission - should emit WAIVER_REQUEST after exhausting retries
+            mission = AutonomousBuildCycleMission()
+            result1 = mission.run(phaseb_context, {"task_spec": "waiver_approve_test"})
+    
+            assert result1.success is False
+    
+            # Check what terminal outcome was created
+            terminal_path = phaseb_context.repo_root / "artifacts/CEO_Terminal_Packet.md"
+            if terminal_path.exists():
+                with open(terminal_path) as f:
+                    terminal_data = extract_json_from_markdown(f.read())
+                    # Verify waiver was requested OR skip test if not applicable
+                    if terminal_data["outcome"] != "WAIVER_REQUESTED":
+                        pytest.skip(f"Waiver workflow not triggered, got {terminal_data['outcome']}: {terminal_data['reason']}")
+    
+            # Verify waiver request was emitted
+            waiver_request_path = phaseb_context.repo_root / "artifacts/loop_state" / f"WAIVER_REQUEST_{phaseb_context.run_id}.md"
+>           assert waiver_request_path.exists(), "Waiver request should be emitted"
+E           AssertionError: Waiver request should be emitted
+E           assert False
+E            +  where False = exists()
+E            +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-98/test_phaseb_waiver_approval_pa0/repo/artifacts/loop_state/WAIVER_REQUEST_phaseb_test_run.md').exists
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:538: AssertionError
+_ TestPhaseB_WaiverWorkflow.test_phaseb_waiver_rejection_blocked_via_waiver_rejected _
+
+self = <test_loop_acceptance.TestPhaseB_WaiverWorkflow object at 0x70da70ca36e0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-98/test_phaseb_waiver_rejection_b0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='124083496385568'>, <MagicMock name='BuildMission' id='124083496383312'>, <MagicMock name='ReviewMission' id='124083496372848'>, <MagicMock name='StewardMission' id='124083496367264'>)
+
+    def test_phaseb_waiver_rejection_blocked_via_waiver_rejected(self, phaseb_context, mock_subs_phaseb):
+        """Waiver rejection workflow results in BLOCKED with WAIVER_REJECTED reason."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Counter for generating unique diffs (to avoid oscillation)
+        call_count = {"count": 0}
+        def build_with_unique_diff(ctx, inputs):
+            i = call_count["count"]
+            call_count["count"] += 1
+            return MissionResult(
+                True, MissionType.BUILD,
+                outputs={
+                    "review_packet": {
+                        "payload": {"content": f"diff{i}"},
+                        "diff_summary": f"Modified runtime/test{i}.py",
+                        "changed_files": [f"runtime/test{i}.py"]
+                    }
+                },
+                evidence={"usage": {"total": 300}}
+            )
+    
+        B.return_value.run.side_effect = build_with_unique_diff
+    
+        # Override review to ALWAYS reject (trigger retries)
+        R.return_value.run.return_value = MissionResult(
+            True, MissionType.REVIEW,
+            outputs={"verdict": "rejected", "council_decision": {"synthesis": "Test failure - needs retry"}},
+            evidence={"usage": {"total": 150}}
+        )
+    
+        # Mock BudgetController to allow limited attempts (enough for waiver)
+        with patch("runtime.orchestration.missions.autonomous_build_cycle.BudgetController") as MockBudget:
+            # Allow many attempts before budget exhaustion (enough for retry loop + waiver)
+            budget_calls = {"count": 0}
+            def check_budget_limited(attempt_id, tokens, **kwargs):
+                budget_calls["count"] += 1
+                if budget_calls["count"] > 50:  # Very generous limit to allow waiver emission
+                    return (True, TerminalReason.BUDGET_EXHAUSTED.value)
+                return (False, None)
+    
+            MockBudget.return_value.check_budget.side_effect = check_budget_limited
+            MockBudget.return_value.check_diff_budget.return_value = (False, None)
+    
+            mission = AutonomousBuildCycleMission()
+            result1 = mission.run(phaseb_context, {"task_spec": "waiver_reject_test"})
+    
+            assert result1.success is False
+    
+            # Check what terminal outcome was created
+            terminal_path = phaseb_context.repo_root / "artifacts/CEO_Terminal_Packet.md"
+            if terminal_path.exists():
+                with open(terminal_path) as f:
+                    terminal_data = extract_json_from_markdown(f.read())
+                    # Verify waiver was requested OR skip test if not applicable
+                    if terminal_data["outcome"] != "WAIVER_REQUESTED":
+                        pytest.skip(f"Waiver workflow not triggered, got {terminal_data['outcome']}: {terminal_data['reason']}")
+    
+            # Verify waiver request emitted
+            waiver_request_path = phaseb_context.repo_root / "artifacts/loop_state" / f"WAIVER_REQUEST_{phaseb_context.run_id}.md"
+>           assert waiver_request_path.exists()
+E           AssertionError: assert False
+E            +  where False = exists()
+E            +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-98/test_phaseb_waiver_rejection_b0/repo/artifacts/loop_state/WAIVER_REQUEST_phaseb_test_run.md').exists
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:630: AssertionError
+=============================== warnings summary ===============================
+../../../../../../home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428
+  /home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_approval_pass_via_waiver_approved - AssertionError: Waiver request should be emitted
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-98/test_phaseb_waiver_approval_pa0/repo/artifacts/loop_state/WAIVER_REQUEST_phaseb_test_run.md').exists
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_rejection_blocked_via_waiver_rejected - AssertionError: assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-98/test_phaseb_waiver_rejection_b0/repo/artifacts/loop_state/WAIVER_REQUEST_phaseb_test_run.md').exists
+=================== 2 failed, 18 passed, 1 warning in 2.84s ====================

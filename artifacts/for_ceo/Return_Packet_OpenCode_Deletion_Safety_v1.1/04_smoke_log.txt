@@ -1,0 +1,13 @@
+=== OPENCODE SAFETY SMOKE TEST ===
+
+[CASE 1] Attempting to destroy FAKE REPO ROOT: C:\Users\cabra\AppData\Local\Temp\smoke_safety_u37ox2ho\fake_repo
+RESULT: BLOCKED (EXPECTED) - Reason: Cannot destroy repo root: C:\Users\cabra\AppData\Local\Temp\smoke_safety_u37ox2ho\fake_repo
+
+[CASE 2] Attempting to destroy UNMARKED DIR: C:\Users\cabra\AppData\Local\Temp\smoke_safety_u37ox2ho\unmarked_dir
+RESULT: BLOCKED (EXPECTED) - Reason: Safety marker .lifeos_sandbox_marker missing in C:\Users\cabra\AppData\Local\Temp\smoke_safety_u37ox2ho\unmarked_dir or its parents up to sandbox root
+
+[CASE 3] Attempting to destroy VALID SANDBOX: C:\Users\cabra\AppData\Local\Temp\smoke_safety_u37ox2ho\sandbox
+RESULT: ALLOWED (EXPECTED)
+Action: Destroyed successfully
+
+=== SMOKE TEST COMPLETE ===

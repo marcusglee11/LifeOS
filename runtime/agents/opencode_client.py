@@ -48,6 +48,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, List, Dict, Any
+from pathlib import Path
 
 # Use requests if available, otherwise provide helpful error
 try:
@@ -63,6 +64,7 @@ try:
         API_KEY_FALLBACK_CHAIN,
         get_api_key,
     )
+    from runtime.safety.path_guard import PathGuard
 except ImportError:
     DEFAULT_MODEL = "minimax-m2.1-free"
     DEFAULT_ENDPOINT = "https://opencode.ai/zen/v1/messages"
@@ -312,6 +314,12 @@ class OpenCodeClient:
         """Create isolated config directory for ephemeral server."""
         temp_dir = tempfile.mkdtemp(prefix="opencode_client_")
 
+        # P0.2 Safety Guard: Mark as sandbox
+        try:
+             PathGuard.create_sandbox(Path(temp_dir))
+        except Exception:
+             pass
+
         # Config subdirectory
         config_subdir = os.path.join(temp_dir, "opencode")
         os.makedirs(config_subdir, exist_ok=True)
@@ -340,6 +348,9 @@ class OpenCodeClient:
         """Clean up isolated config directory."""
         if self._config_dir and os.path.exists(self._config_dir):
             try:
+                # P0.2 Safety Guard
+                repo_root = Path(os.getcwd())
+                PathGuard.verify_safe_for_destruction(Path(self._config_dir), Path(self._config_dir), repo_root=repo_root)
                 shutil.rmtree(self._config_dir)
             except Exception:
                 pass

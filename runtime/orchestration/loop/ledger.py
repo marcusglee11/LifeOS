@@ -39,25 +39,56 @@ class AttemptRecord:
 class LedgerHeader:
     """
     First line of the ledger, containing immutable run context.
+
+    Phase A: schema_version, policy_hash, handoff_hash, run_id
+    Phase B: Added optional policy_version, policy_hash_canonical, policy_hash_bytes
+
+    Backward compatibility: Old ledgers without Phase B fields can still be read.
     """
     schema_version: str = "v1.0"
-    policy_hash: str
+    policy_hash: str  # Kept for Phase A compatibility
     handoff_hash: str
     run_id: str
-    
-    def __init__(self, policy_hash: str, handoff_hash: str, run_id: str):
+
+    # Phase B additions (optional for backward compatibility)
+    policy_version: Optional[str]        # e.g., "phase_b_v1.0"
+    policy_hash_canonical: Optional[str] # Canonical hash (CRLF/LF-stable)
+    policy_hash_bytes: Optional[str]     # Raw bytes hash (forensics)
+
+    def __init__(
+        self,
+        policy_hash: str,
+        handoff_hash: str,
+        run_id: str,
+        policy_version: Optional[str] = None,
+        policy_hash_canonical: Optional[str] = None,
+        policy_hash_bytes: Optional[str] = None
+    ):
         self.policy_hash = policy_hash
         self.handoff_hash = handoff_hash
         self.run_id = run_id
-    
+        self.policy_version = policy_version
+        self.policy_hash_canonical = policy_hash_canonical
+        self.policy_hash_bytes = policy_hash_bytes
+
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result = {
             "type": "header",
             "schema_version": self.schema_version,
             "policy_hash": self.policy_hash,
             "handoff_hash": self.handoff_hash,
             "run_id": self.run_id
         }
+
+        # Include Phase B fields if present
+        if self.policy_version is not None:
+            result["policy_version"] = self.policy_version
+        if self.policy_hash_canonical is not None:
+            result["policy_hash_canonical"] = self.policy_hash_canonical
+        if self.policy_hash_bytes is not None:
+            result["policy_hash_bytes"] = self.policy_hash_bytes
+
+        return result
 
 class LedgerError(Exception):
     pass

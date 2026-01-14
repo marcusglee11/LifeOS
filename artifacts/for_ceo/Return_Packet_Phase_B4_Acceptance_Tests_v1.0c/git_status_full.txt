@@ -1,0 +1,67 @@
+ M GEMINI.md
+ M docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md
+ M docs/INDEX.md
+ M runtime/agents/opencode_client.py
+ M runtime/orchestration/loop/ledger.py
+ M runtime/orchestration/loop/taxonomy.py
+ M runtime/orchestration/missions/autonomous_build_cycle.py
+ A runtime/safety/path_guard.py
+ M runtime/tests/orchestration/missions/test_loop_acceptance.py
+ A runtime/tests/test_opencode_safety.py
+ M scripts/opencode_ci_runner.py
+ A scripts/smoke_opencode_safety.py
+?? FIX_RETURN.md
+?? artifacts/Review_Packet_Phase_B_Self_Building_Loop_v1.0.md
+?? artifacts/closures/Bundle_Implement_DBS_BPG_v1.0.zip
+?? artifacts/closures/Bundle_Implement_DBS_BPG_v1.0.zip.sha256
+?? artifacts/for_ceo/Audit_Report_Repair_v1.0.md
+?? artifacts/for_ceo/Bundle_Phase_B4_Acceptance_Tests_v1.0.zip
+?? artifacts/for_ceo/Bundle_Phase_B4_Acceptance_Tests_v1.0.zip.sha256
+?? artifacts/for_ceo/Bundle_Phase_B4_Acceptance_Tests_v1.0a.zip
+?? artifacts/for_ceo/Bundle_Phase_B4_Acceptance_Tests_v1.0a.zip.sha256
+?? artifacts/for_ceo/Bundle_Phase_B4_Acceptance_Tests_v1.0b.zip
+?? artifacts/for_ceo/Bundle_Phase_B4_Acceptance_Tests_v1.0b.zip.sha256
+?? artifacts/for_ceo/Bundle_Review_Packet_Schema_Hardening_Repair_v1.0.zip
+?? artifacts/for_ceo/Bundle_Review_Packet_Schema_Hardening_Repair_v1.0.zip.sha256
+?? artifacts/for_ceo/CHANGES.diff
+?? artifacts/for_ceo/FIX_RETURN.md
+?? artifacts/for_ceo/Propagation_Return_Packet_v1.0/
+?? artifacts/for_ceo/Return_Packet_OpenCode_Deletion_Safety_v1.0.zip
+?? artifacts/for_ceo/Return_Packet_OpenCode_Deletion_Safety_v1.1.zip
+?? artifacts/for_ceo/Return_Packet_OpenCode_Deletion_Safety_v1.1/
+?? artifacts/for_ceo/Return_Packet_Phase_B4_Acceptance_Tests_v1.0a/
+?? artifacts/for_ceo/Return_Packet_Phase_B4_Acceptance_Tests_v1.0b.zip
+?? artifacts/for_ceo/Return_Packet_Phase_B4_Acceptance_Tests_v1.0b/
+?? artifacts/for_ceo/Return_Packet_Phase_B4_Acceptance_Tests_v1.0c/
+?? artifacts/for_ceo/Return_Packet_Phase_B4_Acceptance_Tests_v1.1/
+?? artifacts/for_ceo/Return_Packet_Phase_B_Activation_Readiness_v1.0/
+?? artifacts/for_ceo/Review_Packet_Constitution_Update_v0.1.md
+?? artifacts/plans/Plan_Constitution_Update_v0.1.md
+?? artifacts/plans/Plan_Phase_B4_Acceptance_Tests_v1.0.md
+?? artifacts/plans/Plan_Phase_B_Activation_Readiness_v1.2.md
+?? artifacts/plans/Plan_Phase_B_Activation_Readiness_v1.2c.md
+?? artifacts/review_packets/Review_Packet_Constitution_Update_v0.1.md
+?? artifacts/review_packets/Review_Packet_Implement_DBS_BPG_v1.0.md
+?? artifacts/review_packets/Review_Packet_OpenCode_Deletion_Safety_v1.0.md
+?? artifacts/review_packets/Review_Packet_Phase_B1_Config_Policy_v1.0.md
+?? artifacts/review_packets/Review_Packet_Phase_B_Loop_Controller_v1.0.md
+?? artifacts/review_packets/Review_Packet_Phase_B_Loop_Controller_v1.1.md
+?? artifacts/review_packets/evidence_manifest.sha256
+?? artifacts/review_packets/git_status_porcelain.txt
+?? audit_report.md
+?? closure_evidence_temp/
+?? config/loop/
+?? evidence_manifest.txt
+?? runtime/orchestration/loop/checklists.py
+?? runtime/orchestration/loop/config_loader.py
+?? runtime/orchestration/loop/configurable_policy.py
+?? runtime/tests/orchestration/loop/test_checklists.py
+?? runtime/tests/orchestration/loop/test_config_loader.py
+?? runtime/tests/orchestration/loop/test_configurable_policy.py
+?? runtime/tests/orchestration/missions/test_loop_acceptance.py.backup
+?? runtime/tests/orchestration/missions/test_loop_waiver_workflow.py
+?? scripts/closure/tests/generate_closure_evidence.py
+?? scripts/closure/tests/generate_evidence_logs_v3.py
+?? scripts/closure/tests/test_closure_bundle_gate.py
+?? scripts/closure/validate_bundle_preflight_gate.py
+?? scripts/loop/

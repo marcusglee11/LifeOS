@@ -1,0 +1,478 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/projects/lifeos
+configfile: pytest.ini
+plugins: anyio-4.12.1
+collecting ... collected 20 items
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_crash_and_resume PASSED [  5%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_acceptance_oscillation PASSED [ 10%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_verify_terminal_packet_structure PASSED [ 15%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_diff_budget_exceeded PASSED [ 20%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_policy_changed_mid_run PASSED [ 25%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_workspace_reset_unavailable PASSED [ 30%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_approval_pass_via_waiver_approved FAILED [ 35%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_rejection_blocked_via_waiver_rejected FAILED [ 40%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_ineligible_failure_blocked PASSED [ 45%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_surface_touched_escalation_override FAILED [ 50%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_protected_path_escalation FAILED [ 55%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_violation_immediate_escalation FAILED [ 60%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_blocks_invalid_packet_emission FAILED [ 65%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_determinism_anchors_missing PASSED [ 70%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_governance_surface_scan_detected PASSED [ 75%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_invalid_terminal_outcome_blocks FAILED [ 80%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_missing_next_actions_fails PASSED [ 85%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_debt_registration_validated PASSED [ 90%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_CanonicalHashing::test_phaseb_policy_hash_canonical_crlf_lf_stability FAILED [ 95%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_CanonicalHashing::test_phaseb_policy_hash_bytes_differs_from_canonical FAILED [100%]
+
+=================================== FAILURES ===================================
+_ TestPhaseB_WaiverWorkflow.test_phaseb_waiver_approval_pass_via_waiver_approved _
+
+self = <test_loop_acceptance.TestPhaseB_WaiverWorkflow object at 0x7a598b597380>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_waiver_approval_pa0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='134524971933168'>, <MagicMock name='BuildMission' id='134524973969056'>, <MagicMock name='ReviewMission' id='134524972201408'>, <MagicMock name='StewardMission' id='134524971992320'>)
+
+    def test_phaseb_waiver_approval_pass_via_waiver_approved(self, phaseb_context, mock_subs_phaseb):
+        """Waiver approval workflow results in PASS with WAIVER_APPROVED reason."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Force TEST_FAILURE classification by exhausting retries (4 attempts with rejection)
+        # Build returns different diffs to avoid oscillation
+        B.return_value.run.side_effect = [
+            MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": f"diff{i}"}, "diff_summary": f"Modified runtime/test{i}.py", "changed_files": [f"runtime/test{i}.py"]}}, evidence={"usage": {"total": 300}})
+            for i in range(4)
+        ]
+    
+        # Run mission - should emit WAIVER_REQUEST after exhausting retries
+        mission = AutonomousBuildCycleMission()
+        result1 = mission.run(phaseb_context, {"task_spec": "waiver_approve_test"})
+    
+        assert result1.success is False
+    
+        # Verify waiver request was emitted
+        waiver_request_path = phaseb_context.repo_root / "artifacts/loop_state" / f"WAIVER_REQUEST_{phaseb_context.run_id}.md"
+>       assert waiver_request_path.exists(), "Waiver request should be emitted"
+E       AssertionError: Waiver request should be emitted
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_waiver_approval_pa0/repo/artifacts/loop_state/WAIVER_REQUEST_phaseb_test_run.md').exists
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:494: AssertionError
+_ TestPhaseB_WaiverWorkflow.test_phaseb_waiver_rejection_blocked_via_waiver_rejected _
+
+self = <test_loop_acceptance.TestPhaseB_WaiverWorkflow object at 0x7a59894273b0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_waiver_rejection_b0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='134524972233744'>, <MagicMock name='BuildMission' id='134524972229952'>, <MagicMock name='ReviewMission' id='134524972233888'>, <MagicMock name='StewardMission' id='134524972402352'>)
+
+    def test_phaseb_waiver_rejection_blocked_via_waiver_rejected(self, phaseb_context, mock_subs_phaseb):
+        """Waiver rejection workflow results in BLOCKED with WAIVER_REJECTED reason."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Same setup - exhaust retries
+        B.return_value.run.side_effect = [
+            MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": f"diff{i}"}, "diff_summary": f"Modified runtime/test{i}.py", "changed_files": [f"runtime/test{i}.py"]}}, evidence={"usage": {"total": 300}})
+            for i in range(4)
+        ]
+    
+        mission = AutonomousBuildCycleMission()
+        result1 = mission.run(phaseb_context, {"task_spec": "waiver_reject_test"})
+    
+        assert result1.success is False
+    
+        # Verify waiver request emitted
+        waiver_request_path = phaseb_context.repo_root / "artifacts/loop_state" / f"WAIVER_REQUEST_{phaseb_context.run_id}.md"
+>       assert waiver_request_path.exists()
+E       AssertionError: assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_waiver_rejection_b0/repo/artifacts/loop_state/WAIVER_REQUEST_phaseb_test_run.md').exists
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:544: AssertionError
+_ TestPhaseB_GovernanceEscalation.test_phaseb_governance_surface_touched_escalation_override _
+
+self = <test_loop_acceptance.TestPhaseB_GovernanceEscalation object at 0x7a59894279b0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_governance_surface0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='134524972448224'>, <MagicMock name='BuildMission' id='134524972435456'>, <MagicMock name='ReviewMission' id='134524972445680'>, <MagicMock name='StewardMission' id='134524972437760'>)
+
+    def test_phaseb_governance_surface_touched_escalation_override(self, phaseb_context, mock_subs_phaseb):
+        """Governance surface touched triggers ESCALATION_REQUESTED, overriding waiver."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Mock Build to return diff touching protected governance path
+        # Use actual protected path from protected_artefacts.json
+        B.return_value.run.side_effect = [
+            MissionResult(
+                True, MissionType.BUILD,
+                outputs={
+                    "review_packet": {
+                        "payload": {"content": f"diff{i}"},
+                        "diff_summary": "Modified docs/00_foundations/Constitution.md",
+                        "changed_files": ["docs/00_foundations/LifeOS_Constitution_v2.0.md"]
+                    }
+                },
+                evidence={"usage": {"total": 300}}
+            )
+            for i in range(4)
+        ]
+    
+        mission = AutonomousBuildCycleMission()
+        result = mission.run(phaseb_context, {"task_spec": "governance_surface_test"})
+    
+        assert result.success is False
+    
+        # Verify escalation (not waiver)
+        terminal_path = phaseb_context.repo_root / "artifacts/CEO_Terminal_Packet.md"
+        assert terminal_path.exists()
+        with open(terminal_path) as f:
+            terminal_content = f.read()
+            terminal_data = extract_json_from_markdown(terminal_content)
+>           assert terminal_data["outcome"] == "ESCALATION_REQUESTED"
+E           AssertionError: assert 'BLOCKED' == 'ESCALATION_REQUESTED'
+E             
+E             - ESCALATION_REQUESTED
+E             + BLOCKED
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:657: AssertionError
+____ TestPhaseB_GovernanceEscalation.test_phaseb_protected_path_escalation _____
+
+self = <test_loop_acceptance.TestPhaseB_GovernanceEscalation object at 0x7a5989427cb0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_protected_path_esc0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='134524972229856'>, <MagicMock name='BuildMission' id='134524972224672'>, <MagicMock name='ReviewMission' id='134524972230576'>, <MagicMock name='StewardMission' id='134524973514384'>)
+
+    def test_phaseb_protected_path_escalation(self, phaseb_context, mock_subs_phaseb):
+        """Protected path modification triggers escalation."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Use another protected path from config
+        B.return_value.run.side_effect = [
+            MissionResult(
+                True, MissionType.BUILD,
+                outputs={
+                    "review_packet": {
+                        "payload": {"content": f"diff{i}"},
+                        "diff_summary": "Modified config/governance/protected_artefacts.json",
+                        "changed_files": ["config/governance/protected_artefacts.json"]
+                    }
+                },
+                evidence={"usage": {"total": 300}}
+            )
+            for i in range(4)
+        ]
+    
+        mission = AutonomousBuildCycleMission()
+        result = mission.run(phaseb_context, {"task_spec": "protected_path_test"})
+    
+        assert result.success is False
+    
+        # Verify escalation
+        terminal_path = phaseb_context.repo_root / "artifacts/CEO_Terminal_Packet.md"
+        with open(terminal_path) as f:
+            terminal_data = extract_json_from_markdown(f.read())
+>           assert terminal_data["outcome"] == "ESCALATION_REQUESTED"
+E           AssertionError: assert 'BLOCKED' == 'ESCALATION_REQUESTED'
+E             
+E             - ESCALATION_REQUESTED
+E             + BLOCKED
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:694: AssertionError
+_ TestPhaseB_GovernanceEscalation.test_phaseb_governance_violation_immediate_escalation _
+
+self = <test_loop_acceptance.TestPhaseB_GovernanceEscalation object at 0x7a5989426e40>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_governance_violati0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='134524973932784'>, <MagicMock name='BuildMission' id='134524973925440'>, <MagicMock name='ReviewMission' id='134524973926688'>, <MagicMock name='StewardMission' id='134524973935616'>)
+
+    def test_phaseb_governance_violation_immediate_escalation(self, phaseb_context, mock_subs_phaseb):
+        """GOVERNANCE_VIOLATION failure class triggers immediate escalation (1 attempt only)."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Single build attempt before termination
+        B.return_value.run.return_value = MissionResult(
+            True, MissionType.BUILD,
+            outputs={"review_packet": {"payload": {"content": "violation"}, "diff_summary": "Attempted governance change", "changed_files": ["docs/01_governance/test.md"]}},
+            evidence={"usage": {"total": 300}}
+        )
+    
+        # Override review to trigger immediate failure
+        def immediate_governance_fail(ctx, inputs):
+            if inputs.get("review_type") == "build_review":
+                return MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {"synthesis": "OK"}}, evidence={"usage": {"total": 150}})
+            # Force immediate termination via patching
+            return MissionResult(True, MissionType.REVIEW, outputs={"verdict": "rejected", "council_decision": {"synthesis": "Governance violation"}}, evidence={"usage": {"total": 150}})
+    
+        R.return_value.run.side_effect = immediate_governance_fail
+    
+        mission = AutonomousBuildCycleMission()
+    
+        # Force immediate termination via budget
+        with patch("runtime.orchestration.missions.autonomous_build_cycle.BudgetController") as MockBudget:
+            MockBudget.return_value.check_budget.side_effect = [
+                (False, None),  # First check passes
+                (True, "governance_escalation")  # Second check triggers escalation
+            ]
+            result = mission.run(phaseb_context, {"task_spec": "governance_violation_test"})
+    
+        assert result.success is False
+    
+        # Verify ESCALATION_REQUESTED
+        terminal_path = phaseb_context.repo_root / "artifacts/CEO_Terminal_Packet.md"
+        with open(terminal_path) as f:
+            terminal_data = extract_json_from_markdown(f.read())
+>           assert terminal_data["outcome"] == "ESCALATION_REQUESTED"
+E           AssertionError: assert 'BLOCKED' == 'ESCALATION_REQUESTED'
+E             
+E             - ESCALATION_REQUESTED
+E             + BLOCKED
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:732: AssertionError
+_ TestPhaseB_PreflightValidation.test_phaseb_ppv_blocks_invalid_packet_emission _
+
+self = <test_loop_acceptance.TestPhaseB_PreflightValidation object at 0x7a5989427800>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_ppv_blocks_invalid0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='134524972579776'>, <MagicMock name='BuildMission' id='134524972048048'>, <MagicMock name='ReviewMission' id='134524972582672'>, <MagicMock name='StewardMission' id='134524972586512'>)
+
+    def test_phaseb_ppv_blocks_invalid_packet_emission(self, phaseb_context, mock_subs_phaseb):
+        """PPV failure blocks packet emission with PREFLIGHT_CHECKLIST_FAILED."""
+        from runtime.orchestration.loop.checklists import PreflightValidator, ChecklistResult, ChecklistItem
+    
+        D, B, R, S = mock_subs_phaseb
+    
+        # Normal build behavior
+        B.return_value.run.return_value = MissionResult(
+            True, MissionType.BUILD,
+            outputs={"review_packet": {"payload": {"content": "test"}, "diff_summary": "Modified test.py", "changed_files": ["test.py"]}},
+            evidence={"usage": {"total": 300}}
+        )
+    
+        # Patch PPV to force failure
+        with patch('runtime.orchestration.missions.autonomous_build_cycle.PreflightValidator') as MockPPV:
+            mock_ppv_instance = MockPPV.return_value
+    
+            # Force PF-7 failure (budget state mismatch)
+            mock_ppv_instance.validate.return_value = ChecklistResult(
+                schema_version="checklist_v1",
+                run_id=phaseb_context.run_id,
+                attempt_id=1,
+                phase="PREFLIGHT",
+                status="FAIL",
+                items=[
+                    ChecklistItem(id="PF-1", name="Schema pass", status="PASS", evidence=[], note="OK"),
+                    ChecklistItem(id="PF-7", name="Budget state consistent", status="FAIL", evidence=[], note="Budget state mismatch detected")
+                ],
+                computed_hashes={},
+                timestamp_utc="2026-01-14T10:00:00Z",
+                tool_version="test"
+            )
+    
+            mission = AutonomousBuildCycleMission()
+            result = mission.run(phaseb_context, {"task_spec": "ppv_fail_test"})
+    
+            assert result.success is False
+>           assert "preflight" in result.error.lower() or "checklist" in result.error.lower()
+E           AssertionError: assert ('preflight' in 'config validation failed: missing policy_metadata key: author' or 'checklist' in 'config validation failed: missing policy_metadata key: author')
+E            +  where 'config validation failed: missing policy_metadata key: author' = <built-in method lower of str object at 0x7a5989303d70>()
+E            +    where <built-in method lower of str object at 0x7a5989303d70> = 'Config validation failed: Missing policy_metadata key: author'.lower
+E            +      where 'Config validation failed: Missing policy_metadata key: author' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='Config validation failed: Missing policy_metadata key: author', escalation_reason=None, evidence={}).error
+E            +  and   'config validation failed: missing policy_metadata key: author' = <built-in method lower of str object at 0x7a5989303d70>()
+E            +    where <built-in method lower of str object at 0x7a5989303d70> = 'Config validation failed: Missing policy_metadata key: author'.lower
+E            +      where 'Config validation failed: Missing policy_metadata key: author' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='Config validation failed: Missing policy_metadata key: author', escalation_reason=None, evidence={}).error
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:787: AssertionError
+_ TestPhaseB_PostflightValidation.test_phaseb_pofv_invalid_terminal_outcome_blocks _
+
+self = <test_loop_acceptance.TestPhaseB_PostflightValidation object at 0x7a59894263c0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_pofv_invalid_termi0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='134524973508576'>, <MagicMock name='BuildMission' id='134524972235712'>, <MagicMock name='ReviewMission' id='134524972228176'>, <MagicMock name='StewardMission' id='134524972231008'>)
+
+    def test_phaseb_pofv_invalid_terminal_outcome_blocks(self, phaseb_context, mock_subs_phaseb):
+        """POFV POF-1 check fails when terminal outcome is invalid."""
+        from runtime.orchestration.loop.checklists import PostflightValidator, ChecklistResult, ChecklistItem
+    
+        D, B, R, S = mock_subs_phaseb
+    
+        # Force budget exhaustion to trigger terminal packet
+        with patch("runtime.orchestration.missions.autonomous_build_cycle.BudgetController") as MockBudget:
+            MockBudget.return_value.check_budget.return_value = (True, TerminalReason.BUDGET_EXHAUSTED.value)
+    
+            # Patch POFV to force POF-1 failure
+            with patch('runtime.orchestration.missions.autonomous_build_cycle.PostflightValidator') as MockPOFV:
+                mock_pofv_instance = MockPOFV.return_value
+    
+                # Force POF-1 failure (invalid outcome)
+                mock_pofv_instance.validate.return_value = ChecklistResult(
+                    schema_version="checklist_v1",
+                    run_id=phaseb_context.run_id,
+                    attempt_id=None,
+                    phase="POSTFLIGHT",
+                    status="FAIL",
+                    items=[
+                        ChecklistItem(id="POF-1", name="Terminal outcome unambiguous", status="FAIL", evidence=[], note="Invalid outcome detected")
+                    ],
+                    computed_hashes={},
+                    timestamp_utc="2026-01-14T10:00:00Z",
+                    tool_version="test"
+                )
+    
+                mission = AutonomousBuildCycleMission()
+                result = mission.run(phaseb_context, {"task_spec": "pofv_fail_test"})
+    
+                assert result.success is False
+>               assert "postflight" in result.error.lower() or "checklist" in result.error.lower()
+E               AssertionError: assert ('postflight' in 'config validation failed: missing policy_metadata key: author' or 'checklist' in 'config validation failed: missing policy_metadata key: author')
+E                +  where 'config validation failed: missing policy_metadata key: author' = <built-in method lower of str object at 0x7a5989395840>()
+E                +    where <built-in method lower of str object at 0x7a5989395840> = 'Config validation failed: Missing policy_metadata key: author'.lower
+E                +      where 'Config validation failed: Missing policy_metadata key: author' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='Config validation failed: Missing policy_metadata key: author', escalation_reason=None, evidence={}).error
+E                +  and   'config validation failed: missing policy_metadata key: author' = <built-in method lower of str object at 0x7a5989395840>()
+E                +    where <built-in method lower of str object at 0x7a5989395840> = 'Config validation failed: Missing policy_metadata key: author'.lower
+E                +      where 'Config validation failed: Missing policy_metadata key: author' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='Config validation failed: Missing policy_metadata key: author', escalation_reason=None, evidence={}).error
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:900: AssertionError
+_ TestPhaseB_CanonicalHashing.test_phaseb_policy_hash_canonical_crlf_lf_stability _
+
+self = <test_loop_acceptance.TestPhaseB_CanonicalHashing object at 0x7a598944c5c0>
+tmp_path = PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_policy_hash_canoni0')
+
+        def test_phaseb_policy_hash_canonical_crlf_lf_stability(self, tmp_path):
+            """Canonical hash is identical for CRLF vs LF line endings."""
+            from runtime.orchestration.loop.config_loader import PolicyConfigLoader
+    
+            # Create minimal policy config with LF
+            config_lf = tmp_path / "policy_lf.yaml"
+            config_content = """schema_version: "1.0"
+    policy_metadata:
+      version: "test_v1.0"
+    budgets:
+      max_attempts: 5
+    failure_routing:
+      TEST_FAILURE:
+        default_action: "RETRY"
+    """
+            config_lf.write_text(config_content, encoding='utf-8')
+    
+            # Create same config with CRLF
+            config_crlf = tmp_path / "policy_crlf.yaml"
+            config_crlf.write_text(config_content.replace('\n', '\r\n'), encoding='utf-8')
+    
+            # Load both configs
+            loader_lf = PolicyConfigLoader(config_lf)
+            loader_crlf = PolicyConfigLoader(config_crlf)
+    
+>           config_lf_obj = loader_lf.load()
+                            ^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:1015: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+runtime/orchestration/loop/config_loader.py:111: in load
+    self._validate_schema(config_data)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <runtime.orchestration.loop.config_loader.PolicyConfigLoader object at 0x7a5989e471d0>
+data = {'budgets': {'max_attempts': 5}, 'failure_routing': {'TEST_FAILURE': {'default_action': 'RETRY'}}, 'policy_metadata': {'version': 'test_v1.0'}, 'schema_version': '1.0'}
+
+    def _validate_schema(self, data: Dict[str, Any]):
+        """
+        Validate required sections and basic structure.
+    
+        Enforces:
+        - All REQUIRED_SECTIONS present
+        - schema_version == "1.0"
+        - All REQUIRED_BUDGETS present
+        - All REQUIRED_POLICY_METADATA present
+        - Calls specialized validators for routing and waiver rules
+        """
+        # Check top-level sections
+        for section in self.REQUIRED_SECTIONS:
+            if section not in data:
+>               raise PolicyConfigError(f"Missing required section: {section}")
+E               runtime.orchestration.loop.config_loader.PolicyConfigError: Missing required section: waiver_rules
+
+runtime/orchestration/loop/config_loader.py:163: PolicyConfigError
+_ TestPhaseB_CanonicalHashing.test_phaseb_policy_hash_bytes_differs_from_canonical _
+
+self = <test_loop_acceptance.TestPhaseB_CanonicalHashing object at 0x7a598944c8c0>
+tmp_path = PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_policy_hash_bytes_0')
+
+    def test_phaseb_policy_hash_bytes_differs_from_canonical(self, tmp_path):
+        """Both canonical and bytes hashes are persisted when they differ."""
+        from runtime.orchestration.loop.config_loader import PolicyConfigLoader
+    
+        # Create config with CRLF (will differ from canonical LF)
+        config_path = tmp_path / "policy_test.yaml"
+        config_content = "schema_version: \"1.0\"\r\npolicy_metadata:\r\n  version: \"test\"\r\n"
+        config_path.write_bytes(config_content.encode('utf-8'))
+    
+        loader = PolicyConfigLoader(config_path)
+>       config_obj = loader.load()
+                     ^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:1036: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+runtime/orchestration/loop/config_loader.py:111: in load
+    self._validate_schema(config_data)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <runtime.orchestration.loop.config_loader.PolicyConfigLoader object at 0x7a59892eee40>
+data = {'policy_metadata': {'version': 'test'}, 'schema_version': '1.0'}
+
+    def _validate_schema(self, data: Dict[str, Any]):
+        """
+        Validate required sections and basic structure.
+    
+        Enforces:
+        - All REQUIRED_SECTIONS present
+        - schema_version == "1.0"
+        - All REQUIRED_BUDGETS present
+        - All REQUIRED_POLICY_METADATA present
+        - Calls specialized validators for routing and waiver rules
+        """
+        # Check top-level sections
+        for section in self.REQUIRED_SECTIONS:
+            if section not in data:
+>               raise PolicyConfigError(f"Missing required section: {section}")
+E               runtime.orchestration.loop.config_loader.PolicyConfigError: Missing required section: budgets
+
+runtime/orchestration/loop/config_loader.py:163: PolicyConfigError
+=============================== warnings summary ===============================
+../../../../../../home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428
+  /home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_approval_pass_via_waiver_approved - AssertionError: Waiver request should be emitted
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_waiver_approval_pa0/repo/artifacts/loop_state/WAIVER_REQUEST_phaseb_test_run.md').exists
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_rejection_blocked_via_waiver_rejected - AssertionError: assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-58/test_phaseb_waiver_rejection_b0/repo/artifacts/loop_state/WAIVER_REQUEST_phaseb_test_run.md').exists
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_surface_touched_escalation_override - AssertionError: assert 'BLOCKED' == 'ESCALATION_REQUESTED'
+  
+  - ESCALATION_REQUESTED
+  + BLOCKED
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_protected_path_escalation - AssertionError: assert 'BLOCKED' == 'ESCALATION_REQUESTED'
+  
+  - ESCALATION_REQUESTED
+  + BLOCKED
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_violation_immediate_escalation - AssertionError: assert 'BLOCKED' == 'ESCALATION_REQUESTED'
+  
+  - ESCALATION_REQUESTED
+  + BLOCKED
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_blocks_invalid_packet_emission - AssertionError: assert ('preflight' in 'config validation failed: missing policy_metadata key: author' or 'checklist' in 'config validation failed: missing policy_metadata key: author')
+ +  where 'config validation failed: missing policy_metadata key: author' = <built-in method lower of str object at 0x7a5989303d70>()
+ +    where <built-in method lower of str object at 0x7a5989303d70> = 'Config validation failed: Missing policy_metadata key: author'.lower
+ +      where 'Config validation failed: Missing policy_metadata key: author' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='Config validation failed: Missing policy_metadata key: author', escalation_reason=None, evidence={}).error
+ +  and   'config validation failed: missing policy_metadata key: author' = <built-in method lower of str object at 0x7a5989303d70>()
+ +    where <built-in method lower of str object at 0x7a5989303d70> = 'Config validation failed: Missing policy_metadata key: author'.lower
+ +      where 'Config validation failed: Missing policy_metadata key: author' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='Config validation failed: Missing policy_metadata key: author', escalation_reason=None, evidence={}).error
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_invalid_terminal_outcome_blocks - AssertionError: assert ('postflight' in 'config validation failed: missing policy_metadata key: author' or 'checklist' in 'config validation failed: missing policy_metadata key: author')
+ +  where 'config validation failed: missing policy_metadata key: author' = <built-in method lower of str object at 0x7a5989395840>()
+ +    where <built-in method lower of str object at 0x7a5989395840> = 'Config validation failed: Missing policy_metadata key: author'.lower
+ +      where 'Config validation failed: Missing policy_metadata key: author' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='Config validation failed: Missing policy_metadata key: author', escalation_reason=None, evidence={}).error
+ +  and   'config validation failed: missing policy_metadata key: author' = <built-in method lower of str object at 0x7a5989395840>()
+ +    where <built-in method lower of str object at 0x7a5989395840> = 'Config validation failed: Missing policy_metadata key: author'.lower
+ +      where 'Config validation failed: Missing policy_metadata key: author' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='Config validation failed: Missing policy_metadata key: author', escalation_reason=None, evidence={}).error
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_CanonicalHashing::test_phaseb_policy_hash_canonical_crlf_lf_stability - runtime.orchestration.loop.config_loader.PolicyConfigError: Missing required section: waiver_rules
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_CanonicalHashing::test_phaseb_policy_hash_bytes_differs_from_canonical - runtime.orchestration.loop.config_loader.PolicyConfigError: Missing required section: budgets
+=================== 9 failed, 11 passed, 1 warning in 5.60s ====================

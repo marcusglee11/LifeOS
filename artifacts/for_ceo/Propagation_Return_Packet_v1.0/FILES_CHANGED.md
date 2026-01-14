@@ -1,0 +1,7 @@
+- `docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml`
+- `docs/02_protocols/templates/review_packet_template.md`
+- `scripts/closure/build_closure_bundle.py`
+- `scripts/generate_plan_fixtures.py`
+- `scripts/generate_review_fixtures.py`
+- `scripts/validate_plan_packet.py`
+- `scripts/validate_review_packet.py`

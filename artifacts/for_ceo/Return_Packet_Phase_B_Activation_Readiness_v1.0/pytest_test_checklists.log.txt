@@ -1,0 +1,63 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/projects/lifeos
+configfile: pytest.ini
+plugins: anyio-4.12.1
+collecting ... collected 46 items
+
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightValidatorBasics::test_ppv_initialization PASSED [  2%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightValidatorBasics::test_valid_packet_passes_all_checks PASSED [  4%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF1Schema::test_pf1_pass_with_required_sections PASSED [  6%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF1Schema::test_pf1_fail_missing_schema_version PASSED [  8%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF1Schema::test_pf1_fail_missing_multiple_sections PASSED [ 10%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF2Evidence::test_pf2_pass_with_evidence PASSED [ 13%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF2Evidence::test_pf2_fail_no_evidence_section PASSED [ 15%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF2Evidence::test_pf2_fail_empty_evidence PASSED [ 17%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF3DeterminismAnchors::test_pf3_pass_with_all_anchors PASSED [ 19%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF3DeterminismAnchors::test_pf3_fail_missing_run_id PASSED [ 21%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF4ReproSteps::test_pf4_pass_with_repro_steps PASSED [ 23%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF4ReproSteps::test_pf4_pass_with_explicit_non_reproducible PASSED [ 26%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF4ReproSteps::test_pf4_fail_no_repro_info PASSED [ 28%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF4ReproSteps::test_pf4_fail_empty_repro_steps PASSED [ 30%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF5TaxonomyClassification::test_pf5_pass_valid_failure_class PASSED [ 32%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF5TaxonomyClassification::test_pf5_pass_no_failure_class_success_case PASSED [ 34%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF5TaxonomyClassification::test_pf5_fail_invalid_failure_class PASSED [ 36%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF6GovernanceSurface::test_pf6_pass_governance_paths_detected PASSED [ 39%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF6GovernanceSurface::test_pf6_pass_no_governance_paths PASSED [ 41%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF7BudgetState::test_pf7_pass_attempt_id_matches_ledger PASSED [ 43%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF7BudgetState::test_pf7_fail_missing_attempt_id PASSED [ 45%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF7BudgetState::test_pf7_fail_attempt_id_mismatch PASSED [ 47%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF8DeltaSummary::test_pf8_pass_with_diff_summary PASSED [ 50%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF8DeltaSummary::test_pf8_pass_with_changed_files PASSED [ 52%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPreflightPF8DeltaSummary::test_pf8_fail_no_delta_info PASSED [ 54%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightValidatorBasics::test_pofv_initialization PASSED [ 56%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightValidatorBasics::test_valid_terminal_passes_all_checks PASSED [ 58%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF1TerminalOutcome::test_pof1_pass_valid_pass_outcome PASSED [ 60%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF1TerminalOutcome::test_pof1_pass_valid_waiver_outcome PASSED [ 63%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF1TerminalOutcome::test_pof1_fail_invalid_outcome PASSED [ 65%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF2ClosureEvidence::test_pof2_pass_with_ledger_and_run_id PASSED [ 67%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF2ClosureEvidence::test_pof2_fail_missing_run_id PASSED [ 69%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF3HashIntegrity::test_pof3_pass_hash_computed PASSED [ 71%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF4DebtRegistration::test_pof4_pass_not_waiver_outcome PASSED [ 73%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF4DebtRegistration::test_pof4_pass_waiver_pending PASSED [ 76%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF4DebtRegistration::test_pof4_fail_approved_waiver_missing_debt_id PASSED [ 78%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF4DebtRegistration::test_pof4_fail_debt_id_with_line_number PASSED [ 80%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF5TestsEvidence::test_pof5_pass_no_test_evidence_optional PASSED [ 82%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF5TestsEvidence::test_pof5_pass_with_test_evidence PASSED [ 84%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF5TestsEvidence::test_pof5_fail_incomplete_test_evidence PASSED [ 86%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF6NoDanglingState::test_pof6_pass_empty_next_actions PASSED [ 89%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF6NoDanglingState::test_pof6_pass_with_next_actions PASSED [ 91%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF6NoDanglingState::test_pof6_fail_missing_next_actions PASSED [ 93%]
+runtime/tests/orchestration/loop/test_checklists.py::TestPostflightPOF6NoDanglingState::test_pof6_fail_wrong_type_next_actions PASSED [ 95%]
+runtime/tests/orchestration/loop/test_checklists.py::TestChecklistRendering::test_render_preflight_pass PASSED [ 97%]
+runtime/tests/orchestration/loop/test_checklists.py::TestChecklistRendering::test_render_postflight_fail PASSED [100%]
+
+=============================== warnings summary ===============================
+../../../../../../home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428
+  /home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 46 passed, 1 warning in 2.55s =========================

@@ -1,0 +1,4 @@
+Command: python scripts\closure\validate_bundle_preflight_gate.py pass.zip
+CWD: C:\Users\cabra\Projects\LifeOS
+
+PASS

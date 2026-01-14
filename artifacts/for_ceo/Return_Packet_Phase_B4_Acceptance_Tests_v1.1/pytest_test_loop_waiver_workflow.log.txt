@@ -1,0 +1,381 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/projects/lifeos
+configfile: pytest.ini
+plugins: anyio-4.12.1
+collecting ... collected 8 items
+
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverRequestEmission::test_waiver_request_emitted_when_retry_limit_exhausted FAILED [ 12%]
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverRequestEmission::test_waiver_request_includes_ppv_checklist FAILED [ 25%]
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverApprovalCLI::test_approve_waiver_creates_valid_decision_file PASSED [ 37%]
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverApprovalCLI::test_approve_waiver_registers_debt_in_backlog PASSED [ 50%]
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverApprovalCLI::test_reject_waiver_creates_decision_file_without_debt PASSED [ 62%]
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverApprovalCLI::test_debt_score_calculation PASSED [ 75%]
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverResumeLogic::test_waiver_approve_resume_pass FAILED [ 87%]
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverResumeLogic::test_waiver_reject_resume_blocked FAILED [100%]
+
+=================================== FAILURES ===================================
+_ TestWaiverRequestEmission.test_waiver_request_emitted_when_retry_limit_exhausted _
+
+self = <test_loop_waiver_workflow.TestWaiverRequestEmission object at 0x75ba4937d490>
+ReviewMock = <MagicMock name='ReviewMission' id='129442954800464'>
+BuildMock = <MagicMock name='BuildMission' id='129442953343776'>
+DesignMock = <MagicMock name='DesignMission' id='129442953609776'>
+waiver_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-63/test_waiver_request_emitted_wh0/repo'), baseline_commit='abc123', run_id='waiver_test_run', operation_executor=None, journal=None, metadata={})
+
+        @patch('runtime.orchestration.missions.autonomous_build_cycle.DesignMission')
+        @patch('runtime.orchestration.missions.autonomous_build_cycle.BuildMission')
+        @patch('runtime.orchestration.missions.autonomous_build_cycle.ReviewMission')
+        def test_waiver_request_emitted_when_retry_limit_exhausted(
+            self, ReviewMock, BuildMock, DesignMock, waiver_context
+        ):
+            """Waiver request packet is emitted when retry budget exhausted for waiver-eligible failure."""
+            # Setup: Use config with TEST_FAILURE retry_limit=3
+            config_path = waiver_context.repo_root / "config/loop/policy_v1.0.yaml"
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            config_content = """schema_version: "1.0"
+    policy_metadata:
+      version: "test_v1.0"
+      effective_date: "2026-01-14"
+    
+    budgets:
+      max_attempts: 5
+      max_tokens: 100000
+      max_wall_clock_minutes: 30
+      max_diff_lines_per_attempt: 300
+      retry_limits:
+        TEST_FAILURE: 3
+        REVIEW_REJECTION: 3
+    
+    failure_routing:
+      TEST_FAILURE:
+        default_action: "RETRY"
+        terminal_on_retry_exhausted: true
+        terminal_outcome: "WAIVER_REQUESTED"
+        terminal_reason: "MAX_RETRIES_EXCEEDED"
+      REVIEW_REJECTION:
+        default_action: "RETRY"
+        terminal_on_retry_exhausted: true
+        terminal_outcome: "WAIVER_REQUESTED"
+        terminal_reason: "MAX_RETRIES_EXCEEDED"
+      SYNTAX_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+        terminal_reason: "CRITICAL_FAILURE"
+      TIMEOUT:
+        default_action: "RETRY"
+        terminal_on_retry_exhausted: true
+        terminal_outcome: "ESCALATION_REQUESTED"
+        terminal_reason: "TIMEOUT_RETRY_LIMIT"
+      VALIDATION_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+        terminal_reason: "CRITICAL_FAILURE"
+      DEPENDENCY_ERROR:
+        default_action: "RETRY"
+        terminal_on_retry_exhausted: true
+        terminal_outcome: "BLOCKED"
+        terminal_reason: "DEPENDENCY_UNAVAILABLE"
+      ENVIRONMENT_ERROR:
+        default_action: "RETRY"
+        terminal_on_retry_exhausted: true
+        terminal_outcome: "ESCALATION_REQUESTED"
+        terminal_reason: "ENVIRONMENT_ISSUE"
+      TOOL_INVOCATION_ERROR:
+        default_action: "RETRY"
+        terminal_on_retry_exhausted: true
+        terminal_outcome: "BLOCKED"
+        terminal_reason: "CRITICAL_FAILURE"
+      CONFIG_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+        terminal_reason: "CRITICAL_FAILURE"
+      GOVERNANCE_VIOLATION:
+        default_action: "TERMINATE"
+        terminal_outcome: "ESCALATION_REQUESTED"
+        terminal_reason: "GOVERNANCE_ESCALATION"
+      UNKNOWN:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+        terminal_reason: "UNKNOWN_FAILURE"
+    
+    waiver_rules:
+      eligible_failure_classes:
+        - TEST_FAILURE
+        - REVIEW_REJECTION
+      ineligible_failure_classes:
+        - SYNTAX_ERROR
+        - VALIDATION_ERROR
+        - UNKNOWN
+      escalation_triggers:
+        - governance_surface_touched: true
+    
+    progress_detection:
+      no_progress_enabled: true
+      no_progress_lookback: 1
+      oscillation_enabled: true
+      oscillation_window_size: 3
+      deadlock_threshold: 2
+    
+    determinism:
+      hash_algorithm: "sha256"
+      hash_full_config: true
+      policy_change_action: "ESCALATION_REQUESTED"
+      policy_change_reason: "POLICY_CHANGED_MID_RUN"
+      canonical_hashing_enabled: true
+      line_ending_normalization: "LF"
+    """
+            config_path.write_text(config_content, encoding='utf-8')
+    
+            # Mock missions
+            DesignMock.return_value.run.return_value = MissionResult(
+                True, MissionType.DESIGN,
+                outputs={"build_packet": {"goal": "test"}},
+                evidence={"usage": {"total": 1}}
+            )
+    
+            ReviewMock.return_value.run.side_effect = mock_review_behavior
+    
+            # Build returns different diffs to avoid oscillation
+            BuildMock.return_value.run.side_effect = [
+                MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": f"diff{i}"}}}, evidence={"usage": {"total": 1}})
+                for i in range(5)
+            ]
+    
+            # Run mission
+            mission = AutonomousBuildCycleMission()
+            result = mission.run(waiver_context, {"task_spec": "test"})
+    
+            # Verify waiver request emitted
+            assert result.success is False
+            waiver_request_path = waiver_context.repo_root / "artifacts/loop_state" / f"WAIVER_REQUEST_{waiver_context.run_id}.md"
+>           assert waiver_request_path.exists(), "Waiver request packet should be emitted"
+E           AssertionError: Waiver request packet should be emitted
+E           assert False
+E            +  where False = exists()
+E            +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-63/test_waiver_request_emitted_wh0/repo/artifacts/loop_state/WAIVER_REQUEST_waiver_test_run.md').exists
+
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py:187: AssertionError
+_____ TestWaiverRequestEmission.test_waiver_request_includes_ppv_checklist _____
+
+self = <test_loop_waiver_workflow.TestWaiverRequestEmission object at 0x75ba494099d0>
+ReviewMock = <MagicMock name='ReviewMission' id='129442951644608'>
+BuildMock = <MagicMock name='BuildMission' id='129442951647824'>
+DesignMock = <MagicMock name='DesignMission' id='129442951652144'>
+waiver_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-63/test_waiver_request_includes_p0/repo'), baseline_commit='abc123', run_id='waiver_test_run', operation_executor=None, journal=None, metadata={})
+
+        @patch('runtime.orchestration.missions.autonomous_build_cycle.DesignMission')
+        @patch('runtime.orchestration.missions.autonomous_build_cycle.BuildMission')
+        @patch('runtime.orchestration.missions.autonomous_build_cycle.ReviewMission')
+        def test_waiver_request_includes_ppv_checklist(
+            self, ReviewMock, BuildMock, DesignMock, waiver_context
+        ):
+            """Waiver request packet includes PPV checklist section."""
+            # Setup config (same as above test)
+            config_path = waiver_context.repo_root / "config/loop/policy_v1.0.yaml"
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            # Use minimal config for brevity
+            config_content = """schema_version: "1.0"
+    policy_metadata:
+      version: "test_v1.0"
+    budgets:
+      max_attempts: 5
+      max_tokens: 100000
+      max_wall_clock_minutes: 30
+      max_diff_lines_per_attempt: 300
+      retry_limits:
+        REVIEW_REJECTION: 3
+        TEST_FAILURE: 0
+        SYNTAX_ERROR: 0
+        TIMEOUT: 0
+        VALIDATION_ERROR: 0
+        DEPENDENCY_ERROR: 0
+        ENVIRONMENT_ERROR: 0
+        TOOL_INVOCATION_ERROR: 0
+        CONFIG_ERROR: 0
+        GOVERNANCE_VIOLATION: 0
+        UNKNOWN: 0
+    failure_routing:
+      REVIEW_REJECTION:
+        default_action: "RETRY"
+        terminal_on_retry_exhausted: true
+        terminal_outcome: "WAIVER_REQUESTED"
+      TEST_FAILURE:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+      SYNTAX_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+      TIMEOUT:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+      VALIDATION_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+      DEPENDENCY_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+      ENVIRONMENT_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+      TOOL_INVOCATION_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+      CONFIG_ERROR:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+      GOVERNANCE_VIOLATION:
+        default_action: "TERMINATE"
+        terminal_outcome: "ESCALATION_REQUESTED"
+      UNKNOWN:
+        default_action: "TERMINATE"
+        terminal_outcome: "BLOCKED"
+    waiver_rules:
+      eligible_failure_classes:
+        - REVIEW_REJECTION
+      ineligible_failure_classes:
+        - SYNTAX_ERROR
+      escalation_triggers: []
+    progress_detection:
+      no_progress_enabled: true
+      no_progress_lookback: 1
+      oscillation_enabled: true
+      oscillation_window_size: 3
+    determinism:
+      hash_algorithm: "sha256"
+      hash_full_config: true
+      policy_change_action: "ESCALATION_REQUESTED"
+    """
+            config_path.write_text(config_content, encoding='utf-8')
+    
+            DesignMock.return_value.run.return_value = MissionResult(
+                True, MissionType.DESIGN,
+                outputs={"build_packet": {"goal": "test"}},
+                evidence={"usage": {"total": 1}}
+            )
+    
+            ReviewMock.return_value.run.side_effect = mock_review_behavior
+    
+            BuildMock.return_value.run.side_effect = [
+                MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": f"diff{i}"}}}, evidence={"usage": {"total": 1}})
+                for i in range(5)
+            ]
+    
+            mission = AutonomousBuildCycleMission()
+            result = mission.run(waiver_context, {"task_spec": "test"})
+    
+            # Verify PPV checklist in waiver request
+            waiver_request_path = waiver_context.repo_root / "artifacts/loop_state" / f"WAIVER_REQUEST_{waiver_context.run_id}.md"
+>           assert waiver_request_path.exists()
+E           AssertionError: assert False
+E            +  where False = exists()
+E            +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-63/test_waiver_request_includes_p0/repo/artifacts/loop_state/WAIVER_REQUEST_waiver_test_run.md').exists
+
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py:299: AssertionError
+____________ TestWaiverResumeLogic.test_waiver_approve_resume_pass _____________
+
+self = <test_loop_waiver_workflow.TestWaiverResumeLogic object at 0x75ba4940a8d0>
+DesignMock = <MagicMock name='DesignMission' id='129442951927072'>
+waiver_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-63/test_waiver_approve_resume_pas0/repo'), baseline_commit='abc123', run_id='waiver_test_run', operation_executor=None, journal=None, metadata={})
+
+    @patch('runtime.orchestration.missions.autonomous_build_cycle.DesignMission')
+    def test_waiver_approve_resume_pass(self, DesignMock, waiver_context):
+        """Resuming after APPROVE waiver terminates with PASS (WAIVER_APPROVED)."""
+        # Create approved waiver decision
+        decision = {
+            "run_id": waiver_context.run_id,
+            "decision": "APPROVE",
+            "debt_registered": True,
+            "debt_id": f"DEBT-{waiver_context.run_id}",
+            "waiver_request_hash": "abc123"
+        }
+        decision_path = waiver_context.repo_root / "artifacts/loop_state" / f"WAIVER_DECISION_{waiver_context.run_id}.json"
+        decision_path.write_text(json.dumps(decision), encoding='utf-8')
+    
+        # Create ledger (resume scenario)
+        ledger_path = waiver_context.repo_root / "artifacts/loop_state/attempt_ledger.jsonl"
+        ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        header = {
+            "schema_version": "v1.0",
+            "policy_hash": "test",
+            "handoff_hash": "abc",
+            "run_id": waiver_context.run_id
+        }
+        ledger_path.write_text(json.dumps(header) + "\n", encoding='utf-8')
+    
+        mission = AutonomousBuildCycleMission()
+        result = mission.run(waiver_context, {"task_spec": "test"})
+    
+        # Verify PASS via waiver
+>       assert result.success is True
+E       AssertionError: assert False is True
+E        +  where False = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='BLOCKED: ledger_corrupt - First line is not a valid header', escalation_reason=None, evidence={}).success
+
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py:439: AssertionError
+___________ TestWaiverResumeLogic.test_waiver_reject_resume_blocked ____________
+
+self = <test_loop_waiver_workflow.TestWaiverResumeLogic object at 0x75ba4940ac00>
+DesignMock = <MagicMock name='DesignMission' id='129442951651760'>
+waiver_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-63/test_waiver_reject_resume_bloc0/repo'), baseline_commit='abc123', run_id='waiver_test_run', operation_executor=None, journal=None, metadata={})
+
+    @patch('runtime.orchestration.missions.autonomous_build_cycle.DesignMission')
+    def test_waiver_reject_resume_blocked(self, DesignMock, waiver_context):
+        """Resuming after REJECT waiver terminates with BLOCKED (WAIVER_REJECTED)."""
+        # Create rejected waiver decision
+        decision = {
+            "run_id": waiver_context.run_id,
+            "decision": "REJECT",
+            "debt_registered": False,
+            "debt_id": None,
+            "rationale": "Requires manual intervention",
+            "waiver_request_hash": "abc123"
+        }
+        decision_path = waiver_context.repo_root / "artifacts/loop_state" / f"WAIVER_DECISION_{waiver_context.run_id}.json"
+        decision_path.write_text(json.dumps(decision), encoding='utf-8')
+    
+        # Create ledger (resume scenario)
+        ledger_path = waiver_context.repo_root / "artifacts/loop_state/attempt_ledger.jsonl"
+        ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        header = {
+            "schema_version": "v1.0",
+            "policy_hash": "test",
+            "handoff_hash": "abc",
+            "run_id": waiver_context.run_id
+        }
+        ledger_path.write_text(json.dumps(header) + "\n", encoding='utf-8')
+    
+        mission = AutonomousBuildCycleMission()
+        result = mission.run(waiver_context, {"task_spec": "test"})
+    
+        # Verify BLOCKED
+        assert result.success is False
+>       assert "waiver rejected" in result.error.lower()
+E       AssertionError: assert 'waiver rejected' in 'blocked: ledger_corrupt - first line is not a valid header'
+E        +  where 'blocked: ledger_corrupt - first line is not a valid header' = <built-in method lower of str object at 0x75ba492a1d80>()
+E        +    where <built-in method lower of str object at 0x75ba492a1d80> = 'BLOCKED: ledger_corrupt - First line is not a valid header'.lower
+E        +      where 'BLOCKED: ledger_corrupt - First line is not a valid header' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='BLOCKED: ledger_corrupt - First line is not a valid header', escalation_reason=None, evidence={}).error
+
+runtime/tests/orchestration/missions/test_loop_waiver_workflow.py:481: AssertionError
+=============================== warnings summary ===============================
+../../../../../../home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428
+  /home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverRequestEmission::test_waiver_request_emitted_when_retry_limit_exhausted - AssertionError: Waiver request packet should be emitted
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-63/test_waiver_request_emitted_wh0/repo/artifacts/loop_state/WAIVER_REQUEST_waiver_test_run.md').exists
+FAILED runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverRequestEmission::test_waiver_request_includes_ppv_checklist - AssertionError: assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/tmp/pytest-of-cabra/pytest-63/test_waiver_request_includes_p0/repo/artifacts/loop_state/WAIVER_REQUEST_waiver_test_run.md').exists
+FAILED runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverResumeLogic::test_waiver_approve_resume_pass - AssertionError: assert False is True
+ +  where False = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='BLOCKED: ledger_corrupt - First line is not a valid header', escalation_reason=None, evidence={}).success
+FAILED runtime/tests/orchestration/missions/test_loop_waiver_workflow.py::TestWaiverResumeLogic::test_waiver_reject_resume_blocked - AssertionError: assert 'waiver rejected' in 'blocked: ledger_corrupt - first line is not a valid header'
+ +  where 'blocked: ledger_corrupt - first line is not a valid header' = <built-in method lower of str object at 0x75ba492a1d80>()
+ +    where <built-in method lower of str object at 0x75ba492a1d80> = 'BLOCKED: ledger_corrupt - First line is not a valid header'.lower
+ +      where 'BLOCKED: ledger_corrupt - First line is not a valid header' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='BLOCKED: ledger_corrupt - First line is not a valid header', escalation_reason=None, evidence={}).error
+==================== 4 failed, 4 passed, 1 warning in 2.72s ====================

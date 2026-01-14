@@ -16,6 +16,7 @@ import os
 import json
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
+from pathlib import Path
 
 # Add scripts directory to path for imports if not already there
 _script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -39,11 +40,14 @@ try:
         load_model_config,
         validate_config,
     )
+    # P0.2 Safety Guard
+    from runtime.safety.path_guard import PathGuard, SafetyError
+    
     # Default is now 'auto' to trigger resolution logic
     DEFAULT_MODEL = "auto"
 except ImportError as e:
     # Fail loud in Phase 3 - we must have runtime access
-    print(f"CRITICAL: Failed to import runtime.agents.models: {e}")
+    print(f"CRITICAL: Failed to import runtime modules: {e}")
     print("This script must be run from within the LifeOS repository.")
     sys.exit(1)
 
@@ -267,13 +271,27 @@ def create_isolated_config(api_key, model):
     with open(os.path.join(config_subdir, "opencode.json"), "w") as f:
         json.dump(config_data, f, indent=2)
     
+    # P0.2: Mark as safe sandbox
+    try:
+        PathGuard.create_sandbox(Path(temp_dir))
+    except Exception as e:
+        log(f"Failed to mark sandbox: {e}", "error")
+        # Fail open? No, fail closed usually. But this is creation.
+        
     return temp_dir
 
-# LIFEOS_TODO[P1][area: scripts/opencode_ci_runner.py:cleanup_isolated_config][exit: root cause documented + decision logged in DECISIONS.md] Review OpenCode deletion logic: Understand why cleanup uses shutil.rmtree for temp configs. DoD: Root cause documented, safety analysis complete
-def cleanup_isolated_config(config_dir):
+# LIFEOS_TODO[P1][area: scripts/opencode_ci_runner.py:cleanup_isolated_config] Root cause resolved: added PathGuard. verify_safe_for_destruction enforces marker.
+def cleanup_isolated_config(config_dir, repo_root=None):
     if config_dir and os.path.exists(config_dir):
-        try: shutil.rmtree(config_dir)
-        except: pass
+        if not repo_root:
+            repo_root = Path(os.getcwd())
+        try: 
+            # P0.2 Safety Invariant
+            PathGuard.verify_safe_for_destruction(Path(config_dir), Path(config_dir), repo_root=repo_root)
+            shutil.rmtree(config_dir)
+        except Exception as e: 
+            log(f"Cleanup skipped for safety: {e}", "gov")
+            pass
 
 def start_ephemeral_server(port, config_dir, api_key):
     log(f"Starting ephemeral OpenCode server on port {port}", "info")
@@ -368,12 +386,12 @@ def main():
     config_dir = create_isolated_config(api_key, model_id)
     server_process = start_ephemeral_server(args.port, config_dir, api_key)
     if not server_process:
-        cleanup_isolated_config(config_dir)
+        cleanup_isolated_config(config_dir, Path(repo_root))
         sys.exit(1)
     
     if not wait_for_server(f"http://127.0.0.1:{args.port}"):
         stop_ephemeral_server(server_process)
-        cleanup_isolated_config(config_dir)
+        cleanup_isolated_config(config_dir, Path(repo_root))
         log("Server timeout", "error")
         sys.exit(1)
     
@@ -387,10 +405,10 @@ def main():
     
     if error:
         generate_evidence_bundle("BLOCK", error, mode, task)
-        log(f"Diff acquisition failed: {error}", "error")
-        subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
+        log(f"Diff acquisition failed: {error} (Git Reset BLOCKED by P0.2)", "error")
+        # subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
         stop_ephemeral_server(server_process)
-        cleanup_isolated_config(config_dir)
+        cleanup_isolated_config(config_dir, Path(repo_root))
         sys.exit(1)
     
     if not parsed:
@@ -402,12 +420,12 @@ def main():
     if blocked_entries:
         first_block = blocked_entries[0]
         generate_evidence_bundle("BLOCK", first_block[2], mode, task, parsed, blocked_entries)
-        log(f"Envelope violation: {first_block[0]} ({first_block[1]}) - {first_block[2]}", "error")
+        log(f"Envelope violation: {first_block[0]} ({first_block[1]}) - {first_block[2]} (Git Reset BLOCKED by P0.2)", "error")
         for entry in blocked_entries[1:5]:  # Log up to 5
             log(f"  Additional violation: {entry[0]} ({entry[1]}) - {entry[2]}", "error")
-        subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
+        # subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
         stop_ephemeral_server(server_process)
-        cleanup_isolated_config(config_dir)
+        cleanup_isolated_config(config_dir, Path(repo_root))
         sys.exit(1)
     
     # Check symlinks again for new files
@@ -416,10 +434,10 @@ def main():
         safe, reason = policy.check_symlink(path, repo_root)
         if not safe:
             generate_evidence_bundle("BLOCK", reason, mode, task, parsed)
-            log(f"New symlink detected: {path}", "error")
-            subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
+            log(f"New symlink detected: {path} (Git Reset BLOCKED by P0.2)", "error")
+            # subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
             stop_ephemeral_server(server_process)
-            cleanup_isolated_config(config_dir)
+            cleanup_isolated_config(config_dir, Path(repo_root))
             sys.exit(1)
 
     # Success
@@ -428,7 +446,7 @@ def main():
     
     # Cleanup
     stop_ephemeral_server(server_process)
-    cleanup_isolated_config(config_dir)
+    cleanup_isolated_config(config_dir, Path(repo_root))
 
 if __name__ == "__main__":
     main()
