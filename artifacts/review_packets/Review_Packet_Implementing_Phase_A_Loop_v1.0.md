@@ -29,6 +29,7 @@ Implemented Deduplicated `AttemptLedger` (JSONL), `LoopPolicy`, and `BudgetContr
 
 | Requirement | Evidence | Hash (SHA-256) |
 |-------------|----------|----------------|
+| **Code Commit (Phase A)** | `e4cfa313e4d397d386ec4dfd9e689a2855320d7d` | `git show e4cfa31` |
 | **Attempt Ledger** | `demo_env/artifacts/loop_state/attempt_ledger.jsonl` | `c8e2c0ae744f299b78bdf90963acf1634d53edc3b1e2fdccdd8525cb89cec0c3` |
 | **CEO Terminal Packet** | `demo_env/artifacts/CEO_Terminal_Packet.md` | `b914fd1acc0d931cea1048164cfa798894e58c4e9d61cd4d7726fa466c1de1db` |
 | **Diff Budget Enforcement** | `test_diff_budget_exceeded` | Proven by test (400 line diff -> ESCALATION_REQUESTED) |
@@ -67,6 +68,7 @@ test_loop_acceptance.py::test_workspace_reset_unavailable PASSED
 `(Prior code sections for taxonomy, ledger, policy, budget remain unchanged from v1.0)`
 
 ### docs/11_admin/LIFEOS_STATE.md
+
 ```markdown
 
 # LIFEOS STATE
@@ -287,8 +289,8 @@ Use `python scripts/todo_inventory.py --priority P0` to see critical items.
 
 ```
 
-
 ### docs/INDEX.md
+
 ```markdown
 
 # LifeOS Strategic Corpus [Last Updated: 2026-01-14 (Phase A Loop Controller Implemented)]
@@ -300,6 +302,7 @@ Use `python scripts/todo_inventory.py --priority P0` to see critical items.
 ## Authority Chain
 
 ```
+
 LifeOS Constitution v2.0 (Supreme)
         │
         └── Governance Protocol v1.0
@@ -307,6 +310,7 @@ LifeOS Constitution v2.0 (Supreme)
                 ├── COO Operating Contract v1.0
                 ├── DAP v2.0
                 └── COO Runtime Spec v1.0
+
 ```
 
 ---
@@ -528,4 +532,3 @@ Archived documents are in `99_archive/`. Key locations:
 | `10_meta/` | Meta documents, reviews, tasks |
 
 ```
-
