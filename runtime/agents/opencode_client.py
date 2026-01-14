@@ -41,12 +41,13 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 # Use requests if available, otherwise provide helpful error
 try:
@@ -192,7 +193,7 @@ class OpenCodeClient:
         self.log_calls = log_calls
         self.role = role
         self.api_key = api_key or self._load_api_key_for_role(role)
-        self.upstream_base_url = upstream_base_url
+        self.upstream_base_url = upstream_base_url or DEFAULT_ENDPOINT
 
         # Server state
         self._server_process: Optional[subprocess.Popen] = None
@@ -218,49 +219,85 @@ class OpenCodeClient:
     # API KEY LOADING
     # ========================================================================
 
-    def _load_api_key_for_role(self, role: str) -> Optional[str]:
+    def _get_key_from_env_file(self, var_name: str) -> Optional[str]:
         """
-        Load API key for a specific agent role.
+        Robustly parse .env file for a variable.
+        Handles:
+        - Comments (#)
+        - Quoted values ("value", 'value')
+        - Whitespace around =
+        """
+        env_path = os.path.join(os.getcwd(), ".env")
+        if not os.path.exists(env_path):
+            return None
+            
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"): continue
+                    
+                    if "=" in line:
+                        k, v = line.split("=", 1)
+                        if k.strip() == var_name:
+                            v = v.strip()
+                            # Handle quotes
+                            if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
+                                v = v[1:-1]
+                            return v
+        except Exception:
+            pass
+        return None
+
+    def _load_api_key_for_role(self, role: str, provider: str = "openrouter") -> Optional[str]:
+        """
+        Load the API key for a specific role and provider.
         
         Priority:
-        1. Role-specific key from models.yaml config (via environment)
-        2. Legacy fallback keys (ZEN_API_KEY, STEWARD_OPENROUTER_KEY)
-        3. .env file parsing
+        1. os.environ[SPECIFIC_VAR]
+        2. .env file [SPECIFIC_VAR]
+        3. os.environ[GENERIC_VAR]
+        4. .env file [GENERIC_VAR]
         """
-        # Try to load from models.py config
+        # 1. Determine Var Name from Config
+        env_var_name = None
         try:
             from runtime.agents.models import get_agent_config
             agent_config = get_agent_config(role)
-            key = os.environ.get(agent_config.api_key_env)
-            if key:
-                return key
-        except Exception:
-            pass  # Fall through to legacy loading
-
-        # Legacy fallback: check well-known env vars (uses canonical chain)
-        for env_var in API_KEY_FALLBACK_CHAIN:
-            key = os.environ.get(env_var)
-            if key:
-                return key
-
-        # Try .env file
-        try:
-            with open(".env", "r") as f:
-                for line in f:
-                    line = line.strip()
-                    if "=" in line and not line.startswith("#"):
-                        var, val = line.split("=", 1)
-                        # Check for role-specific key first
-                        role_upper = role.upper().replace("_", "_")
-                        if var == f"ZEN_{role_upper}_KEY" or var == f"OPENROUTER_{role_upper}_KEY":
-                            return val.strip()
-                        # Then check legacy keys
-                        if var in ["ZEN_API_KEY", "STEWARD_OPENROUTER_KEY", "OPENROUTER_API_KEY"]:
-                            return val.strip()
-        except FileNotFoundError:
+            if agent_config:
+                if provider == "zen":
+                    # For Zen, we trust the primary key env unless explicitly overridden
+                    env_var_name = agent_config.api_key_env
+                elif agent_config.fallback:
+                    for fb in agent_config.fallback:
+                        if fb.get("provider") == provider:
+                            env_var_name = fb.get("api_key_env")
+                            break
+        except ImportError:
             pass
 
-        return None
+        if not env_var_name:
+            if provider == "zen":
+                 env_var_name = f"ZEN_{role.upper()}_KEY"
+            else:
+                 env_var_name = f"OPENROUTER_{role.upper()}_KEY"
+        
+        # 2. Try Specific Key
+        key = self._get_key_from_source(env_var_name)
+        if key: return key
+
+        # 3. Fallback to Generic
+        if provider == "zen":
+             return self._get_key_from_source("ZEN_API_KEY")
+        else:
+             return self._get_key_from_source("OPENROUTER_API_KEY")
+
+    def _get_key_from_source(self, env_var_name: str) -> Optional[str]:
+        """Try os.environ then .env."""
+        if not env_var_name: return None
+        val = os.environ.get(env_var_name)
+        if val and val.strip(): return val.strip()
+        return self._get_key_from_env_file(env_var_name)
 
     def _load_api_key(self) -> Optional[str]:
         """Legacy method - calls _load_api_key_for_role with 'unknown'."""
@@ -335,8 +372,12 @@ class OpenCodeClient:
         env["HOME"] = self._config_dir
         env["OPENROUTER_API_KEY"] = self.api_key
         if self.upstream_base_url:
+            # Only set base URL for server if it's NOT the Zen special case
+            # (Zen special case is handled in call() via direct REST or env override)
+            # Actually, server might need it for session creation if using REST?
+            # But we only use 'opencode run' now. 'serve' + REST is legacy/flaky.
+            # We'll set it anyway, but call() override is what matters.
             env["OPENROUTER_BASE_URL"] = self.upstream_base_url
-            # Also set generic BASE_URL if supported by simple-proxy or similar
             env["BASE_URL"] = self.upstream_base_url
         
         # Block fallback to other providers
@@ -438,110 +479,260 @@ class OpenCodeClient:
 
     def call(self, request: LLMCall) -> LLMResponse:
         """
-        Make an LLM call using 'opencode run' CLI for maximum reliability.
-
-        Args:
-            request: The LLM call request.
-
-        Returns:
-            LLMResponse with the model's response.
-
-        Raises:
-            OpenCodeError: If the call fails.
+        Make an LLM call with automatic fallback support.
         """
-        # Use model as specified (no forced openrouter/ prefix for Zen)
-        model = request.model
-        if not model:
-            model = self._current_model or os.environ.get("STEWARD_MODEL", "minimax-m2.1-free")
+        # 1. Determine Primary Model
+        primary_model = request.model
+        if not primary_model:
+            primary_model = self._current_model or os.environ.get("STEWARD_MODEL", "minimax-m2.1-free")
 
+        # 2. Build Attempt Chain
+        # Start with primary
+        attempts = [{"model": primary_model, "provider": None}] 
+        
+        # Add fallbacks from config
+        try:
+            from runtime.agents.models import get_agent_config
+            agent_config = get_agent_config(self.role)
+            if agent_config and agent_config.fallback:
+                for fb in agent_config.fallback:
+                    attempts.append({
+                        "model": fb.get("model"), 
+                        "provider": fb.get("provider")
+                    })
+        except ImportError:
+            # If models module issue, allow pass
+            pass
+        except Exception:
+            # If config load fails, proceed with primary only
+            pass
+
+        # 3. Execute Chain
+        last_error = None
+        for i, attempt in enumerate(attempts):
+            model = attempt["model"]
+            is_fallback = (i > 0)
+            
+            # Trace log
+            if "repro" in sys.argv[0] or "verify" in sys.argv[0]:
+                print(f"  [TRACE] Attempt {i+1}/{len(attempts)}: {model} {'(Fallback)' if is_fallback else '(Primary)'}")
+
+            try:
+                return self._execute_attempt(model, request)
+            except Exception as e:
+                # Log warning but continue
+                print(f"  [WARNING] Call to {model} failed: {e}")
+                last_error = e
+                continue
+        
+        # If all failed
+        raise last_error or OpenCodeError("All execution attempts failed")
+
+    def _execute_attempt(self, model: str, request: LLMCall) -> LLMResponse:
+        """Execute a single LLM attempt with specific model and dynamic key swapping."""
         call_id = str(uuid.uuid4())
         start_time = time.time()
-
-        # Build command for subprocess
-        # We use 'run' instead of 'serve' + REST because it's more robust on Windows
-        # and guarantees the model/key usage requested by the user.
-        cmd = ["opencode", "run", "-m", model, request.prompt]
-
-        # Build environment
+        
+        # Build environment for this attempt
         env = os.environ.copy()
+        
+        # Base Key Injection
         if self.api_key:
             env["OPENROUTER_API_KEY"] = self.api_key
             env["ZEN_API_KEY"] = self.api_key
             env["ANTHROPIC_API_KEY"] = self.api_key
+            
+        # SWAP LOGIC: Determine correct key & provider for THIS model
+        is_zen_model = "minimax" in model.lower() or "zen" in model.lower()
+        key_status = "Using Primary Key"
+        
+        if not is_zen_model:
+            # Targeted swap to OpenRouter key if needed
+            or_key = self._load_api_key_for_role(self.role, provider="openrouter")
+            if or_key:
+                if or_key != self.api_key:
+                    env["OPENROUTER_API_KEY"] = or_key
+                    key_status = f"SWAPPED to OpenRouter Key ({or_key[:10]}...)"
+                else:
+                     key_status = "Primary is already OpenRouter Key"
+            else:
+                key_status = "FAILED TO SWAP (No OpenRouter key found)"
+        
+        # Verbose Trace
+        if "repro" in sys.argv[0] or "verify" in sys.argv[0]:
+            print(f"  [TRACE] Role: {self.role} | Model: {model} | {key_status}")
+            if "SWAP" in key_status and "FAILED" not in key_status:
+                 print(f"  [TRACE] Injecting OPENROUTER_API_KEY into subprocess environment")
 
-        if self.upstream_base_url:
-            env["OPENROUTER_BASE_URL"] = self.upstream_base_url
-            env["BASE_URL"] = self.upstream_base_url
-            env["ANTHROPIC_BASE_URL"] = self.upstream_base_url
+        # 1. SPECIAL CASE: OpenRouter Direct REST (Standard OpenAI)
+        # We use this because `opencode run` CLI ignores injected environment variables
+        # if a local .env exists, which breaks multi-key support.
+        is_openrouter_model = model.startswith("openrouter/") or "openrouter" in self.upstream_base_url.lower()
+        
+        if is_openrouter_model:
+            # Always attempt to load the specific key for this role first
+            or_key = self._load_api_key_for_role(self.role, provider="openrouter")
+            
+            # If not found or empty, check if we have a generic one in env
+            # (But only if we didn't find a specific one)
+            if not or_key and "OPENROUTER_API_KEY" in env:
+                or_key = env["OPENROUTER_API_KEY"]
+                
+            if or_key:
+                or_key = or_key.strip()
+                headers = {
+                    "Authorization": f"Bearer {or_key}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://opencode.ai", # Required by OpenRouter for ranking
+                    "X-Title": "LifeOS OpenCode Client"
+                }
+                
+                # Default OpenRouter Endpoint
+                or_url = "https://openrouter.ai/api/v1/chat/completions"
+                # Override if custom base URL provided
+                if self.upstream_base_url and "openrouter" in self.upstream_base_url:
+                     or_url = self.upstream_base_url
+                     if not or_url.endswith("/chat/completions"):
+                         or_url = or_url.rstrip("/") + "/chat/completions"
+                
+                # Strip internal 'openrouter/' prefix for the raw API call
+                api_model = model
+                if api_model.startswith("openrouter/"):
+                    api_model = api_model.replace("openrouter/", "", 1)
 
-            # SPECIAL CASE: Zen endpoint is Anthropic-compatible but CLI blocks minimax model name.
-            # We use direct REST if detecting Zen + Minimax.
-            if "opencode.ai/zen" in self.upstream_base_url.lower() and "minimax" in model.lower():
-                # print(f"DEBUG: Triggering direct Zen fallback for {model} at {self.upstream_base_url}")
+                payload = {
+                    "model": api_model, 
+                    "messages": [{"role": "user", "content": request.prompt}],
+                    # No max_tokens forced default, let provider decide or use reasonable default
+                }
+                
                 try:
                     import requests
-                    headers = {
-                        "x-api-key": self.api_key,
-                        "Content-Type": "application/json",
-                        "anthropic-version": "2023-06-01"
-                    }
-                    payload = {
-                        "model": "minimax-m2.1-free",
-                        "messages": [{"role": "user", "content": request.prompt}],
-                        "max_tokens": 4096,
-                        "temperature": 0.7
-                    }
+                    response = requests.post(or_url, headers=headers, json=payload, timeout=self.timeout)
                     
-                    # Ensure URL is the base /messages endpoint
-                    zen_url = self.upstream_base_url
-                    if not zen_url.endswith("/messages"):
-                        zen_url = zen_url.rstrip("/") + "/messages"
-                    
-                    response = requests.post(zen_url, headers=headers, json=payload, timeout=self.timeout)
                     if response.status_code == 200:
                         data = response.json()
                         text = ""
-                        for content_part in data.get("content", []):
-                            if content_part.get("type") == "text":
-                                text += content_part.get("text")
-                        
-                        return LLMResponse(
+                        for choice in data.get("choices", []):
+                            delta = choice.get("message", {}).get("content", "")
+                            if delta:
+                                text += delta
+                                
+                        llm_response = LLMResponse(
                             call_id=call_id,
                             content=text,
-                            model_used=f"ZEN:{data.get('model', model)}",
+                            model_used=f"OR:{data.get('model', model)}",
                             latency_ms=int((time.time() - start_time) * 1000),
                             timestamp=datetime.now().isoformat()
                         )
+                        
+                        # Log the call
+                        if self.log_calls:
+                            self._log_call(request, llm_response)
+                        
+                        return llm_response
+                    else:
+                         print(f"  [DEBUG] OpenRouter REST Failed: Status {response.status_code}, Body: {response.text}")
                 except Exception as e:
-                    if self.log_calls:
-                        print(f"Direct Zen call failed: {e}")
+                    print(f"  [DEBUG] OpenRouter REST Exception: {e}")
+                    pass
 
+        # 2. SPECIAL CASE: Zen Direct REST (Minimax)
+        # Using self.upstream_base_url logic from verified blocks
+        is_zen_config_url = self.upstream_base_url and "opencode.ai/zen" in self.upstream_base_url.lower()
+        
+        if is_zen_model and is_zen_config_url:
+             # Load Zen API Key specific
+             zen_key = self._load_api_key_for_role(self.role, provider="zen")
+             if zen_key:
+                 zen_key = zen_key.strip()
+                 headers = {
+                    "x-api-key": zen_key,
+                    "Content-Type": "application/json",
+                    "anthropic-version": "2023-06-01"
+                 }
+                 payload = {
+                    "model": "minimax-m2.1-free", # Force verifiable minimax model ID for direct API
+                    "messages": [{"role": "user", "content": request.prompt}],
+                    "max_tokens": 4096,
+                    "temperature": 0.7
+                 }
+                 
+                 try:
+                     import requests
+                     # Ensure URL is the base /messages endpoint
+                     zen_url = self.upstream_base_url
+                     if not zen_url.endswith("/messages"):
+                         zen_url = zen_url.rstrip("/") + "/messages"
+                     
+                     response = requests.post(zen_url, headers=headers, json=payload, timeout=self.timeout)
+                     
+                     if response.status_code == 200:
+                         data = response.json()
+                         text = ""
+                         for content_part in data.get("content", []):
+                             if content_part.get("type") == "text":
+                                 text += content_part.get("text")
+                         
+                         llm_response = LLMResponse(
+                             call_id=call_id,
+                             content=text,
+                             model_used=f"ZEN:{data.get('model', model)}",
+                             latency_ms=int((time.time() - start_time) * 1000),
+                             timestamp=datetime.now().isoformat()
+                         )
+                         
+                         # Log the call
+                         if self.log_calls:
+                             self._log_call(request, llm_response)
+                         
+                         return llm_response
+                 except Exception:
+                     pass
+        
+        # 2. Standard CLI Execution
+        cmd = ["opencode", "run", "-m", model, request.prompt]
+        
+        # Smart Base URL logic for CLI
+        if self.upstream_base_url:
+            is_zen_url = "opencode.ai/zen" in self.upstream_base_url.lower()
+            if is_zen_url:
+                if is_zen_model:
+                     env["OPENROUTER_BASE_URL"] = self.upstream_base_url
+                     env["BASE_URL"] = self.upstream_base_url
+                     env["ANTHROPIC_BASE_URL"] = self.upstream_base_url
+                else:
+                    # Fallback clearing of Zen URL to avoid routing Grok to Zen
+                    pass
+            else:
+                # Custom non-Zen URL
+                env["OPENROUTER_BASE_URL"] = self.upstream_base_url
+                env["BASE_URL"] = self.upstream_base_url
+                env["ANTHROPIC_BASE_URL"] = self.upstream_base_url
+
+        # Execute
         try:
-            # Execute opencode run
-            # Note: we don't use 'serve' REST API here as it has been flaky with 
-            # certain model IDs and streaming responses.
             result = subprocess.run(
-                cmd,
-                env=env,
-                capture_output=True,
-                text=True,
+                cmd, 
+                env=env, 
+                capture_output=True, 
+                text=True, 
                 timeout=self.timeout,
                 shell=(os.name == "nt"),
             )
-
+            
             if result.returncode != 0:
                 error_output = result.stderr or result.stdout
                 raise OpenCodeError(f"opencode run failed with exit code {result.returncode}: {error_output}")
 
             content = result.stdout.strip()
-            
-            # [Fix] Strip potential ANSI escape codes or logo if present
-            # For opencode 1.1.4, 'run' typically outputs just the response 
-            # but if it has a logo, we should be careful.
-            if "READY" in content and len(content) > 100: # Heuristic
-                # If there's a lot of noise, try to find the actual response
-                # But for now, we assume 'run' is clean based on CLI tests.
-                pass
+            if not content:
+                 # Debugging info
+                err_msg = result.stderr.strip() if result.stderr else "No stderr output"
+                # Check for known "UndefinedProviderError" signature in stderr just in case
+                if "UndefinedProviderError" in err_msg:
+                     raise OpenCodeError(f"CLI Provider Error: {err_msg}")
+                raise OpenCodeError(f"CLI returned empty content (Silent Failure). Stderr: {err_msg}")
 
             # Calculate latency
             latency_ms = int((time.time() - start_time) * 1000)
@@ -560,7 +751,6 @@ class OpenCodeClient:
                 self._log_call(request, response)
 
             return response
-
         except subprocess.TimeoutExpired:
             raise OpenCodeTimeoutError(f"opencode run timed out after {self.timeout}s")
         except Exception as e:

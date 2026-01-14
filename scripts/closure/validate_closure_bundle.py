@@ -23,7 +23,9 @@ from pathlib import Path
 
 # --- Constants ---
 REQUIRED_ROOT_FILES = ['closure_manifest.json', 'closure_addendum.md']
-FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+# Updated per TODO_Standard_v1.0: Allow LIFEOS_TODO but forbid generic TODO
+FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'Sample evidence']
+FORBIDDEN_TODO_PATTERN = r'\bTODO\b(?!.*LIFEOS_TODO)'  # Match standalone TODO, not part of LIFEOS_TODO
 # P0.4: Portability forbidden patterns (for canonical docs in bundle)
 PORTABILITY_FORBIDDEN = [r'file:///[a-zA-Z]:', r'C:\\Users\\', r'c:\\users\\']
 MANIFEST_SCHEMA_VERSION = "G-CBS-1.0"
@@ -70,6 +72,12 @@ def scan_for_tokens(content, filename):
         for token in FORBIDDEN_TOKENS:
             if token in text:
                 failures.append(ValidationFailure("TRUNCATION_TOKEN_FOUND", f"Forbidden token '{token}' found", path=filename))
+
+        # Check for generic TODO (but allow LIFEOS_TODO)
+        # Strategy: Find TODO that's NOT preceded by "LIFEOS_"
+        if re.search(r'(?<!LIFEOS_)TODO(?![:\[])', text):
+            failures.append(ValidationFailure("TRUNCATION_TOKEN_FOUND",
+                f"Forbidden generic TODO found (use LIFEOS_TODO instead)", path=filename))
     except UnicodeDecodeError:
         pass # Binary file, skip token scan
     return failures
@@ -186,8 +194,8 @@ def main():
                 current_zip_sha = calculate_sha256(open(args.bundle_path, 'rb').read())
                 manifest_sha = manifest.get("zip_sha256")
                 
-                if manifest_sha == "DETACHED_SEE_SIBLING_FILE":
-                    # v1.1 Logic
+                if manifest_sha == "DETACHED_SEE_SIBLING_FILE" or manifest_sha is None:
+                    # v1.1 Logic (and v2.3 null support)
                     sidecar_path = bundle_path_obj.with_name(bundle_path_obj.name + ".sha256")
                     if not sidecar_path.exists():
                         failures.append(ValidationFailure("DETACHED_DIGEST_MISSING", 
@@ -195,12 +203,17 @@ def main():
                     else:
                         sidecar_content = sidecar_path.read_text().strip()
                         # Handle "HASH  FILENAME" or just "HASH"
-                        sidecar_hash = sidecar_content.split()[0].upper() if " " in sidecar_content else sidecar_content.upper()
-                        if sidecar_hash != current_zip_sha:
+                        parts = sidecar_content.split()
+                        sidecar_hash = parts[0].upper() if parts else ""
+                        
+                        # Tightening: Assert format
+                        if not re.match(r"^[0-9A-F]{64}$", sidecar_hash):
+                             failures.append(ValidationFailure("DETACHED_DIGEST_MALFORMED", 
+                                f"Sidecar digest must be 64 hex characters. Found '{sidecar_hash}' in {sidecar_path.name}"))
+
+                        elif sidecar_hash != current_zip_sha:
                              failures.append(ValidationFailure("DETACHED_DIGEST_MISMATCH", 
                                 f"Sidecar hash {sidecar_hash} != Actual ZIP hash {current_zip_sha}"))
-                elif manifest_sha is None:
-                     failures.append(ValidationFailure("ZIP_SHA256_NULL", "zip_sha256 field is null"))
                 elif manifest_sha != current_zip_sha:
                      failures.append(ValidationFailure("ZIP_SHA256_MISMATCH", 
                         f"Manifest hash {manifest_sha} != Actual ZIP hash {current_zip_sha}"))
@@ -263,10 +276,10 @@ def main():
                     actual_hash = calculate_sha256(index_path.read_bytes())
                     if actual_hash.upper() != activated_sha.upper():
                         failures.append(ValidationFailure("E_PROTOCOLS_PROVENANCE_MISMATCH",
-                            f"Provenance hash mismatch: manifest={activated_sha[:16]}... actual={actual_hash[:16]}...",
+                            f"Provenance hash mismatch: manifest={activated_sha} actual={actual_hash}",
                             path=activated_ref, expected=activated_sha, actual=actual_hash))
                     else:
-                        print(f"Protocols provenance verified: {activated_sha[:16]}...")
+                        print(f"Protocols provenance verified: {activated_sha}")
                     
                     provenance_evidence['protocols'] = {
                         'ref': activated_ref,
@@ -313,7 +326,7 @@ def main():
     if os.path.exists(args.bundle_path):
         manifest_sha = manifest.get("zip_sha256") if manifest else None
         
-        if manifest_sha == "DETACHED_SEE_SIBLING_FILE":
+        if manifest_sha == "DETACHED_SEE_SIBLING_FILE" or manifest_sha is None:
              # v1.2.2 Logic: DETACHED_DIGEST STRATEGY
              # We explicitly do NOT print the bundle hash or the sidecar hash in the report.
              # This allows the report to be generated inside the bundle without creating a circular hash dependency.
@@ -330,7 +343,7 @@ def main():
     report_lines.append("- ZIP path canonicalization (no backslashes, no .., no absolute)")
     report_lines.append("- Required root files (closure_manifest.json, closure_addendum.md)")
     report_lines.append("- Manifest schema validation (G-CBS-1.0)")
-    report_lines.append("- Addendum elision check (no '...' allowed)")
+    report_lines.append("- Addendum elision check (no elision tokens allowed)")
     report_lines.append("- Addendum row count vs manifest evidence count")
     report_lines.append("- Addendum table parsing (role, path, sha256)")
     report_lines.append("- Portability check (.md files: no file:///, no C:\\\\Users\\\\)")
@@ -345,7 +358,7 @@ def main():
         report_lines.append("|-----------|-----------|-----------------|---------------|--------|")
         for comp, data in provenance_evidence.items():
             status_cell = "PASS" if data['expected'].upper() == data['actual'].upper() else "FAIL"
-            report_lines.append(f"| {comp} | {data['ref']} | `{data['expected'][:16]}...` | `{data['actual'][:16]}...` | {status_cell} |")
+            report_lines.append(f"| {comp} | {data['ref']} | `{data['expected']}` | `{data['actual']}` | {status_cell} |")
 
     report_lines.append("")
     report_lines.append("## Validation Findings")

@@ -144,6 +144,11 @@ def _build_build_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDe
     return _build_phase3_mission_workflow("build", params)
 
 
+def _build_echo_workflow_phase3(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build echo mission workflow (Phase 3)."""
+    return _build_phase3_mission_workflow("echo", params)
+
+
 def _build_steward_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
     """Build steward mission workflow."""
     return _build_phase3_mission_workflow("steward", params)
@@ -169,7 +174,7 @@ def _build_build_with_validation_workflow(params: Optional[Dict[str, Any]] = Non
 MISSION_REGISTRY: Dict[str, Callable[[Optional[Dict[str, Any]]], WorkflowDefinition]] = {
     # Legacy Tier-2 missions
     "daily_loop": _build_daily_loop_workflow,
-    "echo": _build_echo_workflow,
+    "echo": _build_echo_workflow_phase3,
     # Phase 3 mission types (per architecture v0.3 §5.3)
     "design": _build_design_workflow,
     "review": _build_review_workflow,

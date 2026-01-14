@@ -43,11 +43,20 @@ TEST_FIXTURES_DIR = "docs/test"
 RUNNER_SCRIPT = "scripts/opencode_ci_runner.py"
 DEFAULT_PORT = 62587
 
-# Import canonical default from single source of truth
+# Import canonical defaults from single source of truth
 try:
-    from runtime.agents.models import DEFAULT_MODEL
+    from runtime.agents.models import (
+        resolve_model_auto,
+        load_model_config
+    )
+    
+    # Resolve default model dynamically
+    _config = load_model_config()
+    DEFAULT_MODEL, _, _ = resolve_model_auto("steward", _config)
+    
 except ImportError:
-    DEFAULT_MODEL = "minimax-m2.1-free"  # Fallback if import fails
+    print("CRITICAL: Failed to import runtime.agents.models")
+    sys.exit(1)
 
 # ==============================================================================
 # DATA CLASSES

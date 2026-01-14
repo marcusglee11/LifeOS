@@ -343,35 +343,35 @@ class TestSymlinkDefense:
         assert ReasonCode.SYMLINK_BLOCKED == "SYMLINK_BLOCKED"
     
     def test_symlink_filesystem_regular_file(self, tmp_path):
-        """Regular file should not be detected as symlink."""
+        """Regular file should not be detected as symlink (Safe=True)."""
         regular_file = tmp_path / "test.md"
         regular_file.write_text("content")
-        is_sym, reason = check_symlink_filesystem("test.md", str(tmp_path))
-        assert not is_sym
+        safe, reason = check_symlink_filesystem("test.md", str(tmp_path))
+        assert safe is True
         assert reason is None
     
     def test_symlink_filesystem_detects_symlink(self, tmp_path):
-        """Symlink should be detected by filesystem check."""
+        """Symlink should be detected by filesystem check (Safe=False)."""
         target_file = tmp_path / "target.md"
         target_file.write_text("target")
         symlink = tmp_path / "link.md"
         try:
             symlink.symlink_to(target_file)
-            is_sym, reason = check_symlink_filesystem("link.md", str(tmp_path))
-            assert is_sym
+            safe, reason = check_symlink_filesystem("link.md", str(tmp_path))
+            assert safe is False
             assert reason == ReasonCode.SYMLINK_BLOCKED
         except OSError:
             pytest.skip("Symlink creation not supported on this system")
     
     def test_symlink_in_parent_path(self, tmp_path):
-        """Symlink in parent path component should be detected."""
+        """Symlink in parent path component should be detected (Safe=False)."""
         target_dir = tmp_path / "real_docs"
         target_dir.mkdir()
         docs_link = tmp_path / "docs"
         try:
             docs_link.symlink_to(target_dir)
-            is_sym, reason = check_symlink_filesystem("docs/test.md", str(tmp_path))
-            assert is_sym
+            safe, reason = check_symlink_filesystem("docs/test.md", str(tmp_path))
+            assert safe is False
             assert reason == ReasonCode.SYMLINK_BLOCKED
         except OSError:
             pytest.skip("Symlink creation not supported on this system")
@@ -555,7 +555,7 @@ class TestSymlinkGitIndexMocked:
     """P0.3 — Mock-based tests for git-index symlink detection (deterministic)."""
     
     def test_git_index_symlink_mode_120000_detected(self, tmp_path):
-        """Git index mode 120000 => SYMLINK_BLOCKED."""
+        """Git index mode 120000 => SYMLINK_BLOCKED (Safe=False)."""
         from unittest.mock import patch, MagicMock
         
         mock_result = MagicMock()
@@ -563,13 +563,13 @@ class TestSymlinkGitIndexMocked:
         mock_result.stdout = "120000 abc123def456 0\tdocs/link.md"
         
         with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
-            is_sym, reason = check_symlink_git_index("docs/link.md", str(tmp_path))
+            safe, reason = check_symlink_git_index("docs/link.md", str(tmp_path))
             
-            assert is_sym is True, "Mode 120000 must be detected as symlink"
+            assert safe is False, "Mode 120000 must be detected as symlink"
             assert reason == ReasonCode.SYMLINK_BLOCKED, f"Expected SYMLINK_BLOCKED, got {reason}"
     
     def test_git_index_regular_file_mode_100644_not_flagged(self, tmp_path):
-        """Git index mode 100644 (regular file) => NOT a symlink."""
+        """Git index mode 100644 (regular file) => Safe=True."""
         from unittest.mock import patch, MagicMock
         
         mock_result = MagicMock()
@@ -577,13 +577,13 @@ class TestSymlinkGitIndexMocked:
         mock_result.stdout = "100644 abc123def456 0\tdocs/file.md"
         
         with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
-            is_sym, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
+            safe, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
             
-            assert is_sym is False, "Mode 100644 must NOT be flagged as symlink"
+            assert safe is True, "Mode 100644 must NOT be flagged as symlink"
             assert reason is None, f"Expected no reason, got {reason}"
     
     def test_git_index_executable_mode_100755_not_flagged(self, tmp_path):
-        """Git index mode 100755 (executable) => NOT a symlink."""
+        """Git index mode 100755 (executable) => Safe=True."""
         from unittest.mock import patch, MagicMock
         
         mock_result = MagicMock()
@@ -591,13 +591,13 @@ class TestSymlinkGitIndexMocked:
         mock_result.stdout = "100755 abc123def456 0\tscripts/run.sh"
         
         with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
-            is_sym, reason = check_symlink_git_index("scripts/run.sh", str(tmp_path))
+            safe, reason = check_symlink_git_index("scripts/run.sh", str(tmp_path))
             
-            assert is_sym is False, "Mode 100755 must NOT be flagged as symlink"
+            assert safe is True, "Mode 100755 must NOT be flagged as symlink"
             assert reason is None
     
     def test_git_index_empty_response_not_flagged(self, tmp_path):
-        """Empty git ls-files response => NOT a symlink (untracked file)."""
+        """Empty git ls-files response => Safe=True (untracked file)."""
         from unittest.mock import patch, MagicMock
         
         mock_result = MagicMock()
@@ -605,24 +605,24 @@ class TestSymlinkGitIndexMocked:
         mock_result.stdout = ""
         
         with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
-            is_sym, reason = check_symlink_git_index("docs/new.md", str(tmp_path))
+            safe, reason = check_symlink_git_index("docs/new.md", str(tmp_path))
             
-            assert is_sym is False, "Empty response must NOT be flagged"
+            assert safe is True, "Empty response must NOT be flagged"
             assert reason is None
     
     def test_git_index_exception_blocks_fail_closed(self, tmp_path):
-        """Exception during git ls-files => BLOCK with SYMLINK_CHECK_FAILED (fail-closed)."""
+        """Exception during git ls-files => BLOCK with SYMLINK_CHECK_FAILED (Safe=False)."""
         from unittest.mock import patch
         
         with patch('scripts.opencode_gate_policy.subprocess.run', side_effect=Exception("Git not available")):
-            is_sym, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
+            safe, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
             
             # Phase 2: fail-closed - if we can't verify, we BLOCK
-            assert is_sym is True, "Exception must trigger BLOCK (fail-closed)"
+            assert safe is False, "Exception must trigger BLOCK (fail-closed)"
             assert reason == ReasonCode.SYMLINK_CHECK_FAILED
     
     def test_git_index_nonzero_return_blocks_fail_closed(self, tmp_path):
-        """Nonzero return code from git ls-files => BLOCK with SYMLINK_CHECK_FAILED."""
+        """Nonzero return code from git ls-files => BLOCK with SYMLINK_CHECK_FAILED (Safe=False)."""
         from unittest.mock import patch, MagicMock
         
         mock_result = MagicMock()
@@ -630,9 +630,9 @@ class TestSymlinkGitIndexMocked:
         mock_result.stdout = ""
         
         with patch('scripts.opencode_gate_policy.subprocess.run', return_value=mock_result):
-            is_sym, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
+            safe, reason = check_symlink_git_index("docs/file.md", str(tmp_path))
             
-            assert is_sym is True, "Nonzero return code must trigger BLOCK"
+            assert safe is False, "Nonzero return code must trigger BLOCK"
             assert reason == ReasonCode.SYMLINK_CHECK_FAILED
 
 
@@ -671,9 +671,14 @@ class TestRunnerEnvelopeEnforcement:
     
     @pytest.fixture
     def validate_entry(self):
-        """Import validate_diff_entry from runner."""
-        from scripts.opencode_ci_runner import validate_diff_entry
-        return validate_diff_entry
+        """Import validate_operation from policy (replacing runner import)."""
+        from scripts.opencode_gate_policy import validate_operation, MODE_STEWARD
+        
+        def _wrapper(status, path, old_path=None):
+            # Adapter for new interface
+            return validate_operation(status, path, mode=MODE_STEWARD)
+            
+        return _wrapper
     
     def test_denylisted_path_blocked(self, validate_entry):
         """Denylisted path change => BLOCK with DENYLIST_ROOT_BLOCKED."""

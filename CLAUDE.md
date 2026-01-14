@@ -78,6 +78,80 @@ python docs/scripts/check_readiness.py
 python scripts/opencode_ci_runner.py --model google/gemini-2.0-flash-001
 ```
 
+### TODO Management
+
+```bash
+# View all TODOs
+python scripts/todo_inventory.py
+
+# View as JSON
+python scripts/todo_inventory.py --json
+
+# Filter by priority
+python scripts/todo_inventory.py --priority P0
+```
+
+**Protocol**: `docs/02_protocols/TODO_Standard_v1.0.md`
+
+**For Antigravity agents (stewards and builders):**
+- Never use generic `TODO` - always use `LIFEOS_TODO[P0|P1|P2]` with area and exit command
+- P0 incomplete code paths MUST raise `NotImplementedError` (fail-loud)
+- Run `python scripts/todo_inventory.py` before committing to verify backlog state
+- Remove TODOs only after exit command passes
+
+## Development Workflow
+
+### Superpowers Workflow
+
+LifeOS adopts the **Superpowers** workflow discipline for structured development with strict TDD enforcement. This workflow is installed as a Claude Code skill at `.claude/skills/superpowers/`.
+
+**Three-Phase Cycle**:
+
+1. **Brainstorm** (`/superpowers:brainstorm` or use brainstorming skill)
+   - Explore design space and identify alternatives
+   - Ask clarifying questions about requirements
+   - Understand existing patterns in codebase
+   - Consider tradeoffs and edge cases
+   - **When to use**: Before starting any non-trivial work
+
+2. **Plan** (`/superpowers:write-plan` or use executing-plans skill)
+   - Break work into small batches (2-5 min each)
+   - Define clear success criteria for each batch
+   - Identify test cases upfront
+   - Specify verification commands
+   - **When to use**: After brainstorming, before implementation
+
+3. **Execute** (`/superpowers:execute-plan` or use test-driven-development skill)
+   - Implement batch-by-batch with strict TDD
+   - Write failing test first, then implementation
+   - Run tests after each batch
+   - Verify success criteria met
+   - **When to use**: After planning, for actual code changes
+
+**Key Principles**:
+- **YAGNI** (You Aren't Gonna Need It): Don't add features not explicitly required
+- **DRY** (Don't Repeat Yourself): Extract common patterns, but avoid premature abstraction
+- **Strict TDD**: Test first, implementation second, refactor third
+- **Small batches**: Keep changes focused and testable
+
+**When scope grows**:
+- STOP execution
+- Document remaining work with clear boundaries
+- Return to brainstorm or planning phase
+- Break into smaller batches
+
+**Available Superpowers Skills**:
+- `brainstorming` - Explore design space
+- `executing-plans` - Implement with TDD
+- `test-driven-development` - Write tests first
+- `systematic-debugging` - Debug methodically
+- `dispatching-parallel-agents` - Coordinate multiple tasks
+- `subagent-driven-development` - Delegate to specialized agents
+- `requesting-code-review` - Prepare code for review
+- `receiving-code-review` - Process review feedback
+- `finishing-a-development-branch` - Complete and merge work
+- `using-git-worktrees` - Manage parallel work
+
 ## High-Level Architecture
 
 ### Governance-First System

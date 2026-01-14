@@ -1,0 +1,112 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "BuildWithValidation Result v0.1",
+    "type": "object",
+    "properties": {
+        "run_token": {
+            "type": "string"
+        },
+        "repo_root": {
+            "type": "string"
+        },
+        "baseline_commit": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "params_canonical_sha256": {
+            "type": "string"
+        },
+        "smoke": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "exit_code": {
+                    "type": "integer"
+                },
+                "stdout_sha256": {
+                    "type": "string"
+                },
+                "stderr_sha256": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "command",
+                "exit_code",
+                "stdout_sha256",
+                "stderr_sha256"
+            ],
+            "additionalProperties": false
+        },
+        "pytest": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "properties": {
+                "command": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "exit_code": {
+                    "type": "integer"
+                },
+                "stdout_sha256": {
+                    "type": "string"
+                },
+                "stderr_sha256": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "command",
+                "exit_code",
+                "stdout_sha256",
+                "stderr_sha256"
+            ],
+            "additionalProperties": false
+        },
+        "evidence_dir": {
+            "type": "string"
+        },
+        "evidence": {
+            "type": "object",
+            "properties": {
+                "run_token": {
+                    "type": "string"
+                },
+                "evidence_path": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "run_token",
+                "evidence_path"
+            ],
+            "patternProperties": {
+                "^.*\\.(stdout|stderr|exitcode)$": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "run_token",
+        "repo_root",
+        "params_canonical_sha256",
+        "smoke",
+        "evidence_dir",
+        "evidence"
+    ],
+    "additionalProperties": false
+}

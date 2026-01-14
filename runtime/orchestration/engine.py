@@ -373,16 +373,9 @@ class Orchestrator:
             ctx.metadata["repo_root"] = str(repo_root)
             ctx.metadata["baseline_commit"] = baseline_commit
 
-        # Decide dispatch path OUTSIDE main try block
-        # P0.2 Fix: Only fallback on import failure or missing attribute,
-        # NOT on AttributeError from inside run_mission execution
-        use_direct_path = False
-        try:
-            from runtime.orchestration import registry
-            if not hasattr(registry, 'run_mission'):
-                use_direct_path = True
-        except ImportError:
-            use_direct_path = True
+        # Always use direct path for operation="mission" to avoid recursion loops
+        # (registry.run_mission builds workflows that call operation="mission", creating a cycle if we call registry again)
+        use_direct_path = True
 
         # Execute mission (with selective exception handling)
         try:

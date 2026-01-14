@@ -1,118 +1,76 @@
 ---
-artifact_id: ""              # [REQUIRED] Generate UUID v4
+artifact_id: ""              # [REQUIRED] UUID v4
 artifact_type: "REVIEW_PACKET"
 schema_version: "1.0.0"
 created_at: ""               # [REQUIRED] ISO 8601
 author: "Antigravity"
 version: "1.0"
 status: "PENDING_REVIEW"
-
 # Optional
 chain_id: ""
 mission_ref: ""
 council_trigger: ""
 parent_artifact: ""
 tags: []
+terminal_outcome: ""         # [REQUIRED] PASS | BLOCKED | REJECTED
+closure_evidence: {}         # [REQUIRED] key-value pairs
 ---
 
 # Review_Packet_<Mission>_v1.0
 
-**Mission:** <!-- Mission name -->
-**Date:** YYYY-MM-DD
-**Author:** Antigravity
-**Status:** PENDING_REVIEW
+# Scope Envelope
 
----
+- **Allowed Paths**: `...`
+- **Forbidden Paths**: `...`
+- **Authority**: ...
 
-## 1. Executive Summary
+# Summary
+<!-- 1-3 sentences on what was done -->
 
-<!-- 2-5 sentences summarizing mission outcome -->
-
-**Verification Status:**
-- **Component Health:** <!-- GREEN/YELLOW/RED (X passed, Y failed) -->
-- **Stewardship:** <!-- COMPLETE/PARTIAL/N/A -->
-
----
-
-## 2. Issue Catalogue & Resolutions
+# Issue Catalogue
 
 | Issue ID | Description | Resolution | Status |
 |----------|-------------|------------|--------|
-| <!-- ID --> | <!-- Description --> | <!-- How resolved --> | **RESOLVED** |
+| P0.1     |             |            | FIXED  |
 
----
+# Acceptance Criteria
 
-## 3. Acceptance Criteria Status
+| Criterion | Status | Evidence Pointer | SHA-256 |
+|-----------|--------|------------------|---------|
+| AC1       | PASS   | logs/run.txt:L10 | a1b2... |
 
-| Criteria | Description | Status | Verification Method |
-|----------|-------------|--------|---------------------|
-| **AT1** | <!-- Criterion --> | **PASS** | <!-- How verified --> |
-| **AT2** | <!-- Criterion --> | **PASS** | <!-- How verified --> |
+# Closure Evidence Checklist
 
----
+| Category | Requirement | Verified |
+|----------|-------------|----------|
+| **Provenance** | Code commit hash + message | [Hash/Msg] |
+| | Docs commit hash + message | [Hash/Msg] OR N/A |
+| | Changed file list (paths) | [List/Count] |
+| **Artifacts** | `attempt_ledger.jsonl` | [Path/SHA] OR N/A |
+| | `CEO_Terminal_Packet.md` | [Path/SHA] OR N/A |
+| | `Review_Packet_attempt_XXXX.md` | [Path/SHA] OR N/A |
+| | Closure Bundle + Validator Output | [Path/SHA] OR N/A |
+| | Docs touched (each path) | [Path/SHA] |
+| **Repro** | Test command(s) exact cmdline | [Command] |
+| | Run command(s) to reproduce artifact | [Command] |
+| **Governance** | Doc-Steward routing proof | [Path/Ref] OR Waiver |
+| | Policy/Ruling refs invoked | [Path/Ref] |
+| **Outcome** | Terminal outcome proof | [PASS/BLOCKED/etc] |
 
-## 4. Stewardship Evidence
+# Non-Goals
 
-<!-- Required if any files in docs/ were modified -->
+- ...
 
-**Objective Evidence of Compliance:**
+# Appendix
 
-1. **Documentation Update:**
-   - **Command:** `python docs/scripts/generate_strategic_context.py`
-   - **Result:** <!-- Success message -->
-2. **Files Modified (Verified by Git):**
-   - `docs/INDEX.md` (Timestamp update)
-   - `docs/LifeOS_Strategic_Corpus.md` (Regeneration)
+## File Manifest
 
----
+- `path/to/file`
 
-## 5. Verification Proof
+## Flattened Code
 
-**Target Component:** <!-- Component path -->
-**Verified Commit:** `<!-- commit hash -->`
+### File: `path/to/file`
 
-**Command:** `<!-- test command -->`
-**Output Snapshot:**
-```text
-<!-- Test output -->
+```python
+...
 ```
-**Status:** **<!-- GREEN/YELLOW/RED --> (X Failed)**
-
----
-
-<!-- ============ OPTIONAL SECTIONS BELOW ============ -->
-
-## 6. Constraints & Boundaries
-
-<!-- If applicable, document runtime limits -->
-
-| Constraint | Limit | Rationale |
-|------------|-------|-----------|
-| <!-- Name --> | <!-- Value --> | <!-- Why --> |
-
----
-
-## 7. Non-Goals
-
-- <!-- Explicit exclusion 1 -->
-- <!-- Explicit exclusion 2 -->
-
----
-
-## Appendix — Flattened Code Snapshots
-
-### File: `<!-- path/to/file -->`
-
-```<!-- language -->
-<!-- Full file content -->
-```
-
-### File: `<!-- path/to/another/file -->`
-
-```<!-- language -->
-<!-- Full file content -->
-```
-
----
-
-*This review packet was created under LifeOS Build Artifact Protocol v1.0.*

@@ -1,0 +1,18 @@
+================================================================================
+Known Failures Gate Check v1.1
+================================================================================
+
+Running full test suite...
+HEAD failures detected: 24
+Pytest return code: 1
+Ledger known failures: 24
+
+Traceback (most recent call last):
+  File "C:\Users\cabra\Projects\LifeOS\scripts\check_known_failures_gate.py", line 181, in <module>
+    main()
+  File "C:\Users\cabra\Projects\LifeOS\scripts\check_known_failures_gate.py", line 174, in main
+    print("\u2705 GATE PASS: No new failures detected.")
+  File "C:\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>

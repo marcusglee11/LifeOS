@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-01-14 (Phase A Loop Controller Implemented)]
+# LifeOS Strategic Corpus [Last Updated: 2026-01-14 (Review Packet Schema Hardening v1.0)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 

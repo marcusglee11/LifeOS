@@ -3,7 +3,7 @@
 OpenCode CI Runner (CT-2 Phase 3 v2.0)
 ======================================
 
-Broadened CI runner for doc-steward gate per CEO waiver 2026-01-09.
+Broadened CI runner for doc-steward gate.
 All structural operations allowed. Path security checks retained.
 """
 
@@ -27,16 +27,25 @@ import opencode_gate_policy as policy
 from opencode_gate_policy import ReasonCode
 
 # Import canonical defaults from single source of truth
+# Import canonical defaults from single source of truth
 try:
     # Add parent directory to path for runtime imports
     _repo_root = os.path.dirname(_script_dir)
     if _repo_root not in sys.path:
         sys.path.insert(0, _repo_root)
-    from runtime.agents.models import DEFAULT_MODEL, validate_config
-except ImportError:
-    DEFAULT_MODEL = "minimax-m2.1-free"
-    def validate_config():
-        return True, "Fallback config"
+    from runtime.agents.models import (
+        resolve_model_auto,
+        get_api_key_for_role,
+        load_model_config,
+        validate_config,
+    )
+    # Default is now 'auto' to trigger resolution logic
+    DEFAULT_MODEL = "auto"
+except ImportError as e:
+    # Fail loud in Phase 3 - we must have runtime access
+    print(f"CRITICAL: Failed to import runtime.agents.models: {e}")
+    print("This script must be run from within the LifeOS repository.")
+    sys.exit(1)
 
 # ============================================================================
 # LOGGING
@@ -69,75 +78,44 @@ def get_log_buffer() -> str:
 def clear_log_buffer():
     _log_buffer.clear()
 
-def load_steward_key():
-    """Load the steward API key from env or .env file."""
-    # Priority: ZEN_STEWARD_KEY > STEWARD_OPENROUTER_KEY
-    key = os.environ.get("ZEN_STEWARD_KEY") or os.environ.get("STEWARD_OPENROUTER_KEY")
-    if not key:
-        try:
-            with open(".env", "r") as f:
-                for line in f:
-                    if line.startswith("ZEN_STEWARD_KEY="):
-                        key = line.split("=", 1)[1].strip()
-                        break
-                if not key:
-                    f.seek(0)
-                    for line in f:
-                        if line.startswith("STEWARD_OPENROUTER_KEY="):
-                            key = line.split("=", 1)[1].strip()
-                            break
-        except FileNotFoundError:
-            pass
+def load_api_key(mode: str) -> str:
+    """Load the API key for the given mode (steward/builder)."""
+    role = "steward" if mode == policy.MODE_STEWARD else "builder"
     
+    # Try canonical loading first
+    key = get_api_key_for_role(role)
     if key:
-        log(f"Steward API Key loaded (starts with {key[:8]})", "info")
-    else:
-        log("Steward API Key NOT found", "error")
-    return key
+        log(f"{role.capitalize()} API Key loaded via config (starts with {key[:8]})", "info")
+        return key
+
+    # Fallback to legacy env vars if config/models.yaml lookup failed (shouldn't happen if setup is correct)
+    # Priority: ZEN_{ROLE}_KEY > ZEN_STEWARD_KEY
+    env_var = f"ZEN_{role.upper()}_KEY"
+    key = os.environ.get(env_var)
+    if key:
+        log(f"{role.capitalize()} API Key loaded via {env_var}", "info")
+        return key
+        
+    log(f"API Key for {role} NOT found", "error")
+    return ""
 
 # ============================================================================
 # ENVELOPE VALIDATION (POST-DIFF)
 # ============================================================================
-def validate_diff_entry(status: str, path: str, old_path: Optional[str] = None) -> Tuple[bool, Optional[str]]:
+def validate_all_diff_entries(parsed_diff: List[tuple], mode: str) -> List[Tuple[str, str, str]]:
     """
-    Validate a single diff entry against Phase 3 envelope.
-    
-    Per CEO waiver 2026-01-09: All operations allowed, structural ops audited.
-    Returns (allowed, reason_code or None).
-    Order: path security -> allowlist -> (extension check dropped)
-    """
-    norm_path = policy.normalize_path(path)
-    
-    # 1. D/R/C operations now ALLOWED per CEO waiver (audit only, no block)
-    # Previously blocked, now just logged for audit trail
-    
-    # 2. Path security checks (still enforced)
-    safe, security_reason = policy.check_path_security(norm_path, os.getcwd())
-    if not safe:
-        return (False, security_reason)
-    
-    # 3. Denylist cleared per CEO waiver - skip check
-    # Previously: is_denied, deny_reason = policy.matches_denylist(norm_path)
-    
-    # 4. Allowlist check (expanded per CEO waiver)
-    if not policy.matches_allowlist(norm_path):
-        return (False, ReasonCode.OUTSIDE_ALLOWLIST_BLOCKED)
-    
-    # 5. Extension check dropped per CEO waiver
-    # Previously: ext_ok, ext_reason = policy.check_extension_under_docs(norm_path)
-    
-    # 6. Review packets: relax add-only restriction per CEO waiver
-    # All operations now allowed on review_packets/
-    
-    return (True, None)
-
-def validate_all_diff_entries(parsed_diff: List[tuple]) -> List[Tuple[str, str, str]]:
-    """
-    Validate all parsed diff entries.
+    Validate all parsed diff entries using policy.validate_operation.
     
     Returns list of (path, operation, reason_code) for blocked entries.
     """
     blocked = []
+    
+    # Restore Legacy parity: Structural ops blocked in Steward mode
+    if mode == policy.MODE_STEWARD:
+        blocked_ops = policy.detect_blocked_ops(parsed_diff)
+        if blocked_ops:
+            return blocked_ops
+            
     for entry in parsed_diff:
         if len(entry) == 2:
             status, path = entry
@@ -145,12 +123,17 @@ def validate_all_diff_entries(parsed_diff: List[tuple]) -> List[Tuple[str, str, 
         else:
             status, old_path, path = entry  # R/C have old and new paths
         
-        allowed, reason = validate_diff_entry(status, path, old_path)
+        # Check primary path (new path or modified path)
+        allowed, reason = policy.validate_operation(status, path, mode)
         if not allowed:
             blocked.append((path, status, reason))
-            # For R/C, also record the old path
-            if old_path:
-                blocked.append((old_path, status, reason))
+            
+        # For R/C, also check the old path (treat as deletion/touch)
+        if old_path:
+            # Use status D to imply "removal/modification of this path"
+            allowed_old, reason_old = policy.validate_operation("D", old_path, mode)
+            if not allowed_old:
+                blocked.append((old_path, status, reason_old))
     
     return blocked
 
@@ -236,7 +219,7 @@ def validate_task_input(task_str):
             log(f"Missing required key in task JSON: {key}", "error")
             return None
     
-    # Phase 3: All operations allowed per CEO waiver 2026-01-09
+    # Phase 3: All operations allowed.
     valid_actions = ["create", "modify", "delete", "rename", "move", "copy"]
     if task["action"] not in valid_actions:
         log(f"Invalid action: {task['action']}. Valid actions: {valid_actions}", "error")
@@ -286,6 +269,7 @@ def create_isolated_config(api_key, model):
     
     return temp_dir
 
+# LIFEOS_TODO[P1][area: scripts/opencode_ci_runner.py:cleanup_isolated_config][exit: root cause documented + decision logged in DECISIONS.md] Review OpenCode deletion logic: Understand why cleanup uses shutil.rmtree for temp configs. DoD: Root cause documented, safety analysis complete
 def cleanup_isolated_config(config_dir):
     if config_dir and os.path.exists(config_dir):
         try: shutil.rmtree(config_dir)
@@ -341,15 +325,32 @@ def run_mission(base_url, model, instruction):
 # MAIN
 # ============================================================================
 def main():
-    parser = argparse.ArgumentParser(description="OpenCode CI Runner (CT-2 Phase 3 v2.0) - Broadened per CEO waiver")
+    parser = argparse.ArgumentParser(description="OpenCode CI Runner (CT-2 Phase 3 v2.0) - Broadened")
     parser.add_argument("--port", type=int, default=62586)
     parser.add_argument("--model", type=str, default=DEFAULT_MODEL)
+    parser.add_argument("--mode", type=str, choices=policy.VALID_MODES, default=policy.MODE_STEWARD, help="Enforcement mode (steward/builder)")
     parser.add_argument("--task", type=str, required=True, help="JSON-structured task (required)")
     # NO --override-foundations flag. Period.
     args = parser.parse_args()
     
     repo_root = os.getcwd()
-    steward_api_key = load_steward_key()
+    # Load config once
+    model_config = load_model_config()
+
+    # Resolve model if auto
+    model_id = args.model
+    if model_id == "auto":
+        role = "steward" if args.mode == policy.MODE_STEWARD else "builder"
+        model_id, reason, _ = resolve_model_auto(role, model_config)
+        log(f"Resolved model 'auto' to '{model_id}' ({reason})", "info")
+    else:
+        log(f"Using requested model '{model_id}'", "info")
+
+    api_key = load_api_key(args.mode)
+    if not api_key:
+        log("No API key available. Requesting user intervention.", "error")
+        # Fail loud in Phase 3
+        sys.exit(1)
     
     task = validate_task_input(args.task)
     if not task: 
@@ -357,15 +358,15 @@ def main():
     
     # ========== PRE-START CHECKS (symlink on declared files) ==========
     for path in task["files"]:
-        is_sym, reason = policy.check_symlink(path, repo_root)
-        if is_sym:
+        safe, reason = policy.check_symlink(path, repo_root)
+        if not safe:
             generate_evidence_bundle("BLOCK", reason, "PRE_START", task)
             log(f"Symlink rejected: {path}", "error")
             sys.exit(1)
     
     # ========== SERVER SETUP ==========
-    config_dir = create_isolated_config(steward_api_key, args.model)
-    server_process = start_ephemeral_server(args.port, config_dir, steward_api_key)
+    config_dir = create_isolated_config(api_key, model_id)
+    server_process = start_ephemeral_server(args.port, config_dir, api_key)
     if not server_process:
         cleanup_isolated_config(config_dir)
         sys.exit(1)
@@ -378,7 +379,7 @@ def main():
     
     # ========== EXECUTE MISSION ==========
     log("Executing mission", "info")
-    session_id = run_mission(f"http://127.0.0.1:{args.port}", args.model, task["instruction"])
+    session_id = run_mission(f"http://127.0.0.1:{args.port}", model_id, task["instruction"])
     
     # ========== POST-EXECUTION: GET DIFF AND VALIDATE ENVELOPE ==========
     log("Validating post-execution diff against envelope", "info")
@@ -396,7 +397,7 @@ def main():
         parsed = []
     
     # Validate ALL diff entries against envelope
-    blocked_entries = validate_all_diff_entries(parsed)
+    blocked_entries = validate_all_diff_entries(parsed, mode=args.mode)
     
     if blocked_entries:
         first_block = blocked_entries[0]
@@ -412,8 +413,8 @@ def main():
     # Check symlinks again for new files
     for entry in parsed:
         path = entry[1] if len(entry) == 2 else entry[2]
-        is_sym, reason = policy.check_symlink(path, repo_root)
-        if is_sym:
+        safe, reason = policy.check_symlink(path, repo_root)
+        if not safe:
             generate_evidence_bundle("BLOCK", reason, mode, task, parsed)
             log(f"New symlink detected: {path}", "error")
             subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)

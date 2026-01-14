@@ -13,14 +13,16 @@ This protocol defines how canonical documents are created, updated, indexed, and
 **Document Steward**: The agent (Antigravity or successor) — NOT the human CEO.
 
 Per Constitution v2.0:
+
 - **CEO performs**: Intent, approval, governance decisions only
 - **Agent performs**: All file creation, indexing, git operations, syncing
 
 The CEO must never manually shuffle documents, update indices, or run git commands. If the CEO is doing these things, it is a governance violation.
 
 **Canonical Locations**:
+
 1. **Local Repository**: `docs`
-2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
+2. **GitHub**: <https://github.com/marcusglee11/LifeOS/tree/main/docs>
 3. **Google Drive**: [REDACTED_DRIVE_LINK]
 
 ---
@@ -28,14 +30,18 @@ The CEO must never manually shuffle documents, update indices, or run git comman
 ## 2. Sync Requirements
 
 ### 2.1 Source of Truth
+
 The **local repository** is the primary source of truth. All changes originate here.
 
 ### 2.2 Sync Targets
+
 Changes must be propagated to:
+
 1. **GitHub** (primary backup, version control)
 2. **Google Drive** (external access, offline backup)
 
 ### 2.3 Sync Frequency
+
 | Event | GitHub Sync | Google Drive Sync |
 |-------|:-----------:|:-----------------:|
 | Document creation | Immediate | Same session |
@@ -48,7 +54,9 @@ Changes must be propagated to:
 ## 3. Steward Responsibilities
 
 ### 3.1 Document Creation
+
 When creating a new document:
+
 1. Create file in appropriate `docs/` subdirectory
 2. Follow naming convention: `DocumentName_vX.Y.md`
 3. Include metadata header (Status, Authority, Date)
@@ -60,7 +68,9 @@ When creating a new document:
 9. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.2 Document Modification
+
 When modifying an existing document:
+
 1. Edit the file
 2. Update version if significant change
 3. Update `docs/INDEX.md` if description changed
@@ -70,7 +80,9 @@ When modifying an existing document:
 7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.3 Document Archival
+
 When archiving a superseded document:
+
 1. Move to `docs/99_archive/` with appropriate subfolder
 2. Remove from `docs/INDEX.md`
 3. Remove from `ARTEFACT_INDEX.json` if applicable
@@ -80,7 +92,9 @@ When archiving a superseded document:
 7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.4 Index Maintenance
+
 Indices that must be kept current:
+
 - `docs/INDEX.md` — Master documentation index
 - `docs/01_governance/ARTEFACT_INDEX.json` — Governance artefact registry
 - `docs/LifeOS_Universal_Corpus.md` — Universal corpus for AI/NotebookLM
@@ -89,6 +103,7 @@ Indices that must be kept current:
 ### 3.5 File Organization
 
 When receiving or creating files:
+
 1. **Never leave files at `docs/` root** (except INDEX.md and corpus)
 2. Analyze file type and purpose
 3. Move to appropriate subdirectory per Directory Structure (Section 8)
@@ -96,14 +111,17 @@ When receiving or creating files:
 5. Update INDEX.md with correct paths after moving
 
 **Root files allowed**:
+
 - `INDEX.md` — Master documentation index
 - `LifeOS_Universal_Corpus.md` — Generated universal corpus
 - `LifeOS_Strategic_Corpus.md` — Generated strategic corpus
 
 ### 3.6 Stray File Check (Mandatory)
+
 After every document operation, the steward must scan:
-1.  **Repo Root**: Ensure no random output files (`*.txt`, `*.log`, `*.db`) remain. Move to `logs/` or `99_archive/`.
-2.  **Docs Root**: Ensure only allowed files (see 3.5) and directories exist. Move any loose markdown strings to appropriate subdirectories.
+
+1. **Repo Root**: Ensure no random output files (`*.txt`, `*.log`, `*.db`) remain. Move to `logs/` or `99_archive/`.
+2. **Docs Root**: Ensure only allowed files (see 3.5) and directories exist. Move any loose markdown strings to appropriate subdirectories.
 
 ---
 
@@ -137,23 +155,29 @@ git push origin main
 Google Drive for Desktop is configured to automatically sync the local repository to Google Drive.
 
 **Configuration:**
+
 - **Local folder**: `docs`
 - **Drive folder**: [LifeOS/docs]([REDACTED_DRIVE_LINK])
 - **Sync mode**: Mirror (bidirectional)
 
 **Behavior:**
+
 - All local changes are automatically synced to Google Drive
 - No manual upload required
 - Sync occurs in background whenever files change
 
 ### 5.2 Steward Actions
+
 The steward does NOT need to manually sync to Google Drive. The workflow is:
+
 1. Edit files locally
 2. Commit and push to GitHub
 3. Google Drive syncs automatically
 
 ### 5.3 Verification
+
 To verify sync is working:
+
 - Check Google Drive for Desktop tray icon (green checkmark = synced)
 - Spot-check recent file in Drive web interface
 
@@ -199,10 +223,12 @@ docs/
 ├── 04_project_builder/ ← Builder specs
 ├── 05_agents/          ← Agent architecture
 ├── 06_user_surface/    ← User surface specs
-├── 07_productisation/  ← Productisation briefs
+├── 07_testing/         ← Testing specs and results
 ├── 08_manuals/         ← Manuals
 ├── 09_prompts/         ← Prompt templates
 ├── 10_meta/            ← Meta docs, reviews, tasks
+├── 11_admin/           ← Project administration
+├── 12_productisation/  ← Productisation briefs
 └── 99_archive/         ← Historical documents (immutable)
 ```
 
@@ -225,21 +251,26 @@ If sync requires more than 2 human steps, the workflow must be automated.
 The **primary interface** for automated stewardship is now the **DOC_STEWARD_REQUEST_PACKET**.
 
 ### 10.1 Interaction Flow
+
 1. **Orchestrator** emits `DOC_STEWARD_REQUEST_PACKET` (defined in `lifeos_packet_schemas_v1.1.yaml`).
 2. **Doc Steward** processes the request (Index update, Corpus regen, etc.).
 3. **Doc Steward** emits `DOC_STEWARD_RESULT` (embedded in payload or as a generic Result packet).
 
 ### 10.2 Legacy Support (Structured Patch List)
+
 The Structured Patch List format (Section 3.1-3.2 of v1.0) is maintained as the internal payload structure but must be wrapped in the canonical packet envelope.
 
 ### 10.3 Ledger Topology (DL_DOC)
+
 All automated stewardship runs are recorded in `artifacts/ledger/dl_doc/`:
+
 - Filename pattern: `YYYY-MM-DD_<trial_type>_<case_id>.yaml`
 - Contains: Full Packet content + Verifier Outcome.
 
 ---
 
 ## Changes in v1.1
+
 - **Canonical Packets**: Adopted `DOC_STEWARD_REQUEST_PACKET` as primary interface.
 - **Envelope Wrapping**: Legacy Structured Patch List JSON must be wrapped in canonical envelope.
 

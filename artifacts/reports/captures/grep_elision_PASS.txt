@@ -1,0 +1,1467 @@
+Binary file artifacts/99_archive/bundles/Bundle_OpenCode_E2E_Reliability_Fix_v1.1.zip matches
+artifacts/99_archive/plans/Plan_CT2_Phase2_P0_Enforcement_v1.2.md:        return ["git", "diff", "--name-status", "-z", f"{base_ref}...{head_ref}"]
+artifacts/99_archive/plans/Plan_CT2_Phase2_P0_Enforcement_v1.2.md:{"algorithm": "sha256", "hex": "a1b2c3..."}
+artifacts/99_archive/review_packets/Review_Packet_Agent_API_Layer_v0.1.md:    # ... resolution logic ...
+artifacts/99_archive/review_packets/Review_Packet_Agent_API_Layer_v0.1.md:                response = client.post(...)
+artifacts/99_archive/review_packets/Review_Packet_Agent_API_Layer_v0.1.md:                raise AgentAPIError(...)
+artifacts/99_archive/review_packets/Review_Packet_Agent_API_Layer_v0.1.md:    # ... logging and response building ...
+artifacts/99_archive/review_packets/Review_Packet_Agent_API_Layer_v0.1.md:You are the Designer agent in the LifeOS Autonomous Build Loop...
+artifacts/99_archive/review_packets/Review_Packet_Agent_API_Layer_v0.1.md:Return a valid YAML packet with: design_type, summary, deliverables, constraints, verification, dependencies...
+artifacts/99_archive/review_packets/Review_Packet_Agent_API_Layer_v0.1.md:You are the Builder agent in the LifeOS Autonomous Build Loop...
+artifacts/99_archive/review_packets/Review_Packet_Agent_API_Layer_v0.1.md:Return a valid YAML packet with: files, tests, verification_commands...
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.1.md:    missions: Tuple[MissionCall, ...] = field(default_factory=tuple)
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.1.md:        missions: List[MissionCall] | Tuple[MissionCall, ...] = (),
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.1.md:    scenarios: Tuple[ScenarioDefinition, ...] = field(default_factory=tuple)
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.1.md:        scenarios: List[ScenarioDefinition] | Tuple[ScenarioDefinition, ...] = (),
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.1.md:    expectations: Tuple[MissionExpectation, ...]
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.1.md:    def __init__(self, expectations: List[MissionExpectation] | Tuple[MissionExpectation, ...]):
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.1.md:         # but the brief said "add... there as needed".
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:    missions: Tuple[MissionCall, ...] = field(default_factory=tuple)
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:        missions: List[MissionCall] | Tuple[MissionCall, ...] = (),
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:    scenarios: Tuple[ScenarioDefinition, ...] = field(default_factory=tuple)
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:        scenarios: List[ScenarioDefinition] | Tuple[ScenarioDefinition, ...] = (),
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:    expectations: Tuple[MissionExpectation, ...]
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:    def __init__(self, expectations: List[MissionExpectation] | Tuple[MissionExpectation, ...]):
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:    run_mission(name, ...) must delegate to the builder registered
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:    Structure: {scenario_name: {mission_name: {result_dict...}}}
+artifacts/99_archive/review_packets/Review_Packet_Hardening_Pass_v0.1.md:- [x] Implement `ScenarioResult.to_dict()` -> `{"scenario_name": ..., "mission_results": {name: res.to_dict()}, "metadata": ...}`.
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_CLEAN_v1.0.md:...
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_CLEAN_v1.0.md:...
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_v1.1.md:...
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_v1.1.md:...
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:...
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:...
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:...
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:- **Supports `--task-file`**: YES (Line 348: `parser.add_argument("--task-file", ...)`)
+artifacts/99_archive/review_packets/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:- **Supports `--task`**: YES (Line 347: `parser.add_argument("--task", ...)`)
+artifacts/99_archive/review_packets/Review_Packet_Strategic_Context_Generator_v1.0.md:    # "For Antigravity_Implementation_Packet and similar technical specs..."
+artifacts/99_archive/review_packets/Review_Packet_Strategic_Context_Generator_v1.0.md:    print(f"Generating Strategic Context at {OUTPUT_FILE}...")
+artifacts/99_archive/review_packets/Review_Packet_Strategic_Context_Generator_v1.1.md:    *   **`CODE_REVIEW_STATUS`**: Removed `### Fix ...` blocks labeled as "Complete".
+artifacts/99_archive/review_packets/Review_Packet_Strategic_Context_Generator_v1.1.md:    print(f"Generating Strategic Context (v1.1) at {OUTPUT_FILE}...")
+artifacts/99_archive/review_packets/Review_Packet_Strategic_Context_Generator_v1.2.md:    print(f"Generating Strategic Context (v1.2) at {OUTPUT_FILE}...")
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| artifacts/for_ceo/Review_Packet_Council_FixPack_v1.0.md | created | v1.0 | e556a43 | F7D3203E... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| artifacts/review_packets/Review_Packet_Council_FixPack_v1.0.md | created | v1.0 | e556a43 | F7D3203E... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md | created | v1.1 | e556a43 | 7F8FC753... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| docs/02_protocols/Council_Context_Pack_Schema_v0.3.md | created | v0.3 | e556a43 | 4F56C5B2... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| docs/99_archive/AI_Council_Procedural_Spec_v1.0.md | archived | v1.0 | e556a43 | 51B99074... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| docs/99_archive/Council_Context_Pack_Schema_v0.2.md | archived | v0.2 | e556a43 | 7B2E2513... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| docs/99_archive/Council_Invocation_Runtime_Binding_Spec_v1.0.md | archived | v1.0 | e556a43 | 81716D3B... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| docs/99_archive/Council_Protocol_v1.1.md | archived | v1.1 | e556a43 | BD03DDBB... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| docs/INDEX.md | modified | - | e556a43 | C73F12AD... |
+artifacts/AUR_20260105_council_process_review_round2/INVENTORY.md:| docs/LifeOS_Strategic_Corpus.md | modified | - | e556a43 | D16BDFC7... |
+artifacts/AUR_20260105_council_process_review_round2/PATHS_REPORT.txt:- Replaced `file:///c:/Users/cabra/Projects/LifeOS/docs/...` with `docs/...`
+Binary file artifacts/bundles/Build_Loop_Phase1a_Deliverable_Workspace_v1.0.zip matches
+Binary file artifacts/bundles/Bundle_Build_With_Validation_v1.0.zip matches
+Binary file artifacts/bundles/Bundle_COO_Runtime_Plan_Fix_20260107.zip matches
+Binary file artifacts/bundles/Bundle_COO_Runtime_Repair_v1.0.zip matches
+Binary file artifacts/bundles/Bundle_OpenCode_Steward_Hardening_CT2_v1.3.zip matches
+Binary file artifacts/bundles/Phase2_Capabilities_Evidence.zip matches
+artifacts/bundles/Plan_OpenCode_Steward_Hardening_v1.3.md:  {"files": ["path1", "path2"], "action": "create|modify|delete|archive", "instruction": "..."}
+artifacts/bundles/Plan_OpenCode_Steward_Hardening_v1.3.md:3. Contains NO literal ellipses (`...`) or `[truncated]`.
+artifacts/capability_proof/post_state.txt:  (use "git restore --staged <file>..." to unstage)
+artifacts/capability_proof/post_state.txt:  (use "git add/rm <file>..." to update what will be committed)
+artifacts/capability_proof/post_state.txt:  (use "git restore <file>..." to discard changes in working directory)
+artifacts/capability_proof/post_state.txt:  (use "git add <file>..." to include in what will be committed)
+artifacts/capability_proof/pytest_output.txt:collecting ... collected 5 items
+artifacts/closure/Process_Hardening_Notes.md:| `TRUNCATION_TOKEN_FOUND` | Log contains `...`, `[PENDING]`. | Major | 80 |
+artifacts/closures/CLOSURE_A1_A2_RECLOSURE_v2.1c.md:Protocols provenance verified: 74BBF6A08C5D3796...
+artifacts/closures/CLOSURE_GCBS_READINESS_v1.1.md:Protocols provenance verified: 74BBF6A08C5D3796...
+artifacts/context_packs/CCP_Agent_Communication_Review_v1.0.md:- Finding 2 [REF: ...]
+artifacts/context_packs/CCP_Agent_Communication_Review_v1.0.md:...
+artifacts/context_packs/CCP_Agent_Communication_Review_v1.0.md:- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/context_packs/CCP_Agent_Communication_Review_v1.0.md:...
+artifacts/context_packs/CCP_Agent_Communication_Review_v1.0.md:- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/context_packs/CCP_Agent_Communication_Review_v1.0.md:- F2: ...
+artifacts/context_packs/CCP_Agent_Communication_Review_v1.0.md:- Q1: ...
+artifacts/context_packs/CCP_Agent_Communication_Review_v1.0.md:- A1: ...
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- Finding 2 [REF: ...]
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:...
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:...
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- F2: ...
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- Q1: ...
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- A1: ...
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:input_packet_hash: "sha256:..."
+artifacts/context_packs/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:output_packet_hash: "sha256:..."
+artifacts/context_packs/CCP_Core_TDD_Principles_v1.0.md:    - "..."
+artifacts/context_packs/CCP_Core_TDD_Principles_v1.0.md:      summary: "..."
+artifacts/context_packs/CCP_Core_TDD_Principles_v1.0.md:      refs: ["REF: ..."]
+artifacts/context_packs/CCP_Core_TDD_Principles_v1.0.md:    - "Seat A vs Seat B: ..."
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- Finding 2 [REF: ...]
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- F2: ...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- Q1: ...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- A1: ...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:    rationale: null|"..."
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:   - Format: `F1`, `F2`, ... with impact and `REF:`.
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:        hash: null|"sha256:..."
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:    - "..."
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:      summary: "..."
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:      refs: ["REF: ..."]
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:    - "Seat A vs Seat B: ..."
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:    override_rationale: null|"..."
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- ...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- ...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:- ...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:        hash: null|"sha256:..."
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:Generated from a deterministic traversal (e.g. sorted(os.walk(...))).
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:Module_Path: ...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:Role (from spec/plan): ... (pull language from spec/plan where possible)
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:Test_File: ...
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:Gate_Implementation_Files: [...]
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:Gate_Tests: [...] (if any)
+artifacts/context_packs/CCP_Council_Process_Review_v1.0.md:File traversal ordering guarantees (sorted(...)).
+artifacts/context_packs/CONTEXT_PACK_GOVERNANCE_DETACHED_DIGEST_ACTIVATION_v0.1.md:...
+artifacts/context_packs/CONTEXT_PACK_GOVERNANCE_DETACHED_DIGEST_ACTIVATION_v0.1.md:...
+artifacts/context_packs/CONTEXT_PACK_GOVERNANCE_DETACHED_DIGEST_ACTIVATION_v0.1.md:...
+artifacts/context_packs/Council_Context_Pack_CT2_DocSteward.md:- Use IDs `F1`, `F2`, ...
+artifacts/ct2/Process_Hardening_Notes.md:| `NO_ELISIONS_IN_RAW_LOG` | Literal `...` found in evidence log |
+artifacts/doc_steward_requests/DOC_STEWARD_REQUEST_AUR_20260105_Signoff.yaml:  - No evidence elisions ("...") allowed in AUR_20260105 artefacts
+artifacts/evidence/fingerprints_HEAD.json:    "message": "assert 'x-ai/grok-4.1-fast' == 'openrouter/a...aude-sonnet-4'",
+artifacts/evidence/opencode_e2e_smoke_after.log:collecting ... collected 6 items
+artifacts/evidence/Phase3_Complete_v1.2.diff:+  "instruction": "Create a review packet summarizing the changes..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+subprocess.Popen(["opencode", "serve", "--port", str(port)], env=env, ...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+{"parts": [{"type": "text", "text": "...response..."}]}
+artifacts/evidence/Phase3_Complete_v1.2.diff:+├── changed_files.json     # [{"status": "A"|"M"|"D", "path": "..."}]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+  - event_type (agent_invoked|state_transition|task_started|...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    # ... (12 total)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+python scripts/validate_packet.py --bundle /path/to/dir --schema ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    # ... payload fields
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    # ... resolution logic ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                response = client.post(...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                raise AgentAPIError(...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    # ... logging and response building ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+You are the Designer agent in the LifeOS Autonomous Build Loop...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+Return a valid YAML packet with: design_type, summary, deliverables, constraints, verification, dependencies...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+You are the Builder agent in the LifeOS Autonomous Build Loop...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+Return a valid YAML packet with: files, tests, verification_commands...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- Finding 2 [REF: ...]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- F2: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- Q1: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- A1: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/evidence/Phase3_Complete_v1.2.diff:+input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+output_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Finding 2 [REF: ...]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- F2: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Q1: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- A1: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Finding 2 [REF: ...]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- F2: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Q1: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- A1: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    rationale: null|"..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-   - Format: `F1`, `F2`, ... with impact and `REF:`.
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        hash: null|"sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    - "..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-      summary: "..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-      refs: ["REF: ..."]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    - "Seat A vs Seat B: ..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    override_rationale: null|"..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        hash: null|"sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-Generated from a deterministic traversal (e.g. sorted(os.walk(...))).
+artifacts/evidence/Phase3_Complete_v1.2.diff:-Module_Path: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-Role (from spec/plan): ... (pull language from spec/plan where possible)
+artifacts/evidence/Phase3_Complete_v1.2.diff:-Test_File: ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-Gate_Implementation_Files: [...]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-Gate_Tests: [...] (if any)
+artifacts/evidence/Phase3_Complete_v1.2.diff:-File traversal ordering guarantees (sorted(...)).
+artifacts/evidence/Phase3_Complete_v1.2.diff:-| Forbidden truncation tokens | Prior artefacts contained ellipses (...) |
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- `TRUNCATION_TOKEN_FOUND`: Scans for `...`, `[PENDING]`, `TBD`, `TODO`
+artifacts/evidence/Phase3_Complete_v1.2.diff:-...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-a1b2c3d4e5f6...  Bundle_v1.0.zip
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        return ["git", "diff", "--name-status", "-z", f"{base_ref}...{head_ref}"]
+artifacts/evidence/Phase3_Complete_v1.2.diff:-{"algorithm": "sha256", "hex": "a1b2c3..."}
+artifacts/evidence/Phase3_Complete_v1.2.diff:-  "artefacts": { ... }
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    "anti_failure": "...",
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    "architecture_skeleton": "...",
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    "constitution": "...",
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-  {"files": ["path1", "path2"], "action": "create|modify|delete|archive", "instruction": "..."}
+artifacts/evidence/Phase3_Complete_v1.2.diff:-3. Contains NO literal ellipses (`...`) or `[truncated]`.
+artifacts/evidence/Phase3_Complete_v1.2.diff:-| `TRUNCATION_TOKEN_FOUND` | Log contains `...`, `[PENDING]`. | Major | 80 |
+artifacts/evidence/Phase3_Complete_v1.2.diff:-python scripts/closure/build_closure_bundle.py --profile a1a2 --closure-id A1A2_GCBS_REPAYMENT_v1.0 --deterministic ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Building Draft Bundle for Validator Capture...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Running Validator on Draft (Capture)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Building Final Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Generating Audit Report...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Sealing Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Computing Detached Digest...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        content = b"Log with ..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-python scripts/closure/build_closure_bundle.py --profile a1a2 --closure-id A1A2_GCBS_REPAYMENT_v1.0 --deterministic ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-python scripts/closure/build_closure_bundle.py --profile a1a2 --closure-id A1A2_GCBS_REPAYMENT_v1.0 --deterministic ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- **Full Fidelity Capture**: Validator output (`validator_run_final.txt`) is now captured from a "Draft+Sidecar" strict run, ensuring no truncation (`...`) and full Exit Code presence.
+artifacts/evidence/Phase3_Complete_v1.2.diff:-FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Building Draft Bundle for Validator Capture...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Running Strict Validator on Draft (Capture)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Building Final Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Generating Audit Report...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Sealing Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Computing Detached Digest...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        content = b"Log with ..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+artifacts/evidence/Phase3_Complete_v1.2.diff:-FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Building Candidate Bundle for Validator Capture...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        # Strictly use the output filename (e.g. Bundle_...v1.2.2.zip) for the candidate
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Running Strict Validator on Candidate (Capture)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Building Final Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Generating Audit Report...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Sealing Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Computing Detached Digest...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        content = b"Log with ..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+artifacts/evidence/Phase3_Complete_v1.2.diff:-FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Building Draft Bundle for Validator Capture...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Running Strict Validator on Draft (Capture)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Building Final Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Generating Audit Report...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Sealing Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Computing Detached Digest...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        content = b"Log with ..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+artifacts/evidence/Phase3_Complete_v1.2.diff:-FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Building Draft Bundle for Validator Capture...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        print("Running Validator on Draft (Capture)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Building Final Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Generating Audit Report...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Sealing Bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Computing Detached Digest...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-        content = b"Log with ..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/evidence/Phase3_Complete_v1.2.diff:-| Covered by deterministic golden tests | ✅ PASS | Golden hash: `4907f6d1...` |
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/evidence/Phase3_Complete_v1.2.diff:-     ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/evidence/Phase3_Complete_v1.2.diff:-            assert "..." not in content
+artifacts/evidence/Phase3_Complete_v1.2.diff:-+ python -m pytest runtime/tests/test_mission_registry/test_mission_reg ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    + CategoryInfo          : NotSpecified: (C:\Users\cabra\...cope" is unset.:String) [], RemoteException
+artifacts/evidence/Phase3_Complete_v1.2.diff:-collecting ... collected 27 items
+artifacts/evidence/Phase3_Complete_v1.2.diff:-+ python -m pytest runtime/tests/test_mission_registry/ -v 2>&1 > test_ ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    + CategoryInfo          : NotSpecified: (C:\Users\cabra\...cope" is unset.:String) [], RemoteException
+artifacts/evidence/Phase3_Complete_v1.2.diff:-collecting ... collected 67 items
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- **Command**: `python scripts/closure/build_closure_bundle.py ... --output ...v1.2.2.zip`
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- **Command**: `python scripts/closure/build_closure_bundle.py ... --output ...v1.2.1.zip`
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- **Transcript**: Full fidelity (Exit Code present, no `...`)
+artifacts/evidence/Phase3_Complete_v1.2.diff:-2. `test_ellipsis_in_log_rejected()` — Evidence with `...` fails `TRUNCATION_TOKEN_FOUND`
+artifacts/evidence/Phase3_Complete_v1.2.diff:+      runtime\tests\test_envelope_enforcer.py ...ss.......                     [ 20%]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+      runtime\tests\test_mission_journal.py ..........                         [ 37%]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+      runtime\tests\test_operations.py .................                       [ 67%]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+      runtime\tests\test_self_mod_protection.py ...................            [100%]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+      runtime\tests\test_envelope_enforcer.py ...ss.......                     [ 20%]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+      runtime\tests\test_mission_journal.py ..........                         [ 37%]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+      runtime\tests\test_operations.py .................                       [ 67%]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+      runtime\tests\test_self_mod_protection.py ...................            [100%]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    # ... resolution logic ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                response = client.post(...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                raise AgentAPIError(...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    # ... logging and response building ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+You are the Designer agent in the LifeOS Autonomous Build Loop...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+Return a valid YAML packet with: design_type, summary, deliverables, constraints, verification, dependencies...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+You are the Builder agent in the LifeOS Autonomous Build Loop...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+Return a valid YAML packet with: files, tests, verification_commands...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+... (content from previous write) ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+... (content from previous write) ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+... (content from previous write) ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+... (content from previous write) ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        result = subprocess.run(["git", "ls-files", "-s", "--", path], ...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- **P0.1 Truncation Footer**: Explicit format `[TRUNCATED] cap_lines=...`
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- **P1.1 Ellipsis Removal**: Scanned and cleaned logs/footers for `...`
+artifacts/evidence/Phase3_Complete_v1.2.diff:+| No ellipses in footer | ✅ | Test asserts `...` not in result |
+artifacts/evidence/Phase3_Complete_v1.2.diff:+| No ellipses in runner logs | ✅ | Removed `...` from key log |
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- **P0.1 Truncation Footer**: Strict format `[TRUNCATED] cap_lines=<N>...`
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- **P0.2 Ellipses Removed**: Removed all "..." from runner logs and generation scripts
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    # ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    forbidden = ['Executing mission...', ...]
+artifacts/evidence/Phase3_Complete_v1.2.diff:+| No ellipses in footer | ✅ | Test asserts `...` not in result |
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- **P0.1 Ellipsis Removed**: Fixed `Starting ephemeral OpenCode server on port {port}...`
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- **P0.2 Test Regex Strengthened**: Now catches f-strings: `log(f"...")`
+artifacts/evidence/Phase3_Complete_v1.2.diff:+- log(f"Starting ephemeral OpenCode server on port {port}...", "info")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+'Starting ephemeral OpenCode server on port {port}...'
+artifacts/evidence/Phase3_Complete_v1.2.diff:+4. ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+| 0.2.1 | 2026-01-08 | Claude | **Council GO_WITH_FIXES applied**: ... |
+artifacts/evidence/Phase3_Complete_v1.2.diff:+...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+| **C-01** | Evidence bundle paths | Standardized to artifacts/evidence/... with forward slashes. | FIXED |
+artifacts/evidence/Phase3_Complete_v1.2.diff:+-│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/evidence/Phase3_Complete_v1.2.diff:+-input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+-output_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++    sha256: "abc123..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++    sha256: "def456..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++    sha256: "789abc..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++  # ... all governance surfaces
+artifacts/evidence/Phase3_Complete_v1.2.diff:++│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/evidence/Phase3_Complete_v1.2.diff:++   call_id_deterministic: "sha256:abc123..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++   input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++   prompt_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++   response_content: "..." 
+artifacts/evidence/Phase3_Complete_v1.2.diff:++   response_packet: {...}
+artifacts/evidence/Phase3_Complete_v1.2.diff:++call_id_deterministic: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++prompt_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++output_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+ prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/evidence/Phase3_Complete_v1.2.diff:++# = "a7d9e1f2c3b4a5968798..." (fixed constant)
+artifacts/evidence/Phase3_Complete_v1.2.diff:++    - "fallback_N": Nth fallback was used (N = 1, 2, ...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:++| Alignment Layer v1.4 | `docs/99_archive/.../Alignment_Layer_v1.4.md` | Inlined into packet Section 5. |
+artifacts/evidence/Phase3_Complete_v1.2.diff:++      "file": "...",
+artifacts/evidence/Phase3_Complete_v1.2.diff:++      "excerpt": "..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++  "ruleset_sha256": "..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:++    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
+artifacts/evidence/Phase3_Complete_v1.2.diff:++    ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+       "excerpt": "..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   "ruleset_sha256": "..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+-sorted(os.walk(...))
+artifacts/evidence/Phase3_Complete_v1.2.diff:++    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
+artifacts/evidence/Phase3_Complete_v1.2.diff:++    ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:++  - no ellipses (`...` / `…`) appear in evidence-captured outputs
+artifacts/evidence/Phase3_Complete_v1.2.diff:+collecting ... collected 37 items
+artifacts/evidence/Phase3_Complete_v1.2.diff:+  - no ellipses (`...` / `…`) appear in evidence-captured outputs
+artifacts/evidence/Phase3_Complete_v1.2.diff:+4. ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:       "excerpt": "..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:   "ruleset_sha256": "..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:-sorted(os.walk(...))
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    run_id: str                    # Deterministic run ID (sha256:...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    run_id: str  # Deterministic run ID (sha256:...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    sha256: "abc123..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    sha256: "def456..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    sha256: "789abc..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+  # ... all governance surfaces
+artifacts/evidence/Phase3_Complete_v1.2.diff:+│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   call_id_deterministic: "sha256:abc123..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   prompt_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   response_content: "..." 
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   response_packet: {...}
+artifacts/evidence/Phase3_Complete_v1.2.diff:+call_id_deterministic: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+prompt_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+output_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+# = "a7d9e1f2c3b4a5968798..." (fixed constant)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    - "fallback_N": Nth fallback was used (N = 1, 2, ...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/evidence/Phase3_Complete_v1.2.diff:+input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+output_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    sha256: "abc123..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    sha256: "def456..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    sha256: "789abc..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+  # ... all governance surfaces
+artifacts/evidence/Phase3_Complete_v1.2.diff:+│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   call_id_deterministic: "sha256:abc123..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   prompt_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   response_content: "..." 
+artifacts/evidence/Phase3_Complete_v1.2.diff:+   response_packet: {...}
+artifacts/evidence/Phase3_Complete_v1.2.diff:+call_id_deterministic: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+input_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+prompt_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+output_packet_hash: "sha256:..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+4. ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+4. ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- **Architect gate:** acceptance criteria clarity (“done means…”) and fix pack authorisation
+artifacts/evidence/Phase3_Complete_v1.2.diff:-10. What is Build Automation?… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/what-is-build-automation](https://www.harness.io/harness-devops-academy/what-is-build-automation)  
+artifacts/evidence/Phase3_Complete_v1.2.diff:-17. Mastering Infrastructure as Code Best Practices for Modern DevOps… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/infrastructure-as-code-best-practices](https://www.harness.io/harness-devops-academy/infrastructure-as-code-best-practices)
+artifacts/evidence/Phase3_Complete_v1.2.diff:-5. Effective feature release strategies for successful software delivery… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/mastering-feature-release-strategies](https://www.harness.io/harness-devops-academy/mastering-feature-release-strategies)  
+artifacts/evidence/Phase3_Complete_v1.2.diff:+  - no ellipses (`...` / `…`) appear in evidence-captured outputs
+artifacts/evidence/Phase3_Complete_v1.2.diff:-   - Format: `F1`, `F2`, ... with impact and `REF:`.
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- `runtime/tests/fixtures/interface_v{X}/...`
+artifacts/evidence/Phase3_Complete_v1.2.diff:-     - A small number of action items (A1, A2, …).
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:-- Use IDs `F1`, `F2`, ...
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                    f"{expected_prev[:16]}..., got {entry.prev_entry_hash[:16]}..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                    f"Stored={entry.entry_hash[:16]}..., computed={computed[:16]}..."
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        # Should NOT contain "..." truncation
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        assert "..." not in error_msg
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                if "..." in line:
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                    issues.append(f"Line {i}: contains truncation ellipsis '...'")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    print("Running Audit Gate...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    print(f"Bundling files into {bundle_path}...")
+artifacts/evidence/Phase3_Complete_v1.2.diff: FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                # Check 1: No elisions ("...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                if '...' in addendum_content:
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                    elision_count = addendum_content.count('...')
+artifacts/evidence/Phase3_Complete_v1.2.diff:+                        f"closure_addendum.md contains {elision_count} elision(s) ('...')", 
+artifacts/evidence/Phase3_Complete_v1.2.diff:                         print(f"Protocols provenance verified: {activated_sha[:16]}...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    report_lines.append("- Addendum elision check (no '...' allowed)")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+            report_lines.append(f"| {comp} | {data['ref']} | `{data['expected'][:16]}...` | `{data['actual'][:16]}...` | {status_cell} |")
+artifacts/evidence/Phase3_Complete_v1.2.diff:-    print(f"Creating {BUNDLE_NAME}...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    print(f"Generating bundles in {bundles_dir}...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    print("Generating PASS bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    print("Generating BLOCK_DENYLIST bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+    print("Generating BLOCK_ENVELOPE bundle...")
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        assert "..." not in result
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        # Find all log("...") calls
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        # Look for log("text...") or log('text...')
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        # Note: We want to catch the literal sequence "..." inside quotes passed to log()
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        # Simple check: does the file contain '..."' inside a log call?
+artifacts/evidence/Phase3_Complete_v1.2.diff:+            'Executing mission...',
+artifacts/evidence/Phase3_Complete_v1.2.diff:+            'Validating post-execution diff against envelope...',
+artifacts/evidence/Phase3_Complete_v1.2.diff:+            'Simulating server response...',
+artifacts/evidence/Phase3_Complete_v1.2.diff:+            'Starting ephemeral OpenCode server on port {port}...',
+artifacts/evidence/Phase3_Complete_v1.2.diff:+            'key[:8]...'
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        # Matches: log("text...", ...) or log(f"text...", ...) or log(f'text...', ...)
+artifacts/evidence/Phase3_Complete_v1.2.diff:+        # We allow "..." in comments or docstrings, but pattern above targets log() calls
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:config/schemas/mission.yaml                             | 59c56f8126135f9b...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/engine.py                         | e35735e7a8c6ed37...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/missions/__init__.py              | cb81b1ac3e61cda3...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/missions/autonomous_build_cycle.py| d5aa73ae645065ff...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/missions/base.py                  | 7ee47fcefb6dac42...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/missions/build.py                 | 240e6cde95fd1de9...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/missions/design.py                | df3d0dcd009f4a09...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/missions/review.py                | 234ace0774d70d16...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/missions/schema.py                | cc299a17f652dd55...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/missions/steward.py               | 32d04a0d9149ec46...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/orchestration/registry.py                       | 4ed0b60ef2cd5ea0...
+artifacts/evidence/Phase3_MVP_Mission_Types_Evidence_Report.md:runtime/tests/test_missions_phase3.py                   | 0979b93a4f4a4098...
+artifacts/evidence/pytest_full_v1.2.txt:collecting ... collected 820 items
+artifacts/evidence/pytest_full_v1.2.txt:        - Anchor-only links (#...)
+artifacts/evidence/pytest_full_v1.2.txt:        - Template tokens ({...})
+artifacts/evidence/pytest_full_verbatim.txt:collecting ... collected 820 items
+artifacts/evidence/pytest_full_verbatim.txt:        - Anchor-only links (#...)
+artifacts/evidence/pytest_full_verbatim.txt:        - Template tokens ({...})
+artifacts/evidence/pytest_phase3_clean.txt:collecting ... collected 49 items
+artifacts/evidence/pytest_phase3_clean_verbatim.txt:collecting ... collected 49 items
+artifacts/evidence/pytest_phase3_v1.2.txt:collecting ... collected 49 items
+artifacts/evidence/pytest_phase3_verbatim.txt:collecting ... collected 49 items
+artifacts/evidence/test_output_phase3_routing.txt:collecting ... collected 49 items
+artifacts/evidence/wip1_pytest.log:collecting ... collected 14 items
+artifacts/for_ceo/audit_gate_phase2_v1.1.log:      runtime\tests\test_envelope_enforcer.py ...ss.......                     [ 20%]
+artifacts/for_ceo/audit_gate_phase2_v1.1.log:      runtime\tests\test_mission_journal.py ..........                         [ 37%]
+artifacts/for_ceo/audit_gate_phase2_v1.1.log:      runtime\tests\test_operations.py .................                       [ 67%]
+artifacts/for_ceo/audit_gate_phase2_v1.1.log:      runtime\tests\test_self_mod_protection.py ...................            [100%]
+artifacts/for_ceo/audit_gate_phase2_v1.1_final.log:      runtime\tests\test_envelope_enforcer.py ...ss.......                     [ 20%]
+artifacts/for_ceo/audit_gate_phase2_v1.1_final.log:      runtime\tests\test_mission_journal.py ..........                         [ 37%]
+artifacts/for_ceo/audit_gate_phase2_v1.1_final.log:      runtime\tests\test_operations.py .................                       [ 67%]
+artifacts/for_ceo/audit_gate_phase2_v1.1_final.log:      runtime\tests\test_self_mod_protection.py ...................            [100%]
+artifacts/for_ceo/build_with_validation.py:            escalation_reason=f"Multi-iteration validation failure for task: {inputs['task_description'][:100]}..."
+Binary file artifacts/for_ceo/Bundle_COO_Runtime_Repair_v1.0.zip matches
+Binary file artifacts/for_ceo/Bundle_OpenCode_E2E_Reliability_Fix_v1.1.zip matches
+artifacts/for_ceo/CCP_Agent_Communication_Review_v1.0.md:- Finding 2 [REF: ...]
+artifacts/for_ceo/CCP_Agent_Communication_Review_v1.0.md:...
+artifacts/for_ceo/CCP_Agent_Communication_Review_v1.0.md:- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/for_ceo/CCP_Agent_Communication_Review_v1.0.md:...
+artifacts/for_ceo/CCP_Agent_Communication_Review_v1.0.md:- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/for_ceo/CCP_Agent_Communication_Review_v1.0.md:- F2: ...
+artifacts/for_ceo/CCP_Agent_Communication_Review_v1.0.md:- Q1: ...
+artifacts/for_ceo/CCP_Agent_Communication_Review_v1.0.md:- A1: ...
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- Finding 2 [REF: ...]
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:...
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:...
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- F2: ...
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- Q1: ...
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:- A1: ...
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:input_packet_hash: "sha256:..."
+artifacts/for_ceo/CCP_Autonomous_Build_Loop_Architecture_v0.1.md:output_packet_hash: "sha256:..."
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- Finding 2 [REF: ...]
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- F2: ...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- Q1: ...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- A1: ...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:    rationale: null|"..."
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:   - Format: `F1`, `F2`, ... with impact and `REF:`.
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:        hash: null|"sha256:..."
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:    - "..."
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:      summary: "..."
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:      refs: ["REF: ..."]
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:    - "Seat A vs Seat B: ..."
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:    override_rationale: null|"..."
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- ...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- ...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:- ...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:        hash: null|"sha256:..."
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:Generated from a deterministic traversal (e.g. sorted(os.walk(...))).
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:Module_Path: ...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:Role (from spec/plan): ... (pull language from spec/plan where possible)
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:Test_File: ...
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:Gate_Implementation_Files: [...]
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:Gate_Tests: [...] (if any)
+artifacts/for_ceo/CCP_Council_Process_Review_v1.0.md:File traversal ordering guarantees (sorted(...)).
+artifacts/for_ceo/CONTEXT_PACK_GCBS_REPAYMENT_v1.0.md:| Forbidden truncation tokens | Prior artefacts contained ellipses (...) |
+artifacts/for_ceo/CONTEXT_PACK_GCBS_REPAYMENT_v1.0.md:- `TRUNCATION_TOKEN_FOUND`: Scans for `...`, `[PENDING]`, `TBD`, `TODO`
+artifacts/for_ceo/CONTEXT_PACK_GOVERNANCE_DETACHED_DIGEST_ACTIVATION_v0.1.md:...
+artifacts/for_ceo/CONTEXT_PACK_GOVERNANCE_DETACHED_DIGEST_ACTIVATION_v0.1.md:...
+artifacts/for_ceo/CONTEXT_PACK_GOVERNANCE_DETACHED_DIGEST_ACTIVATION_v0.1.md:...
+artifacts/for_ceo/Council_Context_Pack_CT2_DocSteward.md:- Use IDs `F1`, `F2`, ...
+artifacts/for_ceo/deliverables/Council_Protocol_v1.2.md:    rationale: null|"..."
+artifacts/for_ceo/deliverables/Council_Protocol_v1.2.md:   - Format: `F1`, `F2`, ... with impact and `REF:`.
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:-│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:-input_packet_hash: "sha256:..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:-output_packet_hash: "sha256:..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+    sha256: "abc123..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+    sha256: "def456..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+    sha256: "789abc..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+  # ... all governance surfaces
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+   call_id_deterministic: "sha256:abc123..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+   input_packet_hash: "sha256:..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+   prompt_hash: "sha256:..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+   response_content: "..." 
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+   response_packet: {...}
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+call_id_deterministic: "sha256:..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+input_packet_hash: "sha256:..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+prompt_hash: "sha256:..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+output_packet_hash: "sha256:..."
+artifacts/for_ceo/diff_architecture_v0.1_to_v0.2.txt:+prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/for_ceo/diff_architecture_v0.2_to_v0.3.txt: prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/for_ceo/diff_architecture_v0.2_to_v0.3.txt:+# = "a7d9e1f2c3b4a5968798..." (fixed constant)
+artifacts/for_ceo/diff_architecture_v0.2_to_v0.3.txt:+    - "fallback_N": Nth fallback was used (N = 1, 2, ...)
+artifacts/for_ceo/G-CBS_Standard_v1.0.md:a1b2c3d4e5f6...  Bundle_v1.0.zip
+artifacts/for_ceo/implementation_plan_GCBS_Repayment.md:2. `test_ellipsis_in_log_rejected()` — Evidence with `...` fails `TRUNCATION_TOKEN_FOUND`
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:    sha256: "abc123..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:    sha256: "def456..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:    sha256: "789abc..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:  # ... all governance surfaces
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:   call_id_deterministic: "sha256:abc123..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:   input_packet_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:   prompt_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:   response_content: "..." 
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:   response_packet: {...}
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:call_id_deterministic: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:input_packet_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:prompt_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:output_packet_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md:prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "abc123..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "def456..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "789abc..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:  # ... all governance surfaces
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   call_id_deterministic: "sha256:abc123..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   input_packet_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   prompt_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   response_content: "..." 
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   response_packet: {...}
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:call_id_deterministic: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:input_packet_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:prompt_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:output_packet_hash: "sha256:..."
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:# = "a7d9e1f2c3b4a5968798..." (fixed constant)
+artifacts/for_ceo/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    - "fallback_N": Nth fallback was used (N = 1, 2, ...)
+artifacts/for_ceo/PASS_Report_Build_Loop_Phase2_v1.1_final.md:      runtime\tests\test_envelope_enforcer.py ...ss.......                     [ 20%]
+artifacts/for_ceo/PASS_Report_Build_Loop_Phase2_v1.1_final.md:      runtime\tests\test_mission_journal.py ..........                         [ 37%]
+artifacts/for_ceo/PASS_Report_Build_Loop_Phase2_v1.1_final.md:      runtime\tests\test_operations.py .................                       [ 67%]
+artifacts/for_ceo/PASS_Report_Build_Loop_Phase2_v1.1_final.md:      runtime\tests\test_self_mod_protection.py ...................            [100%]
+artifacts/for_ceo/Plan_CT2_Phase2_P0_Enforcement_v1.2.md:        return ["git", "diff", "--name-status", "-z", f"{base_ref}...{head_ref}"]
+artifacts/for_ceo/Plan_CT2_Phase2_P0_Enforcement_v1.2.md:{"algorithm": "sha256", "hex": "a1b2c3..."}
+artifacts/for_ceo/Plan_Governance_Delta_Detached_Digest_v0.2.1.md:  "artefacts": { ... }
+artifacts/for_ceo/Plan_Governance_Delta_Detached_Digest_v0.2.2.md:    "anti_failure": "...",
+artifacts/for_ceo/Plan_Governance_Delta_Detached_Digest_v0.2.2.md:    "architecture_skeleton": "...",
+artifacts/for_ceo/Plan_Governance_Delta_Detached_Digest_v0.2.2.md:    "constitution": "...",
+artifacts/for_ceo/Plan_Governance_Delta_Detached_Digest_v0.2.2.md:    ...
+artifacts/for_ceo/Plan_OpenCode_Steward_Hardening_v1.3.md:  {"files": ["path1", "path2"], "action": "create|modify|delete|archive", "instruction": "..."}
+artifacts/for_ceo/Plan_OpenCode_Steward_Hardening_v1.3.md:3. Contains NO literal ellipses (`...`) or `[truncated]`.
+artifacts/for_ceo/Process_Hardening_Notes.md:| `TRUNCATION_TOKEN_FOUND` | Log contains `...`, `[PENDING]`. | Major | 80 |
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_agent_api.py ...............                          [  2%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_amu0_hash_chain.py ...                                [  2%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_amu0_lineage.py ..............                        [  4%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_backpressure.py ...                                   [  5%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_baseline_governance.py .......                        [  6%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_budget_txn.py .....                                   [  6%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_build_handoff_scripts.py ....................         [  9%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_compatibility_matrix.py ....                          [  9%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_dap_gateway.py ...............                        [ 11%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_determinism_suite.py ........                         [ 13%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_deterministic_gateway.py .....                        [ 13%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_detsort_consistency.py ....                           [ 14%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_enforce_governance.py ............                    [ 15%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_engine.py .........                                   [ 17%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_envelope_enforcer.py ...ss.......                     [ 18%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_fsm_transitions.py ....................               [ 22%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_governance_override_protected_surface.py ...          [ 22%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_governance_protection.py .................            [ 25%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_index_atomic_write.py ...                             [ 25%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_llm_call_operation.py ..............                  [ 27%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_manifest_parsing.py ........                          [ 29%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_mission_journal.py ..........                         [ 30%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_mission_registry\test_mission_registry_v0_1.py ...... [ 31%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:.........................                                                [ 34%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_mission_registry\test_mission_registry_v0_2.py ...... [ 35%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:........................                                                 [ 38%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:........                                                                 [ 39%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_opencode_client.py ......................FF..         [ 43%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_opencode_governance\test_phase1_contract.py ........F [ 44%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_operations.py .................                       [ 46%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_packet_validation.py ....................             [ 49%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_planner_validation.py .....                           [ 50%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_reactive\test_spec_conformance.py ................... [ 52%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:................                                                         [ 54%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_reclaim.py ...                                        [ 55%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_repair_context.py ....                                [ 55%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_required_artifact_ids.py ....                         [ 56%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_run_controller.py ...............                     [ 58%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_safety_halt_procedure.py ...                          [ 58%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_safety_health_checks.py ...                           [ 59%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_sandbox_remediation.py .....                          [ 59%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_schema.py ....                                        [ 60%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_self_mod_protection.py ...................            [ 62%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_snapshot.py .....                                     [ 63%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_builder.py ..............                       [ 65%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_config_adapter.py ........                      [ 66%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_config_test_run.py ....                         [ 67%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_contracts.py .....                              [ 68%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_daily_loop.py ..............                    [ 69%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_expectations.py .......                         [ 70%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_harness.py ..............                       [ 72%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_orchestrator.py ........                        [ 73%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_registry.py ........                            [ 74%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_suite.py ..............                         [ 76%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tier2_test_run.py .....                               [ 77%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_tokenizer_replay.py ...                               [ 78%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_validator_smuggled_human_steps.py ...                 [ 78%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_validator_workflow_chaining_limit.py ...              [ 79%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:runtime\tests\test_workflow_validator.py .................               [ 81%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:tests_doc\test_tdd_compliance.py ............                            [ 83%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:tests_recursive\test_autogate_rules.py ...                               [ 83%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:tests_recursive\test_opencode_gate_policy.py ........................... [ 87%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:.................ss..........................................            [ 95%]
+artifacts/for_ceo/pytest_phase2_v1.1_final.log:tests_recursive\test_steward_runner.py F....FF.FFFxFFFFFFFFFFFFF
+artifacts/for_ceo/Review_Packet_Build_Loop_Phase1a_v1.0.md:... (content from previous write) ...
+artifacts/for_ceo/Review_Packet_Build_Loop_Phase1a_v1.0.md:... (content from previous write) ...
+artifacts/for_ceo/Review_Packet_Build_Loop_Phase1a_v1.0.md:... (content from previous write) ...
+artifacts/for_ceo/Review_Packet_Build_Loop_Phase1a_v1.0.md:... (content from previous write) ...
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:            escalation_reason=f"Multi-iteration validation failure for task: {inputs['task_description'][:100]}..."
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:[...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:[...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:[...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:  [...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:  [...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:  [...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:  [...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:  [...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:    [...]
+artifacts/for_ceo/Review_Packet_Build_With_Validation_v1.0.md:  [...]
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.1.md:        result = subprocess.run(["git", "ls-files", "-s", "--", path], ...)
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.1.md:        ...
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.2.md:- **P0.1 Truncation Footer**: Explicit format `[TRUNCATED] cap_lines=...`
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.2.md:- **P1.1 Ellipsis Removal**: Scanned and cleaned logs/footers for `...`
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.2.md:| No ellipses in footer | ✅ | Test asserts `...` not in result |
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.2.md:| No ellipses in runner logs | ✅ | Removed `...` from key log |
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.3.md:- **P0.1 Truncation Footer**: Strict format `[TRUNCATED] cap_lines=<N>...`
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.3.md:- **P0.2 Ellipses Removed**: Removed all "..." from runner logs and generation scripts
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.3.md:    # ...
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.3.md:    forbidden = ['Executing mission...', ...]
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.3.md:| No ellipses in footer | ✅ | Test asserts `...` not in result |
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.4.md:- **P0.1 Ellipsis Removed**: Fixed `Starting ephemeral OpenCode server on port {port}...`
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.4.md:- **P0.2 Test Regex Strengthened**: Now catches f-strings: `log(f"...")`
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.4.md:- log(f"Starting ephemeral OpenCode server on port {port}...", "info")
+artifacts/for_ceo/Review_Packet_CT2_Phase2_Passage_v2.4.md:'Starting ephemeral OpenCode server on port {port}...'
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.0.md:python scripts/closure/build_closure_bundle.py --profile a1a2 --closure-id A1A2_GCBS_REPAYMENT_v1.0 --deterministic ...
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:        print("Building Draft Bundle for Validator Capture...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:        print("Running Validator on Draft (Capture)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Building Final Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Generating Audit Report...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Sealing Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Computing Detached Digest...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.1.md:        content = b"Log with ..."
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.md:...
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.md:python scripts/closure/build_closure_bundle.py --profile a1a2 --closure-id A1A2_GCBS_REPAYMENT_v1.0 --deterministic ...
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.1.md:python scripts/closure/build_closure_bundle.py --profile a1a2 --closure-id A1A2_GCBS_REPAYMENT_v1.0 --deterministic ...
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:- **Full Fidelity Capture**: Validator output (`validator_run_final.txt`) is now captured from a "Draft+Sidecar" strict run, ensuring no truncation (`...`) and full Exit Code presence.
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:        print("Building Draft Bundle for Validator Capture...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:        print("Running Strict Validator on Draft (Capture)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:    print("Building Final Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:    print("Generating Audit Report...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:    print("Sealing Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:    print("Computing Detached Digest...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:        content = b"Log with ..."
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.1.md:        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        print("Building Candidate Bundle for Validator Capture...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        # Strictly use the output filename (e.g. Bundle_...v1.2.2.zip) for the candidate
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        print("Running Strict Validator on Candidate (Capture)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Building Final Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Generating Audit Report...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Sealing Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Computing Detached Digest...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        content = b"Log with ..."
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        print("Building Draft Bundle for Validator Capture...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        print("Running Strict Validator on Draft (Capture)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Building Final Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Generating Audit Report...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Sealing Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Computing Detached Digest...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        content = b"Log with ..."
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.2.md:        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:        print("Building Draft Bundle for Validator Capture...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:        print("Running Validator on Draft (Capture)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:    print("Building Final Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:    print("Generating Audit Report...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:    print("Sealing Bundle...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:    print("Computing Detached Digest...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/for_ceo/Review_Packet_GCBS_Repayment_v1.2.md:        content = b"Log with ..."
+artifacts/for_ceo/Review_Packet_Mission_Registry_v0.2.2_Hygiene_v1.0.md:    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/for_ceo/Review_Packet_Mission_Registry_v0.2.2_Hygiene_v1.0.md:    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/for_ceo/Review_Packet_Mission_Registry_v0.2.md:| Covered by deterministic golden tests | ✅ PASS | Golden hash: `4907f6d1...` |
+artifacts/for_ceo/Review_Packet_Mission_Registry_v0.2.md:    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/for_ceo/Review_Packet_Mission_Registry_v0.2.md:    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/for_ceo/Review_Packet_Mission_Registry_v0.2.md:     ...
+artifacts/for_ceo/Review_Packet_Mission_Registry_v0.2_Fixes_v1.0.md:    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/for_ceo/Review_Packet_Mission_Registry_v0.2_Fixes_v1.0.md:    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/for_ceo/Review_Packet_OpenCode_Phase1_v1.0.md:            assert "..." not in content
+artifacts/for_ceo/Review_Packet_Phase3_OpenCode_Routing_Result_CLEAN_v1.0.md:...
+artifacts/for_ceo/Review_Packet_Phase3_OpenCode_Routing_Result_CLEAN_v1.0.md:...
+artifacts/for_ceo/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:...
+artifacts/for_ceo/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:...
+artifacts/for_ceo/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:...
+artifacts/for_ceo/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:- **Supports `--task-file`**: YES (Line 348: `parser.add_argument("--task-file", ...)`)
+artifacts/for_ceo/Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md:- **Supports `--task`**: YES (Line 347: `parser.add_argument("--task", ...)`)
+artifacts/for_ceo/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:| Alignment Layer v1.4 | `docs/99_archive/.../Alignment_Layer_v1.4.md` | Inlined into packet Section 5. |
+artifacts/for_ceo/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:      "file": "...",
+artifacts/for_ceo/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:      "excerpt": "..."
+artifacts/for_ceo/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:  "ruleset_sha256": "..."
+artifacts/for_ceo/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
+artifacts/for_ceo/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:    ...
+artifacts/for_ceo/TEST_REPORTS_MR_v0.2_Fixes.txt:+ python -m pytest runtime/tests/test_mission_registry/test_mission_reg ...
+artifacts/for_ceo/TEST_REPORTS_MR_v0.2_Fixes.txt:    + CategoryInfo          : NotSpecified: (C:\Users\cabra\...cope" is unset.:String) [], RemoteException
+artifacts/for_ceo/TEST_REPORTS_MR_v0.2_Fixes.txt:collecting ... collected 27 items
+artifacts/for_ceo/TEST_REPORTS_MR_v0.2_Fixes.txt:+ python -m pytest runtime/tests/test_mission_registry/ -v 2>&1 > test_ ...
+artifacts/for_ceo/TEST_REPORTS_MR_v0.2_Fixes.txt:    + CategoryInfo          : NotSpecified: (C:\Users\cabra\...cope" is unset.:String) [], RemoteException
+artifacts/for_ceo/TEST_REPORTS_MR_v0.2_Fixes.txt:collecting ... collected 67 items
+artifacts/for_ceo/TEST_REPORT_BUILD_LOOP_PHASE2_v1.1_PASS.md:      runtime/tests/test_envelope_enforcer.py ............                     [ 20%]
+artifacts/for_ceo/TEST_REPORT_BUILD_LOOP_PHASE2_v1.1_PASS.md:      runtime/tests/test_mission_journal.py ..........                         [ 37%]
+artifacts/for_ceo/TEST_REPORT_BUILD_LOOP_PHASE2_v1.1_PASS.md:      runtime/tests/test_operations.py .................                       [ 67%]
+artifacts/for_ceo/TEST_REPORT_BUILD_LOOP_PHASE2_v1.1_PASS.md:      runtime/tests/test_self_mod_protection.py ...................            [100%]
+artifacts/for_ceo/TEST_REPORT_GCBS_REPAYMENT_v1.2.2_SHIPPED_EVIDENCE_DELTA_v1.0.md:- **Command**: `python scripts/closure/build_closure_bundle.py ... --output ...v1.2.2.zip`
+artifacts/for_ceo/TEST_REPORT_GCBS_REPAYMENT_v1.2_FINAL_EVIDENCE_DELTA_v1.0.md:- **Command**: `python scripts/closure/build_closure_bundle.py ... --output ...v1.2.1.zip`
+artifacts/for_ceo/TEST_REPORT_GCBS_REPAYMENT_v1.2_FINAL_EVIDENCE_DELTA_v1.0.md:- **Transcript**: Full fidelity (Exit Code present, no `...`)
+artifacts/for_ceo/TEST_REPORT_TOOL_INVOKE_HARDENING_PHASE2.md:Running pytest...
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/Implementation_Plan_Build_Loop_Phase2_v1.1.md:    run_id: str                    # Deterministic run ID (sha256:...)
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "abc123..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "def456..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "789abc..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:  # ... all governance surfaces
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   call_id_deterministic: "sha256:abc123..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   input_packet_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   prompt_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   response_content: "..." 
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   response_packet: {...}
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:call_id_deterministic: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:input_packet_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:prompt_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:output_packet_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:# = "a7d9e1f2c3b4a5968798..." (fixed constant)
+artifacts/for_ceo/workspace_phase2_v1.1/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    - "fallback_N": Nth fallback was used (N = 1, 2, ...)
+artifacts/for_ceo/workspace_phase2_v1.1/runtime/orchestration/mission_journal.py:                    f"{expected_prev[:16]}..., got {entry.prev_entry_hash[:16]}..."
+artifacts/for_ceo/workspace_phase2_v1.1/runtime/orchestration/mission_journal.py:                    f"Stored={entry.entry_hash[:16]}..., computed={computed[:16]}..."
+artifacts/for_ceo/workspace_phase2_v1.1/scripts/audit_gate_build_loop_phase2.py:                if "..." in line:
+artifacts/for_ceo/workspace_phase2_v1.1/scripts/audit_gate_build_loop_phase2.py:                    issues.append(f"Line {i}: contains truncation ellipsis '...'")
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/Implementation_Plan_Build_Loop_Phase2_v1.1.md:    run_id: str  # Deterministic run ID (sha256:...)
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "abc123..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "def456..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    sha256: "789abc..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:  # ... all governance surfaces
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   call_id_deterministic: "sha256:abc123..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   input_packet_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   prompt_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   response_content: "..." 
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:   response_packet: {...}
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:call_id_deterministic: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:input_packet_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:prompt_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:output_packet_hash: "sha256:..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:# = "a7d9e1f2c3b4a5968798..." (fixed constant)
+artifacts/for_ceo/workspace_phase2_v1.1_final/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md:    - "fallback_N": Nth fallback was used (N = 1, 2, ...)
+artifacts/for_ceo/workspace_phase2_v1.1_final/runtime/orchestration/mission_journal.py:                    f"{expected_prev[:16]}..., got {entry.prev_entry_hash[:16]}..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/runtime/orchestration/mission_journal.py:                    f"Stored={entry.entry_hash[:16]}..., computed={computed[:16]}..."
+artifacts/for_ceo/workspace_phase2_v1.1_final/scripts/audit_gate_build_loop_phase2.py:                if "..." in line:
+artifacts/for_ceo/workspace_phase2_v1.1_final/scripts/audit_gate_build_loop_phase2.py:                    issues.append(f"Line {i}: contains truncation ellipsis '...'")
+artifacts/for_ceo/zeroshot_agent-task-executor.js: * Log lines may have format: [epochMs]{json...} or [epochMs]text
+artifacts/for_ceo/zeroshot_agent-task-executor.js:    ...process.env,
+artifacts/for_ceo/zeroshot_agent-task-executor.js:      agent._log(`⏳ Agent ${agent.id}: Waiting for log file...`);
+artifacts/for_ceo/zeroshot_agent-task-executor.js:    // Lines are now prefixed with timestamps: [1733301234567]{json...}
+artifacts/for_ceo/zeroshot_agent-task-executor.js:  agent._log(`📦 Agent ${agent.id}: Running task in isolated container using zeroshot task run...`);
+artifacts/for_ceo/zeroshot_agent-task-executor.js:  agent._log(`📋 Agent ${agent.id}: Following zeroshot logs for ${taskId} in container...`);
+artifacts/for_ceo/zeroshot_agent-task-executor.js:  // Lines may have timestamp prefix: [epochMs]{json...}
+artifacts/for_ceo/zeroshot_agent-task-executor.js:        // Claude CLI with --output-format json returns { result: "```json\n{...}\n```" }
+artifacts/for_ceo/zeroshot_attachable-watcher.js:const env = { ...process.env };
+artifacts/for_ceo/zeroshot_attachable-watcher.js:const claudeArgs = [...args];
+artifacts/for_ceo/zeroshot_attachable-watcher.js:const finalArgs = [...claudeExtraArgs, ...claudeArgs];
+artifacts/for_ceo/zeroshot_attachable-watcher.js:  log(`[${Date.now()}][ATTACH] Client attached: ${clientId.slice(0, 8)}...\n`);
+artifacts/for_ceo/zeroshot_attachable-watcher.js:  log(`[${Date.now()}][DETACH] Client detached: ${clientId.slice(0, 8)}...\n`);
+artifacts/for_ceo/zeroshot_attachable-watcher.js:  log(`[${Date.now()}][SYSTEM] Received SIGTERM, stopping...\n`);
+artifacts/for_ceo/zeroshot_attachable-watcher.js:  log(`[${Date.now()}][SYSTEM] Received SIGINT, stopping...\n`);
+artifacts/for_ceo/zeroshot_claude-task-runner.js:   * @param {...any} args
+artifacts/for_ceo/zeroshot_claude-task-runner.js:  _log(...args) {
+artifacts/for_ceo/zeroshot_claude-task-runner.js:      console.log(...args);
+artifacts/for_ceo/zeroshot_claude-task-runner.js:          ...process.env,
+artifacts/for_ceo/zeroshot_claude-task-runner.js:        this._log(`⏳ [${agentId}]: Waiting for log file...`);
+artifacts/for_ceo/zeroshot_claude-task-runner.js:    this._log(`📦 [${agentId}]: Running task in isolated container...`);
+artifacts/for_ceo/zeroshot_claude-task-runner.js:      ...claudeExtraArgs,
+artifacts/for_ceo/zeroshot_preflight.js:    const versionArgs = [...extraArgs, '--version'];
+artifacts/for_ceo/zeroshot_preflight.js:    const versionCmd = [command, ...versionArgs].join(' ');
+artifacts/for_ceo/zeroshot_preflight.js:  const claudeCommand = options.claudeCommand || [command, ...args].join(' ');
+artifacts/for_ceo/zeroshot_preflight.js:          'Run as non-root user in Docker: docker run --user 1000:1000 ...',
+artifacts/for_ceo/zeroshot_preflight.js:          'Or use existing node user: docker run --user node ...',
+artifacts/head_test_output.txt:collecting ... collected 786 items
+artifacts/head_test_output.txt:valid_build_packet = {'acceptance_criteria': ['Tests pass'], 'assumptions': [], 'build_type': 'code_creation', 'constraints': ['No breaking changes'], ...}
+artifacts/head_test_output.txt:        - Anchor-only links (#...)
+artifacts/head_test_output.txt:        - Template tokens ({...})
+artifacts/known_failures/EVIDENCE_PACKAGE.md:Running full test suite...
+artifacts/known_failures/EVIDENCE_PACKAGE.md:collecting ... collected 16 items
+artifacts/known_failures/gate_check_output_20260109_163648.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_20260109_171709.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_20260109_171802.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_20260109_175409.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_20260109_175755.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_20260109_194453.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_20260109_195249.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_20260109_195537.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_20260109_203003.txt:Running full test suite...
+artifacts/known_failures/gate_check_output_v1.1.txt:Running full test suite...
+artifacts/missions/Fix_Pack_Stewardship_Runner_v0.5_Delta.md:    # ... existing change detection complete ...
+artifacts/missions/Fix_Pack_Stewardship_Runner_v0.5_Delta.md:    # ... proceed to git add -A -- <roots> ...
+artifacts/missions/Fix_Pack_Stewardship_Runner_v0.5_Delta.md:    # ... same pattern for all error cases ...
+artifacts/packets/context_pack_requests/Council_Context_Pack_Request_build_handoff_20260104.md:- **Expected path**: `docs/01_governance/...` or `docs/00_foundations/...`
+artifacts/packets/council_context/Council_Context_Pack_Build_Handoff_20260104.md:- `GEMINI.md` Article XIII Section 4: "These paths ALWAYS require Plan Artefact approval: ... GEMINI.md"
+artifacts/PATCH_01.diff:-    rationale: null|"..."
+artifacts/PATCH_01.diff:-   - Format: `F1`, `F2`, ... with impact and `REF:`.
+artifacts/plans/CONTEXT_PACK_GCBS_REPAYMENT_v1.0.md:| Forbidden truncation tokens | Prior artefacts contained ellipses (...) |
+artifacts/plans/CONTEXT_PACK_GCBS_REPAYMENT_v1.0.md:- `TRUNCATION_TOKEN_FOUND`: Scans for `...`, `[PENDING]`, `TBD`, `TODO`
+artifacts/plans/Evidence_Repair_Report.md:- **Path format**: Repo-relative using forward slashes (e.g., `artifacts/ledger/dl_doc/...`).
+artifacts/plans/Execution_Evidence_AgentDelegation.md:[ORCHESTRATOR] Starting INDEX_UPDATE (case: cfa35f97...)
+artifacts/plans/Execution_Evidence_AgentDelegation.md:[ORCHESTRATOR] Starting INDEX_UPDATE (case: 37a88253...)
+artifacts/plans/Execution_Evidence_AgentDelegation.md:[ORCHESTRATOR] Starting INDEX_UPDATE (case: 6739289f...)
+artifacts/plans/Execution_Evidence_AgentDelegation.md:[ORCHESTRATOR] Request created: req_...
+artifacts/plans/Execution_Evidence_AgentDelegation.md:[ORCHESTRATOR] Starting INDEX_UPDATE (case: acef43d9...)
+artifacts/plans/Execution_Evidence_CT2_FixPack_FULL.txt:[ORCHESTRATOR] Starting INDEX_UPDATE (case: 87ef958d...)
+artifacts/plans/Execution_Evidence_CT2_FixPack_FULL.txt:[ORCHESTRATOR] Starting INDEX_UPDATE (case: 0f509303...)
+artifacts/plans/Execution_Evidence_CT2_FixPack_FULL.txt:[TEST] Injecting NEGATIVE TEST response with invalid hunk...
+artifacts/plans/Execution_Evidence_CT2_FixPack_FULL.txt:[ORCHESTRATOR] Starting INDEX_UPDATE (case: 23ca96a5...)
+artifacts/plans/Execution_Evidence_CT2_FixPack_FULL.txt:[TEST] Injecting BOUNDARY TEST response with file outside scope_paths...
+artifacts/plans/Execution_Evidence_CT2_Hotfix_FULL.txt:[TEST] Injecting NEGATIVE TEST response with invalid hunk...
+artifacts/plans/Execution_Evidence_CT2_Hotfix_FULL.txt:[TEST] Injecting BOUNDARY TEST response with file outside scope_paths...
+artifacts/plans/Execution_Evidence_CT2_Hotfix_FULL.txt:[TEST] Injecting MULTI-MATCH TEST response (search block appears twice)...
+artifacts/plans/Execution_Evidence_G1_G2.txt:[ORCHESTRATOR] Starting INDEX_UPDATE (case: e40ebec3...)
+artifacts/plans/Execution_Evidence_G1_G2.txt:[ORCHESTRATOR] Starting INDEX_UPDATE (case: 45908ef7...)
+artifacts/plans/Execution_Evidence_G1_G2.txt:proposed_diffs: "--- a/docs/INDEX.md\n+++ b/docs/INDEX.md\n@@\n-> **Last Updated:** 2026-01-04..."
+artifacts/plans/Execution_Evidence_G1_G2.txt:  {"status": "SUCCESS", "files_modified": [], "proposed_changes": "No changes required..."}
+artifacts/plans/Execution_Evidence_G1_G2_FULL.txt:**Command**: `python scripts/delegate_to_doc_steward.py ... --trial-type smoke_test`
+artifacts/plans/Execution_Evidence_G1_G2_FULL.txt:  - `before_sha256`: `b3dc23...`
+artifacts/plans/Execution_Evidence_G1_G2_FULL.txt:**Command**: `python ... --trial-type shadow_trial`
+artifacts/plans/Execution_Evidence_G1_G2_FULL.txt:**Command**: `python ... --trial-type shadow_trial`
+artifacts/plans/Execution_Evidence_G1_G2_FULL.txt:**Command**: `python ... --trial-type shadow_trial`
+artifacts/plans/Plan_AgentDelegation_v0.1.md:        ...
+artifacts/plans/Plan_AgentDelegation_v0.2.md:    ...
+artifacts/plans/Plan_AgentDelegation_v0.2.md:1. ...
+artifacts/plans/Plan_Governance_Delta_Detached_Digest_v0.2.1.md:  "artefacts": { ... }
+artifacts/plans/Plan_Governance_Delta_Detached_Digest_v0.2.2.md:    "anti_failure": "...",
+artifacts/plans/Plan_Governance_Delta_Detached_Digest_v0.2.2.md:    "architecture_skeleton": "...",
+artifacts/plans/Plan_Governance_Delta_Detached_Digest_v0.2.2.md:    "constitution": "...",
+artifacts/plans/Plan_Governance_Delta_Detached_Digest_v0.2.2.md:    ...
+artifacts/plans/Plan_OpenCode_DocSteward_Certification_v1.0.md:| T2.2 | New Doc in Corpus | Add a new protocol | Corpus includes new file header | `# File: ...` line exists for new doc |
+artifacts/plans/Plan_OpenCode_DocSteward_Certification_v1.0.md:| T3.2 | Flattened Code Present | Complete a multi-file task | Appendix contains full file content for all changed files | No `...` or `[truncated]` |
+artifacts/plans/Plan_OpenCode_DocSteward_Certification_v1.0.md:2. **Run Tests Sequentially:** Use `scripts/opencode_ci_runner.py --task "..."` for each test.
+artifacts/plans/Plan_OpenCode_DocSteward_Certification_v1.1.md:| T2.2 | New Doc in Corpus | Add a new protocol | Corpus includes new file header | `# File: ...` line exists |
+artifacts/plans/Plan_OpenCode_DocSteward_Certification_v1.1.md:| T3.2 | Flattened Code Present | Multi-file task | Appendix contains full file content | No `...` or `[truncated]` |
+artifacts/plans/Plan_OpenCode_DocSteward_Certification_v1.2.md:| T9.2 | ARTEFACT_INDEX Cleanup | Archive governance doc | JSON entry removed | `jq '.artefacts[] | select(.name=="...")' ` returns empty |
+artifacts/plans/Plan_OpenCode_Steward_Hardening_v1.2.md:  - **Strict JSON Phase 2**: The runner will ONLY accept JSON payloads matching `{"files": [...], "action": "...", "instruction": "..."}`.
+artifacts/plans/Plan_OpenCode_Steward_Hardening_v1.2.md:      3. Contains **NO** literal ellipses `...` or `[truncated]`.
+artifacts/plans/Plan_OpenCode_Steward_Hardening_v1.3.md:  {"files": ["path1", "path2"], "action": "create|modify|delete|archive", "instruction": "..."}
+artifacts/plans/Plan_OpenCode_Steward_Hardening_v1.3.md:3. Contains NO literal ellipses (`...`) or `[truncated]`.
+artifacts/plans/Plan_OpenCode_Steward_Hardening_v1.4.md:  {"files": ["path1", "path2"], "action": "create|modify|delete", "instruction": "..."}
+artifacts/plans/Plan_OpenCode_Steward_Hardening_v1.4.md:3. Contains NO literal ellipses (`...`) or `[truncated]`.
+artifacts/pytest_output_HEAD.txt:collecting ... collected 786 items
+artifacts/pytest_output_HEAD.txt:E       AssertionError: assert 'x-ai/grok-4.1-fast' == 'openrouter/a...aude-sonnet-4'
+artifacts/pytest_output_HEAD.txt:        - Anchor-only links (#...)
+artifacts/pytest_output_HEAD.txt:        - Template tokens ({...})
+artifacts/pytest_output_HEAD.txt:FAILED tests_doc/test_links.py::test_link_integrity - AssertionError: Broken ...
+artifacts/reclosure_work/evidence/pytest_a1.txt:collecting ... collected 40 items
+artifacts/reclosure_work/evidence/pytest_a2.txt:collecting ... collected 14 items
+artifacts/reclosure_work/final_audit_report_v2.1.md:- Addendum elision check (no '...' allowed)
+artifacts/reclosure_work/final_audit_report_v2.1.md:| protocols | docs/01_governance/ARTEFACT_INDEX.json | `74BBF6A08C5D3796...` | `74BBF6A08C5D3796...` | PASS |
+artifacts/reports/BLOCKED_OpenCode_Sandbox_Activation_Builder_Envelope.md:Per **Section G2** of the CEO Instruction: "If referenced governance/protocol docs are missing... BLOCK."
+grep: input file ‘artifacts/reports/captures/grep_elision_PASS.txt’ is also the output
+artifacts/reports/captures/grep_waiver_PASS.txt:docs/02_protocols/AI_Council_Procedural_Spec_v1.1.md:    waiver_reason: null|"..."
+artifacts/reports/captures/grep_waiver_PASS.txt:docs/LifeOS_Universal_Corpus.md:    waiver_reason: null|"..."
+artifacts/reports/captures/test_opencode_builder_PASS.txt:collecting ... collected 6 items
+artifacts/reports/captures/test_opencode_builder_v2.1_PASS.txt:collecting ... collected 9 items
+artifacts/reports/captures/test_opencode_builder_v2.2_PASS.txt:collecting ... collected 10 items
+artifacts/reports/captures/test_opencode_regression_PASS.txt:collecting ... collected 88 items
+artifacts/reports/captures/test_opencode_regression_v2.1_PASS.txt:collecting ... collected 88 items
+artifacts/reports/captures/test_opencode_regression_v2.2_PASS.txt:collecting ... collected 88 items
+artifacts/REPORT_MISSION_SYNTHESIS_MVP.md:collecting ... collected 19 items
+artifacts/REPORT_MISSION_SYNTHESIS_MVP.md:collecting ... collected 13 items
+artifacts/REPORT_MISSION_SYNTHESIS_MVP.md:collecting ... collected 11 items
+artifacts/REPORT_MISSION_SYNTHESIS_MVP.md:Step 1: Synthesizing mission packet...
+artifacts/REPORT_MISSION_SYNTHESIS_MVP.md:  task_description: Update LIFEOS_STATE.md to record Mission Synthesis Engine MVP completion...
+artifacts/REPORT_MISSION_SYNTHESIS_MVP.md:Step 2: Executing mission via orchestrator...
+artifacts/review_packets/A1A2_EVIDENCE_ADDENDUM_v1.0.md:| **Validation Boundaries** | `test_spec_conformance.py:179` (test_validate_request_rejects...) | **PASS** |
+artifacts/review_packets/A1A2_EVIDENCE_ADDENDUM_v1.0.md:| **A1 (Tier-2 Green)** | **[DONE]** | `logs/tier2_evidence_closure_v1.log` (SHA256: `1D8C0F...`) |
+artifacts/review_packets/A1A2_EVIDENCE_ADDENDUM_v1_1.md:| **Validation Boundaries** | `test_spec_conformance.py:179` (test_validate_request_rejects...) | **PASS** |
+artifacts/review_packets/A1A2_EVIDENCE_ADDENDUM_v1_1.md:| **A1 (Tier-2 Green)** | **[DONE]** | `logs/tier2_evidence_closure_v1_1.log` (SHA256: `B5F885...`) |
+artifacts/review_packets/A1A2_EVIDENCE_ADDENDUM_v1_3.md:| **A1 (Tier-2 Green)** | **DONE** | 452 passed; Exit=0; Log SHA256: 823e48a2... |
+artifacts/review_packets/A1A2_EVIDENCE_ADDENDUM_v1_3.md:| **A2 (Reactive Det)** | **DONE** | 35 passed; Exit=0; Log SHA256: 670cf7ee... |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:Generated from a deterministic traversal (e.g. sorted(os.walk(...))).
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:Module_Path: ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:Role (from spec/plan): ... (pull language from spec/plan where possible)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:Test_File: ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:Gate_Implementation_Files: [...]
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:Gate_Tests: [...] (if any)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:File traversal ordering guarantees (sorted(...)).
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| **P1-A** | Dirty-during-run check | `run_commit` re-checks `git status` | AT-14 âœ… |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| **P1-B** | Log determinism | ISO8601 UTC + sorted lists | AT-15 âœ… |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| **P1-C** | Platform policy doc | `PLATFORM_POLICY.md` created | Manual âœ… |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| **P1-D** | CLI commit control | `--commit` required, default dry-run | AT-16, 17, 18 âœ… |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| **P1-E** | Log retention doc | `LOG_RETENTION.md` created | Manual âœ… |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| Linux | âœ… Primary | CI target, production |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| macOS | âœ… Supported | Development |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:* `coo dlq ...` â€“ dead-letter queue tools (`list`, `show <id>`, `replay <id>`)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    "checksum": "sha256:..."
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:        - Emission(type="message", data={...}) â†’ STREAM/RESULT/etc
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:        - Emission(type="side_effect", data={cost_delta_usd, state_transition, ...})
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:  1. Agent's System Prompt as the first system message (stored in `prompts/<agent>/...`)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    result = sandbox.run(...)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… SQLite schema + migrations (with v0.6 amendments)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… MessageStore async methods (`claim_pending`, `deliver_message`, `reclaim_stale`)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Models (Pydantic schemas)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Config file skeleton (`models.yaml`, `sandbox.yaml`, `orchestrator.yaml`)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… CLI skeleton: `coo init-db`, `coo status`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… First test: `test_message_store.py`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… `orchestrator.py` with asyncio main loop + ThreadPoolExecutor
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… `Agent` base class + `process_stream` generator
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… `DummyCOO`, `DummyEngineer`, `DummyQA` emitting emissions
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… `BudgetTracker` skeleton
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… End-to-end test: mission flow with no LLMs
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Stale message reclaim implementation
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Build `coo-sandbox:latest` Dockerfile (Python, pytest, std libs)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… `sandbox.py` Docker wrapper (`--network none`, resource limits)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Orchestrator handles `SANDBOX_EXECUTE` emissions
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Artifact materialization to bind mount
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Result artifact storage + RESULT message emission
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Workspace cleanup implementation
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Test: Engineer â†’ Sandbox â†’ QA
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… `ModelClient` for DeepSeek + GLM (sync HTTP in thread pool)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Central token caps enforcement (`max_tokens_per_call`)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… COO/Engineer/QA prompts via `PromptManager`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Prompt file structure (`prompts/<agent>/...`)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Cost calculation from API responses
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… **Hard budget enforcement + rollback on exceed** with `BEGIN IMMEDIATE`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Global daily/monthly budget tracking
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Test: budget exceed â†’ rollback verified
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… `structlog` integration with secret scrubbing
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Timeline events for all major actions
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… CLI commands: `coo mission`, `coo logs`, `coo dlq replay` (moved to v1.0)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Approval flow (CEO gate) + CONTROL messages
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Backpressure hard pause implementation with hysteresis
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Sandbox crash recovery
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… `scrub_secrets` unit test
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… Critical shutdown logging
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… **Integration tests**: happy path, error path, budget exceed, sandbox failure
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- âœ… README + operations guide (derived from this spec)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:            # ... (all CREATE TABLE statements from Â§4.1)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Specification Status**: âœ… **APPROVED for implementation**
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:      "file": "...",
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:      "excerpt": "..."
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:  "ruleset_sha256": "..."
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:sorted(os.walk(...))
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `daily_loop` uses `{"mission_type": "daily_loop", "params": {...}}`.
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `run_tests` uses `{"mission_type": "run_tests", "type": "run_tests", "params": {...}}`.
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- Change `expectations` to `Tuple[MissionExpectation, ...]` and, if needed, normalise list inputs to tuples in `__init__`, mirroring `ScenarioDefinition`/`ScenarioSuiteDefinition`.  
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:### HB-T2-EXP-03 â€” Signal Read-Only Result Structures via Mapping[...]
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Summary**: `SuiteExpectationsResult.expectation_results` and `.metadata` are currently typed as `Dict[...]`, though callers should treat them as read-only.  
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:### HB-T2-TRUN-01 â€” Signal Read-Only Test Run Metadata via Mapping[...]
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| Mission Logger | âœ… Exists | COO Runtime implementation |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| Metrics Engine | âœ… Minimal | Export to CSV/JSON for CEO review |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| Annotation Interface | âœ… Minimal | CLI tag command |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| IP Manager | âœ… Core | Lifecycle engine required |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| Fix Plan Generator | âœ… Template | Structured markdown template |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| Builder Agent Interface | âœ… Exists | Antigravity |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| Test & Replay Engine | âœ… Exists | Gate F harness |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `inputs`: paths to canonical specs/docs in `/LifeOS/docs/...`.
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:â”‚   â””â”€â”€ ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:4.  When truncating file contents, insert the specâ€™s truncation marker `"[...TRUNCATED BY COO...]"`.
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    id TEXT PRIMARY KEY,                  -- "t1", "t2", ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    checksum TEXT,                  -- e.g. "sha256:...."
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    event_type TEXT NOT NULL,              -- e.g. agent_invoked, state_transition, task_started, ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    "repair_context": "Human-readable and structured repair instructions...",
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    "reason": "test_failed" | "import_error" | "code_quality" | "...",
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:      { "file": "tests/test_main.py", "line": 42, "issue": "Assertion error ..." }
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- Task IDs must be exactly `"t1"..."tN"`, sequential with no gaps.
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    "tasks": [...],
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:      "errors": [...],
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:      "proposed_actions": [...]
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:      "constraints": { ... }
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:       # [...TRUNCATED BY COO...]
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:      "checksum": "sha256:abc123...",
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:  `{ "task_id": "t2", "reason": "timeout|budget_exceeded|..." }`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:  `{ "task_id": "t2", "reason": "task_failed|plan_revision_exhausted|..." }`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:[coo] Running deterministic demo mission ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:## âœ… All Fixes Completed
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Status:** âœ… Complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Status:** âœ… Complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Status:** âœ… Complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Status:** âœ… Complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Status:** âœ… Complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Status:** âœ… Complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Status:** âœ… Complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:**Status:** âœ… Complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:All tests passing âœ…
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `docs/09_prompts/v1.0/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:| coo-agent/venv/.../LICENSE.md                                         | THIRDPARTY_LICENSE  | NON_CANONICAL  | Dependency licence; outside LifeOS docs.     |
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    "plan": "1. Update verify_token()...",
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:      {"file": "src/auth.py", "diff": "..."}
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- All governance-hub prompt `.md` files are `DUPLICATE_SHADOW` of `/docs/09_prompts/v1.0/...`.
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `AICouncilReview/ReviewArtefacts/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `coo-agent/council_review/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `coo-agent/docs/governance/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `coo-agent/docs/project_builder/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `coo-agent/docs/specs/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `coo-agent/impl/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `coo-agent/legacy_archive/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `coo-agent/prompts/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `Spec/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:- `Ideas&Planning/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    - All `v1.0` prompt sets under `09_prompts/v1.0/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:     - Concept and CSO docs into `/docs/99_archive/...`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:# ... (rest of file matches verified content in Test Report)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:# ... imports ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:# ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:# ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:# ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:# ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    # ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:    # ...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:### 1. **Use the Workflow Command** âœ… EASIEST
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:âœ… **Workflow file exists**: `.agent/workflows/generate_review_packet.md`  
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:âœ… **Spec available**: `docs/Antigravity_Council_Review_Packet_Spec_v1.0.md`  
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:âœ… **Generator exists**: `generate_r6_3_packet.py` (template for future phases)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:1. âœ… Implementation complete
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:2. âœ… Tests pass (or documented why not)
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:3. âœ… Walkthrough written
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:4. âœ… **Review packet generated** â† `/generate_review_packet`
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:5. âœ… Ready for Council review
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:collecting ... collected 101 items
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:...
+artifacts/review_packets/attachments/LifeOS_Universal_Corpus_v1.0_StatusUpdate.md:...
+artifacts/review_packets/CT2_Activation_Packet_DocSteward_OpenCode.md:        log(f"Running agent task: {task_prompt[:50]}...")
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:-│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:-input_packet_hash: "sha256:..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:-output_packet_hash: "sha256:..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+    sha256: "abc123..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+    sha256: "def456..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+    sha256: "789abc..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+  # ... all governance surfaces
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+│  │  │ design  │ │ review  │ │  build  │ │ steward │ ...   │   │
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+   call_id_deterministic: "sha256:abc123..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+   input_packet_hash: "sha256:..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+   prompt_hash: "sha256:..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+   response_content: "..." 
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+   response_packet: {...}
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+call_id_deterministic: "sha256:..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+input_packet_hash: "sha256:..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+prompt_hash: "sha256:..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+output_packet_hash: "sha256:..."
+artifacts/review_packets/diff_architecture_v0.1_to_v0.2.txt:+prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/review_packets/diff_architecture_v0.2_to_v0.3.txt: prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+artifacts/review_packets/diff_architecture_v0.2_to_v0.3.txt:+# = "a7d9e1f2c3b4a5968798..." (fixed constant)
+artifacts/review_packets/diff_architecture_v0.2_to_v0.3.txt:+    - "fallback_N": Nth fallback was used (N = 1, 2, ...)
+artifacts/review_packets/diff_phase1a.txt:+| Alignment Layer v1.4 | `docs/99_archive/.../Alignment_Layer_v1.4.md` | Inlined into packet Section 5. |
+artifacts/review_packets/diff_phase1a.txt:+      "file": "...",
+artifacts/review_packets/diff_phase1a.txt:+      "excerpt": "..."
+artifacts/review_packets/diff_phase1a.txt:+  "ruleset_sha256": "..."
+artifacts/review_packets/diff_phase1a.txt:+    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
+artifacts/review_packets/diff_phase1a.txt:+    ...
+artifacts/review_packets/diff_phase1a.txt:       "excerpt": "..."
+artifacts/review_packets/diff_phase1a.txt:   "ruleset_sha256": "..."
+artifacts/review_packets/diff_phase1a.txt:-sorted(os.walk(...))
+artifacts/review_packets/diff_phase1a.txt:+    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
+artifacts/review_packets/diff_phase1a.txt:+    ...
+artifacts/review_packets/diff_phase1a.txt:+  - no ellipses (`...` / `…`) appear in evidence-captured outputs
+artifacts/review_packets/OpenCode_CI_Proof.md:→ Waiting for OpenCode server at http://127.0.0.1:4096...
+artifacts/review_packets/OpenCode_CI_Proof.md:→ Starting CI mission...
+artifacts/review_packets/OpenCode_CI_Proof.md:→ Sending prompt...
+artifacts/review_packets/OpenCode_CI_Proof.md:→ Verifying outcome...
+artifacts/review_packets/Packet_Fix_Summary.md:- Replaced truncated `...` excerpt in Review Packet with explicit bounded lines (Line 0-2, Line 97-99).
+artifacts/review_packets/PASS_Report_Build_Loop_Phase2_v1.1.md:      runtime\tests\test_envelope_enforcer.py ...ss.......                     [ 20%]
+artifacts/review_packets/PASS_Report_Build_Loop_Phase2_v1.1.md:      runtime\tests\test_mission_journal.py ..........                         [ 37%]
+artifacts/review_packets/PASS_Report_Build_Loop_Phase2_v1.1.md:      runtime\tests\test_operations.py .................                       [ 67%]
+artifacts/review_packets/PASS_Report_Build_Loop_Phase2_v1.1.md:      runtime\tests\test_self_mod_protection.py ...................            [100%]
+artifacts/review_packets/PASS_Report_Build_Loop_Phase2_v1.1_final.md:      runtime\tests\test_envelope_enforcer.py ...ss.......                     [ 20%]
+artifacts/review_packets/PASS_Report_Build_Loop_Phase2_v1.1_final.md:      runtime\tests\test_mission_journal.py ..........                         [ 37%]
+artifacts/review_packets/PASS_Report_Build_Loop_Phase2_v1.1_final.md:      runtime\tests\test_operations.py .................                       [ 67%]
+artifacts/review_packets/PASS_Report_Build_Loop_Phase2_v1.1_final.md:      runtime\tests\test_self_mod_protection.py ...................            [100%]
+artifacts/review_packets/pytest_phase1a_output.txt:collecting ... collected 37 items
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.0.md:1. **Evidence Generation**: `scripts/generate_a1a2_evidence.py` captured test output and scanned for forbidden tokens (`...`, `…`).
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.0.md:- [x] **No Forbidden Tokens**: Evidence files are free of `...` and `…`.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.0.md:FORBIDDEN_TOKENS = ["...", "…"]
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.0.md:    print(f"Capturing environment info to {env_file}...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.0.md:        print(f"Running suite {suite['name']} -> {output_path}...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.0.md:                    if "collecting ..." in line:
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.0.md:    print("Scanning evidence for forbidden tokens...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1.md:- **Smart Truncation Checks**: Allowed benign `collecting ...` but disallowed dangerous nodeid/hash truncation.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1.md:| **Closure Bundle** | `artifacts/bundles/Bundle_A1_A2_Closure_v2.1.zip` | `CFDD3E260E9D3227...` |
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1.md:- **REMOVED**: `subprocess.output` line filtering (was dropping "collecting ..."). Reverted to verbatim capture.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1.md:# ... (Config omitted for brevity) ...
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1.md:# ... (capture_env and run_tests ensure verbatim capture) ...
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1.md:    # ... (Implementation scans lines against patterns) ...
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:- **Smart Truncation Checks**: Allowed benign `collecting ...` but disallowed dangerous nodeid/hash truncation.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:- **Combined Streams**: stdout and stderr are captured together into a single text file (e.g., `pytest_a1.txt`) via `subprocess.run(..., stderr=subprocess.STDOUT)`.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:- **Allow-List**: The allow-list (e.g., for `collecting ...`) is **allow-only**. It permits the build to proceed if the pattern matches but does **not** remove the line from the evidence.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:    (re.compile(r"::.*\.\.\."), "Node ID truncation detected"),   # e.g. ::test_something...
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:    (re.compile(r"[0-9a-fA-F]{6}\.\.\."), "Hash start truncation detected"), # e.g. abc123...
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:    (re.compile(r"\.\.\.[0-9a-fA-F]{6}"), "Hash end truncation detected"),   # e.g. ...abc123
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:    (re.compile(r"[/\\]\.\.\.[/\\]"), "Path truncation detected"), # e.g. /.../
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:    print(f"Capturing environment info to {env_file}...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:        print(f"Running suite {suite['name']} -> {output_path}...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:    print("Scanning evidence for forbidden truncation...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:                # Check for "..." trigger first (optimization)
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:                if "..." in line or "…" in line:
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:    # Optional logic: could strictly ban ALL "..." if not benign.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1a.md:    print("Cleaning workspace...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:- **Unicode Ellipsis Safe**: Scanner normalizes `…` to `...` before checking patterns (fail-closed integrity).
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:  - **Normalization**: Unicode ellipses (`…`) are normalized to ASCII (`...`) prior to pattern matching.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:- **ADDED**: Unicode normalization (`line.replace("…", "...")`) in `is_banished()` to catch non-ASCII truncation.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:    (re.compile(r"::.*\.\.\."), "Node ID truncation detected"),   # e.g. ::test_something...
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:    (re.compile(r"[0-9a-fA-F]{6}\.\.\."), "Hash start truncation detected"), # e.g. abc123...
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:    (re.compile(r"\.\.\.[0-9a-fA-F]{6}"), "Hash end truncation detected"),   # e.g. ...abc123
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:    (re.compile(r"[/\\]\.\.\.[/\\]"), "Path truncation detected"), # e.g. /.../
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:    print(f"Capturing environment info to {env_file}...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:        print(f"Running suite {suite['name']} -> {output_path}...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:    print("Scanning evidence for forbidden truncation...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:                # Check for "..." trigger first (optimization)
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:                if "..." in line or "…" in line:
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:    line_norm = line.replace("…", "...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1b.md:    print("Cleaning workspace...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1c.md:- **Scanning & Normalization**: Caught non-ASCII truncation (Unicode `…`) via normalization.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1c.md:- **Unicode Safe**: Unicode ellipses (`…`) normalized to `...` before signature matching.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1c.md:- **Fail-Closed**: Non-zero exit if any truncation signature (`NodeID...`, `Hash...`) is detected.
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1c.md:    line_norm = line.replace("…", "...")
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1c.md:    # ... (Pattern checks) ...
+artifacts/review_packets/Review_Packet_A1_A2_Reclosure_v2.1c.md:    # ...
+artifacts/review_packets/Review_Packet_A1_A2_StepGate_v1.0.md:    - Absolute paths (Unix: /..., Windows: C:\, UNC: \\server, //server)
+artifacts/review_packets/Review_Packet_A1_A2_StepGate_v1.0.md:...
+artifacts/review_packets/Review_Packet_Add_Cold_Start_Test_Marker_v1.0.md:...
+artifacts/review_packets/Review_Packet_Add_Timestamp_Marker_0_v1.0.md:[... matching previous read, with minor timestamp notes ...]
+artifacts/review_packets/Review_Packet_Add_Timestamp_Marker_1_v1.0.md:[... full INDEX.md content truncated for brevity in this packet creation; full 225 lines verified identical post-edit ...]
+artifacts/review_packets/Review_Packet_Add_Timestamp_Marker_1_v1.0.md:[... remaining sections unchanged ...]
+artifacts/review_packets/Review_Packet_Add_Timestamp_Marker_1_v1.0.md:[... full 69 lines verified identical post-edit ...]
+artifacts/review_packets/Review_Packet_Add_Timestamp_Marker_1_v1.0.md:[... matching previous read, with minor timestamp notes ...]
+artifacts/review_packets/Review_Packet_Add_Timestamp_Marker_2_v1.0.md:[...]
+artifacts/review_packets/Review_Packet_Agent_API_Layer_v0.2.md:    # ... resolution logic ...
+artifacts/review_packets/Review_Packet_Agent_API_Layer_v0.2.md:                response = client.post(...)
+artifacts/review_packets/Review_Packet_Agent_API_Layer_v0.2.md:                raise AgentAPIError(...)
+artifacts/review_packets/Review_Packet_Agent_API_Layer_v0.2.md:    # ... logging and response building ...
+artifacts/review_packets/Review_Packet_Agent_API_Layer_v0.2.md:You are the Designer agent in the LifeOS Autonomous Build Loop...
+artifacts/review_packets/Review_Packet_Agent_API_Layer_v0.2.md:Return a valid YAML packet with: design_type, summary, deliverables, constraints, verification, dependencies...
+artifacts/review_packets/Review_Packet_Agent_API_Layer_v0.2.md:You are the Builder agent in the LifeOS Autonomous Build Loop...
+artifacts/review_packets/Review_Packet_Agent_API_Layer_v0.2.md:Return a valid YAML packet with: files, tests, verification_commands...
+artifacts/review_packets/Review_Packet_Anti_Failure_Integration_v0.1.md:        # ... index logic ...
+artifacts/review_packets/Review_Packet_Build_Loop_Phase1a_v1.0.md:... (content from previous write) ...
+artifacts/review_packets/Review_Packet_Build_Loop_Phase1a_v1.0.md:... (content from previous write) ...
+artifacts/review_packets/Review_Packet_Build_Loop_Phase1a_v1.0.md:... (content from previous write) ...
+artifacts/review_packets/Review_Packet_Build_Loop_Phase1a_v1.0.md:... (content from previous write) ...
+artifacts/review_packets/Review_Packet_Change_Configuration_Status_to_Active_v1.0.md:[... full content unchanged except timestamp ...]
+artifacts/review_packets/Review_Packet_Change_Configuration_Status_to_Active_v1.0.md:[... unchanged ...]
+artifacts/review_packets/Review_Packet_Config_Consolidation_v1.0.md:API_KEY_FALLBACK_CHAIN = ["ZEN_STEWARD_KEY", "ZEN_API_KEY", ...]
+artifacts/review_packets/Review_Packet_Core_TDD_Principles_v1.0.md:... (omitted for brevity, no changes above) ...
+artifacts/review_packets/Review_Packet_Core_TDD_Principles_v1.0.md:... (rest of file unchanged) ...
+artifacts/review_packets/Review_Packet_Corpus_Authority_Fix_v1.0.md:    print(f"Generating Strategic Context (v1.3) at {OUTPUT_FILE}...")
+artifacts/review_packets/Review_Packet_Corpus_Update_v1.0.md:...
+artifacts/review_packets/Review_Packet_Corpus_Update_v1.0.md:...
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.1.md:        result = subprocess.run(["git", "ls-files", "-s", "--", path], ...)
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.1.md:        ...
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.2.md:- **P0.1 Truncation Footer**: Explicit format `[TRUNCATED] cap_lines=...`
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.2.md:- **P1.1 Ellipsis Removal**: Scanned and cleaned logs/footers for `...`
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.2.md:| No ellipses in footer | ✅ | Test asserts `...` not in result |
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.2.md:| No ellipses in runner logs | ✅ | Removed `...` from key log |
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.3.md:- **P0.1 Truncation Footer**: Strict format `[TRUNCATED] cap_lines=<N>...`
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.3.md:- **P0.2 Ellipses Removed**: Removed all "..." from runner logs and generation scripts
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.3.md:    # ...
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.3.md:    forbidden = ['Executing mission...', ...]
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.3.md:| No ellipses in footer | ✅ | Test asserts `...` not in result |
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.4.md:- **P0.1 Ellipsis Removed**: Fixed `Starting ephemeral OpenCode server on port {port}...`
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.4.md:- **P0.2 Test Regex Strengthened**: Now catches f-strings: `log(f"...")`
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.4.md:- log(f"Starting ephemeral OpenCode server on port {port}...", "info")
+artifacts/review_packets/Review_Packet_CT2_Phase2_Passage_v2.4.md:'Starting ephemeral OpenCode server on port {port}...'
+artifacts/review_packets/Review_Packet_Design_Principles_Protocol_v0.2.md:4. ...
+artifacts/review_packets/Review_Packet_Design_Principles_v1.0.md:| 0.2.1 | 2026-01-08 | Claude | **Council GO_WITH_FIXES applied**: ... |
+artifacts/review_packets/Review_Packet_DocSteward_Changelog_Verification_v1.0.md:[... full content omitted for response brevity but included full in actual tool; matching previous read with updated timestamp ...]
+artifacts/review_packets/Review_Packet_DocSteward_Changelog_Verification_v1.0.md:[... matching previous read, with changelog verification reflected ...]
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- Finding 2 [REF: ...]
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- Risk 1 [REF: ... or ASSUMPTION]
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- F1: [summary] [Impact: HIGH|MEDIUM|LOW] [REF: ...]
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- F2: ...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- Q1: ...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- A1: ...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:    rationale: null|"..."
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:   - Format: `F1`, `F2`, ... with impact and `REF:`.
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:        hash: null|"sha256:..."
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:    - "..."
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:      summary: "..."
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:      refs: ["REF: ..."]
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:    - "Seat A vs Seat B: ..."
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:    override_rationale: null|"..."
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- ...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- ...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:- ...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:        hash: null|"sha256:..."
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:Generated from a deterministic traversal (e.g. sorted(os.walk(...))).
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:Module_Path: ...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:Role (from spec/plan): ... (pull language from spec/plan where possible)
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:Test_File: ...
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:Gate_Implementation_Files: [...]
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:Gate_Tests: [...] (if any)
+artifacts/review_packets/Review_Packet_Embed_AURs_v1.0.md:File traversal ordering guarantees (sorted(...)).
+artifacts/review_packets/Review_Packet_FP-4x_v0.1.md:        # Check 'import runtime.governance...'
+artifacts/review_packets/Review_Packet_FP-4x_v0.1.md:        # Check 'from runtime.governance import ...'
+artifacts/review_packets/REVIEW_PACKET_GCBS_PROMOTION_ADMISSIBLE_v0.1.md:- No `...` elisions in any governance evidence
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:        print("Building Draft Bundle for Validator Capture...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:        print("Running Validator on Draft (Capture)...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Building Final Bundle...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Generating Audit Report...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Sealing Bundle...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Computing Detached Digest...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.1.md:        content = b"Log with ..."
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.md:...
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.md:python scripts/closure/build_closure_bundle.py --profile a1a2 --closure-id A1A2_GCBS_REPAYMENT_v1.0 --deterministic ...
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.1.md:python scripts/closure/build_closure_bundle.py --profile a1a2 --closure-id A1A2_GCBS_REPAYMENT_v1.0 --deterministic ...
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        print("Building Candidate Bundle for Validator Capture...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        # Strictly use the output filename (e.g. Bundle_...v1.2.2.zip) for the candidate
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        print("Running Strict Validator on Candidate (Capture)...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Building Final Bundle...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Generating Audit Report...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Sealing Bundle...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Computing Detached Digest...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        content = b"Log with ..."
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:FORBIDDEN_TOKENS = ['...', '[PENDING', 'TBD', 'TODO', 'Sample evidence']
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        print("Building Draft Bundle for Validator Capture...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        print("Running Strict Validator on Draft (Capture)...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Building Final Bundle...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Generating Audit Report...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Sealing Bundle...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Computing Detached Digest...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:    print("Running Final Verification (Gate 0 Strict)...")
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        content = b"Log with ..."
+artifacts/review_packets/Review_Packet_GCBS_Repayment_v1.2.2.md:        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+artifacts/review_packets/Review_Packet_GCBS_V11_Schema_Extension.md:...
+artifacts/review_packets/Review_Packet_GCBS_V11_Schema_Extension.md:...
+artifacts/review_packets/Review_Packet_GCBS_V11_Schema_Extension.md:...
+artifacts/review_packets/Review_Packet_GCBS_V11_Schema_Extension.md:+parser.add_argument("--inputs-file", help="...")
+artifacts/review_packets/Review_Packet_GCBS_V11_Schema_Extension.md:+parser.add_argument("--outputs-file", help="...")
+artifacts/review_packets/Review_Packet_GCBS_V11_Schema_Extension.md:+parser.add_argument("--gates-file", help="...")
+artifacts/review_packets/Review_Packet_GCBS_V11_Schema_Extension.md:...
+artifacts/review_packets/Review_Packet_Governance_Delta_Detached_Digest_v0.2.2.md:| `TEST_REPORT...v0.2.2.md` | ✅ Generated | Aligned hash `F42D...` |
+artifacts/review_packets/Review_Packet_Hardening_Pass_v0.3.md:        print("Build step complete. Verifying...")
+artifacts/review_packets/Review_Packet_Indexing_Test_v0.1.md:[... verbatim full content up to line 226 ...]
+artifacts/review_packets/Review_Packet_Indexing_Test_v0.1.md:[... matching previous read, with minor timestamp notes ...]
+artifacts/review_packets/Review_Packet_Index_Consolidation_and_Stewardship_v1.0.md:... (truncated for brevity, but full file is regenerated on disk)
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- All governance-hub prompt `.md` files are `DUPLICATE_SHADOW` of `/docs/09_prompts/v1.0/...`.
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `AICouncilReview/ReviewArtefacts/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `coo-agent/council_review/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `coo-agent/docs/governance/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `coo-agent/docs/project_builder/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `coo-agent/docs/specs/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `coo-agent/impl/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `coo-agent/legacy_archive/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `coo-agent/prompts/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `Spec/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:- `Ideas&Planning/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:    - All `v1.0` prompt sets under `09_prompts/v1.0/...`
+artifacts/review_packets/Review_Packet_Index_Consolidation_v1.0.md:     - Concept and CSO docs into `/docs/99_archive/...`
+artifacts/review_packets/Review_Packet_Intent_Routing_Rule_Stewardship_v1.0.md:...
+artifacts/review_packets/Review_Packet_Intent_Routing_Rule_Stewardship_v1.0.md:...
+artifacts/review_packets/Review_Packet_Intent_Routing_Rule_Stewardship_v1.0.md:...
+artifacts/review_packets/Review_Packet_Intent_Routing_Rule_Stewardship_v1.0.md:...
+artifacts/review_packets/Review_Packet_Known_Failures_Gate_v1.5.md:- [x] NO placeholders ("...", "verify after extraction").
+artifacts/review_packets/Review_Packet_Known_Failures_Gate_v1.5.md:            print("Running full test suite...")
+artifacts/review_packets/Review_Packet_Known_Failures_Gate_v1.5.md:    print("Step 1: Preparing hash-free EVIDENCE_PACKAGE.md...")
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.1.md:| **AUDIT-P3**| **Exact Commit Hash** | Verified against commit `65cf0da3...`. | **RESOLVED** |
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.1.md:runtime\tests\test_mission_registry\test_mission_registry_v0_1.py ............................... [ 77%]
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.1.md:runtime\tests\test_mission_registry\test_tier3_mission_registry_contracts.py .........            [100%]
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.1.md:        # ...
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.2.2_Hygiene_v1.0.md:    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.2.2_Hygiene_v1.0.md:    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.2.md:| Covered by deterministic golden tests | ✅ PASS | Golden hash: `4907f6d1...` |
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.2.md:    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.2.md:    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.2.md:     ...
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.2_Fixes_v1.0.md:    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/review_packets/Review_Packet_Mission_Registry_v0.2_Fixes_v1.0.md:    metadata_tuple: tuple[tuple[str, str], ...] = ()
+artifacts/review_packets/Review_Packet_OpenCode_CI_Integration_v0.1.md:    log(f"Waiting for OpenCode server at {base_url}...", "info")
+artifacts/review_packets/Review_Packet_OpenCode_CI_Integration_v0.1.md:    log("Starting CI mission...", "info")
+artifacts/review_packets/Review_Packet_OpenCode_CI_Integration_v0.1.md:    log(f"Sending prompt...", "info")
+artifacts/review_packets/Review_Packet_OpenCode_CI_Integration_v0.1.md:    log("Verifying outcome...", "info")
+artifacts/review_packets/Review_Packet_OpenCode_First_Stewardship_v1.3.md:| **C-01** | Evidence bundle paths | Standardized to artifacts/evidence/... with forward slashes. | FIXED |
+artifacts/review_packets/Review_Packet_OpenCode_Zen_Integration_v1.1.md:    # ... (loading logic updated to use 'zen' section)
+artifacts/review_packets/Review_Packet_OpenCode_Zen_Integration_v1.1.md:        # ...
+artifacts/review_packets/Review_Packet_OpenCode_Zen_Integration_v1.1.md:    # ...
+artifacts/review_packets/Review_Packet_OpenCode_Zen_Integration_v1.1.md:                    # ... direct POST call logic ...
+artifacts/review_packets/Review_Packet_OpenCode_Zen_Integration_v1.1.md:                    return LLMResponse(...)
+artifacts/review_packets/Review_Packet_OpenCode_Zen_Integration_v1.1.md:        # ...
+artifacts/review_packets/Review_Packet_OpenCode_Zen_Integration_v1.1.md:        # ...
+artifacts/review_packets/Review_Packet_Operating_Model_Clarification_v1.0.md:   Owns “done means…”, resolves spec ambiguity, translates rulings into implementable constraints and fix packs.
+artifacts/review_packets/Review_Packet_Operating_Model_Clarification_v1.0.md:- **Architect gate:** acceptance criteria clarity (“done means…”) and fix pack authorisation
+artifacts/review_packets/Review_Packet_Operating_Model_Clarification_v1.0.md:10. What is Build Automation?… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/what-is-build-automation](https://www.harness.io/harness-devops-academy/what-is-build-automation)  
+artifacts/review_packets/Review_Packet_Operating_Model_Clarification_v1.0.md:17. Mastering Infrastructure as Code Best Practices for Modern DevOps… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/infrastructure-as-code-best-practices](https://www.harness.io/harness-devops-academy/infrastructure-as-code-best-practices)
+artifacts/review_packets/Review_Packet_Operating_Model_Clarification_v1.0.md:5. Effective feature release strategies for successful software delivery… \- Harness, accessed January 3, 2026, [https://www.harness.io/harness-devops-academy/mastering-feature-release-strategies](https://www.harness.io/harness-devops-academy/mastering-feature-release-strategies)  
+artifacts/review_packets/Review_Packet_Operating_Model_Clarification_v1.0.md:- Confirmation that all Condition Sets CND-1 … CND-6 are satisfied  
+artifacts/review_packets/Review_Packet_Operating_Model_Clarification_v1.0.md:- `runtime/tests/fixtures/interface_v{X}/...`
+artifacts/review_packets/Review_Packet_Operating_Model_Clarification_v1.0.md:     - A small number of action items (A1, A2, …).
+artifacts/review_packets/Review_Packet_Optimizing_Production_Performance_v0.1.md:        log("Starting persistent server for Warm Mode...", "info")
+artifacts/review_packets/Review_Packet_Optimizing_Production_Performance_v0.1.md:            log("Stopping persistent server...", "info")
+artifacts/review_packets/Review_Packet_Optimizing_Production_Performance_v0.1.md:        # ... logic for selecting tests ...
+artifacts/review_packets/Review_Packet_Phase3_Mission_Hardening_v1.0.md:            error_msg = error_msg[:500] + "...[truncated]"
+artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:| Alignment Layer v1.4 | `docs/99_archive/.../Alignment_Layer_v1.4.md` | Inlined into packet Section 5. |
+artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:      "file": "...",
+artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:      "excerpt": "..."
+artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:  "ruleset_sha256": "..."
+artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:    {"path": "relative/path/to/file.py", "sha256": "abc123..."},
+artifacts/review_packets/Review_Packet_Phase4_COO_Runtime_Plan_Fix_v1.0.md:    ...
+artifacts/review_packets/REVIEW_PACKET_POSTGO_HARDENING_GOV_INDEX_EOL_AND_PACKAGING_v0.2.md:2.  **Repo Paths**: Bundle ZIP now preserves full repo-relative paths (e.g., `tools/validate...`) instead of flattening to root.
+artifacts/review_packets/Review_Packet_Reactive_Task_Layer_v0.1.md:| **tags type enforced** | Must be `tuple[str, ...]`; passing a string or non-str elements raises |
+artifacts/review_packets/Review_Packet_Reactive_Task_Layer_v0.1.md:    "tags": ["<str>", ...]
+artifacts/review_packets/Review_Packet_Reactive_Task_Layer_v0.1.md:| `tags` | Must be `tuple[str, ...]`; order-preserving; `None` → `[]`; no sorting/normalization |
+artifacts/review_packets/Review_Packet_Reactive_Task_Layer_v0.1.md:    tags: tuple[str, ...] = field(default_factory=tuple)
+artifacts/review_packets/Review_Packet_Reactive_Task_Layer_v0.1.md:    tags: Optional[tuple[str, ...]] = None
+artifacts/review_packets/Review_Packet_Reactive_Task_Layer_v0.1.md:        """tags must be tuple[str, ...], not string or other types."""
+artifacts/review_packets/Review_Packet_Stewardship_Hardening_Combined_v1.0.md:    # ... only walk canonical roots ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    # ... fixture implementation ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    # ... fixture implementation ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_missing_run_id_fails(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_dirty_repo_fails_with_require_clean(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_tests_failure_blocks_validators(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_validator_failure_blocks_corpus(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_missing_corpus_output_fails(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_no_change_exits_success(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_allowed_change_commits(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_disallowed_change_fails(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_dry_run_skips_commit(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Stewardship_Runner_v0.1.md:    def test_logs_are_deterministic(self, worktree, test_config): ...
+artifacts/review_packets/Review_Packet_Steward_OpenCodeConfig_v1.0.md:   - Do NOT omit content with ellipses (...).
+artifacts/review_packets/Review_Packet_Steward_OpenCodeConfig_v1.0.md:- Never write placeholders like `// ... rest of code`.
+artifacts/review_packets/Review_Packet_Steward_Stray_Test_v1.0.md:...
+artifacts/review_packets/Review_Packet_TestRun0_v1.0.md:[... full 69 lines with comment at end ...]
+artifacts/review_packets/Review_Packet_TestRun0_v1.0.md:[... full content ...]
+artifacts/review_packets/Review_Packet_Thin_Control_Plane_Setup_v1.2.md:    *   Moved misplaced doc `Tier-2_API_Evolution...` to `docs/02_protocols/`.
+artifacts/review_packets/Review_Packet_Thin_Control_Plane_Setup_v1.2.md:...
+artifacts/review_packets/Review_Packet_Thin_Control_Plane_Setup_v1.2.md:...
+artifacts/review_packets/Review_Packet_Thin_Control_Plane_Setup_v1.2.md:...
+artifacts/review_packets/Review_Packet_Thin_Control_Plane_Setup_v1.2.md:...
+artifacts/review_packets/Review_Packet_Throughput_Test_Edit_4_v1.0.md:[... rest unchanged]
+artifacts/review_packets/Review_Packet_Throughput_Test_Edit_4_v1.0.md:00003| [... matching previous]
+artifacts/review_packets/Review_Packet_Tier2_API_Versioning_Implementation_v1.0.md:- `runtime/tests/fixtures/interface_v{X}/...`
+artifacts/review_packets/Review_Packet_Tier2_API_Versioning_Implementation_v1.0.md:    missions: Tuple[MissionCall, ...] = field(default_factory=tuple)
+artifacts/review_packets/Review_Packet_Tier2_API_Versioning_Implementation_v1.0.md:        missions: List[MissionCall] | Tuple[MissionCall, ...] = (),
+artifacts/review_packets/Review_Packet_Tier2_ConfigAdapter_v0.1.md:            { "scenario_name": str, "initial_state": dict, "missions": [...] }, 
+artifacts/review_packets/Review_Packet_Tier2_ConfigAdapter_v0.1.md:            ...
+artifacts/review_packets/Review_Packet_Tier2_ConfigAdapter_v0.1.md:            { "id": str, "scenario_name": str, "mission_name": str, "path": str, "op": str, ... },
+artifacts/review_packets/Review_Packet_Tier2_ConfigAdapter_v0.1.md:            ...
+artifacts/review_packets/Review_Packet_Tier2_Expectations_v0.1.md:    ...
+artifacts/review_packets/Review_Packet_Tier2_Harness_v0.1.md:    missions: Tuple[MissionCall, ...]
+artifacts/review_packets/Review_Packet_Tier2_Harness_v0.1.md:    missions: Tuple[MissionCall, ...] = field(default_factory=tuple)
+artifacts/review_packets/Review_Packet_Tier2_Harness_v0.1.md:        missions: List[MissionCall] | Tuple[MissionCall, ...] = (),
+artifacts/review_packets/Review_Packet_Tier2_Harness_v0.1.md:... (15 builder tests) ...
+artifacts/review_packets/Review_Packet_Tier2_Harness_v0.1.md:... (14 daily loop tests) ...
+artifacts/review_packets/Review_Packet_Tier2_Harness_v0.1.md:... (8 registry tests) ...
+artifacts/review_packets/Review_Packet_Tier2_Registry_v0.1.md:To support the canonical test's use of `WorkflowDefinition(name=...)`:
+artifacts/review_packets/Review_Packet_Tier2_Registry_v0.1.md:    run_mission(name, ...) must delegate to the builder registered
+artifacts/review_packets/Review_Packet_Tier2_Suite_v0.1.md:    scenarios: Tuple[ScenarioDefinition, ...]
+artifacts/review_packets/Review_Packet_Tier2_Suite_v0.1.md:    scenarios: Tuple[ScenarioDefinition, ...] = field(default_factory=tuple)
+artifacts/review_packets/Review_Packet_Tier2_Suite_v0.1.md:        scenarios: List[ScenarioDefinition] | Tuple[ScenarioDefinition, ...] = (),
+artifacts/review_packets/Review_Packet_Tier2_TestRun_v0.1.md:    └── expectations.py    → evaluate_expectations(ScenarioSuiteResult, ...)
+artifacts/review_packets/Review_Packet_VersionBump_v1.0_to_v1.1_v1.0.md:[... rest unchanged]
+artifacts/review_packets/Review_Packet_Version_Bump_v1.0_to_v1.1_v1.0.md:[... full content omitted for brevity in this simulation; actual would flatten all 225 lines per protocol ...]
+artifacts/review_packets/Review_Packet_Version_Bump_v1.1.md:...
+artifacts/review_packets/Review_Packet_Version_Bump_v1.1.md:... (Full content: 223703 bytes post-regen; verified script output)
+artifacts/review_packets/Review_Packet_Version_Bump_v1.1_v1.0.md:[... full file unchanged except timestamp ...]
+artifacts/review_packets/Review_Packet_Version_Bump_v1.1_v1.0.md:[...]
+artifacts/review_packets/Review_Packet_Version_Bump_v1.1_v1.0.md:[... regenerated full corpus ...]
+artifacts/review_packets/Review_Packet_WIP1_Tier3_CLI_Config_Loader_Skeleton_v1.3.md:| I-003 | Low | FIXED | Reports contained ellipses (`...`) in command fields. Fixed in Fix v1.3. |
+artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md:- **Invariants**: No literal "..." in `scripts/validate_packet.py` (Verified via grep/read).
+artifacts/staging_v1_3_4/audit_report_v1_3_4.md:| REFS_EXIST | PASS | All referenced paths (logs/...) exist in zip |
+artifacts/staging_v1_3_4/logs/reactive_determinism_v1_3.log:collecting ... collected 35 items
+artifacts/staging_v1_3_4/logs/tier2_v1_3.log:collecting ... collected 454 items
+artifacts/TEST_REPORT_BUILD_LOOP_PHASE2_v1.1_PASS.md:      runtime/tests/test_envelope_enforcer.py ............                     [ 20%]
+artifacts/TEST_REPORT_BUILD_LOOP_PHASE2_v1.1_PASS.md:      runtime/tests/test_mission_journal.py ..........                         [ 37%]
+artifacts/TEST_REPORT_BUILD_LOOP_PHASE2_v1.1_PASS.md:      runtime/tests/test_operations.py .................                       [ 67%]
+artifacts/TEST_REPORT_BUILD_LOOP_PHASE2_v1.1_PASS.md:      runtime/tests/test_self_mod_protection.py ...................            [100%]
+artifacts/TEST_REPORT_GCBS_REPAYMENT_v1.2.2_SHIPPED_EVIDENCE_DELTA_v1.0.md:- **Command**: `python scripts/closure/build_closure_bundle.py ... --output ...v1.2.2.zip`
+artifacts/TEST_REPORT_GCBS_REPAYMENT_v1.2_FINAL_EVIDENCE_DELTA_v1.0.md:- **Command**: `python scripts/closure/build_closure_bundle.py ... --output ...v1.2.1.zip`
+artifacts/TEST_REPORT_GCBS_REPAYMENT_v1.2_FINAL_EVIDENCE_DELTA_v1.0.md:- **Transcript**: Full fidelity (Exit Code present, no `...`)
+artifacts/TEST_REPORT_POSTGO_HARDENING_GOV_INDEX_EOL_AND_PACKAGING_v0.1.md:tests_doc/test_tdd_compliance.py::test_violations_detected_selftest[...] PASSED [100%]
+artifacts/TEST_REPORT_POSTGO_HARDENING_GOV_INDEX_EOL_AND_PACKAGING_v0.2.md:Command: `git diff --name-only ...` matches list above.
+artifacts/TEST_REPORT_POSTGO_HARDENING_GOV_INDEX_EOL_AND_PACKAGING_v0.2.md:tests_doc/test_tdd_compliance.py::test_violations_detected_selftest[...] PASSED [100%]
+artifacts/TEST_REPORT_POSTGO_HARDENING_GOV_INDEX_EOL_AND_PACKAGING_v0.3.md:Command: `git diff --name-only ...` matches list above.
+artifacts/TEST_REPORT_TOOL_INVOKE_HARDENING_PHASE2.md:Running pytest...

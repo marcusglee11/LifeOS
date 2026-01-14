@@ -92,6 +92,7 @@ All artifacts **MUST** follow these naming patterns:
 | Test Draft | `TestDraft_<Module>_v<X.Y>.md` | `TestDraft_Registry_v0.1.md` |
 
 **Rules:**
+
 - Topic/Mission names use PascalCase or snake_case
 - **Sequential Versioning Only:** v1.0 → v1.1 → v1.2. Never skip numbers.
 - **No Overwrites:** Always create a new file for a new version.
@@ -225,6 +226,7 @@ stateDiagram-v2
 ```
 
 When creating a new version:
+
 1. Increment version number (e.g., `v0.1` → `v0.2`)
 2. Set `parent_artifact` to path of previous version
 3. Set previous version's status to `SUPERSEDED`
@@ -251,6 +253,29 @@ To add a new artifact type:
 | [lifeos_packet_schemas_v1.yaml](docs/02_protocols/lifeos_packet_schemas_v1.yaml) | YAML packet schemas |
 | [GEMINI.md](GEMINI.md) | Agent constitution |
 | [Document Steward Protocol v1.1](docs/02_protocols/Document_Steward_Protocol_v1.1.md) | Documentation governance |
+
+---
+
+## 11. Distinction: Formal Artifacts vs. Operational Files
+
+### 11.1 Formal Artifacts
+
+Formal Artifacts (Plans, Review Packets, Walkthroughs, etc.) are structured documents that govern or document the build lifecycle. They **MUST** follow:
+
+- Canonical naming patterns (Section 5)
+- Mandatory frontmatter (Section 3)
+- Sequential versioning (Section 8)
+- Placement in designated `artifacts/` subdirectories (Section 2)
+- Full StepGate/DAP flow
+
+### 11.2 Operational Files
+
+Operational Files (logs, inter-agent packets, telemetry, scratchpads) are ephemeral or non-governance files used for execution support. They **SHOULD**:
+
+- Be placed in the `artifacts/` root or ephemeral subdirectories (e.g., `artifacts/packets/`)
+- Be excluded from versioning discipline unless explicitly required
+- Not require a Plan or Review Packet for every modification
+- Be disregarded by the formal StepGate closure validator unless explicitly cited as evidence
 
 ---
 

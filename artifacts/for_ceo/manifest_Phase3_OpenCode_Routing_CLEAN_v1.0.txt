@@ -1,0 +1,17 @@
+Bundle Name: Bundle_Phase3_OpenCode_Routing_CLEAN_v1.0.zip
+Date: 2024-10-24
+Status: CLEAN / SECURED / VERIFIED (Targeted)
+
+Contents:
+1. Review_Packet_Phase3_OpenCode_Routing_Result_CLEAN_v1.0.md
+2. Phase3_OpenCode_Routing_ONLY.diff (Minimal Clean Diff)
+3. pytest_phase3_clean.txt (Verbatim Targeted Test Output)
+4. steward_task_v2.json (Clean Evidence Task)
+5. opencode_steward_stdout_v2.log (Clean, Redacted Log)
+6. opencode_steward_stderr_v2.log (Clean Error Log)
+
+Hashes (pre-zip):
+975897142ee365723f380c690ec99ca87f55cecd4506c7ea76f9b90f70f34e10 *steward_task_v2.json
+4fc5f261ba5972b73ba549ff88884f542bb9dae5fd3414962044dbf959aea59a *opencode_steward_stdout_v2.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 *opencode_steward_stderr_v2.log
+a2892516ea452b7f42d5db2a9c87d6110dd00d0e705ba80b326c762088709164 *Phase3_OpenCode_Routing_ONLY.diff

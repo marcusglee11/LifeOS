@@ -29,6 +29,7 @@ from runtime.orchestration.missions.build import BuildMission
 from runtime.orchestration.missions.build_with_validation import BuildWithValidationMission
 from runtime.orchestration.missions.steward import StewardMission
 from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
+from runtime.orchestration.missions.echo import EchoMission
 from runtime.orchestration.missions.schema import (
     validate_mission_definition,
     load_mission_schema,
@@ -43,6 +44,7 @@ MISSION_TYPES = {
     MissionType.BUILD_WITH_VALIDATION: BuildWithValidationMission,
     MissionType.STEWARD: StewardMission,
     MissionType.AUTONOMOUS_BUILD_CYCLE: AutonomousBuildCycleMission,
+    MissionType.ECHO: EchoMission,
 }
 
 
@@ -79,6 +81,7 @@ __all__ = [
     "BuildWithValidationMission",
     "StewardMission",
     "AutonomousBuildCycleMission",
+    "EchoMission",
     # Registry
     "MISSION_TYPES",
     "get_mission_class",

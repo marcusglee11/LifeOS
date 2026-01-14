@@ -96,7 +96,7 @@ When you believe Phase 1 has been fully executed, use this checklist to verify t
 - [ ] `/docs` root contains `INDEX.md`.  
 - [ ] Legacy folders exist only under `docs/99_archive/legacy_structures/`.  
 - [ ] Concept and CSO docs exist only under `docs/99_archive/concept/` and `docs/99_archive/cso/`.  
-- [ ] Productisation brief exists at `docs/07_productisation/Productisation_Brief_v1.0.md`.  
+- [ ] Productisation brief exists at `docs/12_productisation/Productisation_Brief_v1.0.md`.  
 - [ ] `docs/10_meta/` contains:
   - `CODE_REVIEW_STATUS_v1.0.md`
   - `governance_digest_v1.0.md`
@@ -121,4 +121,3 @@ Once the checklist above is complete and you are satisfied that the filesystem m
 - **Statement:**  
 
 > I confirm that Phase 1 — Reversioning & Deprecation Audit has been executed according to REVERSION_PLAN_v1.0, and that the `/docs` tree is now the sole canonical documentation tree for LifeOS. All deprecated and legacy artefacts have been either archived under `docs/99_archive/` or left in external repositories as explicitly non-canonical.
-

@@ -1,0 +1,626 @@
+--- docs/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md	2026-01-08 12:01:09.659721300 +1100
++++ docs/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md	2026-01-08 12:25:03.240302400 +1100
+@@ -1,10 +1,10 @@
+ # LifeOS Autonomous Build Loop Architecture
+ 
+-**Version:** v0.2  
+-**Status:** Draft — Council Fixes Integrated  
++**Version:** v0.3  
++**Status:** Draft — Council Re-Review Fixes Integrated  
+ **Date:** 2026-01-08  
+ **Author:** Claude (Execution Partner) + GL (CEO)  
+-**Intended Placement:** `/LifeOS/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.2.md`
++**Intended Placement:** `/LifeOS/docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md`
+ 
+ ---
+ 
+@@ -27,6 +27,10 @@
+ - **[v0.2]** Envelope enforcement mechanisms
+ - **[v0.2]** Determinism, replay, and atomicity semantics
+ - **[v0.2]** Run control, crash recovery, and kill switch
++- **[v0.3]** Governance baseline creation/update ceremony
++- **[v0.3]** Compensation verification and post-state checks
++- **[v0.3]** Canonical JSON specification and replay equivalence
++- **[v0.3]** Kill-switch/lock ordering and mid-run behavior
+ 
+ ### 1.3 Out of Scope
+ 
+@@ -122,6 +126,163 @@
+ 
+ **Escalation Note:** If a future mission requires modification of governance surfaces, a new role with higher clearance must be defined via Council ruling. This architecture does not grant such authority.
+ 
++### 2.5 Governance Baseline Ceremony [v0.3 — P0.1]
++
++**[v0.3 — P0.1]** The governance baseline (`config/governance_baseline.yaml`) is the single source of truth for approved governance surface hashes. This section defines the operable, auditable, fail-closed creation and update procedures.
++
++#### 2.5.1 Initial Baseline Creation
++
++The governance baseline is created exactly once per system initialization:
++
++**Prerequisites:**
++1. CEO explicitly authorizes baseline creation
++2. All governance surface files exist and are reviewed
++3. No autonomous operations are running
++
++**Procedure:**
++
++```python
++def create_initial_baseline(
++    governance_surfaces: List[str],
++    approver: str,  # Must be "CEO"
++    council_ruling_ref: Optional[str]
++) -> BaselineResult:
++    """
++    Create initial governance baseline.
++    
++    Steps:
++    1. Verify approver == "CEO" (fail if not)
++    2. For each path in governance_surfaces:
++       a. Verify file exists
++       b. Normalize path: os.path.normpath(os.path.relpath(path, repo_root))
++       c. Compute SHA-256 of file contents (UTF-8, no BOM normalization)
++    3. Construct baseline document:
++       - baseline_version: ISO8601 timestamp
++       - approved_by: approver
++       - council_ruling_ref: (if provided)
++       - hash_algorithm: "SHA-256"
++       - path_normalization: "relpath_from_repo_root"
++       - artifacts: list of {path, sha256}
++    4. Write to config/governance_baseline.yaml
++    5. Compute SHA-256 of baseline file itself
++    6. Create Review Packet with:
++       - Full baseline content
++       - All input file hashes
++       - Baseline file hash
++    7. Require CEO sign-off on Review Packet
++    8. Git commit with message: "GOVERNANCE: Initial baseline created"
++    """
++```
++
++**Required Evidence:**
++- List of all governance surfaces with hashes
++- CEO signature/approval record
++- Git commit hash of baseline creation
++- Review Packet path
++
++**Fail-Closed Behavior:**
++- If CEO approval not obtained: HALT, baseline not created
++- If any governance surface file missing: HALT, escalate
++- If write to baseline file fails: HALT, escalate
++
++#### 2.5.2 Baseline Update Procedure
++
++The governance baseline is updated ONLY when Council approves modifications to governance surfaces:
++
++**Trigger:** Council ruling approves change to one or more governance surfaces
++
++**Procedure:**
++
++```python
++def update_governance_baseline(
++    council_ruling_ref: str,
++    modified_surfaces: List[str],
++    baseline_commit: str  # Git commit before modification
++) -> UpdateResult:
++    """
++    Update governance baseline after council-approved change.
++    
++    Inputs:
++    - council_ruling_ref: Reference to Council ruling authorizing change
++    - modified_surfaces: List of governance surface paths modified
++    - baseline_commit: Git HEAD at time change was approved
++    
++    Steps:
++    1. Load current baseline from config/governance_baseline.yaml
++    2. Verify baseline_commit matches current HEAD (abort if drift detected)
++    3. For each path in modified_surfaces:
++       a. Verify path is listed in §2.3 governance surfaces
++       b. Verify file exists
++       c. Normalize path per §2.5.1
++       d. Compute new SHA-256 hash
++    4. Create updated baseline:
++       - Increment baseline_version timestamp
++       - Update approved_by: "CEO" (still required)
++       - Add council_ruling_ref
++       - Update artifacts list with new hashes
++       - Preserve hashes for unmodified surfaces
++    5. Write updated baseline
++    6. Create Review Packet with:
++       - Diff of old vs new baseline
++       - Council ruling reference
++       - All modified file hashes
++    7. Require CEO sign-off
++    8. Git commit with message: "GOVERNANCE: Baseline updated per <council_ruling_ref>"
++    
++    Outputs:
++    - Updated config/governance_baseline.yaml
++    - Review Packet in artifacts/review_packets/
++    - Git commit hash
++    """
++```
++
++**Commit Requirements:**
++- Commit message MUST reference council ruling
++- Commit MUST include both the modified governance surface(s) AND the updated baseline
++- No other changes may be included in the commit
++
++#### 2.5.3 Runtime Baseline Mismatch Behavior
++
++**[v0.3 — P0.1]** When orchestrator detects baseline mismatch at mission start:
++
++```python
++def handle_baseline_mismatch(
++    mismatched_files: List[MismatchRecord],
++    expected_baseline: BaselineManifest,
++    actual_hashes: Dict[str, str]
++) -> Never:  # This function always escalates, never returns normally
++    """
++    Handle governance baseline mismatch.
++    
++    This function NEVER auto-updates the baseline.
++    This function NEVER proceeds with the mission.
++    This function ALWAYS escalates to CEO.
++    
++    Steps:
++    1. Create evidence bundle:
++       - List of mismatched files with expected vs actual hashes
++       - Current git status
++       - Current HEAD commit
++       - Timestamp of detection
++    2. Write evidence to logs/baseline_mismatches/<timestamp>/
++    3. Create escalation record in SQLite
++    4. HALT all autonomous operations
++    5. Notify CEO with:
++       - Mismatch summary
++       - Evidence bundle path
++       - Instructions for resolution
++    
++    Resolution paths (CEO action only):
++    - Option A: Revert unauthorized changes, clear escalation
++    - Option B: Authorize changes via Council review, update baseline per §2.5.2
++    """
++```
++
++> [!CAUTION]
++> **The orchestrator MUST NEVER auto-update the governance baseline.**
++> Baseline updates require explicit CEO authorization and Council ruling reference.
++> Any attempt by an agent to propose auto-update logic is a governance violation.
++
+ ---
+ 
+ ## 3. Design Principles
+@@ -394,6 +555,174 @@
+ prev_log_hash: "sha256:..."  # Hash chain (P1.2)
+ ```
+ 
++#### 5.1.4 Canonical JSON and Replay Equivalence [v0.3 — P0.3]
++
++**[v0.3 — P0.3]** This section defines exact specifications for deterministic serialization and replay verification.
++
++**canonical_json() Specification:**
++
++```python
++def canonical_json(obj: Any) -> bytes:
++    """
++    [v0.3 — P0.3] Produce canonical JSON for deterministic hashing.
++    
++    Exact specification:
++    1. Encoding: UTF-8, no BOM
++    2. Whitespace: None (no spaces after colons or commas, no newlines)
++    3. Key ordering: Lexicographically sorted by Unicode code points (stable)
++    4. Array ordering: Preserved as-is (arrays are order-sensitive)
++    5. Numeric formatting:
++       - Integers: No leading zeros, no decimal point
++       - Floats: Shortest representation that round-trips correctly
++       - No trailing zeros after decimal point
++       - Scientific notation only if shorter (e.g., 1e10)
++    6. String escaping: Only escape required characters (", \, control chars)
++    7. Unicode: No unnecessary escaping (literal UTF-8 characters)
++    8. Boolean/null: lowercase (true, false, null)
++    
++    Implementation (Python):
++        import json
++        return json.dumps(
++            obj,
++            separators=(',', ':'),
++            sort_keys=True,
++            ensure_ascii=False
++        ).encode('utf-8')
++    """
++```
++
++**Replay Equivalence Rules:**
++
++Two runs are considered **replay-equivalent** if and only if their decision-bearing fields match.
++
++**Metadata Fields (EXCLUDED from equivalence):**
++
++These fields are audit/correlation only and MUST NOT affect decision logic:
++
++| Field | Location | Purpose |
++|-------|----------|---------|
++| `call_id_audit` | AgentResponse | UUID for log correlation |
++| `operation_id_audit` | OperationResult | UUID for log correlation |
++| `timestamp` | All logs | Human readability, ordering |
++| `latency_ms` | AgentResponse | Performance metric |
++| `input_tokens` | AgentResponse | Cost metric |
++| `output_tokens` | AgentResponse | Cost metric |
++| `started_at` | MissionJournalEntry | Timing metadata |
++| `completed_at` | MissionJournalEntry | Timing metadata |
++
++**Decision-Bearing Fields (INCLUDED in equivalence):**
++
++These fields MUST match for replay equivalence:
++
++| Field | Location | Role |
++|-------|----------|------|
++| `run_id_deterministic` | Mission | Primary mission identity |
++| `call_id_deterministic` | AgentResponse | Primary call identity |
++| `prompt_hash` | AgentCall | Input to model |
++| `input_packet_hash` | AgentCall | Input data |
++| `output_packet_hash` | AgentResponse | Model output |
++| `governance_baseline_hash` | Mission | System state |
++| `model_used` | AgentResponse | Model identity |
++| `model_version` | AgentResponse | Model version |
++| `pre_state_hash` | OperationReceipt | Pre-operation state |
++| `post_state_hash` | OperationReceipt | Post-operation state |
++| `baseline_commit` | MissionRun | Git state |
++
++**Replay Verification:**
++
++```python
++def verify_replay_equivalence(
++    original_run: RunRecord,
++    replay_run: RunRecord
++) -> ReplayVerificationResult:
++    """
++    [v0.3 — P0.3] Verify replay matches original run.
++    
++    1. Compare run_id_deterministic (must match exactly)
++    2. For each call in order:
++       a. Compare call_id_deterministic (must match)
++       b. Compare decision-bearing fields (must match)
++       c. Ignore metadata fields
++    3. If model_version differs: flag as "version_drift" (not failure)
++    4. Return ReplayVerificationResult with:
++       - equivalent: bool
++       - drift_type: Optional[str] (e.g., "version_drift")
++       - mismatches: List[FieldMismatch]
++    """
++```
++
++**Hash Chain Genesis:**
++
++The hash chain for logs MUST have a defined genesis:
++
++```python
++HASH_CHAIN_GENESIS = hashlib.sha256(b"LIFEOS_LOG_CHAIN_GENESIS_V1").hexdigest()
++# = "a7d9e1f2c3b4a5968798..." (fixed constant)
++
++# First entry in any log chain:
++first_entry.prev_log_hash = HASH_CHAIN_GENESIS
++```
++
++This ensures the chain is anchored to a known constant, not an empty string.
++
++#### 5.1.5 Model "auto" Semantics [v0.3 — P1.2]
++
++**[v0.3 — P1.2]** When `model="auto"` is specified, model selection is deterministic:
++
++**Priority-Ordered Model List:**
++
++The `config/models.yaml` file defines deterministic fallback chains per role:
++
++```yaml
++# config/models.yaml
++model_selection:
++  default_chain:
++    - "anthropic/claude-3-sonnet-20240229"
++    - "anthropic/claude-3-haiku-20240307"
++    - "openai/gpt-4-turbo-preview"
++    
++  role_overrides:
++    designer:
++      - "anthropic/claude-3-opus-20240229"
++      - "anthropic/claude-3-sonnet-20240229"
++    reviewer_architect:
++      - "anthropic/claude-3-opus-20240229"
++      - "anthropic/claude-3-sonnet-20240229"
++    builder:
++      - "anthropic/claude-3-sonnet-20240229"
++      - "anthropic/claude-3-haiku-20240307"
++```
++
++**Resolution Logic:**
++
++```python
++def resolve_model_auto(role: str, models_config: dict) -> Tuple[str, str]:
++    """
++    [v0.3 — P1.2] Resolve "auto" to specific model deterministically.
++    
++    1. If role in role_overrides: use that chain
++    2. Otherwise: use default_chain
++    3. Try each model in order until one is available
++    4. Return (selected_model, selection_reason)
++    
++    selection_reason is one of:
++    - "primary": First model in chain was available
++    - "fallback_N": Nth fallback was used (N = 1, 2, ...)
++    - "error": No model available (escalate)
++    """
++```
++
++**Logging Requirement:**
++
++When `model="auto"` is used, the log MUST include:
++
++```yaml
++model_requested: "auto"
++model_used: "anthropic/claude-3-sonnet-20240229"
++model_selection_reason: "primary"  # or "fallback_1", etc.
++model_selection_chain: ["anthropic/claude-3-sonnet-20240229", "anthropic/claude-3-haiku-20240307"]
++```
++
+ ### 5.2 Operation Types
+ 
+ **Purpose:** Extend the Tier-2 Orchestration Engine with operations that can call agents and tools.
+@@ -431,13 +760,39 @@
+ 
+ @dataclass
+ class OperationReceipt:
+-    """[v0.2 — P0.4] Receipt for idempotency and rollback."""
++    """[v0.2 — P0.4, v0.3 — P0.2] Receipt for idempotency and rollback."""
+     operation_id: str
+     timestamp: str
+     pre_state_hash: str          # Hash of affected state before operation
+     post_state_hash: str         # Hash of affected state after operation
+-    compensation_action: str     # How to undo this operation
++    compensation_type: CompensationType  # [v0.3] Enum, not freeform string
++    compensation_command: str    # The actual command to execute
+     idempotency_key: str         # For rerun detection
++    compensation_verified: bool  # [v0.3] Whether compensation was verified
++
++
++class CompensationType(Enum):
++    """[v0.3 — P0.2] Validated compensation type enum."""
++    NONE = "none"                # Read-only operation, no compensation needed
++    GIT_CHECKOUT = "git_checkout"    # git checkout -- <path>
++    GIT_RESET_HEAD = "git_reset_head"  # git reset HEAD
++    GIT_RESET_SOFT = "git_reset_soft"  # git reset --soft HEAD~N
++    GIT_RESET_HARD = "git_reset_hard"  # git reset --hard <commit>
++    GIT_CLEAN = "git_clean"      # git clean -fd
++    FILESYSTEM_DELETE = "fs_delete"  # Remove created file
++    FILESYSTEM_RESTORE = "fs_restore"  # Restore from backup
++    CUSTOM_VALIDATED = "custom"  # Must be in whitelist
++
++
++# [v0.3 — P0.2] Validated command whitelist for CUSTOM_VALIDATED
++COMPENSATION_COMMAND_WHITELIST = [
++    "git checkout -- .",
++    "git reset HEAD",
++    "git reset --soft HEAD~1",
++    "git reset --hard HEAD~1",
++    "git clean -fd",
++]
++
+ 
+ def execute_operation(spec: OperationSpec, ctx: ExecutionContext) -> OperationResult:
+     """
+@@ -452,10 +807,15 @@
+     4. Record post-state hash
+     5. Write receipt to mission journal
+     
++    [v0.3] Compensation validation:
++    6. Validate compensation_type is valid enum
++    7. If CUSTOM_VALIDATED, verify command is in whitelist
++    
+     Raises:
+         EnvelopeViolation: If operation exceeds its envelope
+         OperationFailed: If operation fails (will trigger rollback consideration)
+         KillSwitchActive: If STOP_AUTONOMY file detected
++        InvalidCompensation: If compensation type/command not validated
+     """
+ ```
+ 
+@@ -524,6 +884,96 @@
+     """
+ ```
+ 
++#### 5.2.2 Compensation Verification [v0.3 — P0.2]
++
++**[v0.3 — P0.2]** Compensation actions MUST be validated before execution AND verified after execution:
++
++**Pre-Execution Validation:**
++
++```python
++def validate_compensation(
++    compensation_type: CompensationType,
++    compensation_command: str
++) -> ValidationResult:
++    """
++    [v0.3 — P0.2] Validate compensation action before operation execution.
++    
++    1. Verify compensation_type is a valid CompensationType enum value
++    2. If NONE: command must be empty or "none"
++    3. If CUSTOM_VALIDATED: command MUST be in COMPENSATION_COMMAND_WHITELIST
++    4. For all other types: command must match expected pattern for type
++    
++    Returns ValidationResult with:
++    - valid: bool
++    - reason: str (if invalid)
++    """
++```
++
++**Post-Compensation Verification:**
++
++After any compensation action is executed, the following checks are MANDATORY:
++
++```python
++def verify_compensation_success(
++    expected_state: ExpectedRepoState,
++    compensation_receipt: OperationReceipt
++) -> VerificationResult:
++    """
++    [v0.3 — P0.2] Verify compensation restored expected state.
++    
++    Mandatory checks:
++    1. git status --porcelain MUST return empty (no staged/unstaged changes)
++    2. git ls-files --others --exclude-standard MUST return empty (no untracked files)
++    3. git rev-parse HEAD MUST match expected_state.baseline_commit
++    4. Hash of working tree files MUST match expected_state.pre_operation_hash
++    
++    Returns VerificationResult with:
++    - success: bool
++    - failures: List[str] (which checks failed)
++    - evidence: dict (actual vs expected values)
++    """
++
++def post_compensation_checks(repo_root: str) -> Tuple[bool, dict]:
++    """
++    [v0.3 — P0.2] Concrete post-compensation check implementation.
++    
++    Executes:
++    1. git_status_clean = (subprocess.run(
++           ["git", "status", "--porcelain"], 
++           capture_output=True
++       ).stdout.strip() == b"")
++    
++    2. git_untracked_clean = (subprocess.run(
++           ["git", "ls-files", "--others", "--exclude-standard"],
++           capture_output=True
++       ).stdout.strip() == b"")
++    
++    3. current_head = subprocess.run(
++           ["git", "rev-parse", "HEAD"],
++           capture_output=True
++       ).stdout.strip().decode()
++    
++    Returns (all_clean: bool, evidence: dict)
++    """
++```
++
++**Escalation on Verification Failure:**
++
++> [!CAUTION]
++> **If ANY post-compensation check fails, the orchestrator MUST:**
++> 1. HALT immediately — no further missions may run
++> 2. Create evidence bundle with all check outputs
++> 3. Record escalation in SQLite with severity="critical"
++> 4. Write lock file to prevent any autonomous restart
++> 5. Notify CEO with detailed failure report
++
++**Compensation Idempotency Requirement:**
++
++All compensation actions MUST be idempotent:
++- Running compensation twice must produce the same end state
++- Compensation must record an OperationReceipt with `compensation_verified: true/false`
++- If compensation itself fails: escalate immediately (do not retry)
++
+ ### 5.3 Mission Types
+ 
+ **Purpose:** Define the workflow templates for the autonomous build loop.
+@@ -1006,7 +1456,7 @@
+ 
+ **Location:** `runtime/orchestration/run_controller.py`
+ 
+-#### 5.6.1 Kill Switch [v0.2 — P1.1]
++#### 5.6.1 Kill Switch and Lock Ordering [v0.2 — P1.1, v0.3 — P1.1]
+ 
+ **[v0.2 — P1.1]** File-based kill switch:
+ 
+@@ -1025,9 +1475,84 @@
+     """
+ ```
+ 
+-**Behavior when kill switch detected:**
+-1. HALT current operation safely (complete current atomic action or rollback)
+-2. Write safe-halt evidence to `logs/kill_switch_activations/`
++**[v0.3 — P1.1] Startup Check Sequence (Race-Safe Ordering):**
++
++To eliminate race conditions between kill-switch and lock acquisition, the following EXACT order MUST be followed at mission startup:
++
++```python
++def mission_startup_sequence() -> StartupResult:
++    """
++    [v0.3 — P1.1] Race-safe startup sequence.
++    
++    Exact order:
++    1. CHECK STOP_AUTONOMY (first check)
++       - If exists: HALT immediately, do not acquire lock
++       
++    2. ACQUIRE single-run lock
++       - If lock held by another process: HALT, report conflict
++       - If stale lock (dead PID): enter crash recovery path
++       
++    3. RE-CHECK STOP_AUTONOMY (second check, post-lock)
++       - Eliminates TOCTOU race where STOP_AUTONOMY is created
++         between check (1) and lock acquisition (2)
++       - If exists: release lock, HALT, escalate
++       
++    4. PROCEED with mission
++       - Verify governance baseline
++       - Verify clean workspace
++       - Begin execution
++    
++    This double-check pattern ensures:
++    - No mission starts if STOP_AUTONOMY exists
++    - No race between concurrent "create STOP_AUTONOMY" and "start mission"
++    """
++```
++
++**[v0.3 — P1.1] Mid-Run STOP_AUTONOMY Behavior:**
++
++If STOP_AUTONOMY appears while a mission is running:
++
++```python
++def handle_mid_run_kill_switch(ctx: ExecutionContext) -> Never:
++    """
++    [v0.3 — P1.1] Handle kill switch detected mid-run.
++    
++    Behavior:
++    1. Complete current atomic action OR rollback cleanly
++       - If in middle of git operation: complete it
++       - If in middle of file write: use atomic write with rollback
++       - DO NOT leave partial state
++       
++    2. Execute compensation for completed steps (if needed)
++       - Follow compensation verification rules (§5.2.2)
++       - Record compensation receipts
++       
++    3. Create evidence bundle:
++       - Mission journal state at halt
++       - Current step ID and operation
++       - STOP_AUTONOMY detection timestamp
++       - Any partial work description
++       
++    4. Release run lock
++       - Ensure lock file is deleted
++       
++    5. Write evidence to logs/kill_switch_activations/<timestamp>/
++       - Include full mission state
++       - Include steps completed vs remaining
++       
++    6. Create escalation record in SQLite
++       - severity: "info" (clean halt)
++       - reason: "Kill switch activated mid-run"
++       
++    7. Exit gracefully
++       - No further steps
++       - No automatic restart
++    """
++```
++
++**Behavior when kill switch detected (at startup):**
++1. HALT immediately — do not acquire lock
++2. Write detection evidence to `logs/kill_switch_activations/`
+ 3. Escalate to CEO with context
+ 4. Do NOT proceed with any further steps
+ 
+@@ -1402,6 +1927,7 @@
+ |---------|------|--------|---------|
+ | 0.1 | 2026-01-08 | Claude + GL | Initial draft for council review |
+ | 0.2 | 2026-01-08 | Claude + GL | Council fix pack integration: P0.1 (governance surfaces + self-mod lock), P0.2 (envelope enforcement), P0.3 (determinism/replay), P0.4 (atomicity/rollback), P0.5 (council quorum), P1.1 (kill switch), P1.2 (evidence integrity), P1.3 (formal schemas) |
++| 0.3 | 2026-01-08 | Claude + GL | Council re-review fixes: P0.1 (governance baseline ceremony), P0.2 (compensation verification + post-state checks), P0.3 (canonical_json spec + replay equivalence + hash chain genesis), P1.1 (kill-switch/lock ordering + mid-run behavior), P1.2 (model "auto" deterministic semantics) |
+ 
+ ---
+ 

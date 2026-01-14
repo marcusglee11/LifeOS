@@ -1,0 +1,142 @@
+python : C:\Users\cabra\AppData\Roaming\Python\Python312\site-packages\pytest_asyncio\plugin.py:247: PytestDeprecationWarning: The configuration option 
+"asyncio_default_fixture_loop_scope" is unset.
+At line:1 char:1
++ python -m pytest runtime/tests/test_mission_registry/test_mission_reg ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\cabra\...cope" is unset.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to 
+function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", 
+"package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts =============================
+platform win32 -- Python 3.12.6, pytest-8.3.4, pluggy-1.5.0 -- C:\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\cabra\Projects\LifeOS
+configfile: pytest.ini
+plugins: anyio-4.7.0, asyncio-1.3.0, cov-6.2.1, mockito-0.0.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 27 items
+
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle1V02PublicAPI::test_synthesis_request_is_exported PASSED [  3%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle1V02PublicAPI::test_synthesize_mission_is_exported PASSED [  7%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle1V02PublicAPI::test_validate_mission_definition_v02_is_exported PASSED [ 11%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle1V02PublicAPI::test_ambiguous_validate_names_are_not_exported PASSED [ 14%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle2SynthesisRequestSchema::test_synthesis_request_has_required_fields PASSED [ 18%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle2SynthesisRequestSchema::test_synthesis_request_defaults PASSED [ 22%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle2SynthesisRequestSchema::test_synthesis_request_is_frozen PASSED [ 25%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle3DeterministicSynthesis::test_synthesis_produces_mission_definition PASSED [ 29%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle3DeterministicSynthesis::test_synthesis_is_deterministic PASSED [ 33%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle3DeterministicSynthesis::test_synthesis_canonical_json_is_stable PASSED [ 37%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle3DeterministicSynthesis::test_synthesis_metadata_sorted_by_key PASSED [ 40%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_empty_id PASSED [ 44%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_whitespace_only_id PASSED [ 48%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_overlong_id PASSED [ 51%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_empty_name PASSED [ 55%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_overlong_name PASSED [ 59%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_invalid_metadata_type PASSED [ 62%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_too_many_tags PASSED [ 66%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle5ValidateEntrypoint::test_validate_accepts_valid_definition PASSED [ 70%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle5ValidateEntrypoint::test_validate_rejects_invalid_definition PASSED [ 74%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle5ValidateEntrypoint::test_validate_accepts_custom_config PASSED [ 77%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle6ErrorTaxonomy::test_error_messages_are_stable PASSED [ 81%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle6ErrorTaxonomy::test_all_validation_errors_are_boundary_violations PASSED [ 85%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle7GoldenFixture::test_golden_fixture_synthesis PASSED [ 88%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle7GoldenFixture::test_golden_fixture_hash_stability PASSED [ 92%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle8ContractDecisions::test_decision_tags_are_order_significant PASSED [ 96%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle8ContractDecisions::test_decision_whitespace_is_rejected_without_stripping PASSED [100%]
+
+============================= 27 passed in 0.10s ==============================
+python : C:\Users\cabra\AppData\Roaming\Python\Python312\site-packages\pytest_asyncio\plugin.py:247: PytestDeprecationWarning: The configuration option 
+"asyncio_default_fixture_loop_scope" is unset.
+At line:1 char:1
++ python -m pytest runtime/tests/test_mission_registry/ -v 2>&1 > test_ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\cabra\...cope" is unset.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to 
+function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", 
+"package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts =============================
+platform win32 -- Python 3.12.6, pytest-8.3.4, pluggy-1.5.0 -- C:\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\cabra\Projects\LifeOS
+configfile: pytest.ini
+plugins: anyio-4.7.0, asyncio-1.3.0, cov-6.2.1, mockito-0.0.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 67 items
+
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle1PublicAPI::test_public_api_imports PASSED [  1%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle1PublicAPI::test_version_exists_and_is_semver PASSED [  2%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle1PublicAPI::test_version_constant_is_exported PASSED [  4%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle2SchemaConformance::test_mission_id_structure PASSED [  5%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle2SchemaConformance::test_mission_definition_structure PASSED [  7%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle2SchemaConformance::test_mission_definition_defaults PASSED [  8%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle2SchemaConformance::test_mission_registry_state_structure PASSED [ 10%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle3CanonicalJSON::test_canonical_json_is_stable PASSED [ 11%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle3CanonicalJSON::test_canonical_json_settings_are_pinned PASSED [ 13%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle3CanonicalJSON::test_canonical_json_roundtrip PASSED [ 14%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle4HashStability::test_state_hash_is_stable PASSED [ 16%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle4HashStability::test_different_states_different_hashes PASSED [ 17%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle5ValidationBoundaries::test_validate_mission_id_rejects_empty PASSED [ 19%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle5ValidationBoundaries::test_validate_mission_id_rejects_whitespace_only PASSED [ 20%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle5ValidationBoundaries::test_validate_definition_rejects_empty_name PASSED [ 22%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle5ValidationBoundaries::test_validate_definition_rejects_overlong_name PASSED [ 23%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle5ValidationBoundaries::test_validate_definition_rejects_overlong_description PASSED [ 25%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle5ValidationBoundaries::test_validate_definition_rejects_too_many_tags PASSED [ 26%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle5ValidationBoundaries::test_validate_definition_rejects_overlong_tag PASSED [ 28%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle6Immutability::test_mission_id_is_frozen PASSED [ 29%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle6Immutability::test_mission_definition_is_frozen PASSED [ 31%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle6Immutability::test_registry_operations_return_new_instances PASSED [ 32%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle7MetadataCanonicalOrdering::test_metadata_permutations_produce_same_canonical_json PASSED [ 34%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle8TagOrderPolicy::test_different_tag_orders_produce_different_hashes PASSED [ 35%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle8TagOrderPolicy::test_same_tag_order_produces_same_hash PASSED [ 37%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle9RegistryOperations::test_registry_enforces_id_length_boundary_on_register PASSED [ 38%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle9RegistryOperations::test_registry_enforces_boundaries_on_update PASSED [ 40%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle9RegistryOperations::test_remove_raises_on_missing_id PASSED [ 41%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle9RegistryOperations::test_metadata_serialization_check PASSED [ 43%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle10ChairConditions::test_registry_enforces_capacity_limit PASSED [ 44%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_1.py::TestCycle10ChairConditions::test_metadata_enforces_size_limits PASSED [ 46%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle1V02PublicAPI::test_synthesis_request_is_exported PASSED [ 47%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle1V02PublicAPI::test_synthesize_mission_is_exported PASSED [ 49%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle1V02PublicAPI::test_validate_mission_definition_v02_is_exported PASSED [ 50%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle1V02PublicAPI::test_ambiguous_validate_names_are_not_exported PASSED [ 52%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle2SynthesisRequestSchema::test_synthesis_request_has_required_fields PASSED [ 53%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle2SynthesisRequestSchema::test_synthesis_request_defaults PASSED [ 55%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle2SynthesisRequestSchema::test_synthesis_request_is_frozen PASSED [ 56%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle3DeterministicSynthesis::test_synthesis_produces_mission_definition PASSED [ 58%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle3DeterministicSynthesis::test_synthesis_is_deterministic PASSED [ 59%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle3DeterministicSynthesis::test_synthesis_canonical_json_is_stable PASSED [ 61%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle3DeterministicSynthesis::test_synthesis_metadata_sorted_by_key PASSED [ 62%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_empty_id PASSED [ 64%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_whitespace_only_id PASSED [ 65%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_overlong_id PASSED [ 67%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_empty_name PASSED [ 68%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_overlong_name PASSED [ 70%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_invalid_metadata_type PASSED [ 71%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle4InvariantValidation::test_rejects_too_many_tags PASSED [ 73%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle5ValidateEntrypoint::test_validate_accepts_valid_definition PASSED [ 74%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle5ValidateEntrypoint::test_validate_rejects_invalid_definition PASSED [ 76%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle5ValidateEntrypoint::test_validate_accepts_custom_config PASSED [ 77%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle6ErrorTaxonomy::test_error_messages_are_stable PASSED [ 79%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle6ErrorTaxonomy::test_all_validation_errors_are_boundary_violations PASSED [ 80%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle7GoldenFixture::test_golden_fixture_synthesis PASSED [ 82%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle7GoldenFixture::test_golden_fixture_hash_stability PASSED [ 83%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle8ContractDecisions::test_decision_tags_are_order_significant PASSED [ 85%]
+runtime/tests/test_mission_registry/test_mission_registry_v0_2.py::TestCycle8ContractDecisions::test_decision_whitespace_is_rejected_without_stripping PASSED [ 86%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT2InterfaceDefinedNoExecution::test_at1_public_interface_surface PASSED [ 88%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT2InterfaceDefinedNoExecution::test_registry_operations_are_pure PASSED [ 89%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT2InterfaceDefinedNoExecution::test_validation_enforced_on_register PASSED [ 91%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT2InterfaceDefinedNoExecution::test_conflict_error_on_duplicate PASSED [ 92%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT2InterfaceDefinedNoExecution::test_not_found_error_on_missing PASSED [ 94%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT2InterfaceDefinedNoExecution::test_no_io_during_operations PASSED [ 95%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT3DeterminismStability::test_different_insertion_orders_same_canonical_json PASSED [ 97%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT3DeterminismStability::test_determinism_with_metadata_variations PASSED [ 98%]
+runtime/tests/test_mission_registry/test_tier3_mission_registry_contracts.py::TestAT3DeterminismStability::test_empty_registry_is_deterministic PASSED [100%]
+
+============================= 67 passed in 0.13s ==============================

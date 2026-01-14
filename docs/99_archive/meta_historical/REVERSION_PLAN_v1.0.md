@@ -81,7 +81,7 @@ Current at Phase 1 start:
   - `04_project_builder/`
   - `05_agents/`
   - `06_user_surface/`
-  - `07_productisation/`
+  - `12_productisation/`
   - `08_manuals/`
   - `09_prompts/`
   - `10_meta/`
@@ -103,7 +103,7 @@ Current at Phase 1 start:
   - Move from: `docs/DocumentAudit_MINI_DIGEST1.md`  
     To:       `docs/99_archive/DocumentAudit_MINI_DIGEST1_v1.0.md`
 
-2. **INDEX_v1.0.md**
+1. **INDEX_v1.0.md**
 
 - Classification: `CANONICAL_ACTIVE` (historical index).
 - Action:
@@ -181,13 +181,13 @@ Actions:
   `COO_Runtime_Clean_Build_Spec_v1.1.md`  
   (`CANONICAL_ACTIVE`)
 
-2. Normalise walkthrough:
+1. Normalise walkthrough:
 
 - `WALKTHROUGH.md` →  
   `COO_Runtime_Walkthrough_v1.0.md`  
   (`META_RUNTIME` but stored in 03_runtime)
 
-3. Classification overview:
+1. Classification overview:
 
 - `COO_Runtime_Core_Spec_v1.0.md` — `CANONICAL_ACTIVE`
 - `COO_Runtime_Spec_v1.0.md` — `CANONICAL_ACTIVE`
@@ -243,7 +243,7 @@ Action:
 
 ### 2.3. Soft Enforcement Folders (07–10)
 
-#### 2.3.1. `/docs/07_productisation/`
+#### 2.3.1. `/docs/12_productisation/`
 
 Current:
 
@@ -424,7 +424,7 @@ Action:
 
 - Move to canonical productisation folder:
 
-  - `docs/07_productisation/Productisation_Brief_v1.0.md`
+  - `docs/12_productisation/Productisation_Brief_v1.0.md`
 
 Classification: `CANONICAL_ACTIVE`.
 
@@ -597,7 +597,7 @@ Phase 1 execution is implemented via two PowerShell scripts:
 
    - Moves:
      - Concept and CSO docs into `/docs/99_archive/...`
-     - Productisation brief into `/docs/07_productisation/`
+     - Productisation brief into `/docs/12_productisation/`
      - Legacy auxiliary folders into `/docs/99_archive/legacy_structures/`
      - Root `DocumentAudit_MINI_DIGEST1.md` into `/docs/99_archive/`
 
@@ -621,5 +621,3 @@ Once the CEO is satisfied, they approve Gate 2 by instructing:
 > `go (Gate 3)`
 
 which authorises the generation of scripts, the execution log template, the full deprecation audit, and the new index.
-
-

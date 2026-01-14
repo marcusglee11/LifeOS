@@ -2,6 +2,7 @@
 import copy
 import hashlib
 import json
+import subprocess
 from dataclasses import dataclass
 from typing import List, Dict, Any
 
@@ -17,6 +18,30 @@ from runtime.orchestration.engine import (
     AntiFailureViolation,
     EnvelopeViolation,
 )
+
+
+@pytest.fixture
+def temp_git_repo(tmp_path):
+    """
+    Create temporary git repository for mission testing.
+
+    CRITICAL: Tests must NOT rely on existing git repo.
+    This fixture creates a minimal git repo to exercise runtime detection deterministically.
+    """
+    repo_dir = tmp_path / "test_repo"
+    repo_dir.mkdir()
+
+    # Initialize git
+    subprocess.run(["git", "init"], cwd=repo_dir, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_dir, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo_dir, check=True, capture_output=True)
+
+    # Create initial commit (required for baseline_commit detection)
+    (repo_dir / "README.md").write_text("# Test")
+    subprocess.run(["git", "add", "README.md"], cwd=repo_dir, check=True, capture_output=True)
+    subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=repo_dir, check=True, capture_output=True)
+
+    return repo_dir
 
 
 def _stable_hash(obj: Any) -> str:
@@ -227,3 +252,99 @@ def test_executed_steps_are_snapshotted() -> None:
     # StepSpec does not have to_dict, but we can access payload directly
     assert executed_step.payload["value"] == 1
     assert executed_step.payload is not mutable_payload  # Must be a different object
+
+
+def test_orchestrator_dispatches_mission_successfully(temp_git_repo, monkeypatch):
+    """
+    Test orchestrator executes mission and stores results correctly.
+
+    ENFORCES ECHO-OR-SKIP RULE (E5):
+    - MUST use "echo" mission only
+    - Skip test if echo not available (no fallback to design/build)
+
+    Must assert:
+    - result.success is True
+    - "mission_result" in final_state
+    - "mission_results" in final_state and step.id in it
+    """
+    monkeypatch.chdir(temp_git_repo)
+
+    # Check if echo mission is available (echo-or-skip rule)
+    mission_available = False
+    try:
+        from runtime.orchestration import registry
+        if hasattr(registry, 'MISSION_REGISTRY') and 'echo' in registry.MISSION_REGISTRY:
+            mission_available = True
+    except ImportError:
+        try:
+            from runtime.orchestration.missions import get_mission_class
+            get_mission_class("echo")
+            mission_available = True
+        except:
+            pass
+
+    # ENFORCE: echo-or-skip (no fallback)
+    if not mission_available:
+        pytest.skip("Echo mission not available; test requires echo for determinism (echo-or-skip rule)")
+
+    orchestrator = Orchestrator()
+
+    # Workflow with echo mission step
+    workflow = WorkflowDefinition(
+        id="wf-mission-test",
+        steps=[
+            StepSpec(
+                id="echo-step",
+                kind="runtime",
+                payload={
+                    "operation": "mission",
+                    "mission_type": "echo",
+                    "inputs": {}
+                }
+            )
+        ]
+    )
+
+    ctx = ExecutionContext(initial_state={})
+    result = orchestrator.run_workflow(workflow, ctx)
+
+    # REQUIRED ASSERTIONS (per instruction block E.P0.2)
+    assert result.success is True, f"Expected success, got: {result.error_message}"
+    assert "mission_result" in result.final_state, "mission_result not in final_state"
+    assert "mission_results" in result.final_state, "mission_results not in final_state"
+    assert "echo-step" in result.final_state["mission_results"], "echo-step not in mission_results"
+
+
+def test_orchestrator_handles_unknown_mission_type():
+    """
+    Test unknown mission types are caught and reported.
+
+    REQUIRED assertions (per instruction block E.P0.2):
+    - result.success is False
+    - result.failed_step_id == step.id
+    - error_message contains mission_type (flexible matching)
+    """
+    orchestrator = Orchestrator()
+
+    workflow = WorkflowDefinition(
+        id="wf-unknown",
+        steps=[
+            StepSpec(
+                id="unknown-step",
+                kind="runtime",
+                payload={
+                    "operation": "mission",
+                    "mission_type": "nonexistent_type_xyz",
+                    "inputs": {}
+                }
+            )
+        ]
+    )
+
+    result = orchestrator.run_workflow(workflow, ExecutionContext(initial_state={}))
+
+    # REQUIRED ASSERTIONS (per instruction block E.P0.2)
+    assert result.success is False, "Expected failure for unknown mission type"
+    assert result.failed_step_id == "unknown-step", f"Expected failed_step_id='unknown-step', got {result.failed_step_id}"
+    # Check error message contains mission type (flexible matching - avoid exact phrases)
+    assert "nonexistent_type_xyz" in result.error_message, f"Error message should mention mission type: {result.error_message}"

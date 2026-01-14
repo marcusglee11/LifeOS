@@ -150,6 +150,7 @@ class DesignMission(BaseMission):
             evidence["call_id"] = response.call_id
             evidence["model_used"] = response.model_used
             evidence["latency_ms"] = response.latency_ms
+            evidence["usage"] = response.usage # Expose for budgeting
             
             # Step 4: Validate output (FAIL-CLOSED)
             # This step is ALWAYS recorded when we reach this point

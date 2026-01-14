@@ -5,11 +5,14 @@ from runtime.orchestration.engine import Orchestrator, WorkflowDefinition, StepS
 
 # Import canonical defaults from single source of truth
 try:
-    from runtime.agents.models import DEFAULT_MODEL, validate_config
-except ImportError:
-    DEFAULT_MODEL = "minimax-m2.1-free"
-    def validate_config():
-        return True, "Fallback"
+    from runtime.agents.models import (
+        validate_config,
+        resolve_model_auto,
+        load_model_config
+    )
+except ImportError as e:
+    print(f"CRITICAL: Failed to import runtime.agents.models: {e}")
+    sys.exit(1)
 
 def main():
     # Validate API key availability using canonical validation
@@ -18,8 +21,12 @@ def main():
         print(f"ERROR: {msg}")
         sys.exit(1)
 
-    # Use STEWARD_MODEL from environment if set, otherwise use canonical default
-    model = os.environ.get("STEWARD_MODEL", DEFAULT_MODEL)
+    # Use STEWARD_MODEL from environment if set, otherwise resolve canonical steward default
+    model = os.environ.get("STEWARD_MODEL")
+    if not model or model == "auto":
+        config = load_model_config()
+        model, _, _ = resolve_model_auto("steward", config)
+    
     os.environ["STEWARD_MODEL"] = model
 
     orchestrator = Orchestrator()
@@ -35,7 +42,8 @@ def main():
                 payload={
                     "operation": "llm_call",
                     "prompt": "Hello! Reply with exactly one word: 'READY'.",
-                    "output_key": "verification_result"
+                    "output_key": "verification_result",
+                    "model": model
                 }
             )
         ]

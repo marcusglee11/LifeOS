@@ -10,5 +10,6 @@
 - [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./Council_Ruling_OpenCode_First_Stewardship_v1.1.md) (Active)
 
 ### Sign-Offs (Closed Amendments)
-- [AUR_20260105 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)
 
+- [AUR_20260114 E2E Harness Patch (v2.0)](../../artifacts/signoffs/AUR_20260114_E2E_Harness_Patch_v1.2_Signoff.md)
+- [AUR_20260112 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)

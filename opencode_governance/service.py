@@ -1,5 +1,7 @@
 """
 OpenCode Governance Service — Phase 1 Skeleton
+
+LIFEOS_TODO[P1][area: opencode_governance/service.py][exit: builder implementation complete + pytest opencode_governance/tests/] When OpenCode builder functionality is implemented, ensure it follows TODO_Standard_v1.0.md for all code generation (use LIFEOS_TODO tags, not generic TODO)
 """
 import hashlib
 import json
@@ -80,6 +82,7 @@ def invoke(request: Dict[str, Any]) -> Dict[str, Any]:
             }
             
         # 2. Processing (Skeleton: Echo payload)
+        # LIFEOS_TODO[P1][area: opencode_governance/service.py:invoke][exit: pytest opencode_governance/tests/test_service.py] Implement real governance processing logic (currently just echoing payload)
         output = {
             "echo": payload,
             "processed": True

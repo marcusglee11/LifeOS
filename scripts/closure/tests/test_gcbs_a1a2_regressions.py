@@ -34,7 +34,7 @@ def create_valid_manifest(closure_id="TEST", evidence=None):
         "closure_type": "TEST",
         "run_commit": "abc12345",
         "evidence": evidence or [],
-        "zip_sha256": "DETACHED_SEE_SIBLING_FILE", # v1.1 Requirement
+        "zip_sha256": None, # v1.1 Requirement (Schema allows null)
         "invariants_asserted": [],
         "profile": {"name": "step_gate_closure", "version": "1.0"},
         "gcbs_standard_version": "1.0" # v0.2.2 Requirement
@@ -44,7 +44,13 @@ def build_valid_zip_with_sidecar(zip_path, manifest, files=None):
     """Helper to build a valid v1.1 zip and sidecar."""
     with zipfile.ZipFile(zip_path, 'w') as zf:
         zf.writestr("closure_manifest.json", json.dumps(manifest))
-        zf.writestr("closure_addendum.md", "# Test")
+        
+        # Generate valid addendum to satisfy E_ADDENDUM_ROW_MISMATCH
+        lines = ["# Test Addendum", "| Role | Path | SHA256 |", "|---|---|---|"]
+        for ev in manifest.get("evidence", []):
+            lines.append(f"| {ev['role']} | `{ev['path']}` | `{ev['sha256']}` |")
+        zf.writestr("closure_addendum.md", "\n".join(lines))
+        
         if files:
             for name, content in files.items():
                 zf.writestr(name, content)
@@ -99,6 +105,23 @@ class TestDetachedDigest:
         
         assert res.returncode != 0
         assert "DETACHED_DIGEST_MISMATCH" in report_path.read_text()
+
+    def test_sidecar_format_enforcement(self, tmp_path):
+        """Validator fails if sidecar contains invalid hex."""
+        zip_path = tmp_path / "bad_fmt.zip"
+        manifest = create_valid_manifest()
+        sidecar = build_valid_zip_with_sidecar(zip_path, manifest)
+        
+        # Write only 10 chars
+        sidecar.write_text("ABCDEF1234")
+        
+        report_path = tmp_path / "audit_report_fmt.md"
+        cmd = [sys.executable, os.path.join(REPO_ROOT, "scripts", "closure", "validate_closure_bundle.py"),
+               str(zip_path), "--output", str(report_path)]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        
+        assert res.returncode != 0
+        assert "DETACHED_DIGEST_MALFORMED" in report_path.read_text()
 
 
 class TestZipDeterminism:

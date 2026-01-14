@@ -26,6 +26,7 @@ class MissionType(str, Enum):
     BUILD_WITH_VALIDATION = "build_with_validation"
     STEWARD = "steward"
     AUTONOMOUS_BUILD_CYCLE = "autonomous_build_cycle"
+    ECHO = "echo"
 
 
 class MissionError(Exception):

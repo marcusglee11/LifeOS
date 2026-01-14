@@ -1,7 +1,9 @@
 # Intent Routing Rule v1.1
 
-**Status**: WIP (Non-Canonical)  
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+<!-- LIFEOS_TODO[P1][area: docs/02_protocols/Intent_Routing_Rule_v1.1.md][exit: status change to ACTIVE + DAP validate] Finalize Intent_Routing_Rule v1.1: Remove WIP/Provisional markers, set effective date -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
 **Effective**: TBD (Provisional)
 
 ---

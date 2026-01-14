@@ -143,6 +143,7 @@ class ReviewMission(BaseMission):
                 evidence={
                     "call_id": response.call_id,
                     "model_used": response.model_used,
+                    "usage": response.usage,
                 },
             )
             

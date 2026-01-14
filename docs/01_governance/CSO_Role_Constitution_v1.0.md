@@ -1,7 +1,9 @@
 # CSO Role Constitution v1.0
 
-**Status**: WIP (Non-Canonical)  
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+<!-- LIFEOS_TODO[P1][area: docs/01_governance/CSO_Role_Constitution_v1.0.md][exit: CEO approval + status change to ACTIVE] Finalize CSO_Role_Constitution v1.0: Remove WIP/Provisional markers, get CEO approval -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
 **Effective**: 2026-01-07 (Provisional)
 
 ---

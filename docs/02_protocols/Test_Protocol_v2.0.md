@@ -1,8 +1,10 @@
 # Test Protocol v2.0
 
-**Status**: WIP (Non-Canonical)  
-**Authority**: LifeOS Constitution v2.0 → Core TDD Principles v1.0  
-**Effective**: 2026-01-07 (Provisional)  
+<!-- LIFEOS_TODO[P1][area: docs/02_protocols/Test_Protocol_v2.0.md][exit: status change to ACTIVE + DAP validate] Finalize Test_Protocol v2.0: Remove WIP/Provisional markers -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: LifeOS Constitution v2.0 → Core TDD Principles v1.0
+**Effective**: 2026-01-07 (Provisional)
 **Supersedes**: Test Protocol v1.0
 
 ---

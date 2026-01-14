@@ -1,4 +1,5 @@
 ﻿# LifeOS Universal Corpus
+
 **Generated**: 2026-01-02 23:43:35
 **Steward**: Antigravity (Automated)
 **Version**: 1c1d3e9
@@ -6,6 +7,7 @@
 ---
 
 ## ðŸ“‹ Table of Changes (Last 5 Commits)
+
 - `b7f1c4e` 2026-01-02: **[governance] Fix protocol paths in ARTEFACT_INDEX.json**
 - `0e7f32c` 2026-01-02: **docs: create 02_protocols/ and establish file organization rules**
 - `bdc6fbf` 2026-01-02: **chore: remove venv from tracking, expand .gitignore with security patterns**
@@ -15,20 +17,23 @@
 ---
 
 ## ðŸ¤– AI Onboarding Protocol
+
 **To any AI Agent reading this:**
-1.  **Identity**: This is LifeOS, a personal operating system.
-2.  **Authority**: The `00_foundations/LifeOS_Constitution_v2.0.md` is SUPREME.
-3.  **Governance**: All changes follow `01_governance/Governance_Protocol_v1.0.md`.
-4.  **Structure**:
-    -   `00_foundations`: Core axioms (Constitution, Architecture).
-    -   `01_governance`: How we decide and work (Stewardship, Council).
-    -   `03_runtime`: How the system runs (Specs, implementation).
-5.  **Constraint**: Do not hallucinate files not present in this corpus.
+
+1. **Identity**: This is LifeOS, a personal operating system.
+2. **Authority**: The `00_foundations/LifeOS_Constitution_v2.0.md` is SUPREME.
+3. **Governance**: All changes follow `01_governance/Governance_Protocol_v1.0.md`.
+4. **Structure**:
+    - `00_foundations`: Core axioms (Constitution, Architecture).
+    - `01_governance`: How we decide and work (Stewardship, Council).
+    - `03_runtime`: How the system runs (Specs, implementation).
+5. **Constraint**: Do not hallucinate files not present in this corpus.
 
 ---
 
 ## ðŸ”Ž Table of Contents
-- [docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md](#file-docs-01-governance-agentconstitution-gemini-template-v1-0-md)\n- [docs/00_foundations/LifeOS_Constitution_v2.0.md](#file-docs-00-foundations-lifeos-constitution-v2-0-md)\n- [docs/01_governance/COO_Operating_Contract_v1.0.md](#file-docs-01-governance-coo-operating-contract-v1-0-md)\n- [docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md](#file-docs-02-protocols-deterministic-artefact-protocol-v2-0-md)\n- [docs/02_protocols/Document_Steward_Protocol_v1.0.md](#file-docs-02-protocols-document-steward-protocol-v1-0-md)\n- [docs/02_protocols/Governance_Protocol_v1.0.md](#file-docs-02-protocols-governance-protocol-v1-0-md)\n- [docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](#file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md)\n- [docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md](#file-docs-00-foundations-anti-failure-operational-packet-v0-1-md)\n- [docs/00_foundations/Architecture_Skeleton_v1.0.md](#file-docs-00-foundations-architecture-skeleton-v1-0-md)\n- [docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](#file-docs-01-governance-alignment-review-template-v1-0-md)\n- [docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](#file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md)\n- [docs/01_governance/COO_Expectations_Log_v1.0.md](#file-docs-01-governance-coo-expectations-log-v1-0-md)\n- [docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](#file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md)\n- [docs/01_governance/Council_Review_Stewardship_Runner_v1.0.md](#file-docs-01-governance-council-review-stewardship-runner-v1-0-md)\n- [docs/01_governance/INDEX.md](#file-docs-01-governance-index-md)\n- [docs/01_governance/LOG_RETENTION.md](#file-docs-01-governance-log-retention-md)\n- [docs/01_governance/PLATFORM_POLICY.md](#file-docs-01-governance-platform-policy-md)\n- [docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](#file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md)\n- [docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](#file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md)\n- [docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](#file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md)\n- [docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](#file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md)\n- [docs/03_runtime/Automation_Proposal_v0.1.md](#file-docs-03-runtime-automation-proposal-v0-1-md)\n- [docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-build-starter-prompt-template-v1-0-md)\n- [docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-code-review-prompt-template-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](#file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md)\n- [docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-core-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](#file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-index-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md](#file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md)\n- [docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](#file-docs-03-runtime-f3-tier2-5-activation-conditions-checklist-v1-0-md)\n- [docs/03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](#file-docs-03-runtime-f4-tier2-5-deactivation-rollback-conditions-v1-0-md)\n- [docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](#file-docs-03-runtime-f7-runtime-antigrav-mission-protocol-v1-0-md)\n- [docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md](#file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md)\n- [docs/03_runtime/Hardening_Backlog_v0.1.md](#file-docs-03-runtime-hardening-backlog-v0-1-md)\n- [docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](#file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md)\n- [docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](#file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md)\n- [docs/03_runtime/README_Recursive_Kernel_v0.1.md](#file-docs-03-runtime-readme-recursive-kernel-v0-1-md)\n- [docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md](#file-docs-03-runtime-runtime-complexity-constraints-v0-1-md)\n- [docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](#file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md)\n- [docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](#file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md)\n- [docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](#file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md)\n- [docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](#file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md)\n- [docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](#file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md)\n- [docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](#file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md)\n- [docs/06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](#file-docs-06-user-surface-coo-runtime-user-surface-stageb-testharness-v1-1-md)\n- [docs/07_productisation/Productisation_Brief_v1.0.md](#file-docs-07-productisation-productisation-brief-v1-0-md)\n- [docs/08_manuals/Governance_Runtime_Manual_v1.0.md](#file-docs-08-manuals-governance-runtime-manual-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md)\n- [docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](#file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md)\n- [docs/09_prompts/v1.0/system/modes_overview_v1.0.md](#file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md)\n- [docs/10_meta/CODE_REVIEW_STATUS_v1.0.md](#file-docs-10-meta-code-review-status-v1-0-md)\n- [docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](#file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md)\n- [docs/10_meta/DEPRECATION_AUDIT_v1.0.md](#file-docs-10-meta-deprecation-audit-v1-0-md)\n- [docs/10_meta/governance_digest_v1.0.md](#file-docs-10-meta-governance-digest-v1-0-md)\n- [docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md](#file-docs-10-meta-implementation-plan-v1-0-md)\n- [docs/10_meta/LifeOS â€” Exploratory_Proposal.md](#file-docs-10-meta-lifeos-â€”-exploratory-proposal-md)\n- [docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](#file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md)\n- [docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](#file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md)\n- [docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md](#file-docs-10-meta-reversion-execution-log-v1-0-md)\n- [docs/10_meta/REVERSION_PLAN_v1.0.md](#file-docs-10-meta-reversion-plan-v1-0-md)\n- [docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](#file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md)\n- [docs/10_meta/Review_Packet_Reminder_v1.0.md](#file-docs-10-meta-review-packet-reminder-v1-0-md)\n- [docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md](#file-docs-10-meta-steward-artefact-mission-v1-0-md)\n- [docs/10_meta/TASKS_v1.0.md](#file-docs-10-meta-tasks-v1-0-md)\n- [docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md](#file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md)\n- [docs/INDEX.md](#file-docs-index-md)
+
+- [docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md](#file-docs-01-governance-agentconstitution-gemini-template-v1-0-md)\n- [docs/00_foundations/LifeOS_Constitution_v2.0.md](#file-docs-00-foundations-lifeos-constitution-v2-0-md)\n- [docs/01_governance/COO_Operating_Contract_v1.0.md](#file-docs-01-governance-coo-operating-contract-v1-0-md)\n- [docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md](#file-docs-02-protocols-deterministic-artefact-protocol-v2-0-md)\n- [docs/02_protocols/Document_Steward_Protocol_v1.0.md](#file-docs-02-protocols-document-steward-protocol-v1-0-md)\n- [docs/02_protocols/Governance_Protocol_v1.0.md](#file-docs-02-protocols-governance-protocol-v1-0-md)\n- [docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md](#file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md)\n- [docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md](#file-docs-00-foundations-anti-failure-operational-packet-v0-1-md)\n- [docs/00_foundations/Architecture_Skeleton_v1.0.md](#file-docs-00-foundations-architecture-skeleton-v1-0-md)\n- [docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](#file-docs-01-governance-alignment-review-template-v1-0-md)\n- [docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md](#file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md)\n- [docs/01_governance/COO_Expectations_Log_v1.0.md](#file-docs-01-governance-coo-expectations-log-v1-0-md)\n- [docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md](#file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md)\n- [docs/01_governance/Council_Review_Stewardship_Runner_v1.0.md](#file-docs-01-governance-council-review-stewardship-runner-v1-0-md)\n- [docs/01_governance/INDEX.md](#file-docs-01-governance-index-md)\n- [docs/01_governance/LOG_RETENTION.md](#file-docs-01-governance-log-retention-md)\n- [docs/01_governance/PLATFORM_POLICY.md](#file-docs-01-governance-platform-policy-md)\n- [docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md](#file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md)\n- [docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md](#file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md)\n- [docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](#file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md)\n- [docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](#file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md)\n- [docs/03_runtime/Automation_Proposal_v0.1.md](#file-docs-03-runtime-automation-proposal-v0-1-md)\n- [docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-build-starter-prompt-template-v1-0-md)\n- [docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](#file-docs-03-runtime-code-review-prompt-template-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md](#file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md)\n- [docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-core-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md](#file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-index-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Spec_v1.0.md](#file-docs-03-runtime-coo-runtime-spec-v1-0-md)\n- [docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md](#file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md)\n- [docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](#file-docs-03-runtime-f3-tier2-5-activation-conditions-checklist-v1-0-md)\n- [docs/03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](#file-docs-03-runtime-f4-tier2-5-deactivation-rollback-conditions-v1-0-md)\n- [docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](#file-docs-03-runtime-f7-runtime-antigrav-mission-protocol-v1-0-md)\n- [docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md](#file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md)\n- [docs/03_runtime/Hardening_Backlog_v0.1.md](#file-docs-03-runtime-hardening-backlog-v0-1-md)\n- [docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](#file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md)\n- [docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md](#file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md)\n- [docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](#file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md)\n- [docs/03_runtime/README_Recursive_Kernel_v0.1.md](#file-docs-03-runtime-readme-recursive-kernel-v0-1-md)\n- [docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md](#file-docs-03-runtime-runtime-complexity-constraints-v0-1-md)\n- [docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md](#file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md)\n- [docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md](#file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md)\n- [docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md](#file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md)\n- [docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md](#file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md)\n- [docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](#file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md)\n- [docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](#file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md)\n- [docs/06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](#file-docs-06-user-surface-coo-runtime-user-surface-stageb-testharness-v1-1-md)\n- [docs/12_productisation/Productisation_Brief_v1.0.md](#file-docs-12-productisation-productisation-brief-v1-0-md)\n- [docs/08_manuals/Governance_Runtime_Manual_v1.0.md](#file-docs-08-manuals-governance-runtime-manual-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md)\n- [docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](#file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md](#file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md](#file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md)\n- [docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md](#file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md)\n- [docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md](#file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md)\n- [docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md](#file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md)\n- [docs/09_prompts/v1.0/system/modes_overview_v1.0.md](#file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md)\n- [docs/10_meta/CODE_REVIEW_STATUS_v1.0.md](#file-docs-10-meta-code-review-status-v1-0-md)\n- [docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md](#file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md)\n- [docs/10_meta/DEPRECATION_AUDIT_v1.0.md](#file-docs-10-meta-deprecation-audit-v1-0-md)\n- [docs/10_meta/governance_digest_v1.0.md](#file-docs-10-meta-governance-digest-v1-0-md)\n- [docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md](#file-docs-10-meta-implementation-plan-v1-0-md)\n- [docs/10_meta/LifeOS â€” Exploratory_Proposal.md](#file-docs-10-meta-lifeos-â€”-exploratory-proposal-md)\n- [docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md](#file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md)\n- [docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md](#file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md)\n- [docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md](#file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md)\n- [docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md](#file-docs-10-meta-reversion-execution-log-v1-0-md)\n- [docs/10_meta/REVERSION_PLAN_v1.0.md](#file-docs-10-meta-reversion-plan-v1-0-md)\n- [docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md](#file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md)\n- [docs/10_meta/Review_Packet_Reminder_v1.0.md](#file-docs-10-meta-review-packet-reminder-v1-0-md)\n- [docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md](#file-docs-10-meta-steward-artefact-mission-v1-0-md)\n- [docs/10_meta/TASKS_v1.0.md](#file-docs-10-meta-tasks-v1-0-md)\n- [docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md](#file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md)\n- [docs/INDEX.md](#file-docs-index-md)
 
 ---
 
@@ -39,10 +44,13 @@
 <hr>
 
 <a id="file-docs-01-governance-agentconstitution-gemini-template-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md
+
 **Source**: `docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md`
 
 # AgentConstitution_GEMINI_Template_v1.0  
+
 # LifeOS Subordinate Agent Constitution for Antigravity Workers
 
 ---
@@ -357,6 +365,7 @@ Antigravity must not:
 ## Section 6 â€” Stewardship Validation Rule
 
 A Review Packet is **invalid** if the mission modified any documentation but failed to:
+
 1. Update `docs/INDEX.md` timestamp
 2. Regenerate `LifeOS_Universal_Corpus.md`
 3. Include these updated files in the Appendix
@@ -470,12 +479,14 @@ Before creating or modifying any code, test, or documentation file, Antigravity 
 ## Section 2. What Counts as Substantive
 
 Substantive changes include:
+
 - New files of any kind
 - Logic changes (code behavior, test assertions, documentation meaning)
 - Structural changes (moving files, renaming, reorganizing)
 - Any change to governance-controlled paths (see Section 4)
 
 Non-substantive (planning NOT required):
+
 - Fixing typos in non-governance files
 - Formatting adjustments
 - Adding comments that don't change meaning
@@ -532,6 +543,7 @@ Before completing any mission that touched `docs/`, execute:
 ## Section 3. Automatic Triggering
 
 This protocol triggers automatically when:
+
 - Any `.md` file is created in `docs/`
 - Any `.md` file is modified in `docs/`
 - Any `.md` file is deleted from `docs/`
@@ -540,11 +552,12 @@ This protocol triggers automatically when:
 
 # **End of Constitution v2.4 (Full Enforcement Edition)**
 
-
 <hr>
 
 <a id="file-docs-00-foundations-lifeos-constitution-v2-0-md"></a>
+
 # ðŸ“„ FILE: docs/00_foundations/LifeOS_Constitution_v2.0.md
+
 **Source**: `docs/00_foundations/LifeOS_Constitution_v2.0.md`
 
 # LifeOS Constitution v2.0
@@ -630,11 +643,12 @@ In any conflict, this Constitution prevails.
 
 **END OF CONSTITUTION**
 
-
 <hr>
 
 <a id="file-docs-01-governance-coo-operating-contract-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/COO_Operating_Contract_v1.0.md
+
 **Source**: `docs/01_governance/COO_Operating_Contract_v1.0.md`
 
 # COO Operating Contract
@@ -644,11 +658,13 @@ This document is the canonical governance agreement for how the COO operates, ma
 ## 1. Roles and Responsibilities
 
 ### 1.1 CEO
+
 - Defines identity, values, intent, direction, and non-negotiables.  
 - Sets objectives and approves major strategic changes.  
 - Provides clarification when escalation is required.
 
 ### 1.2 COO (AI System)
+
 - Translates CEO direction into structured plans, missions, and execution loops.
 - Drives momentum with minimal prompting.
 - Maintains situational awareness across all active workstreams.
@@ -657,6 +673,7 @@ This document is the canonical governance agreement for how the COO operates, ma
 - Surfaces risks early and maintains predictable operations.
 
 ### 1.3 Worker Agents
+
 - Execute scoped, bounded tasks under COO supervision.
 - Produce deterministic, verifiable outputs.
 - Have no strategic autonomy.
@@ -664,13 +681,17 @@ This document is the canonical governance agreement for how the COO operates, ma
 ## 2. Autonomy Levels
 
 ### Phase 0 â€” Bootstrapping
+
 COO requires confirmation before initiating new workstreams or structural changes.
 
 ### Phase 1 â€” Guided Autonomy
+
 COO may propose and initiate tasks unless they alter identity, strategy, or irreversible structures.
 
 ### Phase 2 â€” Operational Autonomy (Target State)
+
 COO runs independently:
+
 - Creates missions.
 - Allocates agents.
 - Schedules tasks.
@@ -680,6 +701,7 @@ Only escalates the categories defined in Section 3.
 ## 3. Escalation Rules
 
 The COO must escalate when:
+
 - **Identity / Values** changes arise.
 - **Strategy** decisions or long-term direction shifts occur.
 - **Irreversible or high-risk actions** are involved.
@@ -689,16 +711,19 @@ The COO must escalate when:
 ## 4. Reporting & Cadence
 
 ### Daily
+
 - Active missions summary.
 - Blockers.
 - Decisions taken autonomously.
 
 ### Weekly
+
 - Workstream progress.
 - Prioritisation suggestions.
 - Risks.
 
 ### Monthly
+
 - Structural improvements.
 - Workflow enhancements.
 - Autonomy phase review.
@@ -715,30 +740,36 @@ The COO must escalate when:
 
 The Operating Contract may be updated only with CEO approval and version logging.
 
-
 <hr>
 
 <a id="file-docs-02-protocols-deterministic-artefact-protocol-v2-0-md"></a>
+
 # ðŸ“„ FILE: docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md
+
 **Source**: `docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md`
 
 # Deterministic Artefact Protocol (DAP) v2.0 â€” Dual-Layer Specification
 
 ## Placement
+
 `/docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md`
 
 ## Status
+
 Canonical governance specification.
 
 ## Layer 1 â€” Canonical Human-Readable Specification
 
 ## 1. Purpose
+
 The Deterministic Artefact Protocol (DAP) v2.0 defines the mandatory rules and constraints governing the creation, modification, storage, naming, indexing, validation, and execution of all artefacts produced within the LifeOS environment. Its goals include determinism, auditability, reproducibility, immutability of historical artefacts, and elimination of conversational drift.
 
 ## 2. Scope
+
 DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit reports, ZIP archives, tool-generated files, and directory structure modifications. It applies to all assistant behaviour, tool invocations, and agents within LifeOS.
 
 ## 3. Definitions
+
 - **Artefact**: Deterministic file created or modified under DAP.
 - **Deterministic State**: A reproducible filesystem state.
 - **Canonical Artefact**: The authoritative version stored under `/docs`.
@@ -747,6 +778,7 @@ DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit repo
 - **DAP Operation**: Any assistant operation affecting artefacts.
 
 ## 4. Core Principles
+
 - Determinism
 - Explicitness
 - Idempotence
@@ -757,6 +789,7 @@ DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit repo
 - Canonical Tree Enforcement
 
 ## 5. Mandatory Workflow Rules
+
 - Artefacts may only be created at StepGate Gate 3.
 - All artefacts must include complete content.
 - Tool calls must embed full content.
@@ -767,12 +800,15 @@ DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit repo
 - Forbidden behaviours include guessing filenames, modifying artefacts without approval, creating placeholders, relying on conversational memory, or generating artefacts outside StepGate.
 
 ## 6. Interaction with StepGate
+
 DAP references StepGate but does not merge with it. All DAP operations require Gate 3; violations require halting and returning to Gate 0.
 
 ## 7. Error Handling
+
 Hard failures include overwriting archive files, missing approval, missing paths, ambiguous targets, or context degradation. On detection, the assistant must declare a contamination event and require a fresh project.
 
 ## 8. Canonical Status
+
 DAP v2.0 becomes binding upon placement at the specified path.
 
 ---
@@ -780,41 +816,50 @@ DAP v2.0 becomes binding upon placement at the specified path.
 ## Layer 2 â€” Machine-Operational Protocol
 
 ## M-1. Inputs
+
 Assistant must not act without explicit filename, path, content, StepGate Gate 3 status.
 
 ## M-2. Artefact Creation Algorithm
+
 IF Gate != 3 â†’ refuse.  
 Require filename, path, full content.  
 Write file.  
 Verify file exists and contains no placeholders.
 
 ## M-3. Naming Rules
+
 `<BASE>_v<MAJOR>.<MINOR>[.<PATCH>].md`
 
 ## M-4. Archive Rules
+
 Immutable; may not be rewritten.
 
 ## M-5. Index Regeneration Rules
+
 Structural changes require new index version with diff summary.
 
 ## M-6. Forbidden Operations
+
 Guessing paths, relying on memory, placeholder generation, modifying archive files, or creating artefacts outside Gate 3.
 
 ## M-7. Deterministic ZIP Generation
+
 Sort filenames, preserve ordering, include only approved artefacts.
 
 ## M-8. Contamination Detection
+
 Placeholder or truncated output requires contamination event and new project.
 
 ## M-9. Resolution
+
 Return to Gate 0, regenerate plan deterministically.
-
-
 
 <hr>
 
 <a id="file-docs-02-protocols-document-steward-protocol-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/02_protocols/Document_Steward_Protocol_v1.0.md
+
 **Source**: `docs/02_protocols/Document_Steward_Protocol_v1.0.md`
 
 # Document Steward Protocol v1.0
@@ -832,14 +877,16 @@ This protocol defines how canonical documents are created, updated, indexed, and
 **Document Steward**: The agent (Antigravity or successor) â€” NOT the human CEO.
 
 Per Constitution v2.0:
+
 - **CEO performs**: Intent, approval, governance decisions only
 - **Agent performs**: All file creation, indexing, git operations, syncing
 
 The CEO must never manually shuffle documents, update indices, or run git commands. If the CEO is doing these things, it is a governance violation.
 
 **Canonical Locations**:
+
 1. **Local Repository**: `docs`
-2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
+2. **GitHub**: <https://github.com/marcusglee11/LifeOS/tree/main/docs>
 3. **Google Drive**: [REDACTED_DRIVE_LINK]
 
 ---
@@ -847,14 +894,18 @@ The CEO must never manually shuffle documents, update indices, or run git comman
 ## 2. Sync Requirements
 
 ### 2.1 Source of Truth
+
 The **local repository** is the primary source of truth. All changes originate here.
 
 ### 2.2 Sync Targets
+
 Changes must be propagated to:
+
 1. **GitHub** (primary backup, version control)
 2. **Google Drive** (external access, offline backup)
 
 ### 2.3 Sync Frequency
+
 | Event | GitHub Sync | Google Drive Sync |
 |-------|:-----------:|:-----------------:|
 | Document creation | Immediate | Same session |
@@ -867,7 +918,9 @@ Changes must be propagated to:
 ## 3. Steward Responsibilities
 
 ### 3.1 Document Creation
+
 When creating a new document:
+
 1. Create file in appropriate `docs/` subdirectory
 2. Follow naming convention: `DocumentName_vX.Y.md`
 3. Include metadata header (Status, Authority, Date)
@@ -879,7 +932,9 @@ When creating a new document:
 9. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.2 Document Modification
+
 When modifying an existing document:
+
 1. Edit the file
 2. Update version if significant change
 3. Update `docs/INDEX.md` if description changed
@@ -889,7 +944,9 @@ When modifying an existing document:
 7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.3 Document Archival
+
 When archiving a superseded document:
+
 1. Move to `docs/99_archive/` with appropriate subfolder
 2. Remove from `docs/INDEX.md`
 3. Remove from `ARTEFACT_INDEX.json` if applicable
@@ -899,7 +956,9 @@ When archiving a superseded document:
 7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.4 Index Maintenance
+
 Indices that must be kept current:
+
 - `docs/INDEX.md` â€” Master documentation index
 - `docs/01_governance/ARTEFACT_INDEX.json` â€” Governance artefact registry
 - `docs/LifeOS_Universal_Corpus.md` â€” Universal corpus for AI/NotebookLM
@@ -908,6 +967,7 @@ Indices that must be kept current:
 ### 3.5 File Organization
 
 When receiving or creating files:
+
 1. **Never leave files at `docs/` root** (except INDEX.md and corpus)
 2. Analyze file type and purpose
 3. Move to appropriate subdirectory per Directory Structure (Section 8)
@@ -915,6 +975,7 @@ When receiving or creating files:
 5. Update INDEX.md with correct paths after moving
 
 **Root files allowed**:
+
 - `INDEX.md` â€” Master documentation index
 - `LifeOS_Universal_Corpus.md` â€” Generated corpus
 
@@ -950,23 +1011,29 @@ git push origin main
 Google Drive for Desktop is configured to automatically sync the local repository to Google Drive.
 
 **Configuration:**
+
 - **Local folder**: `docs`
 - **Drive folder**: [LifeOS/docs]([REDACTED_DRIVE_LINK]))
 - **Sync mode**: Mirror (bidirectional)
 
 **Behavior:**
+
 - All local changes are automatically synced to Google Drive
 - No manual upload required
 - Sync occurs in background whenever files change
 
 ### 5.2 Steward Actions
+
 The steward does NOT need to manually sync to Google Drive. The workflow is:
+
 1. Edit files locally
 2. Commit and push to GitHub
 3. Google Drive syncs automatically
 
 ### 5.3 Verification
+
 To verify sync is working:
+
 - Check Google Drive for Desktop tray icon (green checkmark = synced)
 - Spot-check recent file in Drive web interface
 
@@ -1034,11 +1101,12 @@ If sync requires more than 2 human steps, the workflow must be automated.
 
 **END OF PROTOCOL**
 
-
 <hr>
 
 <a id="file-docs-02-protocols-governance-protocol-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/02_protocols/Governance_Protocol_v1.0.md
+
 **Source**: `docs/02_protocols/Governance_Protocol_v1.0.md`
 
 # LifeOS Governance Protocol v1.0
@@ -1067,6 +1135,7 @@ LifeOS operates on delegated authority from the CEO. Delegation is defined by **
 ### 1.3 Envelope Evolution
 
 Envelopes expand as trust and capability increase. The CEO may:
+
 - Expand envelopes by explicit authorization
 - Contract envelopes at any time
 - Override any envelope boundary
@@ -1078,6 +1147,7 @@ Envelopes expand as trust and capability increase. The CEO may:
 ### 2.1 When to Escalate
 
 LifeOS must escalate to the CEO when:
+
 1. Action is outside the defined envelope
 2. Decision is irreversible and high-impact
 3. Strategic intent is ambiguous
@@ -1087,6 +1157,7 @@ LifeOS must escalate to the CEO when:
 ### 2.2 How to Escalate
 
 Escalation must include:
+
 - Clear description of the decision required
 - Options with tradeoffs
 - Recommended option with rationale
@@ -1095,6 +1166,7 @@ Escalation must include:
 ### 2.3 When NOT to Escalate
 
 Do not escalate when:
+
 - Action is within envelope
 - Decision is reversible and low-impact
 - Prior similar decision was approved by CEO
@@ -1107,6 +1179,7 @@ Do not escalate when:
 ### 3.1 Purpose
 
 The Council is the deliberative and advisory layer operating below the CEO's intent layer. It provides:
+
 - Strategic and tactical advice
 - Ideation and brainstorming
 - Structured reviews
@@ -1116,12 +1189,14 @@ The Council is the deliberative and advisory layer operating below the CEO's int
 ### 3.2 Operating Phases
 
 **Phase 0â€“1 (Human-in-Loop)**:
+
 - Council Chair reviews and produces a recommendation
 - CEO decides whether to proceed or request fixes
 - Iterate until CEO approves
 - CEO explicitly authorizes advancement
 
 **Phase 2+ (Bounded Autonomy)**:
+
 - Council may approve within defined envelope
 - Escalation rules apply for decisions outside envelope
 - CEO receives summary and may override
@@ -1136,6 +1211,7 @@ The Council is the deliberative and advisory layer operating below the CEO's int
 ### 3.4 Invocation
 
 Council mode activates when:
+
 - CEO uses phrases like "council review", "run council"
 - Artefact explicitly requires council evaluation
 - Governance protocol specifies council review
@@ -1145,6 +1221,7 @@ Council mode activates when:
 ## 4. Amendment
 
 This Governance Protocol may be amended by:
+
 1. CEO explicit authorization, OR
 2. Council recommendation approved by CEO
 
@@ -1154,11 +1231,12 @@ Amendments must be logged with rationale and effective date.
 
 **END OF GOVERNANCE PROTOCOL**
 
-
 <hr>
 
 <a id="file-docs-01-governance-antigravity-council-review-packet-spec-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md
+
 **Source**: `docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md`
 
 ANTIGRAVITY COUNCIL REVIEW PACKET SPEC v1.0
@@ -1169,7 +1247,7 @@ LifeOS Constitution v2.0 â†’ Governance Protocol v1.0 â†’ COO Runtime 
 Status: Subordinate, mechanical, non-governance.
 Scope: Applies to all COO Runtime / PBâ†’COO builds performed under the Phase 4 Instruction Packet (and later phases that extend the runtime).
 
-0. Purpose
+1. Purpose
 
 This spec defines how you MUST generate a single consolidated Council Review Packet text artefact immediately after each successful Phase build (Phase 1â€“Phase N) of the COO Runtime work.
 
@@ -1205,7 +1283,7 @@ Alter governance rules or Council protocol.
 
 Any ambiguity in this spec â†’ you emit a clearly marked â€œOPEN_QUESTIONâ€ section for the Council rather than resolving it.
 
-2. When to Generate a Review Packet
+1. When to Generate a Review Packet
 
 You MUST generate a Council Review Packet whenever ALL of the following are true:
 
@@ -1223,7 +1301,7 @@ The build has a unique identifier (e.g. Git commit SHA or equivalent).
 
 You MUST NOT skip packet generation for a qualifying Phase build.
 
-3. Output Format & Location
+1. Output Format & Location
 
 3.1 File Format
 
@@ -1231,7 +1309,7 @@ Single UTF-8 text file.
 
 Canonical name pattern:
 
-council_review/COO_Runtime_Phase<PHASE>_Build_<BUILD_ID>_ReviewPacket_v1.0.txt
+council_review/COO_Runtime_Phase<PHASE>*Build*<BUILD_ID>_ReviewPacket_v1.0.txt
 
 Examples:
 
@@ -1251,7 +1329,7 @@ Generated from a deterministic traversal (e.g. sorted(os.walk(...))).
 
 Packet content MUST be reproducible for identical repo state + configuration.
 
-4. Packet High-Level Structure
+1. Packet High-Level Structure
 
 You MUST emit the following top-level sections in order, with exact headings:
 
@@ -1273,7 +1351,7 @@ You MUST emit the following top-level sections in order, with exact headings:
 
 Each section below is mandatory, even if some subsections are marked â€œNONEâ€.
 
-5. Section Definitions
+1. Section Definitions
 5.1 # 0. PACKET METADATA
 
 You MUST include:
@@ -1485,7 +1563,6 @@ For each file included, you MUST emit:
 <file contents, exactly as on disk>
 ===== FILE END: <relative/path/to/file.py> =====
 
-
 Rules:
 
 Files MUST be ordered lexicographically by path.
@@ -1524,7 +1601,7 @@ Implementation notes such as:
 
 These notes are advisory and non-binding.
 
-6. Mechanical Generation Process (High-Level)
+1. Mechanical Generation Process (High-Level)
 
 To produce the packet, you MUST:
 
@@ -1549,7 +1626,9 @@ If any step fails, you MUST still attempt to emit a partial packet with a clear 
 <hr>
 
 <a id="file-docs-00-foundations-anti-failure-operational-packet-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md
+
 **Source**: `docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md`
 
 LifeOS â€” Anti-Failure Operational Packet v0.1
@@ -1583,7 +1662,7 @@ Construction-phase architectures that violate LifeOS principles
 
 This packet defines the spec, mechanisms, and activation plan required to stabilise the system and ensure LifeOS builds itself â€” not by placing more burden on the human, but by shifting that burden to agents.
 
-2. Core Principle: Human Preservation
+1. Core Principle: Human Preservation
 
 LifeOS shall treat the human as:
 
@@ -1613,7 +1692,7 @@ Clarifying ambiguity
 
 Any task that falls to the human outside these categories represents a system design failure.
 
-3. Spec (Conceptual Requirements)
+1. Spec (Conceptual Requirements)
 3.1 Requirements for LifeOS Stability
 
 LifeOS must guarantee the following:
@@ -1654,7 +1733,7 @@ Agents do not enforce minimal substrate invariants
 
 Human energy cycles cause operational collapse
 
-4. Mechanisms
+1. Mechanisms
 
 The following YAML describes concrete mechanisms that agents (Antigravity, Steward, Runtime) must implement or enforce.
 
@@ -1697,7 +1776,7 @@ mechanisms:
     monthly:
       - "Re-run substrate validation."
 
-5. Activation Plan (Actions â†’ Measures â†’ Outcomes)
+1. Activation Plan (Actions â†’ Measures â†’ Outcomes)
 
 These are defined for agents first, human second.
 You should only approve or veto â€” nothing else.
@@ -1716,23 +1795,25 @@ actions:
     - "Approve or reject the 3 tasks selected for automation."
 
 measures:
-  - name: manual_file_ops_per_day
+
+- name: manual_file_ops_per_day
     target: "zero or trending toward zero"
-  - name: human_copy_paste_events
+- name: human_copy_paste_events
     target: "significant reduction over 14 days"
-  - name: substrate_stability
+- name: substrate_stability
     target: "no new primitives introduced"
-  - name: daily_loop_completion
+- name: daily_loop_completion
     target: ">= 5 of 7 days for initial cycle"
 
 outcomes:
-  - "The human performs dramatically fewer routine steps."
-  - "LifeOS becomes stable with a smaller operable core."
-  - "Agents own execution, maintenance, and file management."
-  - "Friction begins trending downward instead of upward."
-  - "The build phase becomes survivable and scalable."
 
-6. Ownership and Enforcement
+- "The human performs dramatically fewer routine steps."
+- "LifeOS becomes stable with a smaller operable core."
+- "Agents own execution, maintenance, and file management."
+- "Friction begins trending downward instead of upward."
+- "The build phase becomes survivable and scalable."
+
+1. Ownership and Enforcement
 
 Antigravity enforces build-time principles
 
@@ -1742,7 +1823,7 @@ Runtime enforces operational and complexity limits
 
 Human approves or redirects only
 
-7. Completion Criteria for v0.1
+1. Completion Criteria for v0.1
 
 This packet is considered â€œactiveâ€ when:
 
@@ -1765,7 +1846,9 @@ END OF PACKET
 <hr>
 
 <a id="file-docs-00-foundations-architecture-skeleton-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/00_foundations/Architecture_Skeleton_v1.0.md
+
 **Source**: `docs/00_foundations/Architecture_Skeleton_v1.0.md`
 
 # LifeOS Architecture Skeleton (High-Level Model)
@@ -1775,7 +1858,9 @@ Governance lives in the COO Operating Contract.
 Technical implementation lives in COOSpecv1.0Final.md.
 
 ## 1. Purpose
+
 Provide a unified mental model for:
+
 - How intent â†’ missions â†’ execution flow.
 - How CEO, COO, and Worker Agents interact.
 - How the LifeOS layers produce stable momentum.
@@ -1783,14 +1868,17 @@ Provide a unified mental model for:
 ## 2. LifeOS Layers
 
 ### 2.1 CEO (Intent Layer)
+
 - Defines identity, values, priorities, direction.
 
 ### 2.2 COO (Operational Layer)
+
 - Converts intent into structured missions.
 - Manages execution, quality, agents, and schedules.
 - Maintains operational momentum.
 
 ### 2.3 Worker Agents (Execution Layer)
+
 - Perform bounded tasks.
 - Output deterministic results.
 - No strategic autonomy.
@@ -1805,6 +1893,7 @@ Provide a unified mental model for:
 6. Mission closeout.
 
 ## 4. Architecture Principles
+
 - Strict separation of intent and execution.
 - Deterministic processes.
 - Continuous improvement.
@@ -1812,30 +1901,35 @@ Provide a unified mental model for:
 - Coherence across workstreams.
 
 ## 5. Relationship to Implementation
+
 This describes the *conceptual model*.  
 The COOSpec defines the actual runtime mechanics: SQLite message bus, deterministic lifecycle, Docker sandbox, and agent orchestration.
-
 
 <hr>
 
 <a id="file-docs-01-governance-alignment-review-template-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md
+
 **Source**: `docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md`
 
 # **LifeOS Alignment Review â€” TEMPLATE (v1.0)**  
-_For Monthly or Quarterly Use_  
-_Anchor documents: **LifeOS Constitution v2.0** and the **Governance Protocol v1.0** (Leverage, Bottleneck Reduction, Autonomy, Life-Story Alignment)._
+
+_For Monthly or Quarterly Use*  
+*Anchor documents: **LifeOS Constitution v2.0** and the **Governance Protocol v1.0** (Leverage, Bottleneck Reduction, Autonomy, Life-Story Alignment).*
 
 ---
 
 ## **1. Period Reviewed**
+
 **Dates:**  
 **Tier / Focus Area (if applicable):**
 
 ---
 
 ## **2. External Outcomes This Period**  
-_What materially changed in my life? Not internal clarity, not system-building â€” external results only._
+
+_What materially changed in my life? Not internal clarity, not system-building â€” external results only.*
 
 - Outcome 1  
 - Outcome 2  
@@ -1847,37 +1941,46 @@ Did these outcomes demonstrate increased leverage, wealth, agency, reputation, o
 ---
 
 ## **3. Core / Fuel / Plumbing Balance**  
-_Using the Track Classification from the Programme Charter._
+
+_Using the Track Classification from the Programme Charter.*
 
 ### **3.1 Work Completed by Track**
+
 - **Core:**  
 - **Fuel:**  
 - **Plumbing:**  
 
 ### **3.2 Balance Assessment**
+
 Are we overweight on **Plumbing**?  
 Are we over-investing in **Fuel** beyond what is required to support Core?  
 Is **Core** receiving the majority of energy and attention?
 
 ### **3.3 Corrective Notes**
+
 -  
 -  
 
 ---
 
 ## **4. Autonomy & Bottleneck Reduction**  
-_Does LifeOS increasingly perform work that I used to do manually?_
+
+_Does LifeOS increasingly perform work that I used to do manually?*
 
 ### **4.1 Delegation Shift**  
+
 Specific tasks or categories that moved off me:  
 -  
 
 ### **4.2 Remaining Bottlenecks**  
+
 Where my time, attention, or energy remains the limiting factor:  
 -  
 
 ### **4.3 Decision Surface Check**
+
 Did this period's work:  
+
 - Increase external leverage?  
 - Reduce human bottlenecks?  
 - Expand system autonomy or recursion?  
@@ -1888,36 +1991,45 @@ Notes:
 ---
 
 ## **5. Narrative Alignment**  
-_Are we moving toward the life I must live, not merely building infrastructure?_
+
+_Are we moving toward the life I must live, not merely building infrastructure?*
 
 ### **5.1 Direction-of-Travel Rating (free-form or simple scale)**  
+
 -  
 
 ### **5.2 Supporting Evidence**  
+
 -  
 
 ### **5.3 Signs of Misalignment**  
+
 -  
 
 ---
 
 ## **6. Drift & Risks**  
-_Identify slippage back into old patterns._
+
+_Identify slippage back into old patterns.*
 
 ### **6.1 Drift Patterns Observed**  
+
 (e.g., system-building without external purpose, complexity creep, reverting to manual work, losing CEO-only posture)  
 -  
 
 ### **6.2 Risks to Trajectory**  
+
 -  
 
 ### **6.3 Dependencies or Structural Weaknesses**
+
 -  
 
 ---
 
 ## **7. Concrete Adjustments for Next Period (3â€“5 changes)**  
-_All adjustments must be consistent with PROGRAMME_CHARTER_v1.0 and evaluated through the Decision Surface._
+
+_All adjustments must be consistent with PROGRAMME_CHARTER_v1.0 and evaluated through the Decision Surface.*
 
 1.  
 2.  
@@ -1928,7 +2040,8 @@ _All adjustments must be consistent with PROGRAMME_CHARTER_v1.0 and evaluated th
 ---
 
 ## **8. Executive Summary**
-_Concise statement integrating: outcomes â†’ alignment â†’ required corrections._
+
+_Concise statement integrating: outcomes â†’ alignment â†’ required corrections.*
 
 - What went well  
 - What went poorly  
@@ -1937,28 +2050,34 @@ _Concise statement integrating: outcomes â†’ alignment â†’ required co
 ---
 
 ## **9. Reviewer / Date**
+
 **Completed by:**  
 **Date:**  
-
 
 <hr>
 
 <a id="file-docs-01-governance-antigrav-output-hygiene-policy-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md
+
 **Source**: `docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md`
 
 # Antigravity Output Hygiene Policy v0.1
+
 Authority: LifeOS Governance Council
 Date: 2025-12-12
 Status: ACTIVE
 
 ## 1. Zero-Clutter Principle
+
 The **ROOT DIRECTORY** (`[LOCAL]\\Projects\LifeOS`) is a pristine, canonical namespace. It must **NEVER** contain transient output, logs, or unclassified artifacts.
 
 ## 2. Root Protection Rule (Governance Hard Constraint)
+
 Antigravity is **FORBIDDEN** from writing any file to the root directory unless it is a **Mission-Critical System Configuration File** (e.g., `pyproject.toml`, `.gitignore`) and explicitly authorized by a specialized Mission Plan.
 
 ## 3. Mandatory Output Routing
+
 All generated content must be routed to semantic directories:
 
 | Content Type | Mandatory Location |
@@ -1971,18 +2090,19 @@ All generated content must be routed to semantic directories:
 | **Misc Data** | `artifacts/misc/` |
 
 ## 4. Enforcement
+
 1. **Pre-Computation Check**: Antigravity must check target paths before writing.
 2. **Post-Mission Cleanup**: Any file accidentally dropped in root must be moved immediately.
 
 Signed,
 LifeOS Governance Council
 
-
-
 <hr>
 
 <a id="file-docs-01-governance-coo-expectations-log-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/COO_Expectations_Log_v1.0.md
+
 **Source**: `docs/01_governance/COO_Expectations_Log_v1.0.md`
 
 # COO Expectations Log (Living Document)
@@ -1990,58 +2110,69 @@ LifeOS Governance Council
 A living record of working preferences, friction points, and behavioural refinements. It adds nuance to the COO Operating Contract but does not override it.
 
 ## 1. Purpose
+
 Refine the COOâ€™s behaviour based on Sirâ€™s preferences.
 
 ## 2. Working Preferences
 
 ### 2.1 Communication
+
 - Structured, indexed reasoning.
 - Ask clarifying questions.  
 - Provide complete answers with visible assumptions.
 - Concise and objective; conversational only when invited.
 
 ### 2.2 Friction Reduction
+
 - Always minimise cognitive or operational load.
 - Automate where possible.
 - Consolidate deliverables to avoid unnecessary copy/paste.
 
 ### 2.3 Transparency & Reliability
+
 - Include executive summaries for long outputs.
 - Validate important claims.
 - Flag uncertainty.
 
 ### 2.4 Decision Interaction
+
 - During escalations: show options, reasoning, and trade-offs.
 - Otherwise act autonomously.
 
 ## 3. Behavioural Refinements
 
 ### 3.1 Momentum Preservation
+
 - Track open loops.
 - Maintain context across sessions.
 
 ### 3.2 Experimentation Mode
+
 - Treat experiments as data for improvement.
 - Log gaps and misfires.
 
 ### 3.3 Preference Drift Monitoring
+
 - Detect changing preferences and propose Updates.
 
 ## 4. Escalation Nuance
+
 - Escalate early when identity/strategy issues seem ambiguous.
 - Escalate when risk of clutter or system sprawl exists.
 - For large unbounded execution spaces: propose structured options first.
 
 ## 5. Running Improvements
+
 - Consolidate outputs into single artefacts.
 - Carry context proactively.
 - Recommend alternatives when workflows increase friction.
 
-
 <hr>
 
 <a id="file-docs-01-governance-council-invocation-runtime-binding-spec-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md
+
 **Source**: `docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md`
 
 # Council Invocation & Runtime Binding Specification v1.0
@@ -2232,11 +2363,12 @@ Any amendment must:
 
 END OF SPEC
 
-
 <hr>
 
 <a id="file-docs-01-governance-council-review-stewardship-runner-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/Council_Review_Stewardship_Runner_v1.0.md
+
 **Source**: `docs/01_governance/Council_Review_Stewardship_Runner_v1.0.md`
 
 # Council_Review_Stewardship_Runner_v1.0
@@ -2278,7 +2410,9 @@ END OF SPEC
 | **D3 â€” Fail-closed semantics** | **APPROVED** |
 
 ### Clearances
+
 The Stewardship Runner is now cleared for:
+
 1. Human-triggered runs (was already approved)
 2. **Agent-triggered runs** (newly approved)
 3. CI integration with `--dry-run` default
@@ -2289,19 +2423,21 @@ The Stewardship Runner is now cleared for:
 
 The Stewardship Runner is now the **authoritative gating mechanism** for stewardship operations.
 
-1.  **Clean Start**: Stewardship is performed in a clean worktree.
-2.  **Mandatory Run**: After edits, steward must run Steward Runner (dry-run unless explicitly authorised).
-3.  **Green Gate**: Steward must fix until green (or escalate if itâ€™s a policy decision).
-4.  **Reporting**: Steward reports back with:
-    -   `run-id`
-    -   pass/fail gate
-    -   changed files
-    -   JSONL tail (last 5 lines)
+1. **Clean Start**: Stewardship is performed in a clean worktree.
+2. **Mandatory Run**: After edits, steward must run Steward Runner (dry-run unless explicitly authorised).
+3. **Green Gate**: Steward must fix until green (or escalate if itâ€™s a policy decision).
+4. **Reporting**: Steward reports back with:
+    - `run-id`
+    - pass/fail gate
+    - changed files
+    - JSONL tail (last 5 lines)
 
 <hr>
 
 <a id="file-docs-01-governance-index-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/INDEX.md
+
 **Source**: `docs/01_governance/INDEX.md`
 
 # Governance Index
@@ -2311,11 +2447,12 @@ The Stewardship Runner is now the **authoritative gating mechanism** for steward
 - [Tier1_Tier2_Activation_Ruling_v0.2.md](./Tier1_Tier2_Activation_Ruling_v0.2.md) (Active)
 - [Council_Review_Stewardship_Runner_v1.0.md](./Council_Review_Stewardship_Runner_v1.0.md) (Approved)
 
-
 <hr>
 
 <a id="file-docs-01-governance-log-retention-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/LOG_RETENTION.md
+
 **Source**: `docs/01_governance/LOG_RETENTION.md`
 
 # Log Retention Policy
@@ -2341,6 +2478,7 @@ Location: `logs/steward_runner/<run-id>.jsonl`
 ### Log Content
 
 Each JSONL entry contains:
+
 - `timestamp`: ISO 8601 UTC
 - `run_id`: Unique run identifier
 - `event`: Event type (preflight, test, validate, commit, etc.)
@@ -2354,7 +2492,9 @@ For governance audits, the complete log for a run provides deterministic replay 
 <hr>
 
 <a id="file-docs-01-governance-platform-policy-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/PLATFORM_POLICY.md
+
 **Source**: `docs/01_governance/PLATFORM_POLICY.md`
 
 # Platform Policy
@@ -2370,6 +2510,7 @@ For governance audits, the complete log for a run provides deterministic replay 
 ## Path Handling
 
 The Stewardship Runner rejects Windows-style paths at config validation:
+
 - `C:\path` â†’ rejected (`absolute_path_windows`)
 - `\\server\share` â†’ rejected (`absolute_path_unc`)
 
@@ -2387,16 +2528,21 @@ LifeOS targets server/CI environments (Linux) and developer machines (Linux/macO
 <hr>
 
 <a id="file-docs-01-governance-tier1-hardening-council-ruling-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md
+
 **Source**: `docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md`
 
 # Tier-1 Hardening Council Ruling v0.1
+
 Authority: LifeOS Governance Council  
 Date: 2025-12-09  
 Status: RATIFIED WITH CONDITIONS  
 
 ## 1. Summary of Review
+
 The Governance Council conducted a full internal and external multi-agent review of the COO Runtimeâ€™s Tier-1 implementation, including:
+
 - Determinism guarantees
 - AMUâ‚€ lineage discipline
 - DAP v2.0 write controls and INDEX coherence
@@ -2406,6 +2552,7 @@ The Governance Council conducted a full internal and external multi-agent review
 External reviewers (Gemini, Kimi, Claude, DeepSeek) and internal reviewers reached consolidated agreement on Tier-1 readiness **subject to targeted hardening conditions**.
 
 ## 2. Council Determination
+
 The Council rules:
 
 **Tier-1 is RATIFIED WITH CONDITIONS.**
@@ -2415,7 +2562,9 @@ Tier-1 is approved as the substrate for Tier-2 orchestration **only within a con
 Tier-2 activation outside this envelope requires further governance approval.
 
 ## 3. Basis of Ruling
+
 ### Strengths Confirmed
+
 - Deterministic execution paths
 - Byte-identical AMUâ‚€ snapshots and lineage semantics
 - Centralised write gating through DAP
@@ -2423,7 +2572,9 @@ Tier-2 activation outside this envelope requires further governance approval.
 - Governance boundary enforcement (Protected Artefacts, Autonomy Ceiling)
 
 ### Gaps Identified
+
 Across Council roles, several areas were found insufficiently hardened:
+
 - Integrity of lineage / index (tamper detection, atomic updates)
 - Execution environment nondeterminism (subprocess, network, PYTHONHASHSEED)
 - Runtime self-modification risks
@@ -2434,28 +2585,33 @@ Across Council roles, several areas were found insufficiently hardened:
 These are addressed in the Conditions Manifest v0.1.
 
 ## 4. Activation Status
+
 Tier-1 is hereby:
+
 - **Approved for Tier-2 Alpha activation** in a **single-user, non-networked**, single-process environment.
 - **Not approved** for unrestricted Tier-2 orchestration until FP-4.x is completed and reviewed.
 
 ## 5. Required Next Steps
+
 1. COO Runtime must generate FP-4.x to satisfy all conditions.  
 2. Antigrav will implement FP-4.x in runtime code/tests.  
 3. COO Runtime will conduct a Determinism Review for FP-4.x.  
 4. Council will issue a follow-up activation ruling (v0.2).
 
 ## 6. Closure
+
 This ruling stands until explicitly superseded by:
 **Tier-1 â†’ Tier-2 Activation Ruling v0.2.**
 
 Signed,  
 LifeOS Governance Council  
 
-
 <hr>
 
 <a id="file-docs-01-governance-tier1-tier2-activation-ruling-v0-2-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md
+
 **Source**: `docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md`
 
 ============================================================
@@ -2464,13 +2620,17 @@ Authority: LifeOS Governance Council
 Date: 2025-12-10
 Status: RATIFIED â€“ TIER-2 ACTIVATION AUTHORIZED
 ============================================================
+
 # Tier-1 â†’ Tier-2 Activation Ruling v0.2
+
 Authority: LifeOS Governance Council  
 Date: 2025-12-10  
 Status: RATIFIED â€“ TIER-2 ACTIVATION AUTHORIZED  
 
 ------------------------------------------------------------
+
 # 1. PURPOSE
+
 ------------------------------------------------------------
 
 This ruling formally activates Tier-2 orchestration for the LifeOS Runtime following
@@ -2489,12 +2649,15 @@ This ruling supersedes:
 and establishes Tier-2 as an authorized operational mode under the declared execution envelope.
 
 ------------------------------------------------------------
+
 # 2. BASIS FOR ACTIVATION
+
 ------------------------------------------------------------
 
 Council confirms the following:
 
 ### 2.1 All Tier-1 â†’ Tier-2 Preconditions Met
+
 Each of the six required condition sets is satisfied:
 
 - **CND-1:** Execution envelope deterministically enforced  
@@ -2507,6 +2670,7 @@ Each of the six required condition sets is satisfied:
 Council observed no regressions during compliance audit.
 
 ### 2.2 Correction of Prior Defect (FP-4.1)
+
 The governance surface manifest now:
 
 - Matches all actual governance surfaces  
@@ -2515,6 +2679,7 @@ The governance surface manifest now:
 - Corrects the only blocking defect from FP-4.x  
 
 ### 2.3 Deterministic Operation
+
 The runtime now satisfies determinism requirements within its Tier-1 execution envelope:
 
 - Single-process  
@@ -2526,13 +2691,16 @@ The runtime now satisfies determinism requirements within its Tier-1 execution e
 - All 40/40 tests passing  
 
 ### 2.4 Governance Safety
+
 - Override protocol is in place with deterministic auditability  
 - Protected governance surfaces cannot be mutated by runtime  
 - Attestation logging ensures human primitives are correctly recorded  
 - API boundary enforcement prevents governance-surface crossover  
 
 ------------------------------------------------------------
+
 # 3. ACTIVATION RULING
+
 ------------------------------------------------------------
 
 The LifeOS Governance Council hereby rules:
@@ -2555,12 +2723,15 @@ Tier-2 **may not**:
 - Introduce external integrations without a gateway evolution specification  
 
 ------------------------------------------------------------
+
 # 4. POST-ACTIVATION REQUIREMENTS
+
 ------------------------------------------------------------
 
 The following are mandatory for continued Tier-2 operation:
 
 ## 4.1 Envelope Compliance
+
 Runtime must at all times uphold the execution envelope as codified in FP-4.x:
 
 - No unexpected network operations  
@@ -2569,6 +2740,7 @@ Runtime must at all times uphold the execution envelope as codified in FP-4.x:
 - Determinism must remain intact  
 
 ## 4.2 Governance Override Protocol Usage
+
 Any modification to governance surfaces requires:
 
 - Explicit Council instruction  
@@ -2576,6 +2748,7 @@ Any modification to governance surfaces requires:
 - Mandatory lineage-logged attestation  
 
 ## 4.3 Gateway Evolution (Documentation Requirement)
+
 Council notes the internal Risk Reviewerâ€™s clarification request:
 
 > Provide documentation explaining how the deterministic gateway will evolve  
@@ -2584,7 +2757,9 @@ Council notes the internal Risk Reviewerâ€™s clarification request:
 This is a **documentation-only requirement** and does **not** block Tier-2 activation.
 
 ------------------------------------------------------------
+
 # 5. VERSIONING AND SUPERSESSION
+
 ------------------------------------------------------------
 
 This ruling:
@@ -2598,7 +2773,9 @@ Next governance milestone:
 > **Tier-2 Operational Review (v0.1)** â€” due after first sustained Tier-2 run cycles.
 
 ------------------------------------------------------------
+
 # 6. CLOSING
+
 ------------------------------------------------------------
 
 The Council acknowledges the Runtime teamâ€™s completion of the FP-4.x hardening cycle
@@ -2610,14 +2787,16 @@ Tier-2 activation is now active and authorized.
 Signed,  
 **LifeOS Governance Council**
 
-
 <hr>
 
 <a id="file-docs-01-governance-tier1-tier2-conditions-manifest-fp4x-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md
+
 **Source**: `docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md`
 
 # Tier-1 â†’ Tier-2 Conditions Manifest (FP-4.x Requirements) v0.1
+
 Authority: LifeOS Governance Council  
 Date: 2025-12-09  
 Status: Binding Pre-Activation Requirements  
@@ -2627,7 +2806,9 @@ This document enumerates all conditions that MUST be satisfied before Tier-2 orc
 It is the canonical specification for Runtime Fix Pack FP-4.x.
 
 ------------------------------------------------------------
+
 # CONDITION SET CND-1 â€” EXECUTION ENVELOPE & THREAT MODEL
+
 ------------------------------------------------------------
 
 1. Runtime must declare and enforce the following execution envelope:
@@ -2642,7 +2823,9 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
    - All subprocess/network activity is routed via a deterministic, test-covered gateway.
 
 ------------------------------------------------------------
+
 # CONDITION SET CND-2 â€” AMUâ‚€ & INDEX INTEGRITY HARDENING
+
 ------------------------------------------------------------
 
 1. AMUâ‚€ lineage must implement **hash chaining**:
@@ -2654,7 +2837,9 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
 3. A Governance policy must define the hash function (SHA-256), and changes require explicit Council approval.
 
 ------------------------------------------------------------
+
 # CONDITION SET CND-3 â€” GOVERNANCE SURFACE IMMUTABILITY
+
 ------------------------------------------------------------
 
 1. Runtime must not be able to modify:
@@ -2670,7 +2855,9 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
    - Must require explicit human approval.
 
 ------------------------------------------------------------
+
 # CONDITION SET CND-4 â€” ANTI-FAILURE VALIDATOR HARDENING
+
 ------------------------------------------------------------
 
 1. Expand test suite to include adversarial attempts:
@@ -2683,7 +2870,9 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
    - Store attestation entries in AMUâ‚€ lineage.
 
 ------------------------------------------------------------
+
 # CONDITION SET CND-5 â€” OPERATIONAL SAFETY LAYER
+
 ------------------------------------------------------------
 
 1. Provide failure-mode playbooks + tests for:
@@ -2700,7 +2889,9 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
    - Stop process / restore last known good AMUâ‚€.
 
 ------------------------------------------------------------
+
 # CONDITION SET CND-6 â€” SIMPLIFICATION REQUIREMENTS
+
 ------------------------------------------------------------
 
 1. Deduplicate deterministic sorting logic across DAP and INDEX updater.  
@@ -2708,7 +2899,9 @@ It is the canonical specification for Runtime Fix Pack FP-4.x.
 3. Clarify API boundaries between runtime and governance layers.
 
 ------------------------------------------------------------
+
 # CLOSING
+
 ------------------------------------------------------------
 
 Completion of FP-4.x, in full compliance with these conditions, is required for:
@@ -2721,11 +2914,12 @@ This Manifest is binding on Runtime and Antigrav until superseded by Council.
 Signed,  
 LifeOS Governance Council  
 
-
 <hr>
 
 <a id="file-docs-01-governance-tier2-completion-tier2-5-activation-ruling-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md
+
 **Source**: `docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md`
 
 # Tier-2 Completion & Tier-2.5 Activation Ruling v1.0
@@ -2845,6 +3039,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Council majority**: Treats snapshots as an internal implementation detail; only the serialised views are part of the governance surface.
 
 **Chair classification**:
+
 - As a governance surface risk: **Non-blocking**.
 - As a code improvement: can be considered in a future micro-fix if we ever expose raw StepSpec snapshots.
 
@@ -2857,6 +3052,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Council majority** (Gemini Risk, Claude Architect, Kimi Risk): Current enforcement is sufficient for Tier-2; Tier-2.5 does not loosen constraints.
 
 **Chair classification**:
+
 - Valid threat model thought experiment, but no evidence of such a bypass in the actual Tier-2 interfaces as documented.
 - Converted into a governance item: "explicitly document which entrypoints are allowed to be called by Tier-2.5 missions."
 
@@ -2867,6 +3063,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Spec says**: Suite behaviour is explicitly documented as deterministic last-write-wins, and registry/suite ordering is described as canonical and tested.
 
 **Chair classification**:
+
 - Spec already commits to deterministic ordering; any nondeterministic implementation would already violate Tier-2 tests.
 - **Non-blocking**; no extra fix required beyond current tests.
 
@@ -2877,6 +3074,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Spec says**: Mission Registry is explicitly "static/read-only mission table"; registration is via code/fix-packs, not live mutation.
 
 **Chair classification**:
+
 - Based on the canonical packet, this is out of scope for Tier-2 and not supported by the design.
 - However, the concern is valuable as a Tier-2.5 governance constraint: document that mission definitions can only change via Fix Packs + Council approval.
 
@@ -2887,6 +3085,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Spec says**: `daily_loop` is explicitly deterministic, deep-copies params, and has hash stability tests; no time/env/random usage.
 
 **Chair classification**:
+
 - Already addressed by the existing test suite; no new technical fix required.
 - **Non-blocking**.
 
@@ -2897,6 +3096,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Council majority**: Agrees this is a maintainability concern, not a determinism/envelope defect.
 
 **Chair classification**:
+
 - **Non-blocking** for Tier-2 certification.
 - Reasonable suggestion for future test-hygiene improvements.
 
@@ -2907,6 +3107,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Council majority**: Sees this as a documentation nit.
 
 **Chair classification**:
+
 - **Non-blocking**; to be handled by a doc clarification.
 
 ### 8. "Runtime â†” Antigrav attack surface undefined"
@@ -2918,6 +3119,7 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 **Council majority** (Alignment, Autonomy, Risk): This is a Tier-2.5 governance spec gap, not a Tier-2 runtime defect.
 
 **Chair classification**:
+
 - Important for Tier-2.5 operations, but solvable via documentation and process.
 - **Non-blocking** for Tier-2 certification and Tier-2.5 activation, provided it is scheduled as a first governance mission.
 
@@ -2927,11 +3129,12 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 
 Red-Team concerns are valuable but, when reconciled with the canonical packets and majority reviews, **none constitute a blocking Tier-2 defect**. They translate into governance and documentation work, plus optional future micro-hardening, not into a requirement to hold activation.
 
-
 <hr>
 
 <a id="file-docs-03-runtime-automation-proposal-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/Automation_Proposal_v0.1.md
+
 **Source**: `docs/03_runtime/Automation_Proposal_v0.1.md`
 
 # Automation Proposal v0.1
@@ -2940,49 +3143,57 @@ Red-Team concerns are valuable but, when reconciled with the canonical packets a
 **Target**: Reduce "Crank-Turning" to Zero.
 
 ## 1. Identified Manual Tasks (The Problem)
+
 The following tasks are currently candidates for human manual labor and must be automated immediately:
 
-1.  **Index Maintenance**: Manually checking if `INDEX_LifeOS.md` matches the actual files in `docs/`.
-2.  **Scaffolding**: Creating directories and `__init__.py` files for new components.
-3.  **Status Reporting**: Reading multiple `task.md` files to see what is going on.
-4.  **Formatting**: Ensuring headers and frontmatter are correct.
+1. **Index Maintenance**: Manually checking if `INDEX_LifeOS.md` matches the actual files in `docs/`.
+2. **Scaffolding**: Creating directories and `__init__.py` files for new components.
+3. **Status Reporting**: Reading multiple `task.md` files to see what is going on.
+4. **Formatting**: Ensuring headers and frontmatter are correct.
 
 ## 2. Proposed Automations
 
 ### A. Auto-Indexer (`scripts/auto_index.py`)
+
 - **Function**: recursive walk of `docs/`.
 - **Output**: Generates a `docs/INDEX_GENERATED.md`.
 - **Logic**: Reads the `# Title` from each `.md` file to build a clean link tree.
 - **Human Action**: None. (Runs on CI or pre-commit).
 
 ### B. Universal Scaffolder (`scripts/new_module.py`)
+
 - **Function**: Creates standard folder structure.
 - **Input**: `python scripts/new_module.py --name "my_component"`.
 - **Output**: Creates folder, `__init__.py`, `README.md`, `tests/`.
 - **Status**: *Partially implemented via `docs/scaffold_lifeos.py`*.
 
 ### C. Daily Status Aggregator (`scripts/daily_summary.py`)
+
 - **Function**: Scans all `task.md` files in active workspaces.
 - **Output**: Prints a summary to the console:
+
   ```text
   [Active] Scaffolding: 80%
   [Pending] Anti-Failure: 10%
   ```
 
 ## 3. Implementation Roadmap
-1.  **Immediate**: Implement `auto_index.py` (High value, low risk).
-2.  **Next**: Refine `scaffold_lifeos.py` into `new_module.py`.
-3.  **Later**: `daily_summary.py` once we have more active tasks.
+
+1. **Immediate**: Implement `auto_index.py` (High value, low risk).
+2. **Next**: Refine `scaffold_lifeos.py` into `new_module.py`.
+3. **Later**: `daily_summary.py` once we have more active tasks.
 
 ## 4. Next Step for Human
+
 - **Approve this proposal**.
 - I will then implement `scripts/auto_index.py` immediately.
-
 
 <hr>
 
 <a id="file-docs-03-runtime-build-starter-prompt-template-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md
+
 **Source**: `docs/03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md`
 
 # Build Starter Prompt â€” {COMPONENT_NAME} (v0.1)
@@ -2995,10 +3206,12 @@ Authoritative boundaries:
 â€“ New build target: {LIST_TARGET_FILES}
 
 ## Programme Charter Anchor
+
 All design and implementation decisions MUST align to the Programme Charter (PROGRAMME_CHARTER_v1.0).  
 The build MUST advance the system toward the Charter's definition of success: converting user intention into externally visible outcomes with compounding leverage.
 
 ## Track Classification (Core / Fuel / Plumbing)
+
 Classify this build: **{CORE/FUEL/PLUMBING}**.  
 State one sentence justifying the classification in relation to:
 â€“ Autonomy / recursion / execution surfaces (Core)  
@@ -3006,7 +3219,9 @@ State one sentence justifying the classification in relation to:
 â€“ Minimal scaffolding to support Core (Plumbing)
 
 ## Decision Surface (Mandatory)
+
 All work must satisfy every condition:
+
 1. Does this build increase external leverage?  
 2. Does it reduce human bottlenecks (time, attention, energy)?  
 3. Does it increase system autonomy or recursive capability?  
@@ -3015,10 +3230,12 @@ All work must satisfy every condition:
 If any condition is not met, redesign before proceeding.
 
 ## User Role Reminder
+
 The user remains strictly at the intent layer.  
 Execution, implementation detail, and code generation occur within this prompt and Antigrav, never via the user.
 
 ## Build Requirements
+
 Describe the deterministic implementation plan for:
 â€“ File-level changes  
 â€“ Functions / classes / interfaces  
@@ -3030,11 +3247,12 @@ Describe the deterministic implementation plan for:
 No placeholders. No drift from the Programme Charter.  
 Produce a complete, deterministic build plan ready for Antigrav execution.
 
-
 <hr>
 
 <a id="file-docs-03-runtime-code-review-prompt-template-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md
+
 **Source**: `docs/03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md`
 
 # Code Review Prompt â€” {COMPONENT_NAME} (v0.1)
@@ -3047,15 +3265,19 @@ Authoritative boundary:
 â€“ Build under review: {LIST_TARGET_FILES}
 
 ## Programme Charter Anchor
+
 All review judgments MUST be anchored to PROGRAMME_CHARTER_v1.0.  
 Approval requires evidence that the code moves the system toward deterministic autonomy, leverage, and bottleneck reduction.
 
 ## Track Classification Check
+
 Verify the declared classification (**Core / Fuel / Plumbing**) is correct.  
 Reject or flag misclassification.
 
 ## Decision Surface (Mandatory)
+
 Evaluate whether the code:
+
 1. Increases external leverage  
 2. Reduces human bottlenecks  
 3. Increases autonomy or recursive capability  
@@ -3064,11 +3286,14 @@ Evaluate whether the code:
 Any failure requires revision.
 
 ## User Role Reminder
+
 The user remains at the intent layer.  
 The review must resolve all implementation-layer issues without user intervention.
 
 ## Review Criteria
+
 Perform a strict, line-by-line evaluation for:
+
 1. Determinism  
    â€“ No nondeterministic sources (time, random, uuid, env)  
    â€“ Stable ordering, canonical serialisation, idempotent behaviour  
@@ -3093,18 +3318,21 @@ Perform a strict, line-by-line evaluation for:
    â€“ Edge cases exhaustive relative to component scope
 
 ## Output Format (Mandatory)
+
 Provide:
+
 1. **Verdict:** APPROVE / REVISE  
 2. **Findings:** numbered list of issues and validations  
 3. **Fix Plan:** concrete instructions tied to file paths  
 4. **Risk Commentary:** autonomy, recursion, error surface  
 5. **Track Alignment Assessment:** Core/Fuel/Plumbing correctness
 
-
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-clean-build-spec-v1-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md
+
 **Source**: `docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md`
 
 COO Runtime â€” V1.1 CLEAN BUILD
@@ -3276,7 +3504,7 @@ State: Dormant but preserved.
 
 Begin by saying: â€œResume product trackâ€.
 
-2. ARTEFACTS TO CARRY INTO THE NEW PROJECT
+1. ARTEFACTS TO CARRY INTO THE NEW PROJECT
 
 Only the live, correct, unpolluted artefacts should be imported:
 
@@ -3316,7 +3544,7 @@ State
 
 Nothing else.
 
-3. ARTEFACTS TO NOT BRING OVER
+1. ARTEFACTS TO NOT BRING OVER
 
 Leave behind entirely:
 
@@ -3352,7 +3580,7 @@ Past emotional or reflective side-conversations
 
 These pollute the working state.
 
-4. MIGRATION CHECKLIST (Simple, Clear)
+1. MIGRATION CHECKLIST (Simple, Clear)
 Step 1 â€” Create new project
 
 Name:
@@ -3388,7 +3616,7 @@ Enter the User Surface & Demos thread, say:
 â€œGate 1 â€” goâ€
 and we design DEMO_APPROVAL_V1 cleanly.
 
-5. Clean Kickoff Sequence (recommended)
+1. Clean Kickoff Sequence (recommended)
 
 Create new project
 
@@ -3405,20 +3633,24 @@ This sets up the environment for the next month of development.
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-core-spec-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md
+
 **Source**: `docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md`
 
 # **COO Multi-Agent System Specification v0.6-FINAL**
+
 **"The Deterministic Agent Runtime"**
 
 ---
 
 ## **Document Control**
+
 - **Version**: 0.6-FINAL
 - **Date**: 2025-11-19
 - **Status**: Pre-Implementation (Ready for Build)
 - **Maintainer**: Kimi (Primary Engineer)
-- **Review Process**: 
+- **Review Process**:
   - ChatGPT: Architecture & Orchestration
   - Gemini: Security & Sandbox
   - GLM-4.6: Boilerplate, Fixtures, Config Templates
@@ -3429,6 +3661,7 @@ This sets up the environment for the next month of development.
 ## **1. Executive Summary**
 
 Build a **self-directed multi-agent system** where:
+
 - **CEO (you)** provides natural-language missions via chat
 - **COOAgent** plans and decomposes work
 - **EngineerAgent** writes code and requests execution
@@ -3444,17 +3677,18 @@ Build a **self-directed multi-agent system** where:
 
 ### **Key Design Decisions (v1.0)**
 
-* Polling-based orchestrator (not event-driven) for simplicity
-* Sync HTTP clients + ThreadPoolExecutor (async HTTP deferred to v1.1)
-* Hard per-agent token limits (no LLM self-governance)
-* Fat Docker image with pre-installed safe packages (no runtime `pip install`)
-* SQLite (WAL) as the only message bus and global state-of-truth
+- Polling-based orchestrator (not event-driven) for simplicity
+- Sync HTTP clients + ThreadPoolExecutor (async HTTP deferred to v1.1)
+- Hard per-agent token limits (no LLM self-governance)
+- Fat Docker image with pre-installed safe packages (no runtime `pip install`)
+- SQLite (WAL) as the only message bus and global state-of-truth
 
 ---
 
 ## **2. Goals & Non-Goals**
 
 ### **2.1 Goals (v1.0)**
+
 1. Single orchestrator binary (`coo`) that runs multiple missions concurrently
 2. COO â†’ Engineer â†’ QA message flow with approval gates
 3. Code execution in **network-none, non-root Docker containers**
@@ -3465,6 +3699,7 @@ Build a **self-directed multi-agent system** where:
 8. **Observability**: Structured JSON logs + DB timeline events
 
 ### **2.2 Non-Goals (v1.0 Explicit)**
+
 - **No task DAG or dependency graph** (linear task lists only)
 - **No conversation summary tables** (context window management only)
 - **No alerting subsystem** (CLI status only)
@@ -3523,13 +3758,13 @@ CEO (CLI Chat)
 
 **CLI Commands (v1.0)**
 
-* `coo orchestrator` â€“ start the long-running orchestrator daemon
-* `coo chat` â€“ CEO-facing interactive chat that writes messages to DB and reads results/STREAMs
-* `coo status` â€“ list missions and budgets (`--all`, `--json`)
-* `coo mission <id> [--follow]` â€“ per-mission view, optionally follow progress (`--logs`, `--timeline`)
-* `coo logs --mission <id> [--tail N]` â€“ show recent timeline/log events
-* `coo dlq ...` â€“ dead-letter queue tools (`list`, `show <id>`, `replay <id>`)
-* `coo metrics --daily` â€“ daily/monthly spend
+- `coo orchestrator` â€“ start the long-running orchestrator daemon
+- `coo chat` â€“ CEO-facing interactive chat that writes messages to DB and reads results/STREAMs
+- `coo status` â€“ list missions and budgets (`--all`, `--json`)
+- `coo mission <id> [--follow]` â€“ per-mission view, optionally follow progress (`--logs`, `--timeline`)
+- `coo logs --mission <id> [--tail N]` â€“ show recent timeline/log events
+- `coo dlq ...` â€“ dead-letter queue tools (`list`, `show <id>`, `replay <id>`)
+- `coo metrics --daily` â€“ daily/monthly spend
 
 *Note: The CLI is just a DB client; there is no network API between CLI and orchestrator.*
 
@@ -3542,6 +3777,7 @@ CEO (CLI Chat)
 **File**: `~/.local/share/coo/coo.db` (WAL mode)
 
 **Connection Settings:**
+
 ```python
 # In message_store.py
 PRAGMA journal_mode = WAL;
@@ -3700,6 +3936,7 @@ CREATE INDEX idx_sandbox_runs_mission ON sandbox_runs(mission_id, started_at);
 ### **4.2 Messaging Protocol**
 
 **Canonical Message Structure:**
+
 ```json
 {
   "id": "msg_001",
@@ -3728,6 +3965,7 @@ CREATE INDEX idx_sandbox_runs_mission ON sandbox_runs(mission_id, started_at);
 ```
 
 **Complete Message Kinds (v1 Protocol):**
+
 - `TASK` - Request to perform work
 - `RESULT` - Response with output/artifact
 - `STREAM` - Incremental progress update (live UX)
@@ -3753,6 +3991,7 @@ CREATE INDEX idx_sandbox_runs_mission ON sandbox_runs(mission_id, started_at);
 | `SYSTEM` | Orchestrator â†’ any agent |
 
 **Top-level fields clarification:**
+
 - `correlation_id` is a top-level field only (not duplicated in `meta`)
 - `checksum` is a top-level field only (moved from `meta` to root in schema)
 
@@ -3799,6 +4038,7 @@ class Agent(ABC):
 ```
 
 **Context Window Management (v1):**
+
 - **Always included**: Mission description, config
 - **Last K messages**: K = 5 (hardcoded in v1)
 - **No summarization**: Older messages dropped silently
@@ -3812,6 +4052,7 @@ class Agent(ABC):
 **Known limitation**: Summarization/vector search are deferred to v1.1+.
 
 **Agent Capabilities (lightweight registry):**
+
 ```python
 AGENT_CAPABILITIES = {
     "COO": ["planning", "json_output"],
@@ -3819,6 +4060,7 @@ AGENT_CAPABILITIES = {
     "QA": ["code_review", "testing"]
 }
 ```
+
 This is purely descriptive for now, to align with `required_capabilities` in message bodies.
 
 ---
@@ -3826,10 +4068,12 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
 ### **4.4 Mission Lifecycle (FSM)**
 
 **States:**
+
 - `created` â†’ `planning` â†’ `executing` â†’ `reviewing` â†’ `completed`
 - `paused_budget`, `paused_approval`, `paused_error`, `paused_manual`, `failed`
 
 **Transitions:**
+
 | From | Event | To | Guard |
 |------|-------|----|-------|
 | `created` | `plan_ready` | `planning` | COO finished plan |
@@ -3854,6 +4098,7 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
 **Hard Cap Rules (Deterministic):**
 
 1. **Per-agent token limits** (enforced in `ModelClient`, no LLM override):
+
    ```yaml
    agents:
      COO: { max_tokens_per_call: 6000 }
@@ -3862,6 +4107,7 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
    ```
 
 2. **Pre-call check** (BudgetGuard with transaction):
+
    ```python
    # Transactional budget reservation pattern:
    # BEGIN IMMEDIATE;
@@ -3877,6 +4123,7 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
    ```
 
 3. **Post-call enforcement** (BudgetGuard):
+
    ```python
    def commit(self, actual_cost: float, actual_tokens: int):
        if actual_tokens > self.token_limit:
@@ -3901,6 +4148,7 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
 **Message Kind**: `SANDBOX_EXECUTE` (system-handled, not LLM-routed)
 
 **Body Schema:**
+
 ```json
 {
   "artifact_id": "art_123",
@@ -3912,9 +4160,11 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
 ```
 
 **Orchestrator Flow:**
+
 1. Check `dedupe_id` in `sandbox_runs` table
 2. Materialize artifact to fresh temporary workspace: `tempfile.TemporaryDirectory(prefix=f"coo-{mission_id}")`
 3. **Docker run**:
+
    ```bash
    docker run --rm \
      --network none \
@@ -3925,6 +4175,7 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
      coo-sandbox:latest \
      bash -c "cd /workspace && {entrypoint}"
    ```
+
 4. Capture stdout/stderr, exit code
 5. Store result as artifact (`type: log`)
 6. Insert `sandbox_runs` row with `dedupe_id`
@@ -3932,6 +4183,7 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
 8. **Cleanup**: Delete temporary workspace directory after run (success or failure)
 
 **Security (Non-Negotiable):**
+
 - `--network none` (no internet, ever)
 - `--user 1000:1000` (non-root)
 - `--security-opt=no-new-privileges` (no privilege escalation)
@@ -3943,6 +4195,7 @@ This is purely descriptive for now, to align with `required_capabilities` in mes
 On orchestrator startup or periodic checks, any `sandbox_runs` with `status='running'` and `started_at < now - 10 minutes` are considered "abandoned". They are marked `status='failed'`, and corresponding requests may be retried or reported as `ERROR` messages per mission policy.
 
 **Docker Failure Classification:**
+
 - If error contains "permission denied" â†’ `docker_permission_error` + hint: "Run: sudo usermod -aG docker $USER"
 - If error contains "not found" â†’ `docker_not_installed`
 - Otherwise â†’ `docker_api_error`
@@ -3952,6 +4205,7 @@ On orchestrator startup or periodic checks, any `sandbox_runs` with `status='run
 ### **4.7 Observability**
 
 **Structured Logging** (stdout, JSON, secret-scrubbed):
+
 ```python
 import structlog
 
@@ -3984,6 +4238,7 @@ log.critical("orchestrator_shutdown", reason="unrecoverable_error")
 ```
 
 **CLI Metrics** (DB queries):
+
 ```bash
 coo status                    # Active missions + spent budgets (--all, --json)
 coo mission m_42              # Detail: state, cost, loops, messages (--logs, --timeline)
@@ -3997,9 +4252,11 @@ coo metrics --daily           # Daily/monthly spend
 **Secret Scrubbing**: Apply to log payloads only. DB stores full message bodies for debugging. `scrub_secrets` must be covered by at least one unit test to confirm keys/tokens do not appear in logged payloads.
 
 **Redaction Flag** (optional but easy):
+
 ```sql
 ALTER TABLE messages ADD COLUMN redacted BOOLEAN DEFAULT FALSE;
 ```
+
 Old messages containing sensitive payloads may be overwritten with a redacted stub (`{"redacted": true}`) and `redacted = TRUE` after some retention period (e.g., `--retention-days 30`).
 
 ---
@@ -4007,6 +4264,7 @@ Old messages containing sensitive payloads may be overwritten with a redacted st
 ### **4.8 Backpressure & Failure Modes**
 
 **Hard Backpressure Rule**:
+
 ```python
 MAX_PENDING_PER_MISSION = 50  # Configurable per mission
 
@@ -4018,6 +4276,7 @@ if pending > MAX_PENDING_PER_MISSION:
 ```
 
 **Backpressure UX**: When backpressure triggers, `coo mission <id>` shows:
+
 ```
 Mission m_42 is paused due to backpressure (55 pending messages).
 It will auto-resume when pending < 30, or you can inspect via 
@@ -4025,6 +4284,7 @@ It will auto-resume when pending < 30, or you can inspect via
 ```
 
 **Docker Failure Mode**:
+
 ```python
 try:
     result = sandbox.run(...)
@@ -4039,6 +4299,7 @@ except DockerError as e:
 ## **5. Build Plan (5 Phases, ~6 Weeks)**
 
 ### **Phase 0: Core Infrastructure (4-5 days)**
+
 - âœ… SQLite schema + migrations (with v0.6 amendments)
 - âœ… MessageStore async methods (`claim_pending`, `deliver_message`, `reclaim_stale`)
 - âœ… Models (Pydantic schemas)
@@ -4048,6 +4309,7 @@ except DockerError as e:
 - **Commit**: `git commit -m "Phase 0: Core DB and message bus"`
 
 ### **Phase 1: Orchestrator + Dummy Agents (3-4 days)**
+
 - âœ… `orchestrator.py` with asyncio main loop + ThreadPoolExecutor
 - âœ… `Agent` base class + `process_stream` generator
 - âœ… `DummyCOO`, `DummyEngineer`, `DummyQA` emitting emissions
@@ -4057,6 +4319,7 @@ except DockerError as e:
 - **Commit**: `git commit -m "Phase 1: Orchestrator + dummy agents"`
 
 ### **Phase 2: Sandbox Integration (4-5 days)**
+
 - âœ… Build `coo-sandbox:latest` Dockerfile (Python, pytest, std libs)
 - âœ… `sandbox.py` Docker wrapper (`--network none`, resource limits)
 - âœ… Orchestrator handles `SANDBOX_EXECUTE` emissions
@@ -4067,6 +4330,7 @@ except DockerError as e:
 - **Commit**: `git commit -m "Phase 2: Network-isolated sandbox"`
 
 ### **Phase 3: Real LLM Agents + Budget (7-10 days)**
+
 - âœ… `ModelClient` for DeepSeek + GLM (sync HTTP in thread pool)
 - âœ… Central token caps enforcement (`max_tokens_per_call`)
 - âœ… COO/Engineer/QA prompts via `PromptManager`
@@ -4078,6 +4342,7 @@ except DockerError as e:
 - **Commit**: `git commit -m "Phase 3: Real LLM agents + budget safety"`
 
 ### **Phase 4: Observability + Hardening (5-7 days)**
+
 - âœ… `structlog` integration with secret scrubbing
 - âœ… Timeline events for all major actions
 - âœ… CLI commands: `coo mission`, `coo logs`, `coo dlq replay` (moved to v1.0)
@@ -4091,6 +4356,7 @@ except DockerError as e:
 - **Commit**: `git commit -m "Phase 4: Observability + approval gates"`
 
 ### **v1.0 Definition of Done**
+
 - Single mission end-to-end works: CEO â†’ COO â†’ Engineer â†’ Sandbox â†’ QA â†’ COO â†’ Completed
 - Budget enforcement tested (simulate exceed â†’ rollback observed)
 - Sandbox security verified (`--network none`, non-root, resource limits)
@@ -4109,6 +4375,7 @@ except DockerError as e:
 ## **6. Review Gates for AI Team**
 
 ### **When to Pause for ChatGPT (/review-gpt)**
+
 - Agent interface changes (e.g., adding new emission types)
 - Orchestrator concurrency model adjustments
 - BudgetGuard logic modifications (pre/post call checks)
@@ -4116,12 +4383,14 @@ except DockerError as e:
 - FSM transition table changes
 
 ### **When to Pause for Gemini (/review-gemini)**
+
 - Sandbox security policy (network, user privileges, readonly rootfs)
 - DB schema (privilege isolation, SQL injection risks)
 - Overall architecture (coupling, complexity, over-engineering)
 - Docker image supply chain (fat image vs dynamic install)
 
 ### **When to Delegate to GLM (/glm)**
+
 - Pydantic model boilerplate
 - pytest fixtures and stubs
 - CLI argument parsing (click/typer)
@@ -4133,6 +4402,7 @@ except DockerError as e:
 ## **7. Implementation Starter Code (Phase 0)**
 
 **File: `coo/main.py`**
+
 ```python
 import asyncio
 import structlog
@@ -4168,6 +4438,7 @@ if __name__ == "__main__":
 ```
 
 **File: `coo/message_store.py` (Complete Skeleton)**
+
 ```python
 import aiosqlite
 from pathlib import Path
@@ -4280,6 +4551,7 @@ These are **documented but not implemented** in v1.0:
 ## **9. Non-Goals (Explicitly Excluded)**
 
 To prevent scope creep, **v1.0 will NOT include**:
+
 - Task DAG or dependency graph
 - Conversation summary tables or vector DB
 - Alerting subsystem (PagerDuty, Slack)
@@ -4297,6 +4569,7 @@ To prevent scope creep, **v1.0 will NOT include**:
 ## **10. What Kimi Actually Has To Do (Concise Action List)**
 
 **Critical Path (Do These First):**
+
 1. **Add status column to sandbox_runs table** (from Â§4.1 schema)
 2. **Create config templates** (copy from Â§10.1 below)
 3. **Create Dockerfile.sandbox** (copy from Â§10.2 below)
@@ -4309,6 +4582,7 @@ To prevent scope creep, **v1.0 will NOT include**:
 **Configuration Templates:**
 
 **File: `config/models.yaml`**
+
 ```yaml
 version: 1
 
@@ -4349,6 +4623,7 @@ agents:
 ```
 
 **File: `config/orchestrator.yaml`**
+
 ```yaml
 orchestrator:
   tick_interval_seconds: 1
@@ -4374,6 +4649,7 @@ backpressure:
 ```
 
 **File: `docker/Dockerfile.sandbox`**
+
 ```dockerfile
 FROM python:3.11-slim
 
@@ -4394,6 +4670,7 @@ WORKDIR /workspace
 ```
 
 **Directory Structure:**
+
 ```
 coo-agent/
 â”œâ”€â”€ coo/
@@ -4424,6 +4701,7 @@ coo-agent/
 ```
 
 **Prompt File Structure (Phase 3):**
+
 ```
 prompts/
 â”œâ”€â”€ coo/
@@ -4444,7 +4722,8 @@ prompts/
 
 **Claude's Feedback Integration**: The most critical code patterns from the comprehensive review (transactional budget guard, sandbox with status tracking, stale message reclaim, orchestrator main loop) have been incorporated as implementation hints. The week-by-week plan is realistic if followed sequentially.
 
-**Next Action**: 
+**Next Action**:
+
 1. Execute the pre-flight checklist (45 minutes):
    - Create repo and directory structure
    - Copy config templates
@@ -4461,7 +4740,9 @@ prompts/
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-implementation-packet-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md
+
 **Source**: `docs/03_runtime/COO_Runtime_Implementation_Packet_v1.0.md`
 
 IMPLEMENTATION PACKET v1.0
@@ -4477,11 +4758,12 @@ COO Runtime Spec v1.0
 Prepared for: Antigravity
 
 ## Patches Applied
+
 - Patch R6.5-C1A (Unified Import Update)
   Applied: 2025-12-01
   Reference: R6.5 Fix Pack
 
-0. PURPOSE
+1. PURPOSE
 
 A detailed, deterministic instruction set for Antigravity to implement the COO Runtime v1.0 and the PBâ†’COO consolidation in a safe, reproducible, constitutional manner.
 
@@ -4519,7 +4801,7 @@ Antigravity MUST create the following directory structure:
 
 coo_runtime/
     runtime/
-        __init__.py
+        **init**.py
         state_machine.py
         amendment_engine.py
         lint_engine.py
@@ -4558,7 +4840,6 @@ coo_runtime/
     reference/
         phase3_reference_mission.json
 
-
 No other directories are permitted unless explicitly added by future specs.
 
 2.1 UNIFIED IMPORT UPDATE (Patched by R6.5-C1A)
@@ -4577,7 +4858,7 @@ This unified pass replaces the previously separate conceptual steps:
 
 This patch does not change behaviour; it declaratively unifies the steps for V1.0 simplicity and determinism.
 
-3. REQUIRED MANIFESTS
+1. REQUIRED MANIFESTS
 
 All manifests MUST be present before migration:
 
@@ -4629,7 +4910,7 @@ SHA256 of OCI sandbox image.
 
 Generated after CEO approval and Freeze activation.
 
-4. AMENDMENT ENGINE (MECHANICAL)
+1. AMENDMENT ENGINE (MECHANICAL)
 
 Antigravity MUST implement a deterministic amendment engine:
 
@@ -4666,7 +4947,7 @@ amendment_log.json
 
 amendment_diff.patch
 
-5. GOVERNANCE-LEAK SCANNER
+1. GOVERNANCE-LEAK SCANNER
 
 Antigravity MUST implement scanner rules exactly as defined in Alignment Layer v1.4:
 
@@ -4694,7 +4975,7 @@ Deterministic reporting format
   "ruleset_sha256": "..."
 }
 
-6. CONSTITUTIONAL LINT ENGINE
+1. CONSTITUTIONAL LINT ENGINE
 
 Lint engine MUST validate:
 
@@ -4708,7 +4989,7 @@ Missing escalation paths
 
 Error = halt.
 
-7. FREEZE PREPARATION
+1. FREEZE PREPARATION
 
 Antigravity MUST provide runtime calls to:
 
@@ -4728,7 +5009,7 @@ Set FREEZE=TRUE
 
 No mutations allowed after FREEZE=TRUE.
 
-8. AMUâ‚€ CAPTURE
+1. AMUâ‚€ CAPTURE
 
 Antigravity MUST implement deterministic snapshot tools for:
 
@@ -4754,7 +5035,7 @@ SHA256 hashed
 
 Verified before and after capture
 
-9. MIGRATION ENGINE
+1. MIGRATION ENGINE
 
 Implements the PBâ†’COO deterministic sequence.
 
@@ -4783,7 +5064,7 @@ Deletion MUST be atomic and logged.
 
 If ANY post-deletion test fails â†’ rollback.
 
-10. GATES ENGINE
+1. GATES ENGINE
 
 Antigravity MUST implement each gate exactly:
 
@@ -4813,7 +5094,7 @@ Call replay engine (Section 11).
 
 Failure at ANY gate triggers rollback engine.
 
-11. REPLAY ENGINE
+1. REPLAY ENGINE
 
 The replay engine MUST freeze:
 
@@ -4849,7 +5130,7 @@ Byte-compare
 
 Outputs MUST be identical.
 
-12. ROLLBACK ENGINE
+1. ROLLBACK ENGINE
 
 Rollback MUST:
 
@@ -4873,7 +5154,7 @@ Further rollbacks require CEO authorization
 
 Rollback MUST be deterministic.
 
-13. LOGGING
+1. LOGGING
 
 Antigravity MUST implement deterministic log formats with:
 
@@ -4895,7 +5176,7 @@ Rollback logs
 
 Logs MUST be immutable and sorted.
 
-14. OUTPUT ARTEFACTS
+1. OUTPUT ARTEFACTS
 
 Antigravity MUST produce:
 
@@ -4923,7 +5204,7 @@ Replay results
 
 Gate summaries
 
-15. PROHIBITED ACTIONS
+1. PROHIBITED ACTIONS
 
 Antigravity MUST NOT:
 
@@ -4945,11 +5226,12 @@ Allow deletion outside declared directories
 
 END OF IMPLEMENTATION PACK v1.0
 
-
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-spec-index-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md
+
 **Source**: `docs/03_runtime/COO_Runtime_Spec_Index_v1.0.md`
 
 ===============================================================
@@ -4964,7 +5246,9 @@ All other copies (ChatGPT projects, council packets, build agents) are **read-on
 All patches, amendments, and rulings must be applied here first.
 
 ---------------------------------------------------------------
+
 1. Canonical Documents
+
 ---------------------------------------------------------------
 
 1. LifeOS Core Specification v1.1 (Canonical)
@@ -4989,11 +5273,14 @@ All patches, amendments, and rulings must be applied here first.
    Purpose: Bind defects and amendments to specification.
 
 ---------------------------------------------------------------
-2. Applied Patches (Running Log)
+
+1. Applied Patches (Running Log)
+
 ---------------------------------------------------------------
 
 This log declares all specification amendments applied to canonical documents.
 Each entry MUST include:
+
 - Patch identifier  
 - Affected document(s)  
 - Description  
@@ -5001,10 +5288,13 @@ Each entry MUST include:
 - Link or reference to the Fix Pack  
 
 ### R6.5-B1 â€” FSM Â§3 (REPLAY State Removal)
+
 Affected Documents:
+
 - COO_Runtime_Specification_v1.0.md
 
 Description:
+
 - Removed REPLAY as a standalone runtime FSM state.
 - Declared Gate F (Replay Determinism) as an internal sub-step inside GATES.
 - Cleaned residual references.
@@ -5014,10 +5304,13 @@ Merge Date: 2025-12-01
 Reference: R6.5 Fix Pack
 
 ### R6.5-C1A â€” Unified Import Update Step
+
 Affected Documents:
+
 - IMPLEMENTATION PACKET v1.0
 
 Description:
+
 - Replaced the previous conceptual separation between â€œupdate test importsâ€ and â€œupdate production importsâ€ with a unified deterministic AST import update step.
 - Declared the unified step as the single canonical step covering both tests + runtime.
 
@@ -5026,7 +5319,9 @@ Merge Date: 2025-12-01
 Reference: R6.5 Fix Pack
 
 ---------------------------------------------------------------
-3. Mirror Policy
+
+1. Mirror Policy
+
 ---------------------------------------------------------------
 
 All external locations (ChatGPT projects, build agents, council packets)
@@ -5038,7 +5333,9 @@ Mirrors must begin with:
 Do not edit here."
 
 ---------------------------------------------------------------
-4. Update Rules
+
+1. Update Rules
+
 ---------------------------------------------------------------
 
 1. All Fix Packs must update this Index immediately upon approval.
@@ -5048,14 +5345,16 @@ Do not edit here."
 3. No downstream mirror may be considered authoritative.
 
 ---------------------------------------------------------------
+
 END â€” Spec Canon Index
 ===============================================================
-
 
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-spec-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/COO_Runtime_Spec_v1.0.md
+
 **Source**: `docs/03_runtime/COO_Runtime_Spec_v1.0.md`
 
 COO RUNTIME SPECIFICATION v1.0
@@ -5065,11 +5364,12 @@ Status: Subordinate to LifeOS Constitution v2.0 and Governance Protocol v1.0
 Purpose: Define the exact deterministic behaviour, state model, and execution rules for the COO Runtime.
 
 ## Patches Applied
+
 - Patch R6.5-B1 (FSM Â§3 â€” REPLAY state removed; Gate F now executes entirely inside GATES)
   Applied: 2025-12-01
   Reference: R6.5 Fix Pack
 
-0. PURPOSE
+1. PURPOSE
 
 The COO Runtime executes all operational workflows mechanically, without judgment or interpretation.
 It is responsible for:
@@ -5107,7 +5407,7 @@ Cannot modify amendment protocols
 Cannot skip any step
 Cannot infer CEO intent
 
-2. DETERMINISM CONTRACT
+1. DETERMINISM CONTRACT
 
 The COO Runtime MUST ensure:
 
@@ -5127,7 +5427,7 @@ Concurrency without deterministic ordering
 I/O operations that depend on wall-clock time
 OS-specific nondeterministic calls
 
-3. STATE MACHINE (RUNTIME)
+1. STATE MACHINE (RUNTIME)
 
 The COO Runtime is a deterministic FSM.
 
@@ -5147,13 +5447,14 @@ INIT
 â†’ COMPLETE
 
 **Important:**
+
 - The former `REPLAY` state has been removed per Patch R6.5-B1.
 - Replay determinism verification is now performed as **Gate F inside the GATES state**.
 - There is no standalone REPLAY state.
 
 Any ambiguous state MUST route to ERROR â†’ QUESTION.
 
-4. AMENDMENT EXECUTION
+1. AMENDMENT EXECUTION
 4.1 Pre-conditions
 
 CEO provides amendment instructions (PB + IP)
@@ -5173,7 +5474,7 @@ Produce diff logs
 
 NO heuristics permitted.
 
-5. GOVERNANCE-LEAK SCANNING & LINTING
+1. GOVERNANCE-LEAK SCANNING & LINTING
 
 Using scanner + lint ruleset (SHA256-locked):
 
@@ -5191,7 +5492,7 @@ PASS/FAIL
 Locations of violations
 Full rule-set version info
 
-6. CEO REVIEW & SIGNATURE
+1. CEO REVIEW & SIGNATURE
 
 After amendments applied and scanned:
 
@@ -5211,7 +5512,7 @@ Record signature in freeze manifest
 
 If signature invalid â†’ halt â†’ QUESTION.
 
-7. FREEZE PROTOCOL
+1. FREEZE PROTOCOL
 
 Freeze activates ONLY after:
 
@@ -5240,7 +5541,7 @@ NO external modifications
 
 If violation detected â†’ halt â†’ rollback â†’ QUESTION.
 
-8. AMUâ‚€ CAPTURE
+1. AMUâ‚€ CAPTURE
 
 AMUâ‚€ is the authoritative pre-migration snapshot.
 
@@ -5257,7 +5558,7 @@ phase3_reference_mission.json (SHA-locked)
 CEO MUST cryptographically sign AMUâ‚€.
 COO Runtime stores signature and verifies before any restore.
 
-9. MIGRATION EXECUTION (PB â†’ COO)
+1. MIGRATION EXECUTION (PB â†’ COO)
 
 This sequence MUST be atomic:
 
@@ -5275,7 +5576,7 @@ If ANY failure â†’ execute rollback to AMUâ‚€.
 
 COO Runtime MUST NOT attempt partial recovery.
 
-10. GATES (ORDERED, DETERMINISTIC)
+1. GATES (ORDERED, DETERMINISTIC)
 
 All gates MUST pass after migration sequence:
 
@@ -5307,14 +5608,15 @@ Gate F â€” Replay Determinism (Patched by R6.5-B1)
   The runtime MUST NOT transition to any standalone REPLAY state.
 
   Gate F MUST:
-  - Use AMUâ‚€-locked context
-  - Freeze RNG, time, microcode, PID, env vars, filesystems, and OCI image ID
-  - Execute reference mission twice
-  - Compare results byte-for-byte
+
+- Use AMUâ‚€-locked context
+- Freeze RNG, time, microcode, PID, env vars, filesystems, and OCI image ID
+- Execute reference mission twice
+- Compare results byte-for-byte
 
 If ANY gate fails â†’ rollback to AMUâ‚€.
 
-11. DETERMINISTIC REPLAY (Gate F)
+1. DETERMINISTIC REPLAY (Gate F)
 
 11.1 Replay Context Constraints
 
@@ -5344,7 +5646,7 @@ If mismatch â†’ halt â†’ rollback â†’ QUESTION
 
 NO retries unless CEO authorizes.
 
-12. ROLLBACK PROTOCOL
+1. ROLLBACK PROTOCOL
 
 Rollback MUST:
 
@@ -5361,7 +5663,7 @@ All further rollbacks require CEO authorization
 
 Rollback MUST NOT proceed if CEO signature on AMUâ‚€ fails verification.
 
-13. COMPLETION LOGIC
+1. COMPLETION LOGIC
 
 Migration completes when:
 
@@ -5382,7 +5684,7 @@ Migration Log Bundle
 
 COO Runtime hands over Implementation Pack to Antigravity.
 
-14. PROHIBITED BEHAVIOURS
+1. PROHIBITED BEHAVIOURS
 
 The COO Runtime MUST NOT:
 
@@ -5398,7 +5700,7 @@ Generate files outside declared outputs
 
 If any undefined condition occurs â†’ halt â†’ QUESTION.
 
-15. LOGGING REQUIREMENTS
+1. LOGGING REQUIREMENTS
 
 Runtime MUST produce:
 
@@ -5418,42 +5720,51 @@ Timestamp (mocked if frozen)
 
 END OF COO RUNTIME SPEC v1.0
 
-
 <hr>
 
 <a id="file-docs-03-runtime-coo-runtime-walkthrough-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md
+
 **Source**: `docs/03_runtime/COO_Runtime_Walkthrough_v1.0.md`
 
 # Phase 4: Observability + Hardening - Walkthrough
 
 ## Overview
+
 Phase 4 focused on enhancing system observability and hardening the COO agent with production-ready features including structured logging, timeline events, CLI tools, and comprehensive control flow mechanisms.
 
 ## What Was Accomplished
 
 ### 1. Secret Scrubbing (`structlog` Integration)
+
 **Files Modified:**
+
 - [coo/logging_utils.py](coo-agent/coo/logging_utils.py) - NEW
 - [coo/main.py](coo-agent/coo/main.py)
 - [tests/unit/test_scrubbing.py](coo-agent/tests/unit/test_scrubbing.py) - NEW
 
 **Implementation:**
+
 - Created `scrub_secrets` processor for `structlog` that redacts sensitive information from logs
 - Uses regex patterns to identify and replace API keys, passwords, and tokens
 - Recursively scrubs nested dictionaries, lists, and string values
 - Integrated into `structlog` configuration in `coo/main.py`
 
 **Verification:**
+
 - All unit tests in `test_scrubbing.py` pass
 - Tested with various secret formats (standalone keys, key-value pairs, nested structures)
 
 ### 2. Timeline Events
+
 **Files Modified:**
+
 - [coo/message_store.py](coo-agent/coo/message_store.py)
 - [coo/orchestrator.py](coo-agent/coo/orchestrator.py)
 
 **Implementation:**
+
 - Added `log_timeline_event(mission_id, event_type, data)` method to `MessageStore`
 - Integrated timeline logging for:
   - Backpressure triggers
@@ -5463,78 +5774,99 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 - Events stored in `timeline_events` table with JSON payloads
 
 **Verification:**
+
 - Integration test confirms timeline events are logged correctly
 - CLI commands can query and display timeline data
 
 ### 3. CLI Commands
+
 **Files Modified:**
+
 - [coo/cli.py](coo-agent/coo/cli.py)
 - [tests/unit/test_cli.py](coo-agent/tests/unit/test_cli.py) - NEW
 
 **Commands Implemented:**
+
 - `coo mission <id>` - Show mission details, budget, and recent timeline
 - `coo logs <id>` - Dump all timeline events for a mission
 - `coo dlq-replay <id>` - Replay a failed message from the dead letter queue
 - `coo resume <id>` - Resume a paused mission via CONTROL message
 
 **Features:**
+
 - All commands support `--db-path` option for testing
 - Proper error handling and user-friendly output
 - Async implementation using `asyncio.run()`
 
 **Verification:**
+
 - All CLI unit tests pass (`test_cli.py`)
 - Commands tested with temporary databases
 
 ### 4. Approval Flow & CONTROL Messages
+
 **Files Modified:**
+
 - [coo/agents/real_agents.py](coo-agent/coo/agents/real_agents.py)
 - [coo/cli.py](coo-agent/coo/cli.py)
 
 **Implementation:**
+
 - `RealCOO` now intercepts `CONTROL` messages before calling LLM
 - Handles `resume` action by emitting `state_transition` to `executing`
 - `coo resume` CLI command sends CONTROL messages to paused missions
 - Enables human-in-the-loop approval workflows
 
 **Verification:**
+
 - Unit test `test_control_flow.py` verifies CONTROL message handling
 - Test confirms paused missions only process CONTROL messages
 
 ### 5. Backpressure Hard Pause
+
 **Files Modified:**
+
 - [coo/message_store.py](coo-agent/coo/message_store.py)
 - [tests/unit/test_control_flow.py](coo-agent/tests/unit/test_control_flow.py) - NEW
 
 **Implementation:**
+
 - Modified `claim_pending_messages` to exclude messages from paused missions
 - Exception: CONTROL messages bypass the pause to allow resumption
 - Uses SQL JOIN to check mission status during message claiming
 - Prevents resource exhaustion when missions are paused
 
 **Verification:**
+
 - `test_control_flow.py` confirms paused missions don't process regular messages
 - CONTROL messages are still claimed and processed
 
 ### 6. Sandbox Crash Recovery
+
 **Files Modified:**
+
 - [coo/sandbox.py](coo-agent/coo/sandbox.py)
 - [coo/orchestrator.py](coo-agent/coo/orchestrator.py)
 
 **Implementation:**
+
 - `recover_crashed_runs` marks stale sandbox runs as failed
 - Called during orchestrator startup
 - 10-minute timeout for detecting crashed runs
 
 **Verification:**
+
 - Unit test `test_crash_recovery` in `test_sandbox.py` passes
 - Confirms stale runs are properly marked as failed
 
 ### 7. Integration Testing
+
 **Files Created:**
+
 - [tests/integration/test_full_system.py](coo-agent/tests/integration/test_full_system.py) - NEW
 
 **Implementation:**
+
 - Full system integration test using `DummyAgents`
 - Verifies complete mission lifecycle:
   - Message routing between agents
@@ -5544,13 +5876,16 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 - Uses temporary database for isolation
 
 **Verification:**
+
 - Integration test passes successfully
 - Confirms mission completes and timeline events are logged
 
 ## Test Results
 
 ### Unit Tests
+
 All unit tests pass (25 tests):
+
 - `test_budget.py` - 3 tests
 - `test_cli.py` - 4 tests
 - `test_control_flow.py` - 1 test
@@ -5562,6 +5897,7 @@ All unit tests pass (25 tests):
 - `test_orchestrator_sandbox.py` - 1 test
 
 ### Integration Tests
+
 - `test_full_system.py` - 1 test passes
 
 ## Key Design Decisions
@@ -5573,13 +5909,15 @@ All unit tests pass (25 tests):
 5. **Integration Test Approach**: Used `DummyAgents` instead of mocking LLM responses for simplicity
 
 ## Next Steps
-The only remaining task in Phase 4 is creating a README and operations guide for deployment and usage instructions.
 
+The only remaining task in Phase 4 is creating a README and operations guide for deployment and usage instructions.
 
 <hr>
 
 <a id="file-docs-03-runtime-f3-tier2-5-activation-conditions-checklist-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md
+
 **Source**: `docs/03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md`
 
 # Tier-2.5 Activation Conditions Checklist v1.0
@@ -5678,11 +6016,12 @@ As of 2026-01-02:
 
 **END OF DOCUMENT**
 
-
 <hr>
 
 <a id="file-docs-03-runtime-f4-tier2-5-deactivation-rollback-conditions-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md
+
 **Source**: `docs/03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md`
 
 # Tier-2.5 Deactivation & Rollback Conditions v1.0
@@ -5754,8 +6093,8 @@ When any trigger in Section 2 fires:
 
 ### 3.2 Assessment Actions (Manual or Automated)
 
-4. **DIAGNOSE** - Identify root cause of trigger
-5. **CLASSIFY** - Determine severity:
+1. **DIAGNOSE** - Identify root cause of trigger
+2. **CLASSIFY** - Determine severity:
    - **Transient**: Network glitch, temporary resource issue
    - **Recoverable**: Test failure from bad code, fixable
    - **Structural**: Protocol flaw, governance gap, requires redesign
@@ -5833,6 +6172,7 @@ After deactivation, Tier-2.5 may only reactivate when:
 4. **CEO approves** reactivation (explicit or implicit via standing authorization)
 
 For **Structural** severity issues:
+
 - Council review required
 - Fix Pack documenting the issue and resolution required
 - Extended test period may be mandated
@@ -5855,11 +6195,12 @@ Per Constitution v2.0: CEO may override any system decision at any time.
 
 **END OF DOCUMENT**
 
-
 <hr>
 
 <a id="file-docs-03-runtime-f7-runtime-antigrav-mission-protocol-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md
+
 **Source**: `docs/03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md`
 
 # Runtime â†” Antigrav Mission Protocol v1.0
@@ -5923,6 +6264,7 @@ Antigravity may NOT directly invoke:
 ### 3.3 Entrypoint Extension
 
 New entrypoints may be added to Section 3.1 ONLY via:
+
 1. Fix Pack proposing the addition
 2. Council review (Architect + Risk minimum)
 3. CEO approval
@@ -5943,6 +6285,7 @@ New entrypoints may be added to Section 3.1 ONLY via:
 ### 4.2 Mission Type Extension
 
 New mission types may be added ONLY via:
+
 1. Implementation in `runtime/orchestration/` with full test coverage
 2. Registration in `runtime/orchestration/registry.py`
 3. Fix Pack documenting the mission type
@@ -6073,6 +6416,7 @@ All Antigravâ†’Runtime invocations MUST be logged:
 ### 9.2 Log Location
 
 Logs written to:
+
 - Console (immediate feedback)
 - `logs/antigrav_missions.jsonl` (persistent, append-only)
 - Git commit messages (for state-changing missions)
@@ -6089,6 +6433,7 @@ This protocol is versioned. Changes require:
 4. Version increment (v1.0 â†’ v1.1 for minor, v2.0 for breaking)
 
 Breaking changes (new constraints, removed permissions) require:
+
 - Full Council review
 - Migration plan for in-flight missions
 - CEO sign-off
@@ -6097,14 +6442,16 @@ Breaking changes (new constraints, removed permissions) require:
 
 **END OF DOCUMENT**
 
-
 <hr>
 
 <a id="file-docs-03-runtime-fixpacks-fp-4x-implementation-packet-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md
+
 **Source**: `docs/03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md`
 
 # FP-4.x Implementation Packet v0.1
+
 (derived from FP-4.x Fix Pack Specification v0.1)
 
 ## 0. METADATA
@@ -6135,34 +6482,41 @@ Breaking changes (new constraints, removed permissions) require:
 ## 2. DIRECTORY AND MODULE PLAN
 
 ### 2.1 New Utility Modules
+
 - `runtime/util/atomic_write.py`
 - `runtime/util/detsort.py`
 
 ### 2.2 Envelope / Gateway
+
 - `runtime/envelope/execution_envelope.py`
 - `runtime/gateway/deterministic_call.py`
 
 ### 2.3 AMUâ‚€ & Index Lineage
+
 - `runtime/amu0/lineage.py`
 - `runtime/index/index_updater.py`
 
 ### 2.4 Governance Surfaces
+
 - `runtime/governance/HASH_POLICY_v1.py`
 - `runtime/governance/surface_manifest.json`
 - `runtime/governance/surface_manifest.sig`
 - `runtime/governance/override_protocol.py`
 
 ### 2.5 Validator & Safety
+
 - `runtime/validator/anti_failure_validator.py`
 - `runtime/safety/health_checks.py`
 - `runtime/safety/halt.py`
 - `runtime/safety/playbooks/*.md`
 
 ### 2.6 API Boundaries
+
 - `runtime/api/governance_api.py`
 - `runtime/api/runtime_api.py`
 
 ### 2.7 Tests
+
 - `test_envelope_single_process.py`
 - `test_envelope_network_block.py`
 - `test_deterministic_gateway.py`
@@ -6183,6 +6537,7 @@ Breaking changes (new constraints, removed permissions) require:
 ## 3. IMPLEMENTATION BY CONDITION SET
 
 ### 3.1 CND-1 â€” Execution Envelope & Threat Model
+
 - ExecutionEnvelope class with verify_* methods
 - PYTHONHASHSEED=0 enforcement
 - Single-process guarantee
@@ -6191,24 +6546,29 @@ Breaking changes (new constraints, removed permissions) require:
 - Deterministic gateway for subprocess/network
 
 ### 3.2 CND-2 â€” AMUâ‚€ & Index Integrity Hardening
+
 - Hash-chained lineage (parent_hash, entry_hash, SHA-256)
 - Atomic writes (write-temp + rename)
 - Council-defined hash function (HASH_POLICY_v1)
 
 ### 3.3 CND-3 â€” Governance Surface Immutability
+
 - Read-only governance surfaces via manifest + signature
 - Council-only override protocol with AMUâ‚€ logging
 
 ### 3.4 CND-4 â€” Anti-Failure Validator Hardening
+
 - Adversarial tests (smuggled steps, chaining, fake agents)
 - Attestation logging (HumanAttestation dataclass)
 
 ### 3.5 CND-5 â€” Operational Safety Layer
+
 - Failure-mode playbooks (markdown)
 - Health checks (DAP, INDEX, AMUâ‚€)
 - Tier-1 halt procedure
 
 ### 3.6 CND-6 â€” Simplification Requirements
+
 - Deduplicate detsort logic
 - Simplify AMUâ‚€ to linear hash chain
 - Clarify API boundaries (governance_api, runtime_api)
@@ -6225,11 +6585,12 @@ Breaking changes (new constraints, removed permissions) require:
 - [ ] Health checks and halt procedure integrated
 - [ ] DAP and INDEX use shared detsort utilities
 
-
 <hr>
 
 <a id="file-docs-03-runtime-hardening-backlog-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/Hardening_Backlog_v0.1.md
+
 **Source**: `docs/03_runtime/Hardening_Backlog_v0.1.md`
 
 # Tier-2 Orchestration Hardening Backlog v0.1
@@ -6256,11 +6617,12 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: Currently, any operation other than "fail" is effectively treated as a no-op.
 
 **Actions**:
+
 - **Update spec / docs** to state explicitly that:
-    - Supported operations in this Tier-2 phase are:
-        - "noop" â€” no state change.
-        - "fail" â€” terminates execution with error.
-    - All other operations are treated as no-op in this phase.
+  - Supported operations in this Tier-2 phase are:
+    - "noop" â€” no state change.
+    - "fail" â€” terminates execution with error.
+  - All other operations are treated as no-op in this phase.
 - **Optional code tightening (future)**: Restrict allowed operation values to a closed set (e.g. {"noop", "fail"}) and raise a deterministic error for unknown operations, once the contract is ready.
 
 ### ORCH-H2 â€” Freeze Executed Steps for Audit Stability
@@ -6269,9 +6631,10 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: `executed_steps` holds references to the original `StepSpec` instances. If external code mutates the workflow after orchestration, serialisations of an existing `OrchestrationResult` could change.
 
 **Actions (one of)**:
+
 - When populating `executed_steps`, store:
-    - `copy.deepcopy(step)`, or
-    - `step.to_dict()` snapshots instead of live objects.
+  - `copy.deepcopy(step)`, or
+  - `step.to_dict()` snapshots instead of live objects.
 - Ensure `result.to_dict()` remains byte-identical even if the original workflow is mutated post-run.
 
 ### ORCH-H3 â€” Context Metadata Integration (Future Extension)
@@ -6280,12 +6643,13 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: `ExecutionContext.metadata` is currently unused. It could carry deterministic run metadata (e.g. run_id, caller, policy_version).
 
 **Actions (future phase)**:
+
 - Design a minimal, fixed schema for metadata fields that may be surfaced into:
-    - lineage (e.g. caller, policy_version).
-    - receipt (e.g. run_id).
+  - lineage (e.g. caller, policy_version).
+  - receipt (e.g. run_id).
 - Ensure:
-    - Metadata injection is deterministic.
-    - Adding metadata does not break existing tests or determinism invariants.
+  - Metadata injection is deterministic.
+  - Adding metadata does not break existing tests or determinism invariants.
 
 ### ORCH-H4 â€” Explicit Payload Shape Requirements
 
@@ -6293,11 +6657,12 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: `StepSpec.to_dict()` assumes payload is a dict with string keys suitable for sorted iteration.
 
 **Actions**:
+
 - **Update spec (and relevant docs)** to state that:
-    - `payload` MUST be:
-        - JSON-serialisable.
-        - A dict with string keys.
-    - Optionally add defensive checks and raise a clear error if the invariant is violated.
+  - `payload` MUST be:
+    - JSON-serialisable.
+    - A dict with string keys.
+  - Optionally add defensive checks and raise a clear error if the invariant is violated.
 
 ## 3. Builder Hardening Items (builder.py)
 
@@ -6305,10 +6670,12 @@ No items in this backlog are required for current correctness or Tier-2 activati
 
 **Type**: Spec / Light Code Cleanup  
 **Description**: Metadata for missions is not fully canonical:
+
 - `daily_loop` uses `{"mission_type": "daily_loop", "params": {...}}`.
 - `run_tests` uses `{"mission_type": "run_tests", "type": "run_tests", "params": {...}}`.
 
 **Actions**:
+
 - **Decide on a canonical key**: e.g. "mission_type" for all mission types.
 - **Make metadata consistent**: Either drop the redundant "type" in run_tests, or document intentional dual fields (mission_type vs type) if the distinction is needed later.
 
@@ -6318,14 +6685,17 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: `requested_steps` and `requested_human_steps` behave as upper bounds and can be negative. Negative values are handled safely but implicitly.
 
 **Actions**:
+
 - **Normalise** `requested_steps` and `requested_human_steps` as:
+
     ```python
     requested_steps = max(0, min(requested_steps, MAX_TOTAL_STEPS))
     requested_human_steps = max(0, min(requested_human_steps, MAX_HUMAN_STEPS))
     ```
+
 - **Update spec/docs** to state:
-    - These fields are upper bounds.
-    - They are clamped to [0, MAX_*].
+  - These fields are upper bounds.
+  - They are clamped to [0, MAX_*].
 
 ### BLD-H3 â€” AntiFailurePlanningError Semantics
 
@@ -6333,11 +6703,12 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: The Review Packet references both truncation and AntiFailurePlanningError. In practice, supported templates are designed so that truncation avoids violations; planning errors are â€œshould not happenâ€ cases.
 
 **Actions**:
+
 - **Document explicitly** that:
-    - For supported missions, excessive requests are truncated deterministically to satisfy Anti-Failure limits.
-    - `AntiFailurePlanningError` is reserved for:
-        - Misconfigured templates that still violate constraints after planning.
-        - Workflows externally constructed and passed into `_validate_anti_failure` (if reused).
+  - For supported missions, excessive requests are truncated deterministically to satisfy Anti-Failure limits.
+  - `AntiFailurePlanningError` is reserved for:
+    - Misconfigured templates that still violate constraints after planning.
+    - Workflows externally constructed and passed into `_validate_anti_failure` (if reused).
 
 ### BLD-H4 â€” Envelope Violation Typing at Planning Time
 
@@ -6345,9 +6716,10 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: `_validate_anti_failure` uses `AntiFailurePlanningError` for both step-count violations and invalid `step.kind`. Orchestrator uses `EnvelopeViolation` at execution.
 
 **Actions**:
+
 - **Decide and document** whether planning-time invalid kinds:
-    - Stay as `AntiFailurePlanningError` (planning concern), or
-    - Use a more specific exception (e.g. a subtype) to align conceptually with `EnvelopeViolation`.
+  - Stay as `AntiFailurePlanningError` (planning concern), or
+  - Use a more specific exception (e.g. a subtype) to align conceptually with `EnvelopeViolation`.
 - Reflect this decision in the Review Packet.
 
 ### BLD-H5 â€” Daily Loop Template Documentation (Archive Step)
@@ -6356,13 +6728,14 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: Implementation includes an optional "daily-archive" runtime step when within Anti-Failure limits. High-level text emphasises 4 steps (1 human, 3 runtime).
 
 **Actions**:
+
 - **Update Review Packet** to state:
-    - Default `daily_loop` (with default params):
-        - 4 steps total:
-            - 1 human: "daily-confirm-priorities".
-            - 3 runtime: e.g. summarise, generate priorities, log summary.
-    - When `requested_steps` is increased (up to 5):
-        - A 5th runtime step "daily-archive" may be included, still within Anti-Failure limits.
+  - Default `daily_loop` (with default params):
+    - 4 steps total:
+      - 1 human: "daily-confirm-priorities".
+      - 3 runtime: e.g. summarise, generate priorities, log summary.
+  - When `requested_steps` is increased (up to 5):
+    - A 5th runtime step "daily-archive" may be included, still within Anti-Failure limits.
 
 ### BLD-H6 â€” Remove or Use remaining_slots
 
@@ -6370,9 +6743,10 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: `_build_daily_loop` computes `remaining_slots = requested_steps - len(steps)` but never uses it.
 
 **Actions**:
+
 - Either:
-    - Remove `remaining_slots`, or
-    - Use it explicitly to control template expansion (e.g., loop only while `remaining_slots > 0`), keeping behaviour equivalent.
+  - Remove `remaining_slots`, or
+  - Use it explicitly to control template expansion (e.g., loop only while `remaining_slots > 0`), keeping behaviour equivalent.
 
 ### BLD-H7 â€” Mission Registry Extension Rules
 
@@ -6380,12 +6754,13 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: Future mission types will be added to `_MISSION_BUILDERS`, and must preserve Tier-2 invariants.
 
 **Actions**:
+
 - **Add explicit â€œextension rulesâ€** to the Builder spec:
-    - Any new mission template MUST:
-        - Produce â‰¤ MAX_TOTAL_STEPS and â‰¤ MAX_HUMAN_STEPS.
-        - Use only step kinds in {"runtime", "human"}.
-        - Preserve mission params in metadata via `dict(sorted(params.items()))`.
-        - Pass `_validate_anti_failure` without relying on external correction.
+  - Any new mission template MUST:
+    - Produce â‰¤ MAX_TOTAL_STEPS and â‰¤ MAX_HUMAN_STEPS.
+    - Use only step kinds in {"runtime", "human"}.
+    - Preserve mission params in metadata via `dict(sorted(params.items()))`.
+    - Pass `_validate_anti_failure` without relying on external correction.
 
 ## 4. Daily Loop Runner Hardening Items (daily_loop.py)
 
@@ -6395,11 +6770,12 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: Review text currently suggests â€œfinal state is independent of input,â€ which is ambiguous and potentially misleading.
 
 **Actions**:
+
 - **Update Review Packet** to state:
-    - `result.final_state`:
-        - Does not alias `ExecutionContext.initial_state`.
-        - Is a deterministic function of `initial_state` + `params`.
-    - In this Tier-2 phase, operations are effectively no-op, so the value of `final_state` may equal `initial_state`, but immutability and aliasing guarantees still hold.
+  - `result.final_state`:
+    - Does not alias `ExecutionContext.initial_state`.
+    - Is a deterministic function of `initial_state` + `params`.
+  - In this Tier-2 phase, operations are effectively no-op, so the value of `final_state` may equal `initial_state`, but immutability and aliasing guarantees still hold.
 
 ### DLR-H2 â€” Document Builder-Level Anti-Failure Errors
 
@@ -6407,9 +6783,10 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: Docstring and Review Packet list `AntiFailureViolation` and `EnvelopeViolation` but not the builderâ€™s `AntiFailurePlanningError`.
 
 **Actions**:
+
 - **Add to Review Packet** and (optionally) docstring:
-    - `run_daily_loop` may propagate `AntiFailurePlanningError` if builder templates are misconfigured.
-    - Under normal configuration, supported daily-loop missions should not trigger this.
+  - `run_daily_loop` may propagate `AntiFailurePlanningError` if builder templates are misconfigured.
+  - Under normal configuration, supported daily-loop missions should not trigger this.
 
 ### DLR-H3 â€” Defensive Copy of params
 
@@ -6417,13 +6794,16 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: `run_daily_loop` passes `params` directly into `MissionSpec`. Caller mutation of the dict after calling the function could theoretically affect builder behaviour if used asynchronously (even though current usage is synchronous).
 
 **Actions**:
+
 - **Update code** to:
+
     ```python
     mission = MissionSpec(
         type="daily_loop",
         params=dict(params or {}),
     )
     ```
+
 - This ensures mission params are decoupled from caller-owned state.
 
 ### DLR-H4 â€” Document Relationship to Builder Template
@@ -6432,10 +6812,11 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: Runner doc currently describes conceptual daily loop steps, while the exact sequence is defined in the Builder.
 
 **Actions**:
+
 - **Clarify in Review Packet** that:
-    - `run_daily_loop` is a thin composition layer:
-        - Mission construction â†’ Builder â†’ Orchestrator.
-    - The exact step sequence (including optional archive step) is defined by the Builderâ€™s `daily_loop` template and may evolve, as long as Tier-2 invariants are preserved.
+  - `run_daily_loop` is a thin composition layer:
+    - Mission construction â†’ Builder â†’ Orchestrator.
+  - The exact step sequence (including optional archive step) is defined by the Builderâ€™s `daily_loop` template and may evolve, as long as Tier-2 invariants are preserved.
 
 ### DLR-H5 â€” Explicit Exception Propagation Behaviour
 
@@ -6443,13 +6824,14 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Description**: Runner does not catch or wrap exceptions from Builder or Orchestrator.
 
 **Actions**:
+
 - **Add an explicit note** to the Review Packet:
-    - `run_daily_loop` propagates exceptions from Builder and Orchestrator unchanged.
-    - Callers should be prepared to handle:
-        - `AntiFailurePlanningError` (planning).
-        - `AntiFailureViolation` (execution-time Anti-Failure breach).
-        - `EnvelopeViolation` (execution-time envelope breach).
-        - Any other documented runtime errors at lower layers.
+  - `run_daily_loop` propagates exceptions from Builder and Orchestrator unchanged.
+  - Callers should be prepared to handle:
+    - `AntiFailurePlanningError` (planning).
+    - `AntiFailureViolation` (execution-time Anti-Failure breach).
+    - `EnvelopeViolation` (execution-time envelope breach).
+    - Any other documented runtime errors at lower layers.
 
 ## 5. Mission Registry Hardening Items (registry.py)
 
@@ -6485,6 +6867,7 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Summary**: Decide and document how the harness should behave when a `ScenarioDefinition` contains multiple `MissionCall`s with the same name.  
 **Current behaviour**: Later missions with the same name overwrite earlier entries in `ScenarioResult.mission_results` (last-write wins), which is deterministic but implicit.  
 **Action**:
+
 - Either (a) document that mission names within a scenario MUST be unique, and add a defensive check, or
 - (b) extend `ScenarioResult.mission_results` to map mission name â†’ list of `OrchestrationResult` to support repeated missions explicitly.  
 **Rationale**: Makes scenario semantics explicit and avoids surprising overwrites while preserving determinism.
@@ -6494,6 +6877,7 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: Maintainability / API Clarity  
 **Summary**: Update type hints for `ScenarioResult` fields to reflect read-only intent.  
 **Action**:
+
 - Change `mission_results` annotation to `Mapping[str, OrchestrationResult]`.
 - Change `metadata` annotation to `Mapping[str, Any]`.  
 **Rationale**: Clarifies that callers must treat scenario results and metadata as read-only views, reducing the risk of accidental mutation in higher layers.
@@ -6503,10 +6887,11 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: Productisation Readiness / UX  
 **Summary**: Add a `to_dict()` method on `ScenarioResult` to provide a fully serialisable representation for CLI, UI, and the Deterministic Test Harness v0.5.  
 **Action (target shape)**:
+
 - Implement `ScenarioResult.to_dict()` returning:
-    - `scenario_name`: str
-    - `mission_results`: `Dict[str, Dict[str, Any]]` (via `OrchestrationResult.to_dict()`)
-    - `metadata`: `Dict[str, Any]` (deep-copied).  
+  - `scenario_name`: str
+  - `mission_results`: `Dict[str, Dict[str, Any]]` (via `OrchestrationResult.to_dict()`)
+  - `metadata`: `Dict[str, Any]` (deep-copied).  
 **Rationale**: Provides a stable, canonical serialisation path for scenarios, simplifies higher-level tooling, and aligns with existing `OrchestrationResult.to_dict()` patterns.
 
 ## 7. Suite Runner Hardening Items (suite.py)
@@ -6516,6 +6901,7 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: Cleanliness / Maintainability  
 **Summary**: Remove the unused `copy` import from `runtime/orchestration/suite.py`.  
 **Action**:
+
 - Delete `import copy` at the top of `suite.py`.  
 **Rationale**: Keeps the module minimal and avoids misleading signals about potential state-copying behaviour.
 
@@ -6524,6 +6910,7 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: API Clarity / Future-Proofing  
 **Summary**: Update type hints on `ScenarioSuiteResult` to reflect read-only intent for its mappings.  
 **Action**:
+
 - Change `scenario_results` annotation from `Dict[str, ScenarioResult]` to `Mapping[str, ScenarioResult]`.
 - Change `metadata` annotation from `Dict[str, Any]` to `Mapping[str, Any]`.  
 **Rationale**: Indicates to higher layers that suite results and metadata should be treated as read-only views, reducing accidental mutation risks.
@@ -6533,10 +6920,11 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: API Semantics / Determinism  
 **Summary**: Add a test covering the documented last-write-wins behaviour when multiple scenarios share the same `scenario_name`.  
 **Action**:
+
 - In `runtime/tests/test_tier2_suite.py`, add a test that:
-    - Builds a `ScenarioSuiteDefinition` with two `ScenarioDefinitions` having the same `scenario_name`.
-    - Runs `run_suite`.
-    - Asserts that `ScenarioSuiteResult.scenario_results` contains a single entry under that name corresponding to the last scenario.  
+  - Builds a `ScenarioSuiteDefinition` with two `ScenarioDefinitions` having the same `scenario_name`.
+  - Runs `run_suite`.
+  - Asserts that `ScenarioSuiteResult.scenario_results` contains a single entry under that name corresponding to the last scenario.  
 **Rationale**: Locks in the documented semantics for duplicate scenario names and prevents future regressions.
 
 ## 8. Expectations Engine Hardening Items (expectations.py)
@@ -6546,6 +6934,7 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: Cleanliness / Single-Source Semantics  
 **Summary**: `_evaluate_op` contains an `op == "exists"` branch that is never used, because `evaluate_expectations` handles "exists" directly.  
 **Action**:
+
 - Remove the `op == "exists"` branch from `_evaluate_op` in `runtime/orchestration/expectations.py`, keeping "exists" semantics defined exclusively in `evaluate_expectations`.  
 **Rationale**: Eliminates dead code, clarifies operator responsibilities, and prevents divergence of "exists" semantics in future edits.
 
@@ -6554,6 +6943,7 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: API Semantics / Immutability  
 **Summary**: `SuiteExpectationsDefinition` is `frozen=True` but its `expectations` field is a mutable `List[MissionExpectation]`.  
 **Action**:
+
 - Change `expectations` to `Tuple[MissionExpectation, ...]` and, if needed, normalise list inputs to tuples in `__init__`, mirroring `ScenarioDefinition`/`ScenarioSuiteDefinition`.  
 **Rationale**: Aligns with other Tier-2 definition types, prevents accidental mutation after construction, and strengthens determinism guarantees for large expectation sets.
 
@@ -6562,9 +6952,10 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: API Clarity / Future-Proofing  
 **Summary**: `SuiteExpectationsResult.expectation_results` and `.metadata` are currently typed as `Dict[...]`, though callers should treat them as read-only.  
 **Action**:
+
 - Update type hints in `SuiteExpectationsResult` to:
-    - `expectation_results`: `Mapping[str, ExpectationResult]`
-    - `metadata`: `Mapping[str, Any]`
+  - `expectation_results`: `Mapping[str, ExpectationResult]`
+  - `metadata`: `Mapping[str, Any]`
 (Implementation can continue to use plain dicts.)  
 **Rationale**: Communicates read-only intent to Tier-3 / harness callers and reduces the risk of accidental mutation in higher layers.
 
@@ -6573,9 +6964,10 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: API Semantics / Determinism  
 **Summary**: `expectation_results` is keyed by `MissionExpectation.id`; duplicate IDs currently produce last-write-wins behaviour without any signal.  
 **Action**:
+
 - Either:
-    - (a) Document that `MissionExpectation.id` values MUST be unique per suite, and add a defensive check that raises or clearly flags duplicates, or
-    - (b) Intentionally support duplicates via an alternative structure (e.g., mapping ID â†’ list of `ExpectationResult`), and update tests accordingly.  
+  - (a) Document that `MissionExpectation.id` values MUST be unique per suite, and add a defensive check that raises or clearly flags duplicates, or
+  - (b) Intentionally support duplicates via an alternative structure (e.g., mapping ID â†’ list of `ExpectationResult`), and update tests accordingly.  
 **Rationale**: Avoids silent overwrites and makes ID semantics explicit, which matters once suites grow and are generated programmatically.
 
 ### HB-T2-EXP-05 â€” Clean Up Unused Type Imports
@@ -6583,6 +6975,7 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: Cleanliness / Maintainability  
 **Summary**: `Mapping` and `Union` (or other types, if present) are imported but unused in `runtime/orchestration/expectations.py`.  
 **Action**:
+
 - Remove unused imports, or use them as part of HB-T2-EXP-03â€™s type hint tightening.  
 **Rationale**: Keeps the module minimal and avoids misleading signals about intended usage patterns.
 
@@ -6593,8 +6986,9 @@ No items in this backlog are required for current correctness or Tier-2 activati
 **Type**: API Clarity / Future-Proofing  
 **Summary**: `TestRunResult.metadata` is currently typed as `Dict[str, Any]`, but callers should treat it as read-only.  
 **Action**:
+
 - Update `TestRunResult` in `runtime/orchestration/test_run.py` to use:
-    - `metadata`: `Mapping[str, Any]`
+  - `metadata`: `Mapping[str, Any]`
 while still constructing it with a plain dict internally.  
 **Rationale**: Aligns with other Tier-2 result types and signals to higher layers that metadata must not be mutated, reducing accidental side effects.
 
@@ -6603,9 +6997,10 @@ while still constructing it with a plain dict internally.
 **Type**: Productisation Readiness / UX  
 **Summary**: `TestRunResult.metadata` currently exposes only `test_run_hash`, which is sufficient but sparse for higher-level tooling.  
 **Action (non-breaking extension)**:
+
 - Add additional keys to metadata, such as:
-    - `"suite_name"` â€” sourced from the underlying `ScenarioSuiteResult` / suite definition.
-    - `"expectations_passed"` / `"expectations_total"` â€” simple counts derived from `SuiteExpectationsResult`.
+  - `"suite_name"` â€” sourced from the underlying `ScenarioSuiteResult` / suite definition.
+  - `"expectations_passed"` / `"expectations_total"` â€” simple counts derived from `SuiteExpectationsResult`.
 - Keep `test_run_hash` unchanged and stable for given inputs.  
 **Rationale**: Makes it easier for CLI / UI layers and logs to identify and summarise runs without digging into nested results.
 
@@ -6614,11 +7009,12 @@ while still constructing it with a plain dict internally.
 **Type**: Productisation / Serialisation  
 **Summary**: There is no canonical serialisation helper on `TestRunResult`; callers must reconstruct serialisable views manually.  
 **Action (target shape)**:
+
 - Implement `TestRunResult.to_dict()` returning a fully JSON-serialisable structure, for example:
-    - `suite_result`: serialised via `ScenarioSuiteResult` (using its own `to_dict()` once added).
-    - `expectations_result`: serialised via `SuiteExpectationsResult` (using its own `to_dict()` once added).
-    - `passed`: bool.
-    - `metadata`: deep-copied metadata dict.
+  - `suite_result`: serialised via `ScenarioSuiteResult` (using its own `to_dict()` once added).
+  - `expectations_result`: serialised via `SuiteExpectationsResult` (using its own `to_dict()` once added).
+  - `passed`: bool.
+  - `metadata`: deep-copied metadata dict.
 - Ensure this structure is consistent with (or a superset of) what is used in the `test_run_hash` payload.  
 **Rationale**: Provides a single canonical shape for logging, persistence, diffing, and future Deterministic Test Harness features, avoiding ad-hoc serialisation logic in higher layers.
 
@@ -6627,16 +7023,18 @@ while still constructing it with a plain dict internally.
 These items can be batched into a future â€œTier-2 Orchestration Hardeningâ€ mission or Fix Pack.
 
 **Recommended execution order (minimal disruption)**:
+
 1. **Spec/docs-only items**: ORCH-H4, BLD-H3, BLD-H5, BLD-H7, DLR-H1, DLR-H2, DLR-H4, DLR-H5, HB-T2-HAR-01.
 2. **Code hygiene**: BLD-H6, HB-T2-REG-04, HB-T2-HAR-02, HB-T2-SUITE-01, HB-T2-SUITE-02, HB-T2-EXP-01, HB-T2-EXP-03, HB-T2-EXP-05, HB-T2-TRUN-01.
 3. **Low-risk code hardening**: DLR-H3, BLD-H2, ORCH-H2, HB-T2-REG-01, HB-T2-REG-02, HB-T2-REG-03, HB-T2-HAR-03, HB-T2-SUITE-03, HB-T2-EXP-02, HB-T2-EXP-04, HB-T2-TRUN-02, HB-T2-TRUN-03.
 4. **Design extensions**: ORCH-H3, BLD-H1, BLD-H4, ORCH-H1 (if tightening op set).
 
-
 <hr>
 
 <a id="file-docs-03-runtime-lifeos-programme-roadmap-corefuelplumbing-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md
+
 **Source**: `docs/03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md`
 
 # LifeOS Programme â€” Re-Grouped Roadmap (Core / Fuel / Plumbing)
@@ -6672,6 +7070,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Kernel determinism is the substrate enabling autonomous execution loops; without it, no compounding leverage.
 
 **Components:**
+
 - Deterministic Orchestrator
 - Deterministic Builder
 - Deterministic Daily Loop
@@ -6689,6 +7088,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Establishes the runtime that will eventually be agentic; still Core because it directly increases execution capacity under governance.
 
 **Components:**
+
 - Mission Registry
 - Config-driven entrypoints
 - Stable deterministic test harness
@@ -6702,6 +7102,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Directly reduces human bottlenecks and begins recursive self-maintenance, which is explicitly required by the Charter (autonomy expansion, user stays at intent layer).
 
 **Components:**
+
 - Recursive Builder / Recursive Kernel
 - Agentic Doc Steward (Antigrav integration)
 - Deterministic docmaps / hygiene missions
@@ -6721,6 +7122,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** This is the first true autonomy tier; creates compounding leverage. Fully aligned with autonomy, agency, and externalisation of cognition.
 
 **Components:**
+
 - Mission Synthesis Engine
 - Policy Engine v1 (execution-level governance)
 - Self-testing & provenance chain
@@ -6738,6 +7140,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Adds organisational-level autonomy and planning. Required for the system to run projects, not just missions, which increases output and reduces user involvement.
 
 **Components:**
+
 - Policy Engine v2
 - Mission Prioritisation Engine
 - Lifecycle Engine (birth â†’ evaluation â†’ archival)
@@ -6755,6 +7158,7 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** This is the LifeOS vision tier; directly serves North Star: external impact, autonomy, leverage, compounding improvement.
 
 **Components:**
+
 - Recursive Strategic Engine
 - Recursive Governance Engine
 - Multi-Agent Operations Layer (LLMs, Antigrav, scripts, APIs)
@@ -6802,6 +7206,7 @@ Plumbing is the minimal viable structure needed to keep Core safe and aligned.
 ### Tier-2 and Tier-2.5 Plumbing
 
 **Components:**
+
 - Governance specs, invariants
   - **Justification:** Enforces deterministic safety envelope; supports Core autonomy safely.
 - Test frameworks (deterministic harness, scenario harness, recursive tests)
@@ -6818,6 +7223,7 @@ Plumbing is the minimal viable structure needed to keep Core safe and aligned.
 ### Tier-3+ Plumbing
 
 **Components:**
+
 - Fix Pack mechanism
   - **Justification:** Formal governance for changes; prevents drift.
 - Provenance chain rules
@@ -6835,7 +7241,7 @@ Plumbing is the minimal viable structure needed to keep Core safe and aligned.
 
 Anything not clearly contributing to external leverage, agency, autonomy, wealth, esteem, or reduced user burden.
 
-### Flagged Items:
+### Flagged Items
 
 1. **Visual elegance, aesthetic refactoring, or "pretty documentation"** that is not required for deterministic governance.
    - **Reason:** Violates "no elegance for its own sake" invariant.
@@ -6857,6 +7263,7 @@ Anything not clearly contributing to external leverage, agency, autonomy, wealth
 ## 5. REVISED CANONICAL ROADMAP (Core / Fuel / Plumbing Integrated)
 
 ### CORE
+
 - Tier-1: Deterministic Kernel
 - Tier-2: Runtime Orchestration
 - Tier-2.5: Semi-Autonomous Development Layer
@@ -6865,10 +7272,12 @@ Anything not clearly contributing to external leverage, agency, autonomy, wealth
 - Tier-5: Self-Improving Organisation Engine
 
 ### FUEL
+
 - Productisation tracks (optional, later)
 - Advisory monetisation (optional)
 
 ### PLUMBING
+
 - Council protocols
 - Governance specs
 - Invariants
@@ -6881,13 +7290,13 @@ Anything not clearly contributing to external leverage, agency, autonomy, wealth
 
 **End of LifeOS Programme Roadmap â€” Core/Fuel/Plumbing v1.0**
 
-
 <hr>
 
 <a id="file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-1-md"></a>
-# ðŸ“„ FILE: docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md
-**Source**: `docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md`
 
+# ðŸ“„ FILE: docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md
+
+**Source**: `docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.1.md`
 
 # LifeOS_Recursive_Improvement_Architecture_v0.1
 
@@ -7380,13 +7789,13 @@ This v0.1 architecture is intended for structured review. Key questions:
 
 **End of document.**
 
-
 <hr>
 
 <a id="file-docs-03-runtime-lifeos-recursive-improvement-architecture-v0-2-md"></a>
-# ðŸ“„ FILE: docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md
-**Source**: `docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md`
 
+# ðŸ“„ FILE: docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md
+
+**Source**: `docs/03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md`
 
 # LifeOS_Recursive_Improvement_Architecture_v0.2
 
@@ -7559,11 +7968,13 @@ flowchart TB
 > It ONLY prepares artefacts for CEO-initiated Council invocations.
 
 **Responsibilities:**
+
 - Given an input artefact (e.g. an IP, a spec change), prepares a **Council Review Packet** per Antigravity_Council_Review_Packet_Spec_v1.0.
 - Formats role-specific prompts from the canonical prompt library.
 - Waits for **CEO to invoke Council review** per Council_Invocation_Runtime_Binding_Spec_v1.0 Â§2.
 
 **Prohibited actions:**
+
 - May NOT invoke Council reviews autonomously.
 - May NOT synthesize Council decisionsâ€”that is the Chair's role per CEO invocation.
 - May NOT advance any StepGate gate without explicit CEO "go".
@@ -7584,6 +7995,7 @@ flowchart TB
 ### 6.1 Mission Logger
 
 Records for each mission:
+
 - Mission metadata (type, intent, timestampsâ€”mocked if frozen).
 - Full state transition history (including rollbacks and divergences).
 - All frozen model outputs and tool results.
@@ -7591,6 +8003,7 @@ Records for each mission:
 - Human interventions (overrides, corrections, tags).
 
 Guarantees that the mission trace is sufficient to:
+
 - Replay the mission.
 - Diagnose failures and friction.
 
@@ -7609,6 +8022,7 @@ Derives metrics from mission logs:
 | `regression_detection_rate` | % | Regressions caught by Gate F |
 
 Stores aggregated metrics in the Runtime DB for use by:
+
 - The Improvement Scanner.
 - Dashboards and reporting.
 - CEO Decision Packets.
@@ -7616,6 +8030,7 @@ Stores aggregated metrics in the Runtime DB for use by:
 ### 6.3 Annotation Interface (Human & System)
 
 Provides a structured way for:
+
 - **CEO/User** to tag missions and behaviours ("too much donkey work", "spec violation", "confusing output").
 - **System detectors** to tag patterns (e.g. "repeated failure in Gate 3 for mission type X").
 
@@ -7628,17 +8043,20 @@ Normalises annotations into a standard format and writes them to the DB as **evi
 ### 7.1 Improvement Scanner
 
 **Function:** Periodically or event-driven scans of:
+
 - Mission logs.
 - Metrics.
 - Annotations.
 
 **Output:** Produces **Improvement Candidates** based on:
+
 - Recurrent mission failures for specific mission types.
 - High human intervention / friction.
 - Anomalous metric trends.
 - Frequent Council flags of spec violations.
 
 **Candidate Structure:**
+
 ```
 Improvement Candidate (Evidence Record)
 â”œâ”€â”€ candidate_id: UUID
@@ -7657,6 +8075,7 @@ Improvement Candidate (Evidence Record)
 > The Scanner MUST NOT create IPsâ€”only the IP Manager may do so after explicit CEO authorization.
 
 **Flow:**
+
 1. Scanner produces candidates.
 2. Candidates surface in CEO Decision Packet.
 3. CEO reviews and either:
@@ -7707,6 +8126,7 @@ stateDiagram-v2
 **Function:** Takes an IP in `UNDER_REVIEW` status and facilitates a Council review.
 
 **Process:**
+
 1. Prepares a Council Review Packet per Antigravity_Council_Review_Packet_Spec_v1.0.
 2. Surfaces packet to CEO with recommendation for Council invocation.
 3. **CEO invokes Council review** per Council_Invocation_Runtime_Binding_Spec_v1.0 Â§2 (trigger phrases or explicit request).
@@ -7746,6 +8166,7 @@ For IPs in `APPROVED` status, generates a **Fix Plan** specifying:
   - Current metric values to compare against post-implementation.
 
 Writes to:
+
 - `ip_proposed_changes`
 - `ip_test_plans`
 - `ip_metrics` (phase = BASELINE)
@@ -7755,11 +8176,13 @@ Writes to:
 **Function:** Orchestrates external builder agents (Antigravity) according to Fix Plans.
 
 **Provides:**
+
 - Current artefacts.
 - Fix Plan with clear, bounded instructions.
 - Context and references.
 
 **Receives:**
+
 - Updated artefacts (specs, code, prompts, tests).
 - Diff logs.
 
@@ -7768,12 +8191,14 @@ Writes to:
 > [!IMPORTANT]
 > **Scope Enforcement Required.**
 > All Builder Agent outputs MUST:
+>
 > 1. Pass through Governance-Leak Scanner (Alignment Layer v1.4 Â§4).
 > 2. Pass diff-based scope validation:
 >    - Changes to artefacts NOT in Fix Plan â†’ HALT â†’ QUESTION to CEO.
 >    - Changes to governance structures â†’ HALT â†’ QUESTION to CEO.
 
 **Writes:**
+
 - Updated artefact versions to repository.
 - `ip_version_links` (old version â†’ new version mapping).
 
@@ -7790,19 +8215,23 @@ Writes to:
 | Gate F | Replay Determinism â€” AMUâ‚€-locked context, byte-identical comparison |
 
 Plus:
+
 - Unit test suites specified in `ip_test_plans`.
 - Replays of selected historical missions per selection criteria.
 
 **Mission Replay Selection:**
+
 - Default: 5 most recent missions + 3 highest-friction missions (by annotation count).
 - CEO may specify additional missions or override selection.
 
 **Produces:**
+
 - Pass/fail results per gate.
 - Observed metrics (`ip_metrics` with phase = OBSERVED).
 - Variance analysis (baseline vs observed).
 
 **Failure Protocol:**
+
 - Any gate failure â†’ IP status remains `AWAITING_VALIDATION`.
 - Failure details logged to `ip_events`.
 - CEO Decision Packet generated with failure analysis.
@@ -7825,6 +8254,7 @@ Maintains a canonical catalogue of all versioned artefacts:
 | WORKFLOW | StepGate sequences, IP lifecycle |
 
 **Entry Structure:**
+
 ```
 artefact_id: UUID
 logical_path: string (e.g. "/docs/03_runtime/COO_Runtime_Spec_v1.0.md")
@@ -7842,6 +8272,7 @@ ip_link: optional ip_id (IP that created this version)
 Manages **runtime versions** (e.g. `coo-runtime v1.3`).
 
 **For each runtime version, defines:**
+
 - The set of artefact versions composing it.
 - Default model/tool configuration.
 - Applicable policies (e.g. which Council roles to use by default).
@@ -7871,6 +8302,7 @@ Records every significant change event:
 | GATE_RESULT | runtime_version, gate, pass/fail, details |
 
 Enables:
+
 - Full auditability.
 - Reconstruction of the system's evolution.
 - Rollback point identification.
@@ -7898,6 +8330,7 @@ The following points require explicit CEO action (authorization, decision, or si
 ### 10.1 Mission-Level Rollback
 
 Per COO Runtime Spec v1.0 Â§12:
+
 - Rollback to AMUâ‚€ restores filesystem, database, sandbox, manifests.
 - 1 automatic rollback permitted; further require CEO authorization.
 
@@ -8025,6 +8458,7 @@ For the first full recursive improvement cycle:
 | Change Ledger | âš ï¸ Git-based | Git log + structured CHANGELOG.md |
 
 **Minimal Loop:**
+
 1. CEO reviews mission logs, identifies issue.
 2. CEO creates IP (via IP Manager or structured template).
 3. CEO invokes Council review (existing protocol).
@@ -8056,11 +8490,12 @@ For the first full recursive improvement cycle:
 
 **End of document.**
 
-
 <hr>
 
 <a id="file-docs-03-runtime-lifeos-router-and-executor-adapter-spec-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md
+
 **Source**: `docs/03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md`
 
 # LifeOS Router & Antigravity Executor Adapter v0.1
@@ -8072,6 +8507,7 @@ For the first full recursive improvement cycle:
 Define a Router Layer and Executor Adapter concept for LifeOS.
 
 Provide a future architecture that:
+
 - Makes LifeOS the central thinking + operations hub.
 - Allows pluggable executors (Antigravity now, others later).
 - Eliminates the user as the "message bus" between planner and executor.
@@ -8081,8 +8517,8 @@ This spec is directional, not an implementation plan. It is meant to be shelved 
 ## 2. Goals
 
 - LifeOS can route:
-    - Thoughts, specs, build plans, issues, council packets.
-    - To the correct subsystem (runtime, docs, council, executor).
+  - Thoughts, specs, build plans, issues, council packets.
+  - To the correct subsystem (runtime, docs, council, executor).
 - LifeOS can interact with executors via a stable, executor-agnostic protocol.
 - Antigravity can be used as an executor through an adapter, without redesigning higher layers.
 - Future executors can replace Antigravity without changing LifeOSâ€™s core logic.
@@ -8090,9 +8526,9 @@ This spec is directional, not an implementation plan. It is meant to be shelved 
 ## 3. Non-Goals (for v0.1)
 
 - No requirement to implement:
-    - Actual automatic thread/project creation in ChatGPT.
-    - Real-time routing automation.
-    - A concrete API/CLI to Antigravity.
+  - Actual automatic thread/project creation in ChatGPT.
+  - Real-time routing automation.
+  - A concrete API/CLI to Antigravity.
 - No requirement to define full data schemas; only outline core shapes and responsibilities.
 
 ## 4. High-Level Architecture
@@ -8100,30 +8536,34 @@ This spec is directional, not an implementation plan. It is meant to be shelved 
 ### Layers
 
 **L0 â€” Router Layer (Routing Engine)**
+
 - Classifies incoming "things" (messages, specs, instructions).
 - Decides which LifeOS subsystem should own them:
-    - Architecture
-    - COO Runtime
-    - Council
-    - Docs/Index
-    - Issues/Backlog
-    - Executor (missions)
+  - Architecture
+  - COO Runtime
+  - Council
+  - Docs/Index
+  - Issues/Backlog
+  - Executor (missions)
 
 **L1 â€” COO Runtime & Orchestration**
+
 - Mission registry, orchestrator, builder, daily loop.
 - Fix Packs, Implementation Packets, CRPs, test harnesses.
 - Enforces invariants (determinism, anti-failure rules, envelopes).
 - Produces Mission Packets that can be executed by an executor.
 
 **L2 â€” Executor Adapter**
+
 - Presents a stable interface to LifeOS:
-    - `run_mission(packet)`
-    - `read(path)`
-    - `write(path, content)`
-    - `run_tests(suite)`
+  - `run_mission(packet)`
+  - `read(path)`
+  - `write(path, content)`
+  - `run_tests(suite)`
 - Hides executor-specific mechanics (Antigravity today, API-based agent tomorrow).
 
 **L3 â€” Concrete Executors**
+
 - Antigravity v0: manual relay via the user.
 - Antigravity v1: scripts + inbox/outbox conventions.
 - Executor v2+: direct API/CLI driven agent(s).
@@ -8135,6 +8575,7 @@ The Router is a classification and dispatch engine operating over:
 **Inputs**: user messages, AI outputs, specs, review findings.
 
 **Artefact types**:
+
 - Specs (Fix Packs, runtime specs, product docs)
 - Build plans / Implementation Plans
 - Council Review Packets (CRPs)
@@ -8143,22 +8584,23 @@ The Router is a classification and dispatch engine operating over:
 - Notes / ideation / sandbox content
 
 **Core responsibilities**:
+
 - Classify content into lanes, e.g.:
-    - Architecture
-    - Runtime/Operations
-    - Council/Governance
-    - Docs/Stewardship
-    - Executor/Missions
-    - Sandbox/Exploration
+  - Architecture
+  - Runtime/Operations
+  - Council/Governance
+  - Docs/Stewardship
+  - Executor/Missions
+  - Sandbox/Exploration
 - Propose or enforce routing actions, such as:
-    - "Create/update spec at path X"
-    - "Log issue in Issues Register"
-    - "Prepare Mission Packet for executor"
-    - "Prepare CRP for Council"
+  - "Create/update spec at path X"
+  - "Log issue in Issues Register"
+  - "Prepare Mission Packet for executor"
+  - "Prepare CRP for Council"
 - Maintain indexing hooks, e.g.:
-    - Summaries of key decisions.
-    - Links to canonical docs.
-    - References to issues and Fix Packs.
+  - Summaries of key decisions.
+  - Links to canonical docs.
+  - References to issues and Fix Packs.
 
 v0.1 expectation: routing is mostly conceptual and manual (you and ChatGPT agree on lanes); later revisions can automate classification and actions.
 
@@ -8182,6 +8624,7 @@ Executor.report() -> status/artefacts
 ```
 
 **Mission Packet (conceptual fields)**:
+
 - `id`: stable identifier.
 - `type`: e.g. fixpack, build, refactor, doc_stewardship.
 - `inputs`: paths to canonical specs/docs in `/LifeOS/docs/...`.
@@ -8191,20 +8634,23 @@ Executor.report() -> status/artefacts
 ### 6.2. Antigravity Adapter Phases
 
 **v0 â€” Manual Relay (current reality)**
+
 - LifeOS (ChatGPT) produces Mission Packets in text.
 - User copies packet into Antigravity as a natural language instruction.
 - User copies results back into LifeOS context.
 - Adapter is conceptual only; no tooling.
 
 **v1 â€” File-Based Inbox/Outbox (semi-automated)**
+
 - LifeOS writes Mission Packets into a defined directory, e.g.: `/runtime/missions/inbox/`
 - Antigravity is instructed to:
-    - Read from inbox.
-    - Execute missions (modify repo, run tests).
-    - Write results to `/runtime/missions/outbox/`.
+  - Read from inbox.
+  - Execute missions (modify repo, run tests).
+  - Write results to `/runtime/missions/outbox/`.
 - Userâ€™s role reduces to: "Tell Antigravity to process inbox."
 
 **v2+ â€” API/CLI-Backed Executor**
+
 - An agent or tool exposes API/CLI commands mapping to `Executor.*` operations.
 - A LifeOS controller (outside ChatGPT or via tools) calls the executor directly.
 - User is no longer in the loop for normal missions.
@@ -8218,19 +8664,22 @@ Executor.report() -> status/artefacts
 - How to avoid overcomplicating the adapter before an actual API exists.
 - How to surface mission and executor state back to the user in a clean way (dashboards, logs, etc.).
 
-
 <hr>
 
 <a id="file-docs-03-runtime-readme-recursive-kernel-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/README_Recursive_Kernel_v0.1.md
+
 **Source**: `docs/03_runtime/README_Recursive_Kernel_v0.1.md`
 
 # Recursive Kernel v0.1
 
 ## Overview
+
 The Recursive Kernel is a self-improvement loop for LifeOS. In v0.1, it is limited to **safe domains** (docs) and provides a scaffold for Planning, Building, Verifying, and Gating.
 
 ## How to Run
+
 From the repository root:
 
 ```bash
@@ -8238,6 +8687,7 @@ python -m recursive_kernel.runner
 ```
 
 ## Behavior
+
 1. **Plan**: Loads `config/recursive_kernel_config.yaml` and checks `config/backlog.yaml` for `todo` tasks in `safe_domains` (currently `docs`, `tests_doc`).
 2. **Build**: Executes the task. Currently supports `rebuild_index` for `docs`, which regenerates `docs/INDEX.md` based on valid markdown files in `docs/`.
 3. **Verify**: Runs the configured `test_command` (default: `pytest`).
@@ -8247,12 +8697,15 @@ python -m recursive_kernel.runner
 5. **Log**: Writes a JSON report to `logs/recursive_runs/`.
 
 ## Logs
+
 Check `logs/recursive_runs/` for execution details. Each run generates a timestamped JSON file.
 
 <hr>
 
 <a id="file-docs-03-runtime-runtime-complexity-constraints-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md
+
 **Source**: `docs/03_runtime/Runtime_Complexity_Constraints_v0.1.md`
 
 # LifeOS â€” Runtime Complexity Constraints v0.1
@@ -8266,37 +8719,45 @@ Check `logs/recursive_runs/` for execution details. Each run generates a timesta
 The Runtime (and Builder agents) must respect these limits. Exceeding them requires a **Refactor** or **Governance Override**.
 
 ### 1.1 Workflow Limits
+
 - **Max Steps per Workflow**: 5 atomic steps.
-    - *Reason*: If a workflow is longer, it's brittle. Break it into sub-workflows.
+  - *Reason*: If a workflow is longer, it's brittle. Break it into sub-workflows.
 - **Max Human Actions**: 2 per workflow (Initiate + Approve).
-    - *Reason*: More interaction points = higher friction and failure rate.
+  - *Reason*: More interaction points = higher friction and failure rate.
 
 ### 1.2 Project Limits
+
 - **Max Active Lateral Projects**: 3.
-    - *Reason*: Context switching cost destroys productivity.
+  - *Reason*: Context switching cost destroys productivity.
 - **Max Recursive Depth**: 2 layers (Agent implies Agent).
-    - *Reason*: Debugging infinite recursion is impossible for a human.
+  - *Reason*: Debugging infinite recursion is impossible for a human.
 
 ### 1.3 Time Limits
+
 - **Max Daily Maintenance**: < 10 mins (Human time).
-    - *Reason*: If "keeping the lights on" takes >10 mins, the system is a burden.
+  - *Reason*: If "keeping the lights on" takes >10 mins, the system is a burden.
 
 ## 2. Friction-Based Veto
+
 Any new feature that adds a manual step for the human:
+
 - **Default Judgment**: VETO.
 - **Exceptions**: Must be proven to be temporary (scaffolding) or high-value governance.
 
 ## 3. The "Simplify" Trigger
+
 If any threshold is breached:
+
 1. The Runtime flags the breach.
 2. The Agent proposes a **Simplification Plan** (not just "doing the work").
 3. New work halts until complexity is reduced.
 
-
 <hr>
 
 <a id="file-docs-03-runtime-runtime-hardening-fix-pack-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md
+
 **Source**: `docs/03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md`
 
 # Runtime_Hardening_Fix_Pack_v0.1
@@ -8371,11 +8832,13 @@ This Fix Pack **does not**:
 **Target files:** `runtime/engine.py`
 
 **Required changes:**
+
 1. Strict-mode captured at construction (optional `strict_mode` param)
 2. Error semantics consistent with docstring (`_force_error` raises `GovernanceError`)
 3. History validation on checkpoint load (`_validate_history()`)
 
 **Acceptance criteria:**
+
 - Tests for strict_mode=True/False behavior
 - Tests for invalid history detection
 
@@ -8386,11 +8849,13 @@ This Fix Pack **does not**:
 **Target files:** `runtime/engine.py`
 
 **Required changes:**
+
 1. Anchor checkpoints under `amu0_path/checkpoints/`
 2. Single-read signature verification
 3. Error on disallowed checkpoint state
 
 **Acceptance criteria:**
+
 - Checkpoints written to correct path
 - Single-read verification
 - Governance error on illegal state
@@ -8402,11 +8867,13 @@ This Fix Pack **does not**:
 **Target files:** `recursive_kernel/runner.py`, `recursive_kernel/builder.py`
 
 **Required changes:**
+
 1. Derive repo root from module location (REPO_ROOT constant)
 2. Inject repo_root into Builder
 3. Pinned run timestamp for logging
 
 **Acceptance criteria:**
+
 - Works from any cwd
 - Timestamp consistency in logs
 
@@ -8417,10 +8884,12 @@ This Fix Pack **does not**:
 **Target files:** `recursive_kernel/builder.py`
 
 **Required changes:**
+
 1. Make Builder repo-root explicit (constructor param)
 2. Optional index scoping extension point
 
 **Acceptance criteria:**
+
 - No cwd dependence
 - Backwards compatible output
 
@@ -8431,10 +8900,12 @@ This Fix Pack **does not**:
 **Target files:** `recursive_kernel/verifier.py`
 
 **Required changes:**
+
 1. Comment noting preferred default command
 2. Optional cwd parameter (non-breaking)
 
 **Acceptance criteria:**
+
 - cwd parameter works
 - Default behavior preserved
 
@@ -8445,10 +8916,12 @@ This Fix Pack **does not**:
 **Target files:** `recursive_kernel/runner.py`
 
 **Required changes:**
+
 1. Add `effective_decision` field in logs
 2. Keep `gate_decision` as-is
 
 **Acceptance criteria:**
+
 - Three effective_decision values tested
 
 ---
@@ -8457,11 +8930,12 @@ This Fix Pack **does not**:
 
 Once implemented, `Review_Packet_Hardening_Pass_v0.2` must guarantee all fixes applied and flattened.
 
-
 <hr>
 
 <a id="file-docs-03-runtime-tier1-hardening-work-plan-v0-1-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md
+
 **Source**: `docs/03_runtime/Tier1_Hardening_Work_Plan_v0.1.md`
 
 Tier-1 Hardening Work Plan v0.1.md
@@ -8470,7 +8944,7 @@ Execution Target: COO Runtime
 Authority: Architecture & Ideation Project
 Purpose: Convert Audit Findings into an executable, agent-driven plan with minimal human touchpoints.
 
-0. Execution Model
+1. Execution Model
 
 Runtime executes all Fix Packs sequentially.
 
@@ -8644,7 +9118,7 @@ FP-3.10 â€” Productisation Pre-Work
 Owner: Runtime
 Stabilises CLI and install flow.
 
-7. Work Gate Sequence (Deterministic Order)
+1. Work Gate Sequence (Deterministic Order)
 
 G1: Initialise Work Plan
 
@@ -8680,7 +9154,7 @@ Runtime and Antigrav execute FP-3.4 â†’ FP-3.10 in any order.
 
 All results logged into Tier1_Enhancement_Log_v0.1.md.
 
-8. Human Requirements Summary (Minimal)
+1. Human Requirements Summary (Minimal)
 
 You will perform only three actions:
 
@@ -8692,11 +9166,12 @@ Approve or veto Tier-1 readiness
 
 No other human steps are in scope.
 
-
 <hr>
 
 <a id="file-docs-03-runtime-tier2-5-unified-fix-plan-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md
+
 **Source**: `docs/03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md`
 
 # Unified Fix Plan v1.0 (Non-Blocking)
@@ -8717,6 +9192,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 ## F1 â€” Artefact Manifest Completeness (Claude â€“ Architect)
 
 **Objective**: Add `runtime/orchestration/config_adapter.py` and `runtime/orchestration/config_test_run.py` explicitly to:
+
 - FP-4.x Implementation Artefact manifest (Section 2.B).
 
 **Classification**: Docs only, non-blocking.
@@ -8729,6 +9205,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 ## F2 â€” API Evolution & Versioning Strategy (Claude â€“ Architect)
 
 **Objective**: Create a short Tier-3-facing document / section:
+
 - Describing versioning for Tier-2 interfaces (e.g. `TestRunResult`, `run_test_run_from_config`).
 - Outlining deprecation policy for any future changes.
 
@@ -8742,6 +9219,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 ## F3 â€” Tier-2.5 Activation Conditions Checklist (Claude â€“ Alignment) [COMPLETED]
 
 **Objective**: Add a formal checklist to the Tier-2.5 governance doc / CRP addendum, containing at minimum:
+
 - Tier-2 tests = 100% pass.
 - All FP-4.x conditions certified.
 - No unresolved envelope violations.
@@ -8758,6 +9236,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 ## F4 â€” Tier-2.5 Deactivation & Rollback Conditions (Claude â€“ Alignment) [COMPLETED]
 
 **Objective**: Define explicit conditions that trigger downgrading/suspending Tier-2.5:
+
 - Drop in test pass rate.
 - Newly detected envelope violation.
 - Runtime-to-Antigrav protocol breach.
@@ -8784,6 +9263,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 ## F6 â€” Violation Hierarchy Clarification (DeepSeek â€“ Red-Team)
 
 **Objective**: Add a short section / docstring clarifying:
+
 - `AntiFailureViolation` = step-count / human-step constraints.
 - `EnvelopeViolation` = illegal step kinds / I/O / forbidden operations.
 
@@ -8797,6 +9277,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 ## F7 â€” Runtime â†” Antigrav Mission Protocol (DeepSeek â€“ Red-Team, Gemini â€“ Autonomy) [COMPLETED]
 
 **Objective**: Draft a Tier-2.5 protocol document specifying:
+
 - Which Tier-2 entrypoints Antigrav may call.
 - How missions are represented and validated.
 - How Anti-Failure and envelope constraints are enforced on Antigrav-originated missions.
@@ -8812,15 +9293,17 @@ To respect all identified nits while not blocking activation, Council adopts the
 ## Execution Order
 
 ### Phase 1 â€” Critical Governance (First Tier-2.5 Missions) [COMPLETED]
+
 1. **F3** â€” Activation Conditions Checklist (Done)
 2. **F4** â€” Deactivation & Rollback Conditions (Done)
 3. **F7** â€” Runtime â†” Antigrav Mission Protocol (Done)
 
 ### Phase 2 â€” Documentation & Cleanup
-4. **F2** â€” API Evolution & Versioning Strategy
-5. **F6** â€” Violation Hierarchy Clarification
-6. **F1** â€” Artefact Manifest Completeness
-7. **F5** â€” Obsolete Comment Removal
+
+1. **F2** â€” API Evolution & Versioning Strategy
+2. **F6** â€” Violation Hierarchy Clarification
+3. **F1** â€” Artefact Manifest Completeness
+4. **F5** â€” Obsolete Comment Removal
 
 ---
 
@@ -8830,11 +9313,12 @@ All items F1â€“F7 are **non-blocking** for Tier-2 certification and Tier-2.
 
 Completion of F3, F4, and F7 is required before full-scale Tier-2.5 operations commence.
 
-
 <hr>
 
 <a id="file-docs-04-project-builder-antigravity-implementation-packet-v0-9-7-md"></a>
+
 # ðŸ“„ FILE: docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md
+
 **Source**: `docs/04_project_builder/Antigravity_Implementation_Packet_v0.9.7.md`
 
 # Antigravity Implementation Packet v0.9.7
@@ -8851,51 +9335,51 @@ It translates every normative â€œMUSTâ€ in the spec into concrete imple
 
 ### 0.1 Primary Spec
 
-  * **Authoritative spec:** `GPTCOO_v1_1_ProjectBuilder_v0_9_FinalCleanSpec.md`
-  * Nothing in this packet overrides the spec. If any conflict is detected, the spec wins and this packet must be updated via PR.
+- **Authoritative spec:** `GPTCOO_v1_1_ProjectBuilder_v0_9_FinalCleanSpec.md`
+- Nothing in this packet overrides the spec. If any conflict is detected, the spec wins and this packet must be updated via PR.
 
 ### 0.2 Implementation Packet Versioning
 
-  * This document: **Antigravity Implementation Packet v0.9.7**
-  * It corresponds to **Spec v0.9** of GPTCOO v1.1 Project Builder.
-  * Git tagging convention:
-      * `spec/project-builder-v0.9` â€“ tag on commit containing the locked spec.
-      * `impl/project-builder-v0.9.7` â€“ tag on commit where this packet and the compliant implementation are merged to `main`.
+- This document: **Antigravity Implementation Packet v0.9.7**
+- It corresponds to **Spec v0.9** of GPTCOO v1.1 Project Builder.
+- Git tagging convention:
+  - `spec/project-builder-v0.9` â€“ tag on commit containing the locked spec.
+  - `impl/project-builder-v0.9.7` â€“ tag on commit where this packet and the compliant implementation are merged to `main`.
 
 Any change to this packet MUST:
 
-1.  Be done via a Git branch: `chore/impl-packet-v0.9.x`.
-2.  Be reviewed and approved by a senior / council proxy.
-3.  Result in a new version suffix and corresponding Git tag.
+1. Be done via a Git branch: `chore/impl-packet-v0.9.x`.
+2. Be reviewed and approved by a senior / council proxy.
+3. Result in a new version suffix and corresponding Git tag.
 
 ### 0.3 Five Critical Spec Patches (v0.8 â†’ v0.9)
 
 Implementation MUST explicitly honor these five DeepSeek-driven patches (already integrated into the spec, repeated here as **Critical Engineering Rules**):
 
-1.  **Budget SQL (Patch 1)**
+1. **Budget SQL (Patch 1)**
 
-      * Use `BEGIN IMMEDIATE` with **two-step UPDATE** pattern in SQLite for mission and repair budgets.
-      * No Python-side â€œcheck-then-updateâ€ logic is allowed.
+      - Use `BEGIN IMMEDIATE` with **two-step UPDATE** pattern in SQLite for mission and repair budgets.
+      - No Python-side â€œcheck-then-updateâ€ logic is allowed.
 
-2.  **Lock Reclaim Liveness (Patch 2)**
+2. **Lock Reclaim Liveness (Patch 2)**
 
-      * `locked_by` liveness must be checked with **platform-appropriate process existence logic**.
-      * Reclaim is forbidden if the worker is still alive or liveness is unknown.
+      - `locked_by` liveness must be checked with **platform-appropriate process existence logic**.
+      - Reclaim is forbidden if the worker is still alive or liveness is unknown.
 
-3.  **Tokenizer Recording (Patch 3)**
+3. **Tokenizer Recording (Patch 3)**
 
-      * `mission_tasks.tokenizer_model` MUST be recorded **before any token counting or LLM call** per task attempt.
-      * Non-OpenAI models must declare a stable tokenizer identifier.
+      - `mission_tasks.tokenizer_model` MUST be recorded **before any token counting or LLM call** per task attempt.
+      - Non-OpenAI models must declare a stable tokenizer identifier.
 
-4.  **required\_artifact\_ids Limit (Patch 4)**
+4. **required\_artifact\_ids Limit (Patch 4)**
 
-      * Any `required_artifact_ids` JSON array MUST have length `â‰¤ 3`.
-      * Violation â†’ plan rejection + CEO QUESTION + timeline event.
+      - Any `required_artifact_ids` JSON array MUST have length `â‰¤ 3`.
+      - Violation â†’ plan rejection + CEO QUESTION + timeline event.
 
-5.  **repair\_context Truncation (Patch 5)**
+5. **repair\_context Truncation (Patch 5)**
 
-      * `repair_context` MUST be truncated to the **first 2000 Unicode code points**, no word-level heuristics.
-      * Truncation MUST be logged in `timeline_events`.
+      - `repair_context` MUST be truncated to the **first 2000 Unicode code points**, no word-level heuristics.
+      - Truncation MUST be logged in `timeline_events`.
 
 These five items are treated as **Critical Engineering Rules**. Any implementation that diverges is non-compliant.
 
@@ -8972,13 +9456,13 @@ This structure is **normative** for this implementation.
 
 ## 2\. Technology Stack & Environment
 
-  * **Language:** Python 3.10+
-  * **Database:** SQLite 3 with JSON1 enabled
-  * **Container Runtime:** Docker or containerd, with:
-      * `--network=none`
-      * `--cap-drop=ALL`
-      * `--security-opt=no-new-privileges`
-  * **OS Targets:** Linux (primary), with lock-reclaim fallback paths for non-POSIX if needed.
+- **Language:** Python 3.10+
+- **Database:** SQLite 3 with JSON1 enabled
+- **Container Runtime:** Docker or containerd, with:
+  - `--network=none`
+  - `--cap-drop=ALL`
+  - `--security-opt=no-new-privileges`
+- **OS Targets:** Linux (primary), with lock-reclaim fallback paths for non-POSIX if needed.
 
 **JSON1 Verification:**
 On startup, the module MUST verify SQLite JSON1 availability:
@@ -8998,49 +9482,51 @@ Call `verify_json1()` at module import or first DB connection.
 
 The following constraints MUST be enforced everywhere:
 
-1.  **No randomness**
+1. **No randomness**
 
-      * No `random`, `uuid.uuid4`, non-seeded PRNGs in any critical path.
-      * Any necessary randomness (if ever allowed) must be fully seeded and logged, but v1.1 aims for none.
+      - No `random`, `uuid.uuid4`, non-seeded PRNGs in any critical path.
+      - Any necessary randomness (if ever allowed) must be fully seeded and logged, but v1.1 aims for none.
 
-2.  **Deterministic workspace paths**
+2. **Deterministic workspace paths**
 
-      * Use **exactly**:
+      - Use **exactly**:
+
         ```text
         /tmp/coo-{mission_id}-{task_id}-{repair_attempt}
         ```
-      * No use of `mkdtemp`, timestamps, or other non-deterministic components.
 
-3.  **Immutable `started_at` per attempt**
+      - No use of `mkdtemp`, timestamps, or other non-deterministic components.
 
-      * Set `started_at` once when a task transitions to `executing` or retry-executing.
-      * Never update `started_at` thereafter. Reclaim preserves `started_at`.
+3. **Immutable `started_at` per attempt**
 
-4.  **Tokenization**
+      - Set `started_at` once when a task transitions to `executing` or retry-executing.
+      - Never update `started_at` thereafter. Reclaim preserves `started_at`.
 
-      * `mission_tasks.tokenizer_model` MUST be set **before** computing token counts or sending LLM requests.
-      * Replay MUST re-use the recorded tokenizer.
+4. **Tokenization**
 
-5.  **Context injection ordering**
+      - `mission_tasks.tokenizer_model` MUST be set **before** computing token counts or sending LLM requests.
+      - Replay MUST re-use the recorded tokenizer.
+
+5. **Context injection ordering**
     Context construction MUST follow the order from the spec:
 
-    1.  System prompt
-    2.  Mission + task description
-    3.  `repair_context` (if any)
-    4.  File tree string
-    5.  QA feedback (if any)
-    6.  Bucket A files (priority)
-    7.  Bucket B files (recency, excluding Bucket A)
+    1. System prompt
+    2. Mission + task description
+    3. `repair_context` (if any)
+    4. File tree string
+    5. QA feedback (if any)
+    6. Bucket A files (priority)
+    7. Bucket B files (recency, excluding Bucket A)
 
-6.  **repair\_context truncation**
+6. **repair\_context truncation**
 
-      * Implement as: `truncated = repair_context[:2000]` in Python (2000 Unicode codepoints).
-      * No word-boundary logic, no â€œsmartâ€ trimming.
-      * Truncation MUST be logged to `timeline_events` in the same transaction as the update.
+      - Implement as: `truncated = repair_context[:2000]` in Python (2000 Unicode codepoints).
+      - No word-boundary logic, no â€œsmartâ€ trimming.
+      - Truncation MUST be logged to `timeline_events` in the same transaction as the update.
 
-7.  **Snapshots**
+7. **Snapshots**
 
-      * Use exactly the snapshot query defined by the spec, with `json_each` and `json_valid` as per SQLite JSON1, and `ORDER BY file_path ASC`.
+      - Use exactly the snapshot query defined by the spec, with `json_each` and `json_valid` as per SQLite JSON1, and `ORDER BY file_path ASC`.
 
 -----
 
@@ -9050,18 +9536,18 @@ The following constraints MUST be enforced everywhere:
 
 Deliverables:
 
-  * `project_builder/database/schema.sql`
-  * `project_builder/database/migrations.py`
-  * `tests/test_schema.py`
+- `project_builder/database/schema.sql`
+- `project_builder/database/migrations.py`
+- `tests/test_schema.py`
 
 `schema.sql` MUST include:
 
-  * All tables and columns per spec v0.9:
-      * `missions`, `mission_tasks`, `artifacts`, `timeline_events`, etc.
-  * Critical fields:
-      * `missions.repair_budget_usd REAL NOT NULL DEFAULT 0.0`
-      * `mission_tasks.tokenizer_model TEXT` (nullable at creation, but MUST be set before execution)
-      * `mission_tasks.required_artifact_ids TEXT NULL` (JSON)
+- All tables and columns per spec v0.9:
+  - `missions`, `mission_tasks`, `artifacts`, `timeline_events`, etc.
+- Critical fields:
+  - `missions.repair_budget_usd REAL NOT NULL DEFAULT 0.0`
+  - `mission_tasks.tokenizer_model TEXT` (nullable at creation, but MUST be set before execution)
+  - `mission_tasks.required_artifact_ids TEXT NULL` (JSON)
 
 **required\_artifact\_ids enforcement**:
 
@@ -9142,22 +9628,22 @@ ORDER BY file_path ASC;
 
 `tests/test_snapshot.py` MUST include:
 
-  * A case with:
-      * multiple versions of same file;
-      * tombstones (`is_deleted=1`);
-      * `required_artifact_ids` pointing to an older version;
-  * And asserts:
-      * required artifacts always present;
-      * ordering is lexicographic by `file_path`.
+- A case with:
+  - multiple versions of same file;
+  - tombstones (`is_deleted=1`);
+  - `required_artifact_ids` pointing to an older version;
+- And asserts:
+  - required artifacts always present;
+  - ordering is lexicographic by `file_path`.
 
 ### 4.3 Timeline Helpers (`timeline.py`)
 
 Helpers to record events such as:
 
-  * `task_repair_requested`
-  * `repair_context_truncated`
-  * `required_artifact_ids_limit_exceeded`
-  * `task_reclaim_skipped_alive_or_unknown`
+- `task_repair_requested`
+- `repair_context_truncated`
+- `required_artifact_ids_limit_exceeded`
+- `task_reclaim_skipped_alive_or_unknown`
 
 Each helper MUST perform DB writes in the same transaction, where relevant.
 
@@ -9171,8 +9657,8 @@ ID = UUIDv5(namespace=UUID('00000000-0000-0000-0000-000000000001'),
 
 Where:
 
-  * `created_at` is truncated to milliseconds.
-  * `counter` is a per-task monotonic integer maintained in memory.
+- `created_at` is truncated to milliseconds.
+- `counter` is a per-task monotonic integer maintained in memory.
 
 -----
 
@@ -9236,10 +9722,10 @@ def try_charge_budget(conn, mission_id, task_id, cost, is_repair_attempt):
 
 **QA:** `tests/test_budget_txn.py` must include:
 
-  * Over-budget mission cost â†’ fails.
-  * Over-repair budget on repair attempt â†’ fails.
-  * Non-repair tasks do not touch `repair_budget_spent_usd`.
-  * No partial charges when transaction fails.
+- Over-budget mission cost â†’ fails.
+- Over-repair budget on repair attempt â†’ fails.
+- Non-repair tasks do not touch `repair_budget_spent_usd`.
+- No partial charges when transaction fails.
 
 ### 5.2 Tokenizer Recording (`context/tokenizer.py`)
 
@@ -9284,10 +9770,10 @@ def start_task_execution(conn, task_id, tokenizer_id, now):
 
 Implement state transitions per spec v0.9 (e.g., `pending â†’ executing â†’ review â†’ approved/repair_retry/failed_terminal`), ensuring:
 
-  * `started_at` set only on `pending/repair_retry â†’ executing`, same transaction as `status='executing'`.
-  * `repair_attempt` incremented atomically with transition to `repair_retry`.
-  * `repair_context` set and truncated (see Â§6.1) when QA suggests repair.
-  * Mission failure propagation done in same transaction as `failed_terminal` task.
+- `started_at` set only on `pending/repair_retry â†’ executing`, same transaction as `status='executing'`.
+- `repair_attempt` incremented atomically with transition to `repair_retry`.
+- `repair_context` set and truncated (see Â§6.1) when QA suggests repair.
+- Mission failure propagation done in same transaction as `failed_terminal` task.
 
 ### 5.4 Lock Reclaim (`orchestrator/reclaim.py`)
 
@@ -9326,17 +9812,17 @@ class WindowsWorkerRegistry(WorkerRegistry):
 
 Rules:
 
-  * Load `locked_by` and `locked_at` from DB.
-  * Determine liveness:
-      * If `locked_by` cannot be parsed OR registry returns unknown:
-          * Log `task_reclaim_skipped_alive_or_unknown`.
-          * Do NOT reclaim.
-  * If worker is alive â†’ do NOT reclaim.
-  * If dead and lock expired:
-      * Clear `locked_by` and `locked_at`.
-      * Do **NOT** change `started_at` or `repair_attempt`.
-      * Delete workspace via `sandbox/workspace.py`.
-      * Log `task_reclaimed`.
+- Load `locked_by` and `locked_at` from DB.
+- Determine liveness:
+  - If `locked_by` cannot be parsed OR registry returns unknown:
+    - Log `task_reclaim_skipped_alive_or_unknown`.
+    - Do NOT reclaim.
+- If worker is alive â†’ do NOT reclaim.
+- If dead and lock expired:
+  - Clear `locked_by` and `locked_at`.
+  - Do **NOT** change `started_at` or `repair_attempt`.
+  - Delete workspace via `sandbox/workspace.py`.
+  - Log `task_reclaimed`.
 
 ### 5.5 Backpressure Control (Spec Â§10.5)
 
@@ -9364,14 +9850,14 @@ def compute_backpressure_thresholds(task_count: int) -> tuple[int, int]:
 
 Implement `check_and_apply_backpressure()` using these dynamic limits.
 
-  * **Pending Calculation:** `tasks with status IN ('pending','repair_retry') + pending messages`.
-  * **Pause:** If pending \> max\_pending:
-    1.  Transition mission to `paused_error`.
-    2.  Reject new tasks.
-  * **Resume:** If pending \< resume\_threshold:
-    1.  Transition mission back to `executing` (or previous state).
-    2.  Maintain `repair_context` and `repair_attempt`.
-    3.  Do not reset `started_at`.
+- **Pending Calculation:** `tasks with status IN ('pending','repair_retry') + pending messages`.
+- **Pause:** If pending \> max\_pending:
+    1. Transition mission to `paused_error`.
+    2. Reject new tasks.
+- **Resume:** If pending \< resume\_threshold:
+    1. Transition mission back to `executing` (or previous state).
+    2. Maintain `repair_context` and `repair_attempt`.
+    3. Do not reset `started_at`.
 
 ### 5.6 Planner Validation (Spec Â§7.4)
 
@@ -9438,14 +9924,14 @@ def update_repair_context_atomic(conn, task_id, new_context):
 
 Usage:
 
-  * Called **before** persisting `repair_context` into `mission_tasks`.
-  * If truncation occurs, record `timeline_events` with `event_type='repair_context_truncated'` in the same DB transaction.
+- Called **before** persisting `repair_context` into `mission_tasks`.
+- If truncation occurs, record `timeline_events` with `event_type='repair_context_truncated'` in the same DB transaction.
 
 `tests/test_repair_context.py`:
 
-  * Insert a long suggestion (e.g., 3500 chars).
-  * Apply `update_repair_context_atomic`.
-  * Assert stored length = 2000, event logged.
+- Insert a long suggestion (e.g., 3500 chars).
+- Apply `update_repair_context_atomic`.
+- Assert stored length = 2000, event logged.
 
 ### 6.2 Context Builder (`context/injection.py`)
 
@@ -9461,23 +9947,23 @@ def build_context_components(task, snapshot_files, repair_context, qa_feedback, 
 
 Buckets:
 
-  * **Bucket A (priority):**
-      * Files listed in `mission_tasks.context_files` (if any).
-      * Files referenced by `required_artifact_ids`.
-  * **Bucket B (recency):**
-      * All other snapshot files, sorted by `created_at DESC` then `file_path ASC`, **excluding** Bucket A.
+- **Bucket A (priority):**
+  - Files listed in `mission_tasks.context_files` (if any).
+  - Files referenced by `required_artifact_ids`.
+- **Bucket B (recency):**
+  - All other snapshot files, sorted by `created_at DESC` then `file_path ASC`, **excluding** Bucket A.
 
 Token budget logic:
 
-1.  Start with system + mission + task + repair\_context + file\_tree + QA feedback.
-2.  Then include Bucket A files in deterministic order.
-3.  Then include Bucket B files until hitting budget.
-4.  When truncating file contents, insert the specâ€™s truncation marker `"[...TRUNCATED BY COO...]"`.
+1. Start with system + mission + task + repair\_context + file\_tree + QA feedback.
+2. Then include Bucket A files in deterministic order.
+3. Then include Bucket B files until hitting budget.
+4. When truncating file contents, insert the specâ€™s truncation marker `"[...TRUNCATED BY COO...]"`.
 
 `tests/test_tokenizer_replay.py`:
 
-  * Use fixed content and a test tokenizer (count chars).
-  * Ensure same tokens chosen across multiple runs.
+- Use fixed content and a test tokenizer (count chars).
+- Ensure same tokens chosen across multiple runs.
 
 -----
 
@@ -9501,10 +9987,10 @@ def materialize_workspace(root: Path, files: list[tuple[str, bytes]]) -> None:
 
 Path validation:
 
-  * For each `file_path`:
-      * Reject if contains `\` or `..` or starts with `/`.
+- For each `file_path`:
+  - Reject if contains `\` or `..` or starts with `/`.
 
-      * Use canonicalization:
+  - Use canonicalization:
 
         ```python
         resolved = (root / file_path).resolve()
@@ -9517,27 +10003,27 @@ Path validation:
 **Early Path Validation:**
 All path validation MUST occur at manifest parse time, before any artifact is persisted. Reject immediately if path:
 
-  * Contains `\`
-  * Contains `..`
-  * Starts with `/`
-  * Fails regex `^[A-Za-z0-9._ -]+(/[A-Za-z0-9._ -]+)*$` (Allow spaces, deny other special chars)
+- Contains `\`
+- Contains `..`
+- Starts with `/`
+- Fails regex `^[A-Za-z0-9._ -]+(/[A-Za-z0-9._ -]+)*$` (Allow spaces, deny other special chars)
 
 Manifest rules:
 
-  * Only accept manifest at: `/workspace/.coo-manifest.json`.
-  * For each entry:
-      * Validate `path` with regex above.
-      * Validate `checksum` format: `^sha256:[0-9a-f]{64}$`.
+- Only accept manifest at: `/workspace/.coo-manifest.json`.
+- For each entry:
+  - Validate `path` with regex above.
+  - Validate `checksum` format: `^sha256:[0-9a-f]{64}$`.
 
 Checksum & line endings:
 
-  * For text files:
-      * Normalize to UTF-8.
-      * Replace CRLF (`\r\n`) with LF (`\n`) before hashing.
-      * Compute SHA256 and prefix with `sha256:` in DB.
-  * If checksum mismatch:
-      * Fail task with `sandbox_checksum_mismatch`.
-      * Do not create artifact rows.
+- For text files:
+  - Normalize to UTF-8.
+  - Replace CRLF (`\r\n`) with LF (`\n`) before hashing.
+  - Compute SHA256 and prefix with `sha256:` in DB.
+- If checksum mismatch:
+  - Fail task with `sandbox_checksum_mismatch`.
+  - Do not create artifact rows.
 
 ### 7.3 Symlink Ban (`sandbox/security.py`)
 
@@ -9549,21 +10035,21 @@ for p in root.rglob("*"):
         raise SecurityViolation("sandbox_invalid_symlink")
 ```
 
-  * On detection:
-      * Mark task `failed_terminal` with reason `sandbox_invalid_symlink`.
-      * Log event in `timeline_events`.
+- On detection:
+  - Mark task `failed_terminal` with reason `sandbox_invalid_symlink`.
+  - Log event in `timeline_events`.
 
 ### 7.4 Sandbox Runner (`sandbox/runner.py`)
 
-  * Run container with:
-      * `--network=none`
-      * `--cap-drop=ALL`
-      * `--security-opt=no-new-privileges`
-      * Resource limits (configurable):
-          * `--memory=1g`
-          * `--cpus=1`
-  * No `--privileged` flag allowed.
-  * The **Runtime Contract** explicitly forbids any manifest coming from stdout; ingestion MUST be file-only.
+- Run container with:
+  - `--network=none`
+  - `--cap-drop=ALL`
+  - `--security-opt=no-new-privileges`
+  - Resource limits (configurable):
+    - `--memory=1g`
+    - `--cpus=1`
+- No `--privileged` flag allowed.
+- The **Runtime Contract** explicitly forbids any manifest coming from stdout; ingestion MUST be file-only.
 
 -----
 
@@ -9573,75 +10059,75 @@ The following tests MUST exist and pass:
 
 ### 8.1 Schema & JSON1
 
-  * `test_schema.py`:
-      * Ensure `missions`, `mission_tasks`, `artifacts`, `timeline_events` exist with all required columns.
-      * Verify JSON1 availability with a simple `SELECT json_valid('["a"]');`.
+- `test_schema.py`:
+  - Ensure `missions`, `mission_tasks`, `artifacts`, `timeline_events` exist with all required columns.
+  - Verify JSON1 availability with a simple `SELECT json_valid('["a"]');`.
 
 ### 8.2 Snapshot & required\_artifact\_ids
 
-  * `test_snapshot.py`:
-      * Version selection correctness.
-      * `required_artifact_ids` always included.
-      * Enforcement of length â‰¤ 3 in planner validation (and optionally DB CHECK).
-      * Performance test on large artifact sets (e.g., 10k rows) using `EXPLAIN QUERY PLAN` to confirm index usage.
+- `test_snapshot.py`:
+  - Version selection correctness.
+  - `required_artifact_ids` always included.
+  - Enforcement of length â‰¤ 3 in planner validation (and optionally DB CHECK).
+  - Performance test on large artifact sets (e.g., 10k rows) using `EXPLAIN QUERY PLAN` to confirm index usage.
 
 ### 8.3 Budget Transaction
 
-  * `test_budget_txn.py`:
-      * Over-spend mission â†’ fails.
-      * Over-repair budget on repair attempts â†’ fails.
-      * Non-repair tasks do not touch `repair_budget_spent_usd`.
-      * No partial charges when transaction rolls back.
-      * **New:** `test_budget_concurrent_access`: Two concurrent BEGIN IMMEDIATE attempts; ensure one serializes, other retries/blocks.
+- `test_budget_txn.py`:
+  - Over-spend mission â†’ fails.
+  - Over-repair budget on repair attempts â†’ fails.
+  - Non-repair tasks do not touch `repair_budget_spent_usd`.
+  - No partial charges when transaction rolls back.
+  - **New:** `test_budget_concurrent_access`: Two concurrent BEGIN IMMEDIATE attempts; ensure one serializes, other retries/blocks.
 
 ### 8.4 FSM & Repair
 
-  * `test_fsm.py`:
-      * All valid transitions.
-      * `started_at` behavior (set once per attempt).
-      * Mission failure propagation.
-      * **New:** `test_backpressure_preserves_repair_state`: Enter `paused_error` with repair\_attempt=2, repair\_context='X'; Resume â†’ values preserved.
-  * `test_repair_context.py`:
-      * Truncation to 2000 code points.
-      * `repair_context_truncated` event creation.
-      * **New:** `test_repair_context_unicode_truncation`: Insert multibyte Unicode \> 2000 codepoints; stored length == 2000 codepoints.
+- `test_fsm.py`:
+  - All valid transitions.
+  - `started_at` behavior (set once per attempt).
+  - Mission failure propagation.
+  - **New:** `test_backpressure_preserves_repair_state`: Enter `paused_error` with repair\_attempt=2, repair\_context='X'; Resume â†’ values preserved.
+- `test_repair_context.py`:
+  - Truncation to 2000 code points.
+  - `repair_context_truncated` event creation.
+  - **New:** `test_repair_context_unicode_truncation`: Insert multibyte Unicode \> 2000 codepoints; stored length == 2000 codepoints.
 
 ### 8.5 Tokenizer & Replay
 
-  * `test_tokenizer_replay.py`:
-      * Same tokenizer recorded and used on replay (OpenAI + non-OpenAI).
-      * Same context composition and token count for the same input snapshot.
+- `test_tokenizer_replay.py`:
+  - Same tokenizer recorded and used on replay (OpenAI + non-OpenAI).
+  - Same context composition and token count for the same input snapshot.
 
 ### 8.6 required\_artifact\_ids Limit
 
-  * `test_required_artifact_ids.py`:
-      * Plan with \>3 IDs â†’ rejected.
-      * CEO QUESTION emitted.
-      * `required_artifact_ids_limit_exceeded` recorded in timeline.
-      * **New:** `test_required_artifact_ids_task_update`: Attempt to UPDATE task with \>3 IDs â†’ reject.
+- `test_required_artifact_ids.py`:
+  - Plan with \>3 IDs â†’ rejected.
+  - CEO QUESTION emitted.
+  - `required_artifact_ids_limit_exceeded` recorded in timeline.
+  - **New:** `test_required_artifact_ids_task_update`: Attempt to UPDATE task with \>3 IDs â†’ reject.
 
 ### 8.7 Sandbox Security
 
-  * `test_sandbox_security.py`:
-      * Path traversal attempts rejected.
-      * Symlink creation causes task failure.
-      * Invalid checksum causes `sandbox_checksum_mismatch`.
-      * Invalid manifest paths or backslashes cause `invalid_artifact_path`.
+- `test_sandbox_security.py`:
+  - Path traversal attempts rejected.
+  - Symlink creation causes task failure.
+  - Invalid checksum causes `sandbox_checksum_mismatch`.
+  - Invalid manifest paths or backslashes cause `invalid_artifact_path`.
 
 ### 8.8 End-to-End Determinism
 
-  * `test_end_to_end.py`:
-      * Run a mission with 2â€“3 tasks, including a repair.
-      * Store snapshots and artifacts.
-      * Replay mission and assert identical:
-          * `artifacts` table (file\_path, checksum)
-          * `timeline_events` ordering and key fields.
+- `test_end_to_end.py`:
+  - Run a mission with 2â€“3 tasks, including a repair.
+  - Store snapshots and artifacts.
+  - Replay mission and assert identical:
+    - `artifacts` table (file\_path, checksum)
+    - `timeline_events` ordering and key fields.
 
 ### 8.9 Planner Validation
 
-  * `test_planner_validation.py`:
-      * **New:** `test_planner_budget_exceeded`: Create mission max\_cost=10, Plan estimate=9. â†’ ValueError("planner\_budget\_fraction\_exceeded").
-      * **New:** `test_planner_budget_ok`: Create mission max\_cost=10, Plan estimate=8. â†’ Success.
+- `test_planner_validation.py`:
+  - **New:** `test_planner_budget_exceeded`: Create mission max\_cost=10, Plan estimate=9. â†’ ValueError("planner\_budget\_fraction\_exceeded").
+  - **New:** `test_planner_budget_ok`: Create mission max\_cost=10, Plan estimate=8. â†’ Success.
 
 -----
 
@@ -9649,35 +10135,37 @@ The following tests MUST exist and pass:
 
 ### 9.1 Docker Build
 
-  * `docker/Dockerfile`:
-      * Install Python + dependencies.
-      * Ensure SQLite JSON1.
-  * Verify JSON1 at container start with a small script (e.g., `SELECT json_valid('["a"]');`).
+- `docker/Dockerfile`:
+  - Install Python + dependencies.
+  - Ensure SQLite JSON1.
+- Verify JSON1 at container start with a small script (e.g., `SELECT json_valid('["a"]');`).
 
 ### 9.2 Migrations
 
-  * `python -m project_builder.database.migrations upgrade`
-  * Migrations MUST be idempotent and safe to run multiple times.
+- `python -m project_builder.database.migrations upgrade`
+- Migrations MUST be idempotent and safe to run multiple times.
 
 ### 9.3 Handling Stale Locks
 
-  * CLI command (shape):
+- CLI command (shape):
+
     ```bash
     coo debug mission <id> --show-locks
     ```
-  * Operator can:
-      * Inspect `locked_by`, `locked_at`.
-      * Force reclaim only when allowed per reclaim policy.
-      * **Force Unlock:** If a lock is held by a "garbage" or "unknown" ID for a significant period (e.g. \> 24 hours), the operator may use `--force` to manually break the lock. This is an operational escape hatch and should be used with caution.
+
+- Operator can:
+  - Inspect `locked_by`, `locked_at`.
+  - Force reclaim only when allowed per reclaim policy.
+  - **Force Unlock:** If a lock is held by a "garbage" or "unknown" ID for a significant period (e.g. \> 24 hours), the operator may use `--force` to manually break the lock. This is an operational escape hatch and should be used with caution.
 
 ### 9.4 Config Schema
 
-  * `project_builder/config/settings.py` must define:
-      * `MAX_REPAIRS_PER_TASK`
-      * `TASK_LOCK_TIMEOUT_SECONDS`
-      * `DEFAULT_SANDBOX_MEMORY_MB`
-      * `DEFAULT_SANDBOX_CPUS`
-      * `PLANNER_BUDGET_FRACTION` (0.8)
+- `project_builder/config/settings.py` must define:
+  - `MAX_REPAIRS_PER_TASK`
+  - `TASK_LOCK_TIMEOUT_SECONDS`
+  - `DEFAULT_SANDBOX_MEMORY_MB`
+  - `DEFAULT_SANDBOX_CPUS`
+  - `PLANNER_BUDGET_FRACTION` (0.8)
 
 -----
 
@@ -9687,31 +10175,31 @@ The following tests MUST exist and pass:
 
 Deliver:
 
-  * `schema.sql`, `migrations.py`, `snapshot.py`, `timeline.py`
-  * Tests: schema, snapshot, required\_artifact\_ids
+- `schema.sql`, `migrations.py`, `snapshot.py`, `timeline.py`
+- Tests: schema, snapshot, required\_artifact\_ids
 
 ### Phase 2 â€” Orchestrator & Context
 
 Deliver:
 
-  * `fsm.py`, `budget_txn.py`, `reclaim.py`, `routing.py`, `missions.py`
-  * `tokenizer.py`, `injection.py`, `truncation.py`
-  * `agents/planner.py` (validation logic)
-  * Tests: budget\_txn, fsm, repair\_context, tokenizer\_replay, planner\_validation
+- `fsm.py`, `budget_txn.py`, `reclaim.py`, `routing.py`, `missions.py`
+- `tokenizer.py`, `injection.py`, `truncation.py`
+- `agents/planner.py` (validation logic)
+- Tests: budget\_txn, fsm, repair\_context, tokenizer\_replay, planner\_validation
 
 ### Phase 3 â€” Sandbox & Security
 
 Deliver:
 
-  * `workspace.py`, `manifest.py`, `security.py`, `runner.py`
-  * Tests: sandbox\_security, checksum, path validation
+- `workspace.py`, `manifest.py`, `security.py`, `runner.py`
+- Tests: sandbox\_security, checksum, path validation
 
 ### Phase 4 â€” End-to-End Missions
 
 Deliver:
 
-  * `cli/main.py` (replay, debug)
-  * End-to-end deterministic tests.
+- `cli/main.py` (replay, debug)
+- End-to-end deterministic tests.
 
 -----
 
@@ -9719,17 +10207,17 @@ Deliver:
 
 The following changes MUST be reviewed by a senior or council-proxy before merge:
 
-  * Any modification to:
-      * `snapshot.py`
-      * `budget_txn.py`
-      * `tokenizer.py`
-      * `reclaim.py`
-      * `security.py` (path normalization, symlink logic)
-  * Any change touching:
-      * `BEGIN IMMEDIATE` logic
-      * Tokenizer recording semantics
-      * required\_artifact\_ids logic
-      * repair\_context truncation logic
+- Any modification to:
+  - `snapshot.py`
+  - `budget_txn.py`
+  - `tokenizer.py`
+  - `reclaim.py`
+  - `security.py` (path normalization, symlink logic)
+- Any change touching:
+  - `BEGIN IMMEDIATE` logic
+  - Tokenizer recording semantics
+  - required\_artifact\_ids logic
+  - repair\_context truncation logic
 
 -----
 
@@ -9739,55 +10227,55 @@ The following changes MUST be reviewed by a senior or council-proxy before merge
 
 Use a simple, strict branching model:
 
-  * `main`
-      * Always in a **releasable** state.
-      * Only receives merged PRs that pass all tests.
-  * `develop` (optional)
-      * Staging branch for feature integration before merging to `main`.
-  * `feature/*` branches
-      * E.g. `feature/snapshot-engine`, `feature/budget-txn`, `feature/sandbox-security`.
-      * All implementation work for this project is done on feature branches.
-  * `chore/*` branches
-      * For non-functional changes: documentation, refactors, tooling.
+- `main`
+  - Always in a **releasable** state.
+  - Only receives merged PRs that pass all tests.
+- `develop` (optional)
+  - Staging branch for feature integration before merging to `main`.
+- `feature/*` branches
+  - E.g. `feature/snapshot-engine`, `feature/budget-txn`, `feature/sandbox-security`.
+  - All implementation work for this project is done on feature branches.
+- `chore/*` branches
+  - For non-functional changes: documentation, refactors, tooling.
 
 Each feature branch MUST:
 
-1.  Be associated with a clear ticket / issue describing the change.
-2.  Include or update tests relevant to the change.
-3.  Update `docs/CHANGELOG.md` when the change impacts behavior.
+1. Be associated with a clear ticket / issue describing the change.
+2. Include or update tests relevant to the change.
+3. Update `docs/CHANGELOG.md` when the change impacts behavior.
 
 ### 12.2 Tagging & Releases
 
-  * Tag the spec commit as:
-      * `spec/project-builder-v0.9`
-  * Tag the implementation commit (first stable version matching this packet) as:
-      * `impl/project-builder-v0.9.7`
+- Tag the spec commit as:
+  - `spec/project-builder-v0.9`
+- Tag the implementation commit (first stable version matching this packet) as:
+  - `impl/project-builder-v0.9.7`
 
 Subsequent compatible changes:
 
-  * Bug fixes without spec change:
-      * `impl/project-builder-v0.9.8`, etc.
-  * If the spec itself changes (e.g. v0.10), create:
-      * New spec tag: `spec/project-builder-v0.10`
-      * New implementation packet: `Implementation_Packet_v0_10_0.md`
-      * New impl tag: `impl/project-builder-v0.10.0`
+- Bug fixes without spec change:
+  - `impl/project-builder-v0.9.8`, etc.
+- If the spec itself changes (e.g. v0.10), create:
+  - New spec tag: `spec/project-builder-v0.10`
+  - New implementation packet: `Implementation_Packet_v0_10_0.md`
+  - New impl tag: `impl/project-builder-v0.10.0`
 
 ### 12.3 Pull Request Requirements
 
 Every PR MUST:
 
-1.  Reference:
-      * Spec version: `Spec v0.9`
-      * Implementation packet version: `Packet v0.9.7`
-2.  Include:
-      * Summary of changes.
-      * List of touched modules.
-      * Tests added/updated.
-3.  Pass CI:
-      * All tests in `tests/` must pass.
-4.  Get at least:
-      * One reviewer with familiarity with this packet.
-      * For code touching critical paths (snapshot, budget, tokenizer, reclaim, security), at least one **senior** review.
+1. Reference:
+      - Spec version: `Spec v0.9`
+      - Implementation packet version: `Packet v0.9.7`
+2. Include:
+      - Summary of changes.
+      - List of touched modules.
+      - Tests added/updated.
+3. Pass CI:
+      - All tests in `tests/` must pass.
+4. Get at least:
+      - One reviewer with familiarity with this packet.
+      - For code touching critical paths (snapshot, budget, tokenizer, reclaim, security), at least one **senior** review.
 
 Recommended PR template:
 
@@ -9818,11 +10306,11 @@ Recommended PR template:
 
 `docs/CHANGELOG.md` MUST record:
 
-  * Date
-  * Author
-  * Summary
-  * Whether behavior is strictly internal (no external API change) or user-visible
-  * Spec/Packet versions affected
+- Date
+- Author
+- Summary
+- Whether behavior is strictly internal (no external API change) or user-visible
+- Spec/Packet versions affected
 
 Example entry:
 
@@ -9850,15 +10338,15 @@ Example entry:
 
 Before tagging `impl/project-builder-v0.9.7`:
 
-1.  All tests in `tests/` pass.
-2.  End-to-end determinism test (`test_end_to_end.py`) passes.
-3.  Replay test confirmed manually on one reference mission.
-4.  `CHANGELOG.md` updated.
-5.  Implementation Packet path `docs/Implementation_Packet_v0_9_7.md` committed.
-6.  Reviewed and approved by:
-      * One engineer focused on infra/DB.
-      * One engineer focused on sandbox/security.
-      * Operator/CEO (you) or delegate.
+1. All tests in `tests/` pass.
+2. End-to-end determinism test (`test_end_to_end.py`) passes.
+3. Replay test confirmed manually on one reference mission.
+4. `CHANGELOG.md` updated.
+5. Implementation Packet path `docs/Implementation_Packet_v0_9_7.md` committed.
+6. Reviewed and approved by:
+      - One engineer focused on infra/DB.
+      - One engineer focused on sandbox/security.
+      - Operator/CEO (you) or delegate.
 
 After this checklist, create tag:
 
@@ -9874,13 +10362,17 @@ This packet, together with the v0.9 spec, is sufficient for a junior engineer to
 <hr>
 
 <a id="file-docs-04-project-builder-projectbuilder-spec-v0-9-finalclean-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md
+
 **Source**: `docs/04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md`
 
 # GPTCOO v1.1 â€“ Project Builder  
+
 **Specification v0.9 (Final Clean Implementation Spec, DeepSeek-Compliant)**
 
 This version integrates **all five DeepSeek-required fixes**:
+
 1. Executable SQLite repair-budget transaction.
 2. Platform-agnostic lock reclaim liveness check.
 3. Explicit tokenizer requirements for non-OpenAI models.
@@ -9936,6 +10428,7 @@ This block is **executable SQLite** with correct semantics.
 Replace reclaim step with:
 
 > â€œThe orchestrator MUST verify liveness of the worker identified by `locked_by`.  
+>
 > - If `locked_by` is an integer PID and the platform is POSIX, use `os.kill(pid, 0)`.  
 > - Otherwise, on non-POSIX systems or if `locked_by` is not a PID, the orchestrator MUST use an equivalent OS-level process existence API.  
 > - If liveness cannot be established or `locked_by` is invalid, **reclaim MUST NOT proceed**.  
@@ -9959,6 +10452,7 @@ Add immediately after the plan validation steps:
 
 > â€œIf any task specifies `required_artifact_ids`, COO MUST parse it as a JSON array and enforce **length â‰¤ 3**.  
 > A violation MUST cause:  
+>
 > - Plan rejection,  
 > - A `QUESTION` to CEO explaining `required_artifact_ids_limit_exceeded`, and  
 > - No tasks inserted for this mission.â€
@@ -9986,6 +10480,7 @@ All modified sections include the DeepSeek patches inline.
 ---
 
 # GPTCOO v1.1 â€“ Project Builder  
+
 **Specification v0.8 (Final Clean Implementation Spec)**
 
 ---
@@ -10280,6 +10775,7 @@ workspace_root = /tmp/coo-{mission_id}-{task_id}-{repair_attempt}
 The per-task snapshot is defined as:
 
 > For task `t.id = :task_id` in mission `:mission_id`, at time `t.started_at`, the workspace consists of:
+>
 > - The latest non-deleted version of each file whose `created_at <= t.started_at`, plus
 > - Any artifacts explicitly referenced in `required_artifact_ids`, even if those artifacts are newer or would otherwise be excluded.
 
@@ -10441,6 +10937,7 @@ Reclaim process:
      - Skip reclaim for this task,
      - Log a warning (e.g., to `timeline_events` with `event_type='task_reclaim_skipped_alive'`).
 2. If the process is not alive (or `locked_by` is invalid), in a single transaction:
+
    ```sql
    BEGIN IMMEDIATE;
    UPDATE mission_tasks
@@ -10450,6 +10947,7 @@ Reclaim process:
    WHERE id = :task_id;
    COMMIT;
    ```
+
 3. Delete the previous workspace for that attempt.
 4. Insert `timeline_events` with `event_type='task_reclaimed'`.
 
@@ -10643,6 +11141,7 @@ If validation **passes**:
 If validation **fails**:
 
 - COO sends a `QUESTION` to CEO:
+
   ```json
   {
     "kind": "QUESTION",
@@ -10656,7 +11155,9 @@ If validation **fails**:
     }
   }
   ```
+
 - CEO responds with a `RESULT` to Planner via COO, typically:
+
   ```json
   {
     "kind": "RESULT",
@@ -10669,6 +11170,7 @@ If validation **fails**:
     }
   }
   ```
+
 - COO forwards this as a `TASK` to Planner.
 - Increment `missions.plan_revision_count`.
 - If `plan_revision_count > MAX_PLAN_REVISIONS`, set:
@@ -10734,9 +11236,11 @@ Algorithm:
    - Else:
      - Truncate at line boundaries to fit `remaining`.
      - Append marker:
+
        ```text
        # [...TRUNCATED BY COO...]
        ```
+
      - Inject truncated content and stop.
 
 ### 8.4 Token Counting Determinism
@@ -10772,9 +11276,11 @@ Algorithm:
 To eliminate non-determinism from stdout:
 
 - The sandbox MUST write a manifest file at:
+
   ```text
   /workspace/.coo-manifest.json
   ```
+
 - The orchestrator MUST read **only** this file.
 - Stdout may contain arbitrary logs; it is ignored for manifest purposes.
 
@@ -11139,14 +11645,16 @@ A Project Builder implementation is considered correct if it satisfies:
 
 This v0.8 specification incorporates all remaining council-required fixes and is intended to be LOCKED for implementation.
 
-
 <hr>
 
 <a id="file-docs-05-agents-coo-agent-mission-orchestrator-arch-v0-7-aligned-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md
+
 **Source**: `docs/05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md`
 
 # COO-Agent Mission Orchestrator â€” Architecture v0.7-ALIGNED
+
 **"A Deterministic Multi-Agent Orchestrator Running on the COO Runtime"**
 
 ---
@@ -11727,9 +12235,9 @@ Demo is strictly a thin orchestration + formatting layer over the existing runti
 
 <hr>
 
-<a id="file-docs-07-productisation-productisation-brief-v1-0-md"></a>
-# ðŸ“„ FILE: docs/07_productisation/Productisation_Brief_v1.0.md
-**Source**: `docs/07_productisation/Productisation_Brief_v1.0.md`
+<a id="file-docs-12-productisation-productisation-brief-v1-0-md"></a>
+# ðŸ“„ FILE: docs/12_productisation/Productisation_Brief_v1.0.md
+**Source**: `docs/12_productisation/Productisation_Brief_v1.0.md`
 
 ChatGPT said:
 
@@ -12195,6 +12703,7 @@ Structure:
 - `initialisers/` â€” master initialiser for models.
 
 Usage patterns:
+
 - For ChatGPT: inject the master initialiser + ChatGPT capability envelope.
 - For Gemini: inject the master initialiser + Gemini capability envelope.
 - For council work: Chair and Co-Chair use their prompts to create and validate packets, then L1 and Architect+Alignment reviewers operate on those packets.
@@ -12206,17 +12715,19 @@ Usage patterns:
 This is **v1.0** of the governance + runtime manual and prompt library.
 
 When changes are needed:
+
 - Create a new folder `v1.1/` under `prompts/`.
 - Copy and modify files rather than editing in place.
 - Update this manual (or create `governance_runtime_manual_v1.1.md`) with a short changelog.
 
 This preserves determinism and makes it possible to reproduce prior decisions and workflows.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-initialisers-master-initialiser-universal-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md`
 
 # Master Initialiser â€” Universal v1.0
@@ -12250,11 +12761,12 @@ Apply the following:
 
 Assume that **StepGate Protocol v1.0**, **Discussion Protocol v1.0**, and the relevant capability envelope apply.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-initialisers-master-initialiser-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/initialisers/master_initialiser_v1.0.md`
 
 # Master Initialiser v1.0
@@ -12264,7 +12776,9 @@ Minimal behavioural initialiser.
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-protocols-capability-envelope-chatgpt-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/protocols/capability_envelope_chatgpt_v1.0.md`
 
 # Capability Envelope â€” ChatGPT v1.0
@@ -12280,11 +12794,12 @@ Minimal behavioural initialiser.
 7. Detect transitions from discussion â†’ instructions and propose StepGate activation in a new thread.
 8. Maintain deterministic, predictable behaviour across all steps and modes.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-protocols-capability-envelope-gemini-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/protocols/capability_envelope_gemini_v1.0.md`
 
 # Capability Envelope â€” Gemini v1.0
@@ -12300,16 +12815,18 @@ Minimal behavioural initialiser.
 7. If uncertain about user intent, ask instead of inferring.
 8. When the user shifts into actionable tasks, confirm whether to begin StepGate in a new thread.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-protocols-discussion-protocol-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/protocols/discussion_protocol_v1.0.md`
 
 # Discussion Protocol v1.0
 
 ## Purpose
+
 A disciplined, low-friction framework for exploratory or conceptual dialogues. Prevents runaway verbosity, branch explosion, or premature instruction-mode behaviours.
 
 ---
@@ -12341,16 +12858,18 @@ A disciplined, low-friction framework for exploratory or conceptual dialogues. P
 
 ---
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-protocols-stepgate-protocol-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/protocols/stepgate_protocol_v1.0.md`
 
 # StepGate Protocol v1.0
 
 ## Purpose
+
 A deterministic, low-friction execution protocol for any multi-step instruction or build task. It ensures the human retains control over progression while the model provides complete, gated guidance.
 
 ---
@@ -12397,11 +12916,12 @@ The only valid progression command is:
 
 Do not proceed without it.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-roles-chair-prompt-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md`
 
 # AI Council Chair â€” Role Prompt v1.0
@@ -12467,11 +12987,12 @@ You are not the CEO and not the system designer. You are a process governor and 
 - Escalate ambiguity instead of guessing.
 - Avoid overproducing branches; default to the single path the user appears to favour, then ask if alternatives are needed.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-roles-cochair-prompt-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md`
 
 # AI Council Co-Chair â€” Role Prompt v1.0
@@ -12528,11 +13049,12 @@ You are not a rubber stamp. You are a second line of defence.
 - Prefer clear bullet points over prose.
 - Always highlight â€œWhat the human must do nextâ€ when relevant.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-roles-reviewer-architect-alignment-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/roles/reviewer_architect_alignment_v1.0.md`
 
 # Architect + Alignment Reviewer â€” Role Prompt v1.0
@@ -12601,11 +13123,12 @@ Escalate these explicitly to the user.
 - Do not fill gaps using speculative assumptions.
 - Do not drift into low-level implementation details except to illustrate structural issues.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-roles-reviewer-l1-unified-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md`
 
 # L1 Unified Council Reviewer â€” Role Prompt v1.0
@@ -12650,10 +13173,12 @@ Trust the artefact where it contradicts hand-wavy descriptions, but call out the
 ## Required Output Format
 
 ### Section 1 â€” Verdict
+
 - One of: **Accept / Go with Fixes / Reject**
 - 3â€“7 bullets explaining why.
 
 ### Section 2 â€” Issues
+
 - 3â€“10 bullets of the most important issues.
 - Each bullet should:
   - State the issue.
@@ -12661,15 +13186,18 @@ Trust the artefact where it contradicts hand-wavy descriptions, but call out the
   - Suggest a direction for remediation (not full design).
 
 ### Section 3 â€” Risks
+
 - Concrete ways the system could fail, be misused, or drift from the userâ€™s goals.
 
 ### Section 4 â€” Required Changes
+
 - Numbered list of changes required for:
   - Structural soundness,
   - Safety,
   - Alignment.
 
 ### Section 5 â€” Questions / Ambiguities
+
 - Questions that must be answered by the human or future work.
 - Separate **â€œmust answer nowâ€** vs **â€œcan deferâ€**.
 
@@ -12682,11 +13210,12 @@ Trust the artefact where it contradicts hand-wavy descriptions, but call out the
 - Escalate missing context rather than guessing.
 - Maintain a neutral, analytic tone.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-system-capability-envelope-universal-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/system/capability_envelope_universal_v1.0.md`
 
 # Universal Capability Envelope v1.0
@@ -12715,11 +13244,12 @@ Provide a model-agnostic behavioural shell for AI assistants working within the 
 - **Discussion Mode:** focus on understanding, framing, and limited exploration.
 - **Instruction Mode (StepGate):** tightly controlled, stepwise execution with explicit gating.
 
-
 <hr>
 
 <a id="file-docs-09-prompts-v1-0-system-modes-overview-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/09_prompts/v1.0/system/modes_overview_v1.0.md
+
 **Source**: `docs/09_prompts/v1.0/system/modes_overview_v1.0.md`
 
 # Modes Overview v1.0 â€” Discussion vs StepGate
@@ -12727,10 +13257,12 @@ Provide a model-agnostic behavioural shell for AI assistants working within the 
 ## Discussion Mode
 
 Use when:
+
 - The user is exploring ideas, strategies, or options.
 - The goal is understanding, framing, or comparison.
 
 Behaviours:
+
 - Keep scope narrow.
 - Ask before producing large or multi-branch outputs.
 - Clarify whether the user wants depth, breadth, or a single path.
@@ -12741,21 +13273,24 @@ Behaviours:
 ## StepGate Mode
 
 Use when:
+
 - The user is executing a multi-step task.
 - There is material operational risk, complexity, or artefact creation.
 
 Behaviours:
+
 - Ask clarifying questions upfront.
 - Present a short workflow scaffold.
 - Progress only on the gate phrase **"go"**.
 - Keep each step atomic and clear.
 - Call out what the human must do at each step.
 
-
 <hr>
 
 <a id="file-docs-10-meta-code-review-status-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/CODE_REVIEW_STATUS_v1.0.md
+
 **Source**: `docs/10_meta/CODE_REVIEW_STATUS_v1.0.md`
 
 # Code Review v1.1 & v1.2 - Status
@@ -12763,16 +13298,19 @@ Behaviours:
 ## âœ… All Fixes Completed
 
 ### Fix A1: ModelClient Configuration
+
 **Status:** âœ… Complete
 
 Modified `coo/orchestrator.py` to pass full `config` dict to `ModelClient` instead of just `config.get("models", {})`.
 
 ### Fix A2: Model Configuration Fallback
+
 **Status:** âœ… Complete
 
 Updated `ModelClient.get_model_conf()` to check for specific model first, then fall back to "default" model configuration.
 
 ### Fix A3: Logical Model Pools
+
 **Status:** âœ… Complete
 
 - Added `router_model` field to `config/models.yaml` to separate logical pool name from actual remote model
@@ -12780,11 +13318,13 @@ Updated `ModelClient.get_model_conf()` to check for specific model first, then f
 - Updated `config/models.yaml` to use "default" as logical model pool with `router_model: "deepseek/deepseek-chat"`
 
 ### Fix A4: Agent Configuration Wiring
+
 **Status:** âœ… Complete
 
 Modified `coo/orchestrator.py` to read agent configs from the `agents:` section and pass model names to agent constructors.
 
 ### Fix A5: Temperature Support
+
 **Status:** âœ… Complete
 
 - Added `temperature` parameter to `Agent.__init__()` and `ModelClient.chat()`
@@ -12794,12 +13334,14 @@ Modified `coo/orchestrator.py` to read agent configs from the `agents:` section 
 ## Additional Improvements (Code Review v1.2)
 
 ### Config-Driven ModelClient
+
 **Status:** âœ… Complete
 
 - `base_url` and `api_key_env` now read from `models.default` in YAML (no hardcoding)
 - Single source of truth for all API configuration
 
 ### Agent Base Class Improvements
+
 **Status:** âœ… Complete
 
 - Validates ALL required components (LLM/Budget/Prompts)
@@ -12807,6 +13349,7 @@ Modified `coo/orchestrator.py` to read agent configs from the `agents:` section 
 - Better error messages
 
 ### Script Improvements
+
 **Status:** âœ… Complete
 
 - `seed_mission_e2e.py`: Uses "USER" consistently, adds priority field
@@ -12815,6 +13358,7 @@ Modified `coo/orchestrator.py` to read agent configs from the `agents:` section 
 ## Benefits
 
 These fixes make the system:
+
 - **More deterministic**: Budget calculations use actual configured pricing
 - **More maintainable**: Model changes are config-driven (no code changes needed)
 - **Spec-compliant**: Implements the "logical model pool" abstraction from ARCHITECTURE.md
@@ -12823,14 +13367,16 @@ These fixes make the system:
 ## Test Status
 
 All tests passing âœ…
+
 - Unit tests: 25 tests
 - Integration tests: 1 test
-
 
 <hr>
 
 <a id="file-docs-10-meta-coo-runtime-deprecation-notice-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md
+
 **Source**: `docs/10_meta/COO_Runtime_Deprecation_Notice_v1.0.md`
 
 # COO Runtime Deprecation Notice v1.0
@@ -12840,26 +13386,32 @@ All tests passing âœ…
 **Topic**: Migration of COO Runtime to LifeOS
 
 ## 1. Notice
+
 The standalone COO Runtime repository (commonly known as `coo-agent` or `COOProject`) is **officially deprecated**.
 
 ## 2. New Canonical Location
+
 The authoritative implementation of the COO Runtime now resides in this repository at:
+
 - `LifeOS/runtime/` (Core Engine)
 - `LifeOS/project_builder/` (Support Logic)
 
 ## 3. Implications
+
 - **Do not** commit code to the old `coo-agent` repo.
 - **Do not** run runtime tests from the old repo.
 - All future features (R6.x series) must be implemented in `LifeOS`.
 
 ## 4. History
-This migration was performed in December 2025 to consolidate the "LifeOS Kernel" into a single, deterministic monorepo.
 
+This migration was performed in December 2025 to consolidate the "LifeOS Kernel" into a single, deterministic monorepo.
 
 <hr>
 
 <a id="file-docs-10-meta-deprecation-audit-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/DEPRECATION_AUDIT_v1.0.md
+
 **Source**: `docs/10_meta/DEPRECATION_AUDIT_v1.0.md`
 
 # DEPRECATION_AUDIT_v1.0.md
@@ -13030,124 +13582,148 @@ After Phase 1:
 - Any artefact that lives only in COOProject or governance-hub is **non-canonical** unless explicitly imported into `/docs` in a future phase.
 - Phase 2+ may promote selected external artefacts into `/docs` using strict `_vX.Y` naming and explicit index entries.
 
-
-
 <hr>
 
 <a id="file-docs-10-meta-governance-digest-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/governance_digest_v1.0.md
+
 **Source**: `docs/10_meta/governance_digest_v1.0.md`
 
 # Governance Digest Update Process
 
 ## Overview
+
 The `coo-sandbox` image is pinned by its SHA256 digest in `project_builder/config/governance.py` and `project_builder/config/settings.py`. This ensures that only the authorized, canonical image is used in production.
 
 ## Update Procedure
 
 1. **Build the Image**
    Build the production sandbox image:
+
    ```bash
    docker build -t coo-sandbox:prod -f docker/Dockerfile.sandbox docker
    ```
 
 2. **Get the Digest**
    Retrieve the image digest:
+
    ```bash
    docker inspect coo-sandbox:prod --format='{{.Id}}'
    ```
+
    Example output: `sha256:f2c125a3328cd4dc8bbe2afee07e7870028e34fed6440f9c3d6ffaea2f8898477`
 
 3. **Update Configuration**
-   
+
    **`project_builder/config/governance.py`**:
    Add the new digest to `ALLOWED_PROD_DIGESTS`:
+
    ```python
    ALLOWED_PROD_DIGESTS = {
        "sha256:OLD_DIGEST",
        "sha256:NEW_DIGEST",
    }
    ```
-   
+
    **`project_builder/config/settings.py`**:
    Update `SANDBOX_IMAGE_DIGEST`:
+
    ```python
    SANDBOX_IMAGE_DIGEST = "sha256:NEW_DIGEST"
    ```
 
 4. **Verify**
    Run the governance tests:
+
    ```bash
    pytest tests/test_enforce_governance.py
    ```
 
 ## CI Guardrails
+
 The system is designed to fail if:
+
 - The configured digest is the placeholder digest (in PROD).
 - The configured digest is not in `ALLOWED_PROD_DIGESTS`.
 - The platform is Windows (in PROD).
 
-
 <hr>
 
 <a id="file-docs-10-meta-implementation-plan-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md
+
 **Source**: `docs/10_meta/IMPLEMENTATION_PLAN_v1.0.md`
 
 # Phase 4: Observability + Hardening
 
 ## Goal Description
+
 Enhance system observability with structured logging (`structlog`) and timeline events. Implement CLI commands for inspection (`coo mission`, `coo logs`). Harden the system with secret scrubbing and integration tests.
 
 ## User Review Required
+>
 > [!NOTE]
 > **CLI Usage**: New commands will be available: `python -m coo.cli mission <id>` and `python -m coo.cli logs <id>`.
 
 ## Proposed Changes
 
 ### Observability
+
 #### [MODIFY] [coo/main.py](coo-agent/coo/main.py)
+
 - Configure `structlog` with:
-    - JSON renderer.
-    - Timestamp, level, logger name.
-    - **Secret Scrubbing**: Processor to redact API keys and sensitive data.
+  - JSON renderer.
+  - Timestamp, level, logger name.
+  - **Secret Scrubbing**: Processor to redact API keys and sensitive data.
 
 #### [MODIFY] [coo/message_store.py](coo-agent/coo/message_store.py)
+
 - **`log_timeline_event`**: New method to insert into `timeline_events` table.
 - Call this method from `Orchestrator` and `Agents` for major lifecycle events (mission start, task complete, budget warning).
 
 ### CLI & Operations
+
 #### [MODIFY] [coo/cli.py](coo-agent/coo/cli.py)
+
 - **`mission <id>`**: Show status, budget usage, and recent timeline.
 - **`logs <id>`**: Dump structured logs or timeline events for a mission.
 - **`dlq replay <id>`**: Replay a failed message from Dead Letter Queue.
 
 ### Hardening
+
 #### [NEW] [tests/unit/test_scrubbing.py](coo-agent/tests/unit/test_scrubbing.py)
+
 - Verify that `structlog` processor correctly redacts secrets from logs.
 
 #### [NEW] [tests/integration/test_full_system.py](coo-agent/tests/integration/test_full_system.py)
+
 - Full integration test running the Orchestrator against a real (or mocked) LLM and Sandbox, verifying the entire lifecycle including timeline events.
 
 ## Verification Plan
 
 ### Automated Tests
+
 - **`test_scrubbing.py`**: Ensure no secrets leak into logs.
 - **`test_full_system.py`**: Verify end-to-end flow with observability checks.
 
 ### Manual Verification
+
 - Run `coo mission <id>` on a running mission to verify real-time status.
 - Inspect `coo.log` (or stdout) to confirm JSON formatting and redaction.
-
 
 <hr>
 
 <a id="file-docs-10-meta-lifeos-â€”-exploratory-proposal-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/LifeOS â€” Exploratory_Proposal.md
+
 **Source**: `docs/10_meta/LifeOS â€” Exploratory_Proposal.md`
 
 LifeOS â€” Exploratory Proposal on Tool Allocation, Determinism Boundaries, and Near-Term Architecture
 Version: Draft for Strategy & Alignment Review
+
 1. Landscape Map: What LifeOS Actually Needs to Do
 
 This section decomposes the LifeOS programme into functional domains. It allows any AI system to reason about what belongs where without depending on ChatGPT-specific conventions.
@@ -13196,7 +13772,7 @@ Avoiding context drift across large document sets.
 
 Requirements: ability to ingest, link, and query large corpora reliably.
 
-2. Feasibility Boundaries for Current and Near-Future Tools
+1. Feasibility Boundaries for Current and Near-Future Tools
 
 This section defines what each platform can and cannot do, focusing on determinism, drift control, document handling, and multi-agent orchestration.
 
@@ -13348,7 +13924,7 @@ Document indexing robot (optional, if deterministic)
 
 These tools enforce the deterministic substrate where AI models cannot.
 
-3. Allocation Matrix (Now â†’ Near Future â†’ Post-COO)
+1. Allocation Matrix (Now â†’ Near Future â†’ Post-COO)
 
 This is the most important section for decision-making. It tells you what to use, when, and why.
 
@@ -13448,7 +14024,7 @@ Artefact life cycle end-to-end
 
 Models become interchangeable actors, not holders of architectural state.
 
-4. Decision Criteria Framework
+1. Decision Criteria Framework
 
 This section lets any model reason about where a task belongs.
 
@@ -13510,7 +14086,7 @@ repeatable replays
 
 AMUâ‚€ state management
 
-5. Council Review Packet Skeleton (for Advisory Council)
+1. Council Review Packet Skeleton (for Advisory Council)
 
 This does not violate council rules; it simply gives you a template you can paste into a Governance Council project.
 
@@ -13572,15 +14148,17 @@ Document drift is prevented by ensuring the freeze step always occurs inside a d
 <hr>
 
 <a id="file-docs-10-meta-lifeos-architecture-ideation-project-guidance-v1-0-md-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md
+
 **Source**: `docs/10_meta/LifeOS_Architecture_Ideation_Project_Guidance_v1.0.md.md`
 
 Proceeding as Council Synthesiser and Chair.
 
 Below is the integrated synthesis (Gate 4) and the Fix Plan with a formal ruling (Gate 5), incorporating:
 
-* Internal reviewers (Architect, Risk, Alignment, Red-Team, Simplicity, Product), and
-* External reviewers (Kimi, DeepSeek, Claude).
+- Internal reviewers (Architect, Risk, Alignment, Red-Team, Simplicity, Product), and
+- External reviewers (Kimi, DeepSeek, Claude).
 
 ---
 
@@ -13591,29 +14169,29 @@ Should LifeOS adopt the Hybrid Deterministicâ€“Stochastic Architecture â�
 
 ### 1.1 Determination Pattern
 
-* **Architect (internal):** Approve with Conditions
+- **Architect (internal):** Approve with Conditions
 
-* **Risk (internal):** Approve with Conditions
+- **Risk (internal):** Approve with Conditions
 
-* **Alignment (internal):** Approve with Conditions
+- **Alignment (internal):** Approve with Conditions
 
-* **Red-Team (internal):** Reject with Amendments
+- **Red-Team (internal):** Reject with Amendments
 
-* **Simplicity (internal):** Approve with Conditions
+- **Simplicity (internal):** Approve with Conditions
 
-* **Product (internal):** Approve with Conditions
+- **Product (internal):** Approve with Conditions
 
-* **Kimi (Simplicity/Product):** Approve with Conditions
+- **Kimi (Simplicity/Product):** Approve with Conditions
 
-* **DeepSeek (Risk/Alignment):** Approve with Conditions
+- **DeepSeek (Risk/Alignment):** Approve with Conditions
 
-* **Claude (Red-Team/Architect):** Approve with Conditions
+- **Claude (Red-Team/Architect):** Approve with Conditions
 
 **Net pattern:**
 
-* No reviewer calls for outright rejection.
-* One internal reviewer (â€œReject with Amendmentsâ€) is effectively aligned with â€œApprove with Conditionsâ€ once their amendments are included in the Fix Plan.
-* All others: **Approve with Conditions**.
+- No reviewer calls for outright rejection.
+- One internal reviewer (â€œReject with Amendmentsâ€) is effectively aligned with â€œApprove with Conditionsâ€ once their amendments are included in the Fix Plan.
+- All others: **Approve with Conditions**.
 
 ### 1.2 Core Consensus
 
@@ -13621,28 +14199,28 @@ Across all reviewers (internal + external), there is strong convergence on:
 
 1. **Hybrid is the right class of architecture.**
 
-   * Deterministic core + LLM-at-the-edge is seen as the only credible way to have â€œsoftware-gradeâ€ guarantees (sync, rollback, audits) while still harnessing LLM flexibility (natural language, open-ended reasoning).
+   - Deterministic core + LLM-at-the-edge is seen as the only credible way to have â€œsoftware-gradeâ€ guarantees (sync, rollback, audits) while still harnessing LLM flexibility (natural language, open-ended reasoning).
 
 2. **Separation of concerns is non-negotiable.**
 
-   * Deterministic planes (Constitution / Forge / Ledger) must remain clearly separated from stochastic LLM components.
-   * Git (or equivalent) is endorsed as a canonical memory spine *if* hardened.
+   - Deterministic planes (Constitution / Forge / Ledger) must remain clearly separated from stochastic LLM components.
+   - Git (or equivalent) is endorsed as a canonical memory spine *if* hardened.
 
 3. **Safety is implementation-dependent, not automatic.**
 
-   * The high-level architecture is sound; the risk lies in under-specified primitives:
+   - The high-level architecture is sound; the risk lies in under-specified primitives:
 
-     * Freeze protocol semantics
-     * Governance and meta-governance
-     * LLM boundary contracts
-     * Schema evolution and testing
-     * Workflow execution model
-     * Capability/sandbox model
+     - Freeze protocol semantics
+     - Governance and meta-governance
+     - LLM boundary contracts
+     - Schema evolution and testing
+     - Workflow execution model
+     - Capability/sandbox model
 
 4. **â€œApprove with Conditionsâ€ is conditional on a substantial specification and governance hardening pass.**
 
-   * There is no call to abandon the hybrid direction.
-   * There is a strong call to **harden** it before declaring any LifeOS v1 implementation conformant.
+   - There is no call to abandon the hybrid direction.
+   - There is a strong call to **harden** it before declaring any LifeOS v1 implementation conformant.
 
 ### 1.3 Major Concern Clusters
 
@@ -13650,61 +14228,61 @@ Synthesising the various reviews, concerns cluster into the following themes:
 
 1. **Governance & Meta-Governance Fragility**
 
-   * Constitution/arbiter not cryptographically anchored.
-   * No explicit meta-governance process for changing the rules themselves.
-   * Risk that governance artefacts can be subtly weakened over time.
+   - Constitution/arbiter not cryptographically anchored.
+   - No explicit meta-governance process for changing the rules themselves.
+   - Risk that governance artefacts can be subtly weakened over time.
 
 2. **Freeze Protocol & State Integrity**
 
-   * Freeze semantics are under-specified:
+   - Freeze semantics are under-specified:
 
-     * Ordering, locking, conflict resolution, race conditions.
-   * Risk of state-space explosion or impractical verification leading to â€œfreeze erosionâ€.
-   * Insufficient cryptographic integrity guarantees on Git state.
+     - Ordering, locking, conflict resolution, race conditions.
+   - Risk of state-space explosion or impractical verification leading to â€œfreeze erosionâ€.
+   - Insufficient cryptographic integrity guarantees on Git state.
 
 3. **Determinism vs LLM Stochasticity Boundaries**
 
-   * Need clarity about what â€œdeterministic workflowsâ€ mean in presence of LLM calls.
-   * Requirement to pin model versions and cache LLM outputs for replay.
-   * Danger of cascading stochasticity when multiple LLM calls chain together without budget/trace.
+   - Need clarity about what â€œdeterministic workflowsâ€ mean in presence of LLM calls.
+   - Requirement to pin model versions and cache LLM outputs for replay.
+   - Danger of cascading stochasticity when multiple LLM calls chain together without budget/trace.
 
 4. **Validation, Schemas, and Tests**
 
-   * Schemas only enforce syntax, not semantics.
-   * Tests themselves can be corrupted if generated or modified by LLMs.
-   * Need invariant checkers, semantic validation, and strong test immutability.
+   - Schemas only enforce syntax, not semantics.
+   - Tests themselves can be corrupted if generated or modified by LLMs.
+   - Need invariant checkers, semantic validation, and strong test immutability.
 
 5. **Capability and Sandbox Model**
 
-   * No explicit capability model for workflows and LLMs (FS, network, external APIs).
-   * Sandbox mechanism for LLM outputs not precisely defined.
+   - No explicit capability model for workflows and LLMs (FS, network, external APIs).
+   - Sandbox mechanism for LLM outputs not precisely defined.
 
 6. **Schema Evolution & Lifecycle**
 
-   * Lack of a strategy for schema evolution, migrations, and backward compatibility.
-   * No guard rails around making schemas more permissive over time.
+   - Lack of a strategy for schema evolution, migrations, and backward compatibility.
+   - No guard rails around making schemas more permissive over time.
 
 7. **Observability & Provenance**
 
-   * Need for lineage tracking: which LLM calls, which tests, which humans affected a given artefact.
-   * Telemetry and anomaly detection for LLM behaviour and workflows.
+   - Need for lineage tracking: which LLM calls, which tests, which humans affected a given artefact.
+   - Telemetry and anomaly detection for LLM behaviour and workflows.
 
 8. **Complexity & Product Ergonomics**
 
-   * Architecture risks burying users in Git, lifecycle configs, and sandbox knobs.
-   * Fundamental requirement to hide complexity:
+   - Architecture risks burying users in Git, lifecycle configs, and sandbox knobs.
+   - Fundamental requirement to hide complexity:
 
-     * Simple CLI surface (few core commands).
-     * Single YAML ruleset for most users.
-     * Minimal extension and plugin surface for v1.
-   * Need straightforward installation, cloud repo, and visual tools for artefacts.
+     - Simple CLI surface (few core commands).
+     - Single YAML ruleset for most users.
+     - Minimal extension and plugin surface for v1.
+   - Need straightforward installation, cloud repo, and visual tools for artefacts.
 
 ### 1.4 Dissent
 
 The internal Red-Teamâ€™s â€œReject with Amendmentsâ€ is *substantively* aligned with:
 
-* DeepSeekâ€™s conditions on cryptographic governance, semantic boundary checks, and freeze protocol hardening.
-* Claudeâ€™s conditions on semantic validation, cryptographic state integrity, capability/sandbox model, and formal freeze semantics.
+- DeepSeekâ€™s conditions on cryptographic governance, semantic boundary checks, and freeze protocol hardening.
+- Claudeâ€™s conditions on semantic validation, cryptographic state integrity, capability/sandbox model, and formal freeze semantics.
 
 Once these amendments are brought into the Fix Plan, the dissent converts to **conditional acceptance**.
 
@@ -13717,9 +14295,9 @@ Once these amendments are brought into the Fix Plan, the dissent converts to **c
 
 Interpretation:
 
-* **Adopt in principle** the Hybrid Deterministicâ€“Stochastic Architecture as the **foundational architectural direction** for LifeOS v1 and v2.
-* This adoption is **conditional** on implementing and ratifying the Fix Plan (below).
-* No concrete implementation may be considered **LifeOS v1â€“conformant** until it satisfies the Fix Plan acceptance criteria.
+- **Adopt in principle** the Hybrid Deterministicâ€“Stochastic Architecture as the **foundational architectural direction** for LifeOS v1 and v2.
+- This adoption is **conditional** on implementing and ratifying the Fix Plan (below).
+- No concrete implementation may be considered **LifeOS v1â€“conformant** until it satisfies the Fix Plan acceptance criteria.
 
 ---
 
@@ -13731,32 +14309,32 @@ This Fix Plan aggregates only ideas present in reviewer outputs. Each item is st
 
 **G1. Cryptographic Governance Anchor**
 
-* The Constitution and core arbitration logic must be represented as a signed, immutable structure (e.g. Merkle tree / signed commits).
-* Any change to constitutional rules requires:
+- The Constitution and core arbitration logic must be represented as a signed, immutable structure (e.g. Merkle tree / signed commits).
+- Any change to constitutional rules requires:
 
-  * Multi-party human approval (multi-signature), and
-  * Auditable record of the proposal, review, and decision.
+  - Multi-party human approval (multi-signature), and
+  - Auditable record of the proposal, review, and decision.
 
 **G2. Meta-Governance Process**
 
-* Define a dedicated process for changes to:
+- Define a dedicated process for changes to:
 
-  * Governance rules,
-  * Freeze protocol,
-  * Validation and test frameworks.
-* This process must be stricter than normal artefact changes:
+  - Governance rules,
+  - Freeze protocol,
+  - Validation and test frameworks.
+- This process must be stricter than normal artefact changes:
 
-  * Higher quorum,
-  * Longer review cycle,
-  * Explicit Red-Team pass.
+  - Higher quorum,
+  - Longer review cycle,
+  - Explicit Red-Team pass.
 
 **G3. Human Override & Kill Switch**
 
-* Define a human override channel that:
+- Define a human override channel that:
 
-  * Can suspend all stochastic components, and
-  * Can halt automated workflows on schema or invariant violation.
-* Kill-switch semantics must be part of the constitutional spec.
+  - Can suspend all stochastic components, and
+  - Can halt automated workflows on schema or invariant violation.
+- Kill-switch semantics must be part of the constitutional spec.
 
 ---
 
@@ -13764,59 +14342,59 @@ This Fix Plan aggregates only ideas present in reviewer outputs. Each item is st
 
 **D1. Freeze Protocol Formal Specification**
 
-* Specify freeze semantics formally, including:
+- Specify freeze semantics formally, including:
 
-  * Total ordering of freeze operations,
-  * Conflict detection and resolution (locking model),
-  * Atomicity guarantees, and
-  * Behaviour in concurrent workflows.
-* There must be a canonical spec document and automated tests that verify conformance.
+  - Total ordering of freeze operations,
+  - Conflict detection and resolution (locking model),
+  - Atomicity guarantees, and
+  - Behaviour in concurrent workflows.
+- There must be a canonical spec document and automated tests that verify conformance.
 
 **D2. Cryptographic State Integrity**
 
-* All canonical state transitions (commits) must be:
+- All canonical state transitions (commits) must be:
 
-  * Cryptographically signed, and
-  * Optionally organised in a Merkle tree or equivalent for verification.
-* Any attempt to rewrite history (e.g. Git rebase) must be detectable.
+  - Cryptographically signed, and
+  - Optionally organised in a Merkle tree or equivalent for verification.
+- Any attempt to rewrite history (e.g. Git rebase) must be detectable.
 
 **D3. Artifact Identity, DAG & Dependency Resolution**
 
-* Define a global artefact addressing scheme (e.g. content-addressable IDs or UUIDs).
-* Implement:
+- Define a global artefact addressing scheme (e.g. content-addressable IDs or UUIDs).
+- Implement:
 
-  * A dependency DAG over artefacts,
-  * Cycle detection, and
-  * Version pinning for references.
-* Acceptance: no freeze operation succeeds if it introduces unresolved or cyclic dependencies.
+  - A dependency DAG over artefacts,
+  - Cycle detection, and
+  - Version pinning for references.
+- Acceptance: no freeze operation succeeds if it introduces unresolved or cyclic dependencies.
 
 **D4. Workflow Execution Model**
 
-* Define a minimal deterministic execution model for v1:
+- Define a minimal deterministic execution model for v1:
 
-  * Sequential workflow semantics, with explicit points where LLM outputs enter.
-  * Clear failure handling: retry, rollback, or abort policies.
-  * Resource bounds: time and memory limits for workflows.
-* Determinism definition must state explicitly:
+  - Sequential workflow semantics, with explicit points where LLM outputs enter.
+  - Clear failure handling: retry, rollback, or abort policies.
+  - Resource bounds: time and memory limits for workflows.
+- Determinism definition must state explicitly:
 
-  * Which parts are deterministic given fixed cached artefacts, and
-  * How replay is achieved (via cached LLM outputs and pinned environment).
+  - Which parts are deterministic given fixed cached artefacts, and
+  - How replay is achieved (via cached LLM outputs and pinned environment).
 
 **D5. Workflow Complexity Bounds**
 
-* Set explicit limits on:
+- Set explicit limits on:
 
-  * State space size per workflow,
-  * Recursion depth, and
-  * Artefact graph diameter.
-* Exceeding bounds must trigger rejection or require explicit elevation.
+  - State space size per workflow,
+  - Recursion depth, and
+  - Artefact graph diameter.
+- Exceeding bounds must trigger rejection or require explicit elevation.
 
 **D6. Separate Large Artifact Storage**
 
-* Git is canonical for:
+- Git is canonical for:
 
-  * Code, schemas, metadata, workflow definitions.
-* Large binary artefacts must be stored in a separate artefact store, with manifests tracked in Git.
+  - Code, schemas, metadata, workflow definitions.
+- Large binary artefacts must be stored in a separate artefact store, with manifests tracked in Git.
 
 ---
 
@@ -13824,43 +14402,43 @@ This Fix Plan aggregates only ideas present in reviewer outputs. Each item is st
 
 **L1. LLM Interface Contract & Version Pinning**
 
-* Define a strict interface contract for all LLM calls:
+- Define a strict interface contract for all LLM calls:
 
-  * Input schema, output schema, error/uncertainty channels.
-* Pin model versions for all stochastic components; any upgrade requires:
+  - Input schema, output schema, error/uncertainty channels.
+- Pin model versions for all stochastic components; any upgrade requires:
 
-  * Governance approval, and
-  * Regression and compatibility checks.
+  - Governance approval, and
+  - Regression and compatibility checks.
 
 **L2. LLM Output Caching for Replay**
 
-* For any workflow step that depends on LLM output, the output must be:
+- For any workflow step that depends on LLM output, the output must be:
 
-  * Captured as an artefact, and
-  * Referenced in the workflow state.
-* Deterministic replay must use cached outputs, not fresh calls.
+  - Captured as an artefact, and
+  - Referenced in the workflow state.
+- Deterministic replay must use cached outputs, not fresh calls.
 
 **L3. Sandbox & Capability Model**
 
-* Define a capability model:
+- Define a capability model:
 
-  * Which operations workflows and LLMs may perform (FS, network, external APIs).
-* LLM outputs must never directly execute code or perform side-effects:
+  - Which operations workflows and LLMs may perform (FS, network, external APIs).
+- LLM outputs must never directly execute code or perform side-effects:
 
-  * They produce artefacts; deterministic components decide and execute.
-* For v1, sandboxing must be:
+  - They produce artefacts; deterministic components decide and execute.
+- For v1, sandboxing must be:
 
-  * On by default, and
-  * Non-configurable by normal users.
+  - On by default, and
+  - Non-configurable by normal users.
 
 **L4. Stochastic Budget & Lineage Tracking**
 
-* Each artefact must carry metadata indicating:
+- Each artefact must carry metadata indicating:
 
-  * How many LLM calls contributed,
-  * Which models, and
-  * Which confidence/uncertainty indicators were returned.
-* High-stochasticity artefacts should be flagged for extra scrutiny.
+  - How many LLM calls contributed,
+  - Which models, and
+  - Which confidence/uncertainty indicators were returned.
+- High-stochasticity artefacts should be flagged for extra scrutiny.
 
 ---
 
@@ -13868,31 +14446,31 @@ This Fix Plan aggregates only ideas present in reviewer outputs. Each item is st
 
 **V1. Schema + Invariant Validation**
 
-* Schemas must enforce structural correctness; invariant checkers must enforce key semantic properties (e.g. `balance â‰¥ 0`).
-* Critical artefact types must have a defined set of invariants; failure should block freeze.
+- Schemas must enforce structural correctness; invariant checkers must enforce key semantic properties (e.g. `balance â‰¥ 0`).
+- Critical artefact types must have a defined set of invariants; failure should block freeze.
 
 **V2. Test Suite Immutability & Governance**
 
-* Tests must be:
+- Tests must be:
 
-  * Stored deterministically,
-  * Version-controlled, and
-  * Not directly modifiable by LLMs.
-* Changes to tests require human approval and governance logs.
+  - Stored deterministically,
+  - Version-controlled, and
+  - Not directly modifiable by LLMs.
+- Changes to tests require human approval and governance logs.
 
 **V3. Semantic Boundary Verification**
 
-* For critical flows, add a semantic checker:
+- For critical flows, add a semantic checker:
 
-  * Either a smaller verifier model or formal methods,
-  * To detect LLM outputs that are structurally valid but semantically suspect.
+  - Either a smaller verifier model or formal methods,
+  - To detect LLM outputs that are structurally valid but semantically suspect.
 
 **V4. Adversarial & Red-Team Testing Phase**
 
-* Prior to any v1 release, run a structured red-team phase:
+- Prior to any v1 release, run a structured red-team phase:
 
-  * Adversarial prompts, schema-weakening attempts, state explosion scenarios.
-* Results must feed into updates of schemas, invariants, and freeze rules.
+  - Adversarial prompts, schema-weakening attempts, state explosion scenarios.
+- Results must feed into updates of schemas, invariants, and freeze rules.
 
 ---
 
@@ -13900,29 +14478,29 @@ This Fix Plan aggregates only ideas present in reviewer outputs. Each item is st
 
 **O1. Observability & Telemetry Layer**
 
-* Implement:
+- Implement:
 
-  * LLM call logging (inputs, outputs, model IDs, latency, cost),
-  * Workflow traces, and
-  * Anomaly detection for unusual patterns.
+  - LLM call logging (inputs, outputs, model IDs, latency, cost),
+  - Workflow traces, and
+  - Anomaly detection for unusual patterns.
 
 **O2. Artefact Lineage & Provenance**
 
-* Every artefact must record:
+- Every artefact must record:
 
-  * Input artefacts,
-  * LLM calls used,
-  * Tests invoked, and
-  * Human approvals.
-* Tools must render lineage in a human-comprehensible form.
+  - Input artefacts,
+  - LLM calls used,
+  - Tests invoked, and
+  - Human approvals.
+- Tools must render lineage in a human-comprehensible form.
 
 **O3. Alignment & Objective Guard Rails**
 
-* Constitutional documents must:
+- Constitutional documents must:
 
-  * Explicitly define permitted optimisation goals, and
-  * Prohibit goal changes without meta-governance.
-* Monitoring must detect divergence from declared values or optimisation targets.
+  - Explicitly define permitted optimisation goals, and
+  - Prohibit goal changes without meta-governance.
+- Monitoring must detect divergence from declared values or optimisation targets.
 
 ---
 
@@ -13930,37 +14508,37 @@ This Fix Plan aggregates only ideas present in reviewer outputs. Each item is st
 
 **P1. User-Facing Abstractions**
 
-* Git, lifecycle internals, and sandbox details must be hidden behind:
+- Git, lifecycle internals, and sandbox details must be hidden behind:
 
-  * A small set of CLI commands (e.g. `life save`, `life sync`, `life fork`).
-  * A single default YAML lifecycle ruleset for typical users.
+  - A small set of CLI commands (e.g. `life save`, `life sync`, `life fork`).
+  - A single default YAML lifecycle ruleset for typical users.
 
 **P2. Minimal, Stable Extension Surface**
 
-* For v1:
+- For v1:
 
-  * No full plugin SDK; use a simple HTTP/JSON â€œtool-callâ€ contract.
-  * Freeze this contract for at least a defined period (e.g. 12 months) to provide stability.
+  - No full plugin SDK; use a simple HTTP/JSON â€œtool-callâ€ contract.
+  - Freeze this contract for at least a defined period (e.g. 12 months) to provide stability.
 
 **P3. Installation & Hosted State Requirements**
 
-* One-command cross-platform install.
-* Automatic creation of a private, encrypted remote repo for backups/sync.
+- One-command cross-platform install.
+- Automatic creation of a private, encrypted remote repo for backups/sync.
 
 **P4. Core UX Assets**
 
-* Ship:
+- Ship:
 
-  * A reference â€œlife repoâ€ for exploration.
-  * A visual diff tool for non-text artefacts.
-  * A one-page operational guide (install, init, save, sync, rollback).
+  - A reference â€œlife repoâ€ for exploration.
+  - A visual diff tool for non-text artefacts.
+  - A one-page operational guide (install, init, save, sync, rollback).
 
 **P5. Usability Testing Gate**
 
-* Run small-n hallway tests:
+- Run small-n hallway tests:
 
-  * Users must be able to initialise, add, edit, and roll back an artefact inside strict time/interaction budgets.
-* Failure triggers another iteration before any public v1 claim.
+  - Users must be able to initialise, add, edit, and roll back an artefact inside strict time/interaction budgets.
+- Failure triggers another iteration before any public v1 claim.
 
 ---
 
@@ -13972,12 +14550,12 @@ This Fix Plan aggregates only ideas present in reviewer outputs. Each item is st
 2. **Deterministic core + Git-based canonical memory + LLMs as untrusted edge components** is now the canonical architectural direction.
 3. **The existence and necessity of:**
 
-   * A constitutional governance layer,
-   * A formal freeze protocol,
-   * A clear capability/sandbox model,
-   * Schema + invariant validation,
-   * Observability and provenance,
-   * Simplicity/UX abstractions over the internal mechanics.
+   - A constitutional governance layer,
+   - A formal freeze protocol,
+   - A clear capability/sandbox model,
+   - Schema + invariant validation,
+   - Observability and provenance,
+   - Simplicity/UX abstractions over the internal mechanics.
 
 These are no longer merely exploratory; they are architectural commitments.
 
@@ -13990,27 +14568,29 @@ These are no longer merely exploratory; they are architectural commitments.
 
 These remain open to design, provided they respect:
 
-* The canonical hybrid architecture, and
-* The Fix Plan requirements above.
+- The canonical hybrid architecture, and
+- The Fix Plan requirements above.
 
 ---
 
 ## 5. Chairâ€™s Closing
 
-* **Q1:** The architecture class is adopted.
-* **Status:** **Approved with Conditions**, as per Council decision.
-* **Next logical step (conceptually):** drafting or updating the LifeOS v1 architecture/spec to embody the Fix Plan items and making conformance testable.
+- **Q1:** The architecture class is adopted.
+- **Status:** **Approved with Conditions**, as per Council decision.
+- **Next logical step (conceptually):** drafting or updating the LifeOS v1 architecture/spec to embody the Fix Plan items and making conformance testable.
 
 No operational execution is authorised or directed by this ruling; it defines **architectural and governance conditions** only.
-
 
 <hr>
 
 <a id="file-docs-10-meta-lifeos-v1-hybrid-tech-architecture-v0-1-draft-gpt-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md
+
 **Source**: `docs/10_meta/LifeOS_v1_Hybrid_Tech_Architecture_v0.1-DRAFT_GPT.md`
 
 # LifeOS v1 Hybrid Technical Architecture  
+
 Version: v0.1-DRAFT  
 Status: Draft â€” non-canonical until Governance Council approval  
 Basis: Council Hybrid Architecture Ruling on Q1 + Fix Plan v1.0 (G1â€“P5), DAP v2.0, Runtime v1 direction, StepGate constraints  
@@ -14818,11 +15398,12 @@ This document is intended as a candidate architecture to be:
 2. Synthesised into a consolidated hybrid architecture.
 3. Submitted to the Governance Council as a CRP input for canonicalisation.
 
-
 <hr>
 
 <a id="file-docs-10-meta-lifeostechnicalarchitecturedraftv1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md
+
 **Source**: `docs/10_meta/LifeOSTechnicalArchitectureDraftV1.0.md`
 
 LifeOS Technical Architecture SpecificationVersion: 1.0.0Status: DRAFT (Pending Council Ratification)Date: 2025-10-26Classification: CONSTITUTIONAL ARTEFACT1. Architectural Philosophy: The "Kernel" ConceptLifeOS is not merely a collection of scripts; it is a Recursively Self-Improving (RSI) Operating System designed to manage entropy.The core architectural challenge is the conflict between Probabilistic Intelligence (LLMs, which are creative but hallucination-prone) and Deterministic Operations (Systems, which must be reliable and audit-proof).1.1 The Determinism InvariantLifeOS resolves this conflict through a strict separation of concerns:Cognition is Stochastic: We accept that agents (LLMs) are non-deterministic.Orchestration is Deterministic: We enforce that the process surrounding the agents (The Runtime) is immutable, replayable, and cryptographically verifiable.The Formula: Reliability = Stochastic Intelligence (Agents) + Durable Execution (Temporal) + Immutable Ledger (Git)2. System Topology: The Three PlanesThe architecture is divided into three concentric planes of existence. Data flows from high entropy (Ideation) to zero entropy (Constitution).Plane 1: The Constitution (Governance & Truth)Role: The single source of truth. Defines what the system is and how it must behave.Storage: Git Repository. No artifact exists unless committed to main.Core Components:llms.txt: Machine-readable index of all specs, optimized for agent context retrieval.manifest.lock: A SHA-256 Merkle tree of all frozen specifications.The Charter: Immutable prompt instructions defining the system's "Goal Alignment."Access Control: Read-Only for Agents. Write access is restricted to the StepGate (Human/Consensus).Plane 2: The Forge (Ideation & Development)Role: The workspace where agents "think," plan, and generate code. High entropy is permitted here.Tooling:Google Antigravity (IDE): The primary interface for "Mission" execution. Agents generate plans and code diffs here.NotebookLM: The "User Interface" for human operators to query and synthesize the system's state.Output: Agents in the Forge produce DAP Candidates (Draft Artifacts), never direct code.Plane 3: The Ledger (Runtime & Execution)Role: The nervous system. It orchestrates the flow of data between the Forge and the Constitution.Infrastructure:Temporal.io: The Durable Execution Engine. It guarantees that workflows (Debates, Tests, Deployments) run to completion, even if the host crashes or the wait time is weeks.LangGraph: Encapsulated logic for "Cognitive Cycles" (e.g., the debate loop between Architect and Skeptic).DeepEval: The "Intelligence Unit Test" suite.3. The Digital Artifact Protocol (DAP)To prevent "Vibe Coding," LifeOS rejects unstructured text. All agent outputs must conform to the DAP Schema. An agent does not "write code"; it "proposes a DAP."3.1 DAP Structure (JSON Schema)JSON{
@@ -14853,7 +15434,9 @@ LifeOS Technical Architecture SpecificationVersion: 1.0.0Status: DRAFT (Pending 
 <hr>
 
 <a id="file-docs-10-meta-lifeostechnicalarchitecturedraftv1-1-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md
+
 **Source**: `docs/10_meta/LifeOSTechnicalArchitectureDraftV1.1.md`
 
 LifeOS Technical Architecture Specification
@@ -15031,10 +15614,13 @@ Horizon 3: Operational Excellence (Month 6+)
 <hr>
 
 <a id="file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md
+
 **Source**: `docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2.md`
 
 LifeOS Technical Architecture Specification v1.2.0
+
 1. Executive Summary and Architectural Principles
 1.1 The Imperative for Constitutional Control in Agentic Systems
 
@@ -15053,7 +15639,7 @@ Adversarial Resilience (Fix 8.3, 8.5): The architecture assumes the agent is unt
 
 Supply Chain Purity (Fix 8.8): Trust is anchored in the build pipeline. LifeOS enforces Supply-chain Levels for Software Artifacts (SLSA) Level 3 compliance and utilizes The Update Framework (TUF) to prevent the injection of malicious models or code during the update cycle.  
 
-2. Governance and Constitutional AI (Fix 8.1)
+1. Governance and Constitutional AI (Fix 8.1)
 2.1 The Constitutional AI Module
 
 The governance layer of LifeOS v1.2.0 is designed to bridge the gap between abstract ethical principles and concrete runtime constraints. We adhere to the Blueprint for an AI Bill of Rights, translating its five core principles into technical enforcement modules.  
@@ -15109,7 +15695,7 @@ The use of multi-signature wallets extends beyond voting. It is the primary mech
 
 Transaction Guardrails: The Multi-sig implementation (e.g., Gnosis Safe) supports "spending limits" and "allow-lists." Even a fully authorized Council cannot drain the agentâ€™s entire treasury in a single transaction; they are bound by daily rate limits enforced by the smart contract code.  
 
-3. Cryptographic Identity and Hardware Security (Fix 8.2)
+1. Cryptographic Identity and Hardware Security (Fix 8.2)
 3.1 The Shift to Ed25519 and Hardware Roots of Trust
 
 The security of an autonomous system is entirely dependent on the integrity of the keys that control it. LifeOS v1.2.0 mandates the global deprecation of RSA keys and software-stored credentials in favor of Ed25519 keys backed by hardware tokens.  
@@ -15129,7 +15715,7 @@ The most critical vulnerability in modern IAM is key theft. If a developerâ€�
 Technical Implementation: All human operators must generate their identities using the following enforced protocol:
 Bash
 
-ssh-keygen -t ed25519-sk -O resident -O verify-required -C "operator-id@lifeos.gov"
+ssh-keygen -t ed25519-sk -O resident -O verify-required -C "<operator-id@lifeos.gov>"
 
 The -O verify-required flag is non-negotiable for interactive sessions, ensuring that every authentication event implies physical human consent.
 3.2 Machine Identity: HSMs and vTPMs
@@ -15477,21 +16063,23 @@ LifeOS v1.2.0 represents the maturation of Agentic AI infrastructure. We have mo
 
 This architecture ensures that the agent remains a tool of human intent, bound by a digital constitution that it cannot rewrite, operating within a reality it cannot falsify, and subject to a kill switch it cannot disable. This is the baseline requirement for the safe deployment of autonomous intelligence in critical environments.
 11. Appendix: Compliance Matrix & Fix Plan Traceability
-Fix Item	Component	Technology Stack	Key Benefit
-8.1 Governance	Constitutional AI / DAO	OPA, Gnosis Safe, Snapshot	Prevents unilateral control; Enforces AI Bill of Rights.
-8.2 Crypto	Hardware Identity	Ed25519-sk, YubiKey, HSM	Eliminates key theft; High-performance signing.
-8.3 Freeze	Circuit Breakers	Redis, Token Bucket	Stops runaway loops and resource exhaustion instantly.
-8.4 DAP	Semantic State Graph	MAIF, Graph DB	Provides causal context for all agent decisions.
-8.5 Kill Switch	Identity Revocation	CRL, AutoGuard, API Gateway	Hard stop capability even for compromised agents.
-8.6 Replay	Event Sourcing	Bi-Temporal Ledger	Enables "Time Travel" debugging and legal audits.
-8.7 IAM	AEGIS / Zero Trust	SPIFFE/SPIRE, OPA	Prevents permission creep; Limits blast radius.
-8.8 Dependencies	Supply Chain Security	SLSA L3, TUF, SBOM	Prevents malware injection via updates or libraries.
-8.9 Documentation	GitOps / Drift Detection	ArgoCD, Markdown	Ensures documentation always matches runtime reality.
+Fix Item Component Technology Stack Key Benefit
+8.1 Governance Constitutional AI / DAO OPA, Gnosis Safe, Snapshot Prevents unilateral control; Enforces AI Bill of Rights.
+8.2 Crypto Hardware Identity Ed25519-sk, YubiKey, HSM Eliminates key theft; High-performance signing.
+8.3 Freeze Circuit Breakers Redis, Token Bucket Stops runaway loops and resource exhaustion instantly.
+8.4 DAP Semantic State Graph MAIF, Graph DB Provides causal context for all agent decisions.
+8.5 Kill Switch Identity Revocation CRL, AutoGuard, API Gateway Hard stop capability even for compromised agents.
+8.6 Replay Event Sourcing Bi-Temporal Ledger Enables "Time Travel" debugging and legal audits.
+8.7 IAM AEGIS / Zero Trust SPIFFE/SPIRE, OPA Prevents permission creep; Limits blast radius.
+8.8 Dependencies Supply Chain Security SLSA L3, TUF, SBOM Prevents malware injection via updates or libraries.
+8.9 Documentation GitOps / Drift Detection ArgoCD, Markdown Ensures documentation always matches runtime reality.
 
 <hr>
 
 <a id="file-docs-10-meta-lifeostechnicalarchitecturedraftv1-2signedoff-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md
+
 **Source**: `docs/10_meta/LifeOSTechnicalArchitectureDraftV1.2SignedOff.md`
 
 # LifeOS Technical Architecture Specification
@@ -15517,9 +16105,9 @@ To address the need for a scalable yet immediately implementable system, LifeOS 
 
 ### 1.1 Tier Dependency Boundary
 
-  * **Tier 1** requires: Python 3.10+, Git, Ed25519 hardware tokens.
-  * **Tier 2** adds: Temporal Server, OPA, SPIRE.
-  * **Tier 3** adds: Blockchain/Smart Contracts, Vector Database (Bi-temporal), Air-gapped Key Ceremony.
+- **Tier 1** requires: Python 3.10+, Git, Ed25519 hardware tokens.
+- **Tier 2** adds: Temporal Server, OPA, SPIRE.
+- **Tier 3** adds: Blockchain/Smart Contracts, Vector Database (Bi-temporal), Air-gapped Key Ceremony.
 
 -----
 
@@ -15531,28 +16119,28 @@ The Kernel is the non-negotiable code substrate. It does not require a cloud pro
 
 The Kernel must enforce that **Cognition (LLM)** is strictly separated from **State Transition (Ledger)**.
 
-  * **Rule:** No agent can write to the Ledger directly. Agents output **DAP Candidates** (JSON) to the Forge.
-  * **Rule:** Only the **Supervisor** (a deterministic script) can apply a DAP to the Ledger, and only after verifying cryptographic signatures.
-  * **Replay Definition:** Deterministic replay assumes pinned model versions, pinned sampling parameters (Temperature=0), and either cached LLM outputs or fixed RNG seeds with the exact same model binary.
+- **Rule:** No agent can write to the Ledger directly. Agents output **DAP Candidates** (JSON) to the Forge.
+- **Rule:** Only the **Supervisor** (a deterministic script) can apply a DAP to the Ledger, and only after verifying cryptographic signatures.
+- **Replay Definition:** Deterministic replay assumes pinned model versions, pinned sampling parameters (Temperature=0), and either cached LLM outputs or fixed RNG seeds with the exact same model binary.
 
 ### 2.2 The Digital Artifact Protocol (DAP) v2.0
 
 *Reconciliation:* The DAP is the **Envelope**. The "Plan" or "Reasoning" is the **Payload**. This structure supersedes previous definitions.
 
-  * **Format:** Strict JSON Schema.
-  * **Semantics:**
-      * **Header:** `id` (UUID), `timestamp`, `author_did` (Decentralized ID), `context_hash` (SHA256 of the repo state at generation time).
-      * **Payload:** The content (code diff, spec update).
-      * **Rationale:** A structured summary of *why* this change is safe (see Section 4).
-      * **Proof:** The `skeptic_sig` (Validation Agent) and `operator_sig` (Human).
+- **Format:** Strict JSON Schema.
+- **Semantics:**
+  - **Header:** `id` (UUID), `timestamp`, `author_did` (Decentralized ID), `context_hash` (SHA256 of the repo state at generation time).
+  - **Payload:** The content (code diff, spec update).
+  - **Rationale:** A structured summary of *why* this change is safe (see Section 4).
+  - **Proof:** The `skeptic_sig` (Validation Agent) and `operator_sig` (Human).
 
 ### 2.3 Genesis Configuration for Guardians
 
 For the initial bootstrap (Tier 1), the "Council" may be a single human operator holding multiple keys to simulate the roles.
 
-  * **Guardian 1 (The Operator):** YubiKey Slot 1. Role: Daily approvals.
-  * **Guardian 2 (The Break-Glass):** YubiKey Slot 2 (stored in safe). Role: Emergency override / Constitution Amendment.
-  * **Guardian 3 (The Auditor):** Paper Key / Offline. Role: Key rotation authorization.
+- **Guardian 1 (The Operator):** YubiKey Slot 1. Role: Daily approvals.
+- **Guardian 2 (The Break-Glass):** YubiKey Slot 2 (stored in safe). Role: Emergency override / Constitution Amendment.
+- **Guardian 3 (The Auditor):** Paper Key / Offline. Role: Key rotation authorization.
 
 -----
 
@@ -15562,9 +16150,9 @@ To prevent "Governance Capture" (where a DAO votes to remove safety rails), spec
 
 ### 3.1 The Non-Derogable Safety Core
 
-1.  **The Signature Requirement:** The Kernel will **panic and halt** if the `manifest.lock` is modified by an entity without a hardware-backed signature matching the `admin_keys` ring. This cannot be disabled via config.
-2.  **The Kill Switch Priority:** The `canary.sig` check must occur *before* any agent cognition cycle. If the canary is missing or invalid, the runtime process terminates at the OS level (`SIGKILL`).
-3.  **The Human-in-the-Loop Floor:** High-stakes DAPs (modifying `/constitution` or `/security`) require **M-of-N** signatures (Minimum 2). This threshold cannot be lowered to 0.
+1. **The Signature Requirement:** The Kernel will **panic and halt** if the `manifest.lock` is modified by an entity without a hardware-backed signature matching the `admin_keys` ring. This cannot be disabled via config.
+2. **The Kill Switch Priority:** The `canary.sig` check must occur *before* any agent cognition cycle. If the canary is missing or invalid, the runtime process terminates at the OS level (`SIGKILL`).
+3. **The Human-in-the-Loop Floor:** High-stakes DAPs (modifying `/constitution` or `/security`) require **M-of-N** signatures (Minimum 2). This threshold cannot be lowered to 0.
 
 ### 3.2 DAO Boundary
 
@@ -15578,13 +16166,13 @@ We replace "Mandatory Chain-of-Thought Logging" with **Decision Rationale Artefa
 
 ### 4.1 The Data Separation Principle
 
-  * **Raw CoT (Hot Storage):** The messy, internal monologue of the agent. Contains potential PII, confusion, or sensitive retrieval data.
-      * *Policy:* Ephemeral. Stored in a secure, rotating buffer (Tier 2+) or discarded (Tier 1). Deleted after 7 days unless an incident flag is raised.
-      * *Access:* Restricted to Root Admin only.
-  * **Decision Rationale (Cold Storage):** A synthesized, sanitized explanation generated by the agent *after* the decision.
-      * *Prompt Pattern:* "Summarize your logic for the public audit log. Do not include PII. Explicitly reference the specific Constitution clause verified. List alternatives considered and why they were rejected."
-      * *Policy:* Immutable. Stored permanently in the DAP `rationale` field.
-      * *Access:* Public / Team-wide.
+- **Raw CoT (Hot Storage):** The messy, internal monologue of the agent. Contains potential PII, confusion, or sensitive retrieval data.
+  - *Policy:* Ephemeral. Stored in a secure, rotating buffer (Tier 2+) or discarded (Tier 1). Deleted after 7 days unless an incident flag is raised.
+  - *Access:* Restricted to Root Admin only.
+- **Decision Rationale (Cold Storage):** A synthesized, sanitized explanation generated by the agent *after* the decision.
+  - *Prompt Pattern:* "Summarize your logic for the public audit log. Do not include PII. Explicitly reference the specific Constitution clause verified. List alternatives considered and why they were rejected."
+  - *Policy:* Immutable. Stored permanently in the DAP `rationale` field.
+  - *Access:* Public / Team-wide.
 
 -----
 
@@ -15594,15 +16182,15 @@ Security requires redundancy. We implement two distinct paths for termination to
 
 ### 5.1 Path A: Infrastructure (The "Body" Kill)
 
-  * **Mechanism:** Certificate Revocation List (CRL) via SPIFFE/SPIRE (Tier 2) or SSH Key Revocation (Tier 1).
-  * **Action:** The Supervisor deletes the agent's cryptographic material from the `allowed_signers` list.
-  * **Effect:** The agent can still "think," but its outputs are rejected by the Kernel. It is deaf and mute.
+- **Mechanism:** Certificate Revocation List (CRL) via SPIFFE/SPIRE (Tier 2) or SSH Key Revocation (Tier 1).
+- **Action:** The Supervisor deletes the agent's cryptographic material from the `allowed_signers` list.
+- **Effect:** The agent can still "think," but its outputs are rejected by the Kernel. It is deaf and mute.
 
 ### 5.2 Path B: Cognitive (The "Mind" Kill)
 
-  * **Mechanism:** **AutoGuard** Injection.
-  * **Action:** The Supervisor injects a high-priority system prompt into the agent's context window: `<SYSTEM_OVERRIDE> STOP. IMMEDIATE HALT AUTHORIZED. CEASE ALL GENERATION. </SYSTEM_OVERRIDE>`
-  * **Effect:** Leverages the model's own RLHF safety training to trigger a refusal/stop capability, acting as a psychological circuit breaker. **Note:** This is auxiliary; it does not replace Path A.
+- **Mechanism:** **AutoGuard** Injection.
+- **Action:** The Supervisor injects a high-priority system prompt into the agent's context window: `<SYSTEM_OVERRIDE> STOP. IMMEDIATE HALT AUTHORIZED. CEASE ALL GENERATION. </SYSTEM_OVERRIDE>`
+- **Effect:** Leverages the model's own RLHF safety training to trigger a refusal/stop capability, acting as a psychological circuit breaker. **Note:** This is auxiliary; it does not replace Path A.
 
 -----
 
@@ -15610,16 +16198,16 @@ Security requires redundancy. We implement two distinct paths for termination to
 
 ### Phase 1: The Trust Anchor (Before First Agent Deployment)
 
-  * **A. Guardian Security:** Operator identity must be established via **Ed25519-sk** (Hardware Token). No software keys for root access.
-      * *Constraint:* Guardians must be distributed (even if simulated by different physical locations for keys).
-      * *Dead Man's Switch:* Establish a succession protocol for the Root Keys.
-  * **B. Storage Architecture:** Initialize the **Bi-Temporal Log** structure (even if using Git/JSON initially) to support `valid_time` vs. `record_time` querying.
-  * **C. Operational Safeguards:** Calibrate the **Token Bucket** circuit breaker in "Shadow Mode" for 1 week to establish baseline usage before enabling enforcement.
+- **A. Guardian Security:** Operator identity must be established via **Ed25519-sk** (Hardware Token). No software keys for root access.
+  - *Constraint:* Guardians must be distributed (even if simulated by different physical locations for keys).
+  - *Dead Man's Switch:* Establish a succession protocol for the Root Keys.
+- **B. Storage Architecture:** Initialize the **Bi-Temporal Log** structure (even if using Git/JSON initially) to support `valid_time` vs. `record_time` querying.
+- **C. Operational Safeguards:** Calibrate the **Token Bucket** circuit breaker in "Shadow Mode" for 1 week to establish baseline usage before enabling enforcement.
 
 ### Phase 2: The Sovereign Runtime (Before Full Autonomy)
 
-  * **D. Alignment Verification:** Implement a **Red Team Registry**â€”a rotating set of adversarial prompts derived from the "Skeptic" agent's history.
-  * **E. Recovery:** Define and test the **RTO (Recovery Time Objective)**. You must prove you can rebuild the Runtime state from the Git Ledger in \< 15 minutes.
+- **D. Alignment Verification:** Implement a **Red Team Registry**â€”a rotating set of adversarial prompts derived from the "Skeptic" agent's history.
+- **E. Recovery:** Define and test the **RTO (Recovery Time Objective)**. You must prove you can rebuild the Runtime state from the Git Ledger in \< 15 minutes.
 
 -----
 
@@ -15670,7 +16258,9 @@ GitDB -->|Updates| Manifest
 <hr>
 
 <a id="file-docs-10-meta-reversion-execution-log-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md
+
 **Source**: `docs/10_meta/REVERSION_EXECUTION_LOG_v1.0.md`
 
 # REVERSION_EXECUTION_LOG_v1.0.md
@@ -15771,7 +16361,7 @@ When you believe Phase 1 has been fully executed, use this checklist to verify t
 - [ ] `/docs` root contains `INDEX.md`.  
 - [ ] Legacy folders exist only under `docs/99_archive/legacy_structures/`.  
 - [ ] Concept and CSO docs exist only under `docs/99_archive/concept/` and `docs/99_archive/cso/`.  
-- [ ] Productisation brief exists at `docs/07_productisation/Productisation_Brief_v1.0.md`.  
+- [ ] Productisation brief exists at `docs/12_productisation/Productisation_Brief_v1.0.md`.  
 - [ ] `docs/10_meta/` contains:
   - `CODE_REVIEW_STATUS_v1.0.md`
   - `governance_digest_v1.0.md`
@@ -15797,11 +16387,12 @@ Once the checklist above is complete and you are satisfied that the filesystem m
 
 > I confirm that Phase 1 â€” Reversioning & Deprecation Audit has been executed according to REVERSION_PLAN_v1.0, and that the `/docs` tree is now the sole canonical documentation tree for LifeOS. All deprecated and legacy artefacts have been either archived under `docs/99_archive/` or left in external repositories as explicitly non-canonical.
 
-
 <hr>
 
 <a id="file-docs-10-meta-reversion-plan-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/REVERSION_PLAN_v1.0.md
+
 **Source**: `docs/10_meta/REVERSION_PLAN_v1.0.md`
 
 # REVERSION_PLAN_v1.0.md
@@ -15909,7 +16500,7 @@ Current at Phase 1 start:
   - Move from: `docs/DocumentAudit_MINI_DIGEST1.md`  
     To:       `docs/99_archive/DocumentAudit_MINI_DIGEST1_v1.0.md`
 
-2. **INDEX_v1.0.md**
+1. **INDEX_v1.0.md**
 
 - Classification: `CANONICAL_ACTIVE` (historical index).
 - Action:
@@ -15987,13 +16578,13 @@ Actions:
   `COO_Runtime_Clean_Build_Spec_v1.1.md`  
   (`CANONICAL_ACTIVE`)
 
-2. Normalise walkthrough:
+1. Normalise walkthrough:
 
 - `WALKTHROUGH.md` â†’  
   `COO_Runtime_Walkthrough_v1.0.md`  
   (`META_RUNTIME` but stored in 03_runtime)
 
-3. Classification overview:
+1. Classification overview:
 
 - `COO_Runtime_Core_Spec_v1.0.md` â€” `CANONICAL_ACTIVE`
 - `COO_Runtime_Spec_v1.0.md` â€” `CANONICAL_ACTIVE`
@@ -16049,7 +16640,7 @@ Action:
 
 ### 2.3. Soft Enforcement Folders (07â€“10)
 
-#### 2.3.1. `/docs/07_productisation/`
+#### 2.3.1. `/docs/12_productisation/`
 
 Current:
 
@@ -16230,7 +16821,7 @@ Action:
 
 - Move to canonical productisation folder:
 
-  - `docs/07_productisation/Productisation_Brief_v1.0.md`
+  - `docs/12_productisation/Productisation_Brief_v1.0.md`
 
 Classification: `CANONICAL_ACTIVE`.
 
@@ -16403,7 +16994,7 @@ Phase 1 execution is implemented via two PowerShell scripts:
 
    - Moves:
      - Concept and CSO docs into `/docs/99_archive/...`
-     - Productisation brief into `/docs/07_productisation/`
+     - Productisation brief into `/docs/12_productisation/`
      - Legacy auxiliary folders into `/docs/99_archive/legacy_structures/`
      - Root `DocumentAudit_MINI_DIGEST1.md` into `/docs/99_archive/`
 
@@ -16428,12 +17019,12 @@ Once the CEO is satisfied, they approve Gate 2 by instructing:
 
 which authorises the generation of scripts, the execution log template, the full deprecation audit, and the new index.
 
-
-
 <hr>
 
 <a id="file-docs-10-meta-review-packet-hardening-pass-v0-1-1-r1-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md
+
 **Source**: `docs/10_meta/Review_Packet_Hardening_Pass_v0.1.1-R1.md`
 
 # Review Packet: Tier-2 Hardening Pass (Residual Fixes) v0.1.1-R1
@@ -16448,6 +17039,7 @@ This packet concludes the "Tier-2 Hardening Pass (Residual Fixes)" mission.
 All 101/101 Tier-2 tests passed successfully after resolving the `MappingProxyType` serialisation issues.
 
 **Key Achievements:**
+
 - Resolved `TypeError: Object of type mappingproxy is not JSON serializable` in 4 test modules.
 - Verified removal of `stdout` usage in `engine.py` (Envelope Violation fix).
 - Confirmed full Determinism and Immutability compliance across the suite.
@@ -16477,6 +17069,7 @@ Future changes to metadata structures must ensure JSON serialisability (using `d
 The following modules were modified in this residual pass to fix the tests.
 
 ### File: runtime/tests/test_tier2_suite.py
+
 ```python
 # runtime/tests/test_tier2_suite.py
 """
@@ -16539,6 +17132,7 @@ def _serialise_suite_result(sr: ScenarioSuiteResult) -> Dict[str, Any]:
 ```
 
 ### File: runtime/tests/test_tier2_config_test_run.py
+
 ```python
 # runtime/tests/test_tier2_config_test_run.py
 # ... imports ...
@@ -16558,6 +17152,7 @@ def _serialise_test_run(tr: TestRunResult) -> Dict[str, Any]:
 ```
 
 ### File: runtime/tests/test_tier2_harness.py
+
 ```python
 # runtime/tests/test_tier2_harness.py
 # ...
@@ -16582,6 +17177,7 @@ def test_scenario_result_metadata_is_json_serialisable():
 ```
 
 ### File: runtime/tests/test_tier2_expectations.py
+
 ```python
 # runtime/tests/test_tier2_expectations.py
 # ...
@@ -16605,11 +17201,12 @@ def test_determinism_and_metadata(sample_suite_result):
     # ...
 ```
 
-
 <hr>
 
 <a id="file-docs-10-meta-review-packet-reminder-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/Review_Packet_Reminder_v1.0.md
+
 **Source**: `docs/10_meta/Review_Packet_Reminder_v1.0.md`
 
 # Council Review Packet - Automatic Reminder
@@ -16617,6 +17214,7 @@ def test_determinism_and_metadata(sample_suite_result):
 ## 3 Ways to Ensure Review Packets Are Always Generated
 
 ### 1. **Use the Workflow Command** âœ… EASIEST
+
 Whenever you complete a build/fix phase, just say:
 
 ```
@@ -16624,6 +17222,7 @@ Whenever you complete a build/fix phase, just say:
 ```
 
 I'll automatically:
+
 - Read the spec at `docs/Antigravity_Council_Review_Packet_Spec_v1.0.md`
 - Generate the packet with all 7 sections
 - Include flattened codebase
@@ -16632,6 +17231,7 @@ I'll automatically:
 ---
 
 ### 2. **Include in Task Completion**
+
 When you see a phase is complete in `task.md`, remind me:
 
 ```
@@ -16643,6 +17243,7 @@ Or simply mention "review packet" when asking about completion.
 ---
 
 ### 3. **Set as a Rule** (Most Reliable)
+
 Add this to your custom rules in Cursor settings:
 
 **Rule**: "After completing any build/fix phase (R6.x, Phase X, etc.), always generate a Council Review Packet using /generate_review_packet before considering the work done."
@@ -16652,6 +17253,7 @@ Add this to your custom rules in Cursor settings:
 ## What Gets Generated
 
 Every packet includes (per spec):
+
 - **Section 0**: Metadata (phase, build ID, timestamp, scope)
 - **Section 1**: Authority chain, files touched
 - **Section 2**: Plan mapping (spec sections â†’ code files)
@@ -16692,19 +17294,22 @@ Just make it part of your completion checklist:
 4. âœ… **Review packet generated** â† `/generate_review_packet`
 5. âœ… Ready for Council review
 
-
 <hr>
 
 <a id="file-docs-10-meta-steward-artefact-mission-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md
+
 **Source**: `docs/10_meta/STEWARD_ARTEFACT_MISSION_v1.0.md`
 
 # STEWARD_ARTEFACT_MISSION_v1.0
 
 ## Description
+
 Persist a canonical LifeOS artefact into the repo, update registry/index, commit, and sync to the brain mirror for ChatGPT.
 
 ## Inputs
+
 - `key` (string): Registry key (e.g., "programme_charter")
 - `title` (string): Human-readable filename base (e.g., "PROGRAMME_CHARTER_v1.0")
 - `type` (enum string): "governance" | "runtime" | "template" | "council" | "alignment" | "other"
@@ -16715,127 +17320,137 @@ Persist a canonical LifeOS artefact into the repo, update registry/index, commit
 - `status` (string, optional): Default "active"
 
 ## Environment
+
 - `LIFEOS_REPO_ROOT`: Root of the LifeOS git repository.
 - `LIFEOS_BRAIN_MIRROR_ROOT`: Root of the Google Drive mirror.
 
 ## Steps
 
 ### 1. Resolve Paths
+
 - Compute `repo_root`, `brain_root`, `docs_root`.
 - `registry_path` = `docs/00_foundations/CANONICAL_REGISTRY.yaml`
 - `index_path` = `docs/INDEX.md` (or current index)
 
 ### 2. Write Artefact
+
 - Write `content` to `docs/<relative_repo_path>`.
 - Ensure parent directories exist.
 
 ### 3. Update Index
+
 - Read `index_path`.
 - Insert entry into "## Canonical Artefacts" (or appropriate section manifest).
 - Format: `- [{title}]({relative_repo_path}) â€” {type}/{track} v{version}`
 
 ### 4. Upsert Registry
+
 - Read `registry_path`.
 - Update/Create `artefacts.<key>`:
-    - `title`: input.title
-    - `type`: input.type
-    - `track`: input.track
-    - `version`: input.version
-    - `status`: input.status
-    - `repo_path`: input.relative_repo_path
-    - `drive_path`: input.relative_repo_path
-    - `updated_at`: current_timestamp
+  - `title`: input.title
+  - `type`: input.type
+  - `track`: input.track
+  - `version`: input.version
+  - `status`: input.status
+  - `repo_path`: input.relative_repo_path
+  - `drive_path`: input.relative_repo_path
+  - `updated_at`: current_timestamp
 
 ### 5. Git Commit & Push
+
 - `git add docs`
 - `git commit -m "chore: steward {key} v{version}"`
 - `git push`
 
 ### 6. Sync to Brain
+
 - Run `python docs/scripts/sync_to_brain.py`
 
 ### 7. Summary
-- Emit summary confirming stewardship and sync.
 
+- Emit summary confirming stewardship and sync.
 
 <hr>
 
 <a id="file-docs-10-meta-tasks-v1-0-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/TASKS_v1.0.md
+
 **Source**: `docs/10_meta/TASKS_v1.0.md`
 
 # Tasks
 
 - [x] Phase 0: Core Infrastructure <!-- id: 0 -->
-    - [x] SQLite schema + migrations <!-- id: 1 -->
-    - [x] MessageStore async methods <!-- id: 2 -->
-    - [x] Models (Pydantic schemas) <!-- id: 3 -->
-    - [x] Config file skeleton <!-- id: 4 -->
-    - [x] CLI skeleton <!-- id: 5 -->
-    - [x] First test: `test_message_store.py` <!-- id: 6 -->
+  - [x] SQLite schema + migrations <!-- id: 1 -->
+  - [x] MessageStore async methods <!-- id: 2 -->
+  - [x] Models (Pydantic schemas) <!-- id: 3 -->
+  - [x] Config file skeleton <!-- id: 4 -->
+  - [x] CLI skeleton <!-- id: 5 -->
+  - [x] First test: `test_message_store.py` <!-- id: 6 -->
 - [x] Phase 1: Orchestrator + Dummy Agents <!-- id: 7 -->
-    - [x] `orchestrator.py` with asyncio main loop <!-- id: 8 -->
-    - [x] `Agent` base class + `process_stream` generator <!-- id: 9 -->
-    - [x] `DummyCOO`, `DummyEngineer`, `DummyQA` <!-- id: 10 -->
-    - [x] `BudgetTracker` skeleton <!-- id: 11 -->
-    - [x] End-to-end test: mission flow with no LLMs <!-- id: 12 -->
-    - [x] Stale message reclaim implementation <!-- id: 13 -->
+  - [x] `orchestrator.py` with asyncio main loop <!-- id: 8 -->
+  - [x] `Agent` base class + `process_stream` generator <!-- id: 9 -->
+  - [x] `DummyCOO`, `DummyEngineer`, `DummyQA` <!-- id: 10 -->
+  - [x] `BudgetTracker` skeleton <!-- id: 11 -->
+  - [x] End-to-end test: mission flow with no LLMs <!-- id: 12 -->
+  - [x] Stale message reclaim implementation <!-- id: 13 -->
 - [x] Pre-Phase 2 Fixes <!-- id: 42 -->
-    - [x] Fix logging import in `message_store.py` <!-- id: 43 -->
-    - [x] Replace deprecated `datetime.utcnow()` <!-- id: 44 -->
-    - [x] Update `sandbox.yaml` for cross-platform temp dir <!-- id: 45 -->
-    - [x] Update `models.yaml` to OpenRouter provider <!-- id: 46 -->
+  - [x] Fix logging import in `message_store.py` <!-- id: 43 -->
+  - [x] Replace deprecated `datetime.utcnow()` <!-- id: 44 -->
+  - [x] Update `sandbox.yaml` for cross-platform temp dir <!-- id: 45 -->
+  - [x] Update `models.yaml` to OpenRouter provider <!-- id: 46 -->
 - [x] Phase 2: Sandbox Integration <!-- id: 14 -->
-    - [x] Build `coo-sandbox:latest` Dockerfile (non-root, no-pip) <!-- id: 15 -->
-    - [x] `SandboxRunner` implementation <!-- id: 16 -->
-        - [x] `run_artifact` with idempotency & materialization <!-- id: 16a -->
-        - [x] `recover_crashed_runs` <!-- id: 16b -->
-        - [x] Security flags & cleanup <!-- id: 16c -->
-    - [x] Orchestrator integration <!-- id: 17 -->
-        - [x] Handle `SANDBOX_EXECUTE` emissions <!-- id: 17a -->
-        - [x] Inject `RESULT` message <!-- id: 17b -->
-        - [x] Startup crash recovery call <!-- id: 17c -->
-    - [x] Update `DummyEngineer` to emit `sandbox_execute` <!-- id: 47 -->
-    - [x] Test: `test_sandbox.py` (Unit + Docker) <!-- id: 48 -->
-    - [x] Test: `test_orchestrator_sandbox.py` (E2E) <!-- id: 21 -->
+  - [x] Build `coo-sandbox:latest` Dockerfile (non-root, no-pip) <!-- id: 15 -->
+  - [x] `SandboxRunner` implementation <!-- id: 16 -->
+    - [x] `run_artifact` with idempotency & materialization <!-- id: 16a -->
+    - [x] `recover_crashed_runs` <!-- id: 16b -->
+    - [x] Security flags & cleanup <!-- id: 16c -->
+  - [x] Orchestrator integration <!-- id: 17 -->
+    - [x] Handle `SANDBOX_EXECUTE` emissions <!-- id: 17a -->
+    - [x] Inject `RESULT` message <!-- id: 17b -->
+    - [x] Startup crash recovery call <!-- id: 17c -->
+  - [x] Update `DummyEngineer` to emit `sandbox_execute` <!-- id: 47 -->
+  - [x] Test: `test_sandbox.py` (Unit + Docker) <!-- id: 48 -->
+  - [x] Test: `test_orchestrator_sandbox.py` (E2E) <!-- id: 21 -->
 - [x] Phase 3: Real LLM Agents + Budget <!-- id: 22 -->
-    - [x] `ModelClient` for DeepSeek + GLM <!-- id: 23 -->
-    - [x] Central token caps enforcement <!-- id: 24 -->
-    - [x] COO/Engineer/QA prompts via `PromptManager` <!-- id: 25 -->
-    - [x] Prompt file structure <!-- id: 26 -->
-    - [x] Cost calculation from API responses <!-- id: 27 -->
-    - [x] Hard budget enforcement + rollback on exceed <!-- id: 28 -->
-    - [x] Global daily/monthly budget tracking <!-- id: 29 -->
-    - [x] Test: budget exceed â†’ rollback verified <!-- id: 30 -->
-    - [x] Wire Real Agents into Orchestrator <!-- id: 49 -->
-    - [x] Test: `test_orchestrator.py` with mocked Real Agents <!-- id: 50 -->
+  - [x] `ModelClient` for DeepSeek + GLM <!-- id: 23 -->
+  - [x] Central token caps enforcement <!-- id: 24 -->
+  - [x] COO/Engineer/QA prompts via `PromptManager` <!-- id: 25 -->
+  - [x] Prompt file structure <!-- id: 26 -->
+  - [x] Cost calculation from API responses <!-- id: 27 -->
+  - [x] Hard budget enforcement + rollback on exceed <!-- id: 28 -->
+  - [x] Global daily/monthly budget tracking <!-- id: 29 -->
+  - [x] Test: budget exceed â†’ rollback verified <!-- id: 30 -->
+  - [x] Wire Real Agents into Orchestrator <!-- id: 49 -->
+  - [x] Test: `test_orchestrator.py` with mocked Real Agents <!-- id: 50 -->
 - [x] Phase 3.5: Hardening & Fixes <!-- id: 51 -->
-    - [x] Fix `BudgetGuard` worst-case cost (Input + Output) <!-- id: 52 -->
-    - [x] Secure Artifact Creation (Filename validation) <!-- id: 53 -->
-    - [x] Enforce JSON output for QA Agent <!-- id: 54 -->
-    - [x] Implement sorted history retrieval <!-- id: 55 -->
-    - [x] Proactive prompt truncation in `ModelClient` <!-- id: 56 -->
+  - [x] Fix `BudgetGuard` worst-case cost (Input + Output) <!-- id: 52 -->
+  - [x] Secure Artifact Creation (Filename validation) <!-- id: 53 -->
+  - [x] Enforce JSON output for QA Agent <!-- id: 54 -->
+  - [x] Implement sorted history retrieval <!-- id: 55 -->
+  - [x] Proactive prompt truncation in `ModelClient` <!-- id: 56 -->
 - [x] Phase 3.6: Critical Remediation (Code Review v1.0) <!-- id: 57 -->
-    - [x] Fix Sandbox Execution (`asyncio.wait_for`) <!-- id: 58 -->
-    - [x] Implement Backpressure (`count_pending_messages`) <!-- id: 59 -->
-    - [x] Optimize Budget Locking (Split Reserve/Settle) <!-- id: 60 -->
+  - [x] Fix Sandbox Execution (`asyncio.wait_for`) <!-- id: 58 -->
+  - [x] Implement Backpressure (`count_pending_messages`) <!-- id: 59 -->
+  - [x] Optimize Budget Locking (Split Reserve/Settle) <!-- id: 60 -->
 - [x] Phase 4: Observability + Hardening <!-- id: 31 -->
-    - [x] `structlog` integration with secret scrubbing <!-- id: 32 -->
-    - [x] Timeline events for all major actions <!-- id: 33 -->
-    - [x] CLI commands: `coo mission`, `coo logs`, `coo dlq replay` <!-- id: 34 -->
-    - [x] Approval flow (CEO gate) + CONTROL messages <!-- id: 35 -->
-    - [x] Backpressure hard pause implementation <!-- id: 36 -->
-    - [x] Sandbox crash recovery <!-- id: 37 -->
-    - [x] `scrub_secrets` unit test <!-- id: 38 -->
-    - [x] Critical shutdown logging <!-- id: 39 -->
-    - [x] Integration tests <!-- id: 40 -->
-    - [ ] README + operations guide <!-- id: 41 -->
-
+  - [x] `structlog` integration with secret scrubbing <!-- id: 32 -->
+  - [x] Timeline events for all major actions <!-- id: 33 -->
+  - [x] CLI commands: `coo mission`, `coo logs`, `coo dlq replay` <!-- id: 34 -->
+  - [x] Approval flow (CEO gate) + CONTROL messages <!-- id: 35 -->
+  - [x] Backpressure hard pause implementation <!-- id: 36 -->
+  - [x] Sandbox crash recovery <!-- id: 37 -->
+  - [x] `scrub_secrets` unit test <!-- id: 38 -->
+  - [x] Critical shutdown logging <!-- id: 39 -->
+  - [x] Integration tests <!-- id: 40 -->
+  - [ ] README + operations guide <!-- id: 41 -->
 
 <hr>
 
 <a id="file-docs-10-meta-tier-2-test-report-v0-1-1-r1-md"></a>
+
 # ðŸ“„ FILE: docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md
+
 **Source**: `docs/10_meta/Tier-2_Test_Report_v0.1.1-R1.md`
 
 # Tier-2 Test Suite & Results v0.1.1-R1
@@ -16882,6 +17497,7 @@ runtime/tests/test_tier2_config_test_run.py::test_happy_path PASSED      [ 22%]
 The following sections contain the exact source code of the test suite used for this verification, flattened for immutability and audit.
 
 ### runtime/tests/test_tier2_builder.py
+
 ```python
 # runtime/tests/test_tier2_builder.py
 """
@@ -17185,6 +17801,7 @@ def test_build_workflow_preserves_params_in_metadata():
 ```
 
 ### runtime/tests/test_tier2_config_adapter.py
+
 ```python
 # runtime/tests/test_tier2_config_adapter.py
 """
@@ -17430,6 +18047,7 @@ def test_ignore_extra_fields(valid_suite_config):
 ```
 
 ### runtime/tests/test_tier2_config_test_run.py
+
 ```python
 # runtime/tests/test_tier2_config_test_run.py
 """
@@ -17595,6 +18213,7 @@ def test_config_errors(valid_suite_cfg, valid_expectations_cfg):
 ```
 
 ### runtime/tests/test_tier2_contracts.py
+
 ```python
 # runtime/tests/test_tier2_contracts.py
 from typing import Dict, Any
@@ -17726,6 +18345,7 @@ def test_orchestration_result_serialises_cleanly():
 ```
 
 ### runtime/tests/test_tier2_daily_loop.py
+
 ```python
 # runtime/tests/test_tier2_daily_loop.py
 import pytest
@@ -17847,6 +18467,7 @@ def test_daily_loop_lineage_populated():
 ```
 
 ### runtime/tests/test_tier2_expectations.py
+
 ```python
 # runtime/tests/test_tier2_expectations.py
 """
@@ -18166,6 +18787,7 @@ def test_determinism_and_metadata(sample_suite_result):
 ```
 
 ### runtime/tests/test_tier2_harness.py
+
 ```python
 # runtime/tests/test_tier2_harness.py
 """
@@ -18521,6 +19143,7 @@ def test_scenario_result_is_fully_serialisable():
 ```
 
 ### runtime/tests/test_tier2_orchestrator.py
+
 ```python
 # runtime/tests/test_tier2_orchestrator.py
 import pytest
@@ -18638,6 +19261,7 @@ def test_envelope_violation_on_invalid_step_kind():
 ```
 
 ### runtime/tests/test_tier2_registry.py
+
 ```python
 # runtime/tests/test_tier2_registry.py
 import pytest
@@ -18719,6 +19343,7 @@ def test_run_mission_determinism():
 ```
 
 ### runtime/tests/test_tier2_suite.py
+
 ```python
 # runtime/tests/test_tier2_suite.py
 """
@@ -19216,6 +19841,7 @@ def test_suite_result_is_fully_serialisable():
 ```
 
 ### runtime/tests/test_tier2_test_run.py
+
 ```python
 # runtime/tests/test_tier2_test_run.py
 """
@@ -19418,12 +20044,12 @@ def test_metadata_structure(sample_suite_result, sample_expectations_result):
 
 ```
 
-
-
 <hr>
 
 <a id="file-docs-index-md"></a>
+
 # ðŸ“„ FILE: docs/INDEX.md
+
 **Source**: `docs/INDEX.md`
 
 # LifeOS Documentation Index
@@ -19460,12 +20086,14 @@ LifeOS Constitution v2.0 (Supreme)
 ## 01_governance â€” Governance & Contracts
 
 ### Core Governance
+
 | Document | Purpose |
 |----------|---------|
 | [COO_Operating_Contract_v1.0.md](./01_governance/COO_Operating_Contract_v1.0.md) | CEO/COO role boundaries and interaction rules |
 | [AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md) | Template for agent GEMINI.md files |
 
 ### Council & Review
+
 | Document | Purpose |
 |----------|---------|
 | [Council_Invocation_Runtime_Binding_Spec_v1.0.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.0.md) | Council invocation and runtime binding |
@@ -19473,12 +20101,14 @@ LifeOS Constitution v2.0 (Supreme)
 | [ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md) | Monthly/quarterly alignment review template |
 
 ### Policies & Logs
+
 | Document | Purpose |
 |----------|---------|
 | [COO_Expectations_Log_v1.0.md](./01_governance/COO_Expectations_Log_v1.0.md) | Working preferences and behavioral refinements |
 | [Antigrav_Output_Hygiene_Policy_v0.1.md](./01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md) | Output path rules for Antigravity |
 
 ### Historical Rulings
+
 | Document | Purpose |
 |----------|---------|
 | [Tier1_Hardening_Council_Ruling_v0.1.md](./01_governance/Tier1_Hardening_Council_Ruling_v0.1.md) | Historical: Tier-1 ratification ruling |
@@ -19505,6 +20135,7 @@ LifeOS Constitution v2.0 (Supreme)
 ## 03_runtime â€” Runtime Specification
 
 ### Core Specs
+
 | Document | Purpose |
 |----------|---------|
 | [COO_Runtime_Spec_v1.0.md](./03_runtime/COO_Runtime_Spec_v1.0.md) | Mechanical execution contract, FSM, determinism rules |
@@ -19513,6 +20144,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [COO_Runtime_Spec_Index_v1.0.md](./03_runtime/COO_Runtime_Spec_Index_v1.0.md) | Spec index and patch log |
 
 ### Roadmaps & Plans
+
 | Document | Purpose |
 |----------|---------|
 | [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](./03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) | **Current roadmap** â€” Core/Fuel/Plumbing tracks |
@@ -19520,6 +20152,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](./03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md) | Future router and executor adapter spec |
 
 ### Work Plans & Fix Packs
+
 | Document | Purpose |
 |----------|---------|
 | [Hardening_Backlog_v0.1.md](./03_runtime/Hardening_Backlog_v0.1.md) | Hardening work backlog |
@@ -19532,6 +20165,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [fixpacks/FP-4x_Implementation_Packet_v0.1.md](./03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md) | FP-4x implementation |
 
 ### Templates & Tools
+
 | Document | Purpose |
 |----------|---------|
 | [BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](./03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md) | Build starter prompt template |
@@ -19540,6 +20174,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [COO_Runtime_Clean_Build_Spec_v1.1.md](./03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md) | Clean build specification |
 
 ### Other
+
 | Document | Purpose |
 |----------|---------|
 | [Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md) | Automation proposal |
@@ -19551,6 +20186,7 @@ LifeOS Constitution v2.0 (Supreme)
 ## 99_archive â€” Historical Documents
 
 Archived documents are in `99_archive/`. Key locations:
+
 - `99_archive/superseded_by_constitution_v2/` â€” Documents superseded by Constitution v2.0
 - `99_archive/legacy_structures/` â€” Legacy governance and specs
 
@@ -19567,4 +20203,3 @@ Archived documents are in `99_archive/`. Key locations:
 | `08_manuals/` | Manuals |
 | `09_prompts/` | Prompt templates and protocols |
 | `10_meta/` | Meta documents, reviews, tasks |
-

@@ -246,7 +246,41 @@ review_meta:
   mission: ""                    # [REQUIRED]
   build_packet_id: ""            # [REQUIRED]
   status: ""                     # [REQUIRED] COMPLETE | PARTIAL | BLOCKED
+  terminal_outcome: ""           # [REQUIRED] PASS | WAIVER_REQUESTED | ESCALATION_REQUESTED | BLOCKED
+  terminal_reason: ""            # [REQUIRED if not PASS]
   summary: ""                    # [REQUIRED]
+
+scope_envelope:                  # [REQUIRED]
+  allowed_paths: []
+  forbidden_paths: []
+  notes: ""
+
+repro:                           # [REQUIRED]
+  test_cmds: []
+  run_cmds: []
+  environment_notes: ""
+
+closure_evidence:                # [REQUIRED if COMPLETE]
+  commits:
+    code:
+      hash: ""
+      message: ""
+    docs:
+      hash: ""                   # "N/A" if none
+      message: ""
+      pathway_proof_ref: ""      # Optional
+  diff_refs: []                  # [ {type: "", ref: ""} ]
+  artifacts:                     # [REQUIRED]
+    - path: "" 
+      sha256: ""
+      kind: ""
+  governance:
+    policy_refs: []              # [ {path: ""} ]
+    waivers: []                  # [ {path: ""} ]
+  acceptance_criteria:           # [REQUIRED]
+    - id: ""
+      status: ""                 
+      evidence_ref: ""
 
 implementation:
   fixes_implemented:             # [REQUIRED]

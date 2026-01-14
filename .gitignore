@@ -68,13 +68,14 @@ artifacts/bundles/*.zip
 artifacts/bundles/*.sha256
 artifacts/bundles/*.txt
 artifacts/evidence/
-artifacts/for_ceo/
-artifacts/plans/Plan_*.md
-artifacts/test_reports/
+# artifacts/for_ceo/  <-- REMOVED
+# artifacts/plans/Plan_*.md  <-- REMOVED
+# artifacts/test_reports/  <-- REMOVED
+# artifacts/*.md  <-- REMOVED
 
 # Archive bundles (ephemeral)
 artifacts/99_archive/
-artifacts/review_packets/Review_Packet_*.md
+# artifacts/review_packets/Review_Packet_*.md  <-- REMOVED
 
 # Root-level bundles (should be moved to artifacts/)
 /*.zip

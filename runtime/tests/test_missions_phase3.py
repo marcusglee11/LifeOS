@@ -104,7 +104,7 @@ class TestMissionType:
     
     def test_all_types_defined(self):
         """Verify all required mission types are defined."""
-        expected = {"design", "review", "build", "steward", "autonomous_build_cycle", "build_with_validation"}
+        expected = {"design", "review", "build", "steward", "autonomous_build_cycle", "build_with_validation", "echo"}
         actual = {t.value for t in MissionType}
         assert actual == expected
     

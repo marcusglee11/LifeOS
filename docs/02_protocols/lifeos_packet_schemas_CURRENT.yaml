@@ -34,6 +34,7 @@ taxonomy:
     - CONTEXT_REQUEST_PACKET
     - CONTEXT_RESPONSE_PACKET
     - DOC_STEWARD_REQUEST_PACKET
+    - PLAN_PACKET
   deprecated_packet_types:
     - GATE_APPROVAL_PACKET
     - FIX_PACKET
@@ -103,6 +104,8 @@ payloads:
   REVIEW_PACKET:
     allow:
       - outcome
+      - terminal_outcome
+      - terminal_reason
       - build_packet_id
       - artifacts_produced
       - diff_summary
@@ -111,8 +114,14 @@ payloads:
       - plan_hash
       - conditions
       - verdict
+      - scope_envelope
+      - repro
+      - closure_evidence
     required:
       - outcome
+      - scope_envelope
+      - repro
+      - terminal_outcome
 
   FIX_PACKET:
     allow:
@@ -185,3 +194,23 @@ payloads:
     required:
       - mission_type
       - scope_paths
+
+  PLAN_PACKET:
+    allow:
+      - scope_envelope
+      - proposed_changes
+      - claims
+      - targets
+      - validator_contract
+      - verification_matrix
+      - migration_plan
+      - governance_impact
+    required:
+      - scope_envelope
+      - proposed_changes
+      - claims
+      - targets
+      - validator_contract
+      - verification_matrix
+      - migration_plan
+      - governance_impact

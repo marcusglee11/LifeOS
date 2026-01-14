@@ -306,6 +306,7 @@ The Operating Contract may be updated only with CEO approval and version logging
 # File: 01_governance/AgentConstitution_GEMINI_Template_v1.0.md
 
 # AgentConstitution_GEMINI_Template_v1.0  
+
 # LifeOS Subordinate Agent Constitution for Antigravity Workers
 
 ---
@@ -383,49 +384,36 @@ Antigravity must not:
 Before calling `notify_user` to signal mission completion, Antigravity **MUST**:
 
 1. Create exactly one `Review_Packet_<MissionName>_vX.Y.md` in `artifacts/review_packets/`
-2. Include in the packet:
-   - Summary of mission
-   - Issue catalogue
-   - Acceptance criteria with pass/fail status
-   - Non-goals (explicit)
-   - **Appendix with flattened code** for ALL created/modified files (or Diff-Based Context for Lightweight missions)
+2. Include in the packet (IN THIS ORDER):
+   - **Scope Envelope**: Allowed/forbidden paths and authority notes
+   - **Summary**: 1-3 sentences on what was done
+   - **Issue Catalogue**: Table of P0/P1 issues addressed
+   - **Acceptance Criteria**: Table mapping Criterion | Status | Evidence Pointer | SHA-256 (or N/A)
+   - **Closure Evidence Checklist** (Mandatory, see §1.1)
+   - **Non-Goals**: Explicit list of what was *not* done
+   - **Appendix**: Default to "Patch Set + File Manifest". Flattened code ONLY if explicitly required.
 3. Verify the packet is valid per Appendix A Section 6 requirements
 4. **Exception**: Lightweight Stewardship missions (Art. XVIII) may use the simplified template
 
-## Section 2. notify_user Gate
+### §1.1 Closure Evidence Checklist Schema
 
-Antigravity **MUST NOT** call `notify_user` with `BlockedOnUser=false` (signaling completion) unless:
+The checklist MUST be a fixed table with these required rows:
 
-1. A valid Review Packet has been written to `artifacts/review_packets/`
-2. The packet filename is included in the notification message
-3. Document Steward Protocol has been executed (if docs changed)
-
-## Section 3. Failure Mode
-
-If Antigravity calls `notify_user` without producing a Review Packet:
-
-1. This is a **constitutional violation**
-2. The human should not need to remind the agent
-3. The omission must be treated as equivalent to failing to complete the mission
-
-## Section 4. Self-Check Sequence
-
-Before any `notify_user call signaling completion, Antigravity must mentally execute:
-
-```
-□ Did I create/modify files? → If yes, Review Packet required
-□ Did I write Review Packet to artifacts/review_packets/? → If no, STOP
-□ Does packet include flattened code for ALL files? → If no, STOP
-□ Did I modify docs? → If yes, run Document Steward Protocol
-□ Only then: call notify_user
-```
-
----
-
-# **ARTICLE XIII — PLAN ARTEFACT GATE (MANDATORY)**
-
-> [!CAUTION]
-> This article defines a **hard gate**. Violating it is a critical constitutional failure.
+| Category | Requirement | Verified |
+|----------|-------------|----------|
+| **Provenance** | Code commit hash + message | [Hash/Msg] |
+| | Docs commit hash + message | [Hash/Msg] OR N/A |
+| | Changed file list (paths) | [List/Count] |
+| **Artifacts** | `attempt_ledger.jsonl` | [Path/SHA] OR N/A |
+| | `CEO_Terminal_Packet.md` | [Path/SHA] OR N/A |
+| | `Review_Packet_attempt_XXXX.md` | [Path/SHA] OR N/A |
+| | Closure Bundle + Validator Output | [Path/SHA] OR N/A |
+| | Docs touched (each path) | [Path/SHA] |
+| **Repro** | Test command(s) exact cmdline | [Command] |
+| | Run command(s) to reproduce artifact | [Command] |
+| **Governance** | Doc-Steward routing proof | [Path/Ref] OR Waiver |
+| | Policy/Ruling refs invoked | [Path/Ref] |
+| **Outcome** | Terminal outcome proof | [PASS/BLOCKED/etc] |
 
 
 > [!IMPORTANT]
@@ -1055,8 +1043,10 @@ _Concise statement integrating: outcomes → alignment → required corrections.
 
 # ARTEFACT_INDEX Schema v1.0
 
-**Status**: WIP (Non-Canonical)  
-**Authority**: LifeOS Constitution v2.0 → Document Steward Protocol v1.1  
+<!-- LIFEOS_TODO[P1][area: docs/01_governance/ARTEFACT_INDEX_SCHEMA.md][exit: status change to ACTIVE + DAP validate] Finalize ARTEFACT_INDEX_SCHEMA v1.0: Remove WIP/Provisional markers -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: LifeOS Constitution v2.0 → Document Steward Protocol v1.1
 **Effective**: 2026-01-07 (Provisional)
 
 ---
@@ -1214,8 +1204,10 @@ Refine the COO's behaviour based on the CEO's preferences.
 
 # CSO Role Constitution v1.0
 
-**Status**: WIP (Non-Canonical)  
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+<!-- LIFEOS_TODO[P1][area: docs/01_governance/CSO_Role_Constitution_v1.0.md][exit: CEO approval + status change to ACTIVE] Finalize CSO_Role_Constitution v1.0: Remove WIP/Provisional markers, get CEO approval -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
 **Effective**: 2026-01-07 (Provisional)
 
 ---
@@ -1858,8 +1850,9 @@ Expansion to new mission types requires:
 - [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./Council_Ruling_OpenCode_First_Stewardship_v1.1.md) (Active)
 
 ### Sign-Offs (Closed Amendments)
-- [AUR_20260105 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)
 
+- [AUR_20260114 E2E Harness Patch (v2.0)](../../artifacts/signoffs/AUR_20260114_E2E_Harness_Patch_v1.2_Signoff.md)
+- [AUR_20260112 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)
 
 
 ---
@@ -2640,6 +2633,7 @@ All artifacts **MUST** follow these naming patterns:
 | Test Draft | `TestDraft_<Module>_v<X.Y>.md` | `TestDraft_Registry_v0.1.md` |
 
 **Rules:**
+
 - Topic/Mission names use PascalCase or snake_case
 - **Sequential Versioning Only:** v1.0 → v1.1 → v1.2. Never skip numbers.
 - **No Overwrites:** Always create a new file for a new version.
@@ -3257,28 +3251,35 @@ mode_selection_rules_v1:
 # Deterministic Artefact Protocol (DAP) v2.0 — Dual-Layer Specification
 
 ## Placement
+
 `/docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md`
 
 ## Status
+
 Canonical governance specification.
 
 ## Layer 1 — Canonical Human-Readable Specification
 
 ## 1. Purpose
+
 The Deterministic Artefact Protocol (DAP) v2.0 defines the mandatory rules and constraints governing the creation, modification, storage, naming, indexing, validation, and execution of all artefacts produced within the LifeOS environment. Its goals include determinism, auditability, reproducibility, immutability of historical artefacts, and elimination of conversational drift.
 
 ## 2. Scope
+
 DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit reports, ZIP archives, tool-generated files, and directory structure modifications. It applies to all assistant behaviour, tool invocations, and agents within LifeOS.
 
 ## 3. Definitions
+
 - **Artefact**: Deterministic file created or modified under DAP.
 - **Deterministic State**: A reproducible filesystem state.
 - **Canonical Artefact**: The authoritative version stored under `/docs`.
 - **Non-Canonical Artefact**: Any artefact outside `/docs`.
 - **Immutable Artefact**: Any file within `/docs/99_archive`.
 - **DAP Operation**: Any assistant operation affecting artefacts.
+- **Operational File**: Non-canonical ephemeral/operational file (e.g., mission logs, inter-agent packets, scratchpads) stored in `/artifacts`. These are exempted from formal Gate 3 requirements and versioning discipline.
 
 ## 4. Core Principles
+
 - Determinism
 - Explicitness
 - Idempotence
@@ -3289,6 +3290,7 @@ DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit repo
 - Canonical Tree Enforcement
 
 ## 5. Mandatory Workflow Rules
+
 - Artefacts may only be created at StepGate Gate 3.
 - All artefacts must include complete content.
 - Tool calls must embed full content.
@@ -3299,12 +3301,15 @@ DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit repo
 - Forbidden behaviours include guessing filenames, modifying artefacts without approval, creating placeholders, relying on conversational memory, or generating artefacts outside StepGate.
 
 ## 6. Interaction with StepGate
+
 DAP references StepGate but does not merge with it. All DAP operations require Gate 3; violations require halting and returning to Gate 0.
 
 ## 7. Error Handling
+
 Hard failures include overwriting archive files, missing approval, missing paths, ambiguous targets, or context degradation. On detection, the assistant must declare a contamination event and require a fresh project.
 
 ## 8. Canonical Status
+
 DAP v2.0 becomes binding upon placement at the specified path.
 
 ---
@@ -3312,36 +3317,55 @@ DAP v2.0 becomes binding upon placement at the specified path.
 ## Layer 2 — Machine-Operational Protocol
 
 ## M-1. Inputs
+
 Assistant must not act without explicit filename, path, content, StepGate Gate 3 status.
 
 ## M-2. Artefact Creation Algorithm
-IF Gate != 3 → refuse.  
+
+IF Gate != 3 AND Path NOT START WITH "/artifacts" (excluding formal subdirs) → refuse.  
+(Note: Operational Files in `/artifacts` are allowed outside Gate 3).
 Require filename, path, full content.  
 Write file.  
 Verify file exists and contains no placeholders.
 
 ## M-3. Naming Rules
+
 `<BASE>_v<MAJOR>.<MINOR>[.<PATCH>].md`
 
 ## M-4. Archive Rules
+
 Immutable; may not be rewritten.
 
 ## M-5. Index Regeneration Rules
+
 Structural changes require new index version with diff summary.
 
 ## M-6. Forbidden Operations
+
 Guessing paths, relying on memory, placeholder generation, modifying archive files, or creating artefacts outside Gate 3.
 
 ## M-7. Deterministic ZIP Generation
+
 Sort filenames, preserve ordering, include only approved artefacts.
 
 ## M-8. Contamination Detection
+
 Placeholder or truncated output requires contamination event and new project.
 
 ## M-9. Resolution
+
 Return to Gate 0, regenerate plan deterministically.
 
+## M-10. Gitignore Discipline
 
+To ensure AI tool access (read/write) required by these protocols, the following paths MUST NOT be git-ignored:
+
+- `artifacts/plans/` (Formal governance)
+- `artifacts/review_packets/` (Formal governance)
+- `artifacts/for_ceo/` (Operational handoff)
+- `artifacts/context_packs/` (Operational handoff)
+
+If git exclusion is desired, it must be handled via manual `git add` exclusion or other mechanisms that do not block AI tool-level visibility.
 
 
 ---
@@ -3363,14 +3387,16 @@ This protocol defines how canonical documents are created, updated, indexed, and
 **Document Steward**: The agent (Antigravity or successor) — NOT the human CEO.
 
 Per Constitution v2.0:
+
 - **CEO performs**: Intent, approval, governance decisions only
 - **Agent performs**: All file creation, indexing, git operations, syncing
 
 The CEO must never manually shuffle documents, update indices, or run git commands. If the CEO is doing these things, it is a governance violation.
 
 **Canonical Locations**:
+
 1. **Local Repository**: `docs`
-2. **GitHub**: https://github.com/marcusglee11/LifeOS/tree/main/docs
+2. **GitHub**: <https://github.com/marcusglee11/LifeOS/tree/main/docs>
 3. **Google Drive**: [REDACTED_DRIVE_LINK]
 
 ---
@@ -3378,14 +3404,18 @@ The CEO must never manually shuffle documents, update indices, or run git comman
 ## 2. Sync Requirements
 
 ### 2.1 Source of Truth
+
 The **local repository** is the primary source of truth. All changes originate here.
 
 ### 2.2 Sync Targets
+
 Changes must be propagated to:
+
 1. **GitHub** (primary backup, version control)
 2. **Google Drive** (external access, offline backup)
 
 ### 2.3 Sync Frequency
+
 | Event | GitHub Sync | Google Drive Sync |
 |-------|:-----------:|:-----------------:|
 | Document creation | Immediate | Same session |
@@ -3398,7 +3428,9 @@ Changes must be propagated to:
 ## 3. Steward Responsibilities
 
 ### 3.1 Document Creation
+
 When creating a new document:
+
 1. Create file in appropriate `docs/` subdirectory
 2. Follow naming convention: `DocumentName_vX.Y.md`
 3. Include metadata header (Status, Authority, Date)
@@ -3410,7 +3442,9 @@ When creating a new document:
 9. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.2 Document Modification
+
 When modifying an existing document:
+
 1. Edit the file
 2. Update version if significant change
 3. Update `docs/INDEX.md` if description changed
@@ -3420,7 +3454,9 @@ When modifying an existing document:
 7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.3 Document Archival
+
 When archiving a superseded document:
+
 1. Move to `docs/99_archive/` with appropriate subfolder
 2. Remove from `docs/INDEX.md`
 3. Remove from `ARTEFACT_INDEX.json` if applicable
@@ -3430,7 +3466,9 @@ When archiving a superseded document:
 7. (Google Drive syncs automatically, including `LifeOS_Universal_Corpus.md`)
 
 ### 3.4 Index Maintenance
+
 Indices that must be kept current:
+
 - `docs/INDEX.md` — Master documentation index
 - `docs/01_governance/ARTEFACT_INDEX.json` — Governance artefact registry
 - `docs/LifeOS_Universal_Corpus.md` — Universal corpus for AI/NotebookLM
@@ -3439,6 +3477,7 @@ Indices that must be kept current:
 ### 3.5 File Organization
 
 When receiving or creating files:
+
 1. **Never leave files at `docs/` root** (except INDEX.md and corpus)
 2. Analyze file type and purpose
 3. Move to appropriate subdirectory per Directory Structure (Section 8)
@@ -3446,14 +3485,17 @@ When receiving or creating files:
 5. Update INDEX.md with correct paths after moving
 
 **Root files allowed**:
+
 - `INDEX.md` — Master documentation index
 - `LifeOS_Universal_Corpus.md` — Generated universal corpus
 - `LifeOS_Strategic_Corpus.md` — Generated strategic corpus
 
 ### 3.6 Stray File Check (Mandatory)
+
 After every document operation, the steward must scan:
-1.  **Repo Root**: Ensure no random output files (`*.txt`, `*.log`, `*.db`) remain. Move to `logs/` or `99_archive/`.
-2.  **Docs Root**: Ensure only allowed files (see 3.5) and directories exist. Move any loose markdown strings to appropriate subdirectories.
+
+1. **Repo Root**: Ensure no random output files (`*.txt`, `*.log`, `*.db`) remain. Move to `logs/` or `99_archive/`.
+2. **Docs Root**: Ensure only allowed files (see 3.5) and directories exist. Move any loose markdown strings to appropriate subdirectories.
 
 ---
 
@@ -3487,22 +3529,25 @@ git push origin main
 Google Drive for Desktop is configured to automatically sync the local repository to Google Drive.
 
 **Configuration:**
+
 - **Local folder**: `docs`
 - **Drive folder**: [LifeOS/docs]([REDACTED_DRIVE_LINK])
 - **Sync mode**: Mirror (bidirectional)
 
 **Behavior:**
+
 - All local changes are automatically synced to Google Drive
 - No manual upload required
 - Sync occurs in background whenever files change
 
 ### 5.2 Steward Actions
+
 The steward does NOT need to manually sync to Google Drive. The workflow is:
+
 1. Edit files locally
 2. Commit and push to GitHub
 3. Google Drive syncs automatically
 
-### 5.3 Verification
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
@@ -3515,8 +3560,10 @@ The steward does NOT need to manually sync to Google Drive. The workflow is:
 
 # Emergency Declaration Protocol v1.0
 
-**Status**: WIP (Non-Canonical)  
-**Authority**: LifeOS Constitution v2.0 → Council Protocol v1.2  
+<!-- LIFEOS_TODO[P1][area: docs/02_protocols/Emergency_Declaration_Protocol_v1.0.md][exit: status change to ACTIVE + DAP validate] Finalize Emergency_Declaration_Protocol v1.0: Remove WIP/Provisional markers -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: LifeOS Constitution v2.0 → Council Protocol v1.2
 **Effective**: 2026-01-07 (Provisional)
 
 ---
@@ -3602,191 +3649,173 @@ If `auto_revert: true`, emergency expires after `expected_duration` and normal g
 
 ---
 
-# File: 02_protocols/G-CBS_Standard_v1.0.md
+# File: 02_protocols/G-CBS_Standard_v1.1.md
 
-# Generic Closure Bundle Standard (G-CBS) v1.0
+# Generic Closure Bundle Standard (G-CBS) v1.1
 
 | Field | Value |
 |-------|-------|
-| **Version** | 1.0 |
-| **Date** | 2026-01-06 |
+| **Version** | 1.1 |
+| **Date** | 2026-01-11 |
 | **Author** | Antigravity |
 | **Status** | DRAFT |
 | **Governance** | CT-2 Council Review Required for Activation |
+| **Supersedes** | G-CBS v1.0 (backward compatible) |
 
 ---
 
 ## 1. Overview
 
-The Generic Closure Bundle Standard (G-CBS) defines the schema, validation rules, and attestation model for closure bundles in LifeOS. Closure bundles provide auditable, deterministic evidence packages for step gates, council rulings, and other governance actions.
+G-CBS v1.1 is a **strictly additive extension** of G-CBS v1.0. All v1.0 bundles remain valid. This version adds structured fields for inputs, outputs, and verification gate results to support Phase 5 automation (task intake, replay, audit).
 
 **Authority:** This protocol becomes binding when (1) approved via CT-2 council review and (2) listed in `docs/01_governance/ARTEFACT_INDEX.json`.
 
 ---
 
-## 2. Detached Digest Mode
+## 2. New Fields (v1.1 Extensions)
 
-### 2.1 Purpose
+### 2.1 inputs[]
 
-Detached digest mode resolves circular dependencies when the validator transcript is embedded inside the bundle it validates.
+| Aspect | Specification |
+|--------|---------------|
+| **Purpose** | Explicit list of input artefacts consumed by the closure |
+| **Type** | Array of artefact references |
+| **Required** | No (backward compatible) |
+| **Ordering** | Sorted by `path` lexicographically (SG-2) |
 
-### 2.2 Marker
+Each input item:
 
-**Manifest Field:** `zip_sha256`
-**Detached Value:** `"DETACHED_SEE_SIBLING_FILE"`
-
-When this marker is present, container integrity is attested by an external sidecar file.
-
-### 2.3 Sidecar Specification
-
-| Aspect | Requirement |
-|--------|-------------|
-| **Naming** | `<bundle_filename>.sha256` (e.g., `Bundle_v1.0.zip.sha256`) |
-| **Content** | `<lowercase_hex_sha256>  <filename>` (two-space separator) |
-| **Encoding** | UTF-8, LF line endings |
-| **Location** | Same directory as bundle |
-
-**Example:**
-```
-a1b2c3d4e5f6...  Bundle_v1.0.zip
+```json
+{
+  "path": "specs/requirement.md",
+  "sha256": "<64-hex-uppercase>",
+  "role": "spec|context|config|other"
+}
 ```
 
-### 2.4 Validator Requirements
+### 2.2 outputs[]
 
-| Condition | Behavior |
-|-----------|----------|
-| Sidecar missing | FAIL: `E_DIGEST_SIDECAR_MISSING` |
-| Sidecar malformed | FAIL: `E_DIGEST_SIDECAR_MALFORMED` |
-| Hash mismatch | FAIL: `E_DIGEST_MISMATCH` |
-| Hash match | Print: `Sidecar digest verified: <sha256>` |
+| Aspect | Specification |
+|--------|---------------|
+| **Purpose** | Explicit list of output artefacts produced by the closure |
+| **Type** | Array of artefact references |
+| **Required** | No (backward compatible) |
+| **Ordering** | Sorted by `path` lexicographically (SG-2) |
 
-### 2.5 Backward Compatibility
+Each output item:
 
-If `zip_sha256` contains an actual hash (not the detached marker), the validator computes and compares directly (embedded mode). Embedded mode is DEPRECATED for new bundles.
-
----
-
-## 3. Two-Part Attestation Model
-
-### 3.1 Overview
-
-G-CBS separates attestation into two distinct claims to eliminate circularity:
-
-| Attestation | What is Validated | Evidence |
-|-------------|-------------------|----------|
-| **Payload Compliance** | Evidence files per manifest | Embedded transcript |
-| **Container Integrity** | Shipped ZIP bytes | Detached sidecar |
-
-### 3.2 Payload Compliance Attestation
-
-**Domain:** All evidence files listed in `closure_manifest.json`
-**Checks:**
-- Schema validity
-- Evidence SHA256 match
-- Profile-specific rules
-- Forbidden token scan
-
-**Evidence Role:** `validator_payload_pass`
-
-The embedded transcript MUST NOT claim to validate the final ZIP bytes (that's container integrity).
-
-### 3.3 Container Integrity Attestation
-
-**Domain:** Shipped ZIP file bytes
-**Evidence:** Sidecar digest verification
-**Validator Output:**
+```json
+{
+  "path": "artifacts/bundle.zip",
+  "sha256": "<64-hex-uppercase>",
+  "role": "artifact|report|code|other"
+}
 ```
-Detached digest mode: true
-Sidecar digest path: <path>
-Sidecar digest verified: <sha256>
+
+### 2.3 verification.gates[]
+
+| Aspect | Specification |
+|--------|---------------|
+| **Purpose** | Structured verification gate results |
+| **Type** | Object with `gates` array |
+| **Required** | Required for `schema_version: "G-CBS-1.1"` under StepGate profile (SG-3) |
+| **Ordering** | `gates[]` sorted by `id`, `evidence_paths[]` sorted lexicographically (SG-2) |
+
+Each gate item:
+
+```json
+{
+  "id": "G1_TDD_COMPLIANCE",
+  "status": "PASS|FAIL|SKIP|WAIVED",
+  "command": "pytest tests/",
+  "exit_code": 0,
+  "evidence_paths": ["evidence/pytest_output.txt"]
+}
 ```
 
 ---
 
-## 4. Evidence Roles
+## 3. Path Safety Constraints
 
-### 4.1 Required Role
+All `path` fields in `inputs[]`, `outputs[]`, and `verification.gates[].evidence_paths[]` must be **safe relative paths**:
 
-| Role | Description | Status |
-|------|-------------|--------|
-| `validator_payload_pass` | Payload compliance attestation | **REQUIRED** |
+| Constraint | Description |
+|------------|-------------|
+| No absolute paths | Path must not start with `/` |
+| No drive prefixes | Path must not contain `:` at position 1 (e.g., `C:`) |
+| No parent traversal | Path must not contain `..` |
+| No backslashes | Path must use forward slashes only |
 
-### 4.2 Legacy Role (Compatibility Window)
-
-| Role | Description | Status |
-|------|-------------|--------|
-| `validator_final_shipped` | Legacy role | DEPRECATED |
-
-**Compatibility Policy:**
-- G-CBS v1.0: Accept both roles; emit warning for legacy
-- G-CBS v1.1+: Reject `validator_final_shipped` with `E_ROLE_DEPRECATED`
-
-### 4.3 Validator Behavior
-
-```
-IF neither role present:
-  → E_REQUIRED_EVIDENCE_MISSING (exit 1)
-
-IF validator_final_shipped AND gcbs_version < 1.1:
-  → WARN: "Deprecated role, use validator_payload_pass"
-
-IF validator_final_shipped AND gcbs_version >= 1.1:
-  → E_ROLE_DEPRECATED (exit 1)
-
-IF validator_payload_pass:
-  → Accept (no warning)
-```
+Violation triggers: `V11_UNSAFE_PATH` failure.
 
 ---
 
-## 5. Provenance Fields
+## 4. StepGate Profile Gates
 
-### 5.1 Required Manifest Fields
+When profile is `step_gate_closure`, these additional gates apply:
 
-| Field | Description |
-|-------|-------------|
-| `activated_protocols_ref` | Repo-relative path to `ARTEFACT_INDEX.json` |
-| `activated_protocols_sha256` | SHA-256 of raw file bytes (uppercase hex) |
-| `gcbs_standard_version` | Version of this standard (e.g., `"1.0"`) |
-
-### 5.2 Optional Fields
-
-| Field | Description |
-|-------|-------------|
-| `gcbs_standard_ref` | Path to this document |
-| `validator_version` | Validator script version |
-
-### 5.3 Validation
-
-| Condition | Behavior |
-|-----------|----------|
-| `gcbs_standard_version` missing | FAIL: `E_GCBS_STANDARD_VERSION_MISSING` |
-| `activated_protocols_sha256` mismatch | FAIL: `E_PROTOCOLS_PROVENANCE_MISMATCH` |
+| Gate ID | Description | Scope |
+|---------|-------------|-------|
+| **SG-1** | No Truncation | All SHA256 fields must be exactly 64 hex characters (except `DETACHED_SEE_SIBLING_FILE` sentinel) |
+| **SG-2** | Deterministic Ordering | All arrays (`inputs`, `outputs`, `evidence`, `verification.gates`, nested `evidence_paths`) must be sorted |
+| **SG-3** | Required V1.1 Fields | `verification.gates` must be present and array-typed for `schema_version: "G-CBS-1.1"` |
 
 ---
 
-## 6. Validator Output Contract
+## 5. Schema Version Dispatch
 
-### 6.1 Deterministic Stdout Lines
+The validator accepts both versions:
 
-On detached digest mode success:
+| `schema_version` | Behavior |
+|------------------|----------|
+| `G-CBS-1.0` | Validate against v1.0 schema; skip v1.1 field validation |
+| `G-CBS-1.1` | Validate against v1.1 schema; enforce v1.1 fields and SG-3 |
+
+---
+
+## 6. Backward Compatibility
+
+| Aspect | Guarantee |
+|--------|-----------|
+| **V1.0 bundles** | All valid G-CBS-1.0 bundles pass validation unchanged |
+| **New fields** | `inputs[]`, `outputs[]`, `verification` are optional in v1.0 |
+| **Profile gates** | StepGate gates only fire when profile matches |
+
+---
+
+## 7. Builder Support
+
+The builder (`scripts/closure/build_closure_bundle.py`) supports v1.1 via:
+
+```bash
+python scripts/closure/build_closure_bundle.py \
+  --profile step_gate_closure \
+  --schema-version 1.1 \
+  --inputs-file inputs.txt \
+  --outputs-file outputs.txt \
+  --gates-file gates.json \
+  --deterministic \
+  --output bundle.zip
 ```
-Detached digest mode: true
-Sidecar digest path: <path>
-Sidecar digest verified: <sha256>
-```
 
-On payload compliance success:
-```
-Payload compliance: PASS
-Evidence roles verified: [validator_payload_pass]
-```
+| Argument | Format |
+|----------|--------|
+| `--inputs-file` | One line per entry: `path|sha256|role` |
+| `--outputs-file` | One line per entry: `path|sha256|role` |
+| `--gates-file` | JSON array of gate objects |
 
-### 6.2 Audit Report
+For `--schema-version 1.1` + `step_gate_closure` profile: at least one of `--inputs-file` or `--outputs-file` is required (fail-closed, no heuristics).
 
-| Mode | Bundle Hash Field |
-|------|-------------------|
-| Detached | `**Digest Strategy**: Detached (Sidecar Verified)` |
+---
+
+## 8. Implementation Files
+
+| Component | Path |
+|-----------|------|
+| **V1.1 Schema** | `schemas/closure_manifest_v1_1.json` |
+| **Validator** | `scripts/closure/validate_closure_bundle.py` |
+| **StepGate Profile** | `scripts/closure/profiles/step_gate_closure.py` |
+| **Builder** | `scripts/closure/build_closure_bundle.py` |
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
@@ -3799,8 +3828,10 @@ Evidence roles verified: [validator_payload_pass]
 
 # Intent Routing Rule v1.1
 
-**Status**: WIP (Non-Canonical)  
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+<!-- LIFEOS_TODO[P1][area: docs/02_protocols/Intent_Routing_Rule_v1.1.md][exit: status change to ACTIVE + DAP validate] Finalize Intent_Routing_Rule v1.1: Remove WIP/Provisional markers, set effective date -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
 **Effective**: TBD (Provisional)
 
 ---
@@ -3907,9 +3938,6 @@ CSO escalates to CEO when:
 When CSO handles (not escalates), the primary function is **not to decide**, but to enable decision. In order of preference:
 
 1. **Reframe** - Reformulate the question to dissolve the disagreement
-2. **Narrow** - Reduce the decision surface until consensus is reachable
-3. **Sequence** - Convert blocking decision into staged/reversible steps
-4. **Defer** - Identify what information would resolve it; pause until available
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
@@ -4111,13 +4139,277 @@ Increment when:
 
 ---
 
+# File: 02_protocols/Project_Planning_Protocol_v1.0.md
+
+# Implementation Plan Protocol v1.0
+
+**Status**: Active  
+**Authority**: Gemini System Protocol  
+**Version**: 1.0  
+**Effective**: 2026-01-12
+
+---
+
+## 1. Purpose
+
+To ensure all build missions in LifeOS are preceded by a structured, schema-compliant Implementation Plan that can be parsed, validated, and executed by automated agents (Recursive Kernel).
+
+## 2. Protocol Requirements
+
+### 2.1 Trigger Condition
+
+ANY "Build" mission (writing code, changing configuration, infrastructure work) MUST start with the creation (or retrieval) of an Implementation Plan.
+
+### 2.2 Naming Convention
+
+Plans must be stored in `artifacts/plans/` and follow the strict naming pattern:
+`PLAN_<TaskSlug>_v<Version>.md`
+
+- `<TaskSlug>`: Uppercase, underscore-separated (e.g., `OPENCODE_SANDBOX`, `FIX_CI_PIPELINE`).
+- `<Version>`: Semantic version (e.g., `v1.0`, `v1.1`).
+
+### 2.3 Schema Compliance
+
+All plans MUST adhere to `docs/02_protocols/implementation_plan_schema_v1.0.yaml`.
+Key sections include:
+
+1. **Header**: Metadata (Status, Version).
+2. **Context**: Why we are doing this.
+3. **Goals**: Concrete objectives.
+4. **Proposed Changes**: Table of files to Create/Modify/Delete.
+5. **Verification Plan**: Exact commands to run.
+6. **Risks & Rollback**: Safety measures.
+
+### 2.4 Lifecycle
+
+1. **DRAFT**: Agent creates initial plan.
+2. **REVIEW**: User (or Architect Agent) reviews.
+3. **APPROVED**: User explicitly approves (e.g. "Plan approved"). ONLY when Status is APPROVED can the Builder proceed to Execution.
+4. **OBSOLETE**: Replaced by a newer version.
+
+## 3. Enforcement
+
+### 3.1 AI Agent (Gemini)
+
+- **Pre-Computation**: Before writing code, the Agent MUST check for an APPROVED plan.
+- **Self-Correction**: If the user asks to build without a plan, the Agent MUST pause and propose: "I need to draft a PLAN first per Protocol v1.0."
+
+### 3.2 Automated Validation
+
+- Future state: `scripts/validate_plan.py` will run in CI/pre-build to reject non-compliant plans.
+
+---
+**Template Reference**:
+See `docs/02_protocols/implementation_plan_schema_v1.0.yaml` for structural details.
+
+
+---
+
+# File: 02_protocols/TODO_Standard_v1.0.md
+
+# TODO Standard v1.0
+
+**Version:** 1.0
+**Date:** 2026-01-13
+**Author:** Antigravity
+**Status:** ACTIVE
+
+---
+
+## 1. Purpose
+
+Define a structured TODO tagging system for LifeOS that makes the codebase the single source of truth for backlog management. TODOs live where work happens, with fail-loud enforcement for P0 items.
+
+---
+
+## 2. Canonical Tag Format
+
+### Basic Format
+
+```
+LIFEOS_TODO[P0|P1|P2][area: <path>:<symbol>][exit: <exact command>] <what>
+```
+
+### Fail-Loud Format (P0 Only)
+
+```
+LIFEOS_TODO![P0][area: <path>:<symbol>][exit: <exact command>] <what>
+```
+
+### Components
+
+| Component | Required | Description | Example |
+|-----------|----------|-------------|---------|
+| `LIFEOS_TODO` | ✅ | Tag identifier (never use generic `TODO`) | `LIFEOS_TODO` |
+| `!` | Optional | Fail-loud marker (P0 only; must raise exception) | `LIFEOS_TODO!` |
+| `[P0\|P1\|P2]` | ✅ | Priority level | `[P0]` |
+| `[area: ...]` | Recommended | Code location (path:symbol) | `[area: runtime/cli.py:cmd_status]` |
+| `[exit: ...]` | ✅ | Verification command | `[exit: pytest runtime/tests/test_cli.py]` |
+| Description | ✅ | What needs to be done | `Implement config validation` |
+
+---
+
+## 3. Priority Levels
+
+### P0: Critical
+
+**Definition:** Correctness or safety risk if incomplete or silently bypassed
+
+**Characteristics:**
+- Blocking production use
+- Could cause data loss, security issues, or silent failures
+- Must be addressed before claiming "done" on related feature
+
+**Fail-Loud Requirement:**
+- If code path can be reached, MUST raise exception
+- Pattern: `raise NotImplementedError("LIFEOS_TODO![P0][area: ...][exit: ...] ...")`
+- Exception message MUST include the full TODO header
+
+**Example:**
+```python
+def process_sensitive_data(data):
+    # LIFEOS_TODO![P0][area: runtime/data.py:process_sensitive_data][exit: pytest runtime/tests/test_data.py] Implement encryption
+    raise NotImplementedError(
+        "LIFEOS_TODO![P0][area: runtime/data.py:process_sensitive_data]"
+        "[exit: pytest runtime/tests/test_data.py] Implement encryption"
+    )
+```
+
+### P1: High Priority
+
+**Definition:** Important but not safety-critical
+
+**Characteristics:**
+- Degrades user experience or maintainability
+- Should be addressed soon
+- Can ship without completing if documented
+
+**Example:**
+```python
+# LIFEOS_TODO[P1][area: runtime/config.py:load_config][exit: pytest runtime/tests/test_config.py] Add schema validation for nested objects
+def load_config(path):
+    # ... basic validation only
+    pass
+```
+
+### P2: Polish
+
+**Definition:** Cleanup, documentation, or minor improvements
+
+**Characteristics:**
+- Nice to have
+- Low impact if deferred
+- Technical debt reduction
+
+**Example:**
+```python
+# LIFEOS_TODO[P2][area: runtime/utils.py][exit: pytest runtime/tests/test_utils.py] Refactor shared validation logic into helper
+def validate_input_a(data):
+    # ... duplicated validation logic
+    pass
+```
+
+---
+
+## 4. Optional Body Format
+
+Keep bodies tight (2-6 lines max). Use only when context is needed.
+
+```python
+# LIFEOS_TODO[P1][area: runtime/missions/build.py:run][exit: pytest runtime/tests/test_build_mission.py] Add incremental build support
+# Why: Full rebuilds are slow for large projects
+# Done when:
+#   - Cache previous compilation outputs
+#   - Detect changed files and rebuild only those
+#   - Tests pass with incremental builds
+```
+
+**Sections:**
+- **Why:** One sentence explaining rationale
+- **Done when:** 1-3 bullets defining completion criteria
+- **Notes:** (Optional) Additional context or constraints
+
+---
+
+## 5. Fail-Loud Stub Requirements
+
+### When Required
+
+Fail-loud stubs (using `LIFEOS_TODO!`) are REQUIRED for P0 TODOs where:
+1. The incomplete code path can be reached during normal operation
+2. Silent bypass could cause correctness or safety issues
+3. The function/method is part of a public API or called by other modules
+
+### When NOT Required
+
+Fail-loud stubs are NOT required when:
+- Code path is unreachable (dead code, commented out, etc.)
+- P1 or P2 priority
+- Function is clearly marked as a placeholder in documentation
+
+### Implementation Pattern
+
+```python
+def incomplete_function(params):
+    """
+    Function description.
+
+    LIFEOS_TODO![P0][area: module.py:incomplete_function][exit: pytest tests/test_module.py] Complete implementation
+    """
+    raise NotImplementedError(
+        "LIFEOS_TODO![P0][area: module.py:incomplete_function]"
+        "[exit: pytest tests/test_module.py] Complete implementation"
+    )
+```
+
+---
+
+## 6. Inventory and Discovery
+
+### Canonical Tool
+
+Use `scripts/todo_inventory.py` for ALL TODO searching:
+
+```bash
+# View all TODOs (Markdown)
+python scripts/todo_inventory.py
+
+# View as JSON
+python scripts/todo_inventory.py --json
+
+# Filter by priority
+python scripts/todo_inventory.py --priority P0
+```
+
+### Never Use Generic Grep
+
+❌ **WRONG:**
+```bash
+grep -r "TODO" .
+```
+
+✅ **CORRECT:**
+```bash
+python scripts/todo_inventory.py
+```
+
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
 # File: 02_protocols/Test_Protocol_v2.0.md
 
 # Test Protocol v2.0
 
-**Status**: WIP (Non-Canonical)  
-**Authority**: LifeOS Constitution v2.0 → Core TDD Principles v1.0  
-**Effective**: 2026-01-07 (Provisional)  
+<!-- LIFEOS_TODO[P1][area: docs/02_protocols/Test_Protocol_v2.0.md][exit: status change to ACTIVE + DAP validate] Finalize Test_Protocol v2.0: Remove WIP/Provisional markers -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: LifeOS Constitution v2.0 → Core TDD Principles v1.0
+**Effective**: 2026-01-07 (Provisional)
 **Supersedes**: Test Protocol v1.0
 
 ---
@@ -4180,12 +4472,6 @@ Pattern: `test_<module>_<behaviour>_<condition>`
 Example: `test_orchestrator_execute_fails_on_envelope_violation`
 
 ---
-
-## 7. Markers
-
-| Marker | Purpose |
-|--------|---------|
-| cold_start | Tests that measure cold start (first-run) performance, init times, or cold invocation behavior |
 
 **END OF PROTOCOL**
 
@@ -4552,6 +4838,109 @@ review_packet_schema:
 
 ---
 
+# File: 02_protocols/guides/plan_writing_guide.md
+
+# How to Write a Plan that Passes Preflight (PLAN_PACKET)
+
+## 1. Structure is Strict
+
+Your plan **must** follow the exact section order:
+
+1. `Scope Envelope`
+2. `Proposed Changes`
+3. `Claims`
+4. `Targets`
+5. `Validator Contract`
+6. `Verification Matrix`
+7. `Migration Plan`
+8. `Governance Impact`
+
+**Failure Code**: `PPV002`
+
+## 2. Claims Need Evidence
+
+If you make a `policy_mandate` or `canonical_path` claim, you **must** provide an Evidence Pointer.
+
+* **Format**: `path/to/file:L10-L20` or `path#sha256:HEX` or `N/A(reason)` (proposals only).
+* **Invalid**: `N/A`, `Just trust me`, `See existing code`.
+
+**Failure Code**: `PPV003`, `PPV004`
+
+## 3. Targets via Discovery
+
+Do not hardcode paths unless strictly necessary. Use discovery queries in your execution steps, but if you must use `fixed_path` in a target, you must back it up with a `canonical_path` claim.
+
+## 4. Validator Contract
+
+You must explicitly confirm the output format:
+
+```markdown
+# Validator Contract
+- **Output Format**: PASS/FAIL
+- **Failure Codes**: ...
+```
+
+**Failure Code**: `PPV007`
+
+
+---
+
+# File: 02_protocols/implementation_plan_schema_v1.0.yaml
+
+# IMPL_PLAN Schema v1.0
+# ========================
+# Defines the structure for artifacts/plans/PLAN_<Slug>_v<Version>.md
+# Used by Planner Agents and Validation Scripts.
+
+schema_version: "1.0"
+filename_pattern: "PLAN_[A-Z0-9_]+_v[0-9]+\.[0-9]+\.md"
+target_dir: "artifacts/plans"
+
+required_sections:
+  header:
+    description: "Metadata block"
+    fields:
+      - title
+      - status: [DRAFT, FINAL, APPROVED, OBSOLETE]
+      - version: "X.Y"
+      - authors: [list]
+  
+  context:
+    description: "Background and Motivation"
+    min_length: 50
+
+  goals:
+    description: "Specific objectives of this build"
+    format: "bullet_list"
+    min_items: 1
+
+  proposed_changes:
+    description: "File-level changes"
+    format: "markdown_table"
+    columns: [file, operation, description]
+    allowed_operations: [CREATE, MODIFY, DELETE, RENAME]
+
+  verification_plan:
+    description: "How to prove success"
+    subsections:
+      - automated_tests
+      - manual_verification
+
+  risks:
+    description: "Potential issues and mitigations"
+
+  rollback:
+    description: "How to revert if failed"
+
+validation_rules:
+  - "Filename must match pattern"
+  - "Status must be valid"
+  - "All required sections must be present"
+  - "Proposed changes must use absolute or relative paths from repo root"
+
+
+---
+
 # File: 02_protocols/lifeos_packet_schemas_CURRENT.yaml
 
 *[Reference Pointer: Raw schema/example omitted for strategic clarity]*
@@ -4569,6 +4958,87 @@ review_packet_schema:
 # File: 02_protocols/lifeos_packet_templates_v1.yaml
 
 *[Reference Pointer: See full text in Universal Corpus for implementation details]*
+
+
+---
+
+# File: 02_protocols/lifeos_state_schema_v1.0.yaml
+
+# LIFEOS_STATE Schema v1.0
+# =========================
+# Defines the structure for docs/11_admin/LIFEOS_STATE.md
+# A stateless reader should be able to orient themselves fully from STATE.
+
+schema_version: "1.0"
+target_file: "docs/11_admin/LIFEOS_STATE.md"
+
+required_sections:
+  project_vision:
+    description: "1-5 sentences: What is LifeOS, what's the goal"
+    min_length: 50
+    max_length: 500
+
+  roadmap:
+    description: "Phase table with status markers"
+    format: "markdown_table"
+    columns: [phase, name, status, exit_criteria]
+    
+  current_phase:
+    description: "Active phase name + progress checklist"
+    format: "heading + checkbox_list"
+    
+  design_artifacts:
+    description: "Key docs for designing next stage"
+    format: "markdown_table"
+    min_items: 3
+    columns: [artifact, purpose]
+    
+  active_agents:
+    description: "Agent status table"
+    format: "markdown_table"
+    columns: [agent, status, entry_point, constraints]
+    
+  wip_slots:
+    description: "Work in progress items (max 2)"
+    max_items: 2
+    
+  blockers:
+    description: "Current blocking items"
+    
+  ceo_decisions:
+    description: "Pending CEO decisions (max 3)"
+    max_items: 3
+    
+  backlog_reference:
+    description: "Link to BACKLOG.md + priority summary"
+    required_link: "docs/11_admin/BACKLOG.md"
+
+optional_sections:
+  closed_actions:
+    description: "Recent completions (max 5)"
+    max_items: 5
+    
+  references:
+    description: "Key governance/architecture docs"
+    max_items: 10
+
+roadmap_status:
+  DONE: "✅"
+  IN_PROGRESS: "🔄"  
+  PENDING: "⏳"
+  BLOCKED: "🚫"
+
+constraints:
+  wip_max: 2
+  ceo_decisions_max: 3
+  closed_actions_max: 5
+  references_max: 10
+
+validation_rules:
+  - "Every roadmap phase must have a status marker"
+  - "Current phase must match an IN_PROGRESS phase in roadmap"
+  - "Design artifacts must be valid file paths"
+  - "Backlog summary counts must match BACKLOG.md"
 
 
 ---
@@ -4861,6 +5331,13 @@ Formal request for Council review of out-of-envelope changes that cannot be stew
 
 ---
 **END OF REQUEST**
+
+
+---
+
+# File: 02_protocols/templates/plan_packet_template.md
+
+*[Reference Pointer: See full text in Universal Corpus for implementation details]*
 
 
 ---
@@ -5261,7 +5738,6 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Kernel determinism is the substrate enabling autonomous execution loops; without it, no compounding leverage.
 
 **Components:**
-
 - Deterministic Orchestrator
 - Deterministic Builder
 - Deterministic Daily Loop
@@ -5279,7 +5755,6 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Establishes the runtime that will eventually be agentic; still Core because it directly increases execution capacity under governance.
 
 **Components:**
-
 - Mission Registry
 - Config-driven entrypoints
 - Stable deterministic test harness
@@ -5293,7 +5768,6 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Directly reduces human bottlenecks and begins recursive self-maintenance, which is explicitly required by the Charter (autonomy expansion, user stays at intent layer).
 
 **Components:**
-
 - Recursive Builder / Recursive Kernel
 - Agentic Doc Steward (Antigrav integration)
 - Deterministic docmaps / hygiene missions
@@ -5315,7 +5789,6 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** This is the first true autonomy tier; creates compounding leverage. Fully aligned with autonomy, agency, and externalisation of cognition.
 
 **Components:**
-
 - Mission Synthesis Engine
 - Policy Engine v1 (execution-level governance)
 - Self-testing & provenance chain
@@ -5323,8 +5796,6 @@ These items directly increase the system's ability to execute, build, and improv
 - Human-in-loop governance via Fix Packs + Council Gates
 
 **Status:** All remain Core.
-
-**Milestone Completed (2026-01-11):** Tier-3 CLI & Config Loader Skeleton — Deterministic repo-root detection, global flag placement, and canonical JSON config output. Evidence: `artifacts/review_packets/Review_Packet_WIP1_Tier3_CLI_Config_Loader_Skeleton_v1.1.md`.
 
 **Note:** This is the first tier that produces meaningful external acceleration.
 
@@ -5335,7 +5806,6 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** Adds organisational-level autonomy and planning. Required for the system to run projects, not just missions, which increases output and reduces user involvement.
 
 **Components:**
-
 - Policy Engine v2
 - Mission Prioritisation Engine
 - Lifecycle Engine (birth → evaluation → archival)
@@ -5353,7 +5823,6 @@ These items directly increase the system's ability to execute, build, and improv
 **Justification:** This is the LifeOS vision tier; directly serves North Star: external impact, autonomy, leverage, compounding improvement.
 
 **Components:**
-
 - Recursive Strategic Engine
 - Recursive Governance Engine
 - Multi-Agent Operations Layer (LLMs, Antigrav, scripts, APIs)
@@ -5383,6 +5852,16 @@ None of the roadmap items listed in the original roadmap are explicitly Fuel. Ho
 ### Advisory or Implementation Services (Optional)
 
 **Justification:** Fuel to accelerate Core; not strategically central.
+
+**Status:** Future consideration.
+
+---
+
+**Flag:** Fuel items must never interrupt or delay Core. They are not present in the canonical roadmap, so no deprioritisation required.
+
+---
+
+## 3. PLUMBING TRACK
 
 
 > [!IMPORTANT]
