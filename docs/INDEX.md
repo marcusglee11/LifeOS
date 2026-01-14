@@ -1,4 +1,4 @@
-# LifeOS Documentation Index — Last Updated: 2026-01-11T12:48:00 (Timestamp Marker 10)
+# LifeOS Strategic Corpus [Last Updated: 2026-01-14 (Phase A Loop Controller Implemented)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -163,6 +163,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](./03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) | **Current roadmap** — Core/Fuel/Plumbing tracks |
 | [LifeOS_Recursive_Improvement_Architecture_v0.2.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md) | Recursive improvement architecture |
 | [LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](./03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md) | Future router and executor adapter spec |
+| [LifeOS_Plan_SelfBuilding_Loop_v2.2.md](./03_runtime/LifeOS_Plan_SelfBuilding_Loop_v2.2.md) | **Plan**: Self-Building LifeOS — CEO Out of the Execution Loop (Milestone) |
 
 ### Work Plans & Fix Packs
 
@@ -196,11 +197,11 @@ LifeOS Constitution v2.0 (Supreme)
 
 ---
 
-## 07_productisation — Productisation & Marketing
+## 12_productisation — Productisation & Marketing
 
 | Document | Purpose |
 |----------|---------|
-| [An_OS_for_Life.mp4](./07_productisation/assets/An_OS_for_Life.mp4) | **Promotional Video** — An introduction to LifeOS |
+| [An_OS_for_Life.mp4](./12_productisation/assets/An_OS_for_Life.mp4) | **Promotional Video** — An introduction to LifeOS |
 
 ---
 
