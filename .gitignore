@@ -1,3 +1,60 @@
-__pycache__/ 
-*.pyc 
-.env 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.eggs/
+*.egg-info/
+*.egg
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment
+.env
+.env.local
+
+# IDE / Editor
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# Obsidian
+docs/.obsidian/
+
+# Logs
+logs/
+*.log
+pytest_debug.log
+
+# Artifacts (generated, not source)
+artifacts/
+Bundle_*.zip
+
+# Test outputs
+tests/fixtures/
+test_*.json
+test_*.txt
+*_report.json
+*_report.md
+
+# Temporary files
+temp_*/
+temp_*.txt
+*.patch
+broken_links.txt
+test_output.txt
+test_run_log.txt
+test_evidence.txt
+gate_*.log
+scoped*.patch
+
+# Database files
+*.db
