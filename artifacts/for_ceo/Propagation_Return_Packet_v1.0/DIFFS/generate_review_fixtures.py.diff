@@ -1,0 +1,31 @@
+diff --git a/scripts/generate_review_fixtures.py b/scripts/generate_review_fixtures.py
+index 6ab7d3b..025fe38 100644
+--- a/scripts/generate_review_fixtures.py
++++ b/scripts/generate_review_fixtures.py
+@@ -61,8 +61,9 @@ S
+ |---|---|---|---|
+ 
+ # Acceptance Criteria
+-| C | S | E | H |
+-|---|---|---|---|
++| ID | Criterion | Status | Evidence Pointer | SHA-256 |
++|---|---|---|---|---|
++| AC1 | Criteria Description | PASS | logs/run.txt:L10 | 74BBF6A08C5D37968F77E48C28AB5F19E960140A368A3ABB6F4826B806D316BE |
+ 
+ # Closure Evidence Checklist
+ | Category | Requirement | Verified |
+@@ -83,11 +84,11 @@ FILES = {
+     "pass_01.md": BASE,
+     "fail_RPV001.md": BASE.replace("# Scope Envelope", ""),
+     "fail_RPV002.md": BASE.replace("# Summary", "# Scope Envelope").replace("# Scope Envelope", "# Summary", 1),
+-    "fail_RPV003.md": BASE.replace(r"| Status | Evidence Pointer |", "| Status | |"), # Missing Evidence Pointer column
+-    "fail_RPV004.md": BASE.replace(r"| [PASS] |", r"| [PASS] | bad_pointer |"), # Bad grammar
++    "fail_RPV003.md": BASE.replace(r"| Status | Evidence Pointer |", "| Status | |"), 
++    "fail_RPV004.md": BASE.replace("logs/run.txt:L10", "bad pointer"), 
+     "fail_RPV005.md": BASE.replace("| **Provenance** |", "| **Missing** |"),
+     "fail_RPV006.md": BASE.replace("| [Hash] |", "| |"),
+-    "fail_YPV013.md": BASE.replace('closure_evidence: {}', '') # was fail_11_yaml, now YPV013 per plan
++    "fail_YPV013.md": BASE.replace('closure_evidence: {}', '') 
+ }
+ 
+ sorted_filenames = sorted(FILES.keys())

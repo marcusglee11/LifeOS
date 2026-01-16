@@ -22,7 +22,7 @@ Persist a canonical LifeOS artefact into the repo, update registry/index, commit
 ### 1. Resolve Paths
 - Compute `repo_root`, `brain_root`, `docs_root`.
 - `registry_path` = `docs/00_foundations/CANONICAL_REGISTRY.yaml`
-- `index_path` = `docs/INDEX_v1.1.md` (or current index)
+- `index_path` = `docs/INDEX.md` (or current index)
 
 ### 2. Write Artefact
 - Write `content` to `docs/<relative_repo_path>`.
@@ -55,3 +55,4 @@ Persist a canonical LifeOS artefact into the repo, update registry/index, commit
 
 ### 7. Summary
 - Emit summary confirming stewardship and sync.
+

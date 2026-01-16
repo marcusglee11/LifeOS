@@ -3,7 +3,7 @@
 **Authority**: AI Governance Council  
 **Date**: 2025-12-10  
 **Scope**: Tier-2.5 Maintenance Missions  
-**Status**: Non-Blocking for Tier-2 Certification and Tier-2.5 Activation
+**Status**: **Tier-2.5 Active (Phase 1 Complete)**
 
 ---
 
@@ -25,7 +25,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 
 ---
 
-## F2 — API Evolution & Versioning Strategy (Claude – Architect)
+## F2 — API Evolution & Versioning Strategy (Claude – Architect) [COMPLETED]
 
 **Objective**: Create a short Tier-3-facing document / section:
 - Describing versioning for Tier-2 interfaces (e.g. `TestRunResult`, `run_test_run_from_config`).
@@ -38,7 +38,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 
 ---
 
-## F3 — Tier-2.5 Activation Conditions Checklist (Claude – Alignment)
+## F3 — Tier-2.5 Activation Conditions Checklist (Claude – Alignment) [COMPLETED]
 
 **Objective**: Add a formal checklist to the Tier-2.5 governance doc / CRP addendum, containing at minimum:
 - Tier-2 tests = 100% pass.
@@ -54,7 +54,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 
 ---
 
-## F4 — Tier-2.5 Deactivation & Rollback Conditions (Claude – Alignment)
+## F4 — Tier-2.5 Deactivation & Rollback Conditions (Claude – Alignment) [COMPLETED]
 
 **Objective**: Define explicit conditions that trigger downgrading/suspending Tier-2.5:
 - Drop in test pass rate.
@@ -93,7 +93,7 @@ To respect all identified nits while not blocking activation, Council adopts the
 
 ---
 
-## F7 — Runtime ↔ Antigrav Mission Protocol (DeepSeek – Red-Team, Gemini – Autonomy)
+## F7 — Runtime ↔ Antigrav Mission Protocol (DeepSeek – Red-Team, Gemini – Autonomy) [COMPLETED]
 
 **Objective**: Draft a Tier-2.5 protocol document specifying:
 - Which Tier-2 entrypoints Antigrav may call.
@@ -110,10 +110,10 @@ To respect all identified nits while not blocking activation, Council adopts the
 
 ## Execution Order
 
-### Phase 1 — Critical Governance (First Tier-2.5 Missions)
-1. **F3** — Activation Conditions Checklist
-2. **F4** — Deactivation & Rollback Conditions
-3. **F7** — Runtime ↔ Antigrav Mission Protocol
+### Phase 1 — Critical Governance (First Tier-2.5 Missions) [COMPLETED]
+1. **F3** — Activation Conditions Checklist (Done)
+2. **F4** — Deactivation & Rollback Conditions (Done)
+3. **F7** — Runtime ↔ Antigrav Mission Protocol (Done)
 
 ### Phase 2 — Documentation & Cleanup
 4. **F2** — API Evolution & Versioning Strategy
@@ -128,3 +128,4 @@ To respect all identified nits while not blocking activation, Council adopts the
 All items F1–F7 are **non-blocking** for Tier-2 certification and Tier-2.5 activation, but are adopted as **binding follow-up work** for Tier-2.5.
 
 Completion of F3, F4, and F7 is required before full-scale Tier-2.5 operations commence.
+

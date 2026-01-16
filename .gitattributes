@@ -1,0 +1,2 @@
+# Enforce LF for governance indices to ensure stable SHA256 hashing
+docs/01_governance/*.json text eol=lf

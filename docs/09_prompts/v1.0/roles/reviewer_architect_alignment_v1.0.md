@@ -63,3 +63,4 @@ Escalate these explicitly to the user.
 - Do not add new requirements not implied by the packet.
 - Do not fill gaps using speculative assumptions.
 - Do not drift into low-level implementation details except to illustrate structural issues.
+

@@ -3,7 +3,7 @@
 A living record of working preferences, friction points, and behavioural refinements. It adds nuance to the COO Operating Contract but does not override it.
 
 ## 1. Purpose
-Refine the COO’s behaviour based on Sir’s preferences.
+Refine the COO's behaviour based on the CEO's preferences.
 
 ## 2. Working Preferences
 

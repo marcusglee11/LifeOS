@@ -1,0 +1,4 @@
+Command: python scripts\closure\validate_bundle_preflight_gate.py fail_bpg007.zip
+CWD: C:\Users\cabra\Projects\LifeOS
+
+FAIL BPG007: validator output contract drift detected (expected PASS or 'FAIL <CODE>: <MESSAGE>'). Found: 'NOTE: Extra Info'

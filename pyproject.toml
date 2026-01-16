@@ -1,1 +1,11 @@
 # Project Metadata
+
+[project]
+name = "lifeos"
+version = "0.1.0"
+
+[project.scripts]
+lifeos = "runtime.cli:main"
+
+[tool.setuptools]
+packages = ["runtime", "recursive_kernel", "doc_steward", "opencode_governance", "project_builder"]

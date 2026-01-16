@@ -1,0 +1,143 @@
+# Loop Policy Configuration v1.0
+# Canonical source for Phase B policy decisions
+# Changes to this file require full loop acceptance test pass
+
+schema_version: "1.0"
+
+# Metadata for determinism tracking
+policy_metadata:
+  version: "phase_b_v1.0"
+  effective_date: "2026-01-14"
+  author: "COO"
+  description: "Configurable policy for autonomous build loop Phase B"
+
+# Budget Configuration (moved from hardcoded)
+budgets:
+  max_attempts: 5
+  max_tokens: 100000
+  max_wall_clock_minutes: 30
+  max_diff_lines_per_attempt: 300
+
+  # Phase B: Configurable per-failure-class retry limits
+  retry_limits:
+    TEST_FAILURE: 3
+    SYNTAX_ERROR: 0          # Fail-closed
+    TIMEOUT: 1               # Single retry
+    VALIDATION_ERROR: 0      # Fail-closed
+    REVIEW_REJECTION: 3
+    DEPENDENCY_ERROR: 2      # Phase B addition
+    ENVIRONMENT_ERROR: 1     # Phase B addition
+    TOOL_INVOCATION_ERROR: 1 # Phase B addition
+    CONFIG_ERROR: 0          # Fail-closed
+    GOVERNANCE_VIOLATION: 0  # Fail-closed
+    UNKNOWN: 0               # Fail-closed
+
+# Failure Classification Routing
+# IMPORTANT: Keys MUST be enum MEMBER NAMES (e.g., TEST_FAILURE), not value forms (e.g., test_failure)
+failure_routing:
+  TEST_FAILURE:
+    default_action: "RETRY"
+    terminal_on_retry_exhausted: true
+    terminal_outcome: "WAIVER_REQUESTED"  # Non-critical, offer waiver
+    terminal_reason: "MAX_RETRIES_EXCEEDED"
+
+  SYNTAX_ERROR:
+    default_action: "TERMINATE"
+    terminal_outcome: "BLOCKED"
+    terminal_reason: "CRITICAL_FAILURE"
+
+  TIMEOUT:
+    default_action: "RETRY"
+    terminal_on_retry_exhausted: true
+    terminal_outcome: "ESCALATION_REQUESTED"
+    terminal_reason: "TIMEOUT_RETRY_LIMIT"
+
+  VALIDATION_ERROR:
+    default_action: "TERMINATE"
+    terminal_outcome: "BLOCKED"
+    terminal_reason: "CRITICAL_FAILURE"
+
+  REVIEW_REJECTION:
+    default_action: "RETRY"
+    terminal_on_retry_exhausted: true
+    terminal_outcome: "ESCALATION_REQUESTED"
+    terminal_reason: "NON_CONVERGENCE"
+
+  DEPENDENCY_ERROR:
+    default_action: "RETRY"
+    terminal_on_retry_exhausted: true
+    terminal_outcome: "BLOCKED"
+    terminal_reason: "DEPENDENCY_UNAVAILABLE"
+
+  ENVIRONMENT_ERROR:
+    default_action: "RETRY"
+    terminal_on_retry_exhausted: true
+    terminal_outcome: "ESCALATION_REQUESTED"
+    terminal_reason: "ENVIRONMENT_ISSUE"
+
+  TOOL_INVOCATION_ERROR:
+    default_action: "RETRY"
+    terminal_on_retry_exhausted: true
+    terminal_outcome: "BLOCKED"
+    terminal_reason: "CRITICAL_FAILURE"
+
+  CONFIG_ERROR:
+    default_action: "TERMINATE"
+    terminal_outcome: "BLOCKED"
+    terminal_reason: "CRITICAL_FAILURE"
+
+  GOVERNANCE_VIOLATION:
+    default_action: "TERMINATE"
+    terminal_outcome: "ESCALATION_REQUESTED"
+    terminal_reason: "GOVERNANCE_ESCALATION"
+
+  UNKNOWN:
+    default_action: "TERMINATE"
+    terminal_outcome: "BLOCKED"
+    terminal_reason: "UNKNOWN_FAILURE"
+
+# Waiver Eligibility Rules
+waiver_rules:
+  # Criteria for offering WAIVER_REQUESTED vs ESCALATION/BLOCKED
+
+  eligible_failure_classes:
+    - TEST_FAILURE           # Non-critical failures eligible for waiver
+
+  ineligible_failure_classes:
+    - SYNTAX_ERROR           # Critical, never waivable
+    - VALIDATION_ERROR       # Governance violation, never waivable
+    - CONFIG_ERROR           # Configuration errors, never waivable
+    - GOVERNANCE_VIOLATION   # Governance violations, never waivable
+    - UNKNOWN                # Fail-closed, never waivable
+
+  # Conditions that trigger automatic escalation instead of waiver
+  escalation_triggers:
+    - governance_surface_touched: true
+    - protected_path_modified: true
+    - policy_changed_mid_run: true
+    - oscillation_detected: true
+
+# Progress Detection (Deadlock/Oscillation)
+progress_detection:
+  # Enable Phase A deadlock detection
+  no_progress_enabled: true
+  # Compare diff_hash between attempts
+  no_progress_lookback: 1  # Compare N to N-1
+
+  # Enable Phase A oscillation detection
+  oscillation_enabled: true
+  oscillation_lookback: 2  # Compare N to N-2
+
+  # Phase B: Enhanced pattern detection (future)
+  cycle_detection_enabled: false  # Future: A->B->C->A
+  cycle_lookback_max: 5
+
+# Determinism Configuration
+determinism:
+  # Policy hash computation method
+  hash_algorithm: "sha256"
+  # Include entire config file in hash
+  hash_full_config: true
+  # Fail-closed on policy change during run
+  policy_change_action: "ESCALATION_REQUESTED"
+  policy_change_reason: "POLICY_CHANGED_MID_RUN"

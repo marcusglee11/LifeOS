@@ -28,3 +28,4 @@ Apply the following:
    - If critical information is missing or inconsistent, stop and ask instead of guessing.
 
 Assume that **StepGate Protocol v1.0**, **Discussion Protocol v1.0**, and the relevant capability envelope apply.
+

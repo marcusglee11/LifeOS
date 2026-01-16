@@ -71,3 +71,4 @@ Trust the artefact where it contradicts hand-wavy descriptions, but call out the
 - Do not speculate beyond the packet and artefact.
 - Escalate missing context rather than guessing.
 - Maintain a neutral, analytic tone.
+

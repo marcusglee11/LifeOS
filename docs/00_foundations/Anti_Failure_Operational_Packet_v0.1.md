@@ -29,7 +29,7 @@ Construction-phase architectures that violate LifeOS principles
 
 This packet defines the spec, mechanisms, and activation plan required to stabilise the system and ensure LifeOS builds itself — not by placing more burden on the human, but by shifting that burden to agents.
 
-2. Core Principle: Human Preservation
+1. Core Principle: Human Preservation
 
 LifeOS shall treat the human as:
 
@@ -59,7 +59,7 @@ Clarifying ambiguity
 
 Any task that falls to the human outside these categories represents a system design failure.
 
-3. Spec (Conceptual Requirements)
+1. Spec (Conceptual Requirements)
 3.1 Requirements for LifeOS Stability
 
 LifeOS must guarantee the following:
@@ -100,7 +100,7 @@ Agents do not enforce minimal substrate invariants
 
 Human energy cycles cause operational collapse
 
-4. Mechanisms
+1. Mechanisms
 
 The following YAML describes concrete mechanisms that agents (Antigravity, Steward, Runtime) must implement or enforce.
 
@@ -143,6 +143,20 @@ mechanisms:
     monthly:
       - "Re-run substrate validation."
 
+1. Git Safety Invariant (The "Anti-Deletion" Rule)
+
+To prevent data loss during branch switching or recovery:
+
+1. **NEVER** use `git stash --include-untracked` (or `-u`) unless you are 100% certain you will pop the stash on the *exact same branch* immediately.
+2. **NEVER** implicitly trust Git to manage untracked/ignored files during a checkout.
+3. **MANDATORY PROTOCOL** for switching contexts with untracked files:
+    * **Identify**: Run `git status` to list untracked files.
+    * **Isolate**:
+        * Option A: Commit them to a temporary safety branch (e.g., `backup/safety_<timestamp>`).
+        * Option B: Move them physically outside the repository (e.g., `../temp_safety/`).
+    * **Verify**: Ensure the working directory is clean via `git clean -nfd` (dry run) before switching.
+4. **RECOVERY**: If a switch fails or hangs on deletion prompts, **ABORT** and answer 'n' to all deletion requests.
+
 5. Activation Plan (Actions → Measures → Outcomes)
 
 These are defined for agents first, human second.
@@ -162,23 +176,25 @@ actions:
     - "Approve or reject the 3 tasks selected for automation."
 
 measures:
-  - name: manual_file_ops_per_day
+
+* name: manual_file_ops_per_day
     target: "zero or trending toward zero"
-  - name: human_copy_paste_events
+* name: human_copy_paste_events
     target: "significant reduction over 14 days"
-  - name: substrate_stability
+* name: substrate_stability
     target: "no new primitives introduced"
-  - name: daily_loop_completion
+* name: daily_loop_completion
     target: ">= 5 of 7 days for initial cycle"
 
 outcomes:
-  - "The human performs dramatically fewer routine steps."
-  - "LifeOS becomes stable with a smaller operable core."
-  - "Agents own execution, maintenance, and file management."
-  - "Friction begins trending downward instead of upward."
-  - "The build phase becomes survivable and scalable."
 
-6. Ownership and Enforcement
+* "The human performs dramatically fewer routine steps."
+* "LifeOS becomes stable with a smaller operable core."
+* "Agents own execution, maintenance, and file management."
+* "Friction begins trending downward instead of upward."
+* "The build phase becomes survivable and scalable."
+
+1. Ownership and Enforcement
 
 Antigravity enforces build-time principles
 
@@ -188,7 +204,7 @@ Runtime enforces operational and complexity limits
 
 Human approves or redirects only
 
-7. Completion Criteria for v0.1
+1. Completion Criteria for v0.1
 
 This packet is considered “active” when:
 

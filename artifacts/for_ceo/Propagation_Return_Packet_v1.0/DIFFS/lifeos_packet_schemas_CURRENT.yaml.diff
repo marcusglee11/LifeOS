@@ -1,0 +1,12 @@
+diff --git a/docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml b/docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml
+index 1b69ac1..6a1d875 100644
+--- a/docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml
++++ b/docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml
+@@ -123,6 +123,7 @@ payloads:
+       - repro
+       - terminal_outcome
+       - closure_evidence
++    # Implementation Note: terminal_outcome MUST be PASS|BLOCKED|REJECTED per validator.
+ 
+   FIX_PACKET:
+     allow:

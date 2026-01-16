@@ -1,0 +1,307 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "G-CBS Closure Manifest v1.1",
+    "description": "Additive extension of G-CBS v1.0 with inputs[], outputs[], and verification.gates[]",
+    "type": "object",
+    "required": [
+        "schema_version",
+        "closure_id",
+        "closure_type",
+        "run_commit",
+        "created_at",
+        "commands",
+        "evidence",
+        "zip_sha256",
+        "invariants_asserted",
+        "profile",
+        "cycle_policy"
+    ],
+    "properties": {
+        "schema_version": {
+            "type": "string",
+            "const": "G-CBS-1.1"
+        },
+        "closure_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "closure_type": {
+            "type": "string",
+            "enum": [
+                "STEP_GATE_CLOSURE",
+                "COUNCIL_DONE",
+                "ACTIVATION",
+                "PROCESS_CLOSEOUT"
+            ]
+        },
+        "run_commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$|^UNKNOWN_COMMIT$"
+        },
+        "created_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "commands": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "evidence": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/evidence_item"
+            }
+        },
+        "zip_sha256": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{64}$"
+                },
+                {
+                    "type": "string",
+                    "const": "DETACHED_SEE_SIBLING_FILE"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "invariants_asserted": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "profile": {
+            "type": "object",
+            "required": [
+                "name",
+                "version"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "cycle_policy": {
+            "type": "object",
+            "required": [
+                "max_cycles",
+                "disposition"
+            ],
+            "properties": {
+                "max_cycles": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "disposition": {
+                    "type": "string",
+                    "enum": [
+                        "STRICT",
+                        "WAIVER_ALLOWED"
+                    ]
+                }
+            }
+        },
+        "waiver": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "waived_checks",
+                        "rationale",
+                        "risk_acceptance_owner",
+                        "repayment_trigger"
+                    ],
+                    "properties": {
+                        "waived_checks": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "rationale": {
+                            "type": "string"
+                        },
+                        "risk_acceptance_owner": {
+                            "type": "string"
+                        },
+                        "repayment_trigger": {
+                            "type": "string"
+                        },
+                        "debt_items": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "reason_code": {
+                                        "type": "string"
+                                    },
+                                    "score": {
+                                        "type": "integer"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "gcbs_standard_version": {
+            "type": "string",
+            "description": "Version of the G-CBS standard applied"
+        },
+        "activated_protocols_ref": {
+            "type": "string",
+            "description": "Repo-relative path to activated protocols index"
+        },
+        "activated_protocols_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$",
+            "description": "SHA-256 of the activated protocols index file"
+        },
+        "inputs": {
+            "type": "array",
+            "description": "Input artefacts consumed by this closure (v1.1 extension)",
+            "items": {
+                "$ref": "#/definitions/artefact_ref"
+            }
+        },
+        "outputs": {
+            "type": "array",
+            "description": "Output artefacts produced by this closure (v1.1 extension)",
+            "items": {
+                "$ref": "#/definitions/artefact_ref"
+            }
+        },
+        "verification": {
+            "type": "object",
+            "description": "Structured verification gate results (v1.1 extension)",
+            "required": [
+                "gates"
+            ],
+            "properties": {
+                "gates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/gate_result"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "safe_relative_path": {
+            "type": "string",
+            "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\.\\.)(?!.*\\\\)[^\\x00]+$",
+            "description": "Safe relative path: no absolute, no .., no drive prefixes, no backslashes"
+        },
+        "evidence_item": {
+            "type": "object",
+            "required": [
+                "path",
+                "sha256",
+                "role"
+            ],
+            "properties": {
+                "path": {
+                    "$ref": "#/definitions/safe_relative_path"
+                },
+                "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{64}$"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "raw_log",
+                        "exit_code",
+                        "packet",
+                        "inventory",
+                        "ledger",
+                        "diff",
+                        "state",
+                        "other",
+                        "validator_payload_pass",
+                        "validator_final_shipped"
+                    ]
+                }
+            }
+        },
+        "artefact_ref": {
+            "type": "object",
+            "required": [
+                "path",
+                "sha256"
+            ],
+            "properties": {
+                "path": {
+                    "$ref": "#/definitions/safe_relative_path"
+                },
+                "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{64}$"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "spec",
+                        "context",
+                        "config",
+                        "artifact",
+                        "report",
+                        "code",
+                        "other"
+                    ]
+                }
+            }
+        },
+        "gate_result": {
+            "type": "object",
+            "required": [
+                "id",
+                "status"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "PASS",
+                        "FAIL",
+                        "SKIP",
+                        "WAIVED"
+                    ]
+                },
+                "command": {
+                    "type": "string"
+                },
+                "exit_code": {
+                    "type": "integer"
+                },
+                "evidence_paths": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/safe_relative_path"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,11 @@
+=== Python Version ===
+Python 3.14.2
+
+=== Pytest Version ===
+pytest 9.0.2
+
+=== Git Commit ===
+869d1580a5aad934beae88a82bf81299c6dba5e4
+
+=== Branch ===
+gov/repoint-canon

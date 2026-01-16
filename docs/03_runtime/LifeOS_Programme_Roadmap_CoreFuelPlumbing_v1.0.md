@@ -69,7 +69,9 @@ These items directly increase the system's ability to execute, build, and improv
 - Recursion depth governance
 - Council-gated large revisions
 
-**Status:** All remain Core.
+**Status**: **ACTIVE / IN PROGRESS** (Activation Conditions [F3, F4, F7] satisfied)
+
+**Milestone Completed (2026-01-06):** OpenCode Phase 1 — Governance service skeleton + evidence capture verification. Evidence: `docs/03_runtime/OpenCode_Phase1_Approval_v1.0.md`.
 
 **Note:** No deprioritisation; this tier is central to eliminating "donkey work", a Charter invariant.
 
@@ -170,7 +172,7 @@ Plumbing is the minimal viable structure needed to keep Core safe and aligned.
 - Programme indexes & documentation invariants
   - **Justification:** Structural integrity; no external leverage on its own.
 
-**Status:** All remain Plumbing.
+**Status**: **IN PROGRESS** (Governance specs & indexing completed/active)
 
 ---
 
@@ -239,3 +241,4 @@ Anything not clearly contributing to external leverage, agency, autonomy, wealth
 ---
 
 **End of LifeOS Programme Roadmap — Core/Fuel/Plumbing v1.0**
+

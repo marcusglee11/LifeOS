@@ -36,10 +36,20 @@ def validate_index(repo_root: Path) -> list[str]:
         errors.append(f"Index file not found: {index_path}")
         return errors
 
+    # Check for CRLF line endings (must be LF only)
+    try:
+        with open(index_path, "rb") as f:
+            raw_bytes = f.read()
+            if b"\r\n" in raw_bytes:
+                errors.append("Index file contains CRLF line endings (must be LF only)")
+                return errors
+    except OSError as e:
+        errors.append(f"Could not read index file: {e}")
+        return errors
+
     # Parse JSON
     try:
-        with open(index_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.loads(raw_bytes.decode("utf-8"))
     except json.JSONDecodeError as e:
         errors.append(f"Invalid JSON in index file: {e}")
         return errors
@@ -69,6 +79,10 @@ def validate_index(repo_root: Path) -> list[str]:
 
     # Validate each artefact entry
     for artefact_id, artefact_path in artefacts.items():
+        # Skip comment keys (convention: keys starting with _)
+        if artefact_id.startswith("_"):
+            continue
+            
         prefix = f"[{artefact_id}]"
 
         # Validate ID
@@ -102,7 +116,7 @@ def validate_index(repo_root: Path) -> list[str]:
             continue
 
         # Check path starts with allowed docs directories
-        allowed_prefixes = ("docs/00_foundations/", "docs/01_governance/")
+        allowed_prefixes = ("docs/00_foundations/", "docs/01_governance/", "docs/02_protocols/", "docs/03_runtime/", "docs/LifeOS_")
         if not artefact_path.startswith(allowed_prefixes):
             errors.append(f"{prefix} Path must start with one of {allowed_prefixes}: {artefact_path}")
             continue

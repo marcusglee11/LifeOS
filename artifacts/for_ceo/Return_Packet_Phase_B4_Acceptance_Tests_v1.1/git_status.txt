@@ -1,0 +1,56 @@
+ M .claude/settings.local.json
+ M aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/artifacts/evidence/mission_runs/build_with_validation/4975a616868e79e8/smoke_check.exitcode
+ M aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/artifacts/evidence/mission_runs/build_with_validation/4975a616868e79e8/smoke_compile.exitcode
+ M bundle_list.txt
+ M docs/11_admin/BACKLOG.md
+ M docs/11_admin/LIFEOS_STATE.md
+ M docs/INDEX.md
+ M docs/LifeOS_Overview.md
+ D run_evidence.py
+ M runtime/orchestration/loop/ledger.py
+ M runtime/orchestration/loop/taxonomy.py
+ M runtime/orchestration/missions/autonomous_build_cycle.py
+ M runtime/tests/orchestration/missions/test_loop_acceptance.py
+ M scripts/closure/build_closure_bundle.py
+?? FIX_RETURN.md
+?? artifacts/Review_Packet_Phase_B_Self_Building_Loop_v1.0.md
+?? artifacts/closures/Bundle_Implement_DBS_BPG_v1.0.zip
+?? artifacts/closures/Bundle_Implement_DBS_BPG_v1.0.zip.sha256
+?? artifacts/for_ceo/Audit_Report_Repair_v1.0.md
+?? artifacts/for_ceo/Bundle_Review_Packet_Schema_Hardening_Repair_v1.0.zip
+?? artifacts/for_ceo/Bundle_Review_Packet_Schema_Hardening_Repair_v1.0.zip.sha256
+?? artifacts/for_ceo/CHANGES.diff
+?? artifacts/for_ceo/FIX_RETURN.md
+?? artifacts/for_ceo/Propagation_Return_Packet_v1.0/
+?? artifacts/for_ceo/Return_Packet_Phase_B4_Acceptance_Tests_v1.0/
+?? artifacts/for_ceo/Return_Packet_Phase_B4_Acceptance_Tests_v1.1/
+?? artifacts/for_ceo/Return_Packet_Phase_B_Activation_Readiness_v1.0/
+?? artifacts/plans/Plan_Phase_B4_Acceptance_Tests_v1.0.md
+?? artifacts/plans/Plan_Phase_B_Activation_Readiness_v1.2.md
+?? artifacts/plans/Plan_Phase_B_Activation_Readiness_v1.2c.md
+?? artifacts/review_packets/Review_Packet_Implement_DBS_BPG_v1.0.md
+?? artifacts/review_packets/Review_Packet_Phase_B1_Config_Policy_v1.0.md
+?? artifacts/review_packets/Review_Packet_Phase_B_Loop_Controller_v1.0.md
+?? artifacts/review_packets/Review_Packet_Phase_B_Loop_Controller_v1.1.md
+?? audit_report.md
+?? closure_evidence_temp/
+?? config/loop/
+?? evidence_manifest.txt
+?? runtime/orchestration/loop/checklists.py
+?? runtime/orchestration/loop/config_loader.py
+?? runtime/orchestration/loop/configurable_policy.py
+?? runtime/tests/orchestration/loop/test_checklists.py
+?? runtime/tests/orchestration/loop/test_config_loader.py
+?? runtime/tests/orchestration/loop/test_configurable_policy.py
+?? runtime/tests/orchestration/missions/test_loop_acceptance.py.backup
+?? runtime/tests/orchestration/missions/test_loop_waiver_workflow.py
+?? scripts/closure/tests/generate_closure_evidence.py
+?? scripts/closure/tests/generate_evidence_logs_v3.py
+?? scripts/closure/tests/test_closure_bundle_gate.py
+?? scripts/closure/validate_bundle_preflight_gate.py
+?? scripts/generate_plan_fixtures.py.bak
+?? scripts/generate_review_fixtures.py.bak
+?? scripts/loop/
+?? scripts/validate_plan_packet.py.bak
+?? scripts/validate_review_packet.py.bak
+?? test_waiver_fix.py

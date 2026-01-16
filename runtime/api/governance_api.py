@@ -3,8 +3,25 @@ FP-4.x CND-6: Governance API
 Read-only facade for governance interactions.
 """
 from typing import List, Dict, Any, Optional
+from pathlib import Path
 from runtime.governance.HASH_POLICY_v1 import HASH_ALGORITHM, hash_json
 from runtime.amu0.lineage import AMU0Lineage, LineageEntry
+
+# Re-export tool policy functions for use by runtime modules
+from runtime.governance.tool_policy import (
+    resolve_sandbox_root,
+    check_tool_action_allowed,
+    GovernanceUnavailable,
+    PolicyDenied,
+)
+
+__all__ = [
+    "GovernanceAPI",
+    "resolve_sandbox_root",
+    "check_tool_action_allowed",
+    "GovernanceUnavailable",
+    "PolicyDenied",
+]
 
 
 class GovernanceAPI:

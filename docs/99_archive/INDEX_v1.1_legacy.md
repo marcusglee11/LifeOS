@@ -41,7 +41,7 @@
 - [04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md](../04_project_builder/ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md)
 - [05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md](../05_agents/COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md)
 - [06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md](../06_user_surface/COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md)
-- [07_productisation/Productisation_Brief_v1.0.md](../07_productisation/Productisation_Brief_v1.0.md)
+- [12_productisation/Productisation_Brief_v1.0.md](../12_productisation/Productisation_Brief_v1.0.md)
 - [08_manuals/Governance_Runtime_Manual_v1.0.md](../08_manuals/Governance_Runtime_Manual_v1.0.md)
 - [09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md](../09_prompts/v1.0/initialisers/master_initialiser_universal_v1.0.md)
 - [09_prompts/v1.0/initialisers/master_initialiser_v1.0.md](../09_prompts/v1.0/initialisers/master_initialiser_v1.0.md)

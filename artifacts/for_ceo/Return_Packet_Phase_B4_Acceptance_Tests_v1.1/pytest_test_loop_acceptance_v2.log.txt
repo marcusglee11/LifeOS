@@ -1,0 +1,1053 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/projects/lifeos
+configfile: pytest.ini
+plugins: anyio-4.12.1
+collecting ... collected 20 items
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_crash_and_resume PASSED [  5%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_acceptance_oscillation PASSED [ 10%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_verify_terminal_packet_structure PASSED [ 15%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_diff_budget_exceeded PASSED [ 20%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_policy_changed_mid_run PASSED [ 25%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::test_workspace_reset_unavailable PASSED [ 30%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_approval_pass_via_waiver_approved FAILED [ 35%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_rejection_blocked_via_waiver_rejected FAILED [ 40%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_ineligible_failure_blocked FAILED [ 45%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_surface_touched_escalation_override FAILED [ 50%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_protected_path_escalation FAILED [ 55%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_violation_immediate_escalation FAILED [ 60%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_blocks_invalid_packet_emission PASSED [ 65%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_determinism_anchors_missing FAILED [ 70%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_governance_surface_scan_detected PASSED [ 75%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_invalid_terminal_outcome_blocks FAILED [ 80%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_missing_next_actions_fails PASSED [ 85%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_debt_registration_validated FAILED [ 90%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_CanonicalHashing::test_phaseb_policy_hash_canonical_crlf_lf_stability PASSED [ 95%]
+runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_CanonicalHashing::test_phaseb_policy_hash_bytes_differs_from_canonical PASSED [100%]
+
+=================================== FAILURES ===================================
+_ TestPhaseB_WaiverWorkflow.test_phaseb_waiver_approval_pass_via_waiver_approved _
+
+self = <test_loop_acceptance.TestPhaseB_WaiverWorkflow object at 0x7fa3866072f0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_waiver_approval_pa0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340311029616'>, <MagicMock name='BuildMission' id='140340309288832'>, <MagicMock name='ReviewMission' id='140340309539296'>, <MagicMock name='StewardMission' id='140340309248288'>)
+
+    def test_phaseb_waiver_approval_pass_via_waiver_approved(self, phaseb_context, mock_subs_phaseb):
+        """Waiver approval workflow results in PASS with WAIVER_APPROVED reason."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Force TEST_FAILURE classification by exhausting retries (4 attempts with rejection)
+        # Build returns different diffs to avoid oscillation
+        B.return_value.run.side_effect = [
+            MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": f"diff{i}"}, "diff_summary": f"Modified runtime/test{i}.py", "changed_files": [f"runtime/test{i}.py"]}}, evidence={"usage": {"total": 300}})
+            for i in range(4)
+        ]
+    
+        # Run mission - should emit WAIVER_REQUEST after exhausting retries
+        mission = AutonomousBuildCycleMission()
+>       result1 = mission.run(phaseb_context, {"task_spec": "waiver_approve_test"})
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:490: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+runtime/orchestration/missions/autonomous_build_cycle.py:322: in run
+    b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1134: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1138: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='BuildMission().run' id='140340309262208'>
+args = (MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_waiver_approval_pa0/repo'), baseline_c...ontext': 'Previous attempt failed: review_rejection. Rationale: Output rejected - needs improvement', 'goal': 'test'}})
+kwargs = {}, effect = <list_iterator object at 0x7fa3864c8b80>
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+>               result = next(effect)
+                         ^^^^^^^^^^^^
+E               StopIteration
+
+/usr/lib/python3.12/unittest/mock.py:1195: StopIteration
+_ TestPhaseB_WaiverWorkflow.test_phaseb_waiver_rejection_blocked_via_waiver_rejected _
+
+self = <test_loop_acceptance.TestPhaseB_WaiverWorkflow object at 0x7fa3866075f0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_waiver_rejection_b0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340309562752'>, <MagicMock name='BuildMission' id='140340309562896'>, <MagicMock name='ReviewMission' id='140340309625120'>, <MagicMock name='StewardMission' id='140340309629584'>)
+
+    def test_phaseb_waiver_rejection_blocked_via_waiver_rejected(self, phaseb_context, mock_subs_phaseb):
+        """Waiver rejection workflow results in BLOCKED with WAIVER_REJECTED reason."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Same setup - exhaust retries
+        B.return_value.run.side_effect = [
+            MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": f"diff{i}"}, "diff_summary": f"Modified runtime/test{i}.py", "changed_files": [f"runtime/test{i}.py"]}}, evidence={"usage": {"total": 300}})
+            for i in range(4)
+        ]
+    
+        mission = AutonomousBuildCycleMission()
+>       result1 = mission.run(phaseb_context, {"task_spec": "waiver_reject_test"})
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:540: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+runtime/orchestration/missions/autonomous_build_cycle.py:322: in run
+    b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1134: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1138: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='BuildMission().run' id='140340309561120'>
+args = (MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_waiver_rejection_b0/repo'), baseline_c...ontext': 'Previous attempt failed: review_rejection. Rationale: Output rejected - needs improvement', 'goal': 'test'}})
+kwargs = {}, effect = <list_iterator object at 0x7fa3865663e0>
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+>               result = next(effect)
+                         ^^^^^^^^^^^^
+E               StopIteration
+
+/usr/lib/python3.12/unittest/mock.py:1195: StopIteration
+___ TestPhaseB_WaiverWorkflow.test_phaseb_waiver_ineligible_failure_blocked ____
+
+self = <test_loop_acceptance.TestPhaseB_WaiverWorkflow object at 0x7fa3866078f0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_waiver_ineligible_0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340309181072'>, <MagicMock name='BuildMission' id='140340309193744'>, <MagicMock name='ReviewMission' id='140340309182944'>, <MagicMock name='StewardMission' id='140340309187408'>)
+
+    def test_phaseb_waiver_ineligible_failure_blocked(self, phaseb_context, mock_subs_phaseb):
+        """Ineligible failure class (SYNTAX_ERROR) blocks immediately without waiver."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Force SYNTAX_ERROR by setting retry_limit=0 and immediate termination
+        # Mock a single build attempt
+        B.return_value.run.return_value = MissionResult(
+            True, MissionType.BUILD,
+            outputs={"review_packet": {"payload": {"content": "syntax error diff"}, "diff_summary": "Modified runtime/broken.py", "changed_files": ["runtime/broken.py"]}},
+            evidence={"usage": {"total": 300}}
+        )
+    
+        # Override review to classify as SYNTAX_ERROR (by rejecting with syntax message)
+        def classify_syntax_error(ctx, inputs):
+            if inputs.get("review_type") == "build_review":
+                return MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {"synthesis": "Design OK"}}, evidence={"usage": {"total": 150}})
+            # Classify as syntax error via mission patching
+            # Since taxonomy classification happens in the loop, we'll force termination via budget
+            return MissionResult(True, MissionType.REVIEW, outputs={"verdict": "rejected", "council_decision": {"synthesis": "Syntax error"}}, evidence={"usage": {"total": 150}})
+    
+        R.return_value.run.side_effect = classify_syntax_error
+    
+        # Patch the policy to use SYNTAX_ERROR routing
+        mission = AutonomousBuildCycleMission()
+    
+        # Force immediate termination by exhausting budget
+        with patch("runtime.orchestration.missions.autonomous_build_cycle.BudgetController") as MockBudget:
+            MockBudget.return_value.check_budget.side_effect = [
+                (False, None),  # First check passes
+                (True, TerminalReason.BUDGET_EXHAUSTED.value)  # Second check fails
+            ]
+>           result = mission.run(phaseb_context, {"task_spec": "syntax_error_test"})
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <runtime.orchestration.missions.autonomous_build_cycle.AutonomousBuildCycleMission object at 0x7fa38647ecf0>
+context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_waiver_ineligible_0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+inputs = {'task_spec': 'syntax_error_test'}
+
+    def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
+        executed_steps: List[str] = []
+        total_tokens = 0
+    
+        # P0: Workspace Semantics - Fail Closed if Reset Unavailable
+        if not self._can_reset_workspace(context):
+             reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
+             # Note: ledger not yet initialized at this point
+             self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=None)
+             return self._make_result(success=False, escalation_reason=reason)
+    
+        # 1. Setup Infrastructure
+        ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
+        ledger = AttemptLedger(ledger_path)
+        budget = BudgetController()
+    
+        # Phase B: Config-Driven Policy (with Phase A fallback)
+        config_path = context.repo_root / "config/loop/policy_v1.0.yaml"
+        policy_version = None
+        policy_hash_canonical = None
+    
+        if config_path.exists():
+            # Phase B: Load config and use ConfigurableLoopPolicy
+            try:
+                config_loader = PolicyConfigLoader(config_path)
+                config = config_loader.load()
+                policy = ConfigurableLoopPolicy(config)
+                policy_version = config.policy_metadata.get("version", "unknown")
+                policy_hash_canonical = config.policy_hash_canonical
+                current_policy_hash = policy_hash_canonical  # Canonical hash for resume comparison
+            except PolicyConfigError as e:
+                # Config invalid - fail closed
+                reason = f"Config validation failed: {e}"
+                # Note: ledger not yet initialized at this point
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0, ledger=None)
+                return self._make_result(success=False, error=reason)
+        else:
+            # Phase A: Fallback to hardcoded policy (backward compatibility)
+            policy = LoopPolicy()
+            current_policy_hash = "phase_a_hardcoded_v1"
+    
+        # 2. Hydrate / Initialize Ledger
+        try:
+            is_resume = ledger.hydrate()
+            if is_resume:
+                # P0: Policy Hash Guard
+                if ledger.header["policy_hash"] != current_policy_hash:
+                    reason = TerminalReason.POLICY_CHANGED_MID_RUN.value
+                    self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=ledger)
+                    return self._make_result(
+                        success=False,
+                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}"
+                    )
+                executed_steps.append("ledger_hydrated")
+            else:
+                # Initialize
+                header_data = {
+                    "policy_hash": current_policy_hash,
+                    "handoff_hash": self._compute_hash(inputs),
+                    "run_id": context.run_id
+                }
+    
+                # Phase B: Add optional fields if using config
+                if policy_version:
+                    header_data["policy_version"] = policy_version
+                if policy_hash_canonical:
+                    header_data["policy_hash_canonical"] = policy_hash_canonical
+    
+                ledger.initialize(LedgerHeader(**header_data))
+                executed_steps.append("ledger_initialized")
+    
+        except LedgerIntegrityError as e:
+            return self._make_result(
+                success=False,
+                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}"
+            )
+    
+        # Phase B.3: Check for Waiver Decision (Resume After Waiver)
+        waiver_decision_path = context.repo_root / "artifacts/loop_state" / f"WAIVER_DECISION_{context.run_id}.json"
+        if waiver_decision_path.exists():
+            with open(waiver_decision_path, 'r', encoding='utf-8') as f:
+                waiver_decision = json.load(f)
+    
+            if waiver_decision["decision"] == "APPROVE":
+                # Waiver approved - terminate with PASS (WAIVER_APPROVED)
+                reason = TerminalReason.WAIVER_APPROVED.value
+                self._emit_terminal(TerminalOutcome.PASS, reason, context, total_tokens, ledger=ledger)
+                return self._make_result(
+                    success=True,
+                    outputs={"status": "waived", "debt_id": waiver_decision.get("debt_id")}
+                )
+    
+            elif waiver_decision["decision"] == "REJECT":
+                # Waiver rejected - terminate with BLOCKED (WAIVER_REJECTED)
+                reason = TerminalReason.WAIVER_REJECTED.value
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens, ledger=ledger)
+                return self._make_result(
+                    success=False,
+                    error=f"Waiver rejected by CEO: {waiver_decision.get('rationale', 'No rationale provided')}"
+                )
+    
+        # 3. Design Phase (Attempt 0) - Simplified for Phase A
+        # In a robust resume, we'd load this from disk.
+        # For Phase A, if resuming, we assume we can re-run design OR we stored it.
+        # Let's run design (idempotent-ish).
+        design = DesignMission()
+        d_res = design.run(context, inputs)
+        executed_steps.append("design_phase")
+    
+        if d_res.evidence.get("usage"):
+             total_tokens += d_res.evidence["usage"].get("total_tokens", 0) # total_tokens key might differ, checking api.py
+             # api.py usage has input_tokens, output_tokens.
+             u = d_res.evidence["usage"]
+             total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+        else:
+             # P0: Fail Closed if accounting missing
+             # But Design might be cached? or Stubbed?
+             # If Stubbed, usage might be missing.
+             # We should check if it was a real call.
+             pass
+    
+        if not d_res.success:
+            return self._make_result(success=False, error=f"Design failed: {d_res.error}")
+    
+        build_packet = d_res.outputs["build_packet"]
+    
+        # Design Review
+        review = ReviewMission()
+        r_res = review.run(context, {"subject_packet": build_packet, "review_type": "build_review"})
+        executed_steps.append("design_review")
+    
+        if r_res.evidence.get("usage"):
+             u = r_res.evidence["usage"]
+             total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+    
+        if not r_res.success or r_res.outputs.get("verdict") != "approved":
+             return self._make_result(
+                 success=False,
+                 escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}"
+             )
+    
+        design_approval = r_res.outputs.get("council_decision")
+    
+        # 4. Loop Execution
+        loop_active = True
+    
+        while loop_active:
+            # Determine Attempt ID
+            if ledger.history:
+                attempt_id = ledger.history[-1].attempt_id + 1
+            else:
+                attempt_id = 1
+    
+            # Budget Check
+            is_over, budget_reason = budget.check_budget(attempt_id, total_tokens)
+            if is_over:
+                # Emit Terminal Packet
+                self._emit_terminal(TerminalOutcome.BLOCKED, budget_reason, context, total_tokens, ledger=ledger)
+                return self._make_result(success=False, error=budget_reason) # Simplified return
+    
+            # Policy Check (Deadlock/Oscillation/Resume-Action)
+            result = policy.decide_next_action(ledger)
+    
+            # Handle both 2-tuple (Phase A) and 3-tuple (Phase B) return values
+            if len(result) == 2:
+                action, reason = result
+                terminal_override = None
+            else:
+                action, reason, terminal_override = result
+    
+            if action == LoopAction.TERMINATE.value:
+                # If policy says terminate, we stop.
+                # Map reason to TerminalOutcome
+                outcome = TerminalOutcome.BLOCKED
+    
+                # Phase B: Check for terminal_override first
+                if terminal_override:
+                    if terminal_override == "WAIVER_REQUESTED":
+                        outcome = TerminalOutcome.WAIVER_REQUESTED
+                    elif terminal_override == "ESCALATION_REQUESTED":
+                        outcome = TerminalOutcome.ESCALATION_REQUESTED
+                    elif terminal_override == "BLOCKED":
+                        outcome = TerminalOutcome.BLOCKED
+                    elif terminal_override == "PASS":
+                        outcome = TerminalOutcome.PASS
+                # Phase A: Fallback to reason-based mapping
+                elif reason == TerminalReason.PASS.value:
+                    outcome = TerminalOutcome.PASS
+                elif reason == TerminalReason.OSCILLATION_DETECTED.value:
+                    outcome = TerminalOutcome.ESCALATION_REQUESTED
+    
+                # Phase B.3: Emit waiver request if needed
+                if outcome == TerminalOutcome.WAIVER_REQUESTED:
+                    self._emit_waiver_request(context, ledger, reason, total_tokens)
+    
+                self._emit_terminal(outcome, reason, context, total_tokens, ledger=ledger)
+    
+                if outcome == TerminalOutcome.PASS:
+                    # Return success details
+                    # Get commit hash from last attempt (steward phase?)
+                    # Wait, policy terminates AFTER Pass.
+                    # We need to return the result.
+                    return self._make_result(success=True, outputs={"commit_hash": "FIXME"}) # Todo: get hash
+                else:
+                    return self._make_result(success=False, error=reason)
+    
+            # Execution (RETRY or First Run)
+            feedback = ""
+            if ledger.history:
+                last = ledger.history[-1]
+                feedback = f"Previous attempt failed: {last.failure_class}. Rationale: {last.rationale}"
+                # Inject feedback
+                build_packet["feedback_context"] = feedback
+    
+            # Build Mission
+            build = BuildMission()
+            b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
+            executed_steps.append(f"build_attempt_{attempt_id}")
+    
+            # Token Accounting (Fail Closed)
+            has_tokens = False
+            if b_res.evidence.get("usage"):
+                u = b_res.evidence["usage"]
+                total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+                has_tokens = True
+    
+            if not has_tokens:
+                # P0: Fail Closed on Token Accounting
+                reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+                self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=ledger)
+                return self._make_result(success=False, escalation_reason=reason)
+    
+            if not b_res.success:
+                # Internal mission error (crash?)
+                self._record_attempt(ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, "Build crashed")
+                continue
+    
+            review_packet = b_res.outputs["review_packet"]
+    
+            # P0: Diff Budget Check (BEFORE Apply/Review)
+            # Extracted from review_packet payload
+            content = review_packet.get("payload", {}).get("content", "")
+            lines = content.count('\n')
+    
+            # P0: Enforce limit (300 lines)
+            max_lines = 300 # Hardcoded P0 constraint
+>           over_diff, diff_reason = budget.check_diff_budget(lines, max_lines=max_lines)
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           ValueError: not enough values to unpack (expected 2, got 0)
+
+runtime/orchestration/missions/autonomous_build_cycle.py:352: ValueError
+_ TestPhaseB_GovernanceEscalation.test_phaseb_governance_surface_touched_escalation_override _
+
+self = <test_loop_acceptance.TestPhaseB_GovernanceEscalation object at 0x7fa386607c50>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_governance_surface0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340309197888'>, <MagicMock name='BuildMission' id='140340309198224'>, <MagicMock name='ReviewMission' id='140340309198944'>, <MagicMock name='StewardMission' id='140340309201056'>)
+
+    def test_phaseb_governance_surface_touched_escalation_override(self, phaseb_context, mock_subs_phaseb):
+        """Governance surface touched triggers ESCALATION_REQUESTED, overriding waiver."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Mock Build to return diff touching protected governance path
+        # Use actual protected path from protected_artefacts.json
+        B.return_value.run.side_effect = [
+            MissionResult(
+                True, MissionType.BUILD,
+                outputs={
+                    "review_packet": {
+                        "payload": {"content": f"diff{i}"},
+                        "diff_summary": "Modified docs/00_foundations/Constitution.md",
+                        "changed_files": ["docs/00_foundations/LifeOS_Constitution_v2.0.md"]
+                    }
+                },
+                evidence={"usage": {"total": 300}}
+            )
+            for i in range(4)
+        ]
+    
+        mission = AutonomousBuildCycleMission()
+>       result = mission.run(phaseb_context, {"task_spec": "governance_surface_test"})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:649: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+runtime/orchestration/missions/autonomous_build_cycle.py:322: in run
+    b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1134: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1138: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='BuildMission().run' id='140340309536032'>
+args = (MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_governance_surface0/repo'), baseline_c...ontext': 'Previous attempt failed: review_rejection. Rationale: Output rejected - needs improvement', 'goal': 'test'}})
+kwargs = {}, effect = <list_iterator object at 0x7fa386485030>
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+>               result = next(effect)
+                         ^^^^^^^^^^^^
+E               StopIteration
+
+/usr/lib/python3.12/unittest/mock.py:1195: StopIteration
+____ TestPhaseB_GovernanceEscalation.test_phaseb_protected_path_escalation _____
+
+self = <test_loop_acceptance.TestPhaseB_GovernanceEscalation object at 0x7fa386607f50>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_protected_path_esc0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340311027840'>, <MagicMock name='BuildMission' id='140340311021744'>, <MagicMock name='ReviewMission' id='140340311031728'>, <MagicMock name='StewardMission' id='140340309540832'>)
+
+    def test_phaseb_protected_path_escalation(self, phaseb_context, mock_subs_phaseb):
+        """Protected path modification triggers escalation."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Use another protected path from config
+        B.return_value.run.side_effect = [
+            MissionResult(
+                True, MissionType.BUILD,
+                outputs={
+                    "review_packet": {
+                        "payload": {"content": f"diff{i}"},
+                        "diff_summary": "Modified config/governance/protected_artefacts.json",
+                        "changed_files": ["config/governance/protected_artefacts.json"]
+                    }
+                },
+                evidence={"usage": {"total": 300}}
+            )
+            for i in range(4)
+        ]
+    
+        mission = AutonomousBuildCycleMission()
+>       result = mission.run(phaseb_context, {"task_spec": "protected_path_test"})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:688: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+runtime/orchestration/missions/autonomous_build_cycle.py:322: in run
+    b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1134: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1138: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='BuildMission().run' id='140340311018960'>
+args = (MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_protected_path_esc0/repo'), baseline_c...ontext': 'Previous attempt failed: review_rejection. Rationale: Output rejected - needs improvement', 'goal': 'test'}})
+kwargs = {}, effect = <list_iterator object at 0x7fa38646f4c0>
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+>               result = next(effect)
+                         ^^^^^^^^^^^^
+E               StopIteration
+
+/usr/lib/python3.12/unittest/mock.py:1195: StopIteration
+_ TestPhaseB_GovernanceEscalation.test_phaseb_governance_violation_immediate_escalation _
+
+self = <test_loop_acceptance.TestPhaseB_GovernanceEscalation object at 0x7fa386607e30>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_governance_violati0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340310211856'>, <MagicMock name='BuildMission' id='140340309251120'>, <MagicMock name='ReviewMission' id='140340309250688'>, <MagicMock name='StewardMission' id='140340309246752'>)
+
+    def test_phaseb_governance_violation_immediate_escalation(self, phaseb_context, mock_subs_phaseb):
+        """GOVERNANCE_VIOLATION failure class triggers immediate escalation (1 attempt only)."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Single build attempt before termination
+        B.return_value.run.return_value = MissionResult(
+            True, MissionType.BUILD,
+            outputs={"review_packet": {"payload": {"content": "violation"}, "diff_summary": "Attempted governance change", "changed_files": ["docs/01_governance/test.md"]}},
+            evidence={"usage": {"total": 300}}
+        )
+    
+        # Override review to trigger immediate failure
+        def immediate_governance_fail(ctx, inputs):
+            if inputs.get("review_type") == "build_review":
+                return MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {"synthesis": "OK"}}, evidence={"usage": {"total": 150}})
+            # Force immediate termination via patching
+            return MissionResult(True, MissionType.REVIEW, outputs={"verdict": "rejected", "council_decision": {"synthesis": "Governance violation"}}, evidence={"usage": {"total": 150}})
+    
+        R.return_value.run.side_effect = immediate_governance_fail
+    
+        mission = AutonomousBuildCycleMission()
+    
+        # Force immediate termination via budget
+        with patch("runtime.orchestration.missions.autonomous_build_cycle.BudgetController") as MockBudget:
+            MockBudget.return_value.check_budget.side_effect = [
+                (False, None),  # First check passes
+                (True, "governance_escalation")  # Second check triggers escalation
+            ]
+>           result = mission.run(phaseb_context, {"task_spec": "governance_violation_test"})
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:726: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <runtime.orchestration.missions.autonomous_build_cycle.AutonomousBuildCycleMission object at 0x7fa3868e5430>
+context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_governance_violati0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+inputs = {'task_spec': 'governance_violation_test'}
+
+    def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
+        executed_steps: List[str] = []
+        total_tokens = 0
+    
+        # P0: Workspace Semantics - Fail Closed if Reset Unavailable
+        if not self._can_reset_workspace(context):
+             reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
+             # Note: ledger not yet initialized at this point
+             self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=None)
+             return self._make_result(success=False, escalation_reason=reason)
+    
+        # 1. Setup Infrastructure
+        ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
+        ledger = AttemptLedger(ledger_path)
+        budget = BudgetController()
+    
+        # Phase B: Config-Driven Policy (with Phase A fallback)
+        config_path = context.repo_root / "config/loop/policy_v1.0.yaml"
+        policy_version = None
+        policy_hash_canonical = None
+    
+        if config_path.exists():
+            # Phase B: Load config and use ConfigurableLoopPolicy
+            try:
+                config_loader = PolicyConfigLoader(config_path)
+                config = config_loader.load()
+                policy = ConfigurableLoopPolicy(config)
+                policy_version = config.policy_metadata.get("version", "unknown")
+                policy_hash_canonical = config.policy_hash_canonical
+                current_policy_hash = policy_hash_canonical  # Canonical hash for resume comparison
+            except PolicyConfigError as e:
+                # Config invalid - fail closed
+                reason = f"Config validation failed: {e}"
+                # Note: ledger not yet initialized at this point
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0, ledger=None)
+                return self._make_result(success=False, error=reason)
+        else:
+            # Phase A: Fallback to hardcoded policy (backward compatibility)
+            policy = LoopPolicy()
+            current_policy_hash = "phase_a_hardcoded_v1"
+    
+        # 2. Hydrate / Initialize Ledger
+        try:
+            is_resume = ledger.hydrate()
+            if is_resume:
+                # P0: Policy Hash Guard
+                if ledger.header["policy_hash"] != current_policy_hash:
+                    reason = TerminalReason.POLICY_CHANGED_MID_RUN.value
+                    self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=ledger)
+                    return self._make_result(
+                        success=False,
+                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}"
+                    )
+                executed_steps.append("ledger_hydrated")
+            else:
+                # Initialize
+                header_data = {
+                    "policy_hash": current_policy_hash,
+                    "handoff_hash": self._compute_hash(inputs),
+                    "run_id": context.run_id
+                }
+    
+                # Phase B: Add optional fields if using config
+                if policy_version:
+                    header_data["policy_version"] = policy_version
+                if policy_hash_canonical:
+                    header_data["policy_hash_canonical"] = policy_hash_canonical
+    
+                ledger.initialize(LedgerHeader(**header_data))
+                executed_steps.append("ledger_initialized")
+    
+        except LedgerIntegrityError as e:
+            return self._make_result(
+                success=False,
+                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}"
+            )
+    
+        # Phase B.3: Check for Waiver Decision (Resume After Waiver)
+        waiver_decision_path = context.repo_root / "artifacts/loop_state" / f"WAIVER_DECISION_{context.run_id}.json"
+        if waiver_decision_path.exists():
+            with open(waiver_decision_path, 'r', encoding='utf-8') as f:
+                waiver_decision = json.load(f)
+    
+            if waiver_decision["decision"] == "APPROVE":
+                # Waiver approved - terminate with PASS (WAIVER_APPROVED)
+                reason = TerminalReason.WAIVER_APPROVED.value
+                self._emit_terminal(TerminalOutcome.PASS, reason, context, total_tokens, ledger=ledger)
+                return self._make_result(
+                    success=True,
+                    outputs={"status": "waived", "debt_id": waiver_decision.get("debt_id")}
+                )
+    
+            elif waiver_decision["decision"] == "REJECT":
+                # Waiver rejected - terminate with BLOCKED (WAIVER_REJECTED)
+                reason = TerminalReason.WAIVER_REJECTED.value
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens, ledger=ledger)
+                return self._make_result(
+                    success=False,
+                    error=f"Waiver rejected by CEO: {waiver_decision.get('rationale', 'No rationale provided')}"
+                )
+    
+        # 3. Design Phase (Attempt 0) - Simplified for Phase A
+        # In a robust resume, we'd load this from disk.
+        # For Phase A, if resuming, we assume we can re-run design OR we stored it.
+        # Let's run design (idempotent-ish).
+        design = DesignMission()
+        d_res = design.run(context, inputs)
+        executed_steps.append("design_phase")
+    
+        if d_res.evidence.get("usage"):
+             total_tokens += d_res.evidence["usage"].get("total_tokens", 0) # total_tokens key might differ, checking api.py
+             # api.py usage has input_tokens, output_tokens.
+             u = d_res.evidence["usage"]
+             total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+        else:
+             # P0: Fail Closed if accounting missing
+             # But Design might be cached? or Stubbed?
+             # If Stubbed, usage might be missing.
+             # We should check if it was a real call.
+             pass
+    
+        if not d_res.success:
+            return self._make_result(success=False, error=f"Design failed: {d_res.error}")
+    
+        build_packet = d_res.outputs["build_packet"]
+    
+        # Design Review
+        review = ReviewMission()
+        r_res = review.run(context, {"subject_packet": build_packet, "review_type": "build_review"})
+        executed_steps.append("design_review")
+    
+        if r_res.evidence.get("usage"):
+             u = r_res.evidence["usage"]
+             total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+    
+        if not r_res.success or r_res.outputs.get("verdict") != "approved":
+             return self._make_result(
+                 success=False,
+                 escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}"
+             )
+    
+        design_approval = r_res.outputs.get("council_decision")
+    
+        # 4. Loop Execution
+        loop_active = True
+    
+        while loop_active:
+            # Determine Attempt ID
+            if ledger.history:
+                attempt_id = ledger.history[-1].attempt_id + 1
+            else:
+                attempt_id = 1
+    
+            # Budget Check
+            is_over, budget_reason = budget.check_budget(attempt_id, total_tokens)
+            if is_over:
+                # Emit Terminal Packet
+                self._emit_terminal(TerminalOutcome.BLOCKED, budget_reason, context, total_tokens, ledger=ledger)
+                return self._make_result(success=False, error=budget_reason) # Simplified return
+    
+            # Policy Check (Deadlock/Oscillation/Resume-Action)
+            result = policy.decide_next_action(ledger)
+    
+            # Handle both 2-tuple (Phase A) and 3-tuple (Phase B) return values
+            if len(result) == 2:
+                action, reason = result
+                terminal_override = None
+            else:
+                action, reason, terminal_override = result
+    
+            if action == LoopAction.TERMINATE.value:
+                # If policy says terminate, we stop.
+                # Map reason to TerminalOutcome
+                outcome = TerminalOutcome.BLOCKED
+    
+                # Phase B: Check for terminal_override first
+                if terminal_override:
+                    if terminal_override == "WAIVER_REQUESTED":
+                        outcome = TerminalOutcome.WAIVER_REQUESTED
+                    elif terminal_override == "ESCALATION_REQUESTED":
+                        outcome = TerminalOutcome.ESCALATION_REQUESTED
+                    elif terminal_override == "BLOCKED":
+                        outcome = TerminalOutcome.BLOCKED
+                    elif terminal_override == "PASS":
+                        outcome = TerminalOutcome.PASS
+                # Phase A: Fallback to reason-based mapping
+                elif reason == TerminalReason.PASS.value:
+                    outcome = TerminalOutcome.PASS
+                elif reason == TerminalReason.OSCILLATION_DETECTED.value:
+                    outcome = TerminalOutcome.ESCALATION_REQUESTED
+    
+                # Phase B.3: Emit waiver request if needed
+                if outcome == TerminalOutcome.WAIVER_REQUESTED:
+                    self._emit_waiver_request(context, ledger, reason, total_tokens)
+    
+                self._emit_terminal(outcome, reason, context, total_tokens, ledger=ledger)
+    
+                if outcome == TerminalOutcome.PASS:
+                    # Return success details
+                    # Get commit hash from last attempt (steward phase?)
+                    # Wait, policy terminates AFTER Pass.
+                    # We need to return the result.
+                    return self._make_result(success=True, outputs={"commit_hash": "FIXME"}) # Todo: get hash
+                else:
+                    return self._make_result(success=False, error=reason)
+    
+            # Execution (RETRY or First Run)
+            feedback = ""
+            if ledger.history:
+                last = ledger.history[-1]
+                feedback = f"Previous attempt failed: {last.failure_class}. Rationale: {last.rationale}"
+                # Inject feedback
+                build_packet["feedback_context"] = feedback
+    
+            # Build Mission
+            build = BuildMission()
+            b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
+            executed_steps.append(f"build_attempt_{attempt_id}")
+    
+            # Token Accounting (Fail Closed)
+            has_tokens = False
+            if b_res.evidence.get("usage"):
+                u = b_res.evidence["usage"]
+                total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+                has_tokens = True
+    
+            if not has_tokens:
+                # P0: Fail Closed on Token Accounting
+                reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+                self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=ledger)
+                return self._make_result(success=False, escalation_reason=reason)
+    
+            if not b_res.success:
+                # Internal mission error (crash?)
+                self._record_attempt(ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, "Build crashed")
+                continue
+    
+            review_packet = b_res.outputs["review_packet"]
+    
+            # P0: Diff Budget Check (BEFORE Apply/Review)
+            # Extracted from review_packet payload
+            content = review_packet.get("payload", {}).get("content", "")
+            lines = content.count('\n')
+    
+            # P0: Enforce limit (300 lines)
+            max_lines = 300 # Hardcoded P0 constraint
+>           over_diff, diff_reason = budget.check_diff_budget(lines, max_lines=max_lines)
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           ValueError: not enough values to unpack (expected 2, got 0)
+
+runtime/orchestration/missions/autonomous_build_cycle.py:352: ValueError
+__ TestPhaseB_PreflightValidation.test_phaseb_ppv_determinism_anchors_missing __
+
+self = <test_loop_acceptance.TestPhaseB_PreflightValidation object at 0x7fa386607110>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_ppv_determinism_an0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340306379120'>, <MagicMock name='BuildMission' id='140340306388384'>, <MagicMock name='ReviewMission' id='140340306392608'>, <MagicMock name='StewardMission' id='140340307026784'>)
+
+    def test_phaseb_ppv_determinism_anchors_missing(self, phaseb_context, mock_subs_phaseb):
+        """PPV PF-3 check fails when determinism anchors (policy_hash) missing from ledger."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Plant ledger with MISSING policy_hash in header
+        ledger_path = phaseb_context.repo_root / "artifacts/loop_state/attempt_ledger.jsonl"
+        ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(ledger_path, 'w') as f:
+            # Intentionally omit policy_hash
+            f.write('{"type": "header", "schema_version": "v1.0", "handoff_hash": "abc", "run_id": "test"}\n')
+    
+        mission = AutonomousBuildCycleMission()
+>       result = mission.run(phaseb_context, {"task_spec": "ppv_anchors_test"})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:815: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <runtime.orchestration.missions.autonomous_build_cycle.AutonomousBuildCycleMission object at 0x7fa3861c5100>
+context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_ppv_determinism_an0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+inputs = {'task_spec': 'ppv_anchors_test'}
+
+    def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
+        executed_steps: List[str] = []
+        total_tokens = 0
+    
+        # P0: Workspace Semantics - Fail Closed if Reset Unavailable
+        if not self._can_reset_workspace(context):
+             reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
+             # Note: ledger not yet initialized at this point
+             self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=None)
+             return self._make_result(success=False, escalation_reason=reason)
+    
+        # 1. Setup Infrastructure
+        ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
+        ledger = AttemptLedger(ledger_path)
+        budget = BudgetController()
+    
+        # Phase B: Config-Driven Policy (with Phase A fallback)
+        config_path = context.repo_root / "config/loop/policy_v1.0.yaml"
+        policy_version = None
+        policy_hash_canonical = None
+    
+        if config_path.exists():
+            # Phase B: Load config and use ConfigurableLoopPolicy
+            try:
+                config_loader = PolicyConfigLoader(config_path)
+                config = config_loader.load()
+                policy = ConfigurableLoopPolicy(config)
+                policy_version = config.policy_metadata.get("version", "unknown")
+                policy_hash_canonical = config.policy_hash_canonical
+                current_policy_hash = policy_hash_canonical  # Canonical hash for resume comparison
+            except PolicyConfigError as e:
+                # Config invalid - fail closed
+                reason = f"Config validation failed: {e}"
+                # Note: ledger not yet initialized at this point
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0, ledger=None)
+                return self._make_result(success=False, error=reason)
+        else:
+            # Phase A: Fallback to hardcoded policy (backward compatibility)
+            policy = LoopPolicy()
+            current_policy_hash = "phase_a_hardcoded_v1"
+    
+        # 2. Hydrate / Initialize Ledger
+        try:
+            is_resume = ledger.hydrate()
+            if is_resume:
+                # P0: Policy Hash Guard
+>               if ledger.header["policy_hash"] != current_policy_hash:
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               KeyError: 'policy_hash'
+
+runtime/orchestration/missions/autonomous_build_cycle.py:152: KeyError
+_ TestPhaseB_PostflightValidation.test_phaseb_pofv_invalid_terminal_outcome_blocks _
+
+self = <test_loop_acceptance.TestPhaseB_PostflightValidation object at 0x7fa386606450>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_pofv_invalid_termi0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340306934288'>, <MagicMock name='BuildMission' id='140340306922720'>, <MagicMock name='ReviewMission' id='140340306931360'>, <MagicMock name='StewardMission' id='140340306928240'>)
+
+    def test_phaseb_pofv_invalid_terminal_outcome_blocks(self, phaseb_context, mock_subs_phaseb):
+        """POFV POF-1 check fails when terminal outcome is invalid."""
+        from runtime.orchestration.loop.checklists import PostflightValidator, ChecklistResult, ChecklistItem
+    
+        D, B, R, S = mock_subs_phaseb
+    
+        # Force budget exhaustion to trigger terminal packet
+        with patch("runtime.orchestration.missions.autonomous_build_cycle.BudgetController") as MockBudget:
+            MockBudget.return_value.check_budget.return_value = (True, TerminalReason.BUDGET_EXHAUSTED.value)
+    
+            # Patch POFV to force POF-1 failure
+            with patch('runtime.orchestration.missions.autonomous_build_cycle.PostflightValidator') as MockPOFV:
+                mock_pofv_instance = MockPOFV.return_value
+    
+                # Force POF-1 failure (invalid outcome)
+                mock_pofv_instance.validate.return_value = ChecklistResult(
+                    schema_version="checklist_v1",
+                    run_id=phaseb_context.run_id,
+                    attempt_id=None,
+                    phase="POSTFLIGHT",
+                    status="FAIL",
+                    items=[
+                        ChecklistItem(id="POF-1", name="Terminal outcome unambiguous", status="FAIL", evidence=[], note="Invalid outcome detected")
+                    ],
+                    computed_hashes={},
+                    timestamp_utc="2026-01-14T10:00:00Z",
+                    tool_version="test"
+                )
+    
+                mission = AutonomousBuildCycleMission()
+                result = mission.run(phaseb_context, {"task_spec": "pofv_fail_test"})
+    
+                assert result.success is False
+>               assert "postflight" in result.error.lower() or "checklist" in result.error.lower()
+E               AssertionError: assert ('postflight' in 'budget_exhausted' or 'checklist' in 'budget_exhausted')
+E                +  where 'budget_exhausted' = <built-in method lower of str object at 0x7fa3865e3c30>()
+E                +    where <built-in method lower of str object at 0x7fa3865e3c30> = 'budget_exhausted'.lower
+E                +      where 'budget_exhausted' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='budget_exhausted', escalation_reason=None, evidence={}).error
+E                +  and   'budget_exhausted' = <built-in method lower of str object at 0x7fa3865e3c30>()
+E                +    where <built-in method lower of str object at 0x7fa3865e3c30> = 'budget_exhausted'.lower
+E                +      where 'budget_exhausted' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='budget_exhausted', escalation_reason=None, evidence={}).error
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:902: AssertionError
+_ TestPhaseB_PostflightValidation.test_phaseb_pofv_debt_registration_validated _
+
+self = <test_loop_acceptance.TestPhaseB_PostflightValidation object at 0x7fa38662c4d0>
+phaseb_context = MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_pofv_debt_registra0/repo'), baseline_commit='abc123', run_id='phaseb_test_run', operation_executor=None, journal=None, metadata={})
+mock_subs_phaseb = (<MagicMock name='DesignMission' id='140340306857616'>, <MagicMock name='BuildMission' id='140340306863184'>, <MagicMock name='ReviewMission' id='140340306866448'>, <MagicMock name='StewardMission' id='140340306870000'>)
+
+    def test_phaseb_pofv_debt_registration_validated(self, phaseb_context, mock_subs_phaseb):
+        """POFV POF-4 check validates stable debt ID format (no line numbers)."""
+        D, B, R, S = mock_subs_phaseb
+    
+        # Exhaust retries to trigger waiver
+        B.return_value.run.side_effect = [
+            MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": f"diff{i}"}, "diff_summary": f"test{i}.py", "changed_files": [f"test{i}.py"]}}, evidence={"usage": {"total": 300}})
+            for i in range(4)
+        ]
+    
+        mission = AutonomousBuildCycleMission()
+>       result1 = mission.run(phaseb_context, {"task_spec": "pofv_debt_test"})
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+runtime/tests/orchestration/missions/test_loop_acceptance.py:957: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+runtime/orchestration/missions/autonomous_build_cycle.py:322: in run
+    b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1134: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1138: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='BuildMission().run' id='140340306856368'>
+args = (MissionContext(repo_root=PosixPath('/tmp/pytest-of-cabra/pytest-62/test_phaseb_pofv_debt_registra0/repo'), baseline_c...ontext': 'Previous attempt failed: review_rejection. Rationale: Output rejected - needs improvement', 'goal': 'test'}})
+kwargs = {}, effect = <list_iterator object at 0x7fa386205030>
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+>               result = next(effect)
+                         ^^^^^^^^^^^^
+E               StopIteration
+
+/usr/lib/python3.12/unittest/mock.py:1195: StopIteration
+=============================== warnings summary ===============================
+../../../../../../home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428
+  /home/cabra/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1428: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_approval_pass_via_waiver_approved - StopIteration
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_rejection_blocked_via_waiver_rejected - StopIteration
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_WaiverWorkflow::test_phaseb_waiver_ineligible_failure_blocked - ValueError: not enough values to unpack (expected 2, got 0)
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_surface_touched_escalation_override - StopIteration
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_protected_path_escalation - StopIteration
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_GovernanceEscalation::test_phaseb_governance_violation_immediate_escalation - ValueError: not enough values to unpack (expected 2, got 0)
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PreflightValidation::test_phaseb_ppv_determinism_anchors_missing - KeyError: 'policy_hash'
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_invalid_terminal_outcome_blocks - AssertionError: assert ('postflight' in 'budget_exhausted' or 'checklist' in 'budget_exhausted')
+ +  where 'budget_exhausted' = <built-in method lower of str object at 0x7fa3865e3c30>()
+ +    where <built-in method lower of str object at 0x7fa3865e3c30> = 'budget_exhausted'.lower
+ +      where 'budget_exhausted' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='budget_exhausted', escalation_reason=None, evidence={}).error
+ +  and   'budget_exhausted' = <built-in method lower of str object at 0x7fa3865e3c30>()
+ +    where <built-in method lower of str object at 0x7fa3865e3c30> = 'budget_exhausted'.lower
+ +      where 'budget_exhausted' = MissionResult(success=False, mission_type=<MissionType.AUTONOMOUS_BUILD_CYCLE: 'autonomous_build_cycle'>, outputs={}, executed_steps=[], error='budget_exhausted', escalation_reason=None, evidence={}).error
+FAILED runtime/tests/orchestration/missions/test_loop_acceptance.py::TestPhaseB_PostflightValidation::test_phaseb_pofv_debt_registration_validated - StopIteration
+=================== 9 failed, 11 passed, 1 warning in 4.61s ====================

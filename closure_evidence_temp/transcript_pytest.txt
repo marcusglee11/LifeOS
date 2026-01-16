@@ -1,0 +1,26 @@
+Command: python -m pytest scripts\closure\tests\test_closure_bundle_gate.py -vv
+CWD: C:\Users\cabra\Projects\LifeOS
+
+============================= test session starts =============================
+platform win32 -- Python 3.12.6, pytest-8.3.4, pluggy-1.5.0 -- C:\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\cabra\Projects\LifeOS
+configfile: pytest.ini
+plugins: anyio-4.7.0, asyncio-1.3.0, cov-6.2.1, mockito-0.0.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 12 items
+
+scripts/closure/tests/test_closure_bundle_gate.py::test_t1_pass_valid PASSED [  8%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t3_bpg001_corrupt PASSED [ 16%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t4_bpg002_missing_root PASSED [ 25%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t5_bpg008_missing_fix PASSED [ 33%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t6_bpg005_audit_mismatch PASSED [ 41%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t7_bpg004_placeholder_ts PASSED [ 50%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t8_bpg006_placeholder_identity PASSED [ 58%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t9_bpg007_drift_brackets PASSED [ 66%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t13_bpg007_dirty_transcript PASSED [ 75%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t10_bpg010_bad_counts PASSED [ 83%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t11_bpg011_missing_file_list PASSED [ 91%]
+scripts/closure/tests/test_closure_bundle_gate.py::test_t14_bpg011_incomplete_list PASSED [100%]
+
+============================= 12 passed in 1.37s ==============================

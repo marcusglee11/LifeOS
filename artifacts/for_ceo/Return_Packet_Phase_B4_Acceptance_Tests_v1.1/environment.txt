@@ -1,0 +1,3 @@
+Python 3.12.6
+pytest 8.3.4
+869d1580a5aad934beae88a82bf81299c6dba5e4

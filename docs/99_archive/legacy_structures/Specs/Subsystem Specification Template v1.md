@@ -77,3 +77,4 @@ List what the subsystem MUST NOT do.
 
 ## 10. Notes
 Additional detail, clarifications, or edge cases.
+

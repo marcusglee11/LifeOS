@@ -1,3 +1,116 @@
-__pycache__/ 
-*.pyc 
-.env 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.*
+
+# Private keys & credentials
+*.pem
+*.key
+credentials.json
+**/secrets.json
+**/secrets.yaml
+
+# Databases
+*.db
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+docs/.obsidian/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test artifacts
+test_budget_concurrency.db
+tests/_artifacts/
+
+# Temp files
+*.tmp
+.tmp/
+temp_staging/
+temp_verification/
+*.patch
+
+# Ephemeral test reports (root level)
+test_output.txt
+test_report_*.txt
+
+# Drive upload temp
+docs/.tmp.driveupload/
+
+# COO Runtime Ephemeral
+coo/manifests/normalized/
+
+# Artifacts
+artifacts/bundles/*.zip
+artifacts/bundles/*.sha256
+artifacts/bundles/*.txt
+artifacts/evidence/
+# artifacts/for_ceo/  <-- REMOVED
+# artifacts/plans/Plan_*.md  <-- REMOVED
+# artifacts/test_reports/  <-- REMOVED
+# artifacts/*.md  <-- REMOVED
+
+# Archive bundles (ephemeral)
+artifacts/99_archive/
+# artifacts/review_packets/Review_Packet_*.md  <-- REMOVED
+
+# Root-level bundles (should be moved to artifacts/)
+/*.zip
+/nul
+
+# Temporary test/dev files
+temp_*
+*.log
+nul
+
+# Root-level temp/debug artifacts
+RECOVERY_*.txt
+hash_*.txt
+debug_*.txt
+investigation_*.txt
+test_out*.txt
+test_output*.txt
+test_evidence*.txt
+test_run_log.txt
+preflight_report.*
+det_*.json
+test_bundle_*.json
+scope_allowlist.txt
+bundle_*.txt
+evidence_manifest.txt
+last_session.json
+audit_report.md
+git_status_porcelain.txt
+git_diff.patch
+
+# Malformed directory names (path encoding issues)
+*staging_return_packets*
+*worktree*
+*artifacts*[!s/]*
+cUsers*
+CUsers*
+aaaaaaaaaa*
+smoke\ out/

@@ -1,0 +1,17 @@
+diff --git a/docs/02_protocols/templates/review_packet_template.md b/docs/02_protocols/templates/review_packet_template.md
+index 06d2a43..08a967f 100644
+--- a/docs/02_protocols/templates/review_packet_template.md
++++ b/docs/02_protocols/templates/review_packet_template.md
+@@ -35,9 +35,9 @@ closure_evidence: {}         # [REQUIRED] key-value pairs
+ 
+ # Acceptance Criteria
+ 
+-| Criterion | Status | Evidence Pointer | SHA-256 |
+-|-----------|--------|------------------|---------|
+-| AC1       | PASS   | logs/run.txt:L10 | a1b2... |
++| ID | Criterion | Status | Evidence Pointer | SHA-256 |
++|----|-----------|--------|------------------|---------|
++| AC1| AC1       | PASS   | logs/run.txt:L10 | a1b2... |
+ 
+ # Closure Evidence Checklist
+ 
