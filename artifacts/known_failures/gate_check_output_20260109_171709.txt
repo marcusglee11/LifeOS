@@ -1,7 +1,0 @@
-================================================================================
-Known Failures Gate Check v1.1
-================================================================================
-Timestamp: 2026-01-09T17:17:09.447471
-Log file: C:\Users\cabra\Projects\LifeOS\artifacts\known_failures\gate_check_output_20260109_171709.txt
-
-Running full test suite...

@@ -1,8 +1,0 @@
-artifacts/TEST_REPORT_GCBS_V11_PROFILE_GATES_PASS.md
-docs/02_protocols/G-CBS_Standard_v1.1.md
-docs/02_protocols/lifeos_packet_schemas_v1.2.yaml
-schemas/closure_manifest_v1_1.json
-scripts/closure/build_closure_bundle.py
-scripts/closure/profiles/step_gate_closure.py
-scripts/closure/tests/test_gcbs_a1a2_regressions.py
-scripts/closure/validate_closure_bundle.py

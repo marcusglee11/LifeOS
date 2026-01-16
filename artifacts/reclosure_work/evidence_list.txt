@@ -1,3 +1,0 @@
-evidence\env_info.txt
-evidence\pytest_a1.txt
-evidence\pytest_a2.txt

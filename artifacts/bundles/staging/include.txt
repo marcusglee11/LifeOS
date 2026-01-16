@@ -1,1 +1,0 @@
-artifacts/bundles/staging/evidence.txt

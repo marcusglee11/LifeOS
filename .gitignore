@@ -85,3 +85,32 @@ artifacts/99_archive/
 temp_*
 *.log
 nul
+
+# Root-level temp/debug artifacts
+RECOVERY_*.txt
+hash_*.txt
+debug_*.txt
+investigation_*.txt
+test_out*.txt
+test_output*.txt
+test_evidence*.txt
+test_run_log.txt
+preflight_report.*
+det_*.json
+test_bundle_*.json
+scope_allowlist.txt
+bundle_*.txt
+evidence_manifest.txt
+last_session.json
+audit_report.md
+git_status_porcelain.txt
+git_diff.patch
+
+# Malformed directory names (path encoding issues)
+*staging_return_packets*
+*worktree*
+*artifacts*[!s/]*
+cUsers*
+CUsers*
+aaaaaaaaaa*
+smoke\ out/

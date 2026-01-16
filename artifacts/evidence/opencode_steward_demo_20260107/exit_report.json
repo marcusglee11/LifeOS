@@ -1,8 +1,0 @@
-{
-    "status": "PASS",
-    "timestamp": "2026-01-07T14:28:00+11:00",
-    "duration_ms": 450,
-    "reason_codes": [],
-    "changed_files_count": 1,
-    "evidence_bundle_path": "artifacts/evidence/opencode_steward_demo_20260107/"
-}

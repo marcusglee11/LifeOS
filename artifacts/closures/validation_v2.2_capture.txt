@@ -1,6 +1,0 @@
-Validating bundle: artifacts/closures/Bundle_OpenCode_Sandbox_Activation_v2.2.zip
-GCBS Standard Version: 1.0
-Protocols provenance verified: 74BBF6A08C5D37968F77E48C28AB5F19E960140A368A3ABB6F4826B806D316BE
-WARN: Deprecated role validator_final_shipped, use validator_payload_pass
-Audit Status: PASS
-Report written to: artifacts/closures/audit_report_v2.2.md
