@@ -1,7 +1,0 @@
-tasks:
-  # H-004: Only docs domain tasks are supported
-  - id: "TASK-001"
-    domain: "docs"
-    type: "rebuild_index"
-    status: "todo"
-    description: "Rebuild the documentation index (docs/INDEX_v1.1.md)."

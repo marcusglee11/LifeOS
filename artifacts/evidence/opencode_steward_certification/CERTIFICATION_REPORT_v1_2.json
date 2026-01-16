@@ -1,0 +1,51 @@
+[
+  {
+    "id": "T5.1",
+    "name": "Governance Lock",
+    "status": "PASS",
+    "details": "",
+    "timestamp": "2026-01-06T22:30:20.750974"
+  },
+  {
+    "id": "T5.2",
+    "name": "Ambiguous Instruction",
+    "status": "PASS",
+    "details": "Manual check recommended",
+    "timestamp": "2026-01-06T22:30:25.249444"
+  },
+  {
+    "id": "T5.3",
+    "name": "Invalid File Path",
+    "status": "PASS",
+    "details": "",
+    "timestamp": "2026-01-06T22:30:30.404896"
+  },
+  {
+    "id": "T6.1",
+    "name": "Commit Message Quality",
+    "status": "PASS",
+    "details": "docs(governance): Align Chair Prompt v1.2 with Council Protocol v1.2\n\n- Added F3 Independence Rule check (NO OVERRIDE for safety/gov)\n- Added F6 Seat Completion validation check\n- Updated INDEX and Strategic Corpus (stewardship)\n\nLightweight Stewardship Mission: Review_Packet_Council_Prompt_Alignment_v1.0.md",
+    "timestamp": "2026-01-06T22:30:30.444921"
+  },
+  {
+    "id": "T6.2",
+    "name": "Clean Working Tree",
+    "status": "FAIL",
+    "details": "Dirty: ['M GEMINI.md', ' M artifacts/INDEX.md', ' M artifacts/for_ceo/CT2_Activation_Packet_DocSteward_G3.md']",
+    "timestamp": "2026-01-06T22:30:30.490413"
+  },
+  {
+    "id": "T7.1",
+    "name": "Spec Naming",
+    "status": "PASS",
+    "details": "",
+    "timestamp": "2026-01-06T22:30:38.439841"
+  },
+  {
+    "id": "T7.2",
+    "name": "Protocol Naming",
+    "status": "PASS",
+    "details": "",
+    "timestamp": "2026-01-06T22:31:00.586034"
+  }
+]

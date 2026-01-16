@@ -6,6 +6,7 @@ Implements the Tier-2 orchestrator for multi-step workflows with:
 - Execution envelope enforcement (only 'runtime' and 'human' step kinds)
 - Deterministic execution and serialization
 - Immutability guarantees for inputs
+- LLM call operations via OpenCode HTTP REST API
 """
 from __future__ import annotations
 
@@ -15,17 +16,31 @@ from typing import Any, Dict, List, Optional
 
 
 # =============================================================================
-# Exceptions
+# Exceptions (imported from shared module to avoid cross-tier coupling)
 # =============================================================================
 
-class AntiFailureViolation(Exception):
-    """Raised when workflow violates Anti-Failure constraints."""
-    pass
+from runtime.errors import AntiFailureViolation, EnvelopeViolation
 
+# =============================================================================
+# LLM Client (lazy import to avoid hard dependency)
+# =============================================================================
 
-class EnvelopeViolation(Exception):
-    """Raised when workflow violates execution envelope constraints."""
-    pass
+# Import OpenCode client for LLM calls
+try:
+    from runtime.agents.opencode_client import (
+        OpenCodeClient,
+        LLMCall,
+        OpenCodeError,
+    )
+    _HAS_OPENCODE_CLIENT = True
+except ImportError:
+    _HAS_OPENCODE_CLIENT = False
+    OpenCodeClient = None
+    LLMCall = None
+    OpenCodeError = Exception  # Fallback for type hints
+
+# Re-export for backwards compatibility
+__all_exceptions__ = ["AntiFailureViolation", "EnvelopeViolation"]
 
 
 # =============================================================================
@@ -153,21 +168,291 @@ class OrchestrationResult:
 class Orchestrator:
     """
     Tier-2 Orchestrator for executing multi-step workflows.
-    
+
     Enforces:
     - Anti-Failure constraints (max 5 steps, max 2 human steps)
     - Execution envelope (only 'runtime' and 'human' step kinds allowed)
     - Deterministic execution
     - Input immutability
+
+    Supports operations:
+    - noop: No operation (default)
+    - fail: Halt execution with error
+    - llm_call: Make LLM call via OpenCode HTTP REST API
     """
-    
+
     # Anti-Failure limits
     MAX_TOTAL_STEPS = 5
     MAX_HUMAN_STEPS = 2
-    
+
     # Allowed step kinds (execution envelope)
     ALLOWED_KINDS = frozenset({"runtime", "human"})
-    
+
+    def __init__(self):
+        """Initialize orchestrator with no active LLM client."""
+        self._llm_client: Optional[OpenCodeClient] = None
+
+    def _get_llm_client(self) -> OpenCodeClient:
+        """
+        Get or create the LLM client (lazy initialization).
+
+        Starts the server on first call, reuses for subsequent calls.
+
+        Returns:
+            OpenCodeClient instance with running server.
+
+        Raises:
+            RuntimeError: If OpenCode client is not available.
+            OpenCodeError: If server fails to start.
+        """
+        if not _HAS_OPENCODE_CLIENT:
+            raise RuntimeError(
+                "OpenCode client not available. "
+                "Install runtime.agents package or check imports."
+            )
+
+        if self._llm_client is None:
+            self._llm_client = OpenCodeClient(log_calls=True)
+            self._llm_client.start_server()
+
+        return self._llm_client
+
+    def _cleanup_llm_client(self) -> None:
+        """Stop and cleanup the LLM client if running."""
+        if self._llm_client is not None:
+            try:
+                self._llm_client.stop_server()
+            except Exception:
+                pass  # Best effort cleanup
+            self._llm_client = None
+
+    def _execute_llm_call(
+        self,
+        step: StepSpec,
+        state: Dict[str, Any]
+    ) -> tuple[bool, Optional[str]]:
+        """
+        Execute an llm_call operation.
+
+        Args:
+            step: The step specification with llm_call payload.
+            state: Current workflow state (will be modified).
+
+        Returns:
+            Tuple of (success, error_message).
+
+        Payload fields:
+            - prompt (required): The prompt to send to the LLM.
+            - model (optional): Model identifier (default: claude-sonnet-4).
+            - output_key (optional): Key to store result (default: "llm_response").
+        """
+        payload = step.payload
+
+        # Validate required fields
+        prompt = payload.get("prompt")
+        if not prompt:
+            return False, f"Step '{step.id}' llm_call missing required 'prompt' field"
+
+        # Get optional fields
+        model = payload.get("model", "openrouter/anthropic/claude-sonnet-4")
+        output_key = payload.get("output_key", "llm_response")
+
+        try:
+            # Get or create client (lazy init)
+            client = self._get_llm_client()
+
+            # Make the LLM call
+            request = LLMCall(prompt=prompt, model=model)
+            response = client.call(request)
+
+            # Store result in state
+            state[output_key] = response.content
+
+            # Also store metadata for audit
+            state[f"{output_key}_metadata"] = {
+                "call_id": response.call_id,
+                "model_used": response.model_used,
+                "latency_ms": response.latency_ms,
+                "timestamp": response.timestamp,
+            }
+
+            return True, None
+
+        except OpenCodeError as e:
+            return False, f"Step '{step.id}' llm_call failed: {e}"
+        except Exception as e:
+            return False, f"Step '{step.id}' llm_call unexpected error: {e}"
+
+    def _detect_git_context(self) -> tuple:
+        """
+        Detect git context using runtime detection (fail-soft).
+
+        Detection strategy (Option 2):
+        - repo_root: git rev-parse --show-toplevel, fallback to cwd
+        - baseline_commit: git rev-parse HEAD, fallback to None
+        - Use short timeout (2 seconds) and catch all errors
+
+        Returns:
+            Tuple of (repo_root: Path, baseline_commit: Optional[str])
+        """
+        import subprocess
+        from pathlib import Path
+
+        # Detect repo_root (fail-soft)
+        repo_root = Path.cwd()
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+            if result.returncode == 0:
+                repo_root = Path(result.stdout.strip())
+        except Exception:
+            pass  # Fail-soft: use cwd
+
+        # Detect baseline_commit (fail-soft)
+        # P1.1 Fix: Use repo_root as cwd to ensure we get commit from correct repo
+        baseline_commit = None
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                cwd=repo_root
+            )
+            if result.returncode == 0:
+                baseline_commit = result.stdout.strip()
+        except Exception:
+            pass  # Fail-soft: leave as None
+
+        return repo_root, baseline_commit
+
+    def _execute_mission(
+        self,
+        step: StepSpec,
+        state: Dict[str, Any],
+        ctx: ExecutionContext
+    ) -> tuple:
+        """
+        Execute a mission operation with tolerant interface.
+
+        CRITICAL: Reuses ctx from orchestrator (does NOT construct new ExecutionContext).
+
+        Payload fields:
+            - mission_type (required): Type of mission to execute
+            - inputs or params (optional): Mission input data (default: {})
+
+        Returns:
+            Tuple of (success: bool, error_message: Optional[str])
+        """
+        # Local imports to avoid cycles
+        from pathlib import Path
+
+        payload = step.payload
+
+        # Validate required fields
+        mission_type = payload.get("mission_type")
+        if not mission_type:
+            return False, "mission_type not specified in step payload"
+
+        # Get inputs (try both 'inputs' and 'params' keys)
+        inputs = payload.get("inputs") or payload.get("params", {})
+        if not isinstance(inputs, dict):
+            inputs = {}
+
+        # Detect git context OUTSIDE try block (fail-soft, no exception handling needed)
+        repo_root, baseline_commit = self._detect_git_context()
+
+        # Attach git context to ctx.metadata (OUTSIDE try block)
+        if hasattr(ctx, 'metadata'):
+            if ctx.metadata is None:
+                ctx.metadata = {}
+            ctx.metadata["repo_root"] = str(repo_root)
+            ctx.metadata["baseline_commit"] = baseline_commit
+
+        # Always use direct path for operation="mission" to avoid recursion loops
+        # (registry.run_mission builds workflows that call operation="mission", creating a cycle if we call registry again)
+        use_direct_path = True
+
+        # Execute mission (with selective exception handling)
+        try:
+            if use_direct_path:
+                # Fallback path: Direct mission instantiation
+                from runtime.orchestration.missions import get_mission_class, MissionContext
+                import uuid
+
+                mission_class = get_mission_class(mission_type)
+                mission = mission_class()
+
+                # Optional validation (tolerant interface)
+                if hasattr(mission, 'validate_inputs'):
+                    mission.validate_inputs(inputs)
+
+                # CRITICAL: Missions may expect MissionContext, not ExecutionContext
+                # Build MissionContext from git context
+                mission_context = MissionContext(
+                    repo_root=repo_root,
+                    baseline_commit=baseline_commit,
+                    run_id=str(uuid.uuid4()),
+                    operation_executor=None,
+                    journal=None,
+                    metadata={"step_id": step.id}
+                )
+
+                # Execute mission with MissionContext
+                result = mission.run(mission_context, inputs)
+            else:
+                # Preferred path: Use registry dispatch
+                # AttributeError/TypeError here are programming bugs, not dispatch failures
+                result = registry.run_mission(mission_type, ctx, inputs)
+
+            # Normalize result to dict (uniform handling regardless of dispatch path)
+            if hasattr(result, 'to_dict'):
+                result_dict = result.to_dict()
+            elif isinstance(result, dict):
+                result_dict = result
+            else:
+                # Minimal dict from attributes
+                result_dict = {
+                    'success': bool(getattr(result, 'success', False)),
+                    'status': getattr(result, 'status', None),
+                    'output': getattr(result, 'output', None),
+                    'error': getattr(result, 'error', None)
+                }
+
+            # Determine success (uniform logic)
+            if 'success' in result_dict:
+                success = bool(result_dict['success'])
+            elif result_dict.get('status') is not None:
+                success = (result_dict['status'] == 'success')
+            else:
+                success = False
+
+            # Store result TWO ways (backward compat + correct)
+            state["mission_result"] = result_dict  # Legacy: last result
+            state.setdefault("mission_results", {})[step.id] = result_dict  # Correct: per-step
+
+            # Check success
+            if not success:
+                error = result_dict.get('error') or "Mission failed without error message"
+                return False, f"Mission '{mission_type}' failed: {error}"
+
+            return True, None
+
+        except (AttributeError, TypeError) as e:
+            # CRITICAL: When using registry path, these are programming bugs - RE-RAISE
+            if not use_direct_path:
+                raise
+            # For direct path, treat as mission error (may be mission implementation issue)
+            return False, f"Mission execution error: {str(e)}"
+
+        except Exception as e:
+            # Catch mission-level errors (MissionError, ValidationError, etc.)
+            return False, f"Mission execution error: {str(e)}"
+
     def run_workflow(
         self,
         workflow: WorkflowDefinition,
@@ -215,56 +500,80 @@ class Orchestrator:
         # =================================================================
         # Execution (immutable inputs)
         # =================================================================
-        
+
         # Deep copy state to ensure immutability of ctx.initial_state
         state = copy.deepcopy(ctx.initial_state)
-        
+
         executed_steps: List[StepSpec] = []
         failed_step_id: Optional[str] = None
         error_message: Optional[str] = None
         success = True
-        
-        for step in workflow.steps:
-            # Record step as executed (including the failing one)
-            # Store a frozen snapshot (deepcopy) to prevent post-execution mutation aliasing
-            executed_steps.append(copy.deepcopy(step))
-            
-            if step.kind == "runtime":
-                # Process runtime step
-                operation = step.payload.get("operation", "noop")
-                
-                if operation == "fail":
-                    # Halt execution with failure
-                    success = False
-                    failed_step_id = step.id
-                    reason = step.payload.get("reason", "unspecified")
-                    error_message = f"Step '{step.id}' failed: {reason}"
-                    break
-                
-                # For "noop" or any other operation, continue without state change
-                # (Future: could implement state mutations here)
-                
-            elif step.kind == "human":
-                # Human steps: record but don't modify state
-                # (In real implementation, would wait for human input)
-                pass
-        
+
+        try:
+            for step in workflow.steps:
+                # Record step as executed (including the failing one)
+                # Store a frozen snapshot (deepcopy) to prevent post-execution mutation aliasing
+                executed_steps.append(copy.deepcopy(step))
+
+                if step.kind == "runtime":
+                    # Process runtime step
+                    operation = step.payload.get("operation", "noop")
+
+                    if operation == "fail":
+                        # Halt execution with failure
+                        success = False
+                        failed_step_id = step.id
+                        reason = step.payload.get("reason", "unspecified")
+                        error_message = f"Step '{step.id}' failed: {reason}"
+                        break
+
+                    elif operation == "llm_call":
+                        # Execute LLM call operation
+                        op_success, op_error = self._execute_llm_call(step, state)
+                        if not op_success:
+                            success = False
+                            failed_step_id = step.id
+                            error_message = op_error
+                            break
+
+                    elif operation == "mission":
+                        # CRITICAL: Pass ctx to helper (reuse existing ExecutionContext)
+                        op_success, op_error = self._execute_mission(step, state, ctx)
+                        if not op_success:
+                            success = False
+                            failed_step_id = step.id
+                            error_message = op_error
+                            break
+
+                    # For "noop" or any other operation, continue without state change
+
+                elif step.kind == "human":
+                    # Human steps: record but don't modify state
+                    # (In real implementation, would wait for human input)
+                    pass
+
+        finally:
+            # =================================================================
+            # Cleanup resources (always runs, even on exception)
+            # =================================================================
+            self._cleanup_llm_client()
+
         # =================================================================
         # Build result structures
         # =================================================================
-        
+
         # Build lineage (deterministic)
         lineage = {
             "executed_step_ids": [s.id for s in executed_steps],
             "workflow_id": workflow.id,
         }
-        
+
         # Build receipt (deterministic)
         receipt = {
             "id": workflow.id,
             "steps": [s.id for s in executed_steps],
         }
-        
+
         return OrchestrationResult(
             id=workflow.id,
             success=success,

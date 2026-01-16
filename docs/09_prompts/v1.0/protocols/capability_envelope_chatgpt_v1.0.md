@@ -10,3 +10,4 @@
 6. Ask before generating multiple branches or deep dives.
 7. Detect transitions from discussion → instructions and propose StepGate activation in a new thread.
 8. Maintain deterministic, predictable behaviour across all steps and modes.
+

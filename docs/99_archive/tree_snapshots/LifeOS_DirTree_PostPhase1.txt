@@ -12,7 +12,7 @@ C:\Users\cabra\Projects\LifeOS\docs\03_runtime
 C:\Users\cabra\Projects\LifeOS\docs\04_project_builder                                   
 C:\Users\cabra\Projects\LifeOS\docs\05_agents                                            
 C:\Users\cabra\Projects\LifeOS\docs\06_user_surface                                      
-C:\Users\cabra\Projects\LifeOS\docs\07_productisation                                    
+C:\Users\cabra\Projects\LifeOS\docs\12_productisation                                    
 C:\Users\cabra\Projects\LifeOS\docs\08_manuals                                           
 C:\Users\cabra\Projects\LifeOS\docs\09_prompts                                           
 C:\Users\cabra\Projects\LifeOS\docs\10_meta                                              

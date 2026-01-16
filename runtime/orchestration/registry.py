@@ -10,10 +10,13 @@ Features:
 - Single entry point: run_mission(name, ctx, params)
 - Reuses trusted builder and orchestrator infrastructure
 - No I/O, network, subprocess, or time/date access
+- Phase 3 mission types: design, review, build, steward, autonomous_build_cycle
 """
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional, Union
+import uuid
 
 from runtime.orchestration.engine import (
     ExecutionContext,
@@ -38,7 +41,7 @@ class UnknownMissionError(Exception):
 
 
 # =============================================================================
-# Workflow Builders
+# Workflow Builders (Legacy - Tier-2 style)
 # =============================================================================
 
 def _build_daily_loop_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
@@ -85,6 +88,83 @@ def _build_echo_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDef
 
 
 # =============================================================================
+# Phase 3 Mission Builders
+# =============================================================================
+
+def _build_phase3_mission_workflow(
+    mission_type: str,
+    params: Optional[Dict[str, Any]] = None
+) -> WorkflowDefinition:
+    """
+    Build a Phase 3 mission workflow.
+    
+    Creates a workflow that invokes the appropriate mission class.
+    
+    Args:
+        mission_type: One of design, review, build, steward, autonomous_build_cycle
+        params: Mission-specific parameters
+    """
+    params = params or {}
+    
+    steps = [
+        StepSpec(
+            id=f"{mission_type}-execute",
+            kind="runtime",
+            payload={
+                "operation": "mission",
+                "mission_type": mission_type,
+                "params": dict(sorted(params.items())) if params else {},
+            }
+        ),
+    ]
+    
+    return WorkflowDefinition(
+        id=f"wf-{mission_type}",
+        steps=steps,
+        metadata={
+            "mission_type": mission_type,
+            "phase": "3",
+            "params": dict(sorted(params.items())) if params else {},
+        }
+    )
+
+
+def _build_design_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build design mission workflow."""
+    return _build_phase3_mission_workflow("design", params)
+
+
+def _build_review_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build review mission workflow."""
+    return _build_phase3_mission_workflow("review", params)
+
+
+def _build_build_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build build mission workflow."""
+    return _build_phase3_mission_workflow("build", params)
+
+
+def _build_echo_workflow_phase3(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build echo mission workflow (Phase 3)."""
+    return _build_phase3_mission_workflow("echo", params)
+
+
+def _build_steward_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build steward mission workflow."""
+    return _build_phase3_mission_workflow("steward", params)
+
+
+def _build_autonomous_build_cycle_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build autonomous_build_cycle mission workflow."""
+    return _build_phase3_mission_workflow("autonomous_build_cycle", params)
+
+
+def _build_build_with_validation_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build build_with_validation mission workflow."""
+    return _build_phase3_mission_workflow("build_with_validation", params)
+
+
+# =============================================================================
 # Mission Registry
 # =============================================================================
 
@@ -92,9 +172,26 @@ def _build_echo_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDef
 
 # Type: Dict[str, Callable[[Dict[str, Any] | None], WorkflowDefinition]]
 MISSION_REGISTRY: Dict[str, Callable[[Optional[Dict[str, Any]]], WorkflowDefinition]] = {
+    # Legacy Tier-2 missions
     "daily_loop": _build_daily_loop_workflow,
-    "echo": _build_echo_workflow,
+    "echo": _build_echo_workflow_phase3,
+    # Phase 3 mission types (per architecture v0.3 §5.3)
+    "design": _build_design_workflow,
+    "review": _build_review_workflow,
+    "build": _build_build_workflow,
+    "steward": _build_steward_workflow,
+    "autonomous_build_cycle": _build_autonomous_build_cycle_workflow,
+    "build_with_validation": _build_build_with_validation_workflow,
 }
+
+
+def list_mission_types() -> list[str]:
+    """
+    List all registered mission types.
+    
+    Returns sorted list for deterministic output.
+    """
+    return sorted(MISSION_REGISTRY.keys())
 
 
 # =============================================================================
@@ -120,7 +217,7 @@ def run_mission(
         OrchestrationResult with execution details, lineage, and receipt.
         
     Raises:
-        UnknownMissionError: If the mission name is not registered.
+        UnknownMissionError: If the mission name is not registered (fail-closed).
         AntiFailureViolation: If workflow exceeds step limits.
         EnvelopeViolation: If workflow uses disallowed step kinds.
     """

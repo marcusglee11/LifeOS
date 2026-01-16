@@ -1,0 +1,107 @@
+# LifeOS Model Configuration
+# Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.1.5
+
+model_selection:
+  # Default fallback chain for roles without overrides
+  # Primaried to grok-4.1-fast per user instruction
+  # Fallback to minimax/minimax-m2.1 per user instruction
+  default_chain:
+    - "openrouter/x-ai/grok-4.1-fast"
+    - "minimax/minimax-m2.1"
+  
+  # Role-specific model chains
+  role_overrides:
+    designer:
+      - "openrouter/x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+    
+    reviewer_architect:
+      - "openrouter/x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+    
+    builder:
+      - "openrouter/x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+    
+    steward:
+      - "openrouter/x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+      
+    build_cycle:
+      - "openrouter/x-ai/grok-4.1-fast"
+      - "minimax/minimax-m2.1"
+
+
+agents:
+  steward:
+    provider: zen
+    model: "minimax/minimax-m2.1"
+    endpoint: "https://opencode.ai/zen/v1/messages"
+    api_key_env: "ZEN_STEWARD_KEY"
+    fallback:
+      - model: "openrouter/x-ai/grok-4.1-fast"
+        provider: "openrouter"
+        api_key_env: "OPENROUTER_STEWARD_KEY"
+        endpoint: "https://openrouter.ai/api/v1/chat/completions"
+  
+  builder:
+    provider: zen
+    model: "minimax/minimax-m2.1"
+    endpoint: "https://opencode.ai/zen/v1/messages"
+    api_key_env: "ZEN_BUILDER_KEY"
+    fallback:
+      - model: "openrouter/x-ai/grok-4.1-fast"
+        provider: "openrouter"
+        api_key_env: "OPENROUTER_BUILDER_KEY"
+        endpoint: "https://openrouter.ai/api/v1/chat/completions"
+
+  designer:
+    provider: zen
+    model: "minimax/minimax-m2.1"
+    endpoint: "https://opencode.ai/zen/v1/messages"
+    api_key_env: "ZEN_DESIGNER_KEY"
+    fallback:
+      - model: "openrouter/x-ai/grok-4.1-fast"
+        provider: "openrouter"
+        api_key_env: "OPENROUTER_DESIGNER_KEY"
+        endpoint: "https://openrouter.ai/api/v1/chat/completions"
+
+  reviewer_architect:
+    provider: zen
+    model: "minimax/minimax-m2.1"
+    endpoint: "https://opencode.ai/zen/v1/messages"
+    api_key_env: "ZEN_REVIEWER_KEY"
+    fallback:
+      - model: "openrouter/x-ai/grok-4.1-fast"
+        provider: "openrouter"
+        api_key_env: "OPENROUTER_REVIEWER_KEY"
+        endpoint: "https://openrouter.ai/api/v1/chat/completions"
+
+  build_cycle:
+    provider: zen
+    model: "minimax/minimax-m2.1"
+    endpoint: "https://opencode.ai/zen/v1/messages"
+    api_key_env: "ZEN_BUILD_CYCLE_KEY"
+    fallback:
+      - model: "openrouter/x-ai/grok-4.1-fast"
+        provider: "openrouter"
+        api_key_env: "OPENROUTER_BUILD_CYCLE_KEY"
+        endpoint: "https://openrouter.ai/api/v1/chat/completions"
+
+# Zen configuration (Primary)
+zen:
+  base_url: "https://opencode.ai/zen/v1/messages"
+  timeout_seconds: 120
+  retry:
+    max_attempts: 3
+    backoff_base_seconds: 1.0
+    backoff_multiplier: 2.0
+
+# OpenRouter configuration (Fallback)
+openrouter:
+  base_url: "https://openrouter.ai/api/v1"
+  timeout_seconds: 120
+  retry:
+    max_attempts: 3
+    backoff_base_seconds: 1.0
+    backoff_multiplier: 2.0

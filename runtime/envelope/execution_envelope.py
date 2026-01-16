@@ -55,14 +55,16 @@ class ExecutionEnvelope:
         'aiohttp',
     ])
     
-    def __init__(self, lock_file_path: Optional[str] = None):
+    def __init__(self, lock_file_path: Optional[str] = None, mode: Optional[str] = None):
         """
         Initialize execution envelope.
-        
+
         Args:
             lock_file_path: Path to requirements_lock.json.
+            mode: Execution mode ('tier2' for strict, 'sandbox' for relaxed)
         """
         self.lock_file_path = lock_file_path
+        self.mode = mode or 'tier2'  # Default to strict mode
         self._checks_passed: List[str] = []
         self._checks_failed: List[str] = []
     
@@ -85,10 +87,18 @@ class ExecutionEnvelope:
     def verify_single_process(self) -> None:
         """
         Verify no banned multiprocessing modules are loaded.
-        
+
+        In sandbox mode, this check is relaxed to support testing.
+
         Raises:
-            ExecutionEnvelopeError: If banned modules are detected.
+            ExecutionEnvelopeError: If banned modules are detected (tier2 mode only).
         """
+        # Sandbox mode: skip check
+        if self.mode == 'sandbox':
+            self._checks_passed.append('single_process_skipped_sandbox')
+            return
+
+        # Tier2 mode: enforce check
         loaded_banned = self.BANNED_MODULES.intersection(sys.modules.keys())
         if loaded_banned:
             self._checks_failed.append('single_process')

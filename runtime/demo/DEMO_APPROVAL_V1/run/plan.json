@@ -1,1 +1,0 @@
-{"approved":true,"steps":["Provision t3.micro instance","Install docker","Pull image payment-gateway:v2.0","Run container on port 8080","Verify health check"],"title":"Deploy Payment Gateway v2.0"}

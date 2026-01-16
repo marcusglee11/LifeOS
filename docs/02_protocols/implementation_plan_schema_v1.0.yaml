@@ -1,0 +1,50 @@
+# IMPL_PLAN Schema v1.0
+# ========================
+# Defines the structure for artifacts/plans/PLAN_<Slug>_v<Version>.md
+# Used by Planner Agents and Validation Scripts.
+
+schema_version: "1.0"
+filename_pattern: "PLAN_[A-Z0-9_]+_v[0-9]+\.[0-9]+\.md"
+target_dir: "artifacts/plans"
+
+required_sections:
+  header:
+    description: "Metadata block"
+    fields:
+      - title
+      - status: [DRAFT, FINAL, APPROVED, OBSOLETE]
+      - version: "X.Y"
+      - authors: [list]
+  
+  context:
+    description: "Background and Motivation"
+    min_length: 50
+
+  goals:
+    description: "Specific objectives of this build"
+    format: "bullet_list"
+    min_items: 1
+
+  proposed_changes:
+    description: "File-level changes"
+    format: "markdown_table"
+    columns: [file, operation, description]
+    allowed_operations: [CREATE, MODIFY, DELETE, RENAME]
+
+  verification_plan:
+    description: "How to prove success"
+    subsections:
+      - automated_tests
+      - manual_verification
+
+  risks:
+    description: "Potential issues and mitigations"
+
+  rollback:
+    description: "How to revert if failed"
+
+validation_rules:
+  - "Filename must match pattern"
+  - "Status must be valid"
+  - "All required sections must be present"
+  - "Proposed changes must use absolute or relative paths from repo root"

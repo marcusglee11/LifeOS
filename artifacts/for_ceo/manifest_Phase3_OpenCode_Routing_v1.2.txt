@@ -1,0 +1,16 @@
+Bundle Name: Bundle_Phase3_OpenCode_Routing_v1.2.zip
+SHA256: e5200b453b18d4844fbb0f76484aa89bbd58dc8ef20b7399d4f251d3d2d61b8e
+Date: 2024-10-24
+Status: VERIFIED (Phase 3 Targeted) / FULL SUITE: FAIL (Regressions in legacy scripts)
+
+Contents:
+1. Review_Packet_Phase3_OpenCode_Routing_Result_v1.2.md (The formal result packet)
+2. Phase3_Complete_v1.2.diff (Complete git diff for the change set)
+3. pytest_phase3_v1.2.txt (Verbatim output of targeted test suite)
+4. pytest_full_v1.2.txt (Verbatim output of full repository test suite)
+5. changed_files_v1.2.txt (Deterministic list of modified files)
+6. steward_task_v1.json (Example task payload)
+7. opencode_steward_stdout_v1.log (Example execution log)
+8. opencode_steward_stderr_v1.log (Example error log)
+
+This bundle fulfills the delivery requirement for Phase 3 OpenCode Routing integration.

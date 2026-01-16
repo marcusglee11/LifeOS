@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "claude-code-mcp": "^0.0.4"
+  }
+}

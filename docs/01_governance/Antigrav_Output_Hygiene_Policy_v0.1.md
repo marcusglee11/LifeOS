@@ -4,7 +4,7 @@ Date: 2025-12-12
 Status: ACTIVE
 
 ## 1. Zero-Clutter Principle
-The **ROOT DIRECTORY** (`c:\Users\cabra\Projects\LifeOS`) is a pristine, canonical namespace. It must **NEVER** contain transient output, logs, or unclassified artifacts.
+The **ROOT DIRECTORY** (`[LOCAL]\\Projects\LifeOS`) is a pristine, canonical namespace. It must **NEVER** contain transient output, logs, or unclassified artifacts.
 
 ## 2. Root Protection Rule (Governance Hard Constraint)
 Antigravity is **FORBIDDEN** from writing any file to the root directory unless it is a **Mission-Critical System Configuration File** (e.g., `pyproject.toml`, `.gitignore`) and explicitly authorized by a specialized Mission Plan.
@@ -27,3 +27,5 @@ All generated content must be routed to semantic directories:
 
 Signed,
 LifeOS Governance Council
+
+

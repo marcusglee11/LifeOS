@@ -169,3 +169,4 @@ Strategic interpretation, alignment, filtering, decision framing—never executi
 
 **Reason:**
 It prevents governance leakage, centralises strategic interpretation, aligns with the LifeOS architecture, and gives you a clean space to interact with the CSO on CEO-level questions.
+

@@ -20,7 +20,7 @@ $dirs = @(
     "04_project_builder",
     "05_agents",
     "06_user_surface",
-    "07_productisation",
+    "12_productisation",
     "08_manuals",
     "09_prompts",
     "10_meta",

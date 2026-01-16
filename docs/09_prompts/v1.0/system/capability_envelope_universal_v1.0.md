@@ -23,3 +23,4 @@ Provide a model-agnostic behavioural shell for AI assistants working within the 
 
 - **Discussion Mode:** focus on understanding, framing, and limited exploration.
 - **Instruction Mode (StepGate):** tightly controlled, stepwise execution with explicit gating.
+

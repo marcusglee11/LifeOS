@@ -1,0 +1,32 @@
+# JSON Schema for COUNCIL_APPROVAL_PACKET validation
+# Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md
+
+$schema: "http://json-schema.org/draft-07/schema#"
+type: object
+required:
+  - verdict
+  - review_packet_id
+  - subject_hash
+properties:
+  verdict:
+    type: string
+    enum: [PASS, GO, GO_WITH_FIXES, BLOCK, DEFER]
+  review_packet_id:
+    type: string
+    minLength: 1
+  subject_hash:
+    type: string
+    minLength: 1
+  rationale:
+    type: string
+  conditions:
+    type: array
+    items:
+      type: string
+  blocking_issues:
+    type: array
+    items:
+      type: object
+  votes:
+    type: object
+additionalProperties: true

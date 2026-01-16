@@ -1,0 +1,37 @@
+﻿# Git Evidence v1.2
+# Generated: 2026-01-05
+
+## git rev-parse HEAD
+ee1f9182bbda0f43f9ac8a6774d34dc0580c72d4
+
+## git status --porcelain
+ M GEMINI.md
+ M artifacts/INDEX.md
+ M artifacts/for_ceo/CT2_Activation_Packet_DocSteward_G3.md
+ M artifacts/plans/CT2_Activation_Packet_DocSteward_G3.md
+ M docs/01_governance/DOC_STEWARD_Constitution_v1.0.md
+ M docs/02_protocols/Document_Steward_Protocol_v1.0.md
+ M docs/11_admin/LIFEOS_STATE.md
+ M docs/INDEX.md
+ M docs/LifeOS_Strategic_Corpus.md
+ M runtime/verifiers/doc_verifier.py
+ M scripts/delegate_to_doc_steward.py
+ M scripts/steward_runner.py
+?? scripts/temp_mock_server.py
+
+## git diff --name-only
+GEMINI.md
+artifacts/INDEX.md
+artifacts/for_ceo/CT2_Activation_Packet_DocSteward_G3.md
+artifacts/plans/CT2_Activation_Packet_DocSteward_G3.md
+docs/01_governance/DOC_STEWARD_Constitution_v1.0.md
+docs/02_protocols/Document_Steward_Protocol_v1.0.md
+docs/11_admin/LIFEOS_STATE.md
+docs/INDEX.md
+docs/LifeOS_Strategic_Corpus.md
+runtime/verifiers/doc_verifier.py
+scripts/delegate_to_doc_steward.py
+scripts/steward_runner.py
+
+## git stash list
+stash@{0}: On gov/repoint-canon: A1A2_clean_run_v1_2

@@ -821,7 +821,7 @@ class TestAutonomousBuildCycleMission:
         # Setup mocks
         design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"])
         review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"])
-        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": "diff content"}, "changed_files": ["foo.py"]}}, executed_steps=["build"], evidence={"usage": {"total_tokens": 100, "input_tokens": 50, "output_tokens": 50}})
+        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {}}, executed_steps=["build"])
         steward_result = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "abc"}, executed_steps=["commit"])
         
         mock_design.return_value = design_result
@@ -835,8 +835,8 @@ class TestAutonomousBuildCycleMission:
         
         # Check composition was executed
         assert result.mission_type == MissionType.AUTONOMOUS_BUILD_CYCLE
-        assert "design_phase" in result.executed_steps
-        assert "design_review" in result.executed_steps
+        assert "design" in result.executed_steps
+        assert "review_design" in result.executed_steps
         assert "cycle_report" in result.outputs
         
         # Check cycle report structure
@@ -844,8 +844,8 @@ class TestAutonomousBuildCycleMission:
         assert "phases" in cycle_report
         assert len(cycle_report["phases"]) > 0
         
-        # First phase should be design (check presence)
-        assert "design_phase" in cycle_report["phases"]
+        # First phase should be design
+        assert cycle_report["phases"][0]["phase"] == "design"
 
     @patch("runtime.orchestration.missions.autonomous_build_cycle.DesignMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.ReviewMission.run")
@@ -856,7 +856,7 @@ class TestAutonomousBuildCycleMission:
         # Setup mocks
         design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"])
         review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"])
-        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": "diff content"}, "changed_files": ["foo.py"]}}, executed_steps=["build"], evidence={"usage": {"total_tokens": 100, "input_tokens": 50, "output_tokens": 50}})
+        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {}}, executed_steps=["build"])
         steward_result = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "abc"}, executed_steps=["commit"])
         
         mock_design.return_value = design_result
@@ -872,7 +872,7 @@ class TestAutonomousBuildCycleMission:
         # So the full cycle should complete
         assert result.success is True
         assert "commit_hash" in result.outputs
-        assert "steward_phase" in result.executed_steps
+        assert "steward" in result.executed_steps
 
 
 # =============================================================================

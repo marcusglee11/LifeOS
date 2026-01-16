@@ -36,3 +36,4 @@ The human MUST NOT:
 
 - **Agent Responsibility**: If an agent sees the human doing a "Black List" item, it must propose an automation fix appropriately.
 - **Human Responsibility**: The human has the right to refuse work that violates this charter.
+

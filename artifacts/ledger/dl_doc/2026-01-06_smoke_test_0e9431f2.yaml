@@ -1,0 +1,110 @@
+case_id: 0e9431f2-990e-4706-b7d4-883f459df510
+entry_type: smoke_test
+ledger: DL_DOC
+recorded_at: '2026-01-05T14:15:18.138529+00:00'
+request:
+  case_id: 0e9431f2-990e-4706-b7d4-883f459df510
+  constraints:
+    allowed_paths:
+    - docs/
+    apply_writes: false
+    forbidden_paths:
+    - docs/00_foundations/
+    - docs/01_governance/
+    max_files: 10
+    mode: dry-run
+  input_refs:
+  - path: docs/INDEX.md
+    sha256: 0cf1179212a82366ee40089cfb8899aa46b31117b6e6996b47ddf7ab82a5c8f0
+  issued_at: '2026-01-05T14:15:17.998364+00:00'
+  issuer_role: ORCHESTRATOR
+  mission_type: INDEX_UPDATE
+  packet_id: req_34cd496fe8e7
+  packet_type: DOC_STEWARD_REQUEST
+  scope_paths:
+  - docs/INDEX.md
+result:
+  case_id: 0e9431f2-990e-4706-b7d4-883f459df510
+  completed_at: '2026-01-05T14:15:18.046498+00:00'
+  diff_evidence_sha256: 8347575b92fc111bf2aebdc2c4b2688ef3029ebf177f93eecc8e188fee84337d
+  files_modified:
+  - after_sha256: ab11eb2de3d5b7915c7143b1aa5915a61d6f09697df0b2b05786ca7317618805
+    before_sha256: 0cf1179212a82366ee40089cfb8899aa46b31117b6e6996b47ddf7ab82a5c8f0
+    change_type: MODIFIED
+    description: ''
+    diff_sha256: 8347575b92fc111bf2aebdc2c4b2688ef3029ebf177f93eecc8e188fee84337d
+    hunk_errors: []
+    match_count_expected: null
+    match_count_found: null
+    path: docs/INDEX.md
+  latency_ms: 45
+  packet_id: res_e3fcf2fffa80
+  packet_type: DOC_STEWARD_RESULT
+  proposed_diffs: "--- a/docs/INDEX.md\n+++ b/docs/INDEX.md\n@@ -1,4 +1,4 @@\n-# LifeOS\
+    \ Documentation Index — Last Updated: 2026-01-06\n+# LifeOS Documentation Index\
+    \ — Last Updated: 2026-01-07\n **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)\n\
+    \ \n ---\n"
+  reason_code: SUCCESS
+  request_ref: req_34cd496fe8e7
+  status: SUCCESS
+  steward_raw_response: '{"status": "SUCCESS", "files_modified": [{"path": "docs/INDEX.md",
+    "change_type": "MODIFIED", "hunks": [{"search": "# LifeOS Documentation Index
+    \u2014 Last Updated: 2026-01-06", "replace": "# LifeOS Documentation Index \u2014
+    Last Updated: 2026-01-07"}]}], "summary": "Updated timestamp via Mock Server"}'
+  verifier_details:
+    findings_count: 51
+    passed: true
+    summary: 0 errors, 50 warnings (post-change verified)
+  verifier_outcome: PASS
+verifier_outcome:
+  details:
+    error_count: 0
+    proposed_files: 1
+    warning_count: 50
+  findings:
+  - category: PATCH_APPLICATION
+    location: ''
+    message: Patch applied successfully
+    severity: INFO
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: LifeOS Constitution v2.0 -> ./00_foundations/LifeOS_Constitution_v2.0.md'
+    severity: WARNING
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: LifeOS_Strategic_Corpus.md -> ./LifeOS_Strategic_Corpus.md'
+    severity: WARNING
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: LIFEOS_STATE.md -> ./11_admin/LIFEOS_STATE.md'
+    severity: WARNING
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: BACKLOG.md -> ./11_admin/BACKLOG.md'
+    severity: WARNING
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: DECISIONS.md -> ./11_admin/DECISIONS.md'
+    severity: WARNING
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: INBOX.md -> ./11_admin/INBOX.md'
+    severity: WARNING
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: LifeOS_Constitution_v2.0.md -> ./00_foundations/LifeOS_Constitution_v2.0.md'
+    severity: WARNING
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: Anti_Failure_Operational_Packet_v0.1.md -> ./00_foundations/Anti_Failure_Operational_Packet_v0.1.md'
+    severity: WARNING
+  - category: LINK_INTEGRITY
+    location: C:\Users\cabra\Projects\LifeOS\docs\INDEX.md
+    message: 'Broken relative link: Architecture_Skeleton_v1.0.md -> ./00_foundations/Architecture_Skeleton_v1.0.md'
+    severity: WARNING
+  findings_count: 51
+  findings_ref: 2026-01-06_smoke_test_0e9431f2_findings.yaml
+  findings_ref_sha256: 54b436585c76936bd0995e6495f5d80e00ce21b886ffd671f1a75048fc9fd18e
+  findings_truncated: true
+  passed: true
+  summary: 0 errors, 50 warnings (post-change verified)

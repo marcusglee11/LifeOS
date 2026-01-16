@@ -411,10 +411,6 @@ def test_plan_review_packet_valid(tmp_path, base_envelope):
     data['review_type'] = "PLAN_REVIEW"
     data['plan_hash'] = "sha256-hash-of-plan"
     data['verdict'] = "GO"
-    data['terminal_outcome'] = "PASS"
-    data['scope_envelope'] = "scope"
-    data['repro'] = "cmd"
-    data['closure_evidence'] = {}
     
     p = tmp_path / "review_plan.yaml"
     p.write_text(yaml.dump(data), encoding='utf-8')

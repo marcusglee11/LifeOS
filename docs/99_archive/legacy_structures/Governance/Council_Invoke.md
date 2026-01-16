@@ -184,3 +184,4 @@ Any amendment must:
 3. Be logged in the Governance Hub alongside Council Protocol and Intent Routing Rule versions.
 
 END OF SPEC
+

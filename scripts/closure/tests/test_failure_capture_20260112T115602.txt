@@ -1,0 +1,116 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.6, pytest-8.3.4, pluggy-1.5.0 -- C:\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\cabra\Projects\LifeOS
+configfile: pytest.ini
+plugins: anyio-4.7.0, asyncio-1.3.0, cov-6.2.1, mockito-0.0.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 11 items
+
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestDetachedDigest::test_detached_digest_happy_path PASSED [  9%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestDetachedDigest::test_detached_digest_missing PASSED [ 18%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestDetachedDigest::test_detached_digest_mismatch PASSED [ 27%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestZipDeterminism::test_bundle_zip_is_deterministic PASSED [ 36%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestEvidenceHygiene::test_no_transient_paths PASSED [ 45%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestLegacies::test_posix_path_accepted FAILED [ 54%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestLegacies::test_sha_mismatch_rejected PASSED [ 63%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestLegacies::test_truncation_token_rejected PASSED [ 72%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestLegacies::test_validator_transcript_completeness FAILED [ 81%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestProvenanceAndVersioning::test_provenance_hash_mismatch_fails PASSED [ 90%]
+scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestProvenanceAndVersioning::test_missing_gcbs_standard_version_fails_closed PASSED [100%]
+
+================================== FAILURES ===================================
+____________________ TestLegacies.test_posix_path_accepted ____________________
+
+self = <test_gcbs_a1a2_regressions.TestLegacies object at 0x000001FA40966A50>
+tmp_path = WindowsPath('C:/Users/cabra/AppData/Local/Temp/pytest-of-cabra/pytest-530/test_posix_path_accepted0')
+
+    def test_posix_path_accepted(self, tmp_path):
+        zip_path = tmp_path / "posix.zip"
+        manifest = create_valid_manifest(evidence=[{"path": "f.txt", "sha256": compute_sha256(b"c"), "role": "other"}])
+        build_valid_zip_with_sidecar(zip_path, manifest, {"f.txt": b"c"})
+    
+        cmd = [sys.executable, os.path.join(REPO_ROOT, "scripts", "closure", "validate_closure_bundle.py"), str(zip_path), "--output", str(tmp_path / "audit_report.md")]
+>       assert subprocess.run(cmd, capture_output=True).returncode == 0
+E       AssertionError: assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Python312\\python.exe', 'C:\\Users\\cabra\\Projects\\LifeOS\\scripts\\closure\\validate_closure_bundle.py', 'C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\posix.zip', '--output', 'C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\audit_report.md'], returncode=1, stdout=b'Validating bundle: C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\posix.zip\r\nGCBS Standard Version: 1.0\r\nAudit Status: FAIL\r\nReport written to: C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\audit_report.md\r\n', stderr=b'').returncode
+E        +    where CompletedProcess(args=['C:\\Python312\\python.exe', 'C:\\Users\\cabra\\Projects\\LifeOS\\scripts\\closure\\validate_closure_bundle.py', 'C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\posix.zip', '--output', 'C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\audit_report.md'], returncode=1, stdout=b'Validating bundle: C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\posix.zip\r\nGCBS Standard Version: 1.0\r\nAudit Status: FAIL\r\nReport written to: C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\audit_report.md\r\n', stderr=b'') = <function run at 0x000001FA3E240A40>(['C:\\Python312\\python.exe', 'C:\\Users\\cabra\\Projects\\LifeOS\\scripts\\closure\\validate_closure_bundle.py', 'C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\posix.zip', '--output', 'C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_posix_path_accepted0\\audit_report.md'], capture_output=True)
+E        +      where <function run at 0x000001FA3E240A40> = subprocess.run
+
+scripts\closure\tests\test_gcbs_a1a2_regressions.py:171: AssertionError
+_____________ TestLegacies.test_validator_transcript_completeness _____________
+
+self = <test_gcbs_a1a2_regressions.TestLegacies object at 0x000001FA409AC2F0>
+tmp_path = WindowsPath('C:/Users/cabra/AppData/Local/Temp/pytest-of-cabra/pytest-530/test_validator_transcript_comp0')
+
+    def test_validator_transcript_completeness(self, tmp_path):
+        """Ensure captured validator transcript has exit code and correct filename (v1.2.2)."""
+        zip_path = tmp_path / "incomplete.zip"
+    
+        # Case 1: Bad Transcript (No Exit Code)
+        bad_transcript = b"Command: ...\nSTDOUT: ...\n" # Missing "Exit Code:"
+        manifest = create_valid_manifest(evidence=[
+            {"path": "val.txt", "sha256": compute_sha256(bad_transcript), "role": "validator_final_shipped"}
+        ])
+        build_valid_zip_with_sidecar(zip_path, manifest, {"val.txt": bad_transcript})
+    
+        report_path = tmp_path / "audit_report_fail.md"
+        cmd = [sys.executable, os.path.join(REPO_ROOT, "scripts", "closure", "validate_closure_bundle.py"), str(zip_path), "--output", str(report_path)]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        assert res.returncode != 0
+        assert "TRANSCRIPT_INCOMPLETE" in report_path.read_text()
+    
+        # Case 2: Good Transcript (Strict Format)
+        good_transcript = b"Command: cmd\nCWD: /tmp\nExit Code: 0\nSTDOUT:\nOK\n\nSTDERR:\n(empty)\n"
+        manifest2 = create_valid_manifest(evidence=[
+            {"path": "val_ok.txt", "sha256": compute_sha256(good_transcript), "role": "validator_final_shipped"}
+        ])
+        zip_path2 = tmp_path / "Bundle_GCBS_Repayment_v1.2.2.zip"
+        build_valid_zip_with_sidecar(zip_path2, manifest2, {"val_ok.txt": good_transcript})
+    
+        report_path2 = tmp_path / "audit_report_pass.md"
+        cmd2 = [sys.executable, os.path.join(REPO_ROOT, "scripts", "closure", "validate_closure_bundle.py"), str(zip_path2), "--output", str(report_path2)]
+        res2 = subprocess.run(cmd2, capture_output=True, text=True)
+    
+        if res2.returncode != 0:
+            report_content = report_path2.read_text() if report_path2.exists() else "Report not found"
+            error_msg = f"Validator failed (RC={res2.returncode}):\nSTDOUT: {res2.stdout}\nSTDERR: {res2.stderr}\nREPORT: {report_content}"
+>           assert res2.returncode == 0, error_msg
+E           AssertionError: Validator failed (RC=1):
+E             STDOUT: Validating bundle: C:\Users\cabra\AppData\Local\Temp\pytest-of-cabra\pytest-530\test_validator_transcript_comp0\Bundle_GCBS_Repayment_v1.2.2.zip
+E             GCBS Standard Version: 1.0
+E             WARN: Deprecated role validator_final_shipped, use validator_payload_pass
+E             Audit Status: FAIL
+E             Report written to: C:\Users\cabra\AppData\Local\Temp\pytest-of-cabra\pytest-530\test_validator_transcript_comp0\audit_report_pass.md
+E             
+E             STDERR: 
+E             REPORT: # G-CBS Audit Report: FAIL
+E             **Date**: 2026-01-12T22:56:04.695000
+E             **Bundle**: Bundle_GCBS_Repayment_v1.2.2.zip
+E             **Digest Strategy**: Detached (Sidecar Verified)
+E             
+E             ## Checks Performed
+E             - ZIP path canonicalization (no backslashes, no .., no absolute)
+E             - Required root files (closure_manifest.json, closure_addendum.md)
+E             - Manifest schema validation (G-CBS-1.0)
+E             - Addendum elision check (no '...' allowed)
+E             - Addendum row count vs manifest evidence count
+E             - Addendum table parsing (role, path, sha256)
+E             - Portability check (.md files: no file:///, no C:\\Users\\)
+E             - Evidence file integrity (SHA256 verification)
+E             - Transcript completeness (Exit Code presence)
+E             - Protocols provenance hash
+E             
+E             ## Validation Findings
+E             | Code | Message | Path |
+E             |------|---------|------|
+E             | E_ADDENDUM_ROW_MISMATCH | Addendum has 0 evidence rows but manifest has 1 | `closure_addendum.md` |
+E             
+E           assert 1 == 0
+E            +  where 1 = CompletedProcess(args=['C:\\Python312\\python.exe', 'C:\\Users\\cabra\\Projects\\LifeOS\\scripts\\closure\\validate_closure_bundle.py', 'C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_validator_transcript_comp0\\Bundle_GCBS_Repayment_v1.2.2.zip', '--output', 'C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_validator_transcript_comp0\\audit_report_pass.md'], returncode=1, stdout='Validating bundle: C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_validator_transcript_comp0\\Bundle_GCBS_Repayment_v1.2.2.zip\nGCBS Standard Version: 1.0\nWARN: Deprecated role validator_final_shipped, use validator_payload_pass\nAudit Status: FAIL\nReport written to: C:\\Users\\cabra\\AppData\\Local\\Temp\\pytest-of-cabra\\pytest-530\\test_validator_transcript_comp0\\audit_report_pass.md\n', stderr='').returncode
+
+scripts\closure\tests\test_gcbs_a1a2_regressions.py:225: AssertionError
+=========================== short test summary info ===========================
+FAILED scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestLegacies::test_posix_path_accepted
+FAILED scripts/closure/tests/test_gcbs_a1a2_regressions.py::TestLegacies::test_validator_transcript_completeness
+========================= 2 failed, 9 passed in 2.11s =========================

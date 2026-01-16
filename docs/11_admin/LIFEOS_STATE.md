@@ -9,24 +9,29 @@
 
 ## 1. IMMEDIATE NEXT STEP (The "Prompt")
 
-**Objective:** **Finalize CSO_Role_Constitution v1.0**
+**Objective:** **Phase B: Recursive Builder Refinement & Automation**
 **Status:** **ACTIVE**
 **Owner:** Antigravity
 
 **Context:**
-The Chief Stewardship Officer (CSO) role is critical for autonomous governance but its specific constitution (`docs/01_governance/CSO_Role_Constitution_v1.0.md`) currently contains placeholder markers. To enable fully autonomous stewardship (Phase B priority), we must finalize this governing document, strictly defining the CSO's authority, boundaries, and relationship to the Recursive Kernel.
+Phase A (Convergent Builder Loop) is complete and accepted via PR #6. The system now possesses a resumable, budget-aware loop controller. Phase B focuses on refining this recursive kernel, integrating it deeper into the automation substrate, and establishing robust stewardship for the autonomous build process.
 
-**Instructions:**
+**Development Approach:** Use the **Superpowers workflow**:
 
-1. **Analyze Template**: Review the current `CSO_Role_Constitution_v1.0.md` and identify all TODO/markers.
-2. **Define Authority**: Explicitly codify the CSO's right to block builds, mandate reviews, and unilateral revert power for P0 violations.
-3. **Define Interface**: Specify how the Runtime invokes the CSO (checklists, CLI hooks).
-4. **Get Approval**: Create a Review Packet for the CEO to ratify the finalized constitution.
+- **Monitoring**: Watch the autonomous loop in action and identify friction points.
+- **Refinement**: Iteratively improve the `AutonomousBuildCycle` logic.
+- **Expansion**: Extend automation to new mission types.
+
+**Priorities:**
+
+1. **Recursive Kernel Hardening**: Eliminate edge cases in the self-building loop.
+2. **Stewardship Automation**: Automate the "Document Steward" role further.
+3. **Governance Integration**: Ensure the loop respects all governance gates autonomously.
 
 **Required Artifacts:**
 
-- `docs/01_governance/CSO_Role_Constitution_v1.0.md`
-- `docs/01_governance/OpenCode_First_Stewardship_Policy_v1.1.md` (Reference)
+- **Roadmap:** Phase 3 & 4 (see below)
+- **Backlog:** `docs/11_admin/BACKLOG.md`
 
 ---
 
@@ -45,7 +50,6 @@ The Chief Stewardship Officer (CSO) role is critical for autonomous governance b
 - [x] **BuildWithValidation Mission Type** (Implementation Hardened)
 - [x] **Tier-3 Mission CLI E2E Sanity Harness** (Completed - High-signal harness with audit-grade evidence)
 - [x] **Recursive Builder Iteration** (Phase A Implementation Complete)
-- [x] **RPPV v2.6a Implementation** (Completed - Preflight Validator Active)
 
 **Phase 4: Autonomous Construction**
 
@@ -74,6 +78,7 @@ Use `python scripts/todo_inventory.py --priority P0` to see critical items.
 **P0 (Critical)**
 
 - [x] **Standardize Raw Capture Primitive:** Implemented `run_command_capture` in `build_with_validation.py` with explicit hash collection.
+- [ ] **Finalize CSO_Role_Constitution v1.0:** Remove markers, get CEO approval.
 - [ ] **Review OpenCode Deletion Logic:** Investigate root cause of aggressive `git clean`.
 
 **P1 (High)**
@@ -81,13 +86,6 @@ Use `python scripts/todo_inventory.py --priority P0` to see critical items.
 ---
 
 ## 4. RECENT ACHIEVEMENTS (History)
-
-**[CLOSED] RPPV v2.6a Implementation + Fix Test Failures** (2026-01-16)
-
-- **Outcome:** Implemented Return Packet Preflight Validator (RPPV 2.6a) with RTR-1.0 protocol hardening. Fixed pre-existing failures in runtime tests and configurable policy. Bundle approved with waivers (W1-W5) for Clean Working Tree Mode and isolated fixtures.
-- **Evidence:** `artifacts/review_packets/Review_Packet_RPPV_and_Fix_Test_Failures_v1.0.md`
-- **Bundle:** `artifacts/for_ceo/Bundle_RPPV_and_Fix_Test_Failures_v1.0.zip` (SHA: `ed6d352...`)
-- **Waivers:** W1 (Clean Mode), W2 (Patch Shim), W3 (Neg Fixtures), W4 (Integration), W5 (Mech Verifier).
 
 **[CLOSED] Phase A Acceptance & Asset Restoration** (2026-01-14)
 
