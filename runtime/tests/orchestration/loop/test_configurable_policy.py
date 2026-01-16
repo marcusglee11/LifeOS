@@ -23,6 +23,7 @@ class MockAttempt:
     failure_class: Optional[str]
     diff_hash: Optional[str] = None
     diff_summary: Optional[str] = None
+    changed_files: Optional[List[str]] = None
 
 
 class MockLedger:
@@ -161,7 +162,7 @@ class TestConfigurablePolicyBasics:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "RETRY"
+        assert action == "retry"
         assert "Start" in reason
         assert override is None
 
@@ -174,7 +175,7 @@ class TestConfigurablePolicyBasics:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert TerminalReason.PASS.value in reason
         assert override is None
 
@@ -191,7 +192,7 @@ class TestRetryLimitEnforcement:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "RETRY"
+        assert action == "retry"
         assert "TEST_FAILURE" in reason or "test_failure" in reason
         assert override is None
 
@@ -207,7 +208,7 @@ class TestRetryLimitEnforcement:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert "waiver" in reason.lower() or "WAIVER" in reason
         assert override == "WAIVER_REQUESTED"
 
@@ -221,7 +222,7 @@ class TestRetryLimitEnforcement:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert override == "ESCALATION_REQUESTED"
 
     def test_zero_retry_limit_immediate_terminate(self, policy_config):
@@ -234,7 +235,7 @@ class TestRetryLimitEnforcement:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert override == "BLOCKED"
 
 
@@ -322,7 +323,7 @@ class TestEscalationTriggers:
         policy = ConfigurableLoopPolicy(policy_config)
         ledger = MockLedger([
             MockAttempt("A1", success=False, failure_class=FailureClass.TEST_FAILURE.value,
-                       diff_summary="docs/01_governance/Constitution.md changed")
+                       diff_summary="docs/01_governance/Constitution.md changed", changed_files=["docs/01_governance/Constitution.md"])
         ])
 
         escalation_needed = policy._check_escalation_triggers(ledger)
@@ -338,12 +339,12 @@ class TestEscalationTriggers:
             MockAttempt("A2", success=False, failure_class=FailureClass.TEST_FAILURE.value,
                        diff_summary="docs/00_foundations/file.md", diff_hash="h2"),
             MockAttempt("A3", success=False, failure_class=FailureClass.TEST_FAILURE.value,
-                       diff_summary="docs/00_foundations/file.md", diff_hash="h3")
+                       diff_summary="docs/00_foundations/file.md", diff_hash="h3", changed_files=["docs/00_foundations/file.md"])
         ])
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert override == "ESCALATION_REQUESTED"
         assert "escalation" in reason.lower() or "governance" in reason.lower()
 
@@ -361,7 +362,7 @@ class TestDeadlockOscillation:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert TerminalReason.NO_PROGRESS.value in reason
 
     def test_oscillation_detection(self, policy_config):
@@ -375,7 +376,7 @@ class TestDeadlockOscillation:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert TerminalReason.OSCILLATION_DETECTED.value in reason
 
 
@@ -392,7 +393,7 @@ class TestConfigDrivenRouting:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert override == "BLOCKED"
         assert "immediate" in reason.lower() or "CRITICAL_FAILURE" in reason
 
@@ -406,7 +407,7 @@ class TestConfigDrivenRouting:
 
         action, reason, override = policy.decide_next_action(ledger)
 
-        assert action == "RETRY"
+        assert action == "retry"
         assert override is None
 
 
@@ -423,7 +424,7 @@ class TestEdgeCases:
         action, reason, override = policy.decide_next_action(ledger)
 
         # UNKNOWN has retry_limit=0 and default_action=TERMINATE
-        assert action == "TERMINATE"
+        assert action == "terminate"
         assert override == "BLOCKED"
 
     def test_empty_diff_hash_no_deadlock(self, policy_config):
@@ -437,4 +438,4 @@ class TestEdgeCases:
         action, reason, override = policy.decide_next_action(ledger)
 
         # Should proceed with normal retry logic, not deadlock
-        assert action == "RETRY"
+        assert action == "retry"

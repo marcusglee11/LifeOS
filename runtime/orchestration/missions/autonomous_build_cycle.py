@@ -112,7 +112,7 @@ class AutonomousBuildCycleMission(BaseMission):
              reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
              # Note: ledger not yet initialized at this point
              self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=None)
-             return self._make_result(success=False, escalation_reason=reason)
+             return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
 
         # 1. Setup Infrastructure
         ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
@@ -138,7 +138,7 @@ class AutonomousBuildCycleMission(BaseMission):
                 reason = f"Config validation failed: {e}"
                 # Note: ledger not yet initialized at this point
                 self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0, ledger=None)
-                return self._make_result(success=False, error=reason)
+                return self._make_result(success=False, error=reason, executed_steps=executed_steps)
         else:
             # Phase A: Fallback to hardcoded policy (backward compatibility)
             policy = LoopPolicy()
@@ -154,7 +154,8 @@ class AutonomousBuildCycleMission(BaseMission):
                     self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=ledger)
                     return self._make_result(
                         success=False,
-                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}"
+                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}",
+                        executed_steps=executed_steps
                     )
                 executed_steps.append("ledger_hydrated")
             else:
@@ -177,7 +178,8 @@ class AutonomousBuildCycleMission(BaseMission):
         except LedgerIntegrityError as e:
             return self._make_result(
                 success=False,
-                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}"
+                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}",
+                executed_steps=executed_steps
             )
 
         # Phase B.3: Check for Waiver Decision (Resume After Waiver)
@@ -192,7 +194,8 @@ class AutonomousBuildCycleMission(BaseMission):
                 self._emit_terminal(TerminalOutcome.PASS, reason, context, total_tokens, ledger=ledger)
                 return self._make_result(
                     success=True,
-                    outputs={"status": "waived", "debt_id": waiver_decision.get("debt_id")}
+                    outputs={"status": "waived", "debt_id": waiver_decision.get("debt_id")},
+                    executed_steps=executed_steps
                 )
 
             elif waiver_decision["decision"] == "REJECT":
@@ -201,7 +204,8 @@ class AutonomousBuildCycleMission(BaseMission):
                 self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens, ledger=ledger)
                 return self._make_result(
                     success=False,
-                    error=f"Waiver rejected by CEO: {waiver_decision.get('rationale', 'No rationale provided')}"
+                    error=f"Waiver rejected by CEO: {waiver_decision.get('rationale', 'No rationale provided')}",
+                    executed_steps=executed_steps
                 )
 
         # 3. Design Phase (Attempt 0) - Simplified for Phase A
@@ -225,7 +229,7 @@ class AutonomousBuildCycleMission(BaseMission):
              pass
 
         if not d_res.success:
-            return self._make_result(success=False, error=f"Design failed: {d_res.error}")
+            return self._make_result(success=False, error=f"Design failed: {d_res.error}", executed_steps=executed_steps)
             
         build_packet = d_res.outputs["build_packet"]
         
@@ -241,7 +245,8 @@ class AutonomousBuildCycleMission(BaseMission):
         if not r_res.success or r_res.outputs.get("verdict") != "approved":
              return self._make_result(
                  success=False, 
-                 escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}"
+                 escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}",
+                 executed_steps=executed_steps
              )
              
         design_approval = r_res.outputs.get("council_decision")
@@ -302,9 +307,19 @@ class AutonomousBuildCycleMission(BaseMission):
                     # Get commit hash from last attempt (steward phase?)
                     # Wait, policy terminates AFTER Pass.
                     # We need to return the result.
-                    return self._make_result(success=True, outputs={"commit_hash": "FIXME"}) # Todo: get hash
+                    return self._make_result(
+                        success=True, 
+                        outputs={
+                            "commit_hash": "FIXME",
+                            "cycle_report": {
+                                "phases": executed_steps,
+                                "summary": "Cycle completed successfully"
+                            }
+                        }, 
+                        executed_steps=executed_steps
+                    ) # Todo: get hash
                 else:
-                    return self._make_result(success=False, error=reason)
+                    return self._make_result(success=False, error=reason, executed_steps=executed_steps)
 
             # Budget Check SECOND (hard ceiling on RETRY only)
             # Budget exhaustion blocks further retries but does NOT prevent policy TERMINATE handling above.
@@ -312,7 +327,7 @@ class AutonomousBuildCycleMission(BaseMission):
             if is_over:
                 # Policy said RETRY but budget exhausted - emit BLOCKED terminal
                 self._emit_terminal(TerminalOutcome.BLOCKED, budget_reason, context, total_tokens, ledger=ledger)
-                return self._make_result(success=False, error=budget_reason)
+                return self._make_result(success=False, error=budget_reason, executed_steps=executed_steps)
 
             # Execution (RETRY or First Run)
             feedback = ""
@@ -333,12 +348,17 @@ class AutonomousBuildCycleMission(BaseMission):
                 u = b_res.evidence["usage"]
                 total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
                 has_tokens = True
+            elif b_res.outputs.get("review_packet", {}).get("evidence", {}).get("usage"):
+                # Fallback: Check review_packet evidence
+                u = b_res.outputs["review_packet"]["evidence"]["usage"]
+                total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+                has_tokens = True
             
             if not has_tokens:
                 # P0: Fail Closed on Token Accounting
                 reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
                 self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, ledger=ledger)
-                return self._make_result(success=False, escalation_reason=reason)
+                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
 
             if not b_res.success:
                 # Internal mission error (crash?)
@@ -369,7 +389,7 @@ class AutonomousBuildCycleMission(BaseMission):
                 # Record Failure
                 self._record_attempt(ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, reason)
 
-                return self._make_result(success=False, escalation_reason=reason)
+                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
 
             # Output Review
             out_review = ReviewMission()
@@ -394,8 +414,9 @@ class AutonomousBuildCycleMission(BaseMission):
                 s_res = steward.run(context, {"review_packet": review_packet, "approval": or_res.outputs.get("council_decision")})
                 if s_res.success:
                     # SUCCESS!
-                    # Record PASS
+
                     self._record_attempt(ledger, attempt_id, context, b_res, None, "Attributes Approved", success=True)
+                    executed_steps.append("steward_phase")
                     # Loop will check policy next iter -> PASS
                     continue 
                 else:
@@ -442,7 +463,8 @@ class AutonomousBuildCycleMission(BaseMission):
                 self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens, ledger=ledger)
                 return self._make_result(
                     success=False,
-                    error=f"{reason}. See {ppv_path} for details."
+                    error=f"{reason}. See {ppv_path} for details.",
+                    executed_steps=executed_steps
                 )
 
             # PPV PASSED - Record Attempt to ledger

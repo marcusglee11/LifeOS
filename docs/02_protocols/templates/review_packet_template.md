@@ -16,6 +16,8 @@ terminal_outcome: ""         # [REQUIRED] PASS | BLOCKED | REJECTED
 closure_evidence: {}         # [REQUIRED] key-value pairs
 ---
 
+> **Reviewer Behavior**: Apply RTR-1.0 from `docs/02_protocols/Project_Planning_Protocol_v1.0.md`.
+
 # Review_Packet_<Mission>_v1.0
 
 # Scope Envelope
@@ -74,3 +76,5 @@ closure_evidence: {}         # [REQUIRED] key-value pairs
 ```python
 ...
 ```
+
+**EOF_SENTINEL**
