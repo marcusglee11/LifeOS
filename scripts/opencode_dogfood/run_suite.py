@@ -300,18 +300,30 @@ def main():
         
         # 2. Evidence Delta Check
         if not args.dry_run:
-            # CAPTURE MANDATORY EVIDENCE (repo_commit, worktree_check)
-            # 1. repo_commit.txt
+            # CAPTURE MANDATORY EVIDENCE
             ev_dir = run_dir / "evidence" / case_id
             ev_dir.mkdir(exist_ok=True, parents=True)
             
+            # 1. stdout/stderr
+            with open(ev_dir / "stdout.txt", "w", encoding="utf-8") as f:
+                f.write(proc.stdout if 'proc' in locals() else "")
+            with open(ev_dir / "stderr.txt", "w", encoding="utf-8") as f:
+                f.write(proc.stderr if 'proc' in locals() else "")
+                
+            # 2. git_status
+            try:
+                gs = subprocess.check_output(["git", "status", "--porcelain"], text=True)
+            except:
+                gs = "ERROR"
+            with open(ev_dir / "git_status.txt", "w", encoding="utf-8") as f:
+                f.write(gs)
+                
+            # 3. repo_commit
             rc_path = ev_dir / "repo_commit.txt"
             with open(rc_path, "w") as f:
                 f.write(repo_commit)
             
-            # 2. worktree_check.txt
-            # We already have git_dir and is_worktree from stage check? 
-            # Not necessarily, capturing fresh state is safer per case.
+            # 4. worktree_check
             wc_path = ev_dir / "worktree_check.txt"
             try:
                 gd = subprocess.check_output(["git", "rev-parse", "--git-dir"], text=True).strip()
@@ -324,17 +336,18 @@ def main():
                 f.write(wc_content)
                 
             # Add to evidence_list
-            for p in [rc_path, wc_path]:
-                sha = hash_file(str(p))
-                # Write sidecar
-                with open(str(p) + ".sha256", "w") as f:
-                    f.write(sha + f" *{p.name}\n")
-                    
-                evidence_list.append({
-                    "path": str(p.relative_to(repo_root)).replace("\\", "/"),
-                    "sha256": sha,
-                    "bytes": p.stat().st_size
-                })
+            for fname in ["stdout.txt", "stderr.txt", "git_status.txt", "repo_commit.txt", "worktree_check.txt"]:
+                p = ev_dir / fname
+                if p.exists():
+                    sha = hash_file(str(p))
+                    with open(str(p) + ".sha256", "w") as f:
+                        f.write(sha + f" *{p.name}\n")
+                        
+                    evidence_list.append({
+                        "path": str(p.relative_to(repo_root)).replace("\\", "/"),
+                        "sha256": sha,
+                        "bytes": p.stat().st_size
+                    })
 
         if not args.dry_run and status == "PASS" and not case.get("ignore_deltas"):
             total_delta_count = 0
