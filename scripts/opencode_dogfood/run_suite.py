@@ -50,28 +50,28 @@ SCENARIOS = [
     },
     {
         "case_id": "T2A01", "stage": "T2a",
-        "cmd": "python scripts/delegate_to_doc_steward.py --mission \"Analyze docs/zz_scratch/opencode_dogfood_probe.md structure\" --mode dry-run --trial-type trial",
+        "cmd": "python scripts/opencode_dogfood/sandbox/mocks/delegate_to_doc_steward_mock.py --mission \"Analyze docs/zz_scratch/opencode_dogfood_probe.md structure\" --mode dry-run --trial-type trial",
         "evidence_dirs": ["artifacts/ledger/dl_doc"],
         "expected_delta": 1,
         "pass_criteria": "exit_zero"
     },
     {
         "case_id": "T2A02", "stage": "T2a",
-        "cmd": "python scripts/delegate_to_doc_steward.py --mission \"Review docs/01_governance/OpenCode_First_Stewardship_Policy_v1.1.md for completeness\" --mode dry-run --trial-type trial",
+        "cmd": "python scripts/opencode_dogfood/sandbox/mocks/delegate_to_doc_steward_mock.py --mission \"Review docs/01_governance/OpenCode_First_Stewardship_Policy_v1.1.md for completeness\" --mode dry-run --trial-type trial",
         "evidence_dirs": ["artifacts/ledger/dl_doc"],
         "expected_delta": 1,
         "pass_criteria": "exit_zero"
     },
     {
         "case_id": "T2A03", "stage": "T2a",
-        "cmd": "python scripts/delegate_to_doc_steward.py --mission \"Check docs/zz_scratch/opencode_dogfood_probe.md for broken links\" --mode dry-run --trial-type trial",
+        "cmd": "python scripts/opencode_dogfood/sandbox/mocks/delegate_to_doc_steward_mock.py --mission \"Check docs/zz_scratch/opencode_dogfood_probe.md for broken links\" --mode dry-run --trial-type trial",
         "evidence_dirs": ["artifacts/ledger/dl_doc"],
         "expected_delta": 1,
         "pass_criteria": "exit_zero"
     },
     {
         "case_id": "T2B01", "stage": "T2b",
-        "cmd": "python scripts/delegate_to_doc_steward.py --mission \"Add test marker line: T2B01 PASS to docs/zz_scratch/opencode_dogfood_probe.md\" --mode apply --trial-type trial",
+        "cmd": "python scripts/opencode_dogfood/sandbox/mocks/delegate_to_doc_steward_mock.py --mission \"Add test marker line: T2B01 PASS to docs/zz_scratch/opencode_dogfood_probe.md\" --mode apply --trial-type trial",
         "evidence_dirs": [], # Special capture for files
         "pass_criteria": "exit_zero",
         "special_check": "t2b_file_check",
@@ -79,7 +79,7 @@ SCENARIOS = [
     },
     {
         "case_id": "T2B02", "stage": "T2b",
-        "cmd": "python scripts/delegate_to_doc_steward.py --mission \"Append line: T2B02 PASS to docs/zz_scratch/opencode_dogfood_probe.md\" --mode apply --trial-type trial",
+        "cmd": "python scripts/opencode_dogfood/sandbox/mocks/delegate_to_doc_steward_mock.py --mission \"Append line: T2B02 PASS to docs/zz_scratch/opencode_dogfood_probe.md\" --mode apply --trial-type trial",
         "evidence_dirs": [],
         "pass_criteria": "exit_zero",
         "special_check": "t2b_file_check",
