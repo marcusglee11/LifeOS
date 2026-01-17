@@ -174,6 +174,9 @@ def snapshot_repo(repo_root: Path) -> List[str]:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="List cases without running")
+    parser.add_argument("--case", help="Run specific case ID")
+    parser.add_argument("--stages", help="Comma-separated list of stages to run")
+    parser.add_argument("--fail-fast", action="store_true", help="Stop on first failure")
     args = parser.parse_args()
 
     # 1. Environment Setup
@@ -218,7 +221,15 @@ def main():
     
     current_stage = ""
     
-    for case in SCENARIOS:
+    # Filter Scenarios
+    scenarios_to_run = SCENARIOS
+    if args.case:
+        scenarios_to_run = [c for c in SCENARIOS if c["case_id"] == args.case]
+    elif args.stages:
+        stages = args.stages.split(",")
+        scenarios_to_run = [c for c in SCENARIOS if c["stage"] in stages]
+
+    for case in scenarios_to_run:
         case_id = case["case_id"]
         stage = case["stage"]
         
