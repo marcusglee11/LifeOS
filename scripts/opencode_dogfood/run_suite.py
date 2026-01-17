@@ -426,7 +426,9 @@ def main():
         if status == "FAIL":
             failed = True
             stop_reason = f"{case_id} failed with {failure_code}"
-            break
+            if args.fail_fast:
+                print("FAIL-FAST triggered.")
+                break
 
     # Summary
     summary = {
