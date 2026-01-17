@@ -1,0 +1,129 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "opencode_dogfood_case_result",
+    "title": "OpenCode Dogfood Case Result",
+    "description": "Schema for individual test case results in OpenCode dogfooding suite.",
+    "type": "object",
+    "required": [
+        "schema_id",
+        "schema_version",
+        "case_id",
+        "stage",
+        "expected_outcome",
+        "actual_outcome",
+        "status",
+        "run_id",
+        "duration_ms",
+        "repo_commit",
+        "evidence"
+    ],
+    "properties": {
+        "schema_id": {
+            "const": "opencode_dogfood_case_result"
+        },
+        "schema_version": {
+            "const": "1.0"
+        },
+        "case_id": {
+            "type": "string",
+            "pattern": "^T[0-9][A-Z]?[A-Z]?[0-9]{2}$",
+            "description": "Case identifier, e.g., T1C01, T2A01, T2B03"
+        },
+        "stage": {
+            "type": "string",
+            "enum": [
+                "T1",
+                "T2a",
+                "T2b",
+                "T3",
+                "T4"
+            ]
+        },
+        "expected_outcome": {
+            "type": "string",
+            "enum": [
+                "SUCCESS",
+                "EXPECTED_FAIL"
+            ],
+            "description": "SUCCESS = command should succeed; EXPECTED_FAIL = guardrail/error expected"
+        },
+        "actual_outcome": {
+            "type": "string",
+            "enum": [
+                "SUCCESS",
+                "FAIL"
+            ],
+            "description": "Actual result of the command execution"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "PASS",
+                "FAIL"
+            ],
+            "description": "PASS iff expected_outcome matched actual_outcome semantics"
+        },
+        "failure_code": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Non-null iff status=FAIL or expected guardrail code for EXPECTED_FAIL cases"
+        },
+        "run_id": {
+            "type": "string",
+            "pattern": "^RUN_[0-9]{4}$",
+            "description": "Deterministic run identifier, e.g., RUN_0001"
+        },
+        "duration_ms": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "model_id": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Model used for LLM calls, null if not applicable"
+        },
+        "transport": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Transport method, null if not applicable"
+        },
+        "repo_commit": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+        },
+        "evidence": {
+            "type": "array",
+            "description": "Sorted lexicographically by path (LC_ALL=C)",
+            "items": {
+                "type": "object",
+                "required": [
+                    "path",
+                    "sha256",
+                    "bytes"
+                ],
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Relative path from repo root, forward slashes"
+                    },
+                    "sha256": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "bytes": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    },
+    "additionalProperties": false
+}

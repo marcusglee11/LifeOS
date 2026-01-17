@@ -853,4 +853,78 @@ CEO clears `for_ceo/` after pickup. Agent MUST NOT delete from this folder.
 
 ---
 
-# **End of Constitution v3.0 (Priority Reordered Edition)**
+# **ARTICLE XIX — REPO SAFETY GATE (MANDATORY)**
+
+> [!CAUTION]
+> This article defines a **hard gate**. Violating it is a critical constitutional failure.
+
+## Section 1. Pre-Operation Requirement
+
+Before executing ANY of the following git operations, Antigravity **MUST** run the Repo Safety Gate:
+
+- `git checkout <branch>`
+- `git switch <branch>`
+- `git merge`
+- `git reset`
+- `git clean`
+- Any "cleanup" or "hygiene" operation that modifies git state
+
+**Gate Command:**
+
+```bash
+python scripts/repo_safety_gate.py --operation <checkout|merge|cleanup|preflight>
+```
+
+## Section 2. Blocking Conditions
+
+The gate **BLOCKS** (exit code 1) if ANY of the following are true:
+
+1. **Branch Divergence**: Any tracked remote branch has commits not in `main`
+2. **Missing Critical Files**: Any file in the CRITICAL_FILES manifest is absent
+3. **Uncommitted Work**: Current branch has commits not merged to `main`
+4. **Staged Changes**: Files are staged but not committed
+
+## Section 3. Critical Files Manifest
+
+The following files MUST exist after ANY operation:
+
+- `GEMINI.md`
+- `CLAUDE.md`
+- `AGENTS.md`
+- `.gitattributes`
+- `.github/workflows/ci.yml`
+- `docs/INDEX.md`
+- `docs/11_admin/LIFEOS_STATE.md`
+- `docs/12_productisation/assets/An_OS_for_Life.mp4`
+- `runtime/engine.py`
+- `pyproject.toml`
+
+## Section 4. Self-Check Sequence
+
+Before any branch switch or cleanup, Antigravity must execute:
+
+```
+□ Run: python scripts/repo_safety_gate.py --operation preflight
+□ Gate returns exit code 0? → Proceed
+□ Gate returns exit code 1? → STOP, report issues to user
+□ Never use --force without explicit user approval
+```
+
+## Section 5. Snapshot Requirement
+
+When the gate detects issues, it **automatically** saves a recovery snapshot to:
+`artifacts/safety_snapshots/snapshot_<timestamp>.json`
+
+This enables recovery if operations proceed despite warnings.
+
+## Section 6. Failure Mode
+
+If Antigravity performs git operations without running the safety gate:
+
+1. This is a **constitutional violation**
+2. The agent must immediately run the gate and report any issues
+3. Recovery must be attempted using reflog or snapshots
+
+---
+
+# **End of Constitution v3.1 (Repo Safety Gate Edition)**
