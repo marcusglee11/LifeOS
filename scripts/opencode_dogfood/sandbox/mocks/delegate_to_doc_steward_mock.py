@@ -11,6 +11,12 @@ def main():
     
     print(f"Mock Doc Steward executing mission: {args.mission}")
     
+    # Generate Mock Evidence
+    dummy_dir = "artifacts/ledger/dl_doc"
+    os.makedirs(dummy_dir, exist_ok=True)
+    with open(f"{dummy_dir}/mock_artifact_{hash(args.mission)}.txt", "w") as f:
+        f.write(f"Evidence for {args.mission}")
+    
     # Handle T2B write headers
     if "Add test marker line: T2B01 PASS" in args.mission:
         target = "docs/zz_scratch/opencode_dogfood_probe.md"
