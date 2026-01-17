@@ -48,19 +48,11 @@ def enforce_modification_policy(allowlist: List[str], actual_modifications: List
 
 def is_isolated_worktree(git_dir: str) -> bool:
     """Returns True if git_dir indicates a worktree (contains 'worktrees' or is a file .git)."""
-    # If the user is in a worktree, `.git` is a file pointing to the main repo's worktree dir.
-    # If they are in the main repo, `.git` is a directory.
-    # We also check if the resolved path contains 'worktrees' just in case.
-    
-    # Check 1: Is .git a file? (Common worktree marker)
-    # But git_dir passed here is the result of `git rev-parse --git-dir`
-    # In a worktree: /path/to/main/.git/worktrees/my-worktree
-    # In main repo: /path/to/main/.git
-    
-    if "worktrees" in Path(git_dir).parts:
+    # Use absolute path to ensure 'worktrees' directory is visible in parts
+    p = Path(git_dir).resolve()
+    if "worktrees" in p.parts:
         return True
         
-    # Fallback/Additional check logic if needed, but path inspection is robust for standard git layout
     return False
 
 def compute_deterministic_names(file_list: List[str], prefix: str) -> Dict[str, str]:

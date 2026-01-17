@@ -239,10 +239,9 @@ def main():
             current_stage = stage
             
             # T2b Isolation Check
-            # T2b Isolation Check
             if stage == "T2b" and not args.dry_run:
                 try:
-                    git_dir = subprocess.check_output(["git", "rev-parse", "--git-dir"], text=True).strip()
+                    git_dir = subprocess.check_output(["git", "rev-parse", "--absolute-git-dir"], text=True).strip()
                     if not lib.is_isolated_worktree(git_dir):
                         print(" FAIL [WORKTREE_REQUIRED]")
                         # Record failure explicitly if possible or just hard stop
