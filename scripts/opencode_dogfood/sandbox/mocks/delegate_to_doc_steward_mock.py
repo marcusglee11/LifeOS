@@ -20,6 +20,7 @@ def main():
     # Handle T2B write headers
     if "Add test marker line: T2B01 PASS" in args.mission:
         target = "docs/zz_scratch/opencode_dogfood_probe.md"
+        os.makedirs(os.path.dirname(target), exist_ok=True)
         with open(target, "w") as f:
             f.write("T2B01 PASS\n")
         print(f"Modified {target}")
