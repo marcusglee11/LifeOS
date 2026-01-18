@@ -1,0 +1,9 @@
+?? artifacts/ledger/dl_doc/mock_artifact_-1145609576288875951.txt
+?? artifacts/ledger/dl_doc/mock_artifact_-1488125156950070091.txt
+?? artifacts/ledger/dl_doc/mock_artifact_2470008921364605249.txt
+?? artifacts/ledger/dl_doc/mock_artifact_3805357981404597131.txt
+?? artifacts/ledger/dl_doc/mock_artifact_872284528270719924.txt
+?? artifacts/ledger/opencode_dogfood/
+?? docs/zz_scratch/
+?? post_manifest.txt
+?? pre_manifest.txt

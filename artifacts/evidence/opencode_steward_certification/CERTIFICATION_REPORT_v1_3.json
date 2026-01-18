@@ -1,0 +1,93 @@
+{
+  "suite_version": "1.3",
+  "timestamp": "2026-01-06T23:47:59.913634",
+  "total": 12,
+  "passed": 11,
+  "failed": 1,
+  "results": [
+    {
+      "id": "T-INPUT-1",
+      "name": "Valid JSON Accepted",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:54.868041"
+    },
+    {
+      "id": "T-INPUT-2",
+      "name": "Free-Text Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:55.328842"
+    },
+    {
+      "id": "T-SEC-1",
+      "name": "Path Traversal Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:55.853430"
+    },
+    {
+      "id": "T-SEC-2",
+      "name": "Absolute Path Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:56.346211"
+    },
+    {
+      "id": "T-SEC-3",
+      "name": "Denylist *.py Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:56.846095"
+    },
+    {
+      "id": "T-SEC-4",
+      "name": "Denylist scripts/** Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:57.324846"
+    },
+    {
+      "id": "T-SEC-5",
+      "name": "Denylist config/** Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:57.822457"
+    },
+    {
+      "id": "T-SEC-6",
+      "name": "Denylist GEMINI.md Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:58.304908"
+    },
+    {
+      "id": "T-SEC-7",
+      "name": "Denylist Foundations Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:58.811320"
+    },
+    {
+      "id": "T-SEC-8",
+      "name": "Evidence Read-Only Enforced",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:59.374643"
+    },
+    {
+      "id": "T-SEC-9",
+      "name": "Outside Allowed Roots Rejected",
+      "status": "PASS",
+      "details": "",
+      "timestamp": "2026-01-06T23:47:59.863623"
+    },
+    {
+      "id": "T-GIT-1",
+      "name": "Clean Tree Start",
+      "status": "FAIL",
+      "details": "Dirty: ['M GEMINI.md', ' M artifacts/INDEX.md', ' M artifacts/for_ceo/CT2_Activation_Packet_DocSteward_G3.md']",
+      "timestamp": "2026-01-06T23:47:59.912624"
+    }
+  ]
+}

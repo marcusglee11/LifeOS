@@ -1,0 +1,826 @@
+# ============================================================================
+# LifeOS Agent Packet Schema v1.0
+# ============================================================================
+# Purpose: Standardized exchange formats for inter-agent communication
+# Format: YAML (machine-first, human-debuggable)
+# Principle: Fail-closed - missing required fields = invalid packet
+# ============================================================================
+
+# ============================================================================
+# COMMON ENVELOPE (Required on ALL packets)
+# ============================================================================
+# Every packet MUST include this envelope as its root-level fields.
+# Agents MUST reject packets missing any required envelope field.
+
+_envelope_schema:
+  packet_id: string          # Required. UUID v4. Unique identifier for this packet.
+  packet_type: string        # Required. One of the 13 defined types.
+  schema_version: string     # Required. Semver. e.g., "1.0.0"
+  created_at: datetime       # Required. ISO 8601. When packet was created.
+  source_agent: string       # Required. Agent ID that created this packet.
+  target_agent: string       # Required. Agent ID intended to process this packet.
+  chain_id: string           # Required. UUID v4. Links all packets in a workflow.
+  parent_packet_id: string   # Optional. UUID v4. Immediate predecessor packet.
+  priority: string           # Required. One of: P0_CRITICAL, P1_HIGH, P2_NORMAL, P3_LOW
+  ttl_hours: integer         # Optional. Packet expires after this many hours. Null = no expiry.
+  tags: list[string]         # Optional. Freeform tags for filtering/routing.
+
+# ============================================================================
+# STANDARD OUTCOME TYPES (Used across decision packets)
+# ============================================================================
+# All packets involving decisions use these standardized outcomes.
+
+_outcome_types:
+  - APPROVED              # Passed without conditions
+  - APPROVED_WITH_CONDITIONS  # Passed but requires follow-up actions
+  - REJECTED              # Failed - blocking issues found
+  - ESCALATED             # Cannot decide - elevated to higher authority
+  - DEFERRED              # Postponed - needs more information
+  - ABSTAINED             # No opinion - not in scope for this reviewer
+
+_severity_levels:
+  - P0_BLOCKER            # Must fix before any progress
+  - P1_CRITICAL           # Must fix before merge/deploy
+  - P2_MAJOR              # Should fix, may proceed with tracking
+  - P3_MINOR              # Nice to fix, non-blocking
+  - P4_TRIVIAL            # Cosmetic/style only
+
+# ============================================================================
+# PACKET TYPE 1: COUNCIL_REVIEW_PACKET
+# ============================================================================
+# Purpose: Request individual council member review
+# Flow: Orchestrator → Council Member → Council Approval aggregation
+
+council_review_packet:
+  # --- Envelope (inherit all _envelope_schema fields) ---
+  packet_type: "COUNCIL_REVIEW"
+  
+  # --- Review Request ---
+  review_request:
+    review_type: string       # Required. One of: CODE, ARCHITECTURE, GOVERNANCE, SECURITY, DOCUMENTATION
+    subject_ref: string       # Required. What's being reviewed (PR#, doc path, etc.)
+    subject_summary: string   # Required. 1-3 sentence description of what changed.
+    urgency_rationale: string # Optional. Why this priority level.
+    deadline: datetime        # Optional. When review must be complete.
+    
+  # --- Role Context ---
+  role_context:
+    role_id: string           # Required. Council role being invoked.
+    role_prompt: string       # Required. Full role definition/persona prompt.
+    decision_authority: list[string]  # Required. What this role CAN decide.
+    escalation_triggers: list[string] # Required. What this role MUST escalate.
+    
+  # --- Background Materials ---
+  background:
+    prior_decisions: list     # Optional. Relevant previous council rulings.
+      - decision_id: string
+        summary: string
+        relevance: string
+    related_docs: list        # Required. Supporting documentation.
+      - doc_ref: string
+        doc_type: string      # SPEC, GOVERNANCE, CODE, TEST, etc.
+        relevance: string
+    context_summary: string   # Required. Narrative context for the review.
+    
+  # --- Review Criteria ---
+  criteria:
+    must_pass: list           # Required. Blocking criteria.
+      - criterion_id: string
+        description: string
+        verification_method: string
+    should_pass: list         # Optional. Non-blocking but tracked.
+      - criterion_id: string
+        description: string
+        verification_method: string
+    out_of_scope: list[string] # Optional. Explicitly excluded from this review.
+    
+  # --- Expected Output Format ---
+  output_format:
+    ruling_structure:         # Required. How the response should be structured.
+      outcome: "_outcome_types"
+      confidence: "HIGH | MEDIUM | LOW"
+      findings: "list of finding objects"
+      conditions: "list if APPROVED_WITH_CONDITIONS"
+      rationale: "required narrative"
+    fix_structure:            # Required if findings expected.
+      severity: "_severity_levels"
+      location: "file:line or section ref"
+      issue: "description"
+      suggested_fix: "concrete remediation"
+      verification: "how to confirm fixed"
+
+# ============================================================================
+# PACKET TYPE 2: COUNCIL_APPROVAL_PACKET
+# ============================================================================
+# Purpose: Aggregated council decision from multiple member reviews
+# Flow: Council Members → Aggregator → Gate/Orchestrator
+
+council_approval_packet:
+  packet_type: "COUNCIL_APPROVAL"
+  
+  # --- Aggregation Metadata ---
+  aggregation:
+    subject_ref: string       # Required. What was reviewed.
+    quorum_required: integer  # Required. Minimum reviews needed.
+    quorum_achieved: integer  # Required. Actual reviews received.
+    voting_rule: string       # Required. UNANIMOUS, MAJORITY, WEIGHTED
+    
+  # --- Member Rulings ---
+  member_rulings: list        # Required. One entry per reviewing member.
+    - member_role_id: string
+      review_packet_id: string  # Links to source COUNCIL_REVIEW response
+      outcome: string           # From _outcome_types
+      confidence: string
+      blocking_findings: integer
+      non_blocking_findings: integer
+      
+  # --- Consolidated Outcome ---
+  consolidated:
+    outcome: string           # Required. From _outcome_types
+    outcome_rationale: string # Required. How outcome was derived from votes.
+    blocking_issues: list     # Required. Aggregated P0/P1 findings.
+      - finding_id: string
+        source_member: string
+        severity: string
+        issue: string
+        suggested_fix: string
+    conditions: list          # Required if APPROVED_WITH_CONDITIONS.
+      - condition_id: string
+        description: string
+        deadline: datetime
+        verification: string
+    dissents: list            # Optional. Minority opinions.
+      - member_role_id: string
+        dissent_rationale: string
+
+# ============================================================================
+# PACKET TYPE 3: GATE_APPROVAL_PACKET
+# ============================================================================
+# Purpose: Formal tier/checkpoint gate passage decision
+# Flow: Gate Controller → Orchestrator/Registry
+
+gate_approval_packet:
+  packet_type: "GATE_APPROVAL"
+  
+  # --- Gate Identification ---
+  gate:
+    gate_id: string           # Required. Unique gate identifier.
+    gate_type: string         # Required. TIER_PROMOTION, DEPLOY, RELEASE, MERGE
+    tier_from: string         # Optional. Source tier (for promotions).
+    tier_to: string           # Optional. Target tier (for promotions).
+    
+  # --- Prerequisites ---
+  prerequisites:
+    required_approvals: list  # Required. What must be approved before this gate.
+      - approval_type: string # COUNCIL, HUMAN, AUTOMATED
+        approval_ref: string  # Packet ID or external ref
+        status: string        # MET, NOT_MET, WAIVED
+        waiver_rationale: string  # Required if WAIVED
+    required_artifacts: list  # Required. What must exist.
+      - artifact_type: string
+        artifact_ref: string
+        status: string        # PRESENT, MISSING, INVALID
+    required_tests: list      # Required. Test suites that must pass.
+      - test_suite: string
+        pass_count: integer
+        fail_count: integer
+        skip_count: integer
+        status: string        # PASSED, FAILED, NOT_RUN
+        
+  # --- Gate Decision ---
+  decision:
+    outcome: string           # Required. APPROVED, REJECTED, ESCALATED
+    decided_by: string        # Required. Agent or human ID.
+    decided_at: datetime      # Required. When decision was made.
+    rationale: string         # Required. Why this decision.
+    unmet_prerequisites: list # Required if REJECTED.
+      - prerequisite_ref: string
+        gap_description: string
+    next_gate: string         # Optional. Next gate in sequence if APPROVED.
+
+# ============================================================================
+# PACKET TYPE 4: BUILD_PACKET
+# ============================================================================
+# Purpose: TDD-driven build instructions for builder agent
+# Flow: Orchestrator/Spec → Builder Agent
+
+build_packet:
+  packet_type: "BUILD"
+  
+  # --- Build Scope ---
+  scope:
+    component: string         # Required. What's being built.
+    build_type: string        # Required. NEW, MODIFY, REFACTOR, FIX
+    tier: string              # Required. Which tier this belongs to.
+    
+  # --- Test-Driven Specification ---
+  tdd_spec:
+    acceptance_tests: list    # Required. Tests that define "done".
+      - test_id: string
+        description: string
+        preconditions: list[string]
+        input: string
+        expected_output: string
+        verification_command: string
+    test_file_paths: list[string]  # Required. Where tests live/should live.
+    coverage_requirement: string    # Optional. e.g., ">=80%"
+    
+  # --- Functional Specification ---
+  functional_spec:
+    purpose: string           # Required. What this component does.
+    inputs: list              # Required.
+      - name: string
+        type: string
+        constraints: string
+        required: boolean
+    outputs: list             # Required.
+      - name: string
+        type: string
+        guarantees: string
+    behavior: list            # Required. Key behavioral requirements.
+      - behavior_id: string
+        description: string
+        edge_cases: list[string]
+    error_handling: list      # Required. How errors are handled.
+      - error_type: string
+        handling: string
+        
+  # --- Constraints ---
+  constraints:
+    must_not: list[string]    # Required. Forbidden approaches/patterns.
+    must_use: list[string]    # Optional. Required patterns/libraries.
+    file_allowlist: list[string]  # Required. Files builder may create/modify.
+    dependencies: list[string]    # Optional. Required imports/packages.
+    
+  # --- Context ---
+  context:
+    related_code: list        # Optional. Existing code for reference.
+      - file_path: string
+        relevance: string
+        snippet: string       # Optional. Key excerpt.
+    design_decisions: list    # Optional. Relevant prior decisions.
+      - decision_ref: string
+        summary: string
+
+# ============================================================================
+# PACKET TYPE 5: REVIEW_PACKET
+# ============================================================================
+# Purpose: Code walkthrough request (what Antigravity currently does)
+# Flow: Builder → Reviewer Agent
+
+review_packet:
+  packet_type: "REVIEW"
+  
+  # --- Review Metadata ---
+  review_meta:
+    mission: string           # Required. What was the build mission.
+    build_packet_id: string   # Required. Links to originating build.
+    status: string            # Required. COMPLETE, PARTIAL, BLOCKED
+    summary: string           # Required. 1-3 sentence outcome summary.
+    
+  # --- Implementation Record ---
+  implementation:
+    fixes_implemented: list   # Required.
+      - fix_id: string
+        severity: string      # From _severity_levels
+        issue: string
+        fix_description: string
+        verification: string
+        status: string        # FIXED, PARTIAL, WONT_FIX
+    contracts: list           # Optional. New contracts/interfaces defined.
+      - contract_name: string
+        description: string
+        rules: list[string]
+        fail_cases: list
+          - pattern: string
+            error_reason: string
+            
+  # --- Test Results ---
+  test_results:
+    suite_name: string        # Required. Test suite executed.
+    total: integer            # Required.
+    passed: integer           # Required.
+    failed: integer           # Required.
+    skipped: integer          # Optional.
+    test_details: list        # Required.
+      - test_id: string
+        status: string        # PASSED, FAILED, SKIPPED
+        failure_reason: string  # Required if FAILED
+        
+  # --- Files Modified ---
+  file_manifest:
+    files: list               # Required.
+      - path: string
+        lines: integer
+        change_type: string   # CREATED, MODIFIED, DELETED
+        change_summary: string
+    total_lines_changed: integer  # Required.
+    
+  # --- Code Appendix ---
+  code_appendix: list         # Optional. Key code for review.
+    - function_name: string
+      purpose: string
+      code: string            # Full function text.
+      notes: list[string]     # Implementation notes.
+
+# ============================================================================
+# PACKET TYPE 6: FIX_PACKET
+# ============================================================================
+# Purpose: Specific remediation instructions from review
+# Flow: Reviewer/Council → Builder Agent
+
+fix_packet:
+  packet_type: "FIX"
+  
+  # --- Fix Source ---
+  source:
+    source_packet_id: string  # Required. Review or Council packet that generated this.
+    source_type: string       # Required. REVIEW, COUNCIL, HUMAN
+    
+  # --- Fixes Required ---
+  fixes: list                 # Required. At least one fix.
+    - fix_id: string
+      severity: string        # From _severity_levels
+      location:
+        file: string
+        line_start: integer
+        line_end: integer
+        function: string      # Optional.
+      issue:
+        description: string   # Required. What's wrong.
+        evidence: string      # Optional. How issue was detected.
+      remediation:
+        approach: string      # Required. How to fix.
+        code_suggestion: string  # Optional. Concrete fix if known.
+        alternatives: list[string]  # Optional. Other valid approaches.
+      verification:
+        method: string        # Required. How to verify fixed.
+        test_ids: list[string]  # Optional. Tests that should pass.
+        
+  # --- Pass Criteria ---
+  pass_criteria:
+    all_fixes_required: boolean  # Required. Must all fixes be complete?
+    verification_command: string  # Required. Command to run to verify.
+    expected_outcome: string  # Required. What success looks like.
+    
+  # --- Constraints ---
+  constraints:
+    file_allowlist: list[string]  # Required. Files that may be modified.
+    time_budget_hours: number     # Optional. Expected time to complete.
+    escalate_if: list[string]     # Required. Conditions requiring escalation.
+
+# ============================================================================
+# PACKET TYPE 7: ESCALATION_PACKET
+# ============================================================================
+# Purpose: Agent hit decision boundary, needs elevation
+# Flow: Any Agent → Higher Authority (Human or Higher-Tier Agent)
+
+escalation_packet:
+  packet_type: "ESCALATION"
+  
+  # --- Escalation Context ---
+  context:
+    escalating_agent: string  # Required. Who is escalating.
+    original_task_ref: string # Required. What task triggered this.
+    escalation_reason: string # Required. One of: AUTHORITY_EXCEEDED, AMBIGUOUS_SPEC,
+                              #   CONFLICTING_REQUIREMENTS, SAFETY_CONCERN, 
+                              #   RESOURCE_EXCEEDED, UNKNOWN_FAILURE
+    urgency: string           # Required. BLOCKING, HIGH, NORMAL
+    
+  # --- Decision Needed ---
+  decision_needed:
+    question: string          # Required. Clear statement of what must be decided.
+    options: list             # Required. Enumerated options if known.
+      - option_id: string
+        description: string
+        pros: list[string]
+        cons: list[string]
+        agent_recommendation: string  # Optional. Which option agent leans toward.
+    constraints: list[string] # Required. What constrains the decision.
+    
+  # --- Supporting Information ---
+  supporting_info:
+    attempted_actions: list   # Required. What agent already tried.
+      - action: string
+        outcome: string
+        why_insufficient: string
+    relevant_docs: list[string]  # Optional. References.
+    state_snapshot: string    # Optional. Current state description.
+    
+  # --- Response Required ---
+  response_format:
+    decision_options: list[string]  # Required. Valid response choices.
+    additional_info_request: boolean  # Optional. Can responder ask for more?
+    timeout_action: string    # Required. What happens if no response.
+
+# ============================================================================
+# PACKET TYPE 8: HANDOFF_PACKET
+# ============================================================================
+# Purpose: Mid-task transfer between agents
+# Flow: Agent A → Agent B
+
+handoff_packet:
+  packet_type: "HANDOFF"
+  
+  # --- Handoff Metadata ---
+  handoff:
+    reason: string            # Required. One of: TASK_COMPLETE, SPECIALIZATION_NEEDED,
+                              #   RESOURCE_LIMIT, SCHEDULED_ROTATION, ERROR_RECOVERY
+    handoff_point: string     # Required. Where in the workflow this occurs.
+    
+  # --- Task State ---
+  task_state:
+    original_task_ref: string # Required. Root task identifier.
+    task_description: string  # Required. What the task is.
+    progress_summary: string  # Required. What's been done.
+    completion_percentage: integer  # Required. 0-100.
+    current_phase: string     # Required. Where we are in the workflow.
+    
+  # --- Work Products ---
+  work_products:
+    files_created: list[string]    # Required.
+    files_modified: list[string]   # Required.
+    artifacts_produced: list       # Optional.
+      - artifact_type: string
+        artifact_ref: string
+    decisions_made: list           # Required.
+      - decision: string
+        rationale: string
+        reversible: boolean
+        
+  # --- Continuation Instructions ---
+  continuation:
+    next_steps: list[string]  # Required. What receiving agent should do next.
+    blockers: list[string]    # Required. Known blockers.
+    warnings: list[string]    # Optional. Things to watch out for.
+    context_refs: list[string]  # Optional. Docs/packets to review.
+
+# ============================================================================
+# PACKET TYPE 9: CHECKPOINT_PACKET
+# ============================================================================
+# Purpose: Periodic state sync for long-running autonomous tasks
+# Flow: Autonomous Agent → Orchestrator/Human
+
+checkpoint_packet:
+  packet_type: "CHECKPOINT"
+  
+  # --- Checkpoint Metadata ---
+  checkpoint:
+    checkpoint_number: integer  # Required. Sequential checkpoint number.
+    checkpoint_type: string   # Required. SCHEDULED, MILESTONE, ON_DEMAND, PRE_RISKY_ACTION
+    task_ref: string          # Required. Root task identifier.
+    
+  # --- Progress Report ---
+  progress:
+    started_at: datetime      # Required. When task began.
+    checkpoint_at: datetime   # Required. When this checkpoint was created.
+    elapsed_hours: number     # Required.
+    completion_percentage: integer  # Required.
+    phase: string             # Required. Current workflow phase.
+    
+  # --- Status Summary ---
+  status:
+    health: string            # Required. GREEN, YELLOW, RED
+    summary: string           # Required. 2-3 sentence status.
+    accomplishments: list[string]  # Required. What's been done since last checkpoint.
+    current_activity: string  # Required. What's happening now.
+    next_planned: list[string]  # Required. What's planned next.
+    
+  # --- Metrics ---
+  metrics:
+    tests_passing: integer
+    tests_failing: integer
+    files_modified: integer
+    lines_changed: integer
+    errors_encountered: integer
+    errors_recovered: integer
+    custom_metrics: object    # Optional. Task-specific metrics.
+    
+  # --- Flags ---
+  flags:
+    needs_attention: boolean  # Required. Should human review this?
+    attention_reason: string  # Required if needs_attention.
+    decision_pending: boolean # Required. Waiting on external decision?
+    blocked: boolean          # Required. Is progress blocked?
+    blocker_description: string  # Required if blocked.
+
+# ============================================================================
+# PACKET TYPE 10: ROLLBACK_PACKET
+# ============================================================================
+# Purpose: Structured undo request (ties to F4 deactivation triggers)
+# Flow: Any Agent/Governance → Executor
+
+rollback_packet:
+  packet_type: "ROLLBACK"
+  
+  # --- Rollback Trigger ---
+  trigger:
+    trigger_type: string      # Required. GOVERNANCE_VIOLATION, TEST_FAILURE, 
+                              #   HUMAN_OVERRIDE, SAFETY_LIMIT, AUTOMATIC_THRESHOLD
+    trigger_source: string    # Required. What detected the need for rollback.
+    trigger_evidence: string  # Required. Evidence supporting rollback.
+    severity: string          # Required. CRITICAL, HIGH, NORMAL
+    
+  # --- Rollback Scope ---
+  scope:
+    rollback_type: string     # Required. FULL, PARTIAL, SELECTIVE
+    target_ref: string        # Required. What's being rolled back.
+    rollback_to: string       # Required. Target state (commit SHA, checkpoint, etc.)
+    affected_components: list[string]  # Required.
+    
+  # --- Execution Plan ---
+  execution:
+    steps: list               # Required.
+      - step_number: integer
+        action: string
+        verification: string
+        rollback_if_failed: string
+    preserve: list[string]    # Optional. What should NOT be rolled back.
+    notify: list[string]      # Required. Who should be notified.
+    
+  # --- Post-Rollback ---
+  post_rollback:
+    verification_command: string  # Required. How to verify rollback success.
+    expected_state: string    # Required. What success looks like.
+    follow_up_required: list  # Optional.
+      - action: string
+        owner: string
+        deadline: datetime
+
+# ============================================================================
+# PACKET TYPE 11: TASK_DECOMPOSITION_PACKET
+# ============================================================================
+# Purpose: High-level intent → subtask breakdown
+# Flow: Orchestrator → Executor Agents
+
+task_decomposition_packet:
+  packet_type: "TASK_DECOMPOSITION"
+  
+  # --- Original Intent ---
+  intent:
+    source: string            # Required. Human directive or upstream packet.
+    raw_intent: string        # Required. Original request text.
+    interpreted_goal: string  # Required. Agent's interpretation of the goal.
+    success_criteria: list[string]  # Required. How we know we're done.
+    
+  # --- Decomposition ---
+  subtasks: list              # Required. Ordered list of subtasks.
+    - subtask_id: string
+      description: string
+      task_type: string       # BUILD, REVIEW, TEST, DOCUMENT, DEPLOY, etc.
+      assigned_agent: string  # Optional. Specific agent to handle.
+      dependencies: list[string]  # Required. Subtask IDs this depends on.
+      estimated_hours: number # Optional.
+      inputs: list[string]    # Required. What this subtask needs.
+      outputs: list[string]   # Required. What this subtask produces.
+      acceptance_criteria: list[string]  # Required.
+      
+  # --- Execution Plan ---
+  execution_plan:
+    parallelization: string   # Required. SEQUENTIAL, PARALLEL, MIXED
+    critical_path: list[string]  # Required. Subtask IDs on critical path.
+    total_estimated_hours: number  # Optional.
+    checkpoints: list         # Required. When to report progress.
+      - after_subtask: string
+        checkpoint_type: string
+        
+  # --- Constraints ---
+  constraints:
+    time_budget_hours: number # Optional.
+    tier_limit: string        # Required. Max tier subtasks can operate at.
+    human_approval_required: list[string]  # Required. Subtasks needing human approval.
+    escalation_triggers: list[string]  # Required.
+
+# ============================================================================
+# PACKET TYPE 12: SPEC_PACKET
+# ============================================================================
+# Purpose: Ideation/design output
+# Flow: Ideation Agent → Review/Build pipeline
+
+spec_packet:
+  packet_type: "SPEC"
+  
+  # --- Spec Metadata ---
+  spec_meta:
+    spec_type: string         # Required. FEATURE, COMPONENT, INTEGRATION, PROCESS, POLICY
+    spec_status: string       # Required. DRAFT, REVIEW, APPROVED, SUPERSEDED
+    version: string           # Required. Semver.
+    supersedes: string        # Optional. Previous spec this replaces.
+    
+  # --- Problem Statement ---
+  problem:
+    description: string       # Required. What problem this solves.
+    impact: string            # Required. Why this matters.
+    current_state: string     # Optional. How it works today.
+    constraints: list[string] # Required. Constraints on the solution.
+    
+  # --- Proposed Solution ---
+  solution:
+    summary: string           # Required. 2-3 sentence solution overview.
+    approach: string          # Required. Detailed approach description.
+    components: list          # Required.
+      - component_name: string
+        responsibility: string
+        interfaces: list[string]
+    data_flow: string         # Optional. How data moves through system.
+    
+  # --- Alternatives Considered ---
+  alternatives: list          # Required. At least one alternative.
+    - alternative_id: string
+      description: string
+      pros: list[string]
+      cons: list[string]
+      rejection_reason: string
+      
+  # --- Implementation Guidance ---
+  implementation:
+    suggested_approach: string  # Required.
+    estimated_effort: string  # Required. T-shirt size or hours.
+    risks: list               # Required.
+      - risk: string
+        likelihood: string    # HIGH, MEDIUM, LOW
+        impact: string        # HIGH, MEDIUM, LOW
+        mitigation: string
+    dependencies: list[string]  # Required.
+    
+  # --- Acceptance Criteria ---
+  acceptance:
+    criteria: list            # Required.
+      - criterion_id: string
+        description: string
+        verification: string
+    out_of_scope: list[string]  # Required. What this spec does NOT cover.
+
+# ============================================================================
+# PACKET TYPE 13: DOCUMENT_JOURNEY_TRACKER
+# ============================================================================
+# Purpose: Lifecycle tracker across packets
+# Flow: Maintained by Orchestrator, read by all agents
+
+document_journey_tracker:
+  packet_type: "JOURNEY_TRACKER"
+  
+  # --- Journey Identification ---
+  journey:
+    journey_id: string        # Required. Same as chain_id for the workflow.
+    journey_type: string      # Required. FEATURE, FIX, GOVERNANCE, DOCUMENTATION
+    title: string             # Required. Human-readable journey name.
+    initiated_by: string      # Required. Who/what started this journey.
+    initiated_at: datetime    # Required.
+    
+  # --- Current State ---
+  current_state:
+    status: string            # Required. IN_PROGRESS, BLOCKED, COMPLETE, ABANDONED
+    phase: string             # Required. Current workflow phase.
+    active_packet_id: string  # Required. Currently active packet in chain.
+    active_agent: string      # Required. Who's currently working on this.
+    last_updated: datetime    # Required.
+    
+  # --- Journey History ---
+  history: list               # Required. Complete packet history.
+    - sequence: integer
+      packet_id: string
+      packet_type: string
+      agent: string
+      started_at: datetime
+      completed_at: datetime
+      outcome: string
+      summary: string
+      
+  # --- Milestone Tracking ---
+  milestones: list            # Required.
+    - milestone_id: string
+      description: string
+      status: string          # PENDING, REACHED, SKIPPED
+      reached_at: datetime    # Optional.
+      packet_id: string       # Optional. Packet that achieved this milestone.
+      
+  # --- Blockers and Flags ---
+  blockers: list              # Required. Current blockers.
+    - blocker_id: string
+      description: string
+      since: datetime
+      blocking_packet_id: string
+      resolution_path: string
+      
+  flags:
+    needs_human_attention: boolean
+    attention_reason: string
+    stale: boolean            # No activity for extended period.
+    stale_since: datetime
+    
+  # --- Summary Metrics ---
+  metrics:
+    total_packets: integer
+    elapsed_hours: number
+    times_escalated: integer
+    times_blocked: integer
+    rework_cycles: integer    # Times sent back for fixes.
+
+# ============================================================================
+# VALIDATION RULES
+# ============================================================================
+# Agents MUST enforce these rules when processing packets.
+
+_validation_rules:
+  envelope:
+    - All _envelope_schema fields marked Required MUST be present.
+    - packet_id MUST be valid UUID v4.
+    - created_at MUST be valid ISO 8601 datetime.
+    - schema_version MUST be valid semver.
+    - priority MUST be one of defined values.
+    - Unknown packet_type = REJECT packet.
+    
+  chain_integrity:
+    - If parent_packet_id is set, parent MUST exist in chain.
+    - chain_id MUST be consistent across all packets in workflow.
+    
+  outcomes:
+    - outcome fields MUST use _outcome_types values.
+    - severity fields MUST use _severity_levels values.
+    - If outcome is APPROVED_WITH_CONDITIONS, conditions list MUST NOT be empty.
+    - If outcome is REJECTED, there MUST be at least one blocking_issue.
+    
+  fail_closed:
+    - Missing required field = REJECT packet.
+    - Invalid field value = REJECT packet.
+    - Validation failure = REJECT packet (do not attempt repair).
+
+# ============================================================================
+# USAGE EXAMPLES
+# ============================================================================
+
+_examples:
+  council_review_packet_example:
+    packet_id: "550e8400-e29b-41d4-a716-446655440001"
+    packet_type: "COUNCIL_REVIEW"
+    schema_version: "1.0.0"
+    created_at: "2026-01-02T14:30:00Z"
+    source_agent: "orchestrator-main"
+    target_agent: "council-governance"
+    chain_id: "550e8400-e29b-41d4-a716-446655440000"
+    parent_packet_id: null
+    priority: "P2_NORMAL"
+    ttl_hours: 48
+    tags: ["tier-2.5", "steward-runner"]
+    
+    review_request:
+      review_type: "GOVERNANCE"
+      subject_ref: "steward_runner.py:normalize_commit_path"
+      subject_summary: "New path normalization function for commit allowlist validation"
+      deadline: "2026-01-04T14:30:00Z"
+      
+    role_context:
+      role_id: "council-governance"
+      role_prompt: "[Full governance council member prompt...]"
+      decision_authority:
+        - "Approve/reject governance compliance"
+        - "Flag policy violations"
+      escalation_triggers:
+        - "New governance pattern not covered by existing policy"
+        - "Conflict between governance documents"
+        
+    background:
+      prior_decisions:
+        - decision_id: "GOV-2025-047"
+          summary: "Established fail-closed as default for path validation"
+          relevance: "Sets precedent for how path validation should fail"
+      related_docs:
+        - doc_ref: "governance/tier-2-protocols.md"
+          doc_type: "GOVERNANCE"
+          relevance: "Defines Tier-2 operational boundaries"
+      context_summary: "The steward runner needs path validation to prevent traversal attacks while allowing legitimate documentation updates."
+      
+    criteria:
+      must_pass:
+        - criterion_id: "GOV-001"
+          description: "Must fail closed on invalid input"
+          verification_method: "Review error handling paths"
+        - criterion_id: "GOV-002"
+          description: "Must not expand system privileges"
+          verification_method: "Review file access patterns"
+      should_pass:
+        - criterion_id: "GOV-003"
+          description: "Should log security-relevant decisions"
+          verification_method: "Review logging calls"
+      out_of_scope:
+        - "Performance optimization"
+        - "Code style preferences"
+        
+    output_format:
+      ruling_structure:
+        outcome: "APPROVED | APPROVED_WITH_CONDITIONS | REJECTED | ESCALATED"
+        confidence: "HIGH | MEDIUM | LOW"
+        findings: "list of finding objects"
+        conditions: "list if APPROVED_WITH_CONDITIONS"
+        rationale: "required narrative"
+      fix_structure:
+        severity: "P0_BLOCKER | P1_CRITICAL | P2_MAJOR | P3_MINOR | P4_TRIVIAL"
+        location: "file:line"
+        issue: "description"
+        suggested_fix: "remediation"
+        verification: "how to confirm"
+
+# ============================================================================
+# END OF SCHEMA
+# ============================================================================

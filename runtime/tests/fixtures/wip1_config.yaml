@@ -1,0 +1,10 @@
+# WIP-1 Skeleton Fixture Config
+version: "1.1"
+owner: "Antigravity"
+features:
+  - "cli"
+  - "config_loader"
+  - "repo_root_detection"
+metadata:
+  purpose: "audit-grade evidence"
+  determinism: true

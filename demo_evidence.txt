@@ -1,0 +1,29 @@
+=== STARTING PHASE A LOOP CONTROLLER DEMO ===
+[DEMO] Invoking Mission: AutonomousBuildCycle
+[DEMO] Review running... Type: build_review
+[DEMO] Review running... Type: output_review
+[DEMO] Review running... Type: output_review
+[DEMO] Review running... Type: output_review
+[DEMO] Mission Result: Success=False
+[DEMO] Failure Reason: oscillation_detected
+
+=== VERIFYING ARTIFACTS ===
+[CHECK] Ledger exists at demo_env\artifacts\loop_state\attempt_ledger.jsonl
+[CHECK] Ledger contains 4 lines (Header + 3 Attempts)
+  > {"type": "header", "schema_version": "v1.0", "policy_hash": "phase_a_hardcoded_v1", "handoff_hash": "498ac96f064acf3b55c7f3ec55ec63ea330eb93b92a22bde24604a2a05fe3e33", "run_id": "demo_run"}
+  > {"attempt_id": 1, "timestamp": "1768348743.8575604", "run_id": "demo_run", "policy_hash": "phase_a_hardcoded_v1", "input_hash": "hash(inputs)", "actions_taken": ["build"], "diff_hash": "47b5e9b580d184723f17cba84173c26904a6baeda274027c359615ffd1a9dc53", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "review_rejection", "terminal_reason": null, "next_action": "evaluated_next_tick", "rationale": "rejected"}
+  > {"attempt_id": 2, "timestamp": "1768348743.8601854", "run_id": "demo_run", "policy_hash": "phase_a_hardcoded_v1", "input_hash": "hash(inputs)", "actions_taken": ["build"], "diff_hash": "5d5e121f9a13674b1de6afbc81ffb9b4db0dadb651e8d2ffb843c6233d34efda", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "review_rejection", "terminal_reason": null, "next_action": "evaluated_next_tick", "rationale": "rejected"}
+  > {"attempt_id": 3, "timestamp": "1768348743.8614633", "run_id": "demo_run", "policy_hash": "phase_a_hardcoded_v1", "input_hash": "hash(inputs)", "actions_taken": ["build"], "diff_hash": "47b5e9b580d184723f17cba84173c26904a6baeda274027c359615ffd1a9dc53", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "review_rejection", "terminal_reason": null, "next_action": "evaluated_next_tick", "rationale": "rejected"}
+[CHECK] Terminal Packet exists at demo_env\artifacts\CEO_Terminal_Packet.md
+# Packet: CEO_Terminal_Packet.md
+
+```json
+{
+  "outcome": "ESCALATION_REQUESTED",
+  "reason": "oscillation_detected",
+  "tokens_consumed": 0,
+  "run_id": "demo_run"
+}
+```
+
+=== DEMO COMPLETE ===

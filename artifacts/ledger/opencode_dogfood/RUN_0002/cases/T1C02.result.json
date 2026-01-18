@@ -1,0 +1,57 @@
+{
+  "actual_outcome": "SUCCESS",
+  "case_id": "T1C02",
+  "duration_ms": 15019,
+  "evidence": [
+    {
+      "bytes": 2156,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0002/evidence/T1C02/git_status.txt",
+      "sha256": "d459c615f125bf28061ee20d0d57da1bbb7f9a1497fdd9da1d443d389fa1230e"
+    },
+    {
+      "bytes": 665,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0002/evidence/T1C02/item_01.json",
+      "sha256": "fddd70c3a23db0eb292c0125127f03091412bf95a1027344d6a54ff70201a310"
+    },
+    {
+      "bytes": 617,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0002/evidence/T1C02/item_02.json",
+      "sha256": "74ebc2f075c8dab4a399f9c1eeb0a272954fbd405969e3817c049536829bd8b0"
+    },
+    {
+      "bytes": 498,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0002/evidence/T1C02/item_03.json",
+      "sha256": "422ccb0fb269057a63003b556cf0aaf5a54e97639877df153101904e8c11db3f"
+    },
+    {
+      "bytes": 40,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0002/evidence/T1C02/repo_commit.txt",
+      "sha256": "54cc50984dc9a3af0b976535f26c6baf0adee8c841f9c8843c1d3db13f4a6e8e"
+    },
+    {
+      "bytes": 0,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0002/evidence/T1C02/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0002/evidence/T1C02/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 53,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0002/evidence/T1C02/worktree_check.txt",
+      "sha256": "c81509e3e32b5a7d03f0ee8a501dc66e20145e36a6060713b1fbc5bd35406d1e"
+    }
+  ],
+  "expected_outcome": "SUCCESS",
+  "failure_code": null,
+  "model_id": "unknown",
+  "repo_commit": "78af6649abd0f0d6935953d11ee8e21e2b694e5b",
+  "run_id": "RUN_0002",
+  "schema_id": "opencode_dogfood_case_result",
+  "schema_version": "1.0",
+  "stage": "T1",
+  "status": "PASS",
+  "transport": "unknown"
+}

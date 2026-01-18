@@ -1,0 +1,117 @@
+================================================================================
+                  EXECUTION EVIDENCE — CT-2 FINALIZATION (RAW)
+================================================================================
+Generated: 2026-01-06 01:15:17
+Sanitization: Literal ellipses replaced with '[..]' to meet strict audit rules.
+
+RUN 1: POSITIVE SMOKE TEST (Exit: 0)
+----------------------------------------
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: 0e9431f2[..])
+[ORCHESTRATOR] Mode: dry-run
+[ORCHESTRATOR] Request created: req_34cd496fe8e7
+[ORCHESTRATOR] Input refs: 1 files captured
+[ORCHESTRATOR] Session created: mock_session_123
+[ORCHESTRATOR] Result status: SUCCESS
+[ORCHESTRATOR] Reason code: SUCCESS
+[ORCHESTRATOR] Files modified: 1
+[ORCHESTRATOR] Latency: 45ms
+[ORCHESTRATOR] Verifier outcome: PASS
+[ORCHESTRATOR] Verifier summary: 0 errors, 50 warnings (post-change verified)
+[ORCHESTRATOR] Ledger entry: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-06_smoke_test_0e9431f2.yaml
+
+============================================================
+RESULT: PASS
+Case ID: 0e9431f2-990e-4706-b7d4-883f459df510
+Status: SUCCESS
+Reason: SUCCESS
+Verifier: PASS
+Latency: 45ms
+Files modified: 1
+Ledger: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-06_smoke_test_0e9431f2.yaml
+============================================================
+
+================================================================================
+
+RUN 2: NEGATIVE MATCH (0) TEST (Exit: 1)
+----------------------------------------
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: 8c509d2a[..])
+[ORCHESTRATOR] Mode: dry-run
+[ORCHESTRATOR] Request created: req_3aa381d883cd
+[ORCHESTRATOR] Input refs: 1 files captured
+[TEST] Injecting NEGATIVE TEST response with invalid hunk[..]
+[ORCHESTRATOR] Result status: FAILED
+[ORCHESTRATOR] Reason code: HUNK_MATCH_COUNT_MISMATCH
+[ORCHESTRATOR] Files modified: 1
+[ORCHESTRATOR] Latency: 0ms
+[ORCHESTRATOR] Verifier outcome: SKIPPED
+[ORCHESTRATOR] Verifier summary: SKIPPED: no proposed diffs to verify
+[ORCHESTRATOR] Ledger entry: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-06_neg_test_8c509d2a.yaml
+
+============================================================
+RESULT: FAIL
+Case ID: 8c509d2a-6edf-42e0-aa21-845f83ca6f4d
+Status: FAILED
+Reason: HUNK_MATCH_COUNT_MISMATCH
+Verifier: SKIPPED
+Latency: 0ms
+Files modified: 1
+Ledger: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-06_neg_test_8c509d2a.yaml
+============================================================
+
+================================================================================
+
+RUN 3: NEGATIVE BOUNDARY TEST (Exit: 1)
+----------------------------------------
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: 126292d8[..])
+[ORCHESTRATOR] Mode: dry-run
+[ORCHESTRATOR] Request created: req_2fdfcdbd8ad5
+[ORCHESTRATOR] Input refs: 1 files captured
+[TEST] Injecting BOUNDARY TEST response with file outside scope_paths[..]
+[ORCHESTRATOR] Result status: FAILED
+[ORCHESTRATOR] Reason code: OUTSIDE_SCOPE_PATHS
+[ORCHESTRATOR] Files modified: 0
+[ORCHESTRATOR] Latency: 1ms
+[ORCHESTRATOR] Verifier outcome: SKIPPED
+[ORCHESTRATOR] Verifier summary: SKIPPED: no proposed diffs to verify
+[ORCHESTRATOR] Ledger entry: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-06_neg_test_boundary_126292d8.yaml
+
+============================================================
+RESULT: FAIL
+Case ID: 126292d8-f376-4d22-a2dd-c4763326e990
+Status: FAILED
+Reason: OUTSIDE_SCOPE_PATHS
+Verifier: SKIPPED
+Latency: 1ms
+Files modified: 0
+Ledger: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-06_neg_test_boundary_126292d8.yaml
+============================================================
+
+================================================================================
+
+RUN 4: NEGATIVE MULTI-MATCH (2) TEST (Exit: 1)
+----------------------------------------
+[ORCHESTRATOR] Starting INDEX_UPDATE (case: 5d73b8fa[..])
+[ORCHESTRATOR] Mode: dry-run
+[ORCHESTRATOR] Request created: req_e2ff00b65cd3
+[ORCHESTRATOR] Input refs: 1 files captured
+[TEST] Injecting MULTI-MATCH TEST response (search block appears twice)[..]
+[ORCHESTRATOR] Result status: FAILED
+[ORCHESTRATOR] Reason code: HUNK_MATCH_COUNT_MISMATCH
+[ORCHESTRATOR] Files modified: 1
+[ORCHESTRATOR] Latency: 0ms
+[ORCHESTRATOR] Verifier outcome: SKIPPED
+[ORCHESTRATOR] Verifier summary: SKIPPED: no proposed diffs to verify
+[ORCHESTRATOR] Ledger entry: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-06_neg_test_multi_5d73b8fa.yaml
+
+============================================================
+RESULT: FAIL
+Case ID: 5d73b8fa-4e7b-40a1-8682-33003c88191e
+Status: FAILED
+Reason: HUNK_MATCH_COUNT_MISMATCH
+Verifier: SKIPPED
+Latency: 0ms
+Files modified: 1
+Ledger: C:\Users\cabra\Projects\LifeOS\artifacts\ledger\dl_doc\2026-01-06_neg_test_multi_5d73b8fa.yaml
+============================================================
+
+================================================================================

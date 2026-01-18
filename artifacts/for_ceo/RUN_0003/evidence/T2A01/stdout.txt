@@ -1,0 +1,1 @@
+Mock Doc Steward executing mission: Analyze docs/zz_scratch/opencode_dogfood_probe.md structure

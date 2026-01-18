@@ -1,0 +1,14 @@
+================================================================================
+Known Failures Gate Check v1.1
+================================================================================
+Timestamp: 2026-01-09T17:57:55.569778
+Log file: C:\Users\cabra\Projects\LifeOS\artifacts\known_failures\gate_check_output_20260109_175755.txt
+
+Running full test suite...
+HEAD failures detected: 24
+Pytest return code: 1
+Ledger known failures: 24
+
+✅ GATE PASS: No new failures detected.
+   HEAD failures: 24
+   All failures are documented in ledger.

@@ -17,7 +17,7 @@ $targets = @(
     (Join-Path $archive "concept"),
     (Join-Path $archive "cso"),
     (Join-Path $archive "legacy_structures"),
-    (Join-Path $docs "07_productisation")
+    (Join-Path $docs "12_productisation")
 )
 
 foreach ($t in $targets) {
@@ -92,13 +92,13 @@ Move-IfExists `
     -OldPath (Join-Path $csoRoot "Intent Routing Rule v1.0.md") `
     -NewPath (Join-Path $archive "cso\Intent_Routing_Rule_v1.0.md")
 
-# 4. Productisation brief -> 07_productisation
+# 4. Productisation brief -> 12_productisation
 
 $productRoot = Join-Path $RootPath "Productisation"
 
 Move-IfExists `
     -OldPath (Join-Path $productRoot "PRODUCTISATION BRIEF v1.md") `
-    -NewPath (Join-Path $docs "07_productisation\Productisation_Brief_v1.0.md")
+    -NewPath (Join-Path $docs "12_productisation\Productisation_Brief_v1.0.md")
 
 # 5. Legacy auxiliary folders under /docs -> archive/legacy_structures
 

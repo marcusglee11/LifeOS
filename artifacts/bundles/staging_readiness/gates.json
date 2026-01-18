@@ -1,0 +1,1 @@
+[{"id": "VALIDATION_PASS", "status": "PASS", "exit_code": 0, "command": "python -m pytest scripts/closure/tests/test_gcbs_a1a2_regressions.py", "evidence_paths": ["artifacts/TEST_REPORT_GCBS_V11_PROFILE_GATES_PASS.md"]}]

@@ -1,0 +1,20 @@
+{
+  "status": "BLOCK",
+  "reason_code": "NON_MD_EXTENSION_BLOCKED",
+  "mode": "MOCK_PASSAGE",
+  "timestamp": "2026-01-07T12:23:02.459485",
+  "task": {
+    "files": [
+      "docs/script.py"
+    ],
+    "action": "create",
+    "instruction": "Add script to docs"
+  },
+  "blocked_entries": [
+    [
+      "docs/script.py",
+      "A",
+      "NON_MD_EXTENSION_BLOCKED"
+    ]
+  ]
+}

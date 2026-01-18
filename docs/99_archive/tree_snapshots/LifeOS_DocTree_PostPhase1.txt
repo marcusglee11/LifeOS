@@ -21,7 +21,7 @@ C:\Users\cabra\Projects\LifeOS\docs\04_project_builder\Antigravity_Implementatio
 C:\Users\cabra\Projects\LifeOS\docs\04_project_builder\ProjectBuilder_Spec_v0.9_FinalClean_v1.0.md                     
 C:\Users\cabra\Projects\LifeOS\docs\05_agents\COO_Agent_Mission_Orchestrator_Arch_v0.7_Aligned_v1.0.md                 
 C:\Users\cabra\Projects\LifeOS\docs\06_user_surface\COO_Runtime_User_Surface_StageB_TestHarness_v1.1.md                
-C:\Users\cabra\Projects\LifeOS\docs\07_productisation\Productisation_Brief_v1.0.md                                     
+C:\Users\cabra\Projects\LifeOS\docs\12_productisation\Productisation_Brief_v1.0.md                                     
 C:\Users\cabra\Projects\LifeOS\docs\08_manuals\Governance_Runtime_Manual_v1.0.md                                       
 C:\Users\cabra\Projects\LifeOS\docs\09_prompts\v1.0\initialisers\master_initialiser_universal_v1.0.md                  
 C:\Users\cabra\Projects\LifeOS\docs\09_prompts\v1.0\initialisers\master_initialiser_v1.0.md                            

@@ -1,0 +1,49 @@
+ M aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/artifacts/evidence/mission_runs/build_with_validation/4975a616868e79e8/smoke_check.exitcode
+ M aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/artifacts/evidence/mission_runs/build_with_validation/4975a616868e79e8/smoke_compile.exitcode
+ D docs/02_protocols/Git_Workflow_Protocol_v1.0.md
+ M docs/02_protocols/templates/review_packet_template.md
+ M docs/11_admin/BACKLOG.md
+ M docs/11_admin/LIFEOS_STATE.md
+ M docs/INDEX.md
+ M docs/LifeOS_Strategic_Corpus.md
+ M scripts/git_workflow.py
+?? artifacts/active_branches.json
+?? artifacts/closures/Bundle_Git_Workflow_Evidence.zip
+?? artifacts/closures/Bundle_Git_Workflow_Evidence.zip.sha256
+?? artifacts/closures/Review_Packet_Git_Workflow_v1.1.md
+?? artifacts/closures/preflight_report.json
+?? artifacts/closures/preflight_report.md
+?? artifacts/evidence_pack_v2.6a_final/
+?? artifacts/for_ceo/Bundle_Git_Workflow_Evidence.zip
+?? artifacts/for_ceo/Bundle_Git_Workflow_Evidence.zip.sha256
+?? artifacts/for_ceo/Plan_Git_Workflow_v1.1.md
+?? artifacts/for_ceo/Plan_OpenCode_Dogfooding_v1.0.md
+?? artifacts/for_ceo/Plan_OpenCode_Dogfooding_v1.2.md
+?? artifacts/for_ceo/Plan_OpenCode_Dogfooding_v1.2a.md
+?? artifacts/for_ceo/Plan_OpenCode_Dogfooding_v1.2b.md
+?? artifacts/for_ceo/Review_Packet_Git_Workflow_v1.1.md
+?? artifacts/for_ceo/git_workflow_evidence/
+?? artifacts/for_ceo/preflight_report.json
+?? artifacts/for_ceo/preflight_report.md
+?? artifacts/git_workflow/
+?? artifacts/ledger/opencode_dogfood/
+?? artifacts/plans/Plan_Git_Workflow_v1.1.md
+?? artifacts/review_packets/Review_Packet_Git_Workflow_v1.1.md
+?? artifacts/safety_snapshots/
+?? broken_links.txt
+?? det_test_pcrs_report.json
+?? docs/02_protocols/Git_Workflow_Protocol_v1.1.md
+?? docs/11_admin/LIFEOS_STATE_v1.1.md
+?? docs/zz_scratch/
+?? dogfood_worktree/
+?? post_manifest.txt
+?? preflight_report.json
+?? preflight_report.md
+?? runtime/tests/test_git_workflow.py
+?? scripts/__init__.py
+?? scripts/finalize_evidence.py
+?? scripts/generate_evidence_package.py
+?? scripts/hooks/pre-push
+?? test_bundle_v2_pcrs_report.json
+?? test_evidence.txt
+?? test_run_log.txt

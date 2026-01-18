@@ -1,0 +1,28 @@
+# LifeOS Machine-Readable Backlog
+# ================================
+# Schema: docs/02_protocols/backlog_schema_v1.0.yaml
+# Ordering: Preserved as-is; sorting by (priority, id) if needed
+
+schema_version: "1.0"
+
+tasks:
+  # Legacy task migrated to v1.0 schema
+  - id: "TASK-001"
+    description: "Rebuild the documentation index (docs/INDEX_v1.1.md)"
+    priority: P2
+    status: TODO
+    owner: antigravity
+    context_hints:
+      - "docs/INDEX_v1.1.md"
+
+  # Mission Synthesis Engine MVP E2E test task
+  - id: "MSE-MVP-E2E-001"
+    description: "Update LIFEOS_STATE.md to record Mission Synthesis Engine MVP completion"
+    priority: P1
+    status: TODO
+    owner: antigravity
+    constraints:
+      - "Must use existing steward mission type"
+      - "Must produce deterministic evidence"
+    context_hints:
+      - "docs/11_admin/LIFEOS_STATE.md"

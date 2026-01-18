@@ -1,0 +1,42 @@
+{
+  "actual_outcome": "SUCCESS",
+  "case_id": "T2B01",
+  "duration_ms": 1818,
+  "evidence": [
+    {
+      "bytes": 346,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0003/evidence/T2B01/git_status.txt",
+      "sha256": "11a0a5b4d73c989c0b4f755be581a0c1cccd6b81dd48384026ac1044a0dbb6f5"
+    },
+    {
+      "bytes": 40,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0003/evidence/T2B01/repo_commit.txt",
+      "sha256": "789e12978ced2381b92759a4e6b948e89e9c7d0191cb72aa8eb9c4c466be1ed3"
+    },
+    {
+      "bytes": 0,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0003/evidence/T2B01/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 167,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0003/evidence/T2B01/stdout.txt",
+      "sha256": "1ca148ae3fa0ad23f89e1ac230871b2a5f50bbb55dc42ca9581c72c673884e9a"
+    },
+    {
+      "bytes": 111,
+      "path": "artifacts/ledger/opencode_dogfood/RUN_0003/evidence/T2B01/worktree_check.txt",
+      "sha256": "1e000f194e26b4ebbd1a8bb320ed60162c8fe4fdb8a977255b1d258c696dc477"
+    }
+  ],
+  "expected_outcome": "SUCCESS",
+  "failure_code": null,
+  "model_id": "unknown",
+  "repo_commit": "f8bcc676bd096dc0932414eecca7a88f48cf28a7",
+  "run_id": "RUN_0003",
+  "schema_id": "opencode_dogfood_case_result",
+  "schema_version": "1.0",
+  "stage": "T2b",
+  "status": "PASS",
+  "transport": "unknown"
+}

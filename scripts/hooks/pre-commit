@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# Git Pre-Commit Hook for LifeOS
+#
+# Enforces Git Workflow Protocol v1.0:
+# - No direct commits to main/master
+# - Must use feature branches
+#
+# Installation:
+#   cp scripts/hooks/pre-commit .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+
+PROTECTED_BRANCHES=("main" "master")
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+# Check if on protected branch
+for branch in "${PROTECTED_BRANCHES[@]}"; do
+    if [ "$CURRENT_BRANCH" = "$branch" ]; then
+        echo ""
+        echo "🚫 BLOCKED: Direct commits to '$branch' are not allowed."
+        echo ""
+        echo "Git Workflow Protocol v1.0 requires feature branches."
+        echo ""
+        echo "To create a feature branch:"
+        echo "   python scripts/git_workflow.py branch create build/<topic>"
+        echo ""
+        echo "To bypass in emergency (requires justification):"
+        echo "   git commit --no-verify -m 'message'"
+        echo "   python scripts/git_workflow.py --emergency 'direct-commit' --reason 'your reason'"
+        echo ""
+        exit 1
+    fi
+done
+
+# Validate branch naming convention
+VALID_PREFIXES=("build/" "fix/" "hotfix/" "spike/")
+IS_VALID=false
+
+for prefix in "${VALID_PREFIXES[@]}"; do
+    if [[ "$CURRENT_BRANCH" == $prefix* ]]; then
+        IS_VALID=true
+        break
+    fi
+done
+
+if [ "$IS_VALID" = false ] && [ -n "$CURRENT_BRANCH" ]; then
+    echo ""
+    echo "⚠️  WARNING: Branch '$CURRENT_BRANCH' doesn't follow naming convention."
+    echo ""
+    echo "Valid prefixes: build/, fix/, hotfix/, spike/"
+    echo "Example: build/my-feature"
+    echo ""
+    echo "Proceeding anyway, but consider renaming your branch."
+    echo ""
+fi
+
+exit 0

@@ -1,0 +1,30 @@
+packet_type: READINESS
+packet_id: d81d70f5-216a-484d-b2c4-ab5a866c1c44
+component: general
+created_at: '2026-01-13T12:46:41.560080+00:00'
+checks:
+- id: CHK-001
+  name: Runtime Tests
+  command: pytest runtime/tests -q
+  status: PASSED
+  evidence_path: logs\preflight\test_output_20260113_124622_general.log
+- id: CHK-002
+  name: No Blockers in LIFEOS_STATE
+  source: docs/11_admin/LIFEOS_STATE.md
+  status: PASSED
+  details: null
+- id: CHK-003
+  name: No Unresolved BLOCKED Packets
+  source: artifacts/packets/blocked/
+  status: PASSED
+  details: null
+attestation:
+  script_path: docs/scripts/check_readiness.py
+  exit_code: 0
+  stdout_hash: sha256:39ca8d0e5ed0e5a3d11e594a7af9b39644eb4067e664343d8076ada3c85d7b56
+  stderr_hash: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  log_path: logs\preflight\test_output_20260113_124622_general.log
+decision:
+  outcome: READY
+  blocking_checks: []
+  recommended_action: Proceed with build

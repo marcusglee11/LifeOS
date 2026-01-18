@@ -1,0 +1,75 @@
+# LIFEOS_STATE Schema v1.0
+# =========================
+# Defines the structure for docs/11_admin/LIFEOS_STATE.md
+# A stateless reader should be able to orient themselves fully from STATE.
+
+schema_version: "1.0"
+target_file: "docs/11_admin/LIFEOS_STATE.md"
+
+required_sections:
+  project_vision:
+    description: "1-5 sentences: What is LifeOS, what's the goal"
+    min_length: 50
+    max_length: 500
+
+  roadmap:
+    description: "Phase table with status markers"
+    format: "markdown_table"
+    columns: [phase, name, status, exit_criteria]
+    
+  current_phase:
+    description: "Active phase name + progress checklist"
+    format: "heading + checkbox_list"
+    
+  design_artifacts:
+    description: "Key docs for designing next stage"
+    format: "markdown_table"
+    min_items: 3
+    columns: [artifact, purpose]
+    
+  active_agents:
+    description: "Agent status table"
+    format: "markdown_table"
+    columns: [agent, status, entry_point, constraints]
+    
+  wip_slots:
+    description: "Work in progress items (max 2)"
+    max_items: 2
+    
+  blockers:
+    description: "Current blocking items"
+    
+  ceo_decisions:
+    description: "Pending CEO decisions (max 3)"
+    max_items: 3
+    
+  backlog_reference:
+    description: "Link to BACKLOG.md + priority summary"
+    required_link: "docs/11_admin/BACKLOG.md"
+
+optional_sections:
+  closed_actions:
+    description: "Recent completions (max 5)"
+    max_items: 5
+    
+  references:
+    description: "Key governance/architecture docs"
+    max_items: 10
+
+roadmap_status:
+  DONE: "✅"
+  IN_PROGRESS: "🔄"  
+  PENDING: "⏳"
+  BLOCKED: "🚫"
+
+constraints:
+  wip_max: 2
+  ceo_decisions_max: 3
+  closed_actions_max: 5
+  references_max: 10
+
+validation_rules:
+  - "Every roadmap phase must have a status marker"
+  - "Current phase must match an IN_PROGRESS phase in roadmap"
+  - "Design artifacts must be valid file paths"
+  - "Backlog summary counts must match BACKLOG.md"

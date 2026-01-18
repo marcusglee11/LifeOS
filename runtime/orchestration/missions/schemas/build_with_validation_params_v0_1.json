@@ -1,0 +1,36 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "BuildWithValidation Params v0.1",
+    "type": "object",
+    "properties": {
+        "mode": {
+            "type": "string",
+            "enum": [
+                "smoke",
+                "full"
+            ],
+            "default": "smoke"
+        },
+        "pytest_args": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "default": [
+                "-q"
+            ]
+        },
+        "pytest_targets": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "default": []
+        },
+        "capture_root_rel": {
+            "type": "string",
+            "default": "artifacts/evidence/mission_runs"
+        }
+    },
+    "additionalProperties": false
+}
