@@ -307,6 +307,72 @@ def cmd_status() -> int:
     return 0
 
 
+def cmd_sync() -> int:
+    """Sync local main with remote via PR (enforces CI gate)."""
+    current = get_current_branch()
+    
+    if current != "main":
+        print(f"[X] Must be on 'main' to sync. Currently on: {current}")
+        print("   Run: git checkout main")
+        return 1
+    
+    print("[~] Checking sync status...")
+    
+    # Fetch latest remote state
+    run_git(["fetch", "origin", "main"], check=False)
+    
+    # Check commits ahead of origin/main
+    code, ahead, _ = run_git(["log", "--oneline", "origin/main..main"])
+    if not ahead.strip():
+        print("[OK] Local main is in sync with origin/main. Nothing to push.")
+        return 0
+    
+    commit_count = len(ahead.strip().split("\n"))
+    print(f"[i] Local main is {commit_count} commit(s) ahead of origin/main")
+    
+    # Generate sync branch name
+    sync_branch = f"sync/main-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    
+    print(f"\n[>] Protocol: Pushing to sync branch '{sync_branch}'...")
+    
+    # Push to sync branch
+    code, _, stderr = run_git(["push", "origin", f"main:{sync_branch}"])
+    if code != 0:
+        print(f"[X] Failed to push sync branch: {stderr}")
+        return 1
+    
+    print(f"[OK] Pushed to: origin/{sync_branch}")
+    
+    # Try to create PR via gh CLI
+    print("\n[>] Creating PR via GitHub CLI...")
+    pr_result = subprocess.run(
+        ["gh", "pr", "create",
+         "--base", "main",
+         "--head", sync_branch,
+         "--title", f"Sync main ({commit_count} commits)",
+         "--body", f"Automated sync PR from local main.\n\n**Commits:**\n```\n{ahead}\n```"],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).parent.parent
+    )
+    
+    if pr_result.returncode == 0:
+        pr_url = pr_result.stdout.strip()
+        print(f"[OK] PR created: {pr_url}")
+        print("\n[i] Next steps:")
+        print("   1. Wait for CI to pass")
+        print("   2. Merge the PR on GitHub")
+        print(f"   3. Delete sync branch: git push origin --delete {sync_branch}")
+    else:
+        print("[!] gh CLI failed (may not be installed or authenticated)")
+        print(f"   Error: {pr_result.stderr}")
+        print("\n[i] Manual steps:")
+        print(f"   1. Go to GitHub and create PR: {sync_branch} -> main")
+        print("   2. Merge after CI passes")
+    
+    return 0
+
+
 def cmd_emergency(operation: str, reason: str) -> int:
     """Emergency override - logs the action."""
     print(f"⚠️  EMERGENCY OVERRIDE: {operation}")
@@ -353,6 +419,7 @@ def main():
     subparsers.add_parser("review", help="Prepare for review")
     subparsers.add_parser("merge", help="Merge to main")
     subparsers.add_parser("status", help="Show status")
+    subparsers.add_parser("sync", help="Sync local main with remote via PR")
     
     args = parser.parse_args()
     
@@ -378,6 +445,8 @@ def main():
         return cmd_merge()
     elif args.command == "status":
         return cmd_status()
+    elif args.command == "sync":
+        return cmd_sync()
     else:
         parser.print_help()
         return 1
