@@ -1,0 +1,15 @@
+{
+  "call_id": "98ab670b-6ad3-4e5a-963e-29f7f1c96993",
+  "request": {
+    "model": "minimax-m2.1-free",
+    "prompt": "Reply READY",
+    "system_prompt": null
+  },
+  "response": {
+    "content": "READY\n\nI'm here and ready to help you with any coding tasks, file operations, or questions you may have. What would you like to work on?",
+    "latency_ms": 5345,
+    "model_used": "ZEN:MiniMax-M2.1"
+  },
+  "role": "unknown",
+  "timestamp": "2026-01-17T12:10:46.683453"
+}

@@ -1,0 +1,43 @@
+{
+  "cases": [
+    {
+      "case_id": "T2A01",
+      "duration_ms": 756,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T2A02",
+      "duration_ms": 576,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T2A03",
+      "duration_ms": 581,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T2B01",
+      "duration_ms": 1818,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T2B02",
+      "duration_ms": 1789,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T2B03",
+      "duration_ms": 2978,
+      "status": "PASS"
+    }
+  ],
+  "failed": 0,
+  "final_verdict": "PASS",
+  "passed": 6,
+  "repo_commit": "f8bcc676bd096dc0932414eecca7a88f48cf28a7",
+  "run_id": "RUN_0003",
+  "schema_id": "opencode_dogfood_run_summary",
+  "schema_version": "1.0",
+  "stop_reason": null,
+  "total_cases": 15
+}

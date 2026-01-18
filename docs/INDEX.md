@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-01-14 (Phase A Acceptance & Asset Restoration)]
+# LifeOS Strategic Corpus [Last Updated: 2026-01-16 (Git Workflow v1.1 Implementation)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -114,6 +114,7 @@ LifeOS Constitution v2.0 (Supreme)
 | Document | Purpose |
 |----------|---------|
 | [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
+| [Git_Workflow_Protocol_v1.1.md](./02_protocols/Git_Workflow_Protocol_v1.1.md) | **Fail-Closed**: Branch conventions, CI proof merging, receipts |
 | [Document_Steward_Protocol_v1.0.md](./02_protocols/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
 | [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
 | [Build_Artifact_Protocol_v1.0.md](./02_protocols/Build_Artifact_Protocol_v1.0.md) | **NEW** — Formal schemas/templates for Plans, Review Packets, Walkthroughs, etc. |

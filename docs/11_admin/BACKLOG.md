@@ -8,7 +8,6 @@
 
 - [ ] **Standardize Raw Capture Primitive** — DoD: Implemented `run_command_capture` with explicit hash collection — Owner: antigravity
 - [ ] **Finalize CSO_Role_Constitution v1.0** — DoD: Markers removed; CEO approved — Owner: antigravity
-- [ ] **Review OpenCode deletion logic** — DoD: Root cause of `git clean` found — Owner: antigravity
 
 ### P1 (High)
 
@@ -38,6 +37,7 @@
 
 ## Done (last ~25 only)
 
+- [x] **Git Workflow Protocol v1.1 Impact** (Resolved OpenCode deletion logic via Safety Gate) — Date: 2026-01-16
 - [x] **BuildWithValidation v0.1 P0 Patch 2 Refinement** — Date: 2026-01-13
 - [x] **Fix OpenCode Config Compliance v1.0** — Date: 2026-01-13
 - [x] **Grok Fallback Debug & Robustness Fixes v1.0** — Date: 2026-01-20

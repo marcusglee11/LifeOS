@@ -1,0 +1,3 @@
+git_dir: C:/Users/cabra/Projects/LifeOS/.git/worktrees/dogfood_worktree
+is_isolated_worktree: True
+stage: T2a

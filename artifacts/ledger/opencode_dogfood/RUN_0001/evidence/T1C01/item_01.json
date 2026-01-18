@@ -1,0 +1,15 @@
+{
+  "call_id": "ca7848ff-1db5-4dc6-956b-42ba8f2f8e09",
+  "request": {
+    "model": "minimax-m2.1-free",
+    "prompt": "Reply READY",
+    "system_prompt": null
+  },
+  "response": {
+    "content": "READY\n\nI'm ready to help you with any task. What would you like to work on today?",
+    "latency_ms": 2915,
+    "model_used": "ZEN:MiniMax-M2.1"
+  },
+  "role": "unknown",
+  "timestamp": "2026-01-17T11:54:54.332717"
+}

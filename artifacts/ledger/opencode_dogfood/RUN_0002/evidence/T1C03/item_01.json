@@ -1,0 +1,15 @@
+{
+  "call_id": "1f148743-74ad-4868-b371-f17501f69253",
+  "request": {
+    "model": "invalid-model-xyz",
+    "prompt": "FALLBACK",
+    "system_prompt": null
+  },
+  "response": {
+    "content": "What do you mean by \"FALLBACK\"? Need help with something specific?",
+    "latency_ms": 8988,
+    "model_used": "OR:x-ai/grok-4.1-fast"
+  },
+  "role": "unknown",
+  "timestamp": "2026-01-17T12:11:23.959981"
+}

@@ -74,3 +74,18 @@ closure_evidence: {}         # [REQUIRED] key-value pairs
 ```python
 ...
 ```
+
+## 7. SELF-GATING CHECKLIST (Computed)
+
+> [!IMPORTANT]
+> This section must be populated by computing values from the final Evidence Bundle.
+> FAIL-CLOSED: If any item is FAIL, Packet Status must be "IMPLEMENTED / NOT VERIFIED (BLOCKED BY CHECKLIST)".
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| **E1** | ZIP Hash Integrity | PASS | `Bundle...zip.sha256` matches computed hash |
+| **E2** | Packet Hash Citation Matches ZIP | PASS | Packet citation matches .sha256 file |
+| **E3** | Bundle Layout Matches Contract | PASS | Strict layout (e.g., `artifacts/<scope>/`), no root files |
+| **E4** | Canonical Protocol Doc Reference | PASS | Unique canonical path cited |
+| **E5** | Provenance Hygiene | PASS | No "VERIFIED" claim without PR/Commit SHAs |
+| **E6** | Audit-Grade Manifest | PASS | `manifest.txt` excludes itself; `.sha256` provided |

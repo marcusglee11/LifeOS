@@ -1,0 +1,3 @@
+git_dir: .git
+is_isolated_worktree: False
+stage: T2a

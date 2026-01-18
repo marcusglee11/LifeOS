@@ -1,0 +1,3 @@
+?? artifacts/ledger/dl_doc/mock_artifact_-1145609576288875951.txt
+?? artifacts/ledger/dl_doc/mock_artifact_-1488125156950070091.txt
+?? artifacts/ledger/opencode_dogfood/

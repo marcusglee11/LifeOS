@@ -1,0 +1,43 @@
+{
+  "cases": [
+    {
+      "case_id": "T1C01",
+      "duration_ms": 0,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T1C02",
+      "duration_ms": 0,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T1C03",
+      "duration_ms": 0,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T2A01",
+      "duration_ms": 0,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T2A02",
+      "duration_ms": 0,
+      "status": "PASS"
+    },
+    {
+      "case_id": "T2A03",
+      "duration_ms": 0,
+      "status": "PASS"
+    }
+  ],
+  "failed": 0,
+  "final_verdict": "FAIL",
+  "passed": 6,
+  "repo_commit": "c64645b2a71c982450fb51aaa5ad98c1a98e4f41",
+  "run_id": "dogfood_20260117_001424",
+  "schema_id": "opencode_dogfood_run_summary",
+  "schema_version": "1.0",
+  "stop_reason": "Isolation check failed for T2b",
+  "total_cases": 15
+}
