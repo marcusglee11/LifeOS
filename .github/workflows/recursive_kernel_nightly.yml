@@ -19,10 +19,8 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio
-      
+        run: pip install -r requirements-dev.txt
+
       - name: Full pytest suite
         run: pytest -v --tb=long
         env:
@@ -50,10 +48,8 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-cov
-      
+        run: pip install -r requirements-dev.txt
+
       - name: Run tests with coverage
         run: pytest --cov=runtime --cov-report=term-missing -v
         env:

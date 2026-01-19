@@ -222,10 +222,10 @@ class AutonomousBuildCycleMission(BaseMission):
                 
                 if outcome == TerminalOutcome.PASS:
                     # Return success details
-                    # Get commit hash from last attempt (steward phase?)
-                    # Wait, policy terminates AFTER Pass.
-                    # We need to return the result.
-                    return self._make_result(success=True, outputs={"commit_hash": "FIXME"}) # Todo: get hash
+                    # TODO: Extract commit hash from evidence or ledger
+                    # The steward mission produces the hash, but it's not currently
+                    # propagated through the ledger structure
+                    return self._make_result(success=True, outputs={"commit_hash": "UNKNOWN"})
                 else:
                     return self._make_result(success=False, error=reason)
 
