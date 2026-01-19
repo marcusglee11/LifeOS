@@ -76,7 +76,7 @@ class SearchEngine:
             try:
                 with open(abs_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
-            except:
+            except (IOError, OSError):
                 continue
 
             # Debug for wrapper contract
@@ -151,8 +151,8 @@ class SearchEngine:
                                      "fields": sorted(volatiles)
                                  }
                                  self.search_log.append(f"FOUND PROOF [volatile_set]: {rel_path} with {len(volatiles)} fields")
-                     except:
-                         self.search_log.append(f"WARN: Found VOLATILE_FIELDS in {rel_path} but failed to parse")
+                     except (SyntaxError, ValueError, TypeError) as e:
+                         self.search_log.append(f"WARN: Found VOLATILE_FIELDS in {rel_path} but failed to parse: {e}")
 
             # 5. Python-M Blessing
             if "python -m runtime.cli" in content and ("canonical" in content.lower() or "equivalent" in content.lower()):
@@ -445,6 +445,21 @@ def main():
     }
 
     # --- E2E-1: Smoke ---
+    # P0.11: Pre-run cleanup for deterministic evidence collision
+    # The build_with_validation mission computes a deterministic run_token from
+    # baseline_commit + params. Without a baseline_commit and with fixed params,
+    # the token is always the same, causing collision errors on repeat runs.
+    # Clean up any existing evidence directories before running.
+    mission_evidence_root = repo_root / "artifacts" / "evidence" / "mission_runs" / "build_with_validation"
+    if mission_evidence_root.exists():
+        for child in mission_evidence_root.iterdir():
+            if child.is_dir():
+                try:
+                    shutil.rmtree(child)
+                except Exception as e:
+                    # Non-fatal: log but continue
+                    print(f"WARN: Failed to clean {child}: {e}", file=sys.stderr)
+
     res1, json1 = run_test_case(
         "E2E-1", 
         CANONICAL_CLI_ARGV, 

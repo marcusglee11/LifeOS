@@ -363,10 +363,18 @@ class Orchestrator:
         if not isinstance(inputs, dict):
             inputs = {}
 
-        # Detect git context OUTSIDE try block (fail-soft, no exception handling needed)
-        repo_root, baseline_commit = self._detect_git_context()
+        # Get git context from ctx.metadata if available (preferred for CLI/External callers)
+        metadata = getattr(ctx, 'metadata', {}) or {}
+        repo_root_str = metadata.get("repo_root")
+        baseline_commit = metadata.get("baseline_commit")
+        
+        if repo_root_str:
+            repo_root = Path(repo_root_str)
+        else:
+            # Detect git context (fail-soft)
+            repo_root, baseline_commit = self._detect_git_context()
 
-        # Attach git context to ctx.metadata (OUTSIDE try block)
+        # Update metadata back if it was missing
         if hasattr(ctx, 'metadata'):
             if ctx.metadata is None:
                 ctx.metadata = {}

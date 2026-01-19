@@ -126,6 +126,10 @@ def test_run_inputs_none(mission, context):
         assert res.outputs["run_token"] is not None
         
         # 2. Verify it matches empty dict inputs (determinism)
+        # Clear evidence_dir to avoid collision rule failure
+        import shutil
+        shutil.rmtree(res.outputs["evidence_dir"])
+        
         res_empty = mission.run(context, {})
         assert res.outputs["run_token"] == res_empty.outputs["run_token"]
 
@@ -183,6 +187,10 @@ def test_run_determinism(mission, context):
         res1 = mission.run(context, inputs)
         assert res1.success, f"Run 1 failed: {res1.error}"
         
+        # Clear evidence_dir to avoid collision rule failure
+        import shutil
+        shutil.rmtree(res1.outputs["evidence_dir"])
+        
         res2 = mission.run(context, inputs)
         assert res2.success, f"Run 2 failed: {res2.error}"
         
@@ -196,6 +204,8 @@ def test_run_determinism(mission, context):
             "pytest_targets": [],
             "capture_root_rel": "artifacts/evidence/mission_runs"
         }
+        # Clear again
+        shutil.rmtree(res2.outputs["evidence_dir"])
         res3 = mission.run(context, explicit_defaults)
         assert res3.success
         assert res1.outputs["run_token"] == res3.outputs["run_token"]
@@ -204,15 +214,22 @@ def test_run_evidence_capture(mission, context):
     """Test evidence files are written and hashes computed. Uses real FS."""
     inputs = {"mode": "smoke"}
     
-    # Mock return values
-    mock_sub_res = MagicMock(returncode=0, stdout=b"OUT", stderr=b"ERR")
+    def mock_run_with_files(*args, **kwargs):
+        stdout_file = kwargs.get("stdout")
+        stderr_file = kwargs.get("stderr")
+        if stdout_file:
+            stdout_file.write(b"OUT")
+        if stderr_file:
+            stderr_file.write(b"ERR")
+        return MagicMock(returncode=0)
     
-    with patch("subprocess.run", return_value=mock_sub_res):
+    with patch("subprocess.run", side_effect=mock_run_with_files):
         
         res = mission.run(context, inputs)
         
         assert res.success
         assert res.outputs["smoke"]["exit_code"] == 0
+        # Corrected: we used b"OUT" and b"ERR" in the mock writer
         assert res.outputs["smoke"]["stdout_sha256"] == hashlib.sha256(b"OUT").hexdigest()
         assert res.outputs["smoke"]["stderr_sha256"] == hashlib.sha256(b"ERR").hexdigest()
         

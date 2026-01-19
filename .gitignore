@@ -85,3 +85,15 @@ artifacts/99_archive/
 temp_*
 *.log
 nul
+
+# LifeOS Closures & Ephemeral
+artifacts/closures/*.zip
+artifacts/closures/Phase_3_*/
+artifacts/for_ceo/
+artifacts/evidence_pack_*/
+artifacts/safety_snapshots/
+artifacts/git_workflow/
+dogfood_worktree/
+generate_bundle*.py
+artifacts/active_branches.json
+artifacts/ledger/dl_doc/mock_*.txt

@@ -55,7 +55,7 @@ def calculate_sha256(filepath):
 def get_git_commit():
     try:
         return subprocess.check_output(["git", "rev-parse", "HEAD"]).decode('utf-8').strip()
-    except:
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
         return "UNKNOWN_COMMIT"
 
 def create_addendum(manifest):

@@ -146,7 +146,7 @@ def cmd_mission_run(args: argparse.Namespace, repo_root: Path) -> int:
             else:
                 success = False
 
-        except (ImportError, AttributeError):
+        except (ImportError, AttributeError) as e:
             # Fallback path: Direct mission execution
             from runtime.orchestration.missions import get_mission_class, MissionContext, MissionError
 

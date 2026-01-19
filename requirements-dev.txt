@@ -1,0 +1,15 @@
+# LifeOS Development Dependencies
+# Generated: 2026-01-19
+
+# Include core dependencies
+-r requirements.txt
+
+# Testing
+pytest-asyncio>=0.21.0,<1.0
+pytest-cov>=4.0,<5.0
+
+# Linting & Type Checking (optional, for local development)
+# ruff>=0.1.0,<1.0
+# mypy>=1.0,<2.0
+
+# Note: Run `pip install -r requirements-dev.txt` for development setup

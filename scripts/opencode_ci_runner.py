@@ -272,8 +272,10 @@ def create_isolated_config(api_key, model):
 # LIFEOS_TODO[P1][area: scripts/opencode_ci_runner.py:cleanup_isolated_config][exit: root cause documented + decision logged in DECISIONS.md] Review OpenCode deletion logic: Understand why cleanup uses shutil.rmtree for temp configs. DoD: Root cause documented, safety analysis complete
 def cleanup_isolated_config(config_dir):
     if config_dir and os.path.exists(config_dir):
-        try: shutil.rmtree(config_dir)
-        except: pass
+        try:
+            shutil.rmtree(config_dir)
+        except Exception as e:
+            log(f"Failed to cleanup config dir {config_dir}: {e}", "warning")
 
 def start_ephemeral_server(port, config_dir, api_key):
     log(f"Starting ephemeral OpenCode server on port {port}", "info")
@@ -307,7 +309,8 @@ def wait_for_server(base_url, timeout=30):
         try:
             if requests.get(f"{base_url}/global/health", timeout=1).status_code == 200:
                 return True
-        except: pass
+        except Exception:
+            pass  # Expected during server startup
         time.sleep(1)
     return False
 
@@ -316,10 +319,12 @@ def run_mission(base_url, model, instruction):
         resp = requests.post(f"{base_url}/session", json={"title": "Steward Mission", "model": model}, timeout=10)
         if resp.status_code != 200: return False
         session_id = resp.json()["id"]
-        requests.post(f"{base_url}/session/{session_id}/message", 
+        requests.post(f"{base_url}/session/{session_id}/message",
                       json={"parts": [{"type": "text", "text": instruction}]}, timeout=120)
         return session_id
-    except: return False
+    except Exception as e:
+        log(f"Failed to run mission: {e}", "error")
+        return False
 
 # ============================================================================
 # MAIN

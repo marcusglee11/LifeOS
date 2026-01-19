@@ -1,15 +1,18 @@
 # BACKLOG (prune aggressively; target ≤ 40 items)
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-18
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
 
-- [ ] **Standardize Raw Capture Primitive** — DoD: Implemented `run_command_capture` with explicit hash collection — Owner: antigravity
-- [ ] **Finalize CSO_Role_Constitution v1.0** — DoD: Markers removed; CEO approved — Owner: antigravity
+- [ ] **Finalize CSO_Role_Constitution v1.0 (Remove Waiver W1)** — DoD: Markers removed; CEO approved; W1 waiver removed — Owner: antigravity — Context: Phase 3 closure ratified with W1 waiver; removal required
 
 ### P1 (High)
+
+- [ ] **Complete Deferred Evidence: F3 Tier-2.5 Activation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+- [ ] **Complete Deferred Evidence: F4 Tier-2.5 Deactivation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+- [ ] **Complete Deferred Evidence: F7 Runtime ↔ Antigrav Protocol** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
 
 - [ ] **Recursive Builder iteration (Phase B)** — Why Now: Immediate focus (Refinement & Automation) — Owner: antigravity
 - [ ] **B1: Strengthen smoke_check failure-path evidence assertions** — DoD: Test computes sha256 of smoke_check.stderr — Owner: antigravity
@@ -28,6 +31,7 @@
 - [ ] **Integration Testing** — Why Next: Comprehensive end-to-end testing
 - [ ] **Reactive Layer Hygiene: Tighten Canonical JSON** — DoD: Require explicit escape sequence for non-ASCII input
 - [ ] **Reactive Layer Hygiene: Verify README Authority Pointer** — DoD: Ensure stable canonical link to authority anchor
+- [ ] **Tech Debt: Rehabilitate Legacy Git Workflow Tests** — Context: Quarantined to archive_legacy_r6x due to missing run_cmd mock. Rehabilitate or remove.
 - [ ] **Tier-3 planning** — Why Next: Scope Tier-3 Autonomous Construction Layer
 
 ## Later (not actionable / unclear / exploratory)
@@ -37,21 +41,22 @@
 
 ## Done (last ~25 only)
 
+- [x] **Standardize Raw Capture Primitive** — Date: 2026-01-18
 - [x] **Git Workflow Protocol v1.1 Impact** (Resolved OpenCode deletion logic via Safety Gate) — Date: 2026-01-16
 - [x] **BuildWithValidation v0.1 P0 Patch 2 Refinement** — Date: 2026-01-13
 - [x] **Fix OpenCode Config Compliance v1.0** — Date: 2026-01-13
-- [x] **Grok Fallback Debug & Robustness Fixes v1.0** — Date: 2026-01-20
+- [x] **Grok Fallback Debug & Robustness Fixes v1.0** — Date: 2026-01-18
 - [x] **CLI & Mission Hardening v1.0** — Date: 2026-01-13
 - [x] **Tier-3 CLI Integration (Full)** — Date: 2026-01-13
 - [x] **BuildWithValidation Mission Hardening v0.1** — Date: 2026-01-13
 - [x] **BuildWithValidation Mission Type v0.1** — Date: 2026-01-13
 - [x] **Tier-3 Mission Dispatch Wiring Fixes v1.0** — Date: 2026-01-13
 - [x] **CI Regression Fixes v1.0** — Date: 2026-01-13
-- [x] **OpenCode Sandbox Activation v2.4** — Date: 2026-01-13
+- [x] **OpenCode Sandbox Activation v2.2** — Date: 2026-01-13
 - [x] **A1/A2 Re-closure v2.1c** — Date: 2026-01-12
 - [x] **G-CBS Readiness v1.1** — Date: 2026-01-11
 - [x] **F3 — Tier-2.5 Activation Conditions Checklist** — Date: 2026-01-02
 - [x] **F4 — Tier-2.5 Deactivation & Rollback Conditions** — Date: 2026-01-02
 - [x] **F7 — Runtime ↔ Antigrav Mission Protocol** — Date: 2026-01-02
-- [x] **Strategic Context Generator v1.2** — Date: 2026-01-03
+- [x] **Strategic Context Generator v1.3** — Date: 2026-01-03
 - [x] **Agent Packet Protocol v1.0** — Date: 2026-01-02

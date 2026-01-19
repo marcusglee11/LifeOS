@@ -1,7 +1,0 @@
-scripts/opencode_gate_policy.py
-scripts/opencode_ci_runner.py
-tests/test_opencode_gate_policy_builder.py
-artifacts/reports/BUILD_REPORT_OpenCode_Sandbox_Activation_v2.1.md
-artifacts/reports/captures/test_opencode_builder_v2.1_PASS.txt
-artifacts/reports/captures/test_opencode_regression_v2.1_PASS.txt
-artifacts/review_packets/Review_Packet_OpenCode_Sandbox_Activation_v2.1.md

@@ -93,7 +93,7 @@
                 "evidence_path"
             ],
             "patternProperties": {
-                "^.*\\.(stdout|stderr|exitcode)$": {
+                "^.*\\.(stdout|stderr|exitcode|meta\\.json)$": {
                     "type": "string"
                 }
             },
