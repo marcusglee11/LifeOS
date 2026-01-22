@@ -1,32 +1,30 @@
-# Policy Engine v1.2.3 Bundle Verification Results
+# Policy Engine v1.2.4 — Verification Results
 
 **Date**: 2026-01-22
-**Agent**: Antigravity
-**Version**: v1.2.3
 **Status**: **SUCCESS**
+**Bundle Version**: v1.2.4
 
 ## Exit-Blocker Enforcement (P0)
 
-| Requirement | Description | Status | Evidence |
+| Gate | Requirement | Status | Evidence |
 |---|---|---|---|
-| **P0.1** | Canonical Entrypoint | **PASS** | `scripts/policy_build_policy_bundle.py` used single-source logic. |
-| **P0.2** | Hash Loop / Self-Attestation | **PASS** | Bundle is **Deterministic** (Candidate 1 == Candidate 2).<br>Uses `REFER_TO_SIDECAR` strategy to resolve circularity.<br>Sidecar generated. |
-| **P0.3** | Manifest Verification | **PASS** | `manifest_verification.log` contains full `sha256sum -c` output.<br>All files verified OK. |
-| **P0.4** | Real Tests | **PASS** | `policy_tests.log` contains real `pytest` output.<br>45 passed, 0 failed. |
-| **P0.5** | Provenance (R1) | **PASS** | Repo Dirty = True.<br>Diff captured to `evidence/repo_diff.patch`.<br>Review Packet cites diff path/sha256. |
-| **P0.6** | Path Normalization | **PASS** | All zip paths and packet paths are POSIX. |
+| **P0.1** | Attestation Model | **PASS** | `DETACHED_ZIP_SHA256_SIDECAR` used.<br>No hash loop in packet. |
+| **P0.2** | Fail-Closed Schema | **PASS** | `policy_effective_config_validation.log` confirms PASS.<br>Script has `try/import jsonschema except: fail_build`. |
+| **P0.3** | Strict Manifest | **PASS** | `manifest_verification.log` matches FINAL content.<br>Regenerated log -> Manifest -> Verified Final. |
+| **P0.4** | Deterministic Failure | **PASS** | `fail_back` defined to use `fail_build`. |
+| **P0.5** | Provenance R2 | **PASS** | **CLEAN REPO ONLY**. `git_status.log` shows Dirty=False.<br>Initial run failed on dirty repo (Verified). |
 
 ## Artifacts
 
-| Artifact | Path/Details |
+| Item | Value / Path |
 |---|---|
-| **Closure Bundle** | `artifacts/packets/review/CLOSURE_BUNDLE_Policy_Engine_v1.2.3.zip` |
-| **Sidecar Hash** | `artifacts/packets/review/CLOSURE_BUNDLE_Policy_Engine_v1.2.3.zip.sha256` |
-| **Bundle Hash** | `2574daa566c09126aafa788a35f958bc1bf8c4c34dd2eeaf9253127ad02fb507` |
-| **Review Packet** | `Review_Packet_Policy_Engine_v1.2.3.yaml` (Inside Zip) |
+| **Zip Bundle** | `artifacts/packets/review/CLOSURE_BUNDLE_Policy_Engine_v1.2.4.zip` |
+| **Zip SHA256** | `ba5478285e08d7d1add5b4a541aaad3200184d1ac385dab5101a2ad54fa465ca` |
+| **Policy SHA256** | `c6c6eacfbb30ab329c46dd86fd2825ccaa89a0dfb5da3d7b3be2cb4ba129ba5b` |
+| **Attestation** | `DETACHED_ZIP_SHA256_SIDECAR` |
 | **Verdict** | `PASS` |
 
 ## Notes
 
-- The "Designed Failure" of the previous attempt was successfully resolved by implementing the `REFER_TO_SIDECAR` pattern.
-- This bundle is Closure-Grade and ready for handoff.
+- P0.5 (R2) forced a commit of pending changes before the build could succeed.
+- Manifest verification cycle is now 100% strict (no "partial proof" possible).
