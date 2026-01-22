@@ -1,0 +1,10 @@
+{
+  "reason": "Escalation triggered by rule loop.timeout for timeout",
+  "requested_authority": "CEO",
+  "ttl_seconds": 3600,
+  "context": {
+    "rule_id": "loop.timeout",
+    "failure_class": "timeout"
+  },
+  "created_at": "2026-01-22T01:49:38.298935Z"
+}

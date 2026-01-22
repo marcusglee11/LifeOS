@@ -1,0 +1,227 @@
+packet_id: "policy-engine-v1.2-review"
+packet_type: "REVIEW_PACKET"
+schema_version: "1.2"
+created_at: "2026-01-21T00:00:00Z"
+source_agent: "claude-code"
+target_agent: "lifeos-governance"
+chain_id: "policy-engine-v1.2-chain"
+priority: "P2_NORMAL"
+nonce: "0001"
+ttl_hours: 168
+
+source_state:
+  repo_root: "/mnt/c/Users/cabra/projects/lifeos"
+  git_commit_sha: "212b5eb58592818b204d07bbc0277f7debd262b6"
+  git_branch: "build/git-cleanup-maintenance"
+  repo_dirty: false
+  diff_patch_path: null
+  diff_patch_sha256: null
+
+review_meta:
+  mission: "Policy Engine v1.2 integration"
+  status: "COMPLETE"
+  summary: "Policy Engine v1.2 integrated: tool and loop policies now delegate to central engine; governance tests added and passing."
+
+outcome: "success"
+terminal_outcome: "PASS"
+terminal_reason: null
+scope_envelope:
+  summary: |
+    Tool and loop policy adapters now delegate to the unified PolicyEngine with governance context.
+    New governance tests cover loader, path validation, engine evaluation, classifier, and escalation flows.
+  touched_paths:
+    - runtime/governance/tool_policy.py
+    - runtime/orchestration/loop/policy.py
+    - runtime/tests/governance/
+    - runtime/tests/test_tool_policy.py
+    - runtime/tests/orchestration/loop/test_policy.py
+    - config/policy/
+repro:
+  commands:
+    - "pytest runtime/tests/governance/test_policy_loader.py runtime/tests/governance/test_policy_engine_unit.py runtime/tests/governance/test_path_validator.py runtime/tests/test_tool_policy.py runtime/tests/orchestration/loop/test_policy.py"
+closure_evidence:
+  test_summary:
+    total: 34
+    passed: 34
+    failed: 0
+    warnings: 2
+  bundle_hash: "2df93c7d15eb311312a7cd91388a07aa83c7ac6d157c2c423fe4673d4ff0591d"
+  policy_registry_bundle:
+    artifact_kind: "CANONICAL_ZIP"
+    path: "artifacts/packets/review/policy_bundle.zip"
+    sha256: "e4e8fe4c22cc4648d4f7a8f0eac764dd29ee98286d909b50fe6a9ccef674a753"
+    sha256_scope: "zip_bytes"
+    sha256_command: "sha256sum artifacts/packets/review/policy_bundle.zip"
+    built_at: "2026-01-21T10:23:09Z"
+  policy_config_files:
+    - path: "config/policy/policy_schema.json"
+      sha256: "c3117e7502baffe7e80ceb880386eb646afa2e40232801dbdca50a8c2661c7d6"
+    - path: "config/policy/policy_rules.yaml"
+      sha256: "df48934e9e8313bf2b5bf749e5347e0670b24993ff58ef7bc21cb0eba23c0415"
+    - path: "config/policy/variables.yaml"
+      sha256: "d472b6604cb4e8dab7838a315b41a97b350b00746ccf857b37230196c4cc936b"
+    - path: "config/policy/posture.yaml"
+      sha256: "20ac9d5ad3d7d140891ff89a864b46b489277f07ec152437308ae2958fca9e3d"
+    - path: "config/policy/failure_classes.yaml"
+      sha256: "3975f8cd627cf50229abd35653dc252801d1c2d4c8f4cd95b132611ad1746276"
+    - path: "config/policy/tool_rules.yaml"
+      sha256: "c192be1d2d6a81049ebf09aab81e98397fcfe287be2444186f0940cfb09737d4"
+    - path: "config/policy/loop_rules.yaml"
+      sha256: "b2bacc7aae59c150c428b46fbb9b1c14b744700c4e5c02effa93dd603ce415ae"
+artifacts_produced:
+  - "Policy engine adapters for tool and loop policies"
+  - "Governance policy tests (loader, engine, path validator, escalation)"
+  - "Policy configuration bundle under config/policy/"
+diff_summary: |
+  - Tool policy now delegates to PolicyEngine with sandbox root canonicalization preserved.
+  - Loop policy adapter uses PolicyEngine decisions for retry/terminate/escalate actions.
+  - Added governance tests for policy engine, loader, path validation, and adapters.
+verification_evidence:
+  tests:
+    - path: "runtime/tests/governance/test_policy_loader.py"
+      result: "passed"
+    - path: "runtime/tests/governance/test_policy_engine_unit.py"
+      result: "passed"
+    - path: "runtime/tests/governance/test_path_validator.py"
+      result: "passed"
+    - path: "runtime/tests/test_tool_policy.py"
+      result: "passed"
+    - path: "runtime/tests/orchestration/loop/test_policy.py"
+      result: "passed"
+  pytest_log:
+    path: "artifacts/packets/review/evidence/policy_engine_pytest.log"
+    sha256: "12e6f0184e5aabe21bd020b4a5f987c6bfa6f825717cca1c79816152e6c4a683"
+    warnings:
+      - "PytestConfigWarning: Unknown config option: env_files"
+      - "PytestConfigWarning: Unknown config option: filterwarnings"
+  config_validation:
+    commands:
+      - ".venv/bin/python - <<'PY'\nimport sys, yaml\nfrom pathlib import Path\nfrom jsonschema import validate, ValidationError\nroot = Path('/mnt/c/Users/cabra/projects/lifeos')\nschema = yaml.safe_load((root/'config/policy/policy_schema.json').read_text())\ndata = yaml.safe_load((root/'config/policy/policy_rules.yaml').read_text())\nprint('VALIDATION: policy_rules.yaml vs policy_schema.json')\nvalidate(instance=data, schema=schema)\nprint('OK: policy_rules.yaml')\nprint('\\nNEGATIVE TEST: missing schema_version should fail')\ntry:\n    bad = dict(data)\n    bad.pop('schema_version', None)\n    validate(instance=bad, schema=schema)\n    print('ERROR: negative test did not fail')\nexcept ValidationError as e:\n    print('EXPECTED FAILURE:', e.message.split('\\n')[0])\nPY"
+    log_path: "artifacts/packets/review/evidence/policy_config_validation.log"
+    log_sha256: "cd5127002218b5e09874704284def6601ee16e518a839cb19de3addbdf5c4ab9"
+    negative_tests:
+      - "missing schema_version -> required property failure"
+  notes: "Closure-grade evidence now populated: source anchors, bundle hash, config validation log + negative test, pytest log with warnings, per-file hashes."
+review_type: "CLOSURE_AUDIT"
+plan_hash: "n/a"
+conditions:
+  - id: "CG-1-SOURCE-ANCHOR"
+    status: "MET"
+    requirement: "Bind review to immutable repo state (commit SHA + branch + dirty flag)."
+    evidence: "source_state.*"
+  - id: "CG-2-CANONICAL-BUNDLE-HASH"
+    status: "MET"
+    requirement: "Provide canonical bundle path + SHA-256 (and scope)."
+    evidence: "closure_evidence.policy_registry_bundle.*"
+  - id: "CG-3-VERBATIM-LOGS"
+    status: "MET"
+    requirement: "Attach verbatim logs for pytest + config validation; include log SHA-256."
+    evidence: "verification_evidence.pytest_log.* and verification_evidence.config_validation.*"
+  - id: "CG-4-WARNINGS-ENUMERATED"
+    status: "MET"
+    requirement: "List all warnings verbatim (exact messages/lines)."
+    evidence: "verification_evidence.pytest_log.warnings"
+  - id: "CG-5-CONFIG-VALIDATION-NEGATIVE"
+    status: "MET"
+    requirement: "Demonstrate fail-closed config validation via at least one negative test."
+    evidence: "verification_evidence.config_validation.negative_tests"
+  - id: "CG-6-CONFIG-FILE-HASHES"
+    status: "MET"
+    requirement: "Provide per-file SHA-256 for config/policy files."
+    evidence: "closure_evidence.policy_config_files[*].sha256"
+verdict: "PASS"
+risk_and_rollback:
+  behavior_changes:
+    - "Tool and loop policy decisions are now mediated via PolicyEngine (centralized governance)."
+    - "Policy decisions may change under config/policy posture and rule settings; invalid/missing config should fail-closed."
+  rollback_plan:
+    - "Revert the adapter delegation changes in runtime/governance/tool_policy.py and runtime/orchestration/loop/policy.py."
+    - "Remove config/policy bundle if rollback requires restoring prior hardcoded behavior."
+  known_issues: []
+
+implementation:
+  fixes_implemented:
+    - fix_id: "PE-TOOL-DELEGATE"
+      severity: "P1_CRITICAL"
+      issue: "Tool policy was hardcoded and not centrally governed."
+      fix_description: "Refactored tool_policy to delegate to PolicyEngine with canonicalized sandbox roots and symlink rejection."
+      verification: "runtime/tests/test_tool_policy.py"
+      status: "DONE"
+    - fix_id: "PE-LOOP-DELEGATE"
+      severity: "P1_CRITICAL"
+      issue: "Loop policy decisions were hardcoded without policy config."
+      fix_description: "Loop policy now uses PolicyEngine adapter with FailureClass mapping and escalation handling."
+      verification: "runtime/tests/orchestration/loop/test_policy.py"
+      status: "DONE"
+    - fix_id: "PE-GOV-TESTS"
+      severity: "P1_CRITICAL"
+      issue: "Governance engine lacked coverage for loader, classifier, path validation, and escalation flows."
+      fix_description: "Added governance test suites for loader, engine evaluation, path validator, and escalation lifecycle."
+      verification: "runtime/tests/governance/test_policy_loader.py, runtime/tests/governance/test_policy_engine_unit.py, runtime/tests/governance/test_path_validator.py"
+      status: "DONE"
+
+test_results:
+  suite_name: "policy_engine_v1.2"
+  total: 34
+  passed: 34
+  failed: 0
+  skipped: 0
+  warnings: 2
+  test_details:
+    - test_id: "runtime/tests/governance/test_policy_loader.py"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "runtime/tests/governance/test_policy_engine_unit.py"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "runtime/tests/governance/test_path_validator.py"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "runtime/tests/test_tool_policy.py"
+      status: "PASSED"
+      failure_reason: null
+    - test_id: "runtime/tests/orchestration/loop/test_policy.py"
+      status: "PASSED"
+      failure_reason: null
+
+file_manifest:
+  files:
+    - path: "runtime/governance/tool_policy.py"
+      change_type: "MODIFIED"
+      change_summary: "Delegate tool policy decisions to PolicyEngine; retain sandbox root canonicalization and symlink checks."
+    - path: "runtime/orchestration/loop/policy.py"
+      change_type: "MODIFIED"
+      change_summary: "Loop policy adapter now uses PolicyEngine outputs for retry/terminate/escalate."
+    - path: "runtime/tests/governance/"
+      change_type: "ADDED"
+      change_summary: "New governance tests for loader, engine, path validator, escalation."
+    - path: "runtime/tests/test_tool_policy.py"
+      change_type: "MODIFIED"
+      change_summary: "Updated to assert PolicyEngine-driven tool decisions."
+    - path: "runtime/tests/orchestration/loop/test_policy.py"
+      change_type: "MODIFIED"
+      change_summary: "Updated to assert PolicyEngine-driven loop decisions and escalation mapping."
+    - path: "config/policy/policy_schema.json"
+      change_type: "ADDED"
+      change_summary: "Policy config bundle file (closure-grade: sha256 recorded in closure_evidence.policy_config_files)."
+    - path: "config/policy/policy_rules.yaml"
+      change_type: "ADDED"
+      change_summary: "Policy config bundle file (closure-grade: sha256 recorded in closure_evidence.policy_config_files)."
+    - path: "config/policy/variables.yaml"
+      change_type: "ADDED"
+      change_summary: "Policy config bundle file (closure-grade: sha256 recorded in closure_evidence.policy_config_files)."
+    - path: "config/policy/posture.yaml"
+      change_type: "ADDED"
+      change_summary: "Policy config bundle file (closure-grade: sha256 recorded in closure_evidence.policy_config_files)."
+    - path: "config/policy/failure_classes.yaml"
+      change_type: "ADDED"
+      change_summary: "Policy config bundle file (closure-grade: sha256 recorded in closure_evidence.policy_config_files)."
+    - path: "config/policy/tool_rules.yaml"
+      change_type: "ADDED"
+      change_summary: "Policy config bundle file (closure-grade: sha256 recorded in closure_evidence.policy_config_files)."
+    - path: "config/policy/loop_rules.yaml"
+      change_type: "ADDED"
+      change_summary: "Policy config bundle file (closure-grade: sha256 recorded in closure_evidence.policy_config_files)."
+  total_entries: 12
+
+code_appendix: []

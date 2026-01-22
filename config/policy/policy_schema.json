@@ -1,0 +1,348 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LifeOS Policy Engine v1.2.1 Effective Config Schema",
+  "description": "Validates the resolved effective config object (post-includes merge)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "policy_metadata",
+    "posture",
+    "tool_rules",
+    "loop_rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.2$",
+      "description": "Must be 1.2 for this schema version"
+    },
+    "includes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of included config files (relative paths only)"
+    },
+    "policy_metadata": {
+      "type": "object",
+      "required": [
+        "version",
+        "effective_date",
+        "author",
+        "description"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "effective_date": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "posture": {
+      "type": "object",
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "SHADOW",
+            "DUAL",
+            "PRIMARY",
+            "ONLY"
+          ]
+        },
+        "allow_posture_loosen": {
+          "type": "boolean"
+        },
+        "approval_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "variables": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      }
+    },
+    "failure_classes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "tool_rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/tool_rule"
+      },
+      "description": "Tool policy rules with tool-specific decisions"
+    },
+    "loop_rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/loop_rule"
+      },
+      "description": "Loop policy rules with loop-specific decisions"
+    },
+    "audit": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "buffer_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "flush_interval": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "escalation": {
+      "type": "object",
+      "properties": {
+        "budget": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ttl_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "allowlist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "bootstrap_mode": {
+          "type": "boolean",
+          "description": "If true, escalation is deterministic with empty allowlist"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "tool_rule": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "decision",
+        "match"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "ALLOW",
+            "DENY",
+            "ESCALATE",
+            "WAIVER"
+          ],
+          "description": "Tool decisions only: ALLOW, DENY, ESCALATE, WAIVER"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "match": {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "type": "string"
+            },
+            "action": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "mission_type": {
+              "type": "string"
+            },
+            "agent_tier": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "path_scope": {
+          "type": "string",
+          "enum": [
+            "WORKSPACE",
+            "SANDBOX"
+          ],
+          "description": "Required for filesystem ALLOW rules; enforced at runtime"
+        },
+        "on_match": {
+          "type": "object",
+          "properties": {
+            "audit": {
+              "type": "boolean"
+            },
+            "metrics": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "match": {
+                "properties": {
+                  "tool": {
+                    "const": "filesystem"
+                  }
+                },
+                "required": [
+                  "tool"
+                ]
+              },
+              "decision": {
+                "const": "ALLOW"
+              }
+            },
+            "required": [
+              "match",
+              "decision"
+            ]
+          },
+          "then": {
+            "required": [
+              "path_scope"
+            ],
+            "errorMessage": "filesystem ALLOW rules must declare path_scope"
+          }
+        }
+      ]
+    },
+    "loop_rule": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "decision",
+        "match"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "RETRY",
+            "TERMINATE",
+            "ESCALATE",
+            "WAIVER"
+          ],
+          "description": "Loop decisions only: RETRY, TERMINATE, ESCALATE, WAIVER"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "match": {
+          "type": "object",
+          "properties": {
+            "failure_class": {
+              "type": "string"
+            },
+            "terminal_reason": {
+              "type": "string"
+            },
+            "mission_type": {
+              "type": "string"
+            },
+            "agent_tier": {
+              "type": "string"
+            },
+            "attempt_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "on_match": {
+          "type": "object",
+          "properties": {
+            "terminal_outcome": {
+              "type": "string"
+            },
+            "terminal_reason": {
+              "type": "string"
+            },
+            "audit": {
+              "type": "boolean"
+            },
+            "metrics": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
