@@ -33,7 +33,7 @@ CONFIG_DIR = Path("config/policy")
 SCHEMA_FILE = "policy_schema.json"
 CANONICAL_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 ZIP_COMPRESSION = zipfile.ZIP_DEFLATED
-VERSION = "v1.2.4"
+VERSION = "v1.2.5"
 
 
 def fail_build(reason: str):
@@ -246,12 +246,26 @@ def create_policy_bundle(config_dir: Path, output_path: Path) -> str:
 
 
 def create_manifest(bundle_dir: Path) -> None:
-    """Create MANIFEST.sha256 (Lexicographic, excluding itself)."""
+    """Create MANIFEST.sha256 (Lexicographic, excluding itself and verification log).
+    
+    P0.1: Manifest coverage excludes:
+    - ./MANIFEST.sha256 (self)
+    - ./artifacts/packets/review/evidence/manifest_verification.log (breaks cycle)
+    """
     manifest_path = bundle_dir / "MANIFEST.sha256"
+    verification_log_rel = "artifacts/packets/review/evidence/manifest_verification.log"
+    
     entries = []
     for fpath in sorted(bundle_dir.rglob("*")):
-        if fpath.is_file() and fpath.name != "MANIFEST.sha256":
+        if fpath.is_file():
             rel_path = fpath.relative_to(bundle_dir).as_posix() # P0.6
+            
+            # P0.1: Exclude MANIFEST itself and verification log
+            if fpath.name == "MANIFEST.sha256":
+                continue
+            if rel_path == verification_log_rel:
+                continue
+            
             sha = calculate_sha256(fpath)
             entries.append(f"{sha}  ./{rel_path}")
     
@@ -428,50 +442,32 @@ def main():
             f"ZIP_SHA256: DETACHED_SIDECAR (See {packet['closure_evidence']['zip_sha256_sidecar_path']})\n"
         )
 
-        # P0.3: Strict Manifest Verification Cycle
-        print("[P0.3] Strict Manifest Verification...")
+        # P0.3: Manifest Verification (Single-Pass, No Cycle)
+        print("[P0.3] Manifest Verification...")
         
-        # 1. Write Evidence (Done above)
+        # 1. All evidence files written (Done above)
         
-        # 2. Generate Manifest (Iteration 1)
+        # 2. Generate MANIFEST (excludes manifest_verification.log per P0.1)
         create_manifest(bundle_dir)
         
-        # 3. Verify -> Capture Log (This verifies everything currently on disk except log itself)
+        # 3. Verify MANIFEST and capture output
+        # NOTE: verification log is NOT in MANIFEST, so writing it won't invalidate anything
         manifest_log = []
         if not verify_manifest(bundle_dir, manifest_log):
-             fail_build("Manifest verification failed (Iter 1)")
+             fail_build("Manifest verification failed")
         
-        # 4. Write Log
+        # 4. Write verification log (NOT included in MANIFEST)
         log_file = evidence_dir / "manifest_verification.log"
         log_file.write_text("\n".join(manifest_log))
         
-        # 5. RegExp Manifest (ONLY if log was newly created/updated - Yes it was)
-        # We REGENERATE the manifest to include the hash of the log file we just wrote.
-        create_manifest(bundle_dir)
+        # 5. P0.5: Assert exclusion of verification log from MANIFEST
+        # Read MANIFEST and confirm the log is NOT listed
+        with open(bundle_dir / "MANIFEST.sha256", 'r') as f:
+            manifest_content = f.read()
+        if "manifest_verification.log" in manifest_content:
+            fail_build("P0.5 VIOLATION: manifest_verification.log found in MANIFEST (regression)")
         
-        # 6. Verify Again -> Overwrite Log
-        # This checks that the Manifest (Iter 2) correctly accounts for the Log (Iter 1 content).
-        # It creates output (Iter 2) which should match content of Log (Iter 1) for all other files,
-        # but now also includes a check for the log file itself (which matches Iter 1 hash).
-        manifest_log_final = []
-        if not verify_manifest(bundle_dir, manifest_log_final):
-             fail_build("Manifest verification failed (Iter 2)")
-        
-        # CRITICAL: We overwrite the log file with the new output.
-        # Implication: The file on disk changes.
-        # But this is the final step stated in P0.3.
-        # "usage of consistent, non-ambiguous attestation model."
-        log_file.write_text("\n".join(manifest_log_final))
-        
-        # Note: At this point, the Manifest (Iter 2) on disk contains the hash of Log (Iter 1).
-        # We just overwrote Log (Iter 2).
-        # So Manifest is technically stale by one iteration of the log file.
-        # But the Requirement says strictly follow steps 1-6.
-        # And "manifest_verification.log corresponds exactly to FINAL MANIFEST entries".
-        # The verify output lists "OK" for the entries in the manifest.
-        # The Manifest (Iter 2) lists the Log.
-        # The Log (Iter 2) output lists "manifest_verification.log: OK" (referring to checking the *previous* version against the manifest).
-        
+
         # Create Final Zip
         print("Creating Final Bundle...")
         zip_bundle(bundle_dir, output_path, bundle_name)
