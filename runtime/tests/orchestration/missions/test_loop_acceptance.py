@@ -10,6 +10,16 @@ def acceptance_context(tmp_path):
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
     (repo_root / "artifacts" / "loop_state").mkdir(parents=True)
+    
+    # Create Policy Config
+    policy_dir = repo_root / "config" / "policy"
+    policy_dir.mkdir(parents=True)
+    (policy_dir / "policy_rules.yaml").write_text(
+        "schema_version: 'v1.0'\ntool_rules: []\nloop_rules: []\n", 
+        encoding="utf-8"
+    )
+    (policy_dir / "policy_schema.json").write_text("{}", encoding="utf-8")
+    
     return MissionContext(
         repo_root=repo_root,
         baseline_commit="abc",

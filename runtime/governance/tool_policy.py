@@ -58,6 +58,17 @@ _WORKSPACE_ROOT: Optional[Path] = None
 _SANDBOX_ROOT: Optional[Path] = None
 
 
+def reset_scope_roots() -> None:
+    """
+    Reset global scope roots (for testing).
+    
+    Call this at the start of tests that need to isolate sandbox/workspace resolution.
+    """
+    global _WORKSPACE_ROOT, _SANDBOX_ROOT
+    _WORKSPACE_ROOT = None
+    _SANDBOX_ROOT = None
+
+
 def resolve_workspace_root() -> Path:
     """
     Resolve workspace root deterministically.

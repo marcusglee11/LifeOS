@@ -34,7 +34,7 @@ from runtime.orchestration.loop.budgets import BudgetController
 from runtime.orchestration.loop.taxonomy import (
     TerminalOutcome, TerminalReason, FailureClass, LoopAction
 )
-from runtime.governance.policy_loader import PolicyLoader
+from runtime.api.governance_api import PolicyLoader
 
 class AutonomousBuildCycleMission(BaseMission):
     """

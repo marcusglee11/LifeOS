@@ -247,6 +247,10 @@ class TestGovernanceUnavailable:
         """Missing LIFEOS_SANDBOX_ROOT returns GovernanceUnavailable."""
         reset_global_registry()
         
+        # Reset the global scope roots cache to ensure clean state
+        from runtime.governance.tool_policy import reset_scope_roots
+        reset_scope_roots()
+        
         # Create registry without explicit sandbox_root
         # and ensure env var is not set
         with patch.dict(os.environ, {}, clear=True):
@@ -266,3 +270,4 @@ class TestGovernanceUnavailable:
             assert result.ok is False
             assert result.error is not None
             assert result.error.type == "GovernanceUnavailable"
+
