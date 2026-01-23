@@ -6,7 +6,7 @@
 
 ### P0 (Critical)
 
-- [ ] **E2E Test: Runtime Greet** -- DoD: runtime/greet.py exists and is committed -- Owner: antigravity -- Context: Create a new file 'runtime/greet.py' that contains a single print statement: print('Hello from E2E'). Use valid YAML for your design response.
+- [x] **E2E Test: Runtime Greet** -- DoD: runtime/greet.py exists and is committed -- Owner: antigravity -- Context: Create a new file 'runtime/greet.py' that contains a single print statement: print('Hello from E2E'). Use valid YAML for your design response.
 
 ### P1 (High)
 
