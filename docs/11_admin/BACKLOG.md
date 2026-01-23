@@ -6,6 +6,8 @@
 
 ### P0 (Critical)
 
+- [ ] **E2E Test: Autonomous Code Improvement** -- DoD: runtime/e2e_signal.py exists and is committed -- Owner: antigravity -- Context: Verification of Steward Unlock and Build Loop.
+
 ### P1 (High)
 
 - [ ] **Complete Deferred Evidence: F3 Tier-2.5 Activation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
