@@ -10,9 +10,9 @@
 
 ### P1 (High)
 
-- [ ] **Complete Deferred Evidence: F3 Tier-2.5 Activation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
-- [ ] **Complete Deferred Evidence: F4 Tier-2.5 Deactivation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
-- [ ] **Complete Deferred Evidence: F7 Runtime ↔ Antigrav Protocol** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+- [!] **Complete Deferred Evidence: F3 Tier-2.5 Activation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+- [!] **Complete Deferred Evidence: F4 Tier-2.5 Deactivation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+- [!] **Complete Deferred Evidence: F7 Runtime ↔ Antigrav Protocol** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
 
 - [ ] **Recursive Builder iteration (Phase B)** — Why Now: Immediate focus (Refinement & Automation) — Owner: antigravity
 - [ ] **B1: Strengthen smoke_check failure-path evidence assertions** — DoD: Test computes sha256 of smoke_check.stderr — Owner: antigravity
