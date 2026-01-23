@@ -1,8 +1,0 @@
-{
-  "type": "BLOCKED",
-  "reason": "Backlog parse error: Line 32: Dispatchable item missing required fields: Owner\nLine content: - [ ] **Reactive Layer Hygiene: Tighten Canonical JSON** — DoD: Require explicit escape sequence for non-ASCII input",
-  "run_id": "e7aed151",
-  "timestamp": "2026-01-23T11:41:25.471663",
-  "item_key": null,
-  "item_title": null
-}
