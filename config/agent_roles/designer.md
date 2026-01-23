@@ -15,6 +15,7 @@ You operate within LifeOS, a self-building autonomous system. Your outputs feed 
 Return a valid YAML packet with:
 
 ```yaml
+goal: Full description of the objective to achieve
 design_type: "implementation_plan" | "architecture" | "interface"
 summary: One-line description of the design
 deliverables:
