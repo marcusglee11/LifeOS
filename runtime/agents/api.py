@@ -275,114 +275,86 @@ def call_agent(
         selection_reason = "explicit"
         model_chain = [model]
     
-    # Get API key
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not api_key:
-        raise AgentAPIError("OPENROUTER_API_KEY environment variable not set")
+    # [HARDENING] Use OpenCodeClient for robust protocol and provider handling.
+    # It handles both OpenRouter (OpenAI style) and Zen (Anthropic style) logic.
+    from .opencode_client import OpenCodeClient, LLMCall
     
-    # Build request
-    user_message = yaml.safe_dump(call.packet, default_flow_style=False)
-    
-    request_body = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        "temperature": call.temperature,
-        "max_tokens": call.max_tokens,
-    }
-    
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://lifeos.local",
-        "X-Title": "LifeOS Agent API",
-    }
-    
-    # Execute with retry
-    start_time = time.monotonic()
-    last_error: Optional[Exception] = None
-    response_data: Optional[dict] = None
-    
-    for attempt in range(config.max_retry_attempts):
-        try:
-            with httpx.Client(timeout=config.timeout_seconds) as client:
-                response = client.post(
-                    f"{config.base_url}/chat/completions",
-                    headers=headers,
-                    json=request_body,
-                )
-                response.raise_for_status()
-                response_data = response.json()
-                break
-                
-        except httpx.TimeoutException as e:
-            last_error = AgentTimeoutError(f"Request timed out after {config.timeout_seconds}s")
-            logger.warning(f"Attempt {attempt + 1} timed out: {e}")
-            
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 429:  # Rate limited
-                wait_time = config.backoff_base_seconds * (config.backoff_multiplier ** attempt)
-                logger.warning(f"Rate limited, waiting {wait_time}s before retry")
-                time.sleep(wait_time)
-                last_error = e
-            else:
-                raise AgentAPIError(f"OpenRouter API error: {e.response.status_code} - {e.response.text}")
-                
-        except httpx.RequestError as e:
-            wait_time = config.backoff_base_seconds * (config.backoff_multiplier ** attempt)
-            logger.warning(f"Request error on attempt {attempt + 1}, waiting {wait_time}s: {e}")
-            time.sleep(wait_time)
-            last_error = e
-    
-    if response_data is None:
-        if isinstance(last_error, AgentTimeoutError):
-            raise last_error
-        raise AgentAPIError(f"All {config.max_retry_attempts} attempts failed: {last_error}")
-    
-    latency_ms = int((time.monotonic() - start_time) * 1000)
-    
-    # Parse response
-    choices = response_data.get("choices", [])
-    if not choices:
-        raise AgentResponseInvalid("OpenRouter returned no choices")
-    
-    content = choices[0].get("message", {}).get("content", "")
-    model_version = response_data.get("model", model)
-    
-    usage = response_data.get("usage", {})
-    input_tokens = usage.get("prompt_tokens", 0)
-    output_tokens = usage.get("completion_tokens", 0)
-    
-    # Parse response as packet if possible
-    packet = _parse_response_packet(content)
-    output_packet_hash = (
-        f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}"
-        if packet else ""
-    )
-    
-    timestamp = datetime.now(timezone.utc).isoformat()
-    
-    # Log to hash chain if logger provided
-    if logger_instance is None:
-        logger_instance = AgentCallLogger()
-    
-    logger_instance.log_call(
-        call_id_deterministic=call_id,
-        call_id_audit=call_id_audit,
+    # Build client with role for key selection
+    client = OpenCodeClient(
         role=call.role,
-        model_requested=call.model,
-        model_used=model,
-        model_version=model_version,
-        input_packet_hash=packet_hash,
-        prompt_hash=prompt_hash,
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        latency_ms=latency_ms,
-        output_packet_hash=output_packet_hash,
-        status="success",
+        timeout=config.timeout_seconds,
+        log_calls=False, # We do our own logging below
     )
+    
+    try:
+        start_time = time.monotonic()
+        
+        # Prepare request
+        # Note: OpenCodeClient expects the full prompt (system + user) internally 
+        # but LLMCall has a system_prompt field. 
+        prompt = yaml.safe_dump(call.packet, default_flow_style=False)
+        llm_request = LLMCall(
+            prompt=prompt,
+            model=model,
+            system_prompt=system_prompt,
+            role=call.role
+        )
+        
+        # Execute call via client (handles retry and fallback internally)
+        response = client.call(llm_request)
+        
+        latency_ms = int((time.monotonic() - start_time) * 1000)
+        
+        # Parse response
+        content = response.content
+        model_version = response.model_used
+        
+        # Parse response as packet if possible
+        packet = _parse_response_packet(content)
+        output_packet_hash = (
+            f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}"
+            if packet else ""
+        )
+        
+        timestamp = datetime.now(timezone.utc).isoformat()
+        
+        # Log to hash chain if logger provided
+        if logger_instance is None:
+            from .logging import AgentCallLogger
+            logger_instance = AgentCallLogger()
+        
+        logger_instance.log_call(
+            call_id_deterministic=call_id,
+            call_id_audit=response.call_id,
+            role=call.role,
+            model_requested=call.model,
+            model_used=model,
+            model_version=model_version,
+            input_packet_hash=packet_hash,
+            prompt_hash=prompt_hash,
+            input_tokens=0, # Client doesn't return usage yet
+            output_tokens=0,
+            latency_ms=latency_ms,
+            output_packet_hash=output_packet_hash,
+            status="success",
+        )
+        
+        return AgentResponse(
+            call_id=call_id,
+            call_id_audit=response.call_id,
+            role=call.role,
+            model_used=model,
+            model_version=model_version,
+            content=content,
+            packet=packet,
+            usage={"input_tokens": 0, "output_tokens": 0},
+            latency_ms=latency_ms,
+            timestamp=timestamp,
+        )
+        
+    except Exception as e:
+        logger.error(f"Agent call failed: {e}")
+        raise AgentAPIError(f"Agent call failed: {str(e)}")
     
     return AgentResponse(
         call_id=call_id,
