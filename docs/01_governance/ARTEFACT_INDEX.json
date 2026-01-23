@@ -26,7 +26,7 @@
         "governance_protocol": "docs/02_protocols/Governance_Protocol_v1.0.md",
         "document_steward_protocol": "docs/02_protocols/Document_Steward_Protocol_v1.1.md",
         "dap": "docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md",
-        "council_protocol": "docs/02_protocols/Council_Protocol_v1.2.md",
+        "council_protocol": "docs/02_protocols/Council_Protocol_v1.3.md",
         "build_artifact_protocol": "docs/02_protocols/Build_Artifact_Protocol_v1.0.md",
         "build_handoff_protocol": "docs/02_protocols/Build_Handoff_Protocol_v1.1.md",
         "core_tdd_principles": "docs/02_protocols/Core_TDD_Design_Principles_v1.0.md",

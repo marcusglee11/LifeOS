@@ -1,0 +1,60 @@
+# Loop Policy Rules (v1.2.1)
+# Valid decisions: RETRY, TERMINATE, ESCALATE, WAIVER
+# Note: ALLOW is NOT valid for loop rules (use RETRY instead)
+
+- rule_id: loop.success-pass
+  decision: TERMINATE
+  priority: 200
+  match:
+    terminal_reason: pass
+  on_match:
+    terminal_outcome: PASS
+    terminal_reason: pass
+
+- rule_id: loop.syntax-error
+  decision: TERMINATE
+  priority: 150
+  match:
+    failure_class: syntax_error
+  on_match:
+    terminal_outcome: BLOCKED
+    terminal_reason: critical_failure
+
+- rule_id: loop.validation-error
+  decision: TERMINATE
+  priority: 150
+  match:
+    failure_class: validation_error
+  on_match:
+    terminal_outcome: BLOCKED
+    terminal_reason: critical_failure
+
+- rule_id: loop.timeout
+  decision: ESCALATE
+  priority: 120
+  match:
+    failure_class: timeout
+  on_match:
+    terminal_outcome: ESCALATION_REQUESTED
+    terminal_reason: critical_failure
+
+- rule_id: loop.review-rejection
+  decision: RETRY
+  priority: 110
+  match:
+    failure_class: review_rejection
+
+- rule_id: loop.test-failure
+  decision: RETRY
+  priority: 110
+  match:
+    failure_class: test_failure
+
+- rule_id: loop.unknown
+  decision: TERMINATE
+  priority: 100
+  match:
+    failure_class: unknown
+  on_match:
+    terminal_outcome: BLOCKED
+    terminal_reason: critical_failure

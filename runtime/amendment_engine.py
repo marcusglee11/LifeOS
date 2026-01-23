@@ -57,10 +57,10 @@ class AmendmentEngine:
         
         Returns a list of (file_path, search_anchor, replacement_text).
         """
-        # TODO: Implement the actual parsing logic based on the exact markdown format spec.
-        # For now, returning an empty list or raising NotImplementedError if called.
-        # This is a placeholder for the parsing logic.
-        return []
+        raise NotImplementedError(
+            "Protocol format spec not yet defined. "
+            "Amendment parsing requires formal specification before implementation."
+        )
 
     def _apply_single_amendment(self, root: str, rel_path: str, anchor: str, replacement: str) -> None:
         """

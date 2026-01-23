@@ -55,7 +55,7 @@ def calculate_sha256(filepath):
 def get_git_commit():
     try:
         return subprocess.check_output(["git", "rev-parse", "HEAD"]).decode('utf-8').strip()
-    except:
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
         return "UNKNOWN_COMMIT"
 
 def create_addendum(manifest):
@@ -416,6 +416,20 @@ def main():
     if work_dir.exists(): shutil.rmtree(work_dir)
     
     print(f"SUCCESS. Bundle: {args.output}")
+    
+    # --- PHASE 6: Delivery (P0.5) ---
+    print("Delivering to artifacts/for_ceo/...")
+    for_ceo = Path("artifacts/for_ceo")
+    for_ceo.mkdir(exist_ok=True)
+    
+    # Copy Bundle
+    shutil.copy2(args.output, for_ceo)
+    print(f"📦 Delivered Bundle: {for_ceo / os.path.basename(args.output)}")
+    
+    # Copy Sidecar
+    if os.path.exists(sidecar_path):
+        shutil.copy2(sidecar_path, for_ceo)
+        print(f"📦 Delivered Sidecar: {for_ceo / sidecar_path.name}")
 
 if __name__ == "__main__":
     main()

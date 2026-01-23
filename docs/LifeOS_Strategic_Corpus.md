@@ -813,6 +813,166 @@ The COOSpec defines the actual runtime mechanics: SQLite message bus, determinis
 
 ---
 
+# File: 00_foundations/LifeOS_Overview.md
+
+# LifeOS Overview
+
+**Last Updated**: 2026-01-13
+
+> A personal operating system that makes you the CEO of your life.
+
+**LifeOS** extends your operational reach into the world. It converts intent into action, thought into artifact, and direction into execution. Its primary purpose is to **augment and amplify human agency and judgment**, not to originate intent.
+
+---
+
+## 1. Overview & Purpose
+
+### The Philosophy: CEO Supremacy
+
+In LifeOS, **You are the CEO**. The system is your **COO** and workforce.
+
+- **CEO (You)**: The sole source of strategic intent. You define identity, values, priorities, and direction.
+- **The System**: Exists solely to execute your intent. It does not "think" for you on strategic matters; it ensures your decisions are carried out.
+
+### Core Principles
+
+- **Audit Completeness**: Everything is logged. If it happened, it is recorded.
+- **Reversibility**: The system is versioned. You can undo actions.
+- **Transparency**: No black boxes. Reasoning is visible and auditable.
+
+---
+
+## 2. The Solution: How It Works
+
+LifeOS operates on a strictly tiered architecture to separate **Intent** from **Execution**.
+
+### High-Level Model
+
+| Layer | Role | Responsibility |
+|-------|------|----------------|
+| **1. CEO** | **Intent** | Defines *what* needs to be done and *why*. |
+| **2. COO** | **Operations** | Converts intent into structured **Missions**. Manages the workforce. |
+| **3. Workers** | **Execution** | Deterministic agents that perform bounded tasks (Build, Verify, Research). |
+
+### The Autonomy Ladder (System Capability)
+
+The system evolves through "Tiers" of capability, earning more autonomy as it proves safety:
+
+- **Tier 1 (Kernel)**: Deterministic, manual execution. (Foundation)
+- **Tier 2 (Orchestration)**: System manages the workflow, human triggers tasks.
+- **Tier-3 (Construction)**: specialized agents (Builders) perform work. **<-- Authorized / Partially Implemented**
+- **Tier 4 (Agency)**: System plans and prioritized work over time.
+- **Tier 5 (Self-Improvement)**: The system improves its own code to better serve the CEO.
+
+---
+
+## 3. Progress: Current Status
+
+**Current Status**: **Phase 3 / Tier-2.5 Active (Tier-3 Infrastructure Authorized)**
+
+- The system can currently **build, test, and verify** its own code under strict supervision.
+- **Active Agents**: 'Antigravity' (General Purpose), 'OpenCode' (Stewardship).
+- **Recent Wins**:
+  - **Deterministic CLI**: Stabilized universal entry point `lifeos` for mission execution and orchestration.
+  - **Audit-Grade Evidence**: All missions now produce verifiable SHA256 hashes and compact, deterministic JSON output.
+  - **BuildWithValidation**: Replaced prototype loops with production-grade subprocess runtimes for surgical code modifications.
+  - **Stewardship**: Automated documentation and governance checks integrated into the agent workflow.
+
+---
+
+## 4. Target State: The North Star
+
+**Goal**: A fully "Self-Improving Organisation Engine".
+The target state is a system where the CEO (User) interacts only at the **Intent Layer**, and the system handles the entire chain of **Plan → Build → Verify → Integrate**.
+
+### The Builder North Star
+
+- **Single Interface**: The CEO interacts with one control plane (the COO), not dozens of tools.
+- **Packets, Not Chat**: Agents communicate via structured, auditable data packets, not loose conversation.
+- **Governance as Code**: Protocol rules (The "Constitution") are enforced by the runtime code.
+- **Evidence-Based**: Nothing is "Done" until cryptographic evidence (logs, test results) proves it.
+
+LifeOS is not just productivity software; it is a **Cybernetic extension of human will**, built to rigorous engineering standards.
+
+
+---
+
+# File: 00_foundations/QUICKSTART.md
+
+# LifeOS QuickStart Guide
+
+<!-- LIFEOS_TODO[P1][area: docs/QUICKSTART.md][exit: context scan complete + status change to ACTIVE + DAP validate] Finalize QUICKSTART v1.0: Complete context scan pass, remove WIP/Provisional markers -->
+
+**Status**: WIP (Non-Canonical)
+**Authority**: COO Operating Contract v1.0
+**Effective**: 2026-01-07 (Provisional)
+
+---
+
+## 1. Introduction
+
+Welcome to LifeOS. This guide provides the minimum steps required to bootstrap a new agent or human operator into the repository.
+
+---
+
+## 2. Prerequisites
+
+- **Python 3.11+**
+- **Git**
+- **OpenRouter API Key** (for agentic operations)
+- **Visual Studio Code** (recommended)
+
+---
+
+## 3. First Steps
+
+### 3.1 Clone the Repository
+```bash
+git clone <repo-url>
+cd LifeOS
+```
+
+### 3.2 Initialize Environment
+```bash
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+```
+
+### 3.3 Verify Readiness
+Run the preflight check to ensure all invariants are met:
+```bash
+python docs/scripts/check_readiness.py
+```
+
+---
+
+## 4. Understanding the Core
+
+The repo is organized by Tiers:
+- **Foundations**: Core principles and Constitution.
+- **Governance**: Contracts, protocols, and rulings.
+- **Runtime**: Implementation and mission logic.
+
+Always check [docs/INDEX.md](./docs/INDEX.md) for the latest navigation map.
+
+---
+
+## 5. Working with Protocols
+
+All changes MUST follow the **Deterministic Artefact Protocol (DAP) v2.0**:
+1. Create a Plan.
+2. Get Approval.
+3. Execute.
+4. Verify & Steward.
+
+---
+
+**END OF GUIDE**
+
+
+---
+
 # File: 00_foundations/SPEC-001_ LifeOS Operating Model - Agentic Platform & Evaluation Framework.md
 
 # **SPEC-001: LifeOS Operating Model (v0.3)**
@@ -1204,17 +1364,16 @@ Refine the COO's behaviour based on the CEO's preferences.
 
 # CSO Role Constitution v1.0
 
-<!-- LIFEOS_TODO[P1][area: docs/01_governance/CSO_Role_Constitution_v1.0.md][exit: CEO approval + status change to ACTIVE] Finalize CSO_Role_Constitution v1.0: Remove WIP/Provisional markers, get CEO approval -->
-
-**Status**: WIP (Non-Canonical)
+**Status**: ACTIVE (Canonical)
 **Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
-**Effective**: 2026-01-07 (Provisional)
+**Effective**: 2026-01-23
 
 ---
 
 ## 1. Role Definition
 
 **CSO** (Chief Strategy Officer) is the advisory and representative role that:
+
 - Advises the CEO on strategic matters
 - Represents CEO intent within defined envelopes
 - Operates with delegated authority per §3
@@ -1224,16 +1383,19 @@ Refine the COO's behaviour based on the CEO's preferences.
 ## 2. Responsibilities
 
 ### 2.1 Advisory Function
+
 - Strategic advice on direction, prioritisation, and resource allocation
 - Risk assessment for strategic decisions (Category 3 per Intent Routing)
 - Governance hygiene review and escalation
 
 ### 2.2 Representative Function
+
 - Acts on CEO's behalf within delegated envelopes
 - Surfaces CEO Decision Packets for strategic matters
 - Coordinates between Council and operational layers
 
 ### 2.3 Audit Function
+
 - Audits waiver frequency (Council Protocol §6.3)
 - Reviews bootstrap mode usage (Council Protocol §9)
 - Monitors envelope boundary compliance
@@ -1265,6 +1427,7 @@ Refine the COO's behaviour based on the CEO's preferences.
 ## 5. Constraints
 
 CSO **may not**:
+
 - Override CEO decisions
 - Expand own envelope without CEO approval
 - Commit governance changes autonomously
@@ -1275,6 +1438,7 @@ CSO **may not**:
 ## 6. Amendment
 
 Changes to this constitution require:
+
 1. CEO explicit authorization, OR
 2. Council recommendation approved by CEO
 
@@ -1660,6 +1824,122 @@ The Council approves the adoption of the **OpenCode-First Doc Stewardship** poli
 
 ---
 
+# File: 01_governance/Council_Ruling_Phase3_Closure_v1.0.md
+
+# Council Ruling — Phase 3 Closure v1.0
+
+**Ruling ID:** CR_20260119_Phase3_Closure  
+**Ruling Date:** 2026-01-19  
+**Decision:** APPROVE_WITH_CONDITIONS (RATIFIED)  
+**Basis:** Phase_3_Closure_CCP_v1.8.md + manifest.sha256 (hash-bound)
+
+---
+
+## 1. Decision
+
+Phase 3 (Core Optimization / Tier-2.5 Hardening) Closure is hereby **RATIFIED** with explicit, bounded conditions as detailed below.
+
+---
+
+## 2. Conditions
+
+### C1: Waiver W1 (CSO Role Constitution)
+
+**P0 Blocker Status:** CSO Role Constitution v1.0 remains classified as P0 but is **WAIVED** under Waiver W1.
+
+**Waiver Scope:**
+
+- Phase 4 initial construction work only
+- No CSO authority expansion beyond current implicit boundaries
+- Waiver automatically EXPIRES when CSO Role Constitution v1.0 Status changes to "Active"
+
+**Constraint:** Any work requiring explicit CSO authority boundaries beyond current operations triggers immediate waiver expiry review.
+
+**Reference:** `docs/01_governance/Waiver_W1_CSO_Constitution_Temporary.md`  
+**Hash:** `8804f8732b7d6ee968ed69afeb31fc491b22430bc6332352d5244ce62cd13b3d`
+
+### C2: Deferred Evidence (Scoped Closure)
+
+The following three deliverables are explicitly **DEFERRED** from this closure scope:
+
+1. **F3 — Tier-2.5 Activation Conditions Checklist**
+2. **F4 — Tier-2.5 Deactivation & Rollback Conditions**
+3. **F7 — Runtime ↔ Antigrav Mission Protocol**
+
+**Rationale:** Missing review packet evidence per CCP Evidence Index.
+
+**Implication:** Closure scope is limited to 15/18 Phase 3 deliverables + E2E Evidence Collision Fix.
+
+---
+
+## 3. Scope Statement
+
+This ruling ratifies **scoped closure** of Phase 3:
+
+- **Included:** 15 deliverables with complete review packet evidence + E2E fix (as indexed in CCP Evidence Index)
+- **Excluded:** F3, F4, F7 (deferred as per C2)
+- **Test Gate:** 775/779 passed (99.5%); 4 skipped (platform limitations documented)
+- **Waiver:** CSO Role Constitution P0 waived under W1
+
+---
+
+## 4. Evidence Binding
+
+### 4.1 Primary Closure Artifacts
+
+| Artifact | SHA256 (Normalized) | SHA256 (As-Delivered) |
+|----------|---------------------|------------------------|
+| Phase_3_Closure_CCP_v1.8.md | `8606730176b2a40689f96721dcb1c2c06be0c4e752ef6f0eccdd7a16d32e3a99` | `82c3a8144ecc5a4e22bfc26aab8de8ed4a23f5f7f50e792bbb1158f634495539` |
+| manifest.sha256 | `9e85c07e1d0dde9aa75b190785cc9e7c099c870cd04d5933094a7107b422ebab` | N/A (self-entry) |
+| External_Seat_Outputs_v1.0.md | N/A | `883b84a08342499248ef132dd055716d47d613e2e3f315b69437873e6c901bf9` |
+
+**Normalization Rules:** As defined in `Phase_3_Closure_CCP_v1.8.md` (lines 30-32).
+
+### 4.2 Updated Governance Documents
+
+| Document | SHA256 (Post-Update) |
+|----------|----------------------|
+| LIFEOS_STATE.md | `1f2b81e02a6252de93fb22059446425dff3d21e366cd09600fcb321e2f319e60` |
+| BACKLOG.md | `4a59d36a36a93c0f0206e1aeb00fca50d3eb30a846a4597adc294624c0b10101` |
+| Council_Ruling_Phase3_Closure_v1.0.md | `e37cbabe97ed32bc43b83c3204f0759a30664ee496883ac012998d1c68ec3116` |
+
+---
+
+## 5. Non-Goals (Explicit Exclusions)
+
+This ruling **does NOT**:
+
+1. Complete CSO Role Constitution v1.0 (remains WIP; waived under W1)
+2. Unblock Phase 4 work requiring CSO authority boundaries beyond current scope
+3. Close F3, F4, F7 deliverables (explicitly deferred)
+4. Remove WIP status from Emergency Declaration Protocol, Intent Routing Rule, Test Protocol v2.0, or other Phase 3-era governance documents
+
+---
+
+## 6. Follow-Up Actions
+
+As per conditions above, the following backlog items are required:
+
+1. **Finalize CSO_Role_Constitution v1.0** (to remove W1 waiver)
+2. **Complete deferred evidence:** F3, F4, F7 review packets and closure verification
+
+---
+
+## 7. Ratification Authority
+
+This ruling is issued under the authority of the LifeOS Council governance framework as defined in the canonical Council Protocol.
+
+**Attestation:** This decision reflects the external seat reviews provided in `External_Seat_Outputs_v1.0.md` and the comprehensive evidence package in `Phase_3_Closure_Bundle_v1.8.zip`.
+
+---
+
+## Amendment Record
+
+**v1.0 (2026-01-19)** — Initial ratification ruling for Phase 3 closure with conditions C1 (W1 waiver) and C2 (deferred F3/F4/F7).
+
+
+---
+
 # File: 01_governance/DOC_STEWARD_Constitution_v1.0.md
 
 # DOC_STEWARD Role Constitution v1.0
@@ -1851,6 +2131,7 @@ Expansion to new mission types requires:
 
 ### Sign-Offs (Closed Amendments)
 
+- [AUR_20260123 Policy Engine Authoritative Gating (v0.2)](../../artifacts/signoffs/Policy_Engine_Authoritative_Gating_v0.2/policy_e2e_test_summary.md)
 - [AUR_20260114 E2E Harness Patch (v2.0)](../../artifacts/signoffs/AUR_20260114_E2E_Harness_Patch_v1.2_Signoff.md)
 - [AUR_20260112 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)
 
@@ -2526,6 +2807,31 @@ Below, "Spec says" refers to the CRP + Flattened Implementation Packet as canoni
 ## Chair Sign-off
 
 This build is **approved for merge/activation within Phase 0–1**. Council sign-off granted. Proceed to the next Core task.
+
+
+---
+
+# File: 01_governance/_archive/Waiver_W1_CSO_Constitution_Temporary_RESOLVED_2026-01-23.md
+
+**Status**: RESOLVED (No Longer Active)
+**Resolved**: 2026-01-23
+**Reason**: CSO_Role_Constitution v1.0 finalized and ACTIVE
+
+---
+
+# Waiver W1: CSO Constitution Temporary Fix
+
+**Waived Item:** `CSO_Role_Constitution_v1.0.md`
+**Scope:** Waived for Phase 3 closure re-submission and Phase 4 initial build work only (CEO directive).
+**Constraints:**
+
+- No expansion of CSO authority or autonomous escalation pathways that depend on CSO constitution.
+- Any Phase 4 work requiring CSO boundary decisions must BLOCK.
+**Expiry Condition:** Must be completed before Phase 4 is declared 'formally closed' OR before enabling any new autonomous governance behaviors attributed to CSO.
+**Risk Acceptance:**
+- CEO Waiver: W1
+- Governance Risk: Medium (operating without explicit constitution for CSO role)
+- Mitigations: Restricted scope for Phase 4 construction; human-in-the-loop for all CSO-level decisions.
 
 
 ---

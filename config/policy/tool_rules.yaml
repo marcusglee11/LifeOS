@@ -1,0 +1,34 @@
+# Tool Policy Rules (v1.2.1)
+# Valid decisions: ALLOW, DENY, ESCALATE, WAIVER
+# filesystem ALLOW rules MUST declare path_scope
+
+- rule_id: tool.filesystem.read
+  decision: ALLOW
+  priority: 100
+  path_scope: WORKSPACE
+  match:
+    tool: filesystem
+    action: read_file
+
+- rule_id: tool.filesystem.write
+  decision: ALLOW
+  priority: 100
+  path_scope: WORKSPACE
+  match:
+    tool: filesystem
+    action: write_file
+
+- rule_id: tool.filesystem.list
+  decision: ALLOW
+  priority: 100
+  path_scope: WORKSPACE
+  match:
+    tool: filesystem
+    action: list_dir
+
+- rule_id: tool.pytest.run
+  decision: ALLOW
+  priority: 100
+  match:
+    tool: pytest
+    action: run

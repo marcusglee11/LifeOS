@@ -66,10 +66,10 @@ class FreezeEngine:
             if not os.path.exists(path):
                 raise GovernanceError(f"Missing Manifest: {m}")
             
-            # TODO: Verify content/signatures of manifests if required.
-            # Spec says "Runtime MUST verify all manifest entries... Any mismatch MUST halt"
-            # This implies checking against some truth or internal consistency.
-            # For now, existence is the basic check.
+            raise NotImplementedError(
+                "Manifest content verification not implemented. "
+                "Requires specification of verification rules and signature checking."
+            )
 
         # Verify Governance Leak Ruleset SHA256
         # Assuming tools_manifest.json contains the expected hash for the ruleset.
@@ -81,11 +81,10 @@ class FreezeEngine:
         if not expected_ruleset_hash:
              raise GovernanceError("tools_manifest.json missing 'governance_ruleset_sha256'")
              
-        # We don't have the ruleset path passed here easily, but the Scanner should have already verified it?
-        # The spec says "This verification includes the SHA256 of the governance-leak ruleset... mismatch MUST halt"
-        # If the scanner ran and passed, we know it matched. 
-        # But strictly, we should verify it again or ensure the manifest itself is trusted.
-        pass
+        raise NotImplementedError(
+            "Governance ruleset SHA256 verification not implemented. "
+            "Requires specification of ruleset location and verification protocol."
+        )
 
     def _enforce_quiescence(self) -> None:
         """
@@ -95,6 +94,7 @@ class FreezeEngine:
         - Lock FS/DB (mocked)
         """
         self.logger.info("Enforcing Quiescence...")
-        # In a real system, this would interact with the OS/Process manager.
-        # Here we just log and assume the environment is compliant or raise error if we detect activity.
-        pass
+        raise NotImplementedError(
+            "Quiescence enforcement not implemented. "
+            "Requires integration with OS/Process manager to halt async processes, close FDs, and lock FS/DB."
+        )

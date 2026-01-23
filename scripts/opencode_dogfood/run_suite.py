@@ -312,7 +312,7 @@ def main():
             # 2. git_status
             try:
                 gs = subprocess.check_output(["git", "status", "--porcelain"], text=True)
-            except:
+            except (subprocess.CalledProcessError, FileNotFoundError, OSError):
                 gs = "ERROR"
             with open(ev_dir / "git_status.txt", "w", encoding="utf-8") as f:
                 f.write(gs)

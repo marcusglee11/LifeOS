@@ -9,11 +9,10 @@ from __future__ import annotations
 import hashlib
 import json
 import re  # Added for P0.1 commit validation
-import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
+from runtime.tools.evidence_capture import run_command_capture, CaptureStatus, CaptureResult
 
 # External dependencies (assumed present in env)
 import jsonschema
@@ -135,60 +134,16 @@ class BuildWithValidationMission(BaseMission):
         
         evidence_map: Dict[str, str] = {}
 
-        # LIFEOS_TODO[P1][area: runtime/orchestration/missions/build_with_validation.py:run_command_capture][exit: pytest runtime/tests/test_evidence_capture.py] Standardize raw capture primitive: Extract run_command_capture pattern to reusable helper with cmd redirection + explicit exitcode file + hashes. DoD: Available in runtime/tools/evidence_capture.py, used across missions
-        def run_command_capture(step_name: str, cmd: List[str], cwd: Path) -> Dict[str, Any]:
-            """Run command, capture outputs to disk, hash them, return result dict."""
-            
-            # Execute
-            try:
-                proc = subprocess.run(
-                    cmd,
-                    cwd=cwd,
-                    capture_output=True,
-                    timeout=300
-                )
-                stdout_bytes = proc.stdout
-                stderr_bytes = proc.stderr
-                exit_code = proc.returncode
-            except Exception as e:
-                # Capture primitive failure (e.g. timeout, not found)
-                stdout_bytes = b""
-                stderr_bytes = f"Fatal execution error: {str(e)}".encode("utf-8")
-                exit_code = -1
-
-            # Write evidence (P0.3: Explicit encoding/newlines)
-            stdout_path = evidence_dir / f"{step_name}.stdout"
-            stderr_path = evidence_dir / f"{step_name}.stderr"
-            exitcode_path = evidence_dir / f"{step_name}.exitcode"
-            
-            with open(stdout_path, "wb") as f:
-                f.write(stdout_bytes)
-            
-            with open(stderr_path, "wb") as f:
-                f.write(stderr_bytes)
-                
-            with open(exitcode_path, "w", encoding="utf-8", newline="\n") as f:
-                f.write(f"{exit_code}\n")
-                
-            # Compute hashes from DISK (P0.3)
-            def hash_file(p: Path) -> str:
-                with open(p, "rb") as f:
-                    return hashlib.sha256(f.read()).hexdigest()
-            
-            stdout_sha = hash_file(stdout_path)
-            stderr_sha = hash_file(stderr_path)
-            
-            # Populate evidence map (filename -> hash)
-            evidence_map[f"{step_name}.stdout"] = stdout_sha
-            evidence_map[f"{step_name}.stderr"] = stderr_sha
-            evidence_map[f"{step_name}.exitcode"] = hash_file(exitcode_path)
-            
+        def _capture_to_dict(res: CaptureResult) -> Dict[str, Any]:
+            """Convert CaptureResult to schema-compliant dict."""
             return {
-                "command": cmd,
-                "exit_code": exit_code,
-                "stdout_sha256": stdout_sha,
-                "stderr_sha256": stderr_sha
+                "command": res.command,
+                "exit_code": res.exit_code,
+                "stdout_sha256": res.stdout_sha256,
+                "stderr_sha256": res.stderr_sha256
             }
+
+        # Substituted shared primitive (runtime/tools/evidence_capture.py)
 
         executed_steps = []
         
@@ -198,17 +153,30 @@ class BuildWithValidationMission(BaseMission):
             "import sys, os; "
             "sys.exit(0 if os.path.exists('pyproject.toml') else 1)"
         ]
-        smoke1_res = run_command_capture("smoke_check", smoke_cmd, context.repo_root)
+        smoke1_res = run_command_capture("smoke_check", smoke_cmd, context.repo_root, evidence_dir)
+        # Update evidence map with results
+        evidence_map[smoke1_res.stdout_path.name] = smoke1_res.stdout_sha256
+        evidence_map[smoke1_res.stderr_path.name] = smoke1_res.stderr_sha256
+        evidence_map[smoke1_res.exitcode_path.name] = smoke1_res.exitcode_sha256
+        evidence_map[smoke1_res.meta_path.name] = smoke1_res.meta_sha256 # Corrected meta hash
+        
         executed_steps.append("smoke:check_pyproject")
         
-        if smoke1_res["exit_code"] != 0:
+        if smoke1_res.exit_code != 0:
              # Fast fail
              final_smoke = smoke1_res
         else:
             # SMOKE-2: Compileall
             # Use sys.executable to ensure same python env
             smoke2_cmd = [sys.executable, "-m", "compileall", "-q", "runtime"]
-            smoke2_res = run_command_capture("smoke_compile", smoke2_cmd, context.repo_root)
+            smoke2_res = run_command_capture("smoke_compile", smoke2_cmd, context.repo_root, evidence_dir)
+            
+            # Update evidence map with results
+            evidence_map[smoke2_res.stdout_path.name] = smoke2_res.stdout_sha256
+            evidence_map[smoke2_res.stderr_path.name] = smoke2_res.stderr_sha256
+            evidence_map[smoke2_res.exitcode_path.name] = smoke2_res.exitcode_sha256
+            evidence_map[smoke2_res.meta_path.name] = smoke2_res.meta_sha256
+
             executed_steps.append("smoke:compileall")
             final_smoke = smoke2_res
             
@@ -216,7 +184,7 @@ class BuildWithValidationMission(BaseMission):
         pytest_block = None
         
         if params["mode"] == "full":
-            if final_smoke["exit_code"] == 0:
+            if final_smoke.exit_code == 0:
                 # P0.4: Fail closed if no targets and defaults needed
                 targets = params["pytest_targets"]
                 if not targets:
@@ -235,7 +203,7 @@ class BuildWithValidationMission(BaseMission):
                         "repo_root": str(context.repo_root),
                         "baseline_commit": context.baseline_commit,
                         "params_canonical_sha256": hashlib.sha256(canonical_params_json.encode("utf-8")).hexdigest(),
-                        "smoke": final_smoke,
+                        "smoke": _capture_to_dict(final_smoke), # Fix: Use helper
                         "pytest": None,
                         "evidence_dir": str(evidence_dir),
                         "evidence": final_evidence
@@ -250,7 +218,13 @@ class BuildWithValidationMission(BaseMission):
                     )
                 
                 cmd = [sys.executable, "-m", "pytest"] + params["pytest_args"] + targets
-                pytest_res = run_command_capture("pytest", cmd, context.repo_root)
+                pytest_res = run_command_capture("pytest", cmd, context.repo_root, evidence_dir)
+                # Update evidence map with results
+                evidence_map[pytest_res.stdout_path.name] = pytest_res.stdout_sha256
+                evidence_map[pytest_res.stderr_path.name] = pytest_res.stderr_sha256
+                evidence_map[pytest_res.exitcode_path.name] = pytest_res.exitcode_sha256
+                evidence_map[pytest_res.meta_path.name] = pytest_res.meta_sha256
+
                 executed_steps.append("full:pytest")
                 pytest_block = pytest_res
             else:
@@ -266,13 +240,20 @@ class BuildWithValidationMission(BaseMission):
             **evidence_map  # Flattened map (filename -> hash)
         }
 
+        # Prepare result structures for schema matching
+        smoke_block = _capture_to_dict(final_smoke)
+        
+        pytest_output = None
+        if pytest_block:
+            pytest_output = _capture_to_dict(pytest_block)
+
         outputs = {
             "run_token": run_token,
             "repo_root": str(context.repo_root),
             "baseline_commit": context.baseline_commit,
             "params_canonical_sha256": hashlib.sha256(canonical_params_json.encode("utf-8")).hexdigest(),
-            "smoke": final_smoke,
-            "pytest": pytest_block,
+            "smoke": smoke_block,
+            "pytest": pytest_output,
             "evidence_dir": str(evidence_dir),
             "evidence": final_evidence # Canonical shape
         }
@@ -289,9 +270,9 @@ class BuildWithValidationMission(BaseMission):
             )
 
         # 8. Determine Success
-        success = (final_smoke["exit_code"] == 0)
+        success = (final_smoke.exit_code == 0)
         if pytest_block:
-            success = success and (pytest_block["exit_code"] == 0)
+            success = success and (pytest_block.exit_code == 0)
 
         return self._make_result(
             success=success,

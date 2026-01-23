@@ -1,0 +1,3 @@
+# Variable substitution for policy rules
+# Key-value pairs can be referenced by ${VAR} in rules if needed
+{}

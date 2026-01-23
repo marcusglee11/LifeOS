@@ -1,0 +1,39 @@
+# Policy Engine Fix Pass - Failing NodeIDs Comparison
+
+## BASELINE_FAIL_NODEIDS (7 failures - before this fix pass)
+
+```
+runtime/tests/test_missions_phase3.py::TestAutonomousBuildCycleMission::test_run_composes_correctly
+runtime/tests/test_missions_phase3.py::TestAutonomousBuildCycleMission::test_run_full_cycle_success
+runtime/tests/test_packet_validation.py::test_plan_review_packet_valid
+runtime/tests/test_tool_invoke_integration.py::TestGoldenWorkflow::test_golden_workflow_write_read_pytest
+runtime/tests/test_tool_invoke_integration.py::TestSchemaCompliance::test_size_bytes_is_int
+runtime/tests/test_tool_policy.py::TestCheckToolActionAllowed::test_allowed_returns_true_and_allowed_decision
+tests_doc/test_links.py::test_link_integrity
+```
+
+## FAIL_NODEIDS_AFTER (4 failures - after fix pass)
+
+```
+runtime/tests/test_missions_phase3.py::TestAutonomousBuildCycleMission::test_run_composes_correctly
+runtime/tests/test_missions_phase3.py::TestAutonomousBuildCycleMission::test_run_full_cycle_success
+runtime/tests/test_packet_validation.py::test_plan_review_packet_valid
+tests_doc/test_links.py::test_link_integrity
+```
+
+## DIFF (Fixed Tests - 3 tests now pass)
+
+**FIXED** (were failing in baseline, now pass):
+```
+runtime/tests/test_tool_invoke_integration.py::TestGoldenWorkflow::test_golden_workflow_write_read_pytest
+runtime/tests/test_tool_invoke_integration.py::TestSchemaCompliance::test_size_bytes_is_int
+runtime/tests/test_tool_policy.py::TestCheckToolActionAllowed::test_allowed_returns_true_and_allowed_decision
+```
+
+**NEW FAILURES**: None
+
+**REMAINING** (unchanged from baseline, unrelated to Policy Engine):
+- test_run_composes_correctly (Phase3 missions)
+- test_run_full_cycle_success (Phase3 missions)
+- test_plan_review_packet_valid (packet validation)
+- test_link_integrity (docs links)

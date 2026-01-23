@@ -1,0 +1,44 @@
+# LifeOS Policy Engine v1.2.1 Master Config
+# This file uses includes to compose the effective config.
+# Do NOT embed tool_rules or loop_rules inline.
+
+schema_version: "1.2"
+
+includes:
+  - tool_rules.yaml
+  - loop_rules.yaml
+
+policy_metadata:
+  version: "1.2.1"
+  effective_date: "2026-01-22"
+  author: "policy-engine"
+  description: "Closure-grade policy config with includes-based composition"
+
+posture:
+  mode: PRIMARY
+  allow_posture_loosen: false
+  approval_ref: null
+
+variables: {}
+
+failure_classes:
+  - test_failure
+  - syntax_error
+  - timeout
+  - validation_error
+  - review_rejection
+  - unknown
+
+audit:
+  enabled: true
+  buffer_size: 64
+  flush_interval: 0
+
+metrics:
+  enabled: true
+
+escalation:
+  budget: 10
+  ttl_seconds: 3600
+  allowlist: []
+  bootstrap_mode: true

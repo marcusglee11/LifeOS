@@ -1,0 +1,10 @@
+failure_classes:
+  - test_failure
+  - syntax_error
+  - timeout
+  - validation_error
+  - review_rejection
+  - unknown
+aliases:
+  timeout_error: timeout
+  review_fail: review_rejection

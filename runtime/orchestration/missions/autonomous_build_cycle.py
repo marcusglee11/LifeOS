@@ -34,6 +34,7 @@ from runtime.orchestration.loop.budgets import BudgetController
 from runtime.orchestration.loop.taxonomy import (
     TerminalOutcome, TerminalReason, FailureClass, LoopAction
 )
+from runtime.governance.policy_loader import PolicyLoader
 
 class AutonomousBuildCycleMission(BaseMission):
     """
@@ -112,7 +113,14 @@ class AutonomousBuildCycleMission(BaseMission):
         ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
         ledger = AttemptLedger(ledger_path)
         budget = BudgetController()
-        policy = LoopPolicy()
+        
+        # P0.1: Promotion to Authoritative Gating (Enabled per Council Pass)
+        # Load policy config from repo canonical location
+        policy_config_dir = context.repo_root / "config" / "policy"
+        loader = PolicyLoader(config_dir=policy_config_dir, authoritative=True)
+        effective_config = loader.load()
+        
+        policy = LoopPolicy(effective_config=effective_config)
         
         # P0: Policy Hash (Hardcoded for checking)
         current_policy_hash = "phase_a_hardcoded_v1" 
@@ -222,10 +230,10 @@ class AutonomousBuildCycleMission(BaseMission):
                 
                 if outcome == TerminalOutcome.PASS:
                     # Return success details
-                    # Get commit hash from last attempt (steward phase?)
-                    # Wait, policy terminates AFTER Pass.
-                    # We need to return the result.
-                    return self._make_result(success=True, outputs={"commit_hash": "FIXME"}) # Todo: get hash
+                    # TODO: Extract commit hash from evidence or ledger
+                    # The steward mission produces the hash, but it's not currently
+                    # propagated through the ledger structure
+                    return self._make_result(success=True, outputs={"commit_hash": "UNKNOWN"})
                 else:
                     return self._make_result(success=False, error=reason)
 

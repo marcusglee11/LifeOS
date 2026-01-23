@@ -1,0 +1,11 @@
+{
+  "run_id": "ac97c486",
+  "timestamp": "2026-01-23T12:51:42.317199",
+  "baseline_commit": "c2ffa9de581a9f4ec27f7a347d8540e38c59743f",
+  "backlog_path": "docs/11_admin/BACKLOG.md",
+  "type": "BLOCKED",
+  "reason": "Repository has uncommitted changes (git dirty)",
+  "item_key": null,
+  "item_title": null,
+  "normalized_result": null
+}

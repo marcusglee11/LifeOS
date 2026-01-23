@@ -28,9 +28,7 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: |
-          pip install pytest pytest-asyncio
-          pip install -r requirements.txt || true
+        run: pip install -r requirements-dev.txt
       
       - name: Run Tool Invoke Coverage Verifier
         env:
@@ -56,10 +54,7 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: |
-          pip install pytest pytest-asyncio
-          pip install -r requirements.txt
-        continue-on-error: true
+        run: pip install -r requirements-dev.txt
       
       - name: Run Tool Invoke Coverage Verifier
         env:

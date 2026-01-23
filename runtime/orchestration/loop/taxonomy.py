@@ -49,6 +49,10 @@ class TerminalReason(Enum):
 class LoopAction(Enum):
     """
     Decision made by the loop policy for the *next* step.
+    Valid: RETRY, TERMINATE, ESCALATE, WAIVER
     """
     RETRY = "retry"
     TERMINATE = "terminate"
+    ESCALATE = "escalate"
+    WAIVER = "waiver"
+

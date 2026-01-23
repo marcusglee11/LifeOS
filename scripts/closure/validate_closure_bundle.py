@@ -247,8 +247,8 @@ def main():
                                 text = content.decode('utf-8')
                                 if "Exit Code:" not in text:
                                     failures.append(ValidationFailure("TRANSCRIPT_INCOMPLETE", "Validator transcript missing Exit Code", path=path))
-                            except:
-                                pass
+                            except (UnicodeDecodeError, AttributeError):
+                                pass  # Binary content or None, skip text parsing
 
             # Profile Validation
             profile_entry = manifest.get("profile")
