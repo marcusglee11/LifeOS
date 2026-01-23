@@ -26,12 +26,14 @@ Welcome to LifeOS. This guide provides the minimum steps required to bootstrap a
 ## 3. First Steps
 
 ### 3.1 Clone the Repository
+
 ```bash
 git clone <repo-url>
 cd LifeOS
 ```
 
 ### 3.2 Initialize Environment
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # or venv\Scripts\activate on Windows
@@ -39,7 +41,9 @@ pip install -r requirements.txt
 ```
 
 ### 3.3 Verify Readiness
+
 Run the preflight check to ensure all invariants are met:
+
 ```bash
 python docs/scripts/check_readiness.py
 ```
@@ -49,17 +53,19 @@ python docs/scripts/check_readiness.py
 ## 4. Understanding the Core
 
 The repo is organized by Tiers:
+
 - **Foundations**: Core principles and Constitution.
 - **Governance**: Contracts, protocols, and rulings.
 - **Runtime**: Implementation and mission logic.
 
-Always check [docs/INDEX.md](./docs/INDEX.md) for the latest navigation map.
+Always check [docs/INDEX.md](../INDEX.md) for the latest navigation map.
 
 ---
 
 ## 5. Working with Protocols
 
 All changes MUST follow the **Deterministic Artefact Protocol (DAP) v2.0**:
+
 1. Create a Plan.
 2. Get Approval.
 3. Execute.
