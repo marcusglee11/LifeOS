@@ -74,7 +74,9 @@ class TestCheckToolActionAllowed:
     
     def test_allowed_returns_true_and_allowed_decision(self):
         """Allowed tool/action returns True and ALLOWED decision."""
-        request = ToolInvokeRequest(tool="filesystem", action="read_file")
+        # P0.4: filesystem operations now require path in args
+        # Use relative path which will be resolved against workspace
+        request = ToolInvokeRequest(tool="filesystem", action="read_file", args={"path": "README.md"})
         allowed, decision = check_tool_action_allowed(request)
         
         assert allowed is True

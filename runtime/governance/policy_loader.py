@@ -20,6 +20,7 @@ try:
     from jsonschema import validate, ValidationError, Draft7Validator
     HAS_JSONSCHEMA = True
 except ImportError:
+    # P0.3: FAIL-CLOSED on missing jsonschema in authoritative mode
     HAS_JSONSCHEMA = False
     ValidationError = Exception
 
@@ -45,9 +46,20 @@ class PolicyLoader:
         "tool_rules", "loop_rules"
     }
     
-    def __init__(self, config_dir: Optional[Path] = None):
-        self.config_dir = Path(config_dir) if config_dir else self.CONFIG_DIR
+    def __init__(self, config_dir: Optional[Path] = None, authoritative: bool = False):
+        """Initialize PolicyLoader.
+        
+        Args:
+            config_dir: Optional config directory (defaults to workspace root / config/policy)
+            authoritative: If True, fail-closed on missing jsonschema
+        """
+        if config_dir:
+            self.config_dir = Path(config_dir)
+        else:
+            # P0.3: Anchor to workspace root instead of cwd-relative
+            self.config_dir = self._resolve_workspace_root() / self.CONFIG_DIR
         self._effective_config: Optional[Dict[str, Any]] = None
+        self._authoritative = authoritative
     
     def load(self) -> Dict[str, Any]:
         """
@@ -154,7 +166,13 @@ class PolicyLoader:
     def _validate_schema(self, effective: Dict[str, Any]) -> None:
         """Validate effective config against JSON schema."""
         if not HAS_JSONSCHEMA:
-            # Log warning but don't fail - schema validation is best-effort without jsonschema
+            # P0.3: FAIL-CLOSED in authoritative mode
+            if self._authoritative:
+                raise PolicyLoadError(
+                    "jsonschema module required for authoritative policy validation. "
+                    "Install via: pip install jsonschema"
+                )
+            # In non-authoritative mode, skip validation (best-effort)
             return
         
         schema_path = self.config_dir / self.SCHEMA_FILE
@@ -210,6 +228,46 @@ class PolicyLoader:
                     f"Invalid loop decision '{decision}' in rule {rule.get('rule_id', '?')}"
                     f" (valid: {loop_decisions})"
                 )
+    
+    def _resolve_workspace_root(self) -> Path:
+        """Resolve workspace root deterministically.
+        
+        Resolution order:
+        1. LIFEOS_WORKSPACE_ROOT env var
+        2. Git repository root
+        3. Current working directory
+        
+        Returns:
+            Workspace root Path
+        """
+        import os
+        import subprocess
+        
+        # Try environment variable
+        raw = os.environ.get("LIFEOS_WORKSPACE_ROOT")
+        if raw:
+            path = Path(raw)
+            if path.exists() and path.is_dir():
+                return path.resolve()
+        
+        # Try git root
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                cwd=Path.cwd()
+            )
+            if result.returncode == 0:
+                git_root = Path(result.stdout.strip())
+                if git_root.exists() and git_root.is_dir():
+                    return git_root.resolve()
+        except (subprocess.SubprocessError, FileNotFoundError, OSError):
+            pass
+        
+        # Fallback to cwd
+        return Path.cwd().resolve()
     
     @property
     def effective_config(self) -> Optional[Dict[str, Any]]:

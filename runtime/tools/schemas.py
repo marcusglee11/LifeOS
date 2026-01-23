@@ -22,17 +22,71 @@ class ToolInvokeRequest:
     Request schema for tool invocation.
     
     All fields validated before dispatch.
+    Supports both 'args' and 'arguments' for payload - both map to internal args dict.
+    
+    Construction paths:
+    - ToolInvokeRequest(tool="x", action="y", args={...})
+    - ToolInvokeRequest.from_dict({"tool": "x", "action": "y", "arguments": {...}})
     """
     tool: str
     action: str
     args: Dict[str, Any] = field(default_factory=dict)
     meta: Optional[Dict[str, Any]] = None
     
+    @classmethod
+    def from_dict(cls, payload: Dict[str, Any]) -> "ToolInvokeRequest":
+        """
+        Factory for constructing from a dict payload.
+        
+        Handles both 'args' and 'arguments' keys for backward compatibility.
+        If both are present and differ, raises ValueError.
+        
+        Args:
+            payload: Dict with tool, action, and args/arguments
+            
+        Returns:
+            ToolInvokeRequest instance
+            
+        Raises:
+            ValueError: If both args and arguments present with different values
+        """
+        tool = payload.get("tool", "")
+        action = payload.get("action", "")
+        meta = payload.get("meta")
+        
+        has_args = "args" in payload
+        has_arguments = "arguments" in payload
+        
+        if has_args and has_arguments:
+            if payload["args"] != payload["arguments"]:
+                raise ValueError(
+                    "Both 'args' and 'arguments' present with different values. "
+                    "Use only one."
+                )
+            args = payload["args"]
+        elif has_arguments:
+            args = payload["arguments"]
+        elif has_args:
+            args = payload["args"]
+        else:
+            args = {}
+        
+        return cls(tool=tool, action=action, args=args, meta=meta)
+    
+    @property
+    def arguments(self) -> Dict[str, Any]:
+        """Alias for args - provides backward compatibility."""
+        return self.args
+    
     def get_request_id(self) -> Optional[str]:
         """Extract request_id from meta if present."""
         if self.meta:
             return self.meta.get("request_id")
         return None
+    
+    def get_path(self) -> Optional[str]:
+        """Extract path from args for filesystem operations."""
+        return self.args.get("path")
     
     def validate(self) -> "SchemaValidationResult":
         """

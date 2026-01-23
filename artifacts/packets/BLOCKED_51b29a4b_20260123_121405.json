@@ -1,0 +1,8 @@
+{
+  "type": "BLOCKED",
+  "reason": "Repository has uncommitted changes (git dirty)",
+  "run_id": "51b29a4b",
+  "timestamp": "2026-01-23T12:14:05.373297",
+  "item_key": null,
+  "item_title": null
+}

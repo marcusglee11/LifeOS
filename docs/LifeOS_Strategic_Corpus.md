@@ -2127,6 +2127,7 @@ Expansion to new mission types requires:
 
 ### Sign-Offs (Closed Amendments)
 
+- [AUR_20260123 Policy Engine Authoritative Gating (v0.2)](../../artifacts/signoffs/Policy_Engine_Authoritative_Gating_v0.2/policy_e2e_test_summary.md)
 - [AUR_20260114 E2E Harness Patch (v2.0)](../../artifacts/signoffs/AUR_20260114_E2E_Harness_Patch_v1.2_Signoff.md)
 - [AUR_20260112 Plan Cycle Amendment (v1.4)](../../artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md)
 

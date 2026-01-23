@@ -83,13 +83,22 @@ class ConfigDrivenLoopPolicy:
         self.rules = sorted(loop_rules, key=lambda r: -r.get("priority", 0))
         self.escalation_config = escalation_config or {}
     
-    def decide_next_action(self, ledger: AttemptLedger) -> Tuple[str, str]:
+    def decide_next_action(
+        self,
+        ledger: AttemptLedger,
+        now: Optional[datetime] = None
+    ) -> Tuple[str, str]:
         """
         Decide the next action based on ledger history and config rules.
+        
+        Args:
+            ledger: Attempt ledger with history
+            now: Optional fixed datetime (unused in this policy variant)
         
         Returns:
             (LoopAction.value, rationale/reason)
         """
+
         history = ledger.history
         if not history:
             # Start of run
@@ -203,17 +212,27 @@ class LoopPolicy:
             if loop_rules:
                 self._config_policy = ConfigDrivenLoopPolicy(loop_rules, escalation_config)
     
-    def decide_next_action(self, ledger: AttemptLedger) -> Tuple[str, str]:
+    def decide_next_action(
+        self,
+        ledger: AttemptLedger,
+        now: Optional[datetime] = None
+    ) -> Tuple[str, str]:
         """
         Decide the next action based on the ledger history.
+        
+        Args:
+            ledger: Attempt ledger with history
+            now: Optional fixed datetime for deterministic waiver validation
+        
         Returns: (LoopAction.value, rationale/reason)
         """
         # Use config-driven policy if available
         if self._config_policy:
-            return self._config_policy.decide_next_action(ledger)
+            return self._config_policy.decide_next_action(ledger, now=now)
         
         # Legacy hardcoded fallback
         return self._hardcoded_decide(ledger)
+
     
     def _hardcoded_decide(self, ledger: AttemptLedger) -> Tuple[str, str]:
         """Legacy hardcoded policy logic (MVP fallback)."""

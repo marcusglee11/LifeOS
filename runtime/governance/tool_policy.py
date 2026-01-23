@@ -287,7 +287,7 @@ def check_tool_action_allowed(
     
     Args:
         request: The tool invocation request
-        path: Optional path for filesystem operations
+        path: Optional path for filesystem operations (derived from request.args if not provided)
         config_rules: Optional config-driven rules (if None, uses hardcoded)
         
     Returns:
@@ -295,6 +295,10 @@ def check_tool_action_allowed(
     """
     tool = request.tool
     action = request.action
+    
+    # P0.3: Derive path from request payload if not explicitly passed
+    if path is None and tool == "filesystem":
+        path = request.get_path()
     
     # Check tool in allowlist
     if tool not in ALLOWED_ACTIONS:
@@ -311,6 +315,15 @@ def check_tool_action_allowed(
             decision_reason=f"DENIED: Action '{action}' not allowed for tool '{tool}'",
             matched_rules=["action_not_in_allowlist"],
         )
+    
+    # P0.4: FAIL-CLOSED if filesystem operation missing path (after derivation)
+    if tool == "filesystem" and action in ["read_file", "write_file", "list_dir"]:
+        if not path:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason=f"DENIED: filesystem.{action} requires path (fail-closed)",
+                matched_rules=["filesystem_path_required"],
+            )
     
     # P0.6: Enforce path_scope for filesystem operations
     if tool == "filesystem" and path:
