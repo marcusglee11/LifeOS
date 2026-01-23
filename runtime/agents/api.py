@@ -302,7 +302,7 @@ def call_agent(
     client = OpenCodeClient(
         role=call.role,
         timeout=config.timeout_seconds,
-        log_calls=False, # We do our own logging below
+        log_calls=True, # Enable local logs for debugging
     )
     
     try:
