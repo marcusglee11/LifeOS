@@ -6,7 +6,7 @@
 
 ### P0 (Critical)
 
-- [ ] **E2E Test: Autonomous Code Improvement** -- DoD: runtime/e2e_signal.py exists and is committed -- Owner: antigravity -- Context: Verification of Steward Unlock and Build Loop.
+- [ ] **E2E Test: Create Autonomous Signal** -- DoD: runtime/e2e_signal.py exists and is committed -- Owner: antigravity -- Context: Create a new file 'runtime/e2e_signal.py' that contains a single print statement: print('Autonomous signal acquired'). This is an E2E test of the build loop.
 
 ### P1 (High)
 
