@@ -600,10 +600,14 @@ class OpenCodeClient:
                 if api_model.startswith("openrouter/"):
                     api_model = api_model.replace("openrouter/", "", 1)
 
+                messages = []
+                if request.system_prompt:
+                    messages.append({"role": "system", "content": request.system_prompt})
+                messages.append({"role": "user", "content": request.prompt})
+
                 payload = {
                     "model": api_model, 
-                    "messages": [{"role": "user", "content": request.prompt}],
-                    # No max_tokens forced default, let provider decide or use reasonable default
+                    "messages": messages,
                 }
                 
                 try:
@@ -652,11 +656,13 @@ class OpenCodeClient:
                     "anthropic-version": "2023-06-01"
                  }
                  payload = {
-                    "model": "minimax-m2.1-free", # Force verifiable minimax model ID for direct API
+                    "model": "minimax-m2.1-free", 
                     "messages": [{"role": "user", "content": request.prompt}],
                     "max_tokens": 4096,
                     "temperature": 0.7
                  }
+                 if request.system_prompt:
+                     payload["system"] = request.system_prompt
                  
                  try:
                      import requests
