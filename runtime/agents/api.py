@@ -183,15 +183,34 @@ def _parse_response_packet(content: str) -> Optional[dict]:
     """
     Attempt to parse response content as YAML packet.
     
-    Returns None if parsing fails (not all responses are structured).
+    Robust parsing:
+    1. Try parsing full content.
+    2. Try extracting from ```yaml ... ``` or ```json ... ``` blocks.
+    3. Returns None if parsing fails.
     """
+    import re
+    
+    # 1. Try full content
     try:
-        # Try to parse as YAML
         packet = yaml.safe_load(content)
         if isinstance(packet, dict):
             return packet
     except Exception:
         pass
+        
+    # 2. Try extracting from code blocks
+    # regex for ```[language]\n[content]\n```
+    pattern = r"```(?:yaml|json)?\s*\n(.*?)\n\s*```"
+    match = re.search(pattern, content, re.DOTALL)
+    if match:
+        block_content = match.group(1)
+        try:
+            packet = yaml.safe_load(block_content)
+            if isinstance(packet, dict):
+                return packet
+        except Exception:
+            pass
+            
     return None
 
 
