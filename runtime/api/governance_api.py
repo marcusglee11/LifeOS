@@ -15,12 +15,17 @@ from runtime.governance.tool_policy import (
     PolicyDenied,
 )
 
+# Re-export policy loader for loop controller
+from runtime.governance.policy_loader import PolicyLoader, PolicyLoadError
+
 __all__ = [
     "GovernanceAPI",
     "resolve_sandbox_root",
     "check_tool_action_allowed",
     "GovernanceUnavailable",
     "PolicyDenied",
+    "PolicyLoader",
+    "PolicyLoadError",
 ]
 
 
