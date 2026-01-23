@@ -6,7 +6,7 @@
 
 ### P0 (Critical)
 
-- [ ] **E2E Test: Create Autonomous Signal** -- DoD: runtime/e2e_signal.py exists and is committed -- Owner: antigravity -- Context: Create a new file 'runtime/e2e_signal.py' that contains a single print statement: print('Autonomous signal acquired'). This is an E2E test of the build loop.
+- [ ] **E2E Test: Runtime Greet** -- DoD: runtime/greet.py exists and is committed -- Owner: antigravity -- Context: Create a new file 'runtime/greet.py' that contains a single print statement: print('Hello from E2E'). Use valid YAML for your design response.
 
 ### P1 (High)
 
