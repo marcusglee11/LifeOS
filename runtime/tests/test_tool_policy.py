@@ -107,6 +107,14 @@ class TestCheckToolActionAllowed:
 class TestSandboxRootResolution:
     """Tests for sandbox root resolution with fail-closed semantics."""
     
+    @pytest.fixture(autouse=True)
+    def reset_roots(self):
+        """Reset global scope roots before each test."""
+        from runtime.governance.tool_policy import reset_scope_roots
+        reset_scope_roots()
+        yield
+        reset_scope_roots()  # Also reset after test
+    
     def test_missing_env_var_raises_governance_unavailable(self):
         """Missing LIFEOS_SANDBOX_ROOT raises GovernanceUnavailable."""
         with patch.dict(os.environ, {}, clear=True):
