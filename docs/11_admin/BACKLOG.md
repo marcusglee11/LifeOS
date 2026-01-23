@@ -1,12 +1,10 @@
 # BACKLOG (prune aggressively; target ≤ 40 items)
 
-**Last Updated:** 2026-01-18
+**Last Updated:** 2026-01-23
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
-
-- [ ] **Finalize CSO_Role_Constitution v1.0 (Remove Waiver W1)** — DoD: Markers removed; CEO approved; W1 waiver removed — Owner: antigravity — Context: Phase 3 closure ratified with W1 waiver; removal required
 
 ### P1 (High)
 
@@ -42,6 +40,7 @@
 ## Done (last ~25 only)
 
 - [x] **Standardize Raw Capture Primitive** — Date: 2026-01-18
+- [x] **Finalize CSO_Role_Constitution v1.0 (Remove Waiver W1)** — Date: 2026-01-23
 - [x] **Git Workflow Protocol v1.1 Impact** (Resolved OpenCode deletion logic via Safety Gate) — Date: 2026-01-16
 - [x] **BuildWithValidation v0.1 P0 Patch 2 Refinement** — Date: 2026-01-13
 - [x] **Fix OpenCode Config Compliance v1.0** — Date: 2026-01-13

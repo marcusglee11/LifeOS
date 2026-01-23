@@ -10,8 +10,7 @@
 
 **Complete Phase 3 Closure:**
 
-1. Resolve remaining Backlog P0s (CSO Role Constitution).
-2. Enter Phase 4 (Planning Stage).
+1. Enter Phase 4 (Planning Stage).
 
 ---
 
@@ -21,7 +20,7 @@
 |--------|------------|-------|-------------|
 | **CLOSED** | **Policy Engine Authoritative Gating** | Antigravity | `Closure_Record_Policy_Engine_FixPass_v1.0.md` |
 
-| **WIP** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
+| **CLOSED** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
 | **WAITING** | OpenCode Deletion Logic | Council | Review Ruling |
 
 ---
@@ -31,7 +30,7 @@
 - **Phase 1 (Foundation):** DONE
 - **Phase 2 (Governance):** DONE
 - **Phase 3 (Optimization):** **RATIFIED (APPROVE_WITH_CONDITIONS)** — Council Ruling Phase3 Closure v1.0
-  - **Condition C1:** CSO Role Constitution v1.0 waived under W1 (Phase 4 construction only)
+  - **Condition C1:** CSO Role Constitution v1.0 (RESOLVED 2026-01-23)
   - **Condition C2:** F3/F4/F7 evidence deferred (15/18 deliverables + E2E fix closed)
 - **Phase 4 (Autonomous Construction):** NEXT
 
@@ -39,8 +38,7 @@
 
 ## ⚠️ System Blockers (Top 3)
 
-1. **CSO Role Constitution v1.0** (P0) **(WAIVED W1)** — Required to remove W1 waiver; scoped to Phase 4 construction only.
-2. **Recursive Builder Integration** (P1) — Phase 4 Prerequisite
+1. **Recursive Builder Integration** (P1) — **CLOSED** (Hardened v0.4 Bundle)
 
 ---
 
