@@ -87,7 +87,8 @@
       "Bash(bash scripts/hooks/pre-commit:*)",
       "Bash(chmod:*)",
       "Bash(pip3 list:*)",
-      "Bash(dos2unix:*)"
+      "Bash(dos2unix:*)",
+      "Bash(bash:*)"
     ],
     "deny": [
       "Bash(rm -rf /*)",
