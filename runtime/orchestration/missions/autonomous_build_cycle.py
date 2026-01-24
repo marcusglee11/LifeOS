@@ -35,6 +35,17 @@ from runtime.orchestration.loop.taxonomy import (
     TerminalOutcome, TerminalReason, FailureClass, LoopAction
 )
 from runtime.governance.policy_loader import PolicyLoader
+from runtime.governance.baseline_checker import (
+    verify_governance_baseline,
+    BaselineMissingError,
+    BaselineMismatchError,
+)
+from runtime.governance.self_mod_protection import SelfModProtector
+from runtime.orchestration.run_controller import (
+    verify_repo_clean,
+    RepoDirtyError,
+    GitCommandError,
+)
 
 class AutonomousBuildCycleMission(BaseMission):
     """
@@ -66,22 +77,29 @@ class AutonomousBuildCycleMission(BaseMission):
                 # But strict fail-closed requires blocking.
                 raise MissionValidationError(f"Handoff version mismatch. Expected {req_version}, got {inputs['handoff_schema_version']}")
 
-    def _can_reset_workspace(self, context: MissionContext) -> bool:
+    def _can_reset_workspace(self, context: MissionContext) -> tuple:
         """
-        P0: Validate if workspace clean/reset is available.
-        For Phase A, we check if we can run a basic git status or if an executor is provided.
-        In strict mode, if we can't guarantee reset, we fail closed.
+        P0.1: Validate workspace is clean using fail-closed semantics.
+
+        Uses verify_repo_clean() from run_controller to check:
+        - git status --porcelain is empty
+        - git ls-files --others --exclude-standard is empty
+
+        Returns:
+            (ok: bool, reason: str) - reason is error message or "clean"
         """
-        # MVP: Fail if no operation_executor, or if we can't verify clean state.
-        # But wait, we are running in a checked out repo.
-        # Simple check: Is the working directory dirty?
-        # We can try running git status via subprocess?
-        # Or better, just rely on the 'clean' requirement.
-        # If we can't implement reset, we return False.
-        # Since I don't have a built-in resetter:
-        return True # Stub for MVP, implying "Assume Clean" for now? 
-        # User constraint: "If a clean reset cannot be guaranteed... fail-closed: ESCALATION_REQUESTED reason WORKSPACE_RESET_UNAVAILABLE"
-        # I will enforce this check at start of loop.
+        try:
+            verify_repo_clean(context.repo_root)
+            return (True, "clean")
+        except RepoDirtyError as e:
+            # Truncate for determinism
+            status = e.status_output[:200] if len(e.status_output) > 200 else e.status_output
+            untracked = e.untracked_output[:200] if len(e.untracked_output) > 200 else e.untracked_output
+            return (False, f"REPO_DIRTY: staged/unstaged={status!r}, untracked={untracked!r}")
+        except GitCommandError as e:
+            return (False, f"GIT_COMMAND_FAILED: {e.command} returned {e.returncode}: {e.stderr[:200]}")
+        except Exception as e:
+            return (False, f"UNEXPECTED_ERROR: {type(e).__name__}: {str(e)[:200]}")
 
     def _compute_hash(self, obj: Any) -> str:
         s = json.dumps(obj, sort_keys=True, default=str)
@@ -103,11 +121,37 @@ class AutonomousBuildCycleMission(BaseMission):
         executed_steps: List[str] = []
         total_tokens = 0
         
-        # P0: Workspace Semantics - Fail Closed if Reset Unavailable
-        if not self._can_reset_workspace(context):
-             reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
-             self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-             return self._make_result(success=False, escalation_reason=reason)
+        # P0.1: Workspace Semantics - Fail Closed if workspace not clean
+        workspace_ok, workspace_reason = self._can_reset_workspace(context)
+        if not workspace_ok:
+            reason = f"{TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value}: {workspace_reason}"
+            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+            return self._make_result(success=False, error=reason)
+
+        # P0.2: Governance Baseline Verification - Fail Closed if missing or mismatch
+        try:
+            baseline_manifest = verify_governance_baseline(context.repo_root)
+            executed_steps.append("governance_baseline_verified")
+        except BaselineMissingError as e:
+            reason = f"GOVERNANCE_BASELINE_MISSING: {e.expected_path}"
+            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+            return self._make_result(
+                success=False,
+                error=reason,
+                evidence={"baseline_path": e.expected_path}
+            )
+        except BaselineMismatchError as e:
+            mismatch_summary = "; ".join(
+                f"{m.path}:expected={m.expected_hash[:12]}...,actual={m.actual_hash[:12]}..."
+                for m in e.mismatches[:5]  # Truncate for determinism
+            )
+            reason = f"GOVERNANCE_BASELINE_MISMATCH: {mismatch_summary}"
+            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+            return self._make_result(
+                success=False,
+                error=reason,
+                evidence={"mismatches": [{"path": m.path, "expected": m.expected_hash, "actual": m.actual_hash} for m in e.mismatches]}
+            )
 
         # 1. Setup Infrastructure
         ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"

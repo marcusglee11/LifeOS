@@ -379,11 +379,11 @@ def call_agent(
         call_id=call_id,
         call_id_audit=call_id_audit,
         role=call.role,
-        model_used=model,
+        model_used=model_version,
         model_version=model_version,
         content=content,
         packet=packet,
-        usage={"input_tokens": input_tokens, "output_tokens": output_tokens},
+        usage={"input_tokens": 0, "output_tokens": 0},
         latency_ms=latency_ms,
         timestamp=timestamp,
     )

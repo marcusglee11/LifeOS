@@ -1,6 +1,11 @@
-# Loop Policy Rules (v1.2.1)
+# Loop Policy Rules (v1.2.2)
 # Valid decisions: RETRY, TERMINATE, ESCALATE, WAIVER
 # Note: ALLOW is NOT valid for loop rules (use RETRY instead)
+#
+# Retry Budgets (P1.2):
+# - Per-failure-class retry limits are enforced by the loop controller
+# - Global max_attempts (default: 5) is enforced by BudgetController
+# - max_retries on individual rules caps retries for that failure class
 
 - rule_id: loop.success-pass
   decision: TERMINATE
@@ -43,12 +48,22 @@
   priority: 110
   match:
     failure_class: review_rejection
+  max_retries: 3
+  on_budget_exhausted:
+    decision: TERMINATE
+    terminal_outcome: BLOCKED
+    terminal_reason: retry_budget_exhausted
 
 - rule_id: loop.test-failure
   decision: RETRY
   priority: 110
   match:
     failure_class: test_failure
+  max_retries: 3
+  on_budget_exhausted:
+    decision: TERMINATE
+    terminal_outcome: BLOCKED
+    terminal_reason: retry_budget_exhausted
 
 - rule_id: loop.unknown
   decision: TERMINATE
