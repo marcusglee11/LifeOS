@@ -399,6 +399,51 @@ Enforcement: `runtime/governance/protection.py:GovernanceProtector`
 
 **If docs/ modified**: Update `docs/INDEX.md` timestamp and regenerate corpus
 
+### WSL + Git Governance Rules
+
+**These rules are non-negotiable for agent operations on WSL with Windows-mounted working copies.**
+
+#### 2.1 Operating Rule (WSL + Windows-mount)
+
+If the working copy remains on `/mnt/c/...`, enforce a single rule: **only one Git "reality" touches that working tree during agent runs** (avoid Windows Git/IDEs doing Git operations mid-run). This is the lowest-friction way to avoid lock/index/line-ending edge cases.
+
+#### 2.2 Hard Evidence Gate (Non-negotiable for "DONE")
+
+**Require every agent completion report to include verbatim**:
+
+```bash
+git rev-parse HEAD
+git log -1 --oneline
+git status --porcelain=v1  # MUST be empty
+```
+
+**No exceptions.** If absent, the work is BLOCKED, not "done."
+
+#### 2.3 Hook Policy Compliance Rule
+
+**No `--no-verify` without an emergency artefact entry.**
+
+If `--no-verify` is used, the agent must:
+1. Run the repo's emergency command: `python3 scripts/git_workflow.py --emergency direct-commit --reason "..."`
+2. Commit the resulting artefact/log update
+3. Surface it in the report
+
+**Example**: See `artifacts/emergency_overrides.log` and commit `cefc673` for reference implementation.
+
+#### 2.4 Line-Ending Prevention (Required Baseline Hygiene)
+
+The `.gitattributes` LF enforcement is the **required permanent fix** for any cross-platform workflow:
+
+```
+# Enforce LF for git hooks to ensure WSL compatibility
+scripts/hooks/* text eol=lf
+
+# Enforce LF for shell scripts to ensure cross-platform compatibility
+*.sh text eol=lf
+```
+
+Treat this as required baseline hygiene. If hooks or shell scripts break in WSL due to CRLF, this is a P0 bug.
+
 ## Repository Structure
 
 ```
