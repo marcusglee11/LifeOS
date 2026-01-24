@@ -1,7 +1,7 @@
 approved_by: CEO
 artifacts:
 - path: CLAUDE.md
-  sha256: ab06425ddf7672c960871067b8b3d668e67f08fac335e8bbc4252b87d480c7f5
+  sha256: c95264fc445002813d9c8c982716a3ec42711edbd30134bfae988d0a13d7dcf1
 - path: GEMINI.md
   sha256: 33c5af31aee277c10507c71465e1942d0ab481f6a84287c60fce6a6b8cbb502c
 - path: config/agent_roles/builder.md
@@ -137,6 +137,6 @@ artifacts:
   sha256: 34363bb890ee0d1869524484d2789b99ddbe93aabca32264c96540716d6e6f29
 baseline_version: '1.0'
 council_ruling_ref: null
-generated_at: '2026-01-24T02:40:50Z'
+generated_at: '2026-01-24T03:56:46Z'
 hash_algorithm: SHA-256
 path_normalization: relpath_from_repo_root
