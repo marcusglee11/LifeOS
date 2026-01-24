@@ -86,7 +86,8 @@
       "Bash(chmod +x scripts/todo_inventory.py)",
       "Bash(bash scripts/hooks/pre-commit:*)",
       "Bash(chmod:*)",
-      "Bash(pip3 list:*)"
+      "Bash(pip3 list:*)",
+      "Bash(dos2unix:*)"
     ],
     "deny": [
       "Bash(rm -rf /*)",
