@@ -1,2 +1,8 @@
 # Enforce LF for governance indices to ensure stable SHA256 hashing
 docs/01_governance/*.json text eol=lf
+
+# Enforce LF for git hooks to ensure WSL compatibility
+scripts/hooks/* text eol=lf
+
+# Enforce LF for shell scripts to ensure cross-platform compatibility
+*.sh text eol=lf
