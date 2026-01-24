@@ -230,9 +230,8 @@ class AutonomousBuildCycleMission(BaseMission):
                 
                 if outcome == TerminalOutcome.PASS:
                     # Return success details
-                    # TODO: Extract commit hash from evidence or ledger
-                    # The steward mission produces the hash, but it's not currently
-                    # propagated through the ledger structure
+                    # LIFEOS_TODO[P2](orchestration): Extract commit hash from evidence
+                    # Exit: ledger.history[-1].evidence["commit_hash"] is populated
                     return self._make_result(success=True, outputs={"commit_hash": "UNKNOWN"})
                 else:
                     return self._make_result(success=False, error=reason)

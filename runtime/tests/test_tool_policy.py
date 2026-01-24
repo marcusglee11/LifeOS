@@ -21,6 +21,7 @@ from runtime.governance.tool_policy import (
     get_allowed_actions,
     GovernanceUnavailable,
     ALLOWED_ACTIONS,
+    clear_workspace_cache,
 )
 from runtime.tools.schemas import ToolInvokeRequest
 
@@ -106,7 +107,11 @@ class TestCheckToolActionAllowed:
 
 class TestSandboxRootResolution:
     """Tests for sandbox root resolution with fail-closed semantics."""
-    
+
+    def setup_method(self):
+        """Clear workspace cache before each test."""
+        clear_workspace_cache()
+
     def test_missing_env_var_raises_governance_unavailable(self):
         """Missing LIFEOS_SANDBOX_ROOT raises GovernanceUnavailable."""
         with patch.dict(os.environ, {}, clear=True):

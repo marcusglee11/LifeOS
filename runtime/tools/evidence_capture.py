@@ -118,8 +118,6 @@ def run_command_capture(
         f.write(f"{exit_code}\n")
 
     # 7. Compute Hashes from Disk
-    
-    # 7. Compute Hashes from Disk
     stdout_sha = _compute_sha256(stdout_path)
     stderr_sha = _compute_sha256(stderr_path)
     exitcode_sha = _compute_sha256(exitcode_path)

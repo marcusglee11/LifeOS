@@ -55,24 +55,57 @@ try:
 except ImportError:
     requests = None  # Will raise on actual use
 
-# Import canonical defaults from single source of truth
+# Import config-driven defaults from single source of truth
 try:
     from runtime.agents.models import (
-        DEFAULT_MODEL,
-        DEFAULT_ENDPOINT,
-        API_KEY_FALLBACK_CHAIN,
+        get_default_endpoint,
+        get_api_key_fallback_chain,
         get_api_key,
+        load_model_config,
     )
+    _HAS_MODELS_MODULE = True
 except ImportError:
-    DEFAULT_MODEL = "minimax-m2.1-free"
-    DEFAULT_ENDPOINT = "https://opencode.ai/zen/v1/messages"
-    API_KEY_FALLBACK_CHAIN = ["ZEN_STEWARD_KEY", "ZEN_API_KEY", "STEWARD_OPENROUTER_KEY", "OPENROUTER_API_KEY"]
-    def get_api_key():
-        for k in API_KEY_FALLBACK_CHAIN:
+    _HAS_MODELS_MODULE = False
+
+    def get_default_endpoint() -> str:
+        return "https://opencode.ai/zen/v1/messages"
+
+    def get_api_key_fallback_chain() -> list:
+        return ["ZEN_STEWARD_KEY", "ZEN_API_KEY", "OPENROUTER_API_KEY"]
+
+    def get_api_key() -> Optional[str]:
+        for k in get_api_key_fallback_chain():
             v = os.environ.get(k)
             if v:
                 return v
         return None
+
+    def load_model_config():
+        return None
+
+
+def _get_openrouter_base_url() -> str:
+    """Get OpenRouter base URL from config or fallback."""
+    if _HAS_MODELS_MODULE:
+        try:
+            config = load_model_config()
+            # Check for openrouter config in the raw yaml
+            import yaml
+            from pathlib import Path
+            config_path = Path("config/models.yaml")
+            if config_path.exists():
+                with open(config_path, "r") as f:
+                    data = yaml.safe_load(f)
+                    openrouter = data.get("openrouter", {})
+                    base_url = openrouter.get("base_url", "")
+                    if base_url:
+                        # Ensure it ends with /chat/completions for API calls
+                        if not base_url.endswith("/chat/completions"):
+                            return base_url.rstrip("/") + "/chat/completions"
+                        return base_url
+        except Exception:
+            pass
+    return "https://openrouter.ai/api/v1/chat/completions"
 
 
 # ============================================================================
@@ -115,7 +148,7 @@ class LLMCall:
         role: Agent role making the call (for usage tracking).
     """
     prompt: str
-    model: str = DEFAULT_MODEL
+    model: Optional[str] = "auto"  # "auto" triggers config-driven resolution
     system_prompt: Optional[str] = None
     role: str = "unknown"
 
@@ -193,7 +226,7 @@ class OpenCodeClient:
         self.log_calls = log_calls
         self.role = role
         self.api_key = api_key or self._load_api_key_for_role(role)
-        self.upstream_base_url = upstream_base_url or DEFAULT_ENDPOINT
+        self.upstream_base_url = upstream_base_url or get_default_endpoint()
 
         # Server state
         self._server_process: Optional[subprocess.Popen] = None
@@ -355,11 +388,14 @@ class OpenCodeClient:
         if self.is_running:
             raise OpenCodeServerError("Server already running")
 
-        # Determine model
-        model = model or os.environ.get("STEWARD_MODEL", "minimax-m2.1-free")
-        
+        # Check API key first (more fundamental than model)
         if not self.api_key:
             raise OpenCodeServerError("No API key configured (STEWARD_OPENROUTER_KEY or OPENROUTER_API_KEY required)")
+
+        # Determine model
+        model = model or os.environ.get("STEWARD_MODEL")
+        if not model:
+            raise OpenCodeServerError("No model specified for server.")
 
         self._current_model = model
         self._config_dir = self._create_isolated_config(model)
@@ -484,7 +520,9 @@ class OpenCodeClient:
         # 1. Determine Primary Model
         primary_model = request.model
         if not primary_model:
-            primary_model = self._current_model or os.environ.get("STEWARD_MODEL", "minimax-m2.1-free")
+            primary_model = self._current_model or os.environ.get("STEWARD_MODEL")
+            if not primary_model:
+                raise ValueError("Model must be specified in request or configuration.")
 
         # 2. Build Attempt Chain
         # Start with primary
@@ -587,13 +625,13 @@ class OpenCodeClient:
                     "X-Title": "LifeOS OpenCode Client"
                 }
                 
-                # Default OpenRouter Endpoint
-                or_url = "https://openrouter.ai/api/v1/chat/completions"
+                # Get OpenRouter endpoint from config (single source of truth)
+                or_url = _get_openrouter_base_url()
                 # Override if custom base URL provided
                 if self.upstream_base_url and "openrouter" in self.upstream_base_url:
-                     or_url = self.upstream_base_url
-                     if not or_url.endswith("/chat/completions"):
-                         or_url = or_url.rstrip("/") + "/chat/completions"
+                    or_url = self.upstream_base_url
+                    if not or_url.endswith("/chat/completions"):
+                        or_url = or_url.rstrip("/") + "/chat/completions"
                 
                 # Strip internal 'openrouter/' prefix for the raw API call
                 api_model = model
@@ -655,8 +693,12 @@ class OpenCodeClient:
                     "Content-Type": "application/json",
                     "anthropic-version": "2023-06-01"
                  }
+                 # Sanitize model ID for Zen (remove 'minimax/' prefix if present)
+                 zen_model = model.replace("minimax/", "").replace("zen/", "")
+                 # If model was just generic "minimax", default to m2.1-free? No, assume config is right.
+                 
                  payload = {
-                    "model": "minimax-m2.1-free", 
+                    "model": zen_model, 
                     "messages": [{"role": "user", "content": request.prompt}],
                     "max_tokens": 4096,
                     "temperature": 0.7

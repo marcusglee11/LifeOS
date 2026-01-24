@@ -39,6 +39,27 @@ except ImportError:
     LLMCall = None
     OpenCodeError = Exception  # Fallback for type hints
 
+# Import model config for default model resolution
+try:
+    from runtime.agents.models import load_model_config, resolve_model_auto
+    _HAS_MODEL_CONFIG = True
+except ImportError:
+    _HAS_MODEL_CONFIG = False
+
+    def _get_default_model() -> str:
+        """Fallback if models module unavailable."""
+        return "openrouter/x-ai/grok-4.1-fast"
+else:
+    def _get_default_model() -> str:
+        """Get default model from config/models.yaml."""
+        try:
+            config = load_model_config()
+            if config.default_chain:
+                return config.default_chain[0]
+        except Exception:
+            pass
+        return "openrouter/x-ai/grok-4.1-fast"
+
 # Re-export for backwards compatibility
 __all_exceptions__ = ["AntiFailureViolation", "EnvelopeViolation"]
 
@@ -253,8 +274,8 @@ class Orchestrator:
         if not prompt:
             return False, f"Step '{step.id}' llm_call missing required 'prompt' field"
 
-        # Get optional fields
-        model = payload.get("model", "openrouter/anthropic/claude-sonnet-4")
+        # Get optional fields - use config-driven default model
+        model = payload.get("model") or _get_default_model()
         output_key = payload.get("output_key", "llm_response")
 
         try:
