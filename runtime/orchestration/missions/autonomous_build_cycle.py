@@ -44,8 +44,6 @@ from runtime.api.governance_api import (
 from runtime.orchestration.run_controller import (
     verify_repo_clean,
     RepoDirtyError,
-    verify_repo_clean,
-    RepoDirtyError,
     GitCommandError,
     run_git_command,
 )
@@ -518,7 +516,7 @@ class AutonomousBuildCycleMission(BaseMission):
                 if s_res.success:
                     # SUCCESS!
                     # Record PASS
-                    self._record_attempt(ledger, attempt_id, context, b_res, None, "Attributes Approved", success=True)
+                    self._record_attempt(ledger, attempt_id, context, b_res, None, "Attributes Approved", success=True, plan_bypass_info=bypass_decision)
                     # Loop will check policy next iter -> PASS
                     continue 
                 else:
