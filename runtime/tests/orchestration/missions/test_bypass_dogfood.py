@@ -89,12 +89,11 @@ def test_plan_bypass_activation(dogfood_context):
             # Design: OK
             D.return_value.run.return_value = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {"goal":"g"}}, evidence={"usage":{"total":1}})
             
-            # Build: Always succeeds in generating a packet
-            B.return_value.run.return_value = MissionResult(
-                True, MissionType.BUILD, 
-                outputs={"review_packet": {"payload": {"content": "diff"}}}, 
-                evidence={"usage":{"total":1}}
-            )
+            # Build: Attempt 1 and Attempt 2 must have different content to avoid "NO_PROGRESS" deadlock check
+            B.return_value.run.side_effect = [
+                MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": "diff_attempt_1"}}}, evidence={"usage":{"total":1}}),
+                MissionResult(True, MissionType.BUILD, outputs={"review_packet": {"payload": {"content": "diff_attempt_2"}}}, evidence={"usage":{"total":1}})
+            ]
             
             # Review: Reject first, Approve second
             def review_behavior(ctx, inputs):
