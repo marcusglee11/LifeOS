@@ -1,5 +1,6 @@
 import pytest
 import shutil
+import sys
 import os
 import hashlib
 import json
@@ -16,7 +17,7 @@ def test_successful_command_capture(tmp_path):
     """
     evidence_dir = tmp_path / "evidence"
     # Using python to print deterministic output
-    cmd = ["python", "-c", "import sys; print('hello stdout'); print('hello stderr', file=sys.stderr); sys.exit(0)"]
+    cmd = [sys.executable, "-c", "import sys; print('hello stdout'); print('hello stderr', file=sys.stderr); sys.exit(0)"]
     
     result = run_command_capture(
         step_name="success_test",
@@ -58,7 +59,7 @@ def test_nonzero_exit_capture(tmp_path):
     - command returns nonzero; status reflects NONZERO; exit_code preserved
     """
     evidence_dir = tmp_path / "evidence"
-    cmd = ["python", "-c", "import sys; sys.exit(42)"]
+    cmd = [sys.executable, "-c", "import sys; sys.exit(42)"]
     
     result = run_command_capture("nonzero_test", cmd, tmp_path, evidence_dir)
     
@@ -74,7 +75,7 @@ def test_timeout_handling(tmp_path):
     """
     evidence_dir = tmp_path / "evidence"
     # Sleep to trigger timeout
-    cmd = ["python", "-c", "import time; time.sleep(10)"]
+    cmd = [sys.executable, "-c", "import time; time.sleep(10)"]
     
     result = run_command_capture("timeout_test", cmd, tmp_path, evidence_dir, timeout=1)
     
@@ -114,7 +115,7 @@ def test_unicode_bytes_preserved(tmp_path):
     evidence_dir = tmp_path / "evidence"
     # Using python to write raw bytes to stdout
     # Heart emoji in UTF-8: \xe2\x9d\xa4
-    cmd = ["python", "-c", "import sys; sys.stdout.buffer.write(b'\\xe2\\x9d\\xa4'); sys.stdout.buffer.flush()"]
+    cmd = [sys.executable, "-c", "import sys; sys.stdout.buffer.write(b'\\xe2\\x9d\\xa4'); sys.stdout.buffer.flush()"]
     
     result = run_command_capture("unicode_test", cmd, tmp_path, evidence_dir)
     
@@ -131,7 +132,7 @@ def test_large_output_streaming(tmp_path):
     evidence_dir = tmp_path / "evidence"
     # Write 2MB of data
     size_mb = 2
-    cmd = ["python", "-c", f"import sys; sys.stdout.buffer.write(b'A' * {size_mb} * 1024 * 1024)"]
+    cmd = [sys.executable, "-c", f"import sys; sys.stdout.buffer.write(b'A' * {size_mb} * 1024 * 1024)"]
     
     result = run_command_capture("large_test", cmd, tmp_path, evidence_dir)
     
@@ -148,7 +149,7 @@ def test_collision_rule(tmp_path):
     evidence_dir.mkdir()
     (evidence_dir / "collision_test.stdout").touch()
     
-    cmd = ["python", "-c", "print('hello')"]
+    cmd = [sys.executable, "-c", "print('hello')"]
     
     with pytest.raises(ValueError) as excinfo:
         run_command_capture("collision_test", cmd, tmp_path, evidence_dir)

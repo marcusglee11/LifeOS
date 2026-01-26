@@ -113,8 +113,8 @@ class GateKeeper:
                                     if isinstance(node.func, ast.Name):
                                         if node.func.id in forbidden_functions:
                                             raise_question(QuestionType.MODE_VIOLATION, f"Gate B Failed: Forbidden function call '{node.func.id}' in {file}")
-                        except SyntaxError:
-                            pass # Should be caught by lint
+                        except SyntaxError as e:
+                            self.logger.debug(f"SyntaxError in {file} (should be caught by lint): {e}")
 
     def _gate_d_sandbox_security(self, manifests_dir: str):
         """Gate D — Sandbox Security (F4: Real SHA Verification)"""

@@ -14,6 +14,10 @@
 - [ ] **Complete Deferred Evidence: F4 Tier-2.5 Deactivation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
 - [ ] **Complete Deferred Evidence: F7 Runtime ↔ Antigrav Protocol** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
 
+- [ ] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+
 - [ ] **Recursive Builder iteration (Phase B)** — Why Now: Immediate focus (Refinement & Automation) — Owner: antigravity
 - [ ] **B1: Strengthen smoke_check failure-path evidence assertions** — DoD: Test computes sha256 of smoke_check.stderr — Owner: antigravity
 - [ ] **B2: Tighten validation exception specificity in tests** — DoD: Tests assert exact exception type (e.g., MissionValidationError) — Owner: antigravity

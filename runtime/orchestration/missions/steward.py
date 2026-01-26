@@ -543,10 +543,17 @@ class StewardMission(BaseMission):
             if classified_paths["in_envelope"] and not classified_paths["code"]:
                 # Doc-only success path - use verified commit hash
                 verified_hash = evidence.get("opencode_commit_hash", "UNKNOWN")
+
+                # Use simulated_commit_hash in stub mode, commit_hash for real commits
+                if evidence.get("stubbed", True):
+                    hash_key = "simulated_commit_hash"
+                else:
+                    hash_key = "commit_hash"
+
                 return self._make_result(
                     success=True,
                     outputs={
-                        "commit_hash": verified_hash,
+                        hash_key: verified_hash,
                         "commit_message": f"OpenCode steward: {mission_name}",
                     },
                     executed_steps=executed_steps,
@@ -568,10 +575,17 @@ class StewardMission(BaseMission):
 
             # Success path for code or mixed changes
             final_hash = evidence.get("code_commit_hash", evidence.get("opencode_commit", "success"))
+
+            # Use simulated_commit_hash in stub mode, commit_hash for real commits
+            if evidence.get("stubbed", True):
+                hash_key = "simulated_commit_hash"
+            else:
+                hash_key = "commit_hash"
+
             return self._make_result(
                 success=True,
                 outputs={
-                    "commit_hash": final_hash,
+                    hash_key: final_hash,
                     "commit_message": f"Steward committed: {mission_name}",
                 },
                 executed_steps=executed_steps,

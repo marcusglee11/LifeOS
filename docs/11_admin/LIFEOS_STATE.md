@@ -1,8 +1,8 @@
 # LifeOS State
 
 **Current Focus:** Phase 4 Preparation (Autonomous Construction)
-**Active WIP:** None (Ready for next instruction)
-**Last Updated:** 2026-01-23
+**Active WIP:** Phase 3 Acceptance Fix (DONE)
+**Last Updated:** 2026-01-26
 
 ---
 
@@ -18,6 +18,7 @@
 
 | Status | Workstream | Owner | Deliverable |
 |--------|------------|-------|-------------|
+| **CLOSED** | **Trusted Builder Mode v1.1** | Antigravity | `Council_Ruling_Trusted_Builder_Mode_v1.1.md` (RATIFIED) |
 | **CLOSED** | **Policy Engine Authoritative Gating** | Antigravity | `Closure_Record_Policy_Engine_FixPass_v1.0.md` |
 
 | **CLOSED** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
@@ -33,6 +34,7 @@
   - **Condition C1:** CSO Role Constitution v1.0 (RESOLVED 2026-01-23)
   - **Condition C2:** F3/F4/F7 evidence deferred (15/18 deliverables + E2E fix closed)
 - **Phase 4 (Autonomous Construction):** NEXT
+  - **P0 Pre-req:** Trusted Builder Mode v1.1 (RATIFIED 2026-01-26)
 
 ---
 
@@ -44,6 +46,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-01-26:** Trusted Builder Mode v1.1 Ratified (Council Ruling).
 - **2026-01-23:** Policy Engine Authoritative Gating — FixPass v1.0 (Council PASS).
 - **2026-01-18:** Raw Capture Primitive Standardized (Evidence Capture v0.1).
 - **2026-01-17:** Git Workflow v1.1 Accepted (Fail-Closed, Evidence-True).
