@@ -135,7 +135,7 @@ def test_plan_bypass_activation(dogfood_context):
                 
                 attempt1 = json.loads(lines[1])
                 assert attempt1["success"] is False
-                assert attempt1["failure_class"] == "REVIEW_REJECTION"
+                assert attempt1["failure_class"] == "review_rejection"
                 
                 attempt2 = json.loads(lines[2])
                 assert attempt2["success"] is True
