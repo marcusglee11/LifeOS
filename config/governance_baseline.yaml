@@ -11,7 +11,7 @@ artifacts:
 - path: config/agent_roles/reviewer_architect.md
   sha256: 715ee5e0c3fbf5eb3714b83dac9f6d70a663faadd64e1bd6ccd1ad8bb56c86ef
 - path: config/governance_baseline.yaml
-  sha256: 548b3e2c2a49b71433a606e1cf84d230948bac12d34e1e2fe053720286c10c41
+  sha256: 1d0cd4d98a07581062d9e9548f0f80c2b6ca87146d336cea971480803ef85e5a
 - path: config/models.yaml
   sha256: 01e696022b28eccbfc06874a95d6faf5953f4b08b1201734606e9a9aeb113278
 - path: docs/00_foundations/ARCH_Builder_North-Star_Operating_Model_v0.5.md
@@ -140,8 +140,7 @@ artifacts:
 - path: scripts/opencode_gate_policy.py
   sha256: 34363bb890ee0d1869524484d2789b99ddbe93aabca32264c96540716d6e6f29
 baseline_version: '1.0'
-council_ruling_ref: Phase 4A autonomous loop initialization - baseline updated for
-  autonomous build cycle fixes (commit 3cc72d9 + 0fa8e15)
-generated_at: '2026-01-27T08:29:01Z'
+council_ruling_ref: Phase 4A baseline convergence - self-referential hash update (dea99e0)
+generated_at: '2026-01-27T08:30:08Z'
 hash_algorithm: SHA-256
 path_normalization: relpath_from_repo_root
