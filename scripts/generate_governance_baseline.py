@@ -35,8 +35,9 @@ GOVERNANCE_SURFACES = [
     "GEMINI.md",
     # Model mapping
     "config/models.yaml",
-    # Governance baseline itself (integrity manifest)
-    "config/governance_baseline.yaml",
+    # NOTE: config/governance_baseline.yaml is NOT included here to avoid self-reference
+    # The baseline is the integrity manifest itself, not a governed artifact
+    # Its integrity is ensured by git commit + CEO approval
     # Agent role prompts (glob pattern expanded below)
     "config/agent_roles",
     # Envelope policy
@@ -120,7 +121,8 @@ def generate_baseline(repo_root: Path, council_ruling_ref: str = None) -> dict:
 
     manifest = {
         "baseline_version": "1.0",
-        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        # NOTE: No generated_at timestamp - git commit history provides this
+        # Timestamps create unnecessary churn and prevent baseline convergence
         "approved_by": "CEO",  # Per spec, CEO authorizes baseline
         "council_ruling_ref": council_ruling_ref,
         "hash_algorithm": "SHA-256",
