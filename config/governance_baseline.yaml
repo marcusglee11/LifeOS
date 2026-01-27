@@ -11,7 +11,7 @@ artifacts:
 - path: config/agent_roles/reviewer_architect.md
   sha256: 715ee5e0c3fbf5eb3714b83dac9f6d70a663faadd64e1bd6ccd1ad8bb56c86ef
 - path: config/models.yaml
-  sha256: 01e696022b28eccbfc06874a95d6faf5953f4b08b1201734606e9a9aeb113278
+  sha256: 254c59b4bdc68335a057c3a1648b0ed9134d913f3c6c39ed09aaccdc711afbad
 - path: docs/00_foundations/ARCH_Builder_North-Star_Operating_Model_v0.5.md
   sha256: 86d88b8ad4583ea8296bbc8f16061627affe91988f6c5778f2797635234f4ade
 - path: docs/00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md
@@ -138,7 +138,6 @@ artifacts:
 - path: scripts/opencode_gate_policy.py
   sha256: 34363bb890ee0d1869524484d2789b99ddbe93aabca32264c96540716d6e6f29
 baseline_version: '1.0'
-council_ruling_ref: Phase 4A baseline convergence fix - removed self-reference and
-  timestamp
+council_ruling_ref: Phase 4A baseline update - model config fix (commit 0478088)
 hash_algorithm: SHA-256
 path_normalization: relpath_from_repo_root
