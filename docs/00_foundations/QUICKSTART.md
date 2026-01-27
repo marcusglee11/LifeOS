@@ -2,9 +2,9 @@
 
 <!-- LIFEOS_TODO[P1][area: docs/QUICKSTART.md][exit: context scan complete + status change to ACTIVE + DAP validate] Finalize QUICKSTART v1.0: Complete context scan pass, remove WIP/Provisional markers -->
 
-**Status**: WIP (Non-Canonical)
+**Status**: Active
 **Authority**: COO Operating Contract v1.0
-**Effective**: 2026-01-07 (Provisional)
+**Effective**: 2026-01-27
 
 ---
 

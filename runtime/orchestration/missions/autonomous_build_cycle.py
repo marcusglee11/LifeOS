@@ -578,3 +578,21 @@ class AutonomousBuildCycleMission(BaseMission):
         self._emit_packet("CEO_Terminal_Packet.md", content, context)
         # Closure Bundle? (Stubbed as requested: "Use existing if present")
         # We assume independent closure process picks this up, or we assume done.
+    
+    def _force_terminal_error(self, context: MissionContext, error_msg: str) -> None:
+        """
+        Handle catastrophic failures that prevent normal operation.
+        
+        Used when critical operations (like workspace revert) fail and the
+        system cannot continue safely. Emits a terminal packet with BLOCKED outcome.
+        
+        Args:
+            context: Mission execution context
+            error_msg: Description of the catastrophic failure
+        """
+        self._emit_terminal(
+            TerminalOutcome.BLOCKED,
+            error_msg,
+            context,
+            tokens=0,  # Unknown token count in catastrophic failure
+        )

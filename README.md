@@ -2,7 +2,7 @@
 
 > A personal operating system that makes you the CEO of your life.
 
-**Current Status**: Active Development — Tier-2.5 Activated
+**Current Status**: Phase 4 Preparation — Tier-3 Authorized
 
 ---
 
@@ -39,10 +39,12 @@ All governance, specifications, protocols, and architectural definitions live un
 
 - `docs/`: Authoritative governance and specifications
 - `runtime/`: The LifeOS COO Runtime implementation (Python)
+- `recursive_kernel/`: The Recursive Builder agent runtime
 - `doc_steward/`: Document stewardship automation
 - `scripts/`: Utility scripts for maintenance and usage
 - `artifacts/`: Agent-generated artifacts (plans, packets, evidence)
 - `tests/`: Project-level tests
+- `tests_recursive/`: Recursive system tests
 - Agent guidance files: `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`
 
 ## Getting Started
