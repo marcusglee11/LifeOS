@@ -1,7 +1,7 @@
 approved_by: CEO
 artifacts:
 - path: CLAUDE.md
-  sha256: c95264fc445002813d9c8c982716a3ec42711edbd30134bfae988d0a13d7dcf1
+  sha256: f46db99e008def468ee5e15f6c47c6f0fb1c1e3a8e4bc8fd0c79995d8a70e28e
 - path: GEMINI.md
   sha256: 33c5af31aee277c10507c71465e1942d0ab481f6a84287c60fce6a6b8cbb502c
 - path: config/agent_roles/builder.md
@@ -10,6 +10,8 @@ artifacts:
   sha256: a1c12cb5b1e9d9eecb6099de8f072080aeab5c002290f6a8b8608ddae07d939c
 - path: config/agent_roles/reviewer_architect.md
   sha256: 715ee5e0c3fbf5eb3714b83dac9f6d70a663faadd64e1bd6ccd1ad8bb56c86ef
+- path: config/governance_baseline.yaml
+  sha256: 548b3e2c2a49b71433a606e1cf84d230948bac12d34e1e2fe053720286c10c41
 - path: config/models.yaml
   sha256: 01e696022b28eccbfc06874a95d6faf5953f4b08b1201734606e9a9aeb113278
 - path: docs/00_foundations/ARCH_Builder_North-Star_Operating_Model_v0.5.md
@@ -27,9 +29,9 @@ artifacts:
 - path: docs/00_foundations/LifeOS_Constitution_v2.0.md
   sha256: 421ac3db89a3e1c8e4f275d60077ac6313b7c8ac3fb659e44b3aebc89663e7f7
 - path: docs/00_foundations/LifeOS_Overview.md
-  sha256: 96312b12543245ee81b8f7965da56d78cef1fa2c0305aa352599b11a532465a5
+  sha256: c76f489332d6c52002743158cf0984a19ffd96dc2f4adab6b21c9f1487a432f2
 - path: docs/00_foundations/QUICKSTART.md
-  sha256: b9559cf2cf6a7d93fc2500f0728b9d8817733d9bf131e71d29d239c3fd94b99e
+  sha256: 06a38d1eb67ce22e5e48754ca61811ba0193558c7065cdc3fae183a0971cace6
 - path: docs/00_foundations/SPEC-001_ LifeOS Operating Model - Agentic Platform &
     Evaluation Framework.md
   sha256: 09468752ab7ddd3da5b3606adc48154dcae80193eb4f179cfadf53dbe1dbbe6a
@@ -73,6 +75,8 @@ artifacts:
   sha256: d92a710cbc885a8c869cfac864af02fdd73baeb41a351775b99b4bb5e8142759
 - path: docs/01_governance/Council_Ruling_Phase3_Closure_v1.0.md
   sha256: d00883406870d701652cb3da7e6b715fe66147f8542ed5be81493bf97338f2f1
+- path: docs/01_governance/Council_Ruling_Trusted_Builder_Mode_v1.1.md
+  sha256: 239dc8ce9bb3f7645b396d1fdd431c9d4a2fc58236b33d30ef662ad4c82ac685
 - path: docs/01_governance/DOC_STEWARD_Constitution_v1.0.md
   sha256: ade1b9a7d63f995fde9b716f350d0c1e74a751748d37fd6446f05b984c77cca6
 - path: docs/01_governance/INDEX.md
@@ -136,7 +140,8 @@ artifacts:
 - path: scripts/opencode_gate_policy.py
   sha256: 34363bb890ee0d1869524484d2789b99ddbe93aabca32264c96540716d6e6f29
 baseline_version: '1.0'
-council_ruling_ref: null
-generated_at: '2026-01-24T03:56:46Z'
+council_ruling_ref: Phase 4A autonomous loop initialization - baseline updated for
+  autonomous build cycle fixes (commit 3cc72d9 + 0fa8e15)
+generated_at: '2026-01-27T08:29:01Z'
 hash_algorithm: SHA-256
 path_normalization: relpath_from_repo_root
