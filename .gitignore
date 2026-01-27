@@ -97,3 +97,5 @@ dogfood_worktree/
 generate_bundle*.py
 artifacts/active_branches.json
 artifacts/ledger/dl_doc/mock_*.txt
+artifacts/CEO_Terminal_Packet.md
+artifacts/loop_state/
