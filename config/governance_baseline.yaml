@@ -11,7 +11,7 @@ artifacts:
 - path: config/agent_roles/reviewer_architect.md
   sha256: 715ee5e0c3fbf5eb3714b83dac9f6d70a663faadd64e1bd6ccd1ad8bb56c86ef
 - path: config/governance_baseline.yaml
-  sha256: 28324abb96c09f8a197788f210ebecafb949918f72d417ee4b9de56336540ea0
+  sha256: f7a5e3b017ffef545395b815055ba4118136ff0838111e677e5154e7a6ae609b
 - path: config/models.yaml
   sha256: 01e696022b28eccbfc06874a95d6faf5953f4b08b1201734606e9a9aeb113278
 - path: docs/00_foundations/ARCH_Builder_North-Star_Operating_Model_v0.5.md
@@ -140,7 +140,7 @@ artifacts:
 - path: scripts/opencode_gate_policy.py
   sha256: 34363bb890ee0d1869524484d2789b99ddbe93aabca32264c96540716d6e6f29
 baseline_version: '1.0'
-council_ruling_ref: Phase 4A baseline final convergence
-generated_at: '2026-01-27T08:30:55Z'
+council_ruling_ref: Phase 4A baseline final
+generated_at: '2026-01-27T08:31:07Z'
 hash_algorithm: SHA-256
 path_normalization: relpath_from_repo_root
