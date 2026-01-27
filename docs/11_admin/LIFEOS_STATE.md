@@ -32,7 +32,7 @@
 - **Phase 2 (Governance):** DONE
 - **Phase 3 (Optimization):** **RATIFIED (APPROVE_WITH_CONDITIONS)** — Council Ruling Phase3 Closure v1.0
   - **Condition C1:** CSO Role Constitution v1.0 (RESOLVED 2026-01-23)
-  - **Condition C2:** F3/F4/F7 evidence deferred (15/18 deliverables + E2E fix closed)
+  - **Condition C2:** F3/F4/F7 evidence deferred (RESOLVED 2026-01-27) — Review packets: `artifacts/review_packets/Review_Packet_F3_Tier2.5_Activation_v1.0.md`, `artifacts/review_packets/Review_Packet_F4_Tier2.5_Deactivation_v1.0.md`, `artifacts/review_packets/Review_Packet_F7_Runtime_Antigrav_Protocol_v1.0.md`
 - **Phase 4 (Autonomous Construction):** NEXT
   - **P0 Pre-req:** Trusted Builder Mode v1.1 (RATIFIED 2026-01-26)
 

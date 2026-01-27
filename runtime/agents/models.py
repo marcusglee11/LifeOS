@@ -181,6 +181,10 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
                 candidates.append(git_root / "config" / "models.yaml")
         except Exception:
             pass
+        
+        # Fallback: use module location to find repo root (for tests in temp dirs)
+        module_root = Path(__file__).parent.parent.parent  # models.py -> agents -> runtime -> repo_root
+        candidates.append(module_root / "config" / "models.yaml")
 
         path = None
         for candidate in candidates:
