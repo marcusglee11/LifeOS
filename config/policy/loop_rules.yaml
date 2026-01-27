@@ -48,22 +48,12 @@
   priority: 110
   match:
     failure_class: review_rejection
-  max_retries: 3
-  on_budget_exhausted:
-    decision: TERMINATE
-    terminal_outcome: BLOCKED
-    terminal_reason: retry_budget_exhausted
 
 - rule_id: loop.test-failure
   decision: RETRY
   priority: 110
   match:
     failure_class: test_failure
-  max_retries: 3
-  on_budget_exhausted:
-    decision: TERMINATE
-    terminal_outcome: BLOCKED
-    terminal_reason: retry_budget_exhausted
 
 - rule_id: loop.unknown
   decision: TERMINATE
