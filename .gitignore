@@ -99,3 +99,4 @@ artifacts/active_branches.json
 artifacts/ledger/dl_doc/mock_*.txt
 artifacts/CEO_Terminal_Packet.md
 artifacts/loop_state/
+test_autonomous_direct.py
