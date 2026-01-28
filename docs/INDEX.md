@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-01-28 (Restore Non-Canonical Docs)]
+# LifeOS Strategic Corpus [Last Updated: 2026-01-29 (P0 Repo Cleanup)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
