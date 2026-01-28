@@ -15,21 +15,8 @@ from runtime.governance.tool_policy import (
     PolicyDenied,
 )
 
-from runtime.governance.policy_loader import PolicyLoader
-
-
-# Re-export policy loader for orchestration modules
-from runtime.governance.policy_loader import PolicyLoader
-
-# Re-export baseline verification for build loop
-from runtime.governance.baseline_checker import (
-    verify_governance_baseline,
-    BaselineMissingError,
-    BaselineMismatchError,
-)
-
-# Re-export self-modification protection
-from runtime.governance.self_mod_protection import SelfModProtector
+# Re-export policy loader for loop controller
+from runtime.governance.policy_loader import PolicyLoader, PolicyLoadError
 
 __all__ = [
     "GovernanceAPI",
@@ -38,14 +25,7 @@ __all__ = [
     "GovernanceUnavailable",
     "PolicyDenied",
     "PolicyLoader",
-    # Policy loading
-    "PolicyLoader",
-    # Baseline verification
-    "verify_governance_baseline",
-    "BaselineMissingError",
-    "BaselineMismatchError",
-    # Self-modification protection
-    "SelfModProtector",
+    "PolicyLoadError",
 ]
 
 

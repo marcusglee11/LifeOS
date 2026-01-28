@@ -1,63 +1,31 @@
 import pytest
 import json
-import subprocess
 from unittest.mock import MagicMock, patch
 from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
 from runtime.orchestration.missions.base import MissionContext, MissionResult, MissionType
 from runtime.orchestration.loop.taxonomy import TerminalReason, TerminalOutcome
-from runtime.governance.baseline_checker import BaselineManifest
 
 @pytest.fixture
 def acceptance_context(tmp_path):
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
-
-    # Initialize git repo (required for verify_repo_clean)
-    subprocess.run(["git", "init"], cwd=repo_root, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_root, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo_root, check=True, capture_output=True)
-
-    # Create initial commit (required for baseline)
-    (repo_root / "README.md").write_text("# Test Repo")
-    subprocess.run(["git", "add", "README.md"], cwd=repo_root, check=True, capture_output=True)
-    subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=repo_root, check=True, capture_output=True)
-
-    # Create artifacts directory structure
     (repo_root / "artifacts" / "loop_state").mkdir(parents=True)
-
+    
+    # Create Policy Config
+    policy_dir = repo_root / "config" / "policy"
+    policy_dir.mkdir(parents=True)
+    (policy_dir / "policy_rules.yaml").write_text(
+        "schema_version: 'v1.0'\ntool_rules: []\nloop_rules: []\n", 
+        encoding="utf-8"
+    )
+    (policy_dir / "policy_schema.json").write_text("{}", encoding="utf-8")
+    
     return MissionContext(
         repo_root=repo_root,
         baseline_commit="abc",
         run_id="acc_run",
         operation_executor=None
     )
-
-@pytest.fixture
-def mock_preconditions():
-    """Mock the P0 precondition checks and policy loader to allow tests to focus on loop logic."""
-    with patch("runtime.orchestration.missions.autonomous_build_cycle.verify_repo_clean") as mock_clean, \
-         patch("runtime.orchestration.missions.autonomous_build_cycle.verify_governance_baseline") as mock_baseline, \
-         patch("runtime.orchestration.missions.autonomous_build_cycle.PolicyLoader") as mock_policy_loader:
-        # verify_repo_clean returns None on success (raises on failure)
-        mock_clean.return_value = None
-        # verify_governance_baseline returns a manifest on success
-        mock_baseline.return_value = BaselineManifest(
-            baseline_version="1.0",
-            approved_by="CEO",
-            council_ruling_ref=None,
-            hash_algorithm="SHA-256",
-            path_normalization="relpath_from_repo_root",
-            artifacts=[],
-        )
-        # PolicyLoader returns minimal effective config
-        loader_instance = MagicMock()
-        loader_instance.load.return_value = {
-            "schema_version": "1.2",
-            "posture": {"mode": "PRIMARY"},
-            "loop_rules": [],
-        }
-        mock_policy_loader.return_value = loader_instance
-        yield mock_clean, mock_baseline
 
 @pytest.fixture
 def mock_subs():
@@ -74,7 +42,7 @@ def mock_review_behavior(ctx, inputs):
     # Reject Output Review to force loop retry/failure
     return MissionResult(True, MissionType.REVIEW, outputs={"verdict": "rejected", "council_decision": {"synthesis": "rejected"}}, evidence={"usage":{"total":1}})
 
-def test_crash_and_resume(acceptance_context, mock_subs, mock_preconditions):
+def test_crash_and_resume(acceptance_context, mock_subs):
     D, B, R, S = mock_subs
     
     D.return_value.run.return_value = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {"goal":"g"}}, evidence={"usage":{"total":1}})
@@ -134,7 +102,7 @@ def test_crash_and_resume(acceptance_context, mock_subs, mock_preconditions):
         assert rec2["attempt_id"] == 2
         assert rec2["success"] is True
 
-def test_acceptance_oscillation(acceptance_context, mock_subs, mock_preconditions):
+def test_acceptance_oscillation(acceptance_context, mock_subs):
     D, B, R, S = mock_subs
     
     D.return_value.run.return_value = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {"goal":"g"}}, evidence={"usage":{"total":1}})
@@ -164,7 +132,7 @@ def test_acceptance_oscillation(acceptance_context, mock_subs, mock_precondition
         assert "oscillation_detected" in content
         assert "ESCALATION_REQUESTED" in content
 
-def test_verify_terminal_packet_structure(acceptance_context, mock_subs, mock_preconditions):
+def test_verify_terminal_packet_structure(acceptance_context, mock_subs):
     # Just force a budget exhaustion to check packet fields
     D, B, R, S = mock_subs
     D.return_value.run.return_value = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {"goal":"g"}}, evidence={"usage":{"total":1}})
@@ -192,7 +160,7 @@ def test_verify_terminal_packet_structure(acceptance_context, mock_subs, mock_pr
         assert '"tokens_consumed"' in text
         assert '"run_id": "acc_run"' in text
 
-def test_diff_budget_exceeded(acceptance_context, mock_subs, mock_preconditions):
+def test_diff_budget_exceeded(acceptance_context, mock_subs):
     D, B, R, S = mock_subs
     # Mock approval to get to build
     D.return_value.run.return_value = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {"goal":"g"}}, evidence={"usage":{"total":1}})
@@ -222,7 +190,7 @@ def test_diff_budget_exceeded(acceptance_context, mock_subs, mock_preconditions)
     ev_files = list(acceptance_context.repo_root.glob("artifacts/rejected_diff_attempt_*.txt"))
     assert len(ev_files) > 0
 
-def test_policy_changed_mid_run(acceptance_context, mock_subs, mock_preconditions):
+def test_policy_changed_mid_run(acceptance_context, mock_subs):
     # PLANT LEGER with different policy hash
     ledger_path = acceptance_context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
@@ -242,18 +210,18 @@ def test_policy_changed_mid_run(acceptance_context, mock_subs, mock_precondition
         assert "ESCALATION_REQUESTED" in text
         assert "policy_changed_mid_run" in text
 
-def test_workspace_reset_unavailable(acceptance_context, mock_subs, mock_preconditions):
+def test_workspace_reset_unavailable(acceptance_context, mock_subs):
     # Mock _can_reset_workspace to return False
     mission = AutonomousBuildCycleMission()
-    with patch.object(AutonomousBuildCycleMission, '_can_reset_workspace', return_value=(False, "mocked_unavailable")):
+    with patch.object(AutonomousBuildCycleMission, '_can_reset_workspace', return_value=False):
         result = mission.run(acceptance_context, {"task_spec": "reset_check"})
-
+        
         assert result.success is False
-        assert TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value in result.error
-
+        assert result.escalation_reason == TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
+        
         # Verify Terminal Packet
         term_path = acceptance_context.repo_root / "artifacts/CEO_Terminal_Packet.md"
         with open(term_path) as f:
             text = f.read()
-            assert "BLOCKED" in text
+            assert "ESCALATION_REQUESTED" in text
             assert "workspace_reset_unavailable" in text

@@ -1,9 +1,9 @@
 """
 Tool Policy Gate - Governance enforcement for tool invocation.
 
-v1.2.2: Now uses centralized workspace resolution from runtime.util.workspace.
+v1.2.1: Now includes path_scope enforcement per P0.6 requirements.
 - Hardcoded allowlist for MVP (with config-driven override support)
-- Sandbox/Workspace root resolution via centralized utility
+- Sandbox/Workspace root resolution with fail-closed semantics
 - Root symlink denial
 - path_scope enforcement for filesystem ALLOW rules
 """
@@ -18,14 +18,6 @@ from runtime.tools.schemas import (
     ToolInvokeRequest,
     PolicyDecision,
     ToolErrorType,
-)
-
-# Import centralized workspace utilities
-from runtime.util.workspace import (
-    resolve_workspace_root as _util_resolve_workspace_root,
-    resolve_sandbox_root as _util_resolve_sandbox_root,
-    clear_workspace_cache as _util_clear_cache,
-    _has_symlink_in_path,
 )
 
 
@@ -59,66 +51,164 @@ class PathScopeViolation(Exception):
 
 
 # =============================================================================
-# Scope Root Resolution (delegated to runtime.util.workspace)
+# Scope Root Resolution
 # =============================================================================
 
-# Module-level cache references (for backward compatibility)
 _WORKSPACE_ROOT: Optional[Path] = None
 _SANDBOX_ROOT: Optional[Path] = None
 
 
-def clear_workspace_cache() -> None:
-    """Clear cached workspace and sandbox roots (for testing)."""
+def reset_scope_roots() -> None:
+    """
+    Reset global scope roots (for testing).
+    
+    Call this at the start of tests that need to isolate sandbox/workspace resolution.
+    """
     global _WORKSPACE_ROOT, _SANDBOX_ROOT
     _WORKSPACE_ROOT = None
     _SANDBOX_ROOT = None
-    _util_clear_cache()
 
 
 def resolve_workspace_root() -> Path:
     """
     Resolve workspace root deterministically.
-
-    Delegates to runtime.util.workspace for single source of truth.
-
+    
+    Resolution order:
+    1. LIFEOS_WORKSPACE_ROOT environment variable
+    2. Git repository root (if in a git repo)
+    3. Current working directory
+    
     Returns:
         Canonical Path to workspace root
-
+        
     Raises:
         GovernanceUnavailable: If root cannot be established
     """
     global _WORKSPACE_ROOT
     if _WORKSPACE_ROOT is not None:
         return _WORKSPACE_ROOT
-
+    
+    # Try environment variable first
+    raw = os.environ.get("LIFEOS_WORKSPACE_ROOT")
+    if raw:
+        root = Path(raw)
+        if root.exists() and root.is_dir():
+            if not _has_symlink_in_path(root):
+                _WORKSPACE_ROOT = root.resolve()
+                return _WORKSPACE_ROOT
+    
+    # Try git root
     try:
-        _WORKSPACE_ROOT = _util_resolve_workspace_root()
+        import subprocess
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            git_root = Path(result.stdout.strip())
+            if git_root.exists() and git_root.is_dir():
+                if not _has_symlink_in_path(git_root):
+                    _WORKSPACE_ROOT = git_root.resolve()
+                    return _WORKSPACE_ROOT
+    except (subprocess.SubprocessError, FileNotFoundError, OSError):
+        pass
+    
+    # Fallback to cwd
+    cwd = Path.cwd()
+    if cwd.exists() and cwd.is_dir():
+        _WORKSPACE_ROOT = cwd.resolve()
         return _WORKSPACE_ROOT
-    except RuntimeError as e:
-        raise GovernanceUnavailable(str(e))
+    
+    raise GovernanceUnavailable("Cannot determine workspace root")
 
 
 def resolve_sandbox_root() -> Path:
     """
     Resolve and validate sandbox root.
-
-    Delegates to runtime.util.workspace for single source of truth.
-
+    
+    Resolution order:
+    1. LIFEOS_SANDBOX_ROOT environment variable
+    2. Fail-closed if not set or invalid
+    
+    Root symlink policy: DENIED.
+    If sandbox root is a symlink OR any path component is a symlink,
+    raise GovernanceUnavailable.
+    
     Returns:
         Canonical Path to sandbox root
-
+        
     Raises:
         GovernanceUnavailable: If root cannot be established
     """
     global _SANDBOX_ROOT
     if _SANDBOX_ROOT is not None:
         return _SANDBOX_ROOT
+    
+    raw = os.environ.get("LIFEOS_SANDBOX_ROOT")
+    
+    if not raw:
+        raise GovernanceUnavailable(
+            "LIFEOS_SANDBOX_ROOT environment variable not set"
+        )
+    
+    raw_path = Path(raw)
+    
+    # Check if raw path exists before resolving
+    if not raw_path.exists():
+        raise GovernanceUnavailable(
+            f"Sandbox root does not exist: {raw}"
+        )
+    
+    # Check for symlinks in the path components BEFORE resolving
+    # This is the root symlink denial policy
+    if _has_symlink_in_path(raw_path):
+        raise GovernanceUnavailable(
+            f"Sandbox root path contains symlink (denied): {raw}"
+        )
+    
+    # Canonicalize via resolve() which calls realpath
+    root = raw_path.resolve()
+    
+    # Verify it's a directory
+    if not root.is_dir():
+        raise GovernanceUnavailable(
+            f"Sandbox root is not a directory: {root}"
+        )
+    
+    _SANDBOX_ROOT = root
+    return root
 
-    try:
-        _SANDBOX_ROOT = _util_resolve_sandbox_root()
-        return _SANDBOX_ROOT
-    except RuntimeError as e:
-        raise GovernanceUnavailable(str(e))
+
+def _has_symlink_in_path(path: Path) -> bool:
+    """
+    Check if any component of path is a symlink.
+    
+    Includes the path itself and all parent components.
+    
+    Returns:
+        True if any component is a symlink
+    """
+    # Check the path itself
+    if path.is_symlink():
+        return True
+    
+    # Check all parent components
+    current = path
+    checked = set()
+    
+    while current != current.parent:
+        if str(current) in checked:
+            break
+        checked.add(str(current))
+        
+        if current.is_symlink():
+            return True
+        
+        current = current.parent
+    
+    return False
 
 
 # =============================================================================
