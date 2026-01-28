@@ -1,0 +1,23 @@
+{"id":"T001","title":"Read and map LifeOS architecture","status":"done","priority":"P0","owner":"clawd","created":"2026-01-27","completed":"2026-01-27","tags":["onboarding","architecture"]}
+{"id":"T002","title":"Design Council Agent","status":"in_progress","priority":"P0","owner":"clawd","created":"2026-01-27","started":"2026-01-27","depends_on":["T001"],"estimate_days":1,"tags":["agent-build","council"],"notes":"Design document v1.0 started, ~40% complete"}
+{"id":"T003","title":"Design Orchestrator Agent","status":"blocked","priority":"P1","owner":"clawd","created":"2026-01-27","depends_on":["T002"],"estimate_days":3,"tags":["agent-build","orchestrator"],"notes":"Deferred until Council Agent complete, CEO approved Option C (Manager-Led pattern)"}
+{"id":"T004","title":"Map current agent handoff flows","status":"done","priority":"P1","owner":"clawd","created":"2026-01-27","completed":"2026-01-27","depends_on":["T001"],"estimate_days":1,"tags":["architecture","mapping"]}
+{"id":"T005","title":"Find F3/F4/F7 specs","status":"done","priority":"P2","owner":"clawd","created":"2026-01-27","completed":"2026-01-27","estimate_days":1,"tags":["documentation","governance"]}
+{"id":"T020","title":"Build Council Agent (M0_FAST)","status":"todo","priority":"P0","owner":"clawd","created":"2026-01-27","depends_on":["T002"],"estimate_days":2,"tags":["agent-build","council","mvp"]}
+{"id":"T021","title":"Build Council Agent (M1_STANDARD)","status":"todo","priority":"P0","owner":"clawd","created":"2026-01-27","depends_on":["T020"],"estimate_days":2,"tags":["agent-build","council"]}
+{"id":"T022","title":"Build Council Agent (M2_FULL)","status":"todo","priority":"P0","owner":"clawd","created":"2026-01-27","depends_on":["T021"],"estimate_days":1,"tags":["agent-build","council"]}
+{"id":"T023","title":"Council Agent CLI integration","status":"todo","priority":"P1","owner":"clawd","created":"2026-01-27","depends_on":["T022"],"estimate_days":0.5,"tags":["agent-build","council","integration"]}
+{"id":"T006","title":"Complete Phase 3 closure","status":"todo","priority":"P0","owner":"boss","created":"2026-01-26","tags":["phase3","milestone"]}
+{"id":"T007","title":"Enter Phase 4 (Planning Stage)","status":"blocked","priority":"P0","owner":"boss","created":"2026-01-26","depends_on":["T006"],"tags":["phase4","milestone"]}
+{"id":"T008","title":"Trusted Builder Mode v1.1 implementation","status":"done","priority":"P0","owner":"boss","created":"2026-01-23","completed":"2026-01-26","tags":["phase4","builder"]}
+{"id":"T009","title":"Deferred Evidence: F3 Tier-2.5 Activation","status":"todo","priority":"P1","owner":"antigravity","created":"2026-01-23","tags":["evidence","deferred"]}
+{"id":"T010","title":"Deferred Evidence: F4 Tier-2.5 Deactivation","status":"todo","priority":"P1","owner":"antigravity","created":"2026-01-23","tags":["evidence","deferred"]}
+{"id":"T011","title":"Deferred Evidence: F7 Runtime ↔ Antigrav Protocol","status":"todo","priority":"P1","owner":"antigravity","created":"2026-01-23","tags":["evidence","deferred"]}
+{"id":"T012","title":"Ledger Hash Chain (Trusted Builder P1)","status":"todo","priority":"P1","owner":"antigravity","created":"2026-01-26","tags":["builder","security"]}
+{"id":"T013","title":"Bypass Monitoring (Trusted Builder P1)","status":"todo","priority":"P1","owner":"antigravity","created":"2026-01-26","tags":["builder","monitoring"]}
+{"id":"T014","title":"Semantic Guardrails (Trusted Builder P1)","status":"todo","priority":"P1","owner":"antigravity","created":"2026-01-26","tags":["builder","safety"]}
+{"id":"T015","title":"Audit draft documentation (promote/archive/complete)","status":"todo","priority":"P1","owner":"clawd","created":"2026-01-27","estimate_days":2,"tags":["documentation","governance","cleanup"]}
+{"id":"T016","title":"Run LIFEOS_TODO inventory and track in BACKLOG","status":"todo","priority":"P2","owner":"clawd","created":"2026-01-27","estimate_days":0.5,"tags":["tech-debt","inventory"]}
+{"id":"T017","title":"Build timestamp placeholder fix script","status":"todo","priority":"P2","owner":"clawd","created":"2026-01-27","estimate_days":0.5,"tags":["documentation","automation"]}
+{"id":"T018","title":"Audit multi-version protocols (move superseded to archive)","status":"todo","priority":"P2","owner":"doc_steward","created":"2026-01-27","estimate_days":1,"tags":["documentation","governance"]}
+{"id":"T019","title":"Continue test suite fixes (path scope, retry semantics)","status":"in_progress","priority":"P1","owner":"clawd","created":"2026-01-27","depends_on":["T001"],"estimate_days":2,"tags":["testing","build-health"],"notes":"Config resolution fix complete (+1 test), 6 failures remaining"}

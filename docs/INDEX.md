@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-01-27 (Admin Hygiene)]
+# LifeOS Strategic Corpus [Last Updated: 2026-01-28 (Restore Non-Canonical Docs)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -44,6 +44,12 @@ LifeOS Constitution v2.0 (Supreme)
 | [BACKLOG.md](./11_admin/BACKLOG.md) | Actionable backlog (Now/Next/Later) — target ≤40 items |
 | [DECISIONS.md](./11_admin/DECISIONS.md) | Append-only decision log (low volume) |
 | [INBOX.md](./11_admin/INBOX.md) | Raw capture scratchpad for triage |
+| [ARCHITECTURE_DIAGRAMS.md](./11_admin/ARCHITECTURE_DIAGRAMS.md) | **Information Only** — System architecture diagrams |
+| [PROJECT_ADMIN_SUMMARY.md](./11_admin/PROJECT_ADMIN_SUMMARY.md) | **Information Only** — High-level project administrative summary |
+| [PROJECT_DEPENDENCY_GRAPH.md](./11_admin/PROJECT_DEPENDENCY_GRAPH.md) | **Information Only** — Mermaid dependency graph of tasks |
+| [PROJECT_GANTT_CHART.md](./11_admin/PROJECT_GANTT_CHART.md) | **Information Only** — Project timeline and Gantt chart |
+| [PROJECT_MASTER_TASK_LIST.md](./11_admin/PROJECT_MASTER_TASK_LIST.md) | **Information Only** — Master list of all tracked project tasks |
+| [PROJECT_STATUS_v1.0.md](./11_admin/PROJECT_STATUS_v1.0.md) | **Information Only** — Snapshot of project status (legacy) |
 
 ---
 
@@ -156,6 +162,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [COO_Runtime_Core_Spec_v1.0.md](./03_runtime/COO_Runtime_Core_Spec_v1.0.md) | Extended core specification |
 | [COO_Runtime_Spec_Index_v1.0.md](./03_runtime/COO_Runtime_Spec_Index_v1.0.md) | Spec index and patch log |
 | [LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md](./03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md) | **Canonical**: Autonomous Build Loop Architecture (Council-authorised) |
+| [Council_Agent_Design_v1.0.md](./03_runtime/Council_Agent_Design_v1.0.md) | **Information Only** — Conceptual design for the Council Agent |
 
 ### Roadmaps & Plans
 
