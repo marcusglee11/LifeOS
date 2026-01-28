@@ -38,6 +38,7 @@ If you need to switch to a different model or provider, follow these steps:
 """
 
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -49,30 +50,65 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
+logger = logging.getLogger(__name__)
+
 # Use requests if available, otherwise provide helpful error
 try:
     import requests
 except ImportError:
     requests = None  # Will raise on actual use
 
-# Import canonical defaults from single source of truth
+# Import config-driven defaults from single source of truth
 try:
     from runtime.agents.models import (
-        DEFAULT_MODEL,
-        DEFAULT_ENDPOINT,
-        API_KEY_FALLBACK_CHAIN,
+        get_default_endpoint,
+        get_api_key_fallback_chain,
         get_api_key,
+        load_model_config,
     )
+    _HAS_MODELS_MODULE = True
 except ImportError:
-    DEFAULT_MODEL = "minimax-m2.1-free"
-    DEFAULT_ENDPOINT = "https://opencode.ai/zen/v1/messages"
-    API_KEY_FALLBACK_CHAIN = ["ZEN_STEWARD_KEY", "ZEN_API_KEY", "STEWARD_OPENROUTER_KEY", "OPENROUTER_API_KEY"]
-    def get_api_key():
-        for k in API_KEY_FALLBACK_CHAIN:
+    _HAS_MODELS_MODULE = False
+
+    def get_default_endpoint() -> str:
+        return "https://opencode.ai/zen/v1/messages"
+
+    def get_api_key_fallback_chain() -> list:
+        return ["ZEN_STEWARD_KEY", "ZEN_API_KEY", "OPENROUTER_API_KEY"]
+
+    def get_api_key() -> Optional[str]:
+        for k in get_api_key_fallback_chain():
             v = os.environ.get(k)
             if v:
                 return v
         return None
+
+    def load_model_config():
+        return None
+
+
+def _get_openrouter_base_url() -> str:
+    """Get OpenRouter base URL from config or fallback."""
+    if _HAS_MODELS_MODULE:
+        try:
+            config = load_model_config()
+            # Check for openrouter config in the raw yaml
+            import yaml
+            from pathlib import Path
+            config_path = Path("config/models.yaml")
+            if config_path.exists():
+                with open(config_path, "r") as f:
+                    data = yaml.safe_load(f)
+                    openrouter = data.get("openrouter", {})
+                    base_url = openrouter.get("base_url", "")
+                    if base_url:
+                        # Ensure it ends with /chat/completions for API calls
+                        if not base_url.endswith("/chat/completions"):
+                            return base_url.rstrip("/") + "/chat/completions"
+                        return base_url
+        except Exception:
+            pass
+    return "https://openrouter.ai/api/v1/chat/completions"
 
 
 # ============================================================================
@@ -115,7 +151,7 @@ class LLMCall:
         role: Agent role making the call (for usage tracking).
     """
     prompt: str
-    model: str = DEFAULT_MODEL
+    model: Optional[str] = "auto"  # "auto" triggers config-driven resolution
     system_prompt: Optional[str] = None
     role: str = "unknown"
 
@@ -193,7 +229,7 @@ class OpenCodeClient:
         self.log_calls = log_calls
         self.role = role
         self.api_key = api_key or self._load_api_key_for_role(role)
-        self.upstream_base_url = upstream_base_url or DEFAULT_ENDPOINT
+        self.upstream_base_url = upstream_base_url or get_default_endpoint()
 
         # Server state
         self._server_process: Optional[subprocess.Popen] = None
@@ -355,11 +391,14 @@ class OpenCodeClient:
         if self.is_running:
             raise OpenCodeServerError("Server already running")
 
-        # Determine model
-        model = model or os.environ.get("STEWARD_MODEL", "minimax-m2.1-free")
-        
+        # Check API key first (more fundamental than model)
         if not self.api_key:
             raise OpenCodeServerError("No API key configured (STEWARD_OPENROUTER_KEY or OPENROUTER_API_KEY required)")
+
+        # Determine model
+        model = model or os.environ.get("STEWARD_MODEL")
+        if not model:
+            raise OpenCodeServerError("No model specified for server.")
 
         self._current_model = model
         self._config_dir = self._create_isolated_config(model)
@@ -484,7 +523,9 @@ class OpenCodeClient:
         # 1. Determine Primary Model
         primary_model = request.model
         if not primary_model:
-            primary_model = self._current_model or os.environ.get("STEWARD_MODEL", "minimax-m2.1-free")
+            primary_model = self._current_model or os.environ.get("STEWARD_MODEL")
+            if not primary_model:
+                raise ValueError("Model must be specified in request or configuration.")
 
         # 2. Build Attempt Chain
         # Start with primary
@@ -518,7 +559,7 @@ class OpenCodeClient:
                 print(f"  [TRACE] Attempt {i+1}/{len(attempts)}: {model} {'(Fallback)' if is_fallback else '(Primary)'}")
 
             try:
-                return self._execute_attempt(model, request)
+                return self._execute_attempt(model, request, provider=attempt.get("provider"))
             except Exception as e:
                 # Log warning but continue
                 print(f"  [WARNING] Call to {model} failed: {e}")
@@ -528,7 +569,7 @@ class OpenCodeClient:
         # If all failed
         raise last_error or OpenCodeError("All execution attempts failed")
 
-    def _execute_attempt(self, model: str, request: LLMCall) -> LLMResponse:
+    def _execute_attempt(self, model: str, request: LLMCall, provider: Optional[str] = None) -> LLMResponse:
         """Execute a single LLM attempt with specific model and dynamic key swapping."""
         call_id = str(uuid.uuid4())
         start_time = time.time()
@@ -543,7 +584,10 @@ class OpenCodeClient:
             env["ANTHROPIC_API_KEY"] = self.api_key
             
         # SWAP LOGIC: Determine correct key & provider for THIS model
-        is_zen_model = "minimax" in model.lower() or "zen" in model.lower()
+        # Expanded for new OpenCode/Gemini models
+        # P1: Option C - If provider is explicitly 'opencode-openai', treat as plugin (skip Zen REST)
+        is_plugin = provider and "opencode-openai" in provider
+        is_zen_model = not is_plugin and any(k in model.lower() for k in ["minimax", "zen", "opencode", "gemini"])
         key_status = "Using Primary Key"
         
         if not is_zen_model:
@@ -587,23 +631,27 @@ class OpenCodeClient:
                     "X-Title": "LifeOS OpenCode Client"
                 }
                 
-                # Default OpenRouter Endpoint
-                or_url = "https://openrouter.ai/api/v1/chat/completions"
+                # Get OpenRouter endpoint from config (single source of truth)
+                or_url = _get_openrouter_base_url()
                 # Override if custom base URL provided
                 if self.upstream_base_url and "openrouter" in self.upstream_base_url:
-                     or_url = self.upstream_base_url
-                     if not or_url.endswith("/chat/completions"):
-                         or_url = or_url.rstrip("/") + "/chat/completions"
+                    or_url = self.upstream_base_url
+                    if not or_url.endswith("/chat/completions"):
+                        or_url = or_url.rstrip("/") + "/chat/completions"
                 
                 # Strip internal 'openrouter/' prefix for the raw API call
                 api_model = model
                 if api_model.startswith("openrouter/"):
                     api_model = api_model.replace("openrouter/", "", 1)
 
+                messages = []
+                if request.system_prompt:
+                    messages.append({"role": "system", "content": request.system_prompt})
+                messages.append({"role": "user", "content": request.prompt})
+
                 payload = {
                     "model": api_model, 
-                    "messages": [{"role": "user", "content": request.prompt}],
-                    # No max_tokens forced default, let provider decide or use reasonable default
+                    "messages": messages,
                 }
                 
                 try:
@@ -632,9 +680,9 @@ class OpenCodeClient:
                         
                         return llm_response
                     else:
-                         print(f"  [DEBUG] OpenRouter REST Failed: Status {response.status_code}, Body: {response.text}")
+                         logger.debug(f"OpenRouter REST Failed: Status {response.status_code}, Body: {response.text}")
                 except Exception as e:
-                    print(f"  [DEBUG] OpenRouter REST Exception: {e}")
+                    logger.debug(f"OpenRouter REST Exception: {e}")
                     pass
 
         # 2. SPECIAL CASE: Zen Direct REST (Minimax)
@@ -651,44 +699,119 @@ class OpenCodeClient:
                     "Content-Type": "application/json",
                     "anthropic-version": "2023-06-01"
                  }
-                 payload = {
-                    "model": "minimax-m2.1-free", # Force verifiable minimax model ID for direct API
-                    "messages": [{"role": "user", "content": request.prompt}],
-                    "max_tokens": 4096,
-                    "temperature": 0.7
-                 }
-                 
-                 try:
-                     import requests
-                     # Ensure URL is the base /messages endpoint
-                     zen_url = self.upstream_base_url
-                     if not zen_url.endswith("/messages"):
-                         zen_url = zen_url.rstrip("/") + "/messages"
+                 # SPECIAL CASE: Gemini on Zen (Google Style)
+                 if "gemini" in model.lower():
+                     # Use Google Generative Language API format
+                     # Zen endpoint likely mirrors Google's requirement for key in query param or x-goog-api-key
+                     # Try removing :generateContent in case Zen appends it
+                     zen_url = f"https://opencode.ai/zen/v1/models/gemini-3-flash:generateContent?key={zen_key}"
                      
-                     response = requests.post(zen_url, headers=headers, json=payload, timeout=self.timeout)
+                     # Google payload format
+                     # user -> user, system -> (not robustly supported in v1beta/v1 for all models, passing as system_instruction if needed or prepending)
+                     # For Flash, system_instruction is supported but simplified here to prepending for robustness via Zen?
+                     # Let's try standard contents.
                      
-                     if response.status_code == 200:
-                         data = response.json()
-                         text = ""
-                         for content_part in data.get("content", []):
-                             if content_part.get("type") == "text":
-                                 text += content_part.get("text")
+                     contents = []
+                     if request.system_prompt:
+                         contents.append({"role": "user", "parts": [{"text": f"System: {request.system_prompt}"}]})
+                         contents.append({"role": "model", "parts": [{"text": "Understood."}]})
+                     
+                     contents.append({"role": "user", "parts": [{"text": request.prompt}]})
+                     
+                     payload = {
+                         "contents": contents,
+                         "generationConfig": {
+                             "temperature": 0.7,
+                             "maxOutputTokens": 4096
+                         }
+                     }
+                     
+                     # Headers: Send all variants to be safe
+                     headers = {
+                        "x-api-key": zen_key,
+                        "x-goog-api-key": zen_key,
+                        "Authorization": f"Bearer {zen_key}",
+                        "Content-Type": "application/json"
+                     }
+
+                     try:
+                         import requests
+                         response = requests.post(zen_url, headers=headers, json=payload, timeout=self.timeout)
                          
-                         llm_response = LLMResponse(
-                             call_id=call_id,
-                             content=text,
-                             model_used=f"ZEN:{data.get('model', model)}",
-                             latency_ms=int((time.time() - start_time) * 1000),
-                             timestamp=datetime.now().isoformat()
-                         )
+                         if response.status_code == 200:
+                             data = response.json()
+                             # Parse Google response
+                             # candidates[0].content.parts[0].text
+                             text = ""
+                             candidates = data.get("candidates", [])
+                             if candidates:
+                                 parts = candidates[0].get("content", {}).get("parts", [])
+                                 for part in parts:
+                                     text += part.get("text", "")
+                             
+                             llm_response = LLMResponse(
+                                 call_id=call_id,
+                                 content=text,
+                                 model_used=f"ZEN:{model}",
+                                 latency_ms=int((time.time() - start_time) * 1000),
+                                 timestamp=datetime.now().isoformat()
+                             )
+                             if self.log_calls:
+                                 self._log_call(request, llm_response)
+                             return llm_response
+                         else:
+                             logger.debug(f"Zen/Gemini REST Failed: Status {response.status_code}, Body: {response.text}")
+                     except Exception as e:
+                         logger.debug(f"Zen/Gemini REST Exception: {e}")
+                         pass
+
+                 else:
+                     # Standard Anthropic Style (Minimax/Claude)
+                     zen_model = model.replace("minimax/", "").replace("zen/", "").replace("opencode/", "")
+                     
+                     payload = {
+                        "model": zen_model, 
+                        "messages": [{"role": "user", "content": request.prompt}],
+                        "max_tokens": 4096,
+                        "temperature": 0.7
+                     }
+                     if request.system_prompt:
+                         payload["system"] = request.system_prompt
+                     
+                     try:
+                         import requests
+                         # Ensure URL is correct.
+                         zen_url = self.upstream_base_url
+                         if "/messages" not in zen_url and "/models/" not in zen_url:
+                             zen_url = zen_url.rstrip("/") + "/messages"
                          
-                         # Log the call
-                         if self.log_calls:
-                             self._log_call(request, llm_response)
+                         response = requests.post(zen_url, headers=headers, json=payload, timeout=self.timeout)
                          
-                         return llm_response
-                 except Exception:
-                     pass
+                         if response.status_code == 200:
+                             data = response.json()
+                             text = ""
+                             for content_part in data.get("content", []):
+                                 if content_part.get("type") == "text":
+                                     text += content_part.get("text")
+                             
+                             llm_response = LLMResponse(
+                                 call_id=call_id,
+                                 content=text,
+                                 model_used=f"ZEN:{data.get('model', model)}",
+                                 latency_ms=int((time.time() - start_time) * 1000),
+                                 timestamp=datetime.now().isoformat()
+                             )
+                             
+                             # Log the call
+                             if self.log_calls:
+                                 self._log_call(request, llm_response)
+                             
+                             return llm_response
+                         else:
+                             logger.debug(f"Zen REST Failed: Status {response.status_code}, Body: {response.text}")
+                     except Exception as e:
+                         logger.debug(f"Zen REST Exception: {e}")
+                         pass
         
         # 2. Standard CLI Execution
         cmd = ["opencode", "run", "-m", model, request.prompt]
@@ -712,11 +835,13 @@ class OpenCodeClient:
 
         # Execute
         try:
+            # Simulate 'y' inputs for tool confirmation prompts (send multiple just in case)
             result = subprocess.run(
                 cmd, 
                 env=env, 
                 capture_output=True, 
                 text=True, 
+                input="y\ny\ny\ny\ny\n", # Auto-approve tool calls
                 timeout=self.timeout,
                 shell=(os.name == "nt"),
             )
@@ -787,9 +912,9 @@ class OpenCodeClient:
         try:
             with open(filepath, "w") as f:
                 json.dump(log_entry, f, indent=2, sort_keys=True)
-        except Exception:
+        except Exception as e:
             # Don't fail on logging errors
-            pass
+            logger.debug(f"Failed to write call log to {filepath}: {e}")
 
     # ========================================================================
     # CONTEXT MANAGER

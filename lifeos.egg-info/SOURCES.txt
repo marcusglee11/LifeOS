@@ -18,6 +18,7 @@ opencode_governance/service.py
 project_builder/__init__.py
 recursive_kernel/__init__.py
 recursive_kernel/autogate.py
+recursive_kernel/backlog_parser.py
 recursive_kernel/builder.py
 recursive_kernel/planner.py
 recursive_kernel/runner.py

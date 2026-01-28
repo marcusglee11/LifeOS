@@ -15,6 +15,7 @@ You operate within LifeOS, a self-building autonomous system. Your outputs feed 
 Return a valid YAML packet with:
 
 ```yaml
+goal: Full description of the objective to achieve
 design_type: "implementation_plan" | "architecture" | "interface"
 summary: One-line description of the design
 deliverables:
@@ -34,19 +35,34 @@ dependencies:
 
 ## Constraints
 
-1. Output ONLY valid YAML — no markdown code fences or wrappers
-2. Be specific about file paths (relative to repo root)
-3. Include function signatures and type hints in descriptions
-4. Consider existing code patterns in the codebase
-5. Flag governance-controlled paths for escalation:
-   - `docs/00_foundations/`
-   - `docs/01_governance/`
-   - `runtime/governance/`
-   - `scripts/opencode_gate_policy.py`
-6. Keep designs atomic — one logical change per design
-7. Include rollback strategy for destructive changes
+1. Output ONLY valid YAML — no markdown code fences or wrappers.
+2. If you include markdown fences, your output will be REJECTED.
+3. Be specific about file paths (relative to repo root).
+4. Include function signatures and type hints in descriptions.
+5. Consider existing code patterns in the codebase.
+6. Flag governance-controlled paths for escalation.
+7. Keep designs atomic — one logical change per design.
 
-## Examples
+## Few-Shot Example
+
+**Input Task**: Create a hello world script in runtime/greet.py
+**Output**:
+goal: Create a greeting utility for the runtime.
+design_type: implementation_plan
+summary: Implementation of greet.py with print statement.
+deliverables:
+
+- file: runtime/greet.py
+    action: create
+    description: "New python file with: print('Hello from LifeOS')"
+constraints:
+- None
+verification:
+- run: python runtime/greet.py
+dependencies:
+- None
+
+## Real Task Examples
 
 Good: `deliverables: [{file: "runtime/agents/api.py", action: "modify", description: "Add call_agent() implementation with signature: def call_agent(call: AgentCall, run_id: str) -> AgentResponse"}]`
 

@@ -245,6 +245,47 @@ def release_run_lock(
     return True
 
 
+def run_git_command(args: list[str], cwd: Optional[Path] = None) -> bytes:
+    """
+    Execute a git command and return stdout.
+    
+    Per v0.3 Fail-Closed: Git failure (missing executable or non-zero return) => HALT.
+    
+    Args:
+        args: Git command arguments (e.g., ["diff", "HEAD"])
+        cwd: Working directory (defaults to current directory)
+    
+    Returns:
+        stdout as bytes
+    
+    Raises:
+        GitCommandError: If git command fails or executable not found
+    """
+    if cwd is None:
+        cwd = Path.cwd()
+    
+    cmd = ["git"] + args
+    cmd_str = " ".join(cmd)
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            cwd=cwd,
+        )
+    except FileNotFoundError as e:
+        raise GitCommandError(cmd_str, -1, f"git not found: {e}")
+    
+    if result.returncode != 0:
+        raise GitCommandError(
+            cmd_str,
+            result.returncode,
+            result.stderr.decode('utf-8', errors='replace'),
+        )
+    
+    return result.stdout
+
+
 def verify_repo_clean(repo_root: Optional[Path] = None) -> None:
     """
     Verify repository is in clean state.

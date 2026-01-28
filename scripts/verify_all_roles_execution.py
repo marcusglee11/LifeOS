@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """
-Verify All Roles Execution E2E
-==============================
+Verify All Roles Execution E2E (Dynamic from Config)
+====================================================
 
-This script verifies that ALL agent roles can successfully execute LLM calls
-for both their primary provider (Zen) and fallback provider (OpenRouter/Grok).
+This script verifies that ALL configured agent roles can successfully execute LLM calls.
+It loads primary and fallback models from config/models.yaml and tests them.
 
-It forces the system to prove:
-1. Role initializes with Primary (Zen) key.
-2. Zen call succeeds using that key.
-3. OpenRouter call succeeds (proving dynamic key swapping).
+Usage:
+    python scripts/verify_all_roles_execution.py
 """
 
 import sys
@@ -19,11 +17,14 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from runtime.agents.opencode_client import OpenCodeClient, LLMCall
+try:
+    from runtime.agents.opencode_client import OpenCodeClient, LLMCall
+    from runtime.agents.models import load_model_config
+except ImportError as e:
+    print(f"Error importing runtime: {e}")
+    sys.exit(1)
 
-ROLES = ["steward", "builder", "designer", "reviewer_architect", "build_cycle"]
-
-def verify_role_execution(role):
+def verify_role_execution(role, agent_cfg):
     print("\n" + "="*80)
     print(f"TESTING ROLE: {role.upper()}")
     print("="*80)
@@ -35,55 +36,54 @@ def verify_role_execution(role):
         if not key:
             print(f"❌ FAIL: No API key loaded for {role}")
             return False
-            
-        print(f"✓ Initialized with key: {key[:10]}... (Provider check: {'Zen' if key.startswith('sk-nd') or key.startswith('sk-ant') or 'NdFD' in key else 'OpenRouter/Other'})")
-        
-        # Verify it IS a Zen key if Zen is configured as primary
-        # (Assuming config/models.yaml sets Zen for all these roles)
-        if "sk-or-" in key:
-            print(f"⚠ WARNING: Expected Zen key but got OpenRouter key. Primary config might be ignored?")
-        
+        print(f"✓ Initialized with key set: {'Yes' if key else 'No'}")
     except Exception as e:
         print(f"❌ FAIL: Initialization error: {e}")
         return False
 
-    # 2. Test Primary Call (Zen)
-    # Note: Using explicit Minimax model name to force Direct Zen path if applicable
-    zen_model = "minimax-m2.1-free" 
-    print(f"\n[1/2] Testing Primary Call (Zen: {zen_model})...")
-    try:
-        req = LLMCall(
-            model=zen_model,
-            prompt="Reply with 'ZEN_OK'",
-            system_prompt="system"
-        )
-        resp = client.call(req)
-        print(f"✓ SUCCESS: {resp.content[:50]}")
-    except Exception as e:
-        print(f"❌ FAIL: Zen call failed: {e}")
+    # 2. Test Primary Call
+    primary_model = agent_cfg.model
+    print(f"\n[1] Testing Primary Call (Model: {primary_model})...")
+    if not run_call(client, primary_model):
+        print("❌ FAIL: Primary call failed.")
         return False
 
-    # 3. Test Fallback Call (OpenRouter)
-    or_model = "openrouter/x-ai/grok-4.1-fast"
-    print(f"\n[2/2] Testing Fallback Swap Call (OpenRouter: {or_model})...")
-    try:
-        req = LLMCall(
-            model=or_model,
-            prompt="Reply with 'GROK_OK'",
-            system_prompt="system"
-        )
-        resp = client.call(req)
-        print(f"✓ SUCCESS: {resp.content[:50]}")
-    except Exception as e:
-        print(f"❌ FAIL: OpenRouter call failed: {e}")
-        return False
+    # 3. Test Fallbacks
+    for idx, fb in enumerate(agent_cfg.fallback):
+        fb_model = fb.get("model")
+        if not fb_model: continue
+        
+        print(f"\n[{idx+2}] Testing Fallback Call (Model: {fb_model})...")
+        if not run_call(client, fb_model):
+            print("❌ FAIL: Fallback call failed.")
+            return False
 
     return True
 
+def run_call(client, model):
+    try:
+        req = LLMCall(
+            model=model,
+            prompt="Reply with 'OK'",
+            system_prompt="system"
+        )
+        resp = client.call(req)
+        # Check if the model reported matches expectation (loose check for provider prefixes)
+        print(f"✓ SUCCESS. Response len: {len(resp.content)}. Used: {resp.model_used}")
+        return True
+    except Exception as e:
+        print(f"❌ FAILED: {e}")
+        return False
+
 def main():
+    config = load_model_config()
+    if not config.agents:
+        print("No agents configured.")
+        return 1
+        
     results = {}
-    for role in ROLES:
-        results[role] = verify_role_execution(role)
+    for role, agent_cfg in config.agents.items():
+        results[role] = verify_role_execution(role, agent_cfg)
     
     print("\n" + "="*80)
     print("SUMMARY")

@@ -35,6 +35,9 @@ class AttemptRecord:
     # Decision
     next_action: str # LoopAction.value
     rationale: str
+    
+    # Trusted Builder (C4)
+    plan_bypass_info: Optional[Dict[str, Any]] = None
 
 class LedgerHeader:
     """

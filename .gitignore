@@ -68,10 +68,10 @@ artifacts/bundles/*.zip
 artifacts/bundles/*.sha256
 artifacts/bundles/*.txt
 artifacts/evidence/
-# artifacts/for_ceo/  <-- REMOVED
-# artifacts/plans/Plan_*.md  <-- REMOVED
-# artifacts/test_reports/  <-- REMOVED
-# artifacts/*.md  <-- REMOVED
+artifacts/packets/
+artifacts/review_packets/
+artifacts/steward_tasks/
+artifacts/plans/
 
 # Archive bundles (ephemeral)
 artifacts/99_archive/
@@ -97,3 +97,6 @@ dogfood_worktree/
 generate_bundle*.py
 artifacts/active_branches.json
 artifacts/ledger/dl_doc/mock_*.txt
+artifacts/CEO_Terminal_Packet.md
+artifacts/loop_state/
+test_autonomous_direct.py

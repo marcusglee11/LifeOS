@@ -46,10 +46,54 @@ from runtime.orchestration.engine import ExecutionContext
 @pytest.fixture
 def mock_context(tmp_path: Path) -> MissionContext:
     """Create a mock mission context for testing."""
+    # Initialize as git repo (needed for git commands in steward)
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=tmp_path, check=True, capture_output=True)
+
+    # Create artifacts directory (needed for packet emission)
+    (tmp_path / "artifacts").mkdir(parents=True, exist_ok=True)
+
+    # Create config directory and governance baseline (needed for autonomous build cycle)
+    (tmp_path / "config").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "config" / "policy").mkdir(parents=True, exist_ok=True)
+    import yaml
+    baseline = {'artifacts': []}
+    with open(tmp_path / "config" / "governance_baseline.yaml", 'w') as f:
+        yaml.dump(baseline, f)
+
+    # Create minimal policy files (needed for autonomous build cycle)
+    policy_rules = {
+        'includes': [],
+        'council_config': {
+            'seats': {},
+            'decision_criteria': {}
+        },
+        'loop_budgets': {
+            'max_outer_iterations': 5,
+            'max_tokens_per_session': 100000
+        },
+        'fallback_policies': {}
+    }
+    with open(tmp_path / "config" / "policy" / "policy_rules.yaml", 'w') as f:
+        yaml.dump(policy_rules, f)
+
+    # Create initial commit so HEAD exists
+    (tmp_path / "README.md").write_text("Test repo")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=tmp_path, check=True, capture_output=True)
+
+    # Create mock operation executor for token accounting
+    from unittest.mock import MagicMock
+    mock_executor = MagicMock()
+    mock_executor.token_accounting_available.return_value = True
+    mock_executor.get_total_tokens.return_value = 0
+
     return MissionContext(
         repo_root=tmp_path,
         baseline_commit="abc123",
         run_id="test-run-id",
+        operation_executor=mock_executor,
     )
 
 
@@ -499,15 +543,13 @@ class TestStewardMission:
         assert result.mission_type == MissionType.STEWARD
         # HARDENING: Output is simulated_commit_hash, not commit_hash
         assert "simulated_commit_hash" in result.outputs
-        # HARDENING: Steps have _stub suffix (except target validation which is real)
-        assert "commit_stub" in result.executed_steps
-        assert "validate_steward_targets" in result.executed_steps  # Real step now
-        assert "stage_changes_stub" in result.executed_steps
-        assert "record_completion_stub" in result.executed_steps
-        assert "verify_repo_clean" in result.executed_steps  # Real step, no stub
-        # HARDENING: Evidence shows stubbed=True
+        # HARDENING: Steps are now real, no stub suffixes
+        assert "validate_inputs" in result.executed_steps
+        assert "validate_steward_targets" in result.executed_steps
+        assert "check_self_mod_protection" in result.executed_steps
+        assert "verify_repo_clean" in result.executed_steps
+        # HARDENING: Evidence shows stubbed=True (no actual commit)
         assert result.evidence.get("stubbed") is True
-        assert "simulated_steps" in result.evidence
 
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_run_fails_with_deterministic_error(self, mock_verify, mock_context: MissionContext, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
@@ -581,7 +623,7 @@ class TestStewardTargetValidation:
         """Category C: Non-doc/non-allowlisted paths are BLOCKED."""
         mock_verify.return_value = None
         valid_review_packet["payload"]["artifacts_produced"] = [
-            "runtime/module.py",
+            "src/main.py",  # Disallowed path (not docs/, runtime/, or recursive_kernel/)
         ]
         
         mission = StewardMission()
@@ -593,10 +635,10 @@ class TestStewardTargetValidation:
         
         assert result.success is False
         assert "disallowed" in result.error.lower()
-        assert "runtime/module.py" in result.error
+        assert "src/main.py" in result.error
         # Evidence includes classified paths
         assert "classified_paths" in result.evidence
-        assert "runtime/module.py" in result.evidence["classified_paths"]["disallowed"]
+        assert "src/main.py" in result.evidence["classified_paths"]["disallowed"]
 
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_steward_succeeds_with_empty_artifact_list(
@@ -634,7 +676,7 @@ class TestStewardTargetValidation:
         valid_review_packet["_skip_opencode"] = True
         # Even with injection, disallowed paths still fail
         valid_review_packet["payload"]["artifacts_produced"] = [
-            "runtime/some.py"
+            "tests/test_some.py"  # Actually disallowed path
         ]
         
         mission = StewardMission()
@@ -673,10 +715,18 @@ class TestStewardTargetValidation:
         for path, expected in in_envelope:
             assert mission._classify_path(path) == expected, f"{path} should be {expected}"
         
-        # Category C: Disallowed (non-doc paths)
+        # Category D: Code paths (allowed)
+        code = [
+            ("runtime/engine.py", "code"),
+            ("recursive_kernel/kernel.py", "code"),
+        ]
+        for path, expected in code:
+            assert mission._classify_path(path) == expected, f"{path} should be {expected}"
+
+        # Category C: Disallowed (everything else)
         disallowed = [
-            ("runtime/engine.py", "disallowed"),
             ("tests/test_foo.py", "disallowed"),
+            ("src/main.py", "disallowed"),
             ("docs/readme.txt", "disallowed"),  # Non-.md in docs
         ]
         for path, expected in disallowed:
@@ -701,12 +751,12 @@ class TestStewardRouting:
         # Setup in-envelope artifact
         valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
         
-        # Mock successful runner execution
-        mock_run.return_value = MagicMock(
-            returncode=0, 
-            stdout="Success log", 
-            stderr="No errors"
-        )
+        # Mock subprocess calls: git pre-commit, opencode runner, git post-commit
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="commit_hash_before", stderr=""),  # Pre-commit hash
+            MagicMock(returncode=0, stdout="Success log", stderr="No errors"),  # OpenCode runner
+            MagicMock(returncode=0, stdout="commit_hash_after", stderr=""),  # Post-commit hash
+        ]
         
         mission = StewardMission()
         inputs = {
@@ -722,15 +772,16 @@ class TestStewardRouting:
         assert "opencode_result" in result.evidence
         assert result.evidence["opencode_result"]["exit_code"] == 0
         
-        # P0: Verify invocation args
-        mock_run.assert_called_once()
-        args, kwargs = mock_run.call_args
+        # P0: Verify invocation args (check the opencode runner call - second call)
+        assert mock_run.call_count == 3  # git pre, opencode, git post
+        opencode_call = mock_run.call_args_list[1]  # Second call is opencode runner
+        args, kwargs = opencode_call
         cmd = args[0]
         assert cmd[0] == "python_exe"
         assert "opencode_ci_runner.py" in cmd[1]
         assert "--task-file" in cmd
         assert "artifacts/steward_tasks/steward_task_v" in cmd[3].replace("\\", "/") # versioned
-        
+
         # P0: Verify safety args
         assert kwargs["cwd"] == mock_context.repo_root
         assert kwargs["timeout"] == 300
@@ -745,13 +796,12 @@ class TestStewardRouting:
         """Verify fail-closed on non-zero exit code."""
         mock_verify.return_value = None
         valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
-        
-        # Mock failure runner execution
-        mock_run.return_value = MagicMock(
-            returncode=1, 
-            stdout="Partial log", 
-            stderr="Validation failed"
-        )
+
+        # Mock subprocess calls: git pre-commit succeeds, opencode fails
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="commit_hash_before", stderr=""),  # Pre-commit hash
+            MagicMock(returncode=1, stdout="Partial log", stderr="Validation failed"),  # OpenCode failure
+        ]
         
         mission = StewardMission()
         inputs = {
@@ -812,12 +862,17 @@ class TestAutonomousBuildCycleMission:
         # Should not raise
         mission.validate_inputs(inputs)
     
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.PolicyLoader.load")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.DesignMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.ReviewMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.BuildMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.StewardMission.run")
-    def test_run_composes_correctly(self, mock_steward, mock_build, mock_review, mock_design, mock_context: MissionContext):
+    def test_run_composes_correctly(self, mock_steward, mock_build, mock_review, mock_design, mock_policy_load, mock_context: MissionContext):
         """Verify autonomous build cycle composes missions correctly."""
+        # Mock policy loader
+        mock_policy_load.return_value = {
+            'loop_budgets': {'max_outer_iterations': 5, 'max_tokens_per_session': 100000}
+        }
         # Setup mocks
         design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"])
         review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"])
@@ -847,12 +902,17 @@ class TestAutonomousBuildCycleMission:
         # First phase should be design
         assert cycle_report["phases"][0]["phase"] == "design"
 
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.PolicyLoader.load")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.DesignMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.ReviewMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.BuildMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.StewardMission.run")
-    def test_run_full_cycle_success(self, mock_steward, mock_build, mock_review, mock_design, mock_context: MissionContext):
+    def test_run_full_cycle_success(self, mock_steward, mock_build, mock_review, mock_design, mock_policy_load, mock_context: MissionContext):
         """Verify full cycle runs to completion (with stubbed implementations)."""
+        # Mock policy loader
+        mock_policy_load.return_value = {
+            'loop_budgets': {'max_outer_iterations': 5, 'max_tokens_per_session': 100000}
+        }
         # Setup mocks
         design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"])
         review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"])
@@ -893,12 +953,12 @@ class TestStewardRouting:
         # Setup in-envelope artifact
         valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
         
-        # Mock successful runner execution
-        mock_run.return_value = MagicMock(
-            returncode=0, 
-            stdout="Success log", 
-            stderr="No errors"
-        )
+        # Mock subprocess calls: git pre-commit, opencode runner, git post-commit
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="commit_hash_before", stderr=""),  # Pre-commit hash
+            MagicMock(returncode=0, stdout="Success log", stderr="No errors"),  # OpenCode runner
+            MagicMock(returncode=0, stdout="commit_hash_after", stderr=""),  # Post-commit hash
+        ]
         
         mission = StewardMission()
         inputs = {
@@ -914,15 +974,16 @@ class TestStewardRouting:
         assert "opencode_result" in result.evidence
         assert result.evidence["opencode_result"]["exit_code"] == 0
         
-        # P0: Verify invocation args
-        mock_run.assert_called_once()
-        args, kwargs = mock_run.call_args
+        # P0: Verify invocation args (check the opencode runner call - second call)
+        assert mock_run.call_count == 3  # git pre, opencode, git post
+        opencode_call = mock_run.call_args_list[1]  # Second call is opencode runner
+        args, kwargs = opencode_call
         cmd = args[0]
         assert cmd[0] == "python_exe"
         assert "opencode_ci_runner.py" in cmd[1]
         assert "--task-file" in cmd
         assert "artifacts/steward_tasks/steward_task_v" in cmd[3].replace("\\", "/") # versioned
-        
+
         # P0: Verify safety args
         assert kwargs["cwd"] == mock_context.repo_root
         assert kwargs["timeout"] == 300
@@ -937,13 +998,12 @@ class TestStewardRouting:
         """Verify fail-closed on non-zero exit code."""
         mock_verify.return_value = None
         valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
-        
-        # Mock failure runner execution
-        mock_run.return_value = MagicMock(
-            returncode=1, 
-            stdout="Partial log", 
-            stderr="Validation failed"
-        )
+
+        # Mock subprocess calls: git pre-commit succeeds, opencode fails
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="commit_hash_before", stderr=""),  # Pre-commit hash
+            MagicMock(returncode=1, stdout="Partial log", stderr="Validation failed"),  # OpenCode failure
+        ]
         
         mission = StewardMission()
         inputs = {
@@ -968,9 +1028,11 @@ class TestStewardRouting:
         """Verify fail-closed on timeout."""
         mock_verify.return_value = None
         valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
-        
-        # P0: Mock timeout exception
-        mock_run.side_effect = subprocess.TimeoutExpired(cmd="runner", timeout=300)
+
+        # P0: Mock timeout exception on pre-commit hash capture (first call)
+        mock_run.side_effect = [
+            subprocess.TimeoutExpired(cmd="git", timeout=10),  # Pre-commit hash times out
+        ]
         
         mission = StewardMission()
         inputs = {
@@ -981,8 +1043,7 @@ class TestStewardRouting:
         
         # Fail-closed
         assert result.success is False
-        assert "OpenCode routing failed" in result.error
-        assert "timed out after 300s" in result.error or "timed out" in result.error
+        assert "timed out" in result.error.lower()
 
 
 # =============================================================================

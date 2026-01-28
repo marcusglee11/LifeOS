@@ -16,6 +16,9 @@ import yaml
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 
+# Import centralized workspace resolution
+from runtime.util.workspace import resolve_workspace_root as _util_resolve_workspace_root
+
 try:
     from jsonschema import validate, ValidationError, Draft7Validator
     HAS_JSONSCHEMA = True
@@ -231,43 +234,17 @@ class PolicyLoader:
     
     def _resolve_workspace_root(self) -> Path:
         """Resolve workspace root deterministically.
-        
-        Resolution order:
-        1. LIFEOS_WORKSPACE_ROOT env var
-        2. Git repository root
-        3. Current working directory
-        
+
+        Delegates to runtime.util.workspace for single source of truth.
+
         Returns:
             Workspace root Path
         """
-        import os
-        import subprocess
-        
-        # Try environment variable
-        raw = os.environ.get("LIFEOS_WORKSPACE_ROOT")
-        if raw:
-            path = Path(raw)
-            if path.exists() and path.is_dir():
-                return path.resolve()
-        
-        # Try git root
         try:
-            result = subprocess.run(
-                ["git", "rev-parse", "--show-toplevel"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-                cwd=Path.cwd()
-            )
-            if result.returncode == 0:
-                git_root = Path(result.stdout.strip())
-                if git_root.exists() and git_root.is_dir():
-                    return git_root.resolve()
-        except (subprocess.SubprocessError, FileNotFoundError, OSError):
-            pass
-        
-        # Fallback to cwd
-        return Path.cwd().resolve()
+            return _util_resolve_workspace_root()
+        except RuntimeError:
+            # Fallback to cwd if utility fails
+            return Path.cwd().resolve()
     
     @property
     def effective_config(self) -> Optional[Dict[str, Any]]:

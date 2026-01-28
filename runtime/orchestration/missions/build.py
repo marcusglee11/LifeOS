@@ -120,6 +120,7 @@ class BuildMission(BaseMission):
                 success=True,
                 outputs={"review_packet": review_packet},
                 executed_steps=executed_steps,
+                evidence=review_packet["evidence"],
             )
             
         except Exception as e:

@@ -3,10 +3,13 @@ FP-3.3: DAP Write Gateway
 Central gateway for all file write operations.
 Enforces DAP boundary checks, deterministic naming, and protected path validation.
 """
+import logging
 import os
 import re
 import json
-from typing import Optional, List, Set
+from typing import Optional, List
+
+logger = logging.getLogger(__name__)
 
 
 class DAPWriteError(Exception):
@@ -83,7 +86,7 @@ class DAPWriteGateway:
         if filename.endswith(('.md', '.json', '.yaml')):
             if not self.VERSION_PATTERN.match(filename):
                 # Warning but not blocking - some files may not need versions
-                pass
+                logger.debug(f"File {filename} does not follow version pattern (v{{major}}.{{minor}})")
     
     def write(self, target_path: str, content: str, encoding: str = 'utf-8') -> None:
         """

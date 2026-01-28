@@ -6,11 +6,17 @@
 
 ### P0 (Critical)
 
+- [x] **E2E Test: Runtime Greet** -- DoD: runtime/greet.py exists and is committed -- Owner: antigravity -- Context: Create a new file 'runtime/greet.py' that contains a single print statement: print('Hello from E2E'). Use valid YAML for your design response.
+
 ### P1 (High)
 
-- [ ] **Complete Deferred Evidence: F3 Tier-2.5 Activation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
-- [ ] **Complete Deferred Evidence: F4 Tier-2.5 Deactivation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
-- [ ] **Complete Deferred Evidence: F7 Runtime ↔ Antigrav Protocol** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+- [x] **Complete Deferred Evidence: F3 Tier-2.5 Activation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+- [x] **Complete Deferred Evidence: F4 Tier-2.5 Deactivation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+- [x] **Complete Deferred Evidence: F7 Runtime ↔ Antigrav Protocol** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
+
+- [ ] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 
 - [ ] **Recursive Builder iteration (Phase B)** — Why Now: Immediate focus (Refinement & Automation) — Owner: antigravity
 - [ ] **B1: Strengthen smoke_check failure-path evidence assertions** — DoD: Test computes sha256 of smoke_check.stderr — Owner: antigravity

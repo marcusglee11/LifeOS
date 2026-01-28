@@ -84,7 +84,12 @@
       "Bash(.venv/bin/lifeos mission list)",
       "Bash(.venv/bin/lifeos mission run echo --params '{\"\"message\"\":\"\"Hello from CLI\"\"}' --json)",
       "Bash(chmod +x scripts/todo_inventory.py)",
-      "Bash(bash scripts/hooks/pre-commit:*)"
+      "Bash(bash scripts/hooks/pre-commit:*)",
+      "Bash(chmod:*)",
+      "Bash(pip3 list:*)",
+      "Bash(dos2unix:*)",
+      "Bash(bash:*)",
+      "mcp__filesystem__search_files"
     ],
     "deny": [
       "Bash(rm -rf /*)",

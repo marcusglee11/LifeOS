@@ -17,6 +17,7 @@ from typing import List, Optional, Tuple, Dict, Any
 
 from .taxonomy import FailureClass, LoopAction, TerminalReason, TerminalOutcome
 from .ledger import AttemptLedger
+from .configurable_policy import ConfigurableLoopPolicy
 
 
 class EscalationArtifact:
@@ -204,13 +205,11 @@ class LoopPolicy:
         If config provided, uses config-driven policy.
         Otherwise falls back to legacy hardcoded behavior.
         """
-        self._config_policy: Optional[ConfigDrivenLoopPolicy] = None
+        self._config_policy: Optional[ConfigurableLoopPolicy] = None
         
         if effective_config:
-            loop_rules = effective_config.get("loop_rules", [])
-            escalation_config = effective_config.get("escalation", {})
-            if loop_rules:
-                self._config_policy = ConfigDrivenLoopPolicy(loop_rules, escalation_config)
+            # Use ConfigurableLoopPolicy (Phase B.1) which supports Plan Bypass
+            self._config_policy = ConfigurableLoopPolicy(effective_config)
     
     def decide_next_action(
         self,
@@ -228,7 +227,11 @@ class LoopPolicy:
         """
         # Use config-driven policy if available
         if self._config_policy:
-            return self._config_policy.decide_next_action(ledger, now=now)
+            result = self._config_policy.decide_next_action(ledger, now=now)
+            # Adapt 3-tuple (action, reason, override) to 2-tuple (action, reason)
+            if isinstance(result, tuple) and len(result) == 3:
+                return result[0], result[1]
+            return result
         
         # Legacy hardcoded fallback
         return self._hardcoded_decide(ledger)
@@ -281,3 +284,45 @@ class LoopPolicy:
             return LoopAction.TERMINATE.value, "Unknown error is fail-closed"
             
         return LoopAction.TERMINATE.value, "Default fall-through blocked"
+    
+    def evaluate_plan_bypass(
+        self,
+        *,
+        failure_class_key: str,
+        proposed_patch: Optional[Dict[str, Any]],
+        protected_path_registry: Optional[List[str]],
+        ledger: AttemptLedger
+    ) -> Dict[str, Any]:
+        """
+        Evaluate Plan Bypass eligibility by delegating to config policy.
+        
+        Args:
+           failure_class_key: Normalized failure class
+           proposed_patch: Patch stats
+           protected_path_registry: Registry of protected paths
+           ledger: Attempt ledger
+           
+        Returns:
+           Decision dict (PlanBypassDecision structure)
+        """
+        if self._config_policy:
+            return self._config_policy.evaluate_plan_bypass(
+                failure_class_key=failure_class_key,
+                proposed_patch=proposed_patch,
+                protected_path_registry=protected_path_registry,
+                ledger=ledger
+            )
+            
+        # Hardcoded fallback: Always INELIGIBLE (Bypass not supported in legacy)
+        return {
+            "evaluated": True,
+            "eligible": False,
+            "applied": False,
+            "rule_id": None,
+            "decision_reason": "Plan Bypass not supported in legacy hardcoded policy",
+            "scope": {},
+            "protected_paths_hit": [],
+            "budget": {},
+            "mode": "unknown",
+            "proposed_patch": {"present": False}
+        }

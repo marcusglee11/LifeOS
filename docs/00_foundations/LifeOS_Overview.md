@@ -1,6 +1,6 @@
 # LifeOS Overview
 
-**Last Updated**: 2026-01-13
+**Last Updated**: 2026-01-27
 
 > A personal operating system that makes you the CEO of your life.
 
@@ -43,7 +43,7 @@ The system evolves through "Tiers" of capability, earning more autonomy as it pr
 
 - **Tier 1 (Kernel)**: Deterministic, manual execution. (Foundation)
 - **Tier 2 (Orchestration)**: System manages the workflow, human triggers tasks.
-- **Tier-3 (Construction)**: specialized agents (Builders) perform work. **<-- Authorized / Partially Implemented**
+- **Tier-3 (Construction)**: specialized agents (Builders) perform work. **<-- Authorized (v1.1 Ratified)**
 - **Tier 4 (Agency)**: System plans and prioritized work over time.
 - **Tier 5 (Self-Improvement)**: The system improves its own code to better serve the CEO.
 
@@ -51,15 +51,15 @@ The system evolves through "Tiers" of capability, earning more autonomy as it pr
 
 ## 3. Progress: Current Status
 
-**Current Status**: **Phase 3 / Tier-2.5 Active (Tier-3 Infrastructure Authorized)**
+**Current Status**: **Phase 4 (Autonomous Construction) / Tier-3 Authorized**
 
-- The system can currently **build, test, and verify** its own code under strict supervision.
+- The system can formally **build, test, and verify** its own code using the Recursive Builder pattern (v1.1 Ratified).
 - **Active Agents**: 'Antigravity' (General Purpose), 'OpenCode' (Stewardship).
 - **Recent Wins**:
-  - **Deterministic CLI**: Stabilized universal entry point `lifeos` for mission execution and orchestration.
-  - **Audit-Grade Evidence**: All missions now produce verifiable SHA256 hashes and compact, deterministic JSON output.
-  - **BuildWithValidation**: Replaced prototype loops with production-grade subprocess runtimes for surgical code modifications.
-  - **Stewardship**: Automated documentation and governance checks integrated into the agent workflow.
+  - **Trusted Builder Mode v1.1**: Council Ratified 2026-01-26.
+  - **Policy Engine Authoritative Gating**: Council Passed 2026-01-23.
+  - **Phase 3 Closure**: Conditions Met (F3/F4/F7 Evidence Captured).
+  - **Deterministic CLI**: Stabilized universal entry point `lifeos` for mission execution.
 
 ---
 
