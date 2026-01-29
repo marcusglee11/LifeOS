@@ -140,7 +140,8 @@ class BuildWithValidationMission(BaseMission):
                 "command": res.command,
                 "exit_code": res.exit_code,
                 "stdout_sha256": res.stdout_sha256,
-                "stderr_sha256": res.stderr_sha256
+                "stderr_sha256": res.stderr_sha256,
+                "exitcode_sha256": res.exitcode_sha256  # B1: Expose exitcode hash
             }
 
         # Substituted shared primitive (runtime/tools/evidence_capture.py)

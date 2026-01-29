@@ -280,7 +280,8 @@ def test_orchestrator_dispatches_mission_successfully(temp_git_repo, monkeypatch
             from runtime.orchestration.missions import get_mission_class
             get_mission_class("echo")
             mission_available = True
-        except:
+        except Exception:
+            # B2 refinement: Mission not available - graceful degradation for test setup
             pass
 
     # ENFORCE: echo-or-skip (no fallback)

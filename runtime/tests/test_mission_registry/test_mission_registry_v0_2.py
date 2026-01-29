@@ -223,6 +223,9 @@ class TestCycle4InvariantValidation:
             name="Valid Name",
             metadata={"key": 123},  # Not a string
         )
+        # B2 refinement: Union needed - synthesize_mission may raise MissionBoundaryViolation
+        # from metadata validation, TypeError from canonicalization, or ValueError from
+        # internal validation depending on the code path taken.
         with pytest.raises((MissionBoundaryViolation, TypeError, ValueError)):
             synthesize_mission(req)
     

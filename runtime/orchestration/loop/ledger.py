@@ -1,3 +1,13 @@
+"""
+Attempt Ledger - Append-only JSONL ledger for Autonomous Build Loop.
+
+Fail-Closed Boundary:
+All filesystem errors (OSError) and JSON errors (JSONDecodeError) are wrapped
+into LedgerIntegrityError. The ledger is the source of truth for resumability
+and MUST fail explicitly on corruption or I/O errors.
+
+See: docs/02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md
+"""
 import json
 import os
 import hashlib
