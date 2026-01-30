@@ -1,0 +1,161 @@
+name: Phase 1 Autonomy - Nightly Doc Hygiene
+
+on:
+  schedule:
+    # Run at 6 AM UTC every day (overnight for PST/AEDT)
+    - cron: '0 6 * * *'
+  workflow_dispatch:  # Allow manual trigger for testing
+
+permissions:
+  contents: write  # Needed to commit changes
+  issues: write    # Needed to create morning reports
+
+jobs:
+  doc-hygiene-autonomous:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for proper git operations
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Install markdownlint-cli
+        run: |
+          npm install -g markdownlint-cli
+          markdownlint --version
+
+      - name: Run doc hygiene
+        id: doc-hygiene
+        continue-on-error: true
+        run: |
+          python3 scripts/doc_hygiene_markdown_lint.py docs/ > hygiene_report.txt 2>&1
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          cat hygiene_report.txt
+
+      - name: Commit changes if any
+        id: commit
+        run: |
+          git config user.name "LifeOS Robot"
+          git config user.email "robot@lifeos.local"
+
+          if git diff --quiet; then
+            echo "no_changes=true" >> $GITHUB_OUTPUT
+            echo "No changes to commit"
+          else
+            git add docs/
+            git commit -m "chore: automated doc hygiene - $(date +%Y-%m-%d)
+
+          Automated markdown linting via Phase 1 autonomy workflow.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Co-Authored-By: LifeOS Robot <robot@lifeos.local>"
+            git push
+            echo "no_changes=false" >> $GITHUB_OUTPUT
+            echo "Changes committed and pushed"
+          fi
+
+      - name: Run test suite
+        id: tests
+        continue-on-error: true
+        run: |
+          pytest --tb=short -v > test_results.txt 2>&1
+          TEST_EXIT=$?
+          echo "exit_code=$TEST_EXIT" >> $GITHUB_OUTPUT
+
+          # Show summary
+          tail -50 test_results.txt
+
+          exit $TEST_EXIT
+
+      - name: Rollback if tests fail
+        if: steps.tests.outputs.exit_code != '0' && steps.commit.outputs.no_changes == 'false'
+        run: |
+          echo "Tests failed, rolling back commit..."
+          git reset --hard HEAD~1
+          git push --force
+          echo "Rollback complete"
+
+      - name: Create morning report issue
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Read report files
+            const hygieneReport = fs.existsSync('hygiene_report.txt')
+              ? fs.readFileSync('hygiene_report.txt', 'utf8')
+              : 'No hygiene report generated';
+
+            const testResults = fs.existsSync('test_results.txt')
+              ? fs.readFileSync('test_results.txt', 'utf8')
+              : 'No test results available';
+
+            // Extract test summary (last 50 lines)
+            const testSummary = testResults.split('\n').slice(-50).join('\n');
+
+            // Determine overall status
+            const hygieneStatus = '${{ steps.doc-hygiene.outputs.exit_code }}' === '0' ? '✅' : '❌';
+            const testsStatus = '${{ steps.tests.outputs.exit_code }}' === '0' ? '✅' : '❌';
+            const commitStatus = '${{ steps.commit.outputs.no_changes }}' === 'true' ? '📝 No changes' : '✅ Committed';
+            const rolledBack = '${{ steps.tests.outputs.exit_code }}' !== '0' && '${{ steps.commit.outputs.no_changes }}' === 'false';
+
+            const runUrl = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+
+            // Create issue
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `📊 Phase 1 Autonomy Report - ${new Date().toISOString().split('T')[0]}`,
+              body: `## Nightly Autonomy Run Complete
+
+          **Workflow:** Phase 1 Doc Hygiene
+          **Time:** ${new Date().toISOString()}
+          **Status:** ${{ job.status }}
+          ${rolledBack ? '**⚠️ ROLLBACK PERFORMED** - Tests failed after commit\n' : ''}
+
+          ### Task Results
+
+          - ${hygieneStatus} **Markdown linting** (docs/**/*.md)
+          - ${commitStatus} **Git commit**
+          - ${testsStatus} **Test suite** (pytest)
+
+          ### Doc Hygiene Summary
+
+          \`\`\`
+          ${hygieneReport.slice(0, 1000)}
+          \`\`\`
+
+          ### Test Results (summary)
+
+          \`\`\`
+          ${testSummary.slice(0, 2000)}
+          \`\`\`
+
+          ### Review Actions
+
+          - [ ] Review committed changes (if any)
+          - [ ] Verify test results
+          - [ ] Investigate failures (if any)
+          - [ ] Close issue after review
+
+          ---
+
+          [View full workflow run →](${runUrl})
+
+          *🤖 Generated by LifeOS Phase 1 Autonomy*`,
+              labels: ['automation', 'phase-1', 'nightly-run']
+            });
