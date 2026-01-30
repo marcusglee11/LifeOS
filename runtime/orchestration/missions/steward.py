@@ -23,7 +23,7 @@ from runtime.orchestration.missions.base import (
     MissionType,
     MissionValidationError,
 )
-from runtime.governance.self_mod_protection import SelfModProtector
+from runtime.api.governance_api import SelfModProtector
 
 
 class StewardMission(BaseMission):

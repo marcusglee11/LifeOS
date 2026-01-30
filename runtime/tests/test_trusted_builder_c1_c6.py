@@ -17,7 +17,7 @@ from dataclasses import asdict
 from runtime.orchestration.loop.configurable_policy import ConfigurableLoopPolicy
 from runtime.orchestration.loop.taxonomy import FailureClass
 from runtime.orchestration.loop.ledger import AttemptRecord, AttemptLedger
-from runtime.governance.self_mod_protection import PROTECTED_PATHS
+from runtime.api.governance_api import PROTECTED_PATHS
 
 class TestTrustedBuilderCompliance:
 

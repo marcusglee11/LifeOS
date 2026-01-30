@@ -9,6 +9,10 @@ class FailureClass(Enum):
     TIMEOUT = "timeout"
     VALIDATION_ERROR = "validation_error"  # e.g. Schema validation failed
     REVIEW_REJECTION = "review_rejection"
+    LINT_ERROR = "lint_error"
+    TEST_FLAKE = "test_flake"
+    TYPO = "typo"
+    FORMATTING_ERROR = "formatting_error"
     UNKNOWN = "unknown"
 
 class TerminalOutcome(Enum):

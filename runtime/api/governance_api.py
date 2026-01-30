@@ -18,6 +18,13 @@ from runtime.governance.tool_policy import (
 # Re-export policy loader for loop controller
 from runtime.governance.policy_loader import PolicyLoader, PolicyLoadError
 
+# Re-export self-mod protection for orchestration and missions
+from runtime.governance.self_mod_protection import (
+    PROTECTED_PATHS,
+    is_protected,
+    SelfModProtector,
+)
+
 __all__ = [
     "GovernanceAPI",
     "resolve_sandbox_root",
@@ -26,6 +33,9 @@ __all__ = [
     "PolicyDenied",
     "PolicyLoader",
     "PolicyLoadError",
+    "PROTECTED_PATHS",
+    "is_protected",
+    "SelfModProtector",
 ]
 
 

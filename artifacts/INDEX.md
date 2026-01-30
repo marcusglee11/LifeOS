@@ -8,9 +8,9 @@ All artifacts **MUST** conform to the **Build Artifact Protocol v1.0**:
 
 | Resource | Path |
 |----------|------|
-| Protocol | [`Build_Artifact_Protocol_v1.0.md`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/Build_Artifact_Protocol_v1.0.md) |
-| Schemas | [`build_artifact_schemas_v1.yaml`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/build_artifact_schemas_v1.yaml) |
-| Templates | [`templates/`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/templates/) |
+| Protocol | [`Build_Artifact_Protocol_v1.0.md`](../docs/02_protocols/Build_Artifact_Protocol_v1.0.md) |
+| Schemas | [`build_artifact_schemas_v1.yaml`](../docs/02_protocols/build_artifact_schemas_v1.yaml) |
+| Templates | [`templates/`](../docs/02_protocols/templates/) |
 
 > [!IMPORTANT]
 > All new artifacts must include YAML frontmatter per schema. See templates for examples.
@@ -42,9 +42,9 @@ All artifacts **MUST** conform to the **Build Artifact Protocol v1.0**:
 
 | Artifact Type | Template |
 |---------------|----------|
-| Plan | [`plan_template.md`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/templates/plan_template.md) |
-| Review Packet | [`review_packet_template.md`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/templates/review_packet_template.md) |
-| Walkthrough | [`walkthrough_template.md`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/templates/walkthrough_template.md) |
-| Gap Analysis | [`gap_analysis_template.md`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/templates/gap_analysis_template.md) |
-| Doc Draft | [`doc_draft_template.md`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/templates/doc_draft_template.md) |
-| Test Draft | [`test_draft_template.md`](file:///c:/Users/cabra/Projects/LifeOS/docs/02_protocols/templates/test_draft_template.md) |
+| Plan | [`plan_template.md`](../docs/02_protocols/templates/plan_template.md) |
+| Review Packet | [`review_packet_template.md`](../docs/02_protocols/templates/review_packet_template.md) |
+| Walkthrough | [`walkthrough_template.md`](../docs/02_protocols/templates/walkthrough_template.md) |
+| Gap Analysis | [`gap_analysis_template.md`](../docs/02_protocols/templates/gap_analysis_template.md) |
+| Doc Draft | [`doc_draft_template.md`](../docs/02_protocols/templates/doc_draft_template.md) |
+| Test Draft | [`test_draft_template.md`](../docs/02_protocols/templates/test_draft_template.md) |

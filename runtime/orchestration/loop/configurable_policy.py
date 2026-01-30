@@ -21,7 +21,7 @@ from pathlib import PurePosixPath
 from runtime.orchestration.loop.ledger import AttemptLedger
 from runtime.orchestration.loop.taxonomy import FailureClass, TerminalReason
 from runtime.orchestration.loop import waiver_artifact
-from runtime.governance.self_mod_protection import PROTECTED_PATHS, is_protected
+from runtime.api.governance_api import PROTECTED_PATHS, is_protected
 
 @dataclass
 class PlanBypassDecision:
@@ -342,7 +342,63 @@ class ConfigurableLoopPolicy:
 
         return False
 
-        return False
+    def is_plan_bypass_eligible(
+        self,
+        failure_class: FailureClass,
+        proposed_diff_lines: int,
+        proposed_files: List[str],
+    ) -> Tuple[bool, str]:
+        """
+        Simplified adapter for plan bypass eligibility check.
+
+        This is a test-friendly interface that wraps evaluate_plan_bypass()
+        with a simpler signature.
+
+        Args:
+            failure_class: The failure class enum
+            proposed_diff_lines: Total line delta in the proposed patch
+            proposed_files: List of file paths that would be modified
+
+        Returns:
+            Tuple of (eligible: bool, reason: str)
+        """
+        # Check governance paths first (fail-fast)
+        for file_path in proposed_files:
+            if self._is_governance_path(file_path):
+                return (False, f"Governance-controlled path: {file_path}")
+
+        # Build proposed_patch dict from simpler args
+        proposed_patch = {
+            "files_touched": len(proposed_files),
+            "total_line_delta": proposed_diff_lines,
+            "files": proposed_files,
+            "has_suspicious_modes": False,
+        }
+
+        # Create minimal ledger (not used for eligibility check, but required by API)
+        from runtime.orchestration.loop.ledger import AttemptLedger
+        from pathlib import Path
+        import tempfile
+        # Use a temporary path - the ledger isn't actually used for eligibility checks
+        temp_path = Path(tempfile.gettempdir()) / "plan_bypass_check.jsonl"
+        ledger = AttemptLedger(temp_path)
+
+        # Normalize failure class to string key
+        failure_class_key = self.normalize_failure_class(failure_class)
+
+        # Delegate to evaluate_plan_bypass
+        decision = self.evaluate_plan_bypass(
+            failure_class_key=failure_class_key,
+            proposed_patch=proposed_patch,
+            protected_path_registry=PROTECTED_PATHS,
+            ledger=ledger
+        )
+
+        # Extract eligible and reason from decision
+        eligible = decision.get("eligible", False)
+        reason = decision.get("decision_reason", "Unknown")
+
+        return (eligible, reason)
 
     def evaluate_plan_bypass(
         self,
@@ -460,11 +516,11 @@ class ConfigurableLoopPolicy:
         max_files = scope_limit.get("max_files", 3)
         
         if decision["scope"].get("total_line_delta", 0) > max_lines:
-            decision["decision_reason"] = f"Scope: lines {decision['scope']['total_line_delta']} > {max_lines}"
+            decision["decision_reason"] = f"Scope: lines {decision['scope']['total_line_delta']} > max_lines {max_lines}"
             return decision
-            
+
         if decision["scope"].get("files_touched", 0) > max_files:
-            decision["decision_reason"] = f"Scope: files {decision['scope']['files_touched']} > {max_files}"
+            decision["decision_reason"] = f"Scope: files {decision['scope']['files_touched']} > max_files {max_files}"
             return decision
 
         # 5. Check Budgets (Simplified stub - assume global=5, per_class=3)
