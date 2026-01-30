@@ -80,7 +80,7 @@ pytest runtime/tests/test_doc_hygiene.py -v
 
 ### 4. Nightly Workflow (`.github/workflows/phase1_autonomy_nightly.yml`)
 
-**Schedule:** 6 AM UTC daily (overnight for PST/AEDT)
+**Schedule:** 8 PM UTC daily (7 AM AEDT next morning - Sydney overnight delivery)
 
 **Execution Flow:**
 1. Checkout repo
