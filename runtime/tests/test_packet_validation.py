@@ -405,16 +405,20 @@ def test_plan_review_packet_valid(tmp_path, base_envelope):
     data = base_envelope.copy()
     data['packet_type'] = "REVIEW_PACKET"
     data['schema_version'] = "1.2"
-    
+
     # Payload
     data['outcome'] = "GO"
     data['review_type'] = "PLAN_REVIEW"
     data['plan_hash'] = "sha256-hash-of-plan"
     data['verdict'] = "GO"
-    
+    data['scope_envelope'] = {"scope": "test"}
+    data['repro'] = {"steps": ["test"]}
+    data['terminal_outcome'] = "GO"
+    data['closure_evidence'] = {"evidence": "test"}
+
     p = tmp_path / "review_plan.yaml"
     p.write_text(yaml.dump(data), encoding='utf-8')
-    
+
     code, out, err = run_validator(str(p), args=["--schema", "docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml"])
     assert code == 0
 

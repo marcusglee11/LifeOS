@@ -35,6 +35,8 @@ from runtime.orchestration.loop.taxonomy import (
     TerminalOutcome, TerminalReason, FailureClass, LoopAction
 )
 from runtime.api.governance_api import PolicyLoader
+from runtime.orchestration.run_controller import verify_repo_clean, run_git_command
+from runtime.util.file_lock import FileLock
 
 class AutonomousBuildCycleMission(BaseMission):
     """

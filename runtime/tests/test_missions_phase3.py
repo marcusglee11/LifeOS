@@ -874,10 +874,10 @@ class TestAutonomousBuildCycleMission:
             'loop_budgets': {'max_outer_iterations': 5, 'max_tokens_per_session': 100000}
         }
         # Setup mocks
-        design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"])
-        review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"])
-        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {}}, executed_steps=["build"])
-        steward_result = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "abc"}, executed_steps=["commit"])
+        design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
+        review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
+        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {}}, executed_steps=["build"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
+        steward_result = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "abc"}, executed_steps=["commit"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
         
         mock_design.return_value = design_result
         mock_review.return_value = review_result 
@@ -914,10 +914,10 @@ class TestAutonomousBuildCycleMission:
             'loop_budgets': {'max_outer_iterations': 5, 'max_tokens_per_session': 100000}
         }
         # Setup mocks
-        design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"])
-        review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"])
-        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {}}, executed_steps=["build"])
-        steward_result = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "abc"}, executed_steps=["commit"])
+        design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
+        review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
+        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {}}, executed_steps=["build"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
+        steward_result = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "abc"}, executed_steps=["commit"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
         
         mock_design.return_value = design_result
         mock_review.return_value = review_result 

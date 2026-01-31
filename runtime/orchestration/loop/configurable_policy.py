@@ -69,7 +69,7 @@ class ConfigurableLoopPolicy:
     def __init__(self, config: Dict[str, Any]):
         """
         Initialize with policy config.
-        
+
         Args:
             config: Policy configuration dict
         """
@@ -79,9 +79,10 @@ class ConfigurableLoopPolicy:
         self.waiver_rules = config.get("waiver_rules", {})
         self.progress_detection = config.get("progress_detection", {})
         self.retry_limits = self.budgets.get("retry_limits", {})
-        
+
         # C1: Normalize failure class keys in config for deterministic lookup
         self._normalize_config_keys()
+        self._normalize_retry_limits()
 
     def normalize_failure_class(self, failure_class: Any) -> str:
         """
@@ -97,6 +98,13 @@ class ConfigurableLoopPolicy:
         for k, v in self.failure_routing.items():
             normalized_routing[self.normalize_failure_class(k)] = v
         self.failure_routing = normalized_routing
+
+    def _normalize_retry_limits(self):
+        """Ensure all retry_limits keys are normalized."""
+        normalized_limits = {}
+        for k, v in self.retry_limits.items():
+            normalized_limits[self.normalize_failure_class(k)] = v
+        self.retry_limits = normalized_limits
     
     def decide_next_action(
         self,
@@ -136,20 +144,22 @@ class ConfigurableLoopPolicy:
         if self._check_oscillation(history):
             return "terminate", TerminalReason.OSCILLATION_DETECTED.value, None
         
-        # Get failure class - normalize to uppercase for config lookup
+        # Get failure class
         failure_class_str_raw = last_attempt.failure_class or "UNKNOWN"
-        failure_class_str = failure_class_str_raw.upper()  # Normalize for config lookup
-        
-        # Normalize to FailureClass enum if possible
+
+        # Normalize to FailureClass enum if possible (requires uppercase for enum lookup)
         try:
-            failure_class = FailureClass[failure_class_str]
+            failure_class = FailureClass[failure_class_str_raw.upper()]
         except KeyError:
             failure_class = FailureClass.UNKNOWN
-        
+
+        # Normalize for routing/retry config lookup (lowercase, per _normalize_config_keys)
+        failure_class_normalized = self.normalize_failure_class(failure_class_str_raw)
+
         # Get routing config for this failure class
-        routing = self.failure_routing.get(failure_class_str, {})
+        routing = self.failure_routing.get(failure_class_normalized, {})
         default_action = routing.get("default_action", "TERMINATE")
-        retry_limit = self.retry_limits.get(failure_class_str, 0)
+        retry_limit = self.retry_limits.get(failure_class_normalized, 0)
         
         # Check if immediate terminate (retry_limit == 0 and action is TERMINATE)
         if default_action == "TERMINATE" and retry_limit == 0:
@@ -166,31 +176,31 @@ class ConfigurableLoopPolicy:
             # Check for escalation triggers first (overrides waiver)
             if self._check_escalation_triggers(ledger):
                 return "terminate", "Escalation triggered: protected path touched", "ESCALATION_REQUESTED"
-            
+
             # Check waiver eligibility
-            if self._check_waiver_eligibility(failure_class_str):
-                # Build waiver context for artifact binding
+            if self._check_waiver_eligibility(failure_class_normalized):
+                # Build waiver context for artifact binding (use uppercase for governance surface stability)
                 waiver_context = {
-                    "failure_class": failure_class_str,
+                    "failure_class": failure_class.value.upper() if isinstance(failure_class, FailureClass) else str(failure_class_str_raw).upper(),
                     "retry_count": retry_count,
                     "retry_limit": retry_limit
                 }
-                
+
                 # Check if valid waiver artifact exists
                 if waiver_artifact.check_waiver_for_context(waiver_context, now=now):
                     # Valid waiver found - resume with retry
-                    return "retry", f"Waiver applied for {failure_class_str} - resuming", "WAIVER_APPLIED"
-                
+                    return "retry", f"Waiver applied for {failure_class_normalized} - resuming", "WAIVER_APPLIED"
+
                 # No valid waiver - request one
                 return "terminate", f"Retry limit exhausted ({retry_count}/{retry_limit}): waiver requested", "WAIVER_REQUESTED"
-            
+
             # Not waiver eligible - use configured terminal outcome
             terminal_outcome = routing.get("terminal_outcome", "BLOCKED")
             terminal_reason = routing.get("terminal_reason", "MAX_RETRIES_EXCEEDED")
             return "terminate", f"{terminal_reason} ({retry_count}/{retry_limit})", terminal_outcome
-        
+
         # Within retry budget
-        return "retry", f"Retry {retry_count}/{retry_limit} for {failure_class_str}", None
+        return "retry", f"Retry {retry_count}/{retry_limit} for {failure_class_normalized}", None
     
     def _count_retries_for_class(self, ledger: AttemptLedger, failure_class: FailureClass) -> int:
         """
@@ -224,30 +234,31 @@ class ConfigurableLoopPolicy:
     def _check_waiver_eligibility(self, failure_class) -> bool:
         """
         Check if failure class is waiver-eligible.
-        
+
         Args:
-            failure_class: Failure class (string or FailureClass enum)
-            
+            failure_class: Failure class (string or FailureClass enum) - should already be normalized
+
         Returns:
             True if waiver-eligible
         """
         eligible = self.waiver_rules.get("eligible_failure_classes", [])
         ineligible = self.waiver_rules.get("ineligible_failure_classes", [])
-        
-        # Handle both enum and string - normalize to uppercase
-        if isinstance(failure_class, FailureClass):
-            failure_class_upper = failure_class.value.upper()
-        else:
-            failure_class_upper = str(failure_class).upper()
-        
+
+        # Normalize the input (already normalized from caller, but be safe)
+        failure_class_normalized = self.normalize_failure_class(failure_class)
+
+        # Normalize eligible/ineligible lists for comparison
+        eligible_normalized = [self.normalize_failure_class(fc) for fc in eligible]
+        ineligible_normalized = [self.normalize_failure_class(fc) for fc in ineligible]
+
         # Explicit ineligible takes precedence
-        if failure_class_upper in ineligible:
+        if failure_class_normalized in ineligible_normalized:
             return False
-        
+
         # Explicit eligible
-        if failure_class_upper in eligible:
+        if failure_class_normalized in eligible_normalized:
             return True
-        
+
         # Default: not eligible
         return False
     
