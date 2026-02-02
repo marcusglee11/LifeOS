@@ -98,7 +98,17 @@ def test_mission_context_runtime_failures(tmp_path, mission):
     real_stdout = (fail_evidence_path / "smoke_check.stdout").read_bytes()
     real_stdout_sha = hashlib.sha256(real_stdout).hexdigest()
     assert res_empty.outputs["smoke"]["stdout_sha256"] == real_stdout_sha
-    
+
+    # B1 refinement: Verify stderr hash for failure paths
+    real_stderr = (fail_evidence_path / "smoke_check.stderr").read_bytes()
+    real_stderr_sha = hashlib.sha256(real_stderr).hexdigest()
+    assert res_empty.outputs["smoke"]["stderr_sha256"] == real_stderr_sha
+
+    # B1 refinement: Verify exitcode hash for failure paths
+    real_exitcode = (fail_evidence_path / "smoke_check.exitcode").read_bytes()
+    real_exitcode_sha = hashlib.sha256(real_exitcode).hexdigest()
+    assert res_empty.outputs["smoke"]["exitcode_sha256"] == real_exitcode_sha
+
     # Case C: Baseline commit is invalid format (Option A: Fail Closed)
     # Refinement P0.1: Enforce regex validation (Option A)
     

@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-01-28 (Restore Non-Canonical Docs)]
+# LifeOS Strategic Corpus [Last Updated: 2026-02-02 (Phase 4 Autonomy Stewardship)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -50,6 +50,9 @@ LifeOS Constitution v2.0 (Supreme)
 | [PROJECT_GANTT_CHART.md](./11_admin/PROJECT_GANTT_CHART.md) | **Information Only** — Project timeline and Gantt chart |
 | [PROJECT_MASTER_TASK_LIST.md](./11_admin/PROJECT_MASTER_TASK_LIST.md) | **Information Only** — Master list of all tracked project tasks |
 | [PROJECT_STATUS_v1.0.md](./11_admin/PROJECT_STATUS_v1.0.md) | **Information Only** — Snapshot of project status (legacy) |
+| [Autonomy Project Baseline.md](./11_admin/Autonomy%20Project%20Baseline.md) | **Phase 4** — Minimal doc set + Maintenance Protocol |
+| [LifeOS Autonomous Build Loop System - Status Report 20260202.md](./11_admin/LifeOS%20Autonomous%20Build%20Loop%20System%20-%20Status%20Report%2020260202.md) | **Condition** — Status report on Phase 4 autonomy readiness |
+| [Roadmap Fully Autonomous Build Loop20260202.md](./11_admin/Roadmap%20Fully%20Autonomous%20Build%20Loop20260202.md) | **Phase 4 Roadmap** — Re-ordered to match verified reality |
 
 ---
 
@@ -130,6 +133,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [LifeOS_Design_Principles_Protocol_v1.1.md](./02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md) | **Canonical** — "Prove then Harden" development principles, Output-First governance, sandbox workflow |
 | [Emergency_Declaration_Protocol_v1.0.md](./02_protocols/Emergency_Declaration_Protocol_v1.0.md) | **WIP** — Emergency override and auto-revert procedures |
 | [Test_Protocol_v2.0.md](./02_protocols/Test_Protocol_v2.0.md) | **WIP** — Test categories, coverage, and flake policy |
+| [Filesystem_Error_Boundary_Protocol_v1.0.md](./02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md) | **Draft** — Fail-closed filesystem error boundaries, exception taxonomy |
 
 ### Council Protocols
 

@@ -2,6 +2,12 @@
 Run Controller - Mission lifecycle management with safety checks.
 
 Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.6
+
+Fail-Closed Boundary:
+Git command failures and filesystem errors are wrapped into GitCommandError,
+RunLockError, or StaleLockDetected. No OSError propagates to callers.
+
+See: docs/02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md
 """
 
 from __future__ import annotations

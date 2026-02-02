@@ -1,8 +1,8 @@
 # LifeOS State
 
-**Current Focus:** Phase 4 Preparation (Autonomous Construction)
-**Active WIP:** Phase 3 Acceptance Fix (DONE)
-**Last Updated:** 2026-01-26
+**Current Focus:** Enter Phase 4 (Planning Stage)
+**Active WIP:** Prepare Phase 4 Construction Blueprint
+**Last Updated:** 2026-01-29
 
 ---
 
@@ -23,6 +23,7 @@
 
 | **CLOSED** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
 | **WAITING** | OpenCode Deletion Logic | Council | Review Ruling |
+| **CLOSED** | **Sprint S1 Phase B (B1–B3)** | Antigravity | Refined Evidence + Boundaries (ACCEPTED + committed) |
 
 ---
 
@@ -46,6 +47,8 @@
 
 ## 🟩 Recent Wins
 
+- **2026-01-29:** Sprint S1 Phase B (B1-B3) refinements ACCEPTED and committed. No regressions (22 baseline failures preserved).
+- **2026-01-29:** P0 Repo Cleanup and Commit (滿足 Preflight Check).
 - **2026-01-26:** Trusted Builder Mode v1.1 Ratified (Council Ruling).
 - **2026-01-23:** Policy Engine Authoritative Gating — FixPass v1.0 (Council PASS).
 - **2026-01-18:** Raw Capture Primitive Standardized (Evidence Capture v0.1).

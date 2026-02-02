@@ -35,13 +35,17 @@
                 },
                 "stderr_sha256": {
                     "type": "string"
+                },
+                "exitcode_sha256": {
+                    "type": "string"
                 }
             },
             "required": [
                 "command",
                 "exit_code",
                 "stdout_sha256",
-                "stderr_sha256"
+                "stderr_sha256",
+                "exitcode_sha256"
             ],
             "additionalProperties": false
         },
@@ -65,13 +69,17 @@
                 },
                 "stderr_sha256": {
                     "type": "string"
+                },
+                "exitcode_sha256": {
+                    "type": "string"
                 }
             },
             "required": [
                 "command",
                 "exit_code",
                 "stdout_sha256",
-                "stderr_sha256"
+                "stderr_sha256",
+                "exitcode_sha256"
             ],
             "additionalProperties": false
         },

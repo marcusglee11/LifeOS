@@ -15,7 +15,14 @@ def acceptance_context(tmp_path):
     policy_dir = repo_root / "config" / "policy"
     policy_dir.mkdir(parents=True)
     (policy_dir / "policy_rules.yaml").write_text(
-        "schema_version: 'v1.0'\ntool_rules: []\nloop_rules: []\n", 
+        "schema_version: 'v1.0'\n"
+        "tool_rules: []\n"
+        "failure_routing:\n"
+        "  review_rejection:\n"
+        "    default_action: RETRY\n"
+        "budgets:\n"
+        "  retry_limits:\n"
+        "    review_rejection: 10\n",
         encoding="utf-8"
     )
     (policy_dir / "policy_schema.json").write_text("{}", encoding="utf-8")

@@ -46,7 +46,8 @@ class PolicyLoader:
     KNOWN_MASTER_KEYS = {
         "schema_version", "includes", "policy_metadata", "posture",
         "variables", "failure_classes", "audit", "metrics", "escalation",
-        "tool_rules", "loop_rules"
+        "tool_rules", "loop_rules", "failure_routing", "budgets",
+        "waiver_rules", "progress_detection"
     }
     
     def __init__(self, config_dir: Optional[Path] = None, authoritative: bool = False):

@@ -6,6 +6,13 @@ Per Plan_Tool_Invoke_MVP_v0.2:
 - Symlink defense: reject if any path component is symlink
 - Encoding: UTF-8 only, EncodingError on decode failure
 - Deterministic list_dir ordering
+
+Fail-Closed Boundary:
+All filesystem errors (OSError, UnicodeDecodeError) are wrapped into
+ToolErrorType.IO_ERROR or ToolErrorType.ENCODING_ERROR. No OS-level
+exceptions propagate to callers.
+
+See: docs/02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md
 """
 
 from __future__ import annotations

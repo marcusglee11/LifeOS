@@ -18,7 +18,8 @@ import os
 from pathlib import Path
 from unittest.mock import patch, MagicMock, PropertyMock
 
-from runtime.orchestration.loop.policy import LoopPolicy, ConfigDrivenLoopPolicy, EscalationArtifact
+from runtime.orchestration.loop.policy import LoopPolicy, EscalationArtifact
+from runtime.orchestration.loop.configurable_policy import ConfigurableLoopPolicy
 from runtime.governance.policy_loader import PolicyLoader, PolicyLoadError
 from runtime.governance.tool_policy import check_tool_action_allowed
 from runtime.tools.schemas import ToolInvokeRequest, ToolErrorType
@@ -53,34 +54,24 @@ includes: []
 
 @pytest.fixture
 def policy_config_dir_with_loop_rules(tmp_path):
-    """Create policy config directory with loop_rules for E2E-1 wiring test."""
+    """Create policy config directory with failure_routing for E2E-1 wiring test."""
     config_dir = tmp_path / "config" / "policy"
     config_dir.mkdir(parents=True)
-    
-    # Master config with includes pointing to loop_rules file
+
+    # Master config using failure_routing format (ConfigurableLoopPolicy)
     master_config = """
 schema_version: "1.0"
-includes:
-  - loop_rules.yaml
+failure_routing:
+  e2e1_test_class:
+    default_action: TERMINATE
+    terminal_reason: E2E1_WIRING_VERIFIED
 """
     (config_dir / "policy_rules.yaml").write_text(master_config)
-    
-    # Separate loop_rules file (PolicyLoader expects list format)
-    loop_rules_content = """
-- rule_id: "e2e1_wiring_rule"
-  match:
-    failure_class: "E2E1_TEST_CLASS"
-  decision: "TERMINATE"
-  priority: 100
-  on_match:
-    terminal_reason: "E2E1_WIRING_VERIFIED"
-"""
-    (config_dir / "loop_rules.yaml").write_text(loop_rules_content)
-    
+
     # Schema file (minimal)
     schema = {"type": "object", "properties": {"schema_version": {"type": "string"}}}
     (config_dir / "policy_schema.json").write_text(json.dumps(schema))
-    
+
     return config_dir
 
 
@@ -145,9 +136,9 @@ def test_e2e_1_authoritative_on_uses_policy_engine(policy_config_dir_with_loop_r
     # Create LoopPolicy with effective config (authoritative mode)
     policy = LoopPolicy(effective_config=effective_config)
     
-    # Assert 1: ConfigDrivenLoopPolicy is instantiated (wiring verified)
-    assert policy._config_policy is not None, "Config-driven policy should be instantiated when loop_rules present"
-    assert isinstance(policy._config_policy, ConfigDrivenLoopPolicy), "_config_policy should be ConfigDrivenLoopPolicy instance"
+    # Assert 1: ConfigurableLoopPolicy is instantiated (wiring verified)
+    assert policy._config_policy is not None, "Config-driven policy should be instantiated when failure_routing present"
+    assert isinstance(policy._config_policy, ConfigurableLoopPolicy), "_config_policy should be ConfigurableLoopPolicy instance"
     
     # Arrange: Create ledger with attempt matching the seeded rule (failure_class: E2E1_TEST_CLASS)
     ledger_path = tmp_path / "e2e1_ledger.jsonl"
