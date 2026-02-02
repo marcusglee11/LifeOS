@@ -10,9 +10,12 @@ mission_ref: "Phase 4A0: Loop Spine (A1 Chain Controller) + P0 Fixes"
 tags: ["phase-4", "loop-spine", "a1-controller", "checkpoint-resume", "autonomy", "tdd", "p0-fixes"]
 terminal_outcome: "INTEGRATION_READY"
 closure_evidence:
-  commits: 2
+  commits: 3
   branch: "pr/canon-spine-autonomy-baseline"
-  commit_hashes: ["b6eae16d6209b99ed4c914a330e3b57c49d11324", "pending"]
+  commit_hashes:
+    - "6783d581bc4bdf3e701a23c903af365fd12bce3d"  # P0 fixes implementation
+    - "4047306f45617d35058c91abb6105a184173bf37"  # Review packet v1.1
+    - "c215a00765099e7751ef4a047b25c5d3d26598f4"  # Flattened code summary
   tests_passing: "14/14 (spine), 1258/1264 (full suite)"
   files_modified: 6
   lines_added: 442
@@ -531,18 +534,17 @@ The spine's `_run_chain_steps()` placeholder should be replaced with:
 
 # Risks and Limitations
 
-## Known Limitations
+## Known Limitations (v1.1)
 
-1. **Placeholder Chain Execution:** `_run_chain_steps()` returns mock data. Real integration with Tier-2 Orchestrator needed.
-2. **Policy Hash Computation:** Currently returns hardcoded "current_policy_hash" for testing. Should compute from actual policy config files.
-3. **No CLI Interface:** Spine is library-only. CLI commands (`coo spine run`, `coo spine resume`) not implemented.
-4. **Manual Checkpoint Resolution:** CEO queue (Phase 4A) needed for automated resolution flow.
+1. **CEO Queue Integration:** Manual checkpoint resolution only. CEO queue (Phase 4A) needed for automated resolution flow.
+2. **Tier-2 Orchestrator Integration:** Chain execution uses direct mission dispatch. Full Tier-2 integration pending Phase 4C.
+3. **Limited Observability:** No logging, metrics, or tracing yet. Production readiness requires instrumentation.
 
-## Technical Debt
+## Technical Debt (v1.1)
 
-1. Policy hash computation should read from `config/policy/` and compute deterministic hash
-2. Chain execution should integrate with existing mission system
-3. Ledger integration incomplete (checkpoint state not written to ledger yet)
+1. **Checkpoint Cleanup:** No purge mechanism for resolved checkpoints (grows unbounded)
+2. **Policy Hash Caching:** Hash computed on every operation (could cache per run)
+3. **Error Recovery:** No automatic retry or graceful degradation for transient mission failures
 
 ## Migration Path
 
@@ -557,20 +559,24 @@ The spine's `_run_chain_steps()` placeholder should be replaced with:
 ## Commits
 
 **Branch:** `pr/canon-spine-autonomy-baseline`
-**Commit:** `b6eae16d6209b99ed4c914a330e3b57c49d11324`
+
+**v1.0 (Initial scaffold):**
+- Commit: `b6eae16d6209b99ed4c914a330e3b57c49d11324`
+
+**v1.1 (P0 fixes):**
+- Commit 1: `6783d581bc4bdf3e701a23c903af365fd12bce3d` - P0 fixes implementation
+- Commit 2: `4047306f45617d35058c91abb6105a184173bf37` - Review packet v1.1
+- Commit 3: `c215a00765099e7751ef4a047b25c5d3d26598f4` - Flattened code summary
 
 ```
-feat: implement Phase 4A0 Loop Spine (A1 Chain Controller)
+feat: Phase 4A0 Loop Spine P0 fixes - integration-ready
 
-Implement canonical sequencer for autonomous build loop with checkpoint/resume
-semantics as specified in Phase 4A0 plan.
-
-Core deliverables:
-- LoopSpine class with deterministic chain execution
-- Checkpoint/resume contract with policy hash validation
-- Terminal packet emission with deterministic YAML format
-- Fail-closed on dirty repo and policy violations
-- Full test coverage (14 tests, all passing)
+P0.1: CLI surface (coo spine run/resume)
+P0.2: Real policy hash (SHA-256 from PolicyLoader)
+P0.3: Complete ledger integration (attempt records)
+P0.4: Real chain execution (mission sequencing)
+P1.1: Gitignore artifact directories
+P1.2: Update LIFEOS_STATE
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
@@ -591,39 +597,45 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ## Verification
 
 ```bash
-# Clone and verify
+# Clone and verify v1.1 (P0 fixes complete)
 git checkout pr/canon-spine-autonomy-baseline
-git log -1 --oneline  # Should show b6eae16
+git log -3 --oneline  # Should show c215a00, 4047306, 6783d58
 
 # Run tests
 pytest runtime/tests/test_loop_spine.py -v  # 14 passed
-pytest runtime/tests -q                     # 1108 passed, 1 skipped
+pytest runtime/tests -q                     # 1258 passed, 6 skipped
+
+# Check CLI
+coo spine --help
+coo spine run --help
+coo spine resume --help
 ```
 
 ---
 
 # Recommendations
 
-## For Council Review
+## For Council Review (v1.1)
 
-1. **APPROVE** implementation as meeting Phase 4A0 specification
-2. **ACCEPT** placeholder chain execution as MVP-appropriate
-3. **DEFER** CLI interface to Phase 4 integration work
-4. **NOTE** policy hash computation needs production implementation
+1. **APPROVE** implementation as meeting Phase 4A0 specification with P0 fixes complete
+2. **ACCEPT** direct mission dispatch as MVP-appropriate (Tier-2 integration in Phase 4C)
+3. **NOTE** CLI surface is complete and ready for integration testing
+4. **NOTE** Policy hash computation is production-ready (SHA-256 from PolicyLoader)
 
-## For Phase 4 Next Steps
+## For Phase 4 Next Steps (v1.1)
 
-1. **4A (CEO Queue):** Implement checkpoint resolution UI/workflow
-2. **4B (Backlog Selection):** Integrate spine.run() with task selection
-3. **4C (Tier-2 Integration):** Replace `_run_chain_steps()` placeholder with real orchestration
-4. **4D (Policy Hash):** Implement production policy hash computation
+1. **4A (CEO Queue):** Implement checkpoint resolution backend (monitors artifacts/checkpoints/, updates resolution)
+2. **4B (Backlog Selection):** Integrate spine.run() with task selection and backlog tracking
+3. **4C (Tier-2 Integration):** Enhance chain execution with full Tier-2 orchestration features
+4. **Integration Testing:** Test spine CLI with Phase 4A/4B integration points
 
-## For Production Readiness
+## For Production Readiness (v1.1)
 
-1. Add observability: logging, metrics, tracing
-2. Add CLI commands: `coo spine run`, `coo spine resume`, `coo spine status`
-3. Add checkpoint cleanup: purge resolved checkpoints after N days
-4. Add policy hash caching: compute once per run, not per operation
+1. **Observability:** Add logging, metrics, tracing for spine execution
+2. **CLI Enhancements:** Add `coo spine status` (list active checkpoints), `coo spine list` (recent runs)
+3. **Checkpoint Cleanup:** Purge resolved checkpoints after N days (prevent unbounded growth)
+4. **Policy Hash Caching:** Cache policy hash per run to avoid redundant computation
+5. **Error Recovery:** Add retry logic and graceful degradation for transient failures
 
 ---
 
