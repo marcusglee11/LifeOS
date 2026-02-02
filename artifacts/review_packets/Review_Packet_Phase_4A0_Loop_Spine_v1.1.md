@@ -10,15 +10,17 @@ mission_ref: "Phase 4A0: Loop Spine (A1 Chain Controller) + P0 Fixes"
 tags: ["phase-4", "loop-spine", "a1-controller", "checkpoint-resume", "autonomy", "tdd", "p0-fixes"]
 terminal_outcome: "INTEGRATION_READY"
 closure_evidence:
-  commits: 3
+  commits: 5
   branch: "pr/canon-spine-autonomy-baseline"
   commit_hashes:
     - "6783d581bc4bdf3e701a23c903af365fd12bce3d"  # P0 fixes implementation
-    - "4047306f45617d35058c91abb6105a184173bf37"  # Review packet v1.1
+    - "4047306f45617d35058c91abb6105a184173bf37"  # Review packet v1.1 (initial)
     - "c215a00765099e7751ef4a047b25c5d3d26598f4"  # Flattened code summary
-  tests_passing: "14/14 (spine), 1258/1264 (full suite)"
-  files_modified: 6
-  lines_added: 442
+    - "bdc9e0d4a2c63aa0ecb89b6575a7d82ed5979a8f"  # Closure repairs (review packet)
+    - "14024ee6ce085bcf9a77a317698ecb8ebe91722c"  # Closure repairs (plan DoD)
+  tests_passing: "14/14 (spine), 1273/1274 (full suite)"
+  files_modified: 8
+  lines_added: 505
   zero_new_regressions: true
   plan_ref: "artifacts/plans/Phase_4A0_Loop_Spine.md"
   fixpack_ref: "Phase 4A0 P0 Fixes Instruction Block"
@@ -80,7 +82,7 @@ The v1.0 implementation provided the foundation but had plan contradictions that
 **Implementation Quality (v1.1):**
 - Minimal focused changes: 6 files modified, +442 lines
 - 100% test coverage maintained: 14/14 spine tests passing
-- Zero new regressions: 1258/1264 full suite passing (pre-existing failures only)
+- Zero new regressions: 1273/1274 full suite passing (1 pre-existing skip)
 - Deterministic artifact formats preserved
 - Fail-closed semantics enforced (policy hash, dirty repo)
 
@@ -173,7 +175,7 @@ The v1.0 implementation provided the foundation but had plan contradictions that
 | **AC12** | Dirty repo check | PASS | Calls verify_repo_clean() | `spine.py:173, 234` |
 | **AC13** | Policy change detection | PASS | Raises PolicyChangedError | `spine.py:246-253` |
 | **AC14** | All TDD scenarios pass | PASS | 14/14 tests passing | `pytest runtime/tests/test_loop_spine.py -v` |
-| **AC15** | Zero baseline regressions | PASS | 1108/1109 passing (1 pre-existing skip) | `pytest runtime/tests -q` |
+| **AC15** | Zero baseline regressions | PASS | 1273/1274 passing (1 pre-existing skip) | `pytest runtime/tests -q` |
 | **AC16** | Artifact determinism | PASS | Sorted keys verified | Tests: `test_terminal_packet_sorted_keys`, `test_step_summary_json_sorted` |
 
 ---
@@ -287,24 +289,26 @@ artifacts/
 - Unresolved checkpoint → `SpineError`
 - Rejected checkpoint → BLOCKED terminal, no execution
 
-### 2.4 _run_chain_steps() Method - Placeholder
+### 2.4 _run_chain_steps() Method - Real Implementation (v1.1)
 
-**Location:** `runtime/orchestration/loop/spine.py:322-345`
+**Location:** `runtime/orchestration/loop/spine.py:322-470`
 
-**Current Implementation:** Returns placeholder results for MVP testing
+**v1.1 Implementation (P0.4):** Real mission sequencing with checkpoint/resume support
 
-**Future Integration:** Will delegate to:
-- Tier-2 Orchestrator for workflow execution
-- Mission dispatch for individual steps
-- Existing missions (DesignMission, BuildMission, etc.)
+**Implementation Details:**
+- Sequential mission execution: hydrate → policy → design → build → review → steward
+- Uses `get_mission_class()` for mission dispatch
+- Creates `MissionContext` with repo_root, baseline_commit, run_id
+- Handles `MissionEscalationRequired` to trigger checkpoints
+- Supports resume from specific step via `start_from_step` parameter
 
-**Chain Steps (per plan):**
-1. Hydrate (load context)
-2. Policy (check constraints)
-3. Design (generate plan)
-4. Build (implement)
-5. Review (validate)
-6. Steward (commit/document)
+**Chain Steps:**
+1. Hydrate (load context) - inline logic
+2. Policy (check constraints) - inline logic
+3. Design (generate plan) - DesignMission
+4. Build (implement) - BuildMission
+5. Review (validate) - ReviewMission
+6. Steward (commit/document) - StewardMission
 
 ---
 
@@ -523,12 +527,12 @@ The backlog selector should:
 
 ## For Tier-2 Orchestrator Integration
 
-The spine's `_run_chain_steps()` placeholder should be replaced with:
-1. Load mission registry
-2. Dispatch missions in sequence (Design → Build → Review → Steward)
-3. Collect step results
-4. Emit step summaries using `_emit_step_summary()`
-5. Detect checkpoint triggers from mission escalations
+The spine's `_run_chain_steps()` v1.1 implementation can be enhanced with:
+1. Full Tier-2 orchestration features (workflow-level state management)
+2. Parallel mission execution where dependencies allow
+3. Advanced step summary collection and aggregation
+4. Richer checkpoint trigger detection (budget, time limits, etc.)
+5. Integration with existing Tier-2 orchestrator abstractions
 
 ---
 
@@ -581,10 +585,10 @@ P1.2: Update LIFEOS_STATE
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
-## Test Results
+## Test Results (v1.1 Final)
 
 **Spine Tests:** 14/14 passing
-**Baseline Tests:** 1108/1109 passing (1 pre-existing skip)
+**Baseline Tests:** 1273/1274 passing (1 pre-existing skip)
 **Regressions:** 0
 
 ## Files Added
@@ -597,13 +601,13 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ## Verification
 
 ```bash
-# Clone and verify v1.1 (P0 fixes complete)
+# Clone and verify v1.1 (P0 fixes + closure repairs complete)
 git checkout pr/canon-spine-autonomy-baseline
-git log -3 --oneline  # Should show c215a00, 4047306, 6783d58
+git log -6 --oneline  # Should show 14024ee, bdc9e0d, ae1c286, c215a00, 96a4911, 4047306
 
 # Run tests
 pytest runtime/tests/test_loop_spine.py -v  # 14 passed
-pytest runtime/tests -q                     # 1258 passed, 6 skipped
+pytest runtime/tests -q                     # 1273 passed, 1 skipped
 
 # Check CLI
 coo spine --help
@@ -641,10 +645,12 @@ coo spine resume --help
 
 **END OF REVIEW PACKET**
 
-**Status:** ✅ IMPLEMENTATION_COMPLETE
-**Next Action:** Council review and Phase 4A integration planning
+**Status:** ✅ INTEGRATION_READY (v1.1 P0 fixes + closure repairs complete)
+**Next Action:** Council review and Phase 4A/4B integration testing
 **Blockers:** None
 
 **Prepared by:** Claude Sonnet 4.5
-**Date:** 2026-02-02
-**Commit:** b6eae16d6209b99ed4c914a330e3b57c49d11324
+**Date:** 2026-02-02 (v1.0), 2026-02-03 (v1.1 closure-grade)
+**v1.1 Commits:**
+  - P0 fixes: 6783d581bc4bdf3e701a23c903af365fd12bce3d
+  - Closure repairs: bdc9e0d4a2c63aa0ecb89b6575a7d82ed5979a8f, 14024ee6ce085bcf9a77a317698ecb8ebe91722c

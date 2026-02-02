@@ -1,8 +1,8 @@
 # Phase 4A0: Loop Spine (A1 Chain Controller)
 
-**Version:** 1.0
-**Status:** Planning
-**Date:** 2026-02-02
+**Version:** 1.1
+**Status:** Complete (Integration-Ready)
+**Date:** 2026-02-02 (v1.0), 2026-02-03 (v1.1)
 **Priority:** P0 (Critical Path)
 
 ---
@@ -100,12 +100,12 @@ Feature: A1 Loop Spine (Chain Controller)
     Then execution pauses immediately
     And checkpoint state is persisted to ledger
     And a checkpoint packet is emitted to artifacts/
-    And the process exits with code 0 (clean pause)
+    And the process exits with code 2 (checkpoint pause)
 
   Scenario: Resume from checkpoint deterministically
     Given a checkpoint exists from a previous run
     And the checkpoint has not been resolved
-    When the loop spine is invoked with --resume
+    When the loop spine is invoked via `coo spine resume <checkpoint_id>`
     Then it loads the checkpoint state
     And it validates the policy hash matches
     And it continues from the checkpoint step
