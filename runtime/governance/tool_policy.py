@@ -212,6 +212,33 @@ def _has_symlink_in_path(path: Path) -> bool:
 
 
 # =============================================================================
+# Pytest Scope Enforcement (Phase 3a)
+# =============================================================================
+
+def check_pytest_scope(target_path: str) -> Tuple[bool, str]:
+    """
+    Validate pytest target is within allowed test directories.
+
+    Allowed: runtime/tests/**
+    Blocked: Everything else
+
+    Args:
+        target_path: The pytest target path (file or directory)
+
+    Returns:
+        (allowed, reason) tuple
+    """
+    allowed_prefixes = ["runtime/tests/", "runtime/tests"]
+    normalized = target_path.replace("\\", "/")
+
+    for prefix in allowed_prefixes:
+        if normalized.startswith(prefix) or normalized == prefix:
+            return True, f"Path within allowed test scope: {prefix}"
+
+    return False, f"PATH_OUTSIDE_ALLOWED_SCOPE: {target_path}"
+
+
+# =============================================================================
 # Path Scope Enforcement (P0.6)
 # =============================================================================
 
@@ -335,7 +362,25 @@ def check_tool_action_allowed(
                 decision_reason=f"DENIED: filesystem.{action} requires path (fail-closed)",
                 matched_rules=["filesystem_path_required"],
             )
-    
+
+    # Phase 3a: Enforce pytest scope
+    if tool == "pytest" and action == "run":
+        target = request.args.get("target", "")
+        if not target:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason="DENIED: pytest.run requires target path (fail-closed)",
+                matched_rules=["pytest_target_required"],
+            )
+
+        allowed, reason = check_pytest_scope(target)
+        if not allowed:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason=f"DENIED: {reason}",
+                matched_rules=["pytest_scope_violation"],
+            )
+
     # P0.6: Enforce path_scope for filesystem operations
     if tool == "filesystem" and path:
         # Default scope for hardcoded rules is WORKSPACE

@@ -29,7 +29,7 @@ from runtime.orchestration.missions.steward import StewardMission
 from recursive_kernel.backlog_parser import (
     parse_backlog,
     select_eligible_item,
-    mark_item_done_with_evidence,
+    mark_item_done,
     BacklogItem,
     Priority as BacklogPriority,
 )
@@ -52,6 +52,11 @@ from runtime.util.file_lock import FileLock
 from runtime.orchestration.ceo_queue import (
     CEOQueue, EscalationEntry, EscalationType, EscalationStatus
 )
+
+# Phase 3a: Test Execution
+from runtime.api.governance_api import check_pytest_scope
+from runtime.orchestration.test_executor import TestExecutor, PytestResult
+from runtime.orchestration.loop.failure_classifier import classify_test_failure
 
 class AutonomousBuildCycleMission(BaseMission):
     """
@@ -556,7 +561,122 @@ class AutonomousBuildCycleMission(BaseMission):
         }
         if diff_evidence:
             content["diff_evidence_path"] = diff_evidence
-            
+
         self._emit_packet("CEO_Terminal_Packet.md", content, context)
         # Closure Bundle? (Stubbed as requested: "Use existing if present")
         # We assume independent closure process picks this up, or we assume done.
+
+    # =========================================================================
+    # Phase 3a: Test Verification Methods
+    # =========================================================================
+
+    def _run_verification_tests(
+        self,
+        context: MissionContext,
+        target: str = "runtime/tests",
+        timeout: int = 300
+    ) -> Dict[str, Any]:
+        """
+        Run pytest on runtime/tests/ after build completes.
+
+        Args:
+            context: Mission context
+            target: Test target path (default: runtime/tests)
+            timeout: Timeout in seconds (default: 300 = 5 minutes)
+
+        Returns:
+            VerificationResult dict with:
+                - success: bool (True if tests passed)
+                - test_result: PytestResult object
+                - evidence: dict with captured output
+                - error: Optional error message
+        """
+        # Check pytest scope
+        allowed, reason = check_pytest_scope(target)
+        if not allowed:
+            return {
+                "success": False,
+                "error": f"Test scope denied: {reason}",
+                "evidence": {},
+            }
+
+        # Execute tests
+        executor = TestExecutor(timeout=timeout)
+        result = executor.run(target)
+
+        # Build verification result
+        return {
+            "success": result.exit_code == 0,
+            "test_result": result,
+            "evidence": {
+                "pytest_stdout": result.stdout[:50000],  # Cap at 50KB
+                "pytest_stderr": result.stderr[:50000],  # Cap at 50KB
+                "exit_code": result.exit_code,
+                "duration_seconds": result.duration,
+                "test_counts": result.counts or {},
+                "status": result.status,
+                "timeout_triggered": result.evidence.get("timeout_triggered", False),
+            },
+            "error": None if result.exit_code == 0 else "Tests failed",
+        }
+
+    def _prepare_retry_context(
+        self,
+        verification: Dict[str, Any],
+        previous_results: Optional[List[PytestResult]] = None
+    ) -> Dict[str, Any]:
+        """
+        Prepare context for retry after test failure.
+
+        Includes:
+        - Which tests failed
+        - Error messages from failures
+        - Failure classification
+
+        Args:
+            verification: VerificationResult dict from _run_verification_tests
+            previous_results: Optional list of previous test results for flake detection
+
+        Returns:
+            Retry context dict
+        """
+        test_result = verification.get("test_result")
+        if not test_result:
+            return {
+                "failure_class": FailureClass.UNKNOWN.value,
+                "error": "No test result available",
+            }
+
+        # Classify failure
+        failure_class = classify_test_failure(test_result, previous_results)
+
+        context = {
+            "failure_class": failure_class.value,
+            "error_messages": test_result.error_messages[:5] if test_result.error_messages else [],
+            "suggestion": self._generate_fix_suggestion(failure_class),
+        }
+
+        # Add test-specific details if available
+        if test_result.failed_tests:
+            context["failed_tests"] = list(test_result.failed_tests)[:10]  # Cap at 10
+        if test_result.counts:
+            context["test_counts"] = test_result.counts
+
+        return context
+
+    def _generate_fix_suggestion(self, failure_class: FailureClass) -> str:
+        """
+        Generate fix suggestion based on failure class.
+
+        Args:
+            failure_class: Classified failure type
+
+        Returns:
+            Suggestion string for retry
+        """
+        suggestions = {
+            FailureClass.TEST_FAILURE: "Review test failures and fix the code logic that's causing assertions to fail.",
+            FailureClass.TEST_FLAKE: "This test appears flaky (passed before, failed now). Consider investigating timing issues or test dependencies.",
+            FailureClass.TEST_TIMEOUT: "Tests exceeded timeout limit. Consider optimizing slow tests or increasing timeout threshold.",
+        }
+        return suggestions.get(failure_class, "Review the test output and fix the underlying issue.")

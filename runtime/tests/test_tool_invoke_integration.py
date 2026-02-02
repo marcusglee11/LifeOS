@@ -101,7 +101,7 @@ class TestGoldenWorkflow:
         pytest_request = ToolInvokeRequest(
             tool="pytest",
             action="run",
-            args={"args": ["test_integration.py", "-v"]},
+            args={"target": "runtime/tests/test_integration.py", "args": ["-v"]},
             meta={"request_id": "pytest-001"},
         )
         
