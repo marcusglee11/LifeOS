@@ -129,6 +129,7 @@ The LifeOS Autonomous Build Loop system has completed Phase 3 (Optimization) wit
 | AttemptLedger | ACTIVE | `/mnt/c/Users/cabra/projects/lifeos/runtime/orchestration/loop/ledger.py` | Append-only JSONL, fail-closed |
 | BudgetController | ACTIVE | `/mnt/c/Users/cabra/projects/lifeos/runtime/orchestration/loop/budgets.py` | Attempt/token/wall-clock limits |
 | FailureClassTaxonomy | ACTIVE | `/mnt/c/Users/cabra/projects/lifeos/runtime/orchestration/loop/taxonomy.py` | 10 failure classes, 4 terminal outcomes |
+| **Loop Spine (A1 Controller)** | **MISSING** | **N/A** | **Chain-grade sequencer with checkpoint seam** |
 
 ### 4.5 Failure Class Taxonomy
 
@@ -252,14 +253,15 @@ CLAUDE.md
 
 ## 8. Gap Analysis for Autonomous Operation
 
-| Gap | Severity | Current State | Required for Autonomy | Effort Estimate |
-|-----|----------|---------------|----------------------|-----------------|
-| CEO Approval Queue | P0 | Not implemented | Exception-based HITL | Medium |
-| Backlog Parser Integration | P0 | Parser exists, not wired | Autonomous task selection | Low |
-| OpenCode Test Execution | P1 | Envelope gated (docs only) | Phase 3a ruling needed | Council decision |
-| Agent Role Prompts | P1 | Stub files only | Full prompts required | Medium |
-| Ledger Hash Chain | P2 | Deferred per ruling | Cryptographic linking | Low |
-| Monitoring/Alerting | P2 | Not implemented | Bypass utilization alerts | Medium |
+| Gap | Severity | Current State | Required for Autonomy | Blocked By |
+|-----|----------|---------------|----------------------|------------|
+| **Loop Spine (A1 Controller)** | **P0** | **MISSING** | **Chain-grade sequencer** | **None** |
+| CEO Approval Queue | P0 | Not implemented | Exception-based HITL | **4A0 Loop Spine** |
+| Backlog Parser Integration | P0 | Parser exists, not wired | Autonomous task selection | **4A0 Loop Spine** |
+| OpenCode Test Execution | P1 | Envelope gated (docs only) | Phase 3a ruling needed | Supervised Chain v0 |
+| Agent Role Prompts | P1 | Stub files only | Full prompts required | 4B |
+| Ledger Hash Chain | P2 | Deferred per ruling | Cryptographic linking | 4E |
+| Monitoring/Alerting | P2 | Not implemented | Bypass utilization alerts | 4E |
 
 ### P0 Blockers Detail
 
@@ -326,31 +328,55 @@ Any state -> ERROR (terminal on violation)
 
 ---
 
-## 11. Conclusion
+## 11. Autonomy Rung Placement
 
-### System Readiness: READY FOR PHASE 4
+**Current Position**: Triggered Autonomy++ (not yet Supervised Chains)
 
-The LifeOS Autonomous Build Loop system has achieved architectural maturity with:
+| Rung | Description | Status |
+|------|-------------|--------|
+| Manual | Human executes all steps | ✅ PASSED |
+| Triggered | Human triggers, system executes bounded task | ✅ PASSED |
+| **Triggered Autonomy++** | **System has loop infra, lacks chain controller** | **CURRENT** |
+| Supervised Chains | System runs chains, human approves checkpoints | ⏳ REQUIRES 4A0+4A+4B |
+| Autonomous Chains | System selects and executes tasks, exception-based HITL | Future |
+| Self-Improving | System proposes improvements to itself | Future |
+
+---
+
+## 12. Conclusion
+
+### System Readiness: BLOCKED ON PHASE 4A0 LOOP SPINE
+
+The LifeOS Autonomous Build Loop system has **loop infrastructure** but **lacks the chain controller**:
 
 1. **Robust Test Coverage:** 1091+ runtime tests passing consistently
 2. **Complete Governance Stack:** 5-layer protection with fail-closed semantics
-3. **Battle-Tested Loop Infrastructure:** ConfigurableLoopPolicy, AttemptLedger, BudgetController
-4. **Safety Mechanisms:** Kill switch, run lock, autonomy ceilings all active
-5. **CI/CD Integration:** Three active pipelines with automated validation
+3. **Loop Infrastructure:** ConfigurableLoopPolicy, AttemptLedger, BudgetController ✅
+4. **Safety Mechanisms:** Kill switch, run lock, autonomy ceilings all active ✅
+5. **CRITICAL GAP:** A1 Loop Spine (chain-grade sequencer with checkpoint seam) ❌
 
-### Primary Blockers (Orchestration Layer)
+### Primary Blocker (Architecture Gap)
 
-The system is blocked at the orchestration layer, not the runtime layer:
+| Blocker | Priority | Resolution | Blocks |
+|---------|----------|------------|--------|
+| **Loop Spine (A1 Controller)** | **P0** | **Phase 4A0** | **4A, 4B, 4C, 4D, 4E** |
 
-1. **CEO Approval Queue (P0):** Required for exception-based HITL
-2. **Backlog Parser Integration (P0):** Required for autonomous task selection
+The loop spine is the missing piece that enables checkpoint-based resumption. Without it, CEO queue (4A) and backlog selection (4B) cannot function properly.
+
+### Secondary Blockers (Gate Behind Loop Spine)
+
+1. **CEO Approval Queue (P0):** Blocks 4B, 4C, 4D
+2. **Backlog Parser Integration (P0):** Blocks 4C, 4D, 4E
 
 ### Recommendation
 
-Proceed with Phase 4 construction focusing on:
-1. Implement CEO approval queue mechanism
-2. Wire backlog parser to loop infrastructure
-3. Resolve 21 steward_runner fixture failures (parallel track)
+Proceed with **Phase 4A0 (Loop Spine) as the critical path** before attempting 4A or 4B:
+
+1. Implement A1 controller with checkpoint seam (Phase 4A0)
+2. Build CEO approval queue backend (Phase 4A)
+3. Wire backlog parser to loop (Phase 4B)
+4. Achieve "Supervised Chain v0" milestone
+5. Gate Phase 4C/4D/4E behind this milestone
 
 ---
 

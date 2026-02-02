@@ -80,9 +80,77 @@ A fully autonomous system that:
 
 ---
 
-## 5-Phase Roadmap
+## 5-Phase Roadmap (Corrected: 6 Phases with 4A0 as Critical Path)
+
+### Phase 4A0: Loop Spine - A1 Chain Controller (P0) **CRITICAL PATH**
+
+**Goal**: Build the canonical chain sequencer with checkpoint semantics.
+
+**Why Phase 4A0 Exists**: **Verified reality correction** - the A1 loop controller is MISSING. The current `autonomous_build_cycle.py` is a mission implementation, not a resumable chain controller. Before CEO queue (4A) or backlog selection (4B) can be meaningful, we need a deterministic chain controller with:
+
+- Checkpoint seam (pause/persist/resume contract)
+- State machine with proper terminal packet emission
+- Policy-validated resumption
+- Fail-closed on dirty repo
+
+#### Key Deliverables
+
+| Deliverable | Description | Acceptance Criteria |
+|-------------|-------------|---------------------|
+| **A1 Controller Module** | `runtime/orchestration/loop/spine.py` | States: INIT, RUNNING, CHECKPOINT, RESUMED, TERMINAL |
+| **Checkpoint Seam** | Pause contract with state persistence | Checkpoint file emitted, process exits clean (code 0) |
+| **Resume Contract** | Policy-validated continuation | Validates policy hash before continuing |
+| **Terminal Packet** | Outcome emission | PASS/BLOCKED with deterministic field ordering |
+| **Artefact Contract** | Stable outputs | Ledger records, step summaries, terminal packet |
+
+#### Success Criteria
+
+- [ ] Single command runs one chain: `coo spine run --task "..."`
+- [ ] Can pause at checkpoint: checkpoint file emitted, process exits clean
+- [ ] Can resume deterministically: `coo spine resume --checkpoint CP_xxx`
+- [ ] Emits stable artefacts: terminal packet, ledger records, step summaries
+- [ ] Fail-closed on dirty repo: no execution, no artefacts
+- [ ] All TDD scenarios pass
+
+#### Orchestration Clarification
+
+| Component | Role | File |
+|-----------|------|------|
+| **Loop Spine** | Canonical chain sequencer | `runtime/orchestration/loop/spine.py` |
+| **Tier-2 Orchestrator** | Workflow executor | `runtime/orchestration/engine.py` |
+| **Run Controller** | Lifecycle safety | `runtime/orchestration/run_controller.py` |
+
+Loop Spine is the sequencer; Orchestrator is the executor; run_controller is safety. They are layered, not competing.
+
+#### Dependencies
+
+- None (builds on existing ledger infrastructure)
+
+#### Estimated Effort
+
+- Sprint 0-1 (1-2 weeks)
+
+---
+
+### Gating: Supervised Chain v0
+
+**Phases 4A, 4B, 4C, 4D, and 4E are NOT to be started until "Supervised Chain v0" is achieved.**
+
+Supervised Chain v0 milestone requires:
+1. Phase 4A0 complete (Loop Spine operational)
+2. Phase 4A complete (CEO Queue functional)
+3. Phase 4B complete (Backlog-driven task selection)
+4. E2E test: backlog task → design → build → checkpoint → CEO approve → steward → commit
+
+Only after this milestone should further expansion (4C/4D) or enhancement (4E) phases be considered.
+
+---
 
 ### Phase 4A: CEO Approval Queue (P0)
+
+> **REQUIRES: Phase 4A0 (Loop Spine) checkpoint seam**
+>
+> Phase 4A implements the queue backend and resolution writer. The checkpoint seam itself is implemented in Phase 4A0.
 
 **Goal**: Establish exception-based human-in-the-loop via persistent approval queue.
 
