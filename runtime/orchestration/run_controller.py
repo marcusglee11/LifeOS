@@ -81,6 +81,14 @@ class RepoDirtyError(Exception):
         )
 
 
+class CanonSpineError(Exception):
+    """Canon spine validation failed."""
+    
+    def __init__(self, output: str):
+        self.output = output
+        super().__init__(f"Canon spine validation failed:\n{output}")
+
+
 class GitCommandError(Exception):
     """
     Raised when a git command fails.
@@ -351,6 +359,30 @@ def verify_repo_clean(repo_root: Optional[Path] = None) -> None:
         raise RepoDirtyError(status_output, untracked_output)
 
 
+def verify_canon_spine(repo_root: Optional[Path] = None) -> None:
+    """
+    Verify the integrity of the Canonical Spine.
+    
+    Executes scripts/validate_canon_spine.py.
+    """
+    if repo_root is None:
+        repo_root = Path.cwd()
+    
+    script_path = repo_root / "scripts" / "validate_canon_spine.py"
+    if not script_path.exists():
+        return # Skip if script missing (avoid blocking if script not deployed)
+    
+    result = subprocess.run(
+        [sys.executable, str(script_path)],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    
+    if result.returncode != 0:
+        raise CanonSpineError(result.stdout or result.stderr)
+
+
 @dataclass
 class StartupResult:
     """Result of mission startup sequence."""
@@ -396,6 +428,9 @@ def mission_startup_sequence(
         
         # Step 4: Verify clean workspace
         verify_repo_clean(repo_root)
+        
+        # Step 5: Verify Canon Spine integrity
+        verify_canon_spine(repo_root)
         
         # Get baseline commit [v0.3 Fail-Closed]
         try:

@@ -25,6 +25,16 @@ from runtime.orchestration.missions.build import BuildMission
 from runtime.orchestration.missions.review import ReviewMission
 from runtime.orchestration.missions.steward import StewardMission
 
+# Backlog Integration
+from recursive_kernel.backlog_parser import (
+    parse_backlog,
+    select_eligible_item,
+    mark_item_done_with_evidence,
+    BacklogItem,
+    Priority as BacklogPriority,
+)
+from runtime.orchestration.task_spec import TaskSpec, TaskPriority
+
 # Loop Infrastructure
 from runtime.orchestration.loop.ledger import (
     AttemptLedger, AttemptRecord, LedgerHeader, LedgerIntegrityError
@@ -37,6 +47,11 @@ from runtime.orchestration.loop.taxonomy import (
 from runtime.api.governance_api import PolicyLoader
 from runtime.orchestration.run_controller import verify_repo_clean, run_git_command
 from runtime.util.file_lock import FileLock
+
+# CEO Approval Queue
+from runtime.orchestration.ceo_queue import (
+    CEOQueue, EscalationEntry, EscalationType, EscalationStatus
+)
 
 class AutonomousBuildCycleMission(BaseMission):
     """
@@ -57,9 +72,14 @@ class AutonomousBuildCycleMission(BaseMission):
         return MissionType.AUTONOMOUS_BUILD_CYCLE
     
     def validate_inputs(self, inputs: Dict[str, Any]) -> None:
+        # from_backlog mode doesn't require task_spec (will be loaded from backlog)
+        if inputs.get("from_backlog"):
+            # Task will be loaded from BACKLOG.md
+            return
+
         if not inputs.get("task_spec"):
-            raise MissionValidationError("task_spec is required")
-            
+            raise MissionValidationError("task_spec is required (or use from_backlog=True)")
+
         # P0: Handoff Schema Version Validation
         req_version = "v1.0" # Hardcoded expectation for Phase A
         if "handoff_schema_version" in inputs:
@@ -99,12 +119,109 @@ class AutonomousBuildCycleMission(BaseMission):
             json.dump(content, f, indent=2)
             f.write("\n```\n")
 
+    def _escalate_to_ceo(
+        self,
+        queue: CEOQueue,
+        escalation_type: EscalationType,
+        context_data: Dict[str, Any],
+        run_id: str,
+    ) -> str:
+        """Create escalation entry and return ID.
 
-                
+        Args:
+            queue: The CEO queue instance
+            escalation_type: Type of escalation
+            context_data: Context information for the escalation
+            run_id: Current run ID
+
+        Returns:
+            The escalation ID
+        """
+        entry = EscalationEntry(
+            type=escalation_type,
+            context=context_data,
+            run_id=run_id,
+        )
+        return queue.add_escalation(entry)
+
+    def _check_queue_for_approval(
+        self, queue: CEOQueue, escalation_id: str
+    ) -> Optional[EscalationEntry]:
+        """Check if escalation has been resolved.
+
+        Args:
+            queue: The CEO queue instance
+            escalation_id: The escalation ID to check
+
+        Returns:
+            The escalation entry, or None if not found
+        """
+        entry = queue.get_by_id(escalation_id)
+        if entry is None:
+            return None
+        if entry.status == EscalationStatus.PENDING:
+            # Check for timeout (24 hours)
+            if self._is_escalation_stale(entry):
+                queue.mark_timeout(escalation_id)
+                entry = queue.get_by_id(escalation_id)
+        return entry
+
+    def _is_escalation_stale(
+        self, entry: EscalationEntry, hours: int = 24
+    ) -> bool:
+        """Check if escalation exceeds timeout threshold.
+
+        Args:
+            entry: The escalation entry
+            hours: Timeout threshold in hours (default 24)
+
+        Returns:
+            True if stale, False otherwise
+        """
+        from datetime import datetime
+        age = datetime.utcnow() - entry.created_at
+        return age.total_seconds() > hours * 3600
+
+    def _load_task_from_backlog(self, context: MissionContext) -> Optional[BacklogItem]:
+        """
+        Load next eligible task from BACKLOG.md.
+
+        Returns:
+            BacklogItem or None if no eligible tasks
+        """
+        backlog_path = context.repo_root / "docs" / "11_admin" / "BACKLOG.md"
+
+        if not backlog_path.exists():
+            return None
+
+        items = parse_backlog(backlog_path)
+        selected = select_eligible_item(items)
+
+        return selected
+
     def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
         executed_steps: List[str] = []
         total_tokens = 0
         final_commit_hash = "UNKNOWN"  # Track commit hash from steward
+
+        # Handle from_backlog mode
+        if inputs.get("from_backlog"):
+            backlog_item = self._load_task_from_backlog(context)
+            if backlog_item is None:
+                reason = "NO_ELIGIBLE_TASKS"
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0)
+                return self._make_result(
+                    success=False,
+                    outputs={"outcome": "BLOCKED", "reason": reason},
+                    executed_steps=["backlog_scan"],
+                )
+
+            # Convert BacklogItem to task_spec format for design phase
+            task_description = f"{backlog_item.title}\n\nAcceptance Criteria:\n{backlog_item.dod}"
+            inputs["task_spec"] = task_description
+            inputs["_backlog_item"] = backlog_item  # Store for completion marking
+
+            executed_steps.append(f"backlog_selected:{backlog_item.item_key[:8]}")
 
         # P0: Workspace Semantics - Fail Closed if Reset Unavailable
         if not self._can_reset_workspace(context):
@@ -116,6 +233,10 @@ class AutonomousBuildCycleMission(BaseMission):
         ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
         ledger = AttemptLedger(ledger_path)
         budget = BudgetController()
+
+        # CEO Approval Queue
+        queue_path = context.repo_root / "artifacts" / "queue" / "escalations.db"
+        queue = CEOQueue(db_path=queue_path)
         
         # P0.1: Promotion to Authoritative Gating (Enabled per Council Pass)
         # Load policy config from repo canonical location
@@ -142,6 +263,45 @@ class AutonomousBuildCycleMission(BaseMission):
                         executed_steps=executed_steps
                     )
                 executed_steps.append("ledger_hydrated")
+
+                # Check for pending escalation on resume
+                escalation_state_path = context.repo_root / "artifacts" / "loop_state" / "escalation_state.json"
+                if escalation_state_path.exists():
+                    with open(escalation_state_path, 'r') as f:
+                        esc_state = json.load(f)
+                    escalation_id = esc_state.get("escalation_id")
+                    if escalation_id:
+                        entry = self._check_queue_for_approval(queue, escalation_id)
+                        if entry and entry.status == EscalationStatus.PENDING:
+                            # Still pending, cannot resume
+                            return self._make_result(
+                                success=False,
+                                escalation_reason=f"Escalation {escalation_id} still pending CEO approval",
+                                outputs={"escalation_id": escalation_id},
+                                executed_steps=executed_steps
+                            )
+                        elif entry and entry.status == EscalationStatus.REJECTED:
+                            # Rejected, terminate
+                            reason = f"CEO rejected escalation {escalation_id}: {entry.resolution_note}"
+                            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+                            return self._make_result(
+                                success=False,
+                                error=reason,
+                                executed_steps=executed_steps
+                            )
+                        elif entry and entry.status == EscalationStatus.TIMEOUT:
+                            # Timeout, terminate
+                            reason = f"Escalation {escalation_id} timed out after 24 hours"
+                            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+                            return self._make_result(
+                                success=False,
+                                error=reason,
+                                executed_steps=executed_steps
+                            )
+                        elif entry and entry.status == EscalationStatus.APPROVED:
+                            # Approved, can continue - clear escalation state
+                            escalation_state_path.unlink()
+                            executed_steps.append(f"escalation_{escalation_id}_approved")
             else:
                 # Initialize
                 ledger.initialize(
@@ -322,6 +482,22 @@ class AutonomousBuildCycleMission(BaseMission):
                     # SUCCESS! Capture commit hash and add steward step
                     final_commit_hash = s_res.outputs.get("commit_hash", s_res.outputs.get("simulated_commit_hash", "UNKNOWN"))
                     executed_steps.append("steward")
+
+                    # Mark backlog task complete if from_backlog mode
+                    if inputs.get("_backlog_item"):
+                        backlog_item = inputs["_backlog_item"]
+                        backlog_path = context.repo_root / "docs" / "11_admin" / "BACKLOG.md"
+
+                        mark_item_done_with_evidence(
+                            backlog_path,
+                            backlog_item,
+                            evidence={
+                                "commit_hash": final_commit_hash,
+                                "run_id": context.run_id,
+                            },
+                        )
+                        executed_steps.append("backlog_marked_complete")
+
                     # Record PASS
                     self._record_attempt(ledger, attempt_id, context, b_res, None, "Attributes Approved", success=True)
                     # Loop will check policy next iter -> PASS

@@ -17,11 +17,13 @@ from runtime.orchestration.run_controller import (
     RunLockHeld,
     StaleLockDetected,
     RepoDirtyError,
+    CanonSpineError,
     GitCommandError,
     check_kill_switch,
     acquire_run_lock,
     release_run_lock,
     verify_repo_clean,
+    verify_canon_spine,
     mission_startup_sequence,
 )
 
@@ -234,3 +236,41 @@ class TestGitFailClosed:
                 mission_startup_sequence("test-run", "test", temp_repo)
             
             assert "rev-parse" in exc_info.value.command
+
+
+class TestCanonSpine:
+    """Tests for Canon Spine validation."""
+    
+    def test_verify_canon_spine_passes_on_success(self, temp_repo):
+        """Should pass when scripts/validate_canon_spine.py returns 0."""
+        # Ensure script path exists (even if empty) to trigger check
+        script_dir = temp_repo / "scripts"
+        script_dir.mkdir(exist_ok=True)
+        (script_dir / "validate_canon_spine.py").touch()
+        
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value.returncode = 0
+            mock_run.return_value.stdout = "PASS"
+            # verify_canon_spine doesn't raise on success
+            verify_canon_spine(temp_repo)
+
+    def test_verify_canon_spine_raises_on_failure(self, temp_repo):
+        """Should raise CanonSpineError when script returns non-zero."""
+        # Ensure script path exists
+        script_dir = temp_repo / "scripts"
+        script_dir.mkdir(exist_ok=True)
+        (script_dir / "validate_canon_spine.py").touch()
+        
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value.returncode = 1
+            mock_run.return_value.stdout = "FAIL marker missing"
+            
+            with pytest.raises(CanonSpineError) as exc_info:
+                verify_canon_spine(temp_repo)
+            
+            assert "FAIL marker missing" in str(exc_info.value)
+
+    def test_verify_canon_spine_skips_if_script_missing(self, temp_repo):
+        """Should skip validation if scripts/validate_canon_spine.py is not present."""
+        # temp_repo won't have the script by default
+        verify_canon_spine(temp_repo) # Should not raise

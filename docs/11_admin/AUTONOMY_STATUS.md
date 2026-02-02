@@ -1,6 +1,6 @@
 # Autonomy Status
 
-> **Derived view. Source of truth: [LIFEOS_STATE.md](file:///c:/Users/cabra/Projects/LifeOS/docs/11_admin/LIFEOS_STATE.md) + [BACKLOG.md](file:///c:/Users/cabra/Projects/LifeOS/docs/11_admin/BACKLOG.md). If conflict, canon wins.**
+> **Derived view. Source of truth: [LIFEOS_STATE.md](docs/11_admin/LIFEOS_STATE.md) + [BACKLOG.md](docs/11_admin/BACKLOG.md). If conflict, canon wins.**
 
 ## Latest Baseline Pack (main HEAD)
 
@@ -9,10 +9,10 @@
 
 ## Phase 4 Indices & Roadmaps
 
-- [Phase 4 Index](file:///c:/Users/cabra/Projects/LifeOS/docs/04_project_builder/INDEX.md)
-- [Autonomy Roadmap](file:///c:/Users/cabra/Projects/LifeOS/docs/11_admin/Roadmap%20Fully%20Autonomous%20Build%20Loop20260202.md)
-- [Status Report](file:///c:/Users/cabra/Projects/LifeOS/docs/11_admin/LifeOS%20Autonomous%20Build%20Loop%20System%20-%20Status%20Report%2020260202.md)
-- [Autonomy Project Baseline](file:///c:/Users/cabra/Projects/LifeOS/docs/11_admin/Autonomy%20Project%20Baseline.md)
+- [Phase 4 Index](docs/04_project_builder/INDEX.md)
+- [Autonomy Roadmap](docs/11_admin/Roadmap%20Fully%20Autonomous%20Build%20Loop20260202.md)
+- [Status Report](docs/11_admin/LifeOS%20Autonomous%20Build%20Loop%20System%20-%20Status%20Report%2020260202.md)
+- [Autonomy Project Baseline](docs/11_admin/Autonomy%20Project%20Baseline.md)
 
 ## Capability Matrix
 

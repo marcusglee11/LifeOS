@@ -87,3 +87,6 @@ jobs:
             echo "Validator not found, skipping"
           fi
         continue-on-error: true
+
+      - name: Run Canon Spine validator
+        run: python scripts/validate_canon_spine.py

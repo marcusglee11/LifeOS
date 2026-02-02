@@ -2,8 +2,10 @@ import argparse
 import sys
 import json
 from pathlib import Path
+from datetime import datetime
 
 from runtime.config import detect_repo_root, load_config
+from runtime.orchestration.ceo_queue import CEOQueue
 
 def cmd_status(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
     """Print status of repo root, config, and validation."""
@@ -374,6 +376,84 @@ def cmd_run_mission(args: argparse.Namespace, repo_root: Path) -> int:
         print("Status: FAILED")
         return 1
 
+def cmd_queue_list(args: argparse.Namespace, repo_root: Path) -> int:
+    """List pending escalations in JSON format."""
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+    pending = queue.get_pending()
+
+    output = [
+        {
+            "id": e.id,
+            "type": e.type.value,
+            "age_hours": (datetime.utcnow() - e.created_at).total_seconds() / 3600,
+            "summary": e.context.get("summary", "No summary"),
+            "run_id": e.run_id,
+        }
+        for e in pending
+    ]
+
+    print(json.dumps(output, indent=2))
+    return 0
+
+
+def cmd_queue_show(args: argparse.Namespace, repo_root: Path) -> int:
+    """Show full details of an escalation."""
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+    entry = queue.get_by_id(args.escalation_id)
+
+    if entry is None:
+        print(f"Error: Escalation {args.escalation_id} not found")
+        return 1
+
+    output = {
+        "id": entry.id,
+        "type": entry.type.value,
+        "status": entry.status.value,
+        "created_at": entry.created_at.isoformat(),
+        "run_id": entry.run_id,
+        "context": entry.context,
+        "resolved_at": entry.resolved_at.isoformat() if entry.resolved_at else None,
+        "resolution_note": entry.resolution_note,
+        "resolver": entry.resolver,
+    }
+
+    print(json.dumps(output, indent=2))
+    return 0
+
+
+def cmd_queue_approve(args: argparse.Namespace, repo_root: Path) -> int:
+    """Approve an escalation."""
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+    note = args.note if hasattr(args, 'note') and args.note else "Approved via CLI"
+
+    result = queue.approve(args.escalation_id, note=note, resolver="CEO")
+
+    if not result:
+        print(f"Error: Could not approve {args.escalation_id}")
+        return 1
+
+    print(f"Approved: {args.escalation_id}")
+    return 0
+
+
+def cmd_queue_reject(args: argparse.Namespace, repo_root: Path) -> int:
+    """Reject an escalation with reason."""
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+
+    if not args.reason:
+        print("Error: --reason is required for rejection")
+        return 1
+
+    result = queue.reject(args.escalation_id, reason=args.reason, resolver="CEO")
+
+    if not result:
+        print(f"Error: Could not reject {args.escalation_id}")
+        return 1
+
+    print(f"Rejected: {args.escalation_id}")
+    return 0
+
+
 def main() -> int:
     # Use a custom parser that handles global options before subcommands
     # This is achieved by defining them on the main parser.
@@ -410,6 +490,27 @@ def main() -> int:
     p_mission_run.add_argument("--params", help="Parameters as JSON string (P0.2)")
     p_mission_run.add_argument("--json", action="store_true", help="Output results as JSON")
 
+    # queue group
+    p_queue = subparsers.add_parser("queue", help="CEO approval queue commands")
+    queue_subs = p_queue.add_subparsers(dest="queue_cmd", required=True)
+
+    # queue list
+    queue_subs.add_parser("list", help="List pending escalations")
+
+    # queue show
+    p_queue_show = queue_subs.add_parser("show", help="Show escalation details")
+    p_queue_show.add_argument("escalation_id", help="Escalation ID (ESC-XXXX)")
+
+    # queue approve
+    p_queue_approve = queue_subs.add_parser("approve", help="Approve escalation")
+    p_queue_approve.add_argument("escalation_id", help="Escalation ID")
+    p_queue_approve.add_argument("--note", help="Approval note")
+
+    # queue reject
+    p_queue_reject = queue_subs.add_parser("reject", help="Reject escalation")
+    p_queue_reject.add_argument("escalation_id", help="Escalation ID")
+    p_queue_reject.add_argument("--reason", required=True, help="Rejection reason")
+
     # run-mission command
     p_run = subparsers.add_parser("run-mission", help="Run a mission from backlog")
     p_run.add_argument("--from-backlog", required=True, help="Task ID from backlog to execute")
@@ -444,6 +545,16 @@ def main() -> int:
                 return cmd_mission_list(args)
             elif args.mission_cmd == "run":
                 return cmd_mission_run(args, repo_root)
+
+        if args.subcommand == "queue":
+            if args.queue_cmd == "list":
+                return cmd_queue_list(args, repo_root)
+            elif args.queue_cmd == "show":
+                return cmd_queue_show(args, repo_root)
+            elif args.queue_cmd == "approve":
+                return cmd_queue_approve(args, repo_root)
+            elif args.queue_cmd == "reject":
+                return cmd_queue_reject(args, repo_root)
 
         if args.subcommand == "run-mission":
             return cmd_run_mission(args, repo_root)
