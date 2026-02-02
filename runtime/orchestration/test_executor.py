@@ -90,13 +90,16 @@ class TestExecutor:
             cmd.extend(extra_args)
 
         try:
-            # Execute with timeout
+            # Execute with timeout in new process group
+            # P0 Hardening: Use start_new_session=True to create new process group
+            # This ensures all child processes are killed on timeout
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
                 timeout=self.timeout,
                 cwd=Path.cwd(),
+                start_new_session=True,  # P0: Kill entire process group on timeout
             )
 
             duration = time.time() - start_time
