@@ -387,6 +387,7 @@ def mark_item_done_with_evidence(
     path: Path,
     item: BacklogItem,
     evidence: Dict[str, Any],
+    repo_root: Optional[Path] = None,
 ) -> None:
     """
     Mark task done and log evidence.
@@ -395,16 +396,36 @@ def mark_item_done_with_evidence(
         path: Path to BACKLOG.md
         item: BacklogItem being completed
         evidence: Evidence dict with commit_hash, run_id, etc.
+        repo_root: Repository root path (optional, will auto-detect if not provided)
 
     Side effects:
         - Marks checkbox in BACKLOG.md from [ ] to [x]
-        - Appends evidence entry to artifacts/backlog_evidence.jsonl
+        - Appends evidence entry to <repo_root>/artifacts/backlog_evidence.jsonl
+
+    Raises:
+        BacklogParseError: If repo_root cannot be determined
     """
     # Mark the checkbox
     mark_item_done(path, item)
 
-    # Log to evidence file
-    evidence_path = path.parent.parent / "artifacts" / "backlog_evidence.jsonl"
+    # Determine repo root
+    if repo_root is None:
+        # Walk up from backlog path to find .git directory
+        current = path.parent
+        while current != current.parent:  # Stop at filesystem root
+            if (current / ".git").exists():
+                repo_root = current
+                break
+            current = current.parent
+
+        if repo_root is None:
+            raise BacklogParseError(
+                f"Cannot determine repo root from backlog path: {path}. "
+                "No .git directory found in parent hierarchy."
+            )
+
+    # Log to evidence file at repo root
+    evidence_path = repo_root / "artifacts" / "backlog_evidence.jsonl"
     evidence_path.parent.mkdir(parents=True, exist_ok=True)
 
     evidence_entry = {

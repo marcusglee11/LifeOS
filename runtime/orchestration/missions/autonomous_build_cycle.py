@@ -29,6 +29,7 @@ from runtime.orchestration.missions.steward import StewardMission
 from recursive_kernel.backlog_parser import (
     parse_backlog,
     select_eligible_item,
+    select_next_task,
     mark_item_done_with_evidence,
     BacklogItem,
     Priority as BacklogPriority,
@@ -189,18 +190,35 @@ class AutonomousBuildCycleMission(BaseMission):
 
     def _load_task_from_backlog(self, context: MissionContext) -> Optional[BacklogItem]:
         """
-        Load next eligible task from BACKLOG.md.
+        Load next eligible task from BACKLOG.md, skipping blocked tasks.
+
+        A task is considered blocked if:
+        - It has explicit dependencies
+        - Its context contains markers: "blocked", "depends on", "waiting for"
 
         Returns:
             BacklogItem or None if no eligible tasks
+            Raises: FileNotFoundError if BACKLOG.md missing (caller distinguishes from NO_ELIGIBLE_TASKS)
         """
         backlog_path = context.repo_root / "docs" / "11_admin" / "BACKLOG.md"
 
         if not backlog_path.exists():
-            return None
+            raise FileNotFoundError(f"BACKLOG.md not found at: {backlog_path}")
 
         items = parse_backlog(backlog_path)
-        selected = select_eligible_item(items)
+
+        # First filter to uncompleted (TODO, P0/P1) tasks
+        from recursive_kernel.backlog_parser import get_uncompleted_tasks
+        uncompleted = get_uncompleted_tasks(items)
+
+        # Then filter out blocked tasks before selection
+        def is_not_blocked(item: BacklogItem) -> bool:
+            """Check if task is not blocked."""
+            # Check context for blocking markers
+            blocked_markers = ["blocked", "depends on", "waiting for"]
+            return not any(marker in item.context.lower() for marker in blocked_markers)
+
+        selected = select_next_task(uncompleted, filter_fn=is_not_blocked)
 
         return selected
 
@@ -211,8 +229,20 @@ class AutonomousBuildCycleMission(BaseMission):
 
         # Handle from_backlog mode
         if inputs.get("from_backlog"):
-            backlog_item = self._load_task_from_backlog(context)
+            try:
+                backlog_item = self._load_task_from_backlog(context)
+            except FileNotFoundError as e:
+                # BACKLOG.md missing - distinct from NO_ELIGIBLE_TASKS
+                reason = "BACKLOG_MISSING"
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0)
+                return self._make_result(
+                    success=False,
+                    outputs={"outcome": "BLOCKED", "reason": reason, "error": str(e)},
+                    executed_steps=["backlog_scan"],
+                )
+
             if backlog_item is None:
+                # No eligible tasks (all completed, blocked, or wrong priority)
                 reason = "NO_ELIGIBLE_TASKS"
                 self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0)
                 return self._make_result(
@@ -500,6 +530,7 @@ class AutonomousBuildCycleMission(BaseMission):
                                 "commit_hash": final_commit_hash,
                                 "run_id": context.run_id,
                             },
+                            repo_root=context.repo_root,
                         )
                         executed_steps.append("backlog_marked_complete")
 
