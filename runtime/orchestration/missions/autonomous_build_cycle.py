@@ -104,12 +104,13 @@ class AutonomousBuildCycleMission(BaseMission):
     def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
         executed_steps: List[str] = []
         total_tokens = 0
-        
+        final_commit_hash = "UNKNOWN"  # Track commit hash from steward
+
         # P0: Workspace Semantics - Fail Closed if Reset Unavailable
         if not self._can_reset_workspace(context):
              reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
              self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-             return self._make_result(success=False, escalation_reason=reason)
+             return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
 
         # 1. Setup Infrastructure
         ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
@@ -137,7 +138,8 @@ class AutonomousBuildCycleMission(BaseMission):
                     self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
                     return self._make_result(
                         success=False,
-                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}"
+                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}",
+                        executed_steps=executed_steps
                     )
                 executed_steps.append("ledger_hydrated")
             else:
@@ -154,7 +156,8 @@ class AutonomousBuildCycleMission(BaseMission):
         except LedgerIntegrityError as e:
             return self._make_result(
                 success=False,
-                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}"
+                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}",
+                executed_steps=executed_steps
             )
 
         # 3. Design Phase (Attempt 0) - Simplified for Phase A
@@ -178,7 +181,7 @@ class AutonomousBuildCycleMission(BaseMission):
              pass
 
         if not d_res.success:
-            return self._make_result(success=False, error=f"Design failed: {d_res.error}")
+            return self._make_result(success=False, error=f"Design failed: {d_res.error}", executed_steps=executed_steps)
             
         build_packet = d_res.outputs["build_packet"]
         
@@ -193,8 +196,9 @@ class AutonomousBuildCycleMission(BaseMission):
 
         if not r_res.success or r_res.outputs.get("verdict") != "approved":
              return self._make_result(
-                 success=False, 
-                 escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}"
+                 success=False,
+                 escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}",
+                 executed_steps=executed_steps
              )
              
         design_approval = r_res.outputs.get("council_decision")
@@ -214,7 +218,7 @@ class AutonomousBuildCycleMission(BaseMission):
             if is_over:
                 # Emit Terminal Packet
                 self._emit_terminal(TerminalOutcome.BLOCKED, budget_reason, context, total_tokens)
-                return self._make_result(success=False, error=budget_reason) # Simplified return
+                return self._make_result(success=False, error=budget_reason, executed_steps=executed_steps) # Simplified return
                 
             # Policy Check (Deadlock/Oscillation/Resume-Action)
             action, reason = policy.decide_next_action(ledger)
@@ -231,13 +235,10 @@ class AutonomousBuildCycleMission(BaseMission):
                 self._emit_terminal(outcome, reason, context, total_tokens)
                 
                 if outcome == TerminalOutcome.PASS:
-                    # Return success details
-                    # TODO: Extract commit hash from evidence or ledger
-                    # The steward mission produces the hash, but it's not currently
-                    # propagated through the ledger structure
-                    return self._make_result(success=True, outputs={"commit_hash": "UNKNOWN"})
+                    # Return success details with commit hash from steward
+                    return self._make_result(success=True, outputs={"commit_hash": final_commit_hash}, executed_steps=executed_steps)
                 else:
-                    return self._make_result(success=False, error=reason)
+                    return self._make_result(success=False, error=reason, executed_steps=executed_steps)
 
             # Execution (RETRY or First Run)
             feedback = ""
@@ -263,7 +264,7 @@ class AutonomousBuildCycleMission(BaseMission):
                 # P0: Fail Closed on Token Accounting
                 reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
                 self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-                return self._make_result(success=False, escalation_reason=reason)
+                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
 
             if not b_res.success:
                 # Internal mission error (crash?)
@@ -293,8 +294,8 @@ class AutonomousBuildCycleMission(BaseMission):
                 
                 # Record Failure
                 self._record_attempt(ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, reason)
-                
-                return self._make_result(success=False, escalation_reason=reason)
+
+                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
 
             # Output Review
             out_review = ReviewMission()
@@ -318,7 +319,9 @@ class AutonomousBuildCycleMission(BaseMission):
                 steward = StewardMission()
                 s_res = steward.run(context, {"review_packet": review_packet, "approval": or_res.outputs.get("council_decision")})
                 if s_res.success:
-                    # SUCCESS!
+                    # SUCCESS! Capture commit hash and add steward step
+                    final_commit_hash = s_res.outputs.get("commit_hash", s_res.outputs.get("simulated_commit_hash", "UNKNOWN"))
+                    executed_steps.append("steward")
                     # Record PASS
                     self._record_attempt(ledger, attempt_id, context, b_res, None, "Attributes Approved", success=True)
                     # Loop will check policy next iter -> PASS
