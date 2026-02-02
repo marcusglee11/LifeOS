@@ -54,10 +54,18 @@ def mock_run_controller():
         yield mock_verify
 
 
+@pytest.fixture
+def mock_policy_hash():
+    """Mock policy hash computation for tests."""
+    with patch.object(LoopSpine, "_get_current_policy_hash") as mock_hash:
+        mock_hash.return_value = "test_policy_hash_abc123"
+        yield mock_hash
+
+
 class TestSingleChainExecution:
     """Test: Single chain execution to terminal (Scenario 1)"""
 
-    def test_single_chain_to_terminal_pass(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_single_chain_to_terminal_pass(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
         """
         Given a task spec is provided
         When the loop spine runs the chain
@@ -96,7 +104,7 @@ class TestSingleChainExecution:
             ledger_file = clean_repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
             assert ledger_file.exists()
 
-    def test_single_chain_to_terminal_blocked(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_single_chain_to_terminal_blocked(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
         """
         Test chain that ends in BLOCKED state (e.g., test failure exhausted retries)
         """
@@ -127,7 +135,7 @@ class TestSingleChainExecution:
 class TestCheckpointPause:
     """Test: Checkpoint pauses execution (Scenario 2)"""
 
-    def test_checkpoint_pauses_on_escalation(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_checkpoint_pauses_on_escalation(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
         """
         Given a chain is running
         When a checkpoint trigger fires (e.g., ESCALATION_REQUESTED)
@@ -163,7 +171,7 @@ class TestCheckpointPause:
                 assert checkpoint_data["resolved"] is False
                 assert "policy_hash" in checkpoint_data
 
-    def test_checkpoint_packet_format(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_checkpoint_packet_format(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
         """Verify checkpoint packet has stable format with sorted keys."""
         spine = LoopSpine(repo_root=clean_repo_root)
 
@@ -468,7 +476,7 @@ class TestCheckpointResolution:
 class TestArtifactOutputContract:
     """Test: Artifact output contract (deterministic formatting)"""
 
-    def test_terminal_packet_sorted_keys(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_terminal_packet_sorted_keys(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
         """Verify terminal packet YAML has sorted keys for determinism."""
         spine = LoopSpine(repo_root=clean_repo_root)
 
@@ -491,7 +499,7 @@ class TestArtifactOutputContract:
             assert content.index("commit_hash:") < content.index("outcome:")
             assert content.index("outcome:") < content.index("run_id:")
 
-    def test_step_summary_json_sorted(self, clean_repo_root, mock_run_controller):
+    def test_step_summary_json_sorted(self, clean_repo_root, mock_run_controller, mock_policy_hash):
         """Verify step summary JSON has sorted keys."""
         spine = LoopSpine(repo_root=clean_repo_root)
 

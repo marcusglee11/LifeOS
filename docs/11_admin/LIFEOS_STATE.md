@@ -11,17 +11,17 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Enter Phase 4 (Planning Stage)
-**Active WIP:** Prepare Phase 4 Construction Blueprint
-**Last Updated:** 2026-01-29
+**Current Focus:** Phase 4 (Autonomous Construction)
+**Active WIP:** Phase 4A0 Loop Spine - Integration-Ready
+**Last Updated:** 2026-02-02
 
 ---
 
 ## 🟥 IMMEDIATE NEXT STEP (The "One Thing")
 
-**Complete Phase 3 Closure:**
+**Phase 4A0 Loop Spine:**
 
-1. Enter Phase 4 (Planning Stage).
+1. Integration testing with Phase 4A (CEO Queue) and 4B (Backlog Selection)
 
 ---
 
@@ -35,6 +35,7 @@
 | **CLOSED** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
 | **WAITING** | OpenCode Deletion Logic | Council | Review Ruling |
 | **CLOSED** | **Sprint S1 Phase B (B1–B3)** | Antigravity | Refined Evidence + Boundaries (ACCEPTED + committed) |
+| **COMPLETE** | **Phase 4A0 Loop Spine P0 Fixes** | Antigravity | CLI surface, real policy hash, ledger integration, chain execution |
 
 ---
 
@@ -45,8 +46,11 @@
 - **Phase 3 (Optimization):** **RATIFIED (APPROVE_WITH_CONDITIONS)** — Council Ruling Phase3 Closure v1.0
   - **Condition C1:** CSO Role Constitution v1.0 (RESOLVED 2026-01-23)
   - **Condition C2:** F3/F4/F7 evidence deferred (RESOLVED 2026-01-27) — Review packets: `artifacts/review_packets/Review_Packet_F3_Tier2.5_Activation_v1.0.md`, `artifacts/review_packets/Review_Packet_F4_Tier2.5_Deactivation_v1.0.md`, `artifacts/review_packets/Review_Packet_F7_Runtime_Antigrav_Protocol_v1.0.md`
-- **Phase 4 (Autonomous Construction):** NEXT
+- **Phase 4 (Autonomous Construction):** IN PROGRESS
   - **P0 Pre-req:** Trusted Builder Mode v1.1 (RATIFIED 2026-01-26)
+  - **Phase 4A0 (Loop Spine):** COMPLETE - CLI surface, policy hash, ledger, chain execution
+  - **Phase 4A (CEO Queue):** NEXT - Checkpoint resolution backend
+  - **Phase 4B (Backlog Selection):** PENDING - Task selection integration
 
 ---
 
@@ -58,6 +62,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-02:** Phase 4A0 Loop Spine P0 fixes complete - CLI surface (lifeos/coo spine), real policy hash, ledger integration, chain execution
 - **2026-01-29:** Sprint S1 Phase B (B1-B3) refinements ACCEPTED and committed. No regressions (22 baseline failures preserved).
 - **2026-01-29:** P0 Repo Cleanup and Commit (滿足 Preflight Check).
 - **2026-01-26:** Trusted Builder Mode v1.1 Ratified (Council Ruling).

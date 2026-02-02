@@ -454,6 +454,122 @@ def cmd_queue_reject(args: argparse.Namespace, repo_root: Path) -> int:
     return 0
 
 
+def cmd_spine_run(args: argparse.Namespace, repo_root: Path) -> int:
+    """
+    Run Loop Spine with a task specification.
+
+    Args:
+        args: Parsed arguments with task_spec and optional run_id
+        repo_root: Repository root path
+
+    Returns:
+        0 on success (PASS), 1 on failure (BLOCKED), 2 on checkpoint pause
+    """
+    from runtime.orchestration.loop.spine import LoopSpine
+    from runtime.orchestration.run_controller import RepoDirtyError
+
+    # Parse task spec (JSON file or inline JSON)
+    task_spec_path = Path(args.task_spec)
+    if task_spec_path.exists():
+        with open(task_spec_path, 'r') as f:
+            task_spec = json.load(f)
+    else:
+        # Try parsing as inline JSON
+        try:
+            task_spec = json.loads(args.task_spec)
+        except json.JSONDecodeError:
+            print(f"Error: task_spec must be a JSON file path or valid JSON string")
+            return 1
+
+    # Create spine instance
+    spine = LoopSpine(repo_root=repo_root)
+
+    try:
+        # Run chain
+        result = spine.run(task_spec=task_spec, resume_from=None)
+
+        # Output result
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True))
+        else:
+            print(f"Run ID: {result['run_id']}")
+            print(f"State: {result['state']}")
+            print(f"Outcome: {result.get('outcome', 'N/A')}")
+
+            if result['state'] == 'CHECKPOINT':
+                print(f"Checkpoint: {result.get('checkpoint_id')}")
+                print("Execution paused. Use 'lifeos spine resume' to continue.")
+                return 2
+            elif result.get('outcome') == 'PASS':
+                print(f"Commit: {result.get('commit_hash', 'N/A')}")
+                return 0
+            else:
+                print(f"Reason: {result.get('reason', 'Unknown')}")
+                return 1
+
+    except RepoDirtyError as e:
+        print(f"Error: Repository is dirty. Cannot proceed.", file=sys.stderr)
+        print(str(e), file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Error: {type(e).__name__}: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_spine_resume(args: argparse.Namespace, repo_root: Path) -> int:
+    """
+    Resume Loop Spine execution from a checkpoint.
+
+    Args:
+        args: Parsed arguments with checkpoint_id
+        repo_root: Repository root path
+
+    Returns:
+        0 on success (PASS), 1 on failure (BLOCKED/error)
+    """
+    from runtime.orchestration.loop.spine import LoopSpine, PolicyChangedError, SpineError
+    from runtime.orchestration.run_controller import RepoDirtyError
+
+    # Create spine instance
+    spine = LoopSpine(repo_root=repo_root)
+
+    try:
+        # Resume from checkpoint
+        result = spine.resume(checkpoint_id=args.checkpoint_id)
+
+        # Output result
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True))
+        else:
+            print(f"Run ID: {result['run_id']}")
+            print(f"State: {result['state']}")
+            print(f"Outcome: {result.get('outcome', 'N/A')}")
+
+            if result.get('outcome') == 'PASS':
+                print(f"Commit: {result.get('commit_hash', 'N/A')}")
+                return 0
+            elif result.get('outcome') == 'BLOCKED':
+                print(f"Reason: {result.get('reason')}")
+                return 1
+            else:
+                return 1
+
+    except PolicyChangedError as e:
+        print(f"Error: Policy changed mid-run. Cannot resume.", file=sys.stderr)
+        print(str(e), file=sys.stderr)
+        return 1
+    except RepoDirtyError as e:
+        print(f"Error: Repository is dirty. Cannot proceed.", file=sys.stderr)
+        print(str(e), file=sys.stderr)
+        return 1
+    except SpineError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Error: {type(e).__name__}: {e}", file=sys.stderr)
+        return 1
+
+
 def main() -> int:
     # Use a custom parser that handles global options before subcommands
     # This is achieved by defining them on the main parser.
@@ -516,7 +632,22 @@ def main() -> int:
     p_run.add_argument("--from-backlog", required=True, help="Task ID from backlog to execute")
     p_run.add_argument("--backlog", type=str, help="Path to backlog file (default: config/backlog.yaml)")
     p_run.add_argument("--mission-type", type=str, help="Mission type override (default: steward)")
-    
+
+    # spine group (Phase 4A0)
+    p_spine = subparsers.add_parser("spine", help="Loop Spine (A1 Chain Controller) commands")
+    spine_subs = p_spine.add_subparsers(dest="spine_cmd", required=True)
+
+    # spine run
+    p_spine_run = spine_subs.add_parser("run", help="Run a new chain execution")
+    p_spine_run.add_argument("task_spec", help="Path to task spec JSON file or inline JSON string")
+    p_spine_run.add_argument("--run-id", help="Optional run ID (generated if not provided)")
+    p_spine_run.add_argument("--json", action="store_true", help="Output results as JSON")
+
+    # spine resume
+    p_spine_resume = spine_subs.add_parser("resume", help="Resume execution from checkpoint")
+    p_spine_resume.add_argument("checkpoint_id", help="Checkpoint ID (e.g., CP_run_123_2)")
+    p_spine_resume.add_argument("--json", action="store_true", help="Output results as JSON")
+
     # Parse args
     # Note: argparse by default allows flags before subcommands
     args = parser.parse_args()
@@ -558,7 +689,13 @@ def main() -> int:
 
         if args.subcommand == "run-mission":
             return cmd_run_mission(args, repo_root)
-                
+
+        if args.subcommand == "spine":
+            if args.spine_cmd == "run":
+                return cmd_spine_run(args, repo_root)
+            elif args.spine_cmd == "resume":
+                return cmd_spine_resume(args, repo_root)
+
     except Exception as e:
         print(f"Error: {e}")
         return 1

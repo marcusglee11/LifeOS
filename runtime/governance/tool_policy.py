@@ -222,18 +222,50 @@ def check_pytest_scope(target_path: str) -> Tuple[bool, str]:
     Allowed: runtime/tests/**
     Blocked: Everything else
 
+    Hardening (P0):
+    - Rejects absolute paths (POSIX /, Windows C:\, UNC \\)
+    - Rejects path traversal (.. or . segments)
+    - Rejects confusing siblings (runtime/tests_evil)
+
     Args:
         target_path: The pytest target path (file or directory)
 
     Returns:
         (allowed, reason) tuple
     """
-    allowed_prefixes = ["runtime/tests/", "runtime/tests"]
+    # Reject empty/None
+    if not target_path or not target_path.strip():
+        return False, "PATH_EMPTY_OR_NONE"
+
+    # Normalize to forward slashes
     normalized = target_path.replace("\\", "/")
 
-    for prefix in allowed_prefixes:
-        if normalized.startswith(prefix) or normalized == prefix:
-            return True, f"Path within allowed test scope: {prefix}"
+    # Reject absolute paths
+    # POSIX: starts with /
+    if normalized.startswith("/"):
+        return False, f"ABSOLUTE_PATH_DENIED: {target_path}"
+
+    # Windows: starts with drive letter (C:, D:, etc.)
+    if len(normalized) >= 2 and normalized[1] == ":":
+        return False, f"ABSOLUTE_PATH_DENIED (Windows drive): {target_path}"
+
+    # UNC: starts with //
+    if normalized.startswith("//"):
+        return False, f"ABSOLUTE_PATH_DENIED (UNC): {target_path}"
+
+    # Reject path traversal segments
+    segments = normalized.split("/")
+    for segment in segments:
+        if segment in (".", ".."):
+            return False, f"PATH_TRAVERSAL_DENIED (found '{segment}'): {target_path}"
+
+    # Exact match or prefix match with trailing slash
+    # This prevents "runtime/tests_evil" from matching
+    if normalized == "runtime/tests":
+        return True, "Path is runtime/tests (exact match)"
+
+    if normalized.startswith("runtime/tests/"):
+        return True, "Path within allowed test scope: runtime/tests/"
 
     return False, f"PATH_OUTSIDE_ALLOWED_SCOPE: {target_path}"
 
@@ -423,3 +455,91 @@ def get_allowed_actions(tool: str) -> List[str]:
     if tool not in ALLOWED_ACTIONS:
         return []
     return sorted(ALLOWED_ACTIONS[tool])
+
+
+# =============================================================================
+# Code Autonomy Policy (Phase 4D) - INACTIVE until Council approval
+# =============================================================================
+
+def check_code_autonomy_policy(
+    request: ToolInvokeRequest,
+    diff_lines: Optional[int] = None,
+) -> Tuple[bool, PolicyDecision]:
+    """
+    Check code autonomy policy for write/create operations.
+
+    This function implements Phase 4D policy but is NOT active until:
+    - Council Ruling CR-4D-01 is approved
+    - ALLOWED_ACTIONS is updated to include write operations
+
+    Args:
+        request: Tool invocation request
+        diff_lines: Total diff size in lines (for budget validation)
+
+    Returns:
+        (allowed, PolicyDecision) tuple
+    """
+    from runtime.governance.protected_paths import (
+        validate_write_path,
+        validate_diff_budget,
+    )
+    from runtime.governance.syntax_validator import SyntaxValidator
+
+    tool = request.tool
+    action = request.action
+
+    # Only applies to filesystem write operations
+    if tool != "filesystem" or action != "write_file":
+        return True, PolicyDecision(
+            allowed=True,
+            decision_reason="Not a write operation",
+            matched_rules=["code_autonomy_not_applicable"],
+        )
+
+    # Get path from request
+    path = request.get_path()
+    if not path:
+        return False, PolicyDecision(
+            allowed=False,
+            decision_reason="DENIED: write_file requires path (fail-closed)",
+            matched_rules=["filesystem_path_required"],
+        )
+
+    # Validate path is allowed and not protected
+    path_allowed, path_reason = validate_write_path(path)
+    if not path_allowed:
+        return False, PolicyDecision(
+            allowed=False,
+            decision_reason=f"DENIED: {path_reason}",
+            matched_rules=["code_autonomy_path_violation"],
+        )
+
+    # Validate diff budget if provided
+    if diff_lines is not None:
+        budget_ok, budget_reason = validate_diff_budget(diff_lines)
+        if not budget_ok:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason=f"DENIED: {budget_reason}",
+                matched_rules=["code_autonomy_diff_budget_exceeded"],
+            )
+
+    # Validate syntax if content provided
+    content = request.args.get("content")
+    if content:
+        validator = SyntaxValidator()
+        validation_result = validator.validate(content, path=path)
+
+        if not validation_result.valid:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason=f"DENIED: SYNTAX_VALIDATION_FAILED: {validation_result.error}",
+                matched_rules=["code_autonomy_syntax_invalid"],
+            )
+
+    # All checks passed
+    return True, PolicyDecision(
+        allowed=True,
+        decision_reason="Code autonomy policy satisfied",
+        matched_rules=["code_autonomy_allowed"],
+    )

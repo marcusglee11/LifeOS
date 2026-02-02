@@ -38,6 +38,7 @@ from runtime.orchestration.loop.taxonomy import (
     LoopAction,
 )
 from runtime.api.governance_api import PolicyLoader
+from runtime.governance.HASH_POLICY_v1 import hash_json
 
 
 class SpineState(Enum):
@@ -204,8 +205,18 @@ class LoopSpine:
                 commit_hash=result.get("commit_hash"),
             )
 
-            self._emit_terminal(terminal_packet)
+            terminal_file = self._emit_terminal(terminal_packet)
             self.state = SpineState.TERMINAL
+
+            # Write ledger record for completed execution
+            self._write_ledger_record(
+                success=(result["outcome"] == "PASS"),
+                terminal_reason=result.get("reason", "pass"),
+                actions_taken=result.get("steps_executed", []),
+                terminal_packet_path=str(terminal_file.relative_to(self.repo_root)),
+                checkpoint_path=None,
+                commit_hash=result.get("commit_hash"),
+            )
 
             return {
                 "outcome": result["outcome"],
@@ -216,6 +227,17 @@ class LoopSpine:
 
         except CheckpointTriggered as checkpoint_exc:
             # Checkpoint was triggered during execution
+            # Write ledger record for checkpoint
+            checkpoint_file = self.checkpoint_dir / f"{checkpoint_exc.checkpoint_id}.yaml"
+            self._write_ledger_record(
+                success=False,
+                terminal_reason="checkpoint_triggered",
+                actions_taken=[],
+                terminal_packet_path=None,
+                checkpoint_path=str(checkpoint_file.relative_to(self.repo_root)),
+                commit_hash=None,
+            )
+
             return {
                 "state": SpineState.CHECKPOINT.value,
                 "checkpoint_id": checkpoint_exc.checkpoint_id,
@@ -306,7 +328,17 @@ class LoopSpine:
             commit_hash=result.get("commit_hash"),
         )
 
-        self._emit_terminal(terminal_packet)
+        terminal_file = self._emit_terminal(terminal_packet)
+
+        # Write ledger record for resumed execution
+        self._write_ledger_record(
+            success=(result["outcome"] == "PASS"),
+            terminal_reason=result.get("reason", "pass"),
+            actions_taken=result.get("steps_executed", []),
+            terminal_packet_path=str(terminal_file.relative_to(self.repo_root)),
+            checkpoint_path=str((self.checkpoint_dir / checkpoint_id).with_suffix('.yaml').relative_to(self.repo_root)),
+            commit_hash=result.get("commit_hash"),
+        )
 
         # Return RESUMED state to indicate this was a resumed execution
         # (even though we've completed and could transition to TERMINAL)
@@ -332,19 +364,126 @@ class LoopSpine:
 
         Returns:
             Result dict with outcome, steps_executed, commit_hash
-
-        Note:
-            This is a placeholder that will be replaced with actual orchestration.
-            For MVP, this delegates to the existing AutonomousBuildCycleMission.
         """
-        # TODO: Implement actual chain orchestration
-        # For now, return a placeholder result
-        steps = ["hydrate", "policy", "design", "build", "review", "steward"]
+        from runtime.orchestration.missions.base import MissionContext, MissionType, MissionEscalationRequired
+        from runtime.orchestration.missions import get_mission_class
+        import subprocess
+        import uuid
+
+        # Define chain steps
+        chain_steps = [
+            ("hydrate", None),  # Metadata step, no mission
+            ("policy", None),   # Metadata step, no mission
+            ("design", MissionType.DESIGN),
+            ("build", MissionType.BUILD),
+            ("review", MissionType.REVIEW),
+            ("steward", MissionType.STEWARD),
+        ]
+
+        steps_executed = []
+
+        # Get baseline commit
+        try:
+            cmd_result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                cwd=self.repo_root
+            )
+            baseline_commit = cmd_result.stdout.strip() if cmd_result.returncode == 0 else "unknown"
+        except Exception:
+            baseline_commit = "unknown"
+
+        # Execute chain from start_from_step
+        for step_idx in range(start_from_step, len(chain_steps)):
+            step_name, mission_type = chain_steps[step_idx]
+
+            if mission_type is None:
+                # Metadata step (hydrate, policy) - just record
+                steps_executed.append(step_name)
+                continue
+
+            # Create mission context
+            context = MissionContext(
+                repo_root=self.repo_root,
+                baseline_commit=baseline_commit,
+                run_id=self.run_id,
+                operation_executor=None,
+                journal=None,
+                metadata={"spine_execution": True},
+            )
+
+            # Get mission class and instantiate
+            try:
+                mission_class = get_mission_class(mission_type)
+                mission = mission_class()
+
+                # Prepare inputs from task_spec
+                inputs = {
+                    "task_spec": task_spec.get("task", ""),
+                    "context_refs": task_spec.get("context_refs", []),
+                }
+
+                # Execute mission
+                result = mission.run(context, inputs)
+
+                # Check for escalation
+                if hasattr(result, 'success') and not result.success:
+                    # Mission failed - check if escalation or termination
+                    if hasattr(result, 'outputs') and result.outputs.get('escalation_required'):
+                        # Trigger checkpoint for escalation
+                        self._trigger_checkpoint(
+                            trigger="ESCALATION_REQUESTED",
+                            step_index=step_idx,
+                            context={"task_spec": task_spec, "current_step": step_name},
+                        )
+                    else:
+                        # Terminal failure
+                        return {
+                            "outcome": "BLOCKED",
+                            "reason": "mission_failed",
+                            "steps_executed": steps_executed + [step_name],
+                        }
+
+                steps_executed.append(step_name)
+
+            except MissionEscalationRequired as e:
+                # Escalation raised - trigger checkpoint
+                self._trigger_checkpoint(
+                    trigger="ESCALATION_REQUESTED",
+                    step_index=step_idx,
+                    context={
+                        "task_spec": task_spec,
+                        "current_step": step_name,
+                        "escalation_reason": e.reason,
+                    },
+                )
+            except Exception as e:
+                # Unexpected error - fail closed
+                return {
+                    "outcome": "BLOCKED",
+                    "reason": f"execution_error: {type(e).__name__}",
+                    "steps_executed": steps_executed + [step_name],
+                }
+
+        # Get final commit if steward succeeded
+        try:
+            cmd_result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                cwd=self.repo_root
+            )
+            commit_hash = cmd_result.stdout.strip() if cmd_result.returncode == 0 else None
+        except Exception:
+            commit_hash = None
 
         return {
             "outcome": "PASS",
-            "steps_executed": steps[start_from_step:],
-            "commit_hash": "placeholder_commit",
+            "steps_executed": steps_executed,
+            "commit_hash": commit_hash,
         }
 
     def _trigger_checkpoint(
@@ -491,30 +630,32 @@ class LoopSpine:
 
     def _get_current_policy_hash(self) -> str:
         """
-        Get current policy hash.
+        Get current policy hash from canonical policy source.
 
         Returns:
-            Policy hash string
+            SHA-256 hex digest of effective policy config
 
-        Note:
-            For MVP, this returns a hardcoded hash.
-            In production, this should compute hash from policy config files.
+        Raises:
+            SpineError: If policy cannot be loaded
         """
-        # TODO: Compute from actual policy config
-        # For now, return a stable test value
         policy_config_dir = self.repo_root / "config" / "policy"
 
-        if policy_config_dir.exists():
-            # Attempt to load policy and compute hash
-            try:
-                loader = PolicyLoader(config_dir=policy_config_dir, authoritative=False)
-                config = loader.load()
-                return self._compute_hash(config)
-            except Exception:
-                pass
+        if not policy_config_dir.exists():
+            raise SpineError(
+                f"Policy directory not found: {policy_config_dir}. "
+                "Cannot compute policy hash."
+            )
 
-        # Fallback to hardcoded
-        return "current_policy_hash"
+        try:
+            # Load effective policy config (with includes resolved)
+            loader = PolicyLoader(config_dir=policy_config_dir, authoritative=True)
+            config = loader.load()
+
+            # Compute deterministic hash using governance hash function
+            return hash_json(config)
+
+        except Exception as e:
+            raise SpineError(f"Failed to compute policy hash: {e}")
 
     def _compute_hash(self, obj: Any) -> str:
         """
@@ -547,6 +688,81 @@ class LoopSpine:
             ISO 8601 timestamp string
         """
         return datetime.now(timezone.utc).isoformat()
+
+    def _write_ledger_record(
+        self,
+        success: bool,
+        terminal_reason: str,
+        actions_taken: List[str],
+        terminal_packet_path: Optional[str],
+        checkpoint_path: Optional[str],
+        commit_hash: Optional[str],
+    ) -> None:
+        """
+        Write attempt record to ledger.
+
+        Args:
+            success: Whether execution succeeded
+            terminal_reason: Terminal reason code
+            actions_taken: List of steps executed
+            terminal_packet_path: Path to terminal packet (relative to repo root)
+            checkpoint_path: Path to checkpoint (relative to repo root) if checkpointed
+            commit_hash: Final commit hash if PASS
+        """
+        # Get next attempt ID
+        last_record = self.ledger.get_last_record()
+        attempt_id = (last_record.attempt_id + 1) if last_record else 1
+
+        # Compute diff hash (placeholder for MVP)
+        diff_hash = None
+        changed_files = []
+
+        # Build evidence hashes dict (placeholder for MVP)
+        evidence_hashes = {}
+        if terminal_packet_path:
+            terminal_file = self.repo_root / terminal_packet_path
+            if terminal_file.exists():
+                with open(terminal_file, 'rb') as f:
+                    evidence_hashes[terminal_packet_path] = self._compute_hash(f.read().decode('utf-8'))
+        if checkpoint_path:
+            checkpoint_file = self.repo_root / checkpoint_path
+            if checkpoint_file.exists():
+                with open(checkpoint_file, 'rb') as f:
+                    evidence_hashes[checkpoint_path] = self._compute_hash(f.read().decode('utf-8'))
+
+        # Determine failure class
+        failure_class = None if success else FailureClass.UNKNOWN.value
+
+        # Determine next action
+        from runtime.orchestration.loop.taxonomy import LoopAction
+        if checkpoint_path:
+            next_action = LoopAction.ESCALATE.value
+        elif success:
+            next_action = LoopAction.TERMINATE.value
+        else:
+            next_action = LoopAction.TERMINATE.value
+
+        # Create attempt record
+        record = AttemptRecord(
+            attempt_id=attempt_id,
+            timestamp=self._get_timestamp(),
+            run_id=self.run_id,
+            policy_hash=self.current_policy_hash,
+            input_hash=self._compute_hash({"run_id": self.run_id}),  # Placeholder
+            actions_taken=actions_taken,
+            diff_hash=diff_hash,
+            changed_files=changed_files,
+            evidence_hashes=evidence_hashes,
+            success=success,
+            failure_class=failure_class,
+            terminal_reason=terminal_reason,
+            next_action=next_action,
+            rationale=f"Spine execution: {terminal_reason}",
+            plan_bypass_info=None,
+        )
+
+        # Append to ledger
+        self.ledger.append(record)
 
 
 class CheckpointTriggered(Exception):

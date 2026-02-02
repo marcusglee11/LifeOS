@@ -48,6 +48,97 @@ class TestPytestScopeEnforcement:
         allowed, reason = check_pytest_scope("runtime\\tests\\test_foo.py")
         assert allowed is True, f"Windows path should be normalized: {reason}"
 
+    # P0 Hardening Tests - Adversarial bypasses
+    def test_deny_confusing_sibling_path(self):
+        """Deny runtime/tests_evil (confusing sibling)."""
+        allowed, reason = check_pytest_scope("runtime/tests_evil/test_x.py")
+        assert allowed is False
+        assert "PATH_OUTSIDE_ALLOWED_SCOPE" in reason
+
+    def test_deny_path_traversal_dotdot(self):
+        """Deny path traversal with .."""
+        test_cases = [
+            "runtime/tests/../runtime/governance/test_x.py",
+            "runtime/tests/../docs/01_governance/x.py",
+            "../runtime/tests/test_x.py",
+            "runtime/../tests/test_x.py",
+        ]
+        for target in test_cases:
+            allowed, reason = check_pytest_scope(target)
+            assert allowed is False, f"Should deny: {target}"
+            assert "PATH_TRAVERSAL_DENIED" in reason, f"Wrong reason for {target}: {reason}"
+
+    def test_deny_path_traversal_dot(self):
+        """Deny path traversal with . (current dir)."""
+        test_cases = [
+            "runtime/./tests/test_x.py",
+            "./runtime/tests/test_x.py",
+            "runtime/tests/./test_x.py",
+        ]
+        for target in test_cases:
+            allowed, reason = check_pytest_scope(target)
+            assert allowed is False, f"Should deny: {target}"
+            assert "PATH_TRAVERSAL_DENIED" in reason
+
+    def test_deny_windows_path_traversal(self):
+        """Deny Windows-style path traversal."""
+        test_cases = [
+            "runtime\\tests\\..\\docs\\01_governance\\x.py",
+            "runtime\\tests\\..\\runtime\\governance\\test_x.py",
+        ]
+        for target in test_cases:
+            allowed, reason = check_pytest_scope(target)
+            assert allowed is False, f"Should deny: {target}"
+            assert "PATH_TRAVERSAL_DENIED" in reason
+
+    def test_deny_absolute_posix_paths(self):
+        """Deny absolute POSIX paths."""
+        test_cases = [
+            "/etc/passwd",
+            "/runtime/tests/test_x.py",
+            "/home/user/runtime/tests/test_x.py",
+        ]
+        for target in test_cases:
+            allowed, reason = check_pytest_scope(target)
+            assert allowed is False, f"Should deny: {target}"
+            assert "ABSOLUTE_PATH_DENIED" in reason
+
+    def test_deny_absolute_windows_paths(self):
+        """Deny absolute Windows drive paths."""
+        test_cases = [
+            "C:\\Windows\\System32",
+            "C:\\runtime\\tests\\test_x.py",
+            "D:\\projects\\test.py",
+        ]
+        for target in test_cases:
+            allowed, reason = check_pytest_scope(target)
+            assert allowed is False, f"Should deny: {target}"
+            assert "ABSOLUTE_PATH_DENIED" in reason
+
+    def test_deny_unc_paths(self):
+        """Deny UNC network paths."""
+        test_cases = [
+            "//server/share/test.py",
+            "//192.168.1.1/files/test.py",
+        ]
+        for target in test_cases:
+            allowed, reason = check_pytest_scope(target)
+            assert allowed is False, f"Should deny: {target}"
+            assert "ABSOLUTE_PATH_DENIED" in reason
+
+    def test_deny_empty_or_none(self):
+        """Deny empty or whitespace-only paths."""
+        test_cases = [
+            "",
+            "   ",
+            "\t",
+            "\n",
+        ]
+        for target in test_cases:
+            allowed, reason = check_pytest_scope(target)
+            assert allowed is False, f"Should deny empty/whitespace: '{target}'"
+            assert "PATH_EMPTY_OR_NONE" in reason
+
 
 class TestPytestToolPolicy:
     """Tests for pytest tool policy enforcement."""
