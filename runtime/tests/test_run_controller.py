@@ -56,6 +56,10 @@ class TestKillSwitch:
         should halt immediately without acquiring lock.
         """
         (temp_repo / KILL_SWITCH_PATH).touch()
+        # Mock script existence to pass the Canon Spine gate
+        script_dir = temp_repo / "scripts"
+        script_dir.mkdir(exist_ok=True)
+        (script_dir / "validate_canon_spine.py").touch()
         
         with pytest.raises(KillSwitchActive) as exc_info:
             mission_startup_sequence("test-run", "test", temp_repo)
@@ -81,6 +85,11 @@ class TestKillSwitch:
             # Create the file for second check
             (temp_repo / KILL_SWITCH_PATH).touch()
             return True
+        
+        # Mock script existence
+        script_dir = temp_repo / "scripts"
+        script_dir.mkdir(exist_ok=True)
+        (script_dir / "validate_canon_spine.py").touch()
         
         with patch("runtime.orchestration.run_controller.check_kill_switch", mock_check):
             with pytest.raises(KillSwitchActive) as exc_info:
@@ -232,8 +241,14 @@ class TestGitFailClosed:
                 return r
             mock_run.side_effect = mock_subprocess
             
-            with pytest.raises(GitCommandError) as exc_info:
-                mission_startup_sequence("test-run", "test", temp_repo)
+            # Mock script existence and execution
+            script_dir = temp_repo / "scripts"
+            script_dir.mkdir(exist_ok=True)
+            (script_dir / "validate_canon_spine.py").touch()
+            
+            with patch("subprocess.run", side_effect=mock_subprocess) as mock_run_patch:
+                with pytest.raises(GitCommandError) as exc_info:
+                    mission_startup_sequence("test-run", "test", temp_repo)
             
             assert "rev-parse" in exc_info.value.command
 
@@ -270,7 +285,10 @@ class TestCanonSpine:
             
             assert "FAIL marker missing" in str(exc_info.value)
 
-    def test_verify_canon_spine_skips_if_script_missing(self, temp_repo):
-        """Should skip validation if scripts/validate_canon_spine.py is not present."""
+    def test_verify_canon_spine_fails_if_script_missing(self, temp_repo):
+        """Should fail validation if scripts/validate_canon_spine.py is not present."""
         # temp_repo won't have the script by default
-        verify_canon_spine(temp_repo) # Should not raise
+        with pytest.raises(CanonSpineError) as exc_info:
+            verify_canon_spine(temp_repo)
+        
+        assert "Validator script missing" in str(exc_info.value)

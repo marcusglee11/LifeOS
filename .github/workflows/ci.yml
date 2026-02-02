@@ -89,4 +89,9 @@ jobs:
         continue-on-error: true
 
       - name: Run Canon Spine validator
-        run: python scripts/validate_canon_spine.py
+        run: |
+          if [ ! -f scripts/validate_canon_spine.py ]; then
+            echo "CRITICAL: scripts/validate_canon_spine.py missing!"
+            exit 1
+          fi
+          python scripts/validate_canon_spine.py

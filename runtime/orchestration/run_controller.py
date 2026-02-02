@@ -370,7 +370,7 @@ def verify_canon_spine(repo_root: Optional[Path] = None) -> None:
     
     script_path = repo_root / "scripts" / "validate_canon_spine.py"
     if not script_path.exists():
-        return # Skip if script missing (avoid blocking if script not deployed)
+        raise CanonSpineError(f"Validator script missing: {script_path}")
     
     result = subprocess.run(
         [sys.executable, str(script_path)],
