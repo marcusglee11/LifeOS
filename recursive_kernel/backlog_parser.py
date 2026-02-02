@@ -9,11 +9,13 @@ Parses BACKLOG.md into structured BacklogItem instances with:
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # Use existing atomic write utility
 from runtime.util.atomic_write import atomic_write_text
@@ -320,7 +322,97 @@ def mark_item_done(
     # Preserve original line ending
     original_ending = lines[target_idx][len(current_line):] if len(lines[target_idx]) > len(current_line) else '\n'
     lines[target_idx] = new_line + original_ending
-    
+
     # Atomic write
     new_content = ''.join(lines)
     atomic_write_text(path, new_content)
+
+
+def get_uncompleted_tasks(items: List[BacklogItem]) -> List[BacklogItem]:
+    """
+    Filter to uncompleted, dispatchable tasks.
+
+    Returns only TODO items with P0/P1 priority.
+
+    Args:
+        items: List of parsed BacklogItems
+
+    Returns:
+        List of uncompleted P0/P1 tasks in original order
+    """
+    return [
+        item for item in items
+        if item.status == ItemStatus.TODO
+        and item.priority in (Priority.P0, Priority.P1)
+    ]
+
+
+def select_next_task(
+    tasks: List[BacklogItem],
+    filter_fn: Optional[Callable[[BacklogItem], bool]] = None,
+) -> Optional[BacklogItem]:
+    """
+    Select next eligible task with optional filtering.
+
+    Ordering:
+    1. Priority (P0 before P1)
+    2. Line number (file order)
+    3. Item key (determinism)
+
+    Args:
+        tasks: List of BacklogItems (should be pre-filtered to TODO P0/P1)
+        filter_fn: Optional filter function (e.g., lambda t: not is_blocked(t))
+
+    Returns:
+        First eligible task or None
+    """
+    eligible = tasks
+    if filter_fn:
+        eligible = [t for t in tasks if filter_fn(t)]
+
+    if not eligible:
+        return None
+
+    # Sort by priority, line number, then key
+    eligible.sort(key=lambda t: (
+        PRIORITY_ORDER[t.priority],
+        t.line_number,
+        t.item_key,
+    ))
+
+    return eligible[0]
+
+
+def mark_item_done_with_evidence(
+    path: Path,
+    item: BacklogItem,
+    evidence: Dict[str, Any],
+) -> None:
+    """
+    Mark task done and log evidence.
+
+    Args:
+        path: Path to BACKLOG.md
+        item: BacklogItem being completed
+        evidence: Evidence dict with commit_hash, run_id, etc.
+
+    Side effects:
+        - Marks checkbox in BACKLOG.md from [ ] to [x]
+        - Appends evidence entry to artifacts/backlog_evidence.jsonl
+    """
+    # Mark the checkbox
+    mark_item_done(path, item)
+
+    # Log to evidence file
+    evidence_path = path.parent.parent / "artifacts" / "backlog_evidence.jsonl"
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+
+    evidence_entry = {
+        "item_key": item.item_key,
+        "title": item.title,
+        "completed_at": datetime.utcnow().isoformat(),
+        **evidence,
+    }
+
+    with open(evidence_path, "a", encoding='utf-8') as f:
+        f.write(json.dumps(evidence_entry) + "\n")

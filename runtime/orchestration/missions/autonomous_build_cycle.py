@@ -29,7 +29,7 @@ from runtime.orchestration.missions.steward import StewardMission
 from recursive_kernel.backlog_parser import (
     parse_backlog,
     select_eligible_item,
-    mark_item_done,
+    mark_item_done_with_evidence,
     BacklogItem,
     Priority as BacklogPriority,
 )

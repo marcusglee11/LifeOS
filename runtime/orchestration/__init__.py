@@ -14,6 +14,7 @@ from .builder import (
     build_workflow,
     AntiFailurePlanningError,
 )
+from .task_spec import TaskSpec, TaskPriority
 
 __all__ = [
     # Engine
@@ -28,4 +29,7 @@ __all__ = [
     "MissionSpec",
     "build_workflow",
     "AntiFailurePlanningError",
+    # Task Specification
+    "TaskSpec",
+    "TaskPriority",
 ]
