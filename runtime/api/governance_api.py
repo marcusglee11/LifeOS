@@ -38,6 +38,8 @@ __all__ = [
     "PROTECTED_PATHS",
     "is_protected",
     "SelfModProtector",
+    "hash_json",
+    "HASH_ALGORITHM",
 ]
 
 

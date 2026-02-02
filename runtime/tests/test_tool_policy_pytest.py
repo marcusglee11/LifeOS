@@ -143,6 +143,11 @@ class TestPytestScopeEnforcement:
 class TestPytestToolPolicy:
     """Tests for pytest tool policy enforcement."""
 
+    @pytest.fixture(autouse=True)
+    def enable_pytest_execution(self, monkeypatch):
+        """Enable pytest execution for policy tests."""
+        monkeypatch.setenv("PYTEST_EXECUTION_ENABLED", "true")
+
     def test_pytest_allowed_on_runtime_tests_file(self):
         """pytest is allowed to run tests in runtime/tests/."""
         request = ToolInvokeRequest(
@@ -200,7 +205,13 @@ class TestPytestToolPolicy:
             allowed, decision = check_tool_action_allowed(request)
 
             assert allowed is False, f"Should block: {target}"
-            assert "PATH_OUTSIDE_ALLOWED_SCOPE" in decision.decision_reason
+            # Hardened validation may reject for different reasons
+            # (absolute path, path traversal, or out of scope)
+            assert any(x in decision.decision_reason for x in [
+                "PATH_OUTSIDE_ALLOWED_SCOPE",
+                "ABSOLUTE_PATH_DENIED",
+                "PATH_TRAVERSAL_DENIED"
+            ]), f"Unexpected denial reason for {target}: {decision.decision_reason}"
 
     def test_pytest_requires_target(self):
         """pytest.run requires target argument (fail-closed)."""
@@ -214,6 +225,70 @@ class TestPytestToolPolicy:
         assert allowed is False
         assert "requires target" in decision.decision_reason.lower()
         assert "pytest_target_required" in decision.matched_rules
+
+    def test_pytest_denied_by_default_without_council_approval(self, monkeypatch):
+        """P0-3: pytest execution is denied by default without council approval."""
+        # Ensure PYTEST_EXECUTION_ENABLED is not set
+        monkeypatch.delenv("PYTEST_EXECUTION_ENABLED", raising=False)
+
+        request = ToolInvokeRequest(
+            tool="pytest",
+            action="run",
+            args={"target": "runtime/tests/test_example.py"}
+        )
+        allowed, decision = check_tool_action_allowed(request)
+
+        assert allowed is False
+        assert "Council approval" in decision.decision_reason or "CR-3A-01" in decision.decision_reason
+        assert "pytest_council_approval_required" in decision.matched_rules
+
+    def test_pytest_allowed_with_council_approval_flag(self, monkeypatch):
+        """P0-3: pytest execution is allowed when PYTEST_EXECUTION_ENABLED=true."""
+        # Set council approval flag
+        monkeypatch.setenv("PYTEST_EXECUTION_ENABLED", "true")
+
+        request = ToolInvokeRequest(
+            tool="pytest",
+            action="run",
+            args={"target": "runtime/tests/test_example.py"}
+        )
+        allowed, decision = check_tool_action_allowed(request)
+
+        assert allowed is True
+        assert decision.allowed is True
+        assert "pytest.run" in decision.matched_rules
+
+    def test_pytest_council_approval_flag_variants(self, monkeypatch):
+        """P0-3: Council approval flag accepts multiple truthy values."""
+        truthy_values = ["true", "True", "TRUE", "1", "yes", "YES"]
+
+        for value in truthy_values:
+            monkeypatch.setenv("PYTEST_EXECUTION_ENABLED", value)
+
+            request = ToolInvokeRequest(
+                tool="pytest",
+                action="run",
+                args={"target": "runtime/tests/test_example.py"}
+            )
+            allowed, decision = check_tool_action_allowed(request)
+
+            assert allowed is True, f"Failed for value: {value}"
+
+    def test_pytest_council_approval_flag_falsy_values(self, monkeypatch):
+        """P0-3: Council approval flag rejects falsy values."""
+        falsy_values = ["false", "False", "FALSE", "0", "no", "NO", ""]
+
+        for value in falsy_values:
+            monkeypatch.setenv("PYTEST_EXECUTION_ENABLED", value)
+
+            request = ToolInvokeRequest(
+                tool="pytest",
+                action="run",
+                args={"target": "runtime/tests/test_example.py"}
+            )
+            allowed, decision = check_tool_action_allowed(request)
+
+            assert allowed is False, f"Should deny for value: {value}"
 
 
 class TestPytestExecutor:

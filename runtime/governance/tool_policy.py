@@ -27,8 +27,27 @@ from runtime.tools.schemas import (
 
 ALLOWED_ACTIONS = {
     "filesystem": ["read_file", "write_file", "list_dir"],
-    "pytest": ["run"],
+    "pytest": ["run"],  # Gated by PYTEST_EXECUTION_ENABLED (default: disabled)
 }
+
+
+# =============================================================================
+# P0: Council Approval Gate for Pytest Execution
+# =============================================================================
+
+def is_pytest_execution_enabled() -> bool:
+    """
+    Check if pytest execution is enabled via environment variable.
+
+    Default: False (requires explicit Council approval)
+    Enable: Set PYTEST_EXECUTION_ENABLED=true after Council Ruling CR-3A-01
+
+    Returns:
+        True if enabled, False otherwise
+    """
+    import os
+    value = os.environ.get("PYTEST_EXECUTION_ENABLED", "false").lower()
+    return value in ("true", "1", "yes")
 
 
 # =============================================================================
@@ -397,6 +416,14 @@ def check_tool_action_allowed(
 
     # Phase 3a: Enforce pytest scope
     if tool == "pytest" and action == "run":
+        # P0: Council approval gate (default: disabled)
+        if not is_pytest_execution_enabled():
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason="DENIED: pytest execution requires Council approval (CR-3A-01). Set PYTEST_EXECUTION_ENABLED=true after approval.",
+                matched_rules=["pytest_council_approval_required"],
+            )
+
         target = request.args.get("target", "")
         if not target:
             return False, PolicyDecision(

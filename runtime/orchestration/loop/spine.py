@@ -37,8 +37,7 @@ from runtime.orchestration.loop.taxonomy import (
     FailureClass,
     LoopAction,
 )
-from runtime.api.governance_api import PolicyLoader
-from runtime.governance.HASH_POLICY_v1 import hash_json
+from runtime.api.governance_api import PolicyLoader, hash_json
 
 
 class SpineState(Enum):

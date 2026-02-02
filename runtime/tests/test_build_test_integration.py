@@ -103,7 +103,9 @@ class TestBuildTestIntegration:
 
         assert result["success"] is False
         assert "Test scope denied" in result["error"]
-        assert "PATH_OUTSIDE_ALLOWED_SCOPE" in result["error"]
+        # Hardened pytest validation rejects absolute paths first
+        assert ("PATH_OUTSIDE_ALLOWED_SCOPE" in result["error"] or
+                "ABSOLUTE_PATH_DENIED" in result["error"])
 
     @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
     @patch('runtime.orchestration.missions.autonomous_build_cycle.TestExecutor')
