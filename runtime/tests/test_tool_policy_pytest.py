@@ -20,7 +20,7 @@ from runtime.governance.tool_policy import (
     reset_scope_roots,
 )
 from runtime.tools.schemas import ToolInvokeRequest, PolicyDecision
-from runtime.orchestration.test_executor import TestExecutor, PytestResult
+from runtime.orchestration.test_executor import PytestExecutor, PytestResult
 
 
 class TestPytestScopeEnforcement:
@@ -303,7 +303,7 @@ def test_pass():
     assert True
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         assert result.status == "PASS"
@@ -319,7 +319,7 @@ def test_fail():
     assert False, "Expected failure"
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         assert result.status == "FAIL"
@@ -336,7 +336,7 @@ def test_hang():
     time.sleep(9999)
 """)
 
-        executor = TestExecutor(timeout=2)  # 2 second timeout
+        executor = PytestExecutor(timeout=2)  # 2 second timeout
         result = executor.run(str(test_file))
 
         assert result.status == "TIMEOUT"
@@ -356,7 +356,7 @@ def test_output():
     assert True
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         # Use -s flag to disable pytest's output capture
         result = executor.run(str(test_file), extra_args=["-s"])
 
@@ -385,7 +385,7 @@ def test_skip():
     pass
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         assert result.status == "PASS"
@@ -404,7 +404,7 @@ def test_large_output():
     assert True
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         # Check that output doesn't exceed limit significantly
@@ -421,7 +421,7 @@ def test_simple():
     assert True
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         evidence = result.evidence
@@ -459,7 +459,7 @@ def test_fail_2():
     assert False
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         assert result.status == "FAIL"
@@ -500,7 +500,7 @@ def test_with_child_process():
 """)
 
         # Run with short timeout (2 seconds)
-        executor = TestExecutor(timeout=2)
+        executor = PytestExecutor(timeout=2)
         result = executor.run(str(test_file))
 
         # Verify timeout occurred

@@ -21,7 +21,7 @@ Implemented robust process group termination for pytest timeout enforcement with
 - 37 total pytest policy tests passing
 - 1293 total tests passing (zero regressions, +20 tests from baseline)
 
-**Invariant Proven:** Timed-out pytest runs cannot leave orphaned child processes
+**Invariant Demonstrated:** Timed-out pytest runs cannot leave orphaned child processes (empirically demonstrated on Linux/WSL POSIX via adversarial test)
 
 ---
 
@@ -192,13 +192,32 @@ def test_with_child_process():
 
 ## P0.3 Evidence (Verbatim Logs)
 
-### Git Status
+### Git Status (Pre-Commit)
 ```bash
 $ git status --porcelain=v1
+ M artifacts/review_packets/Review_Packet_Phase_4A0_Loop_Spine_v1.1.md
+ M runtime/governance/protected_paths.py
+ M runtime/governance/tool_policy.py
  M runtime/orchestration/test_executor.py
  M runtime/tests/test_tool_policy_pytest.py
-(other unrelated files omitted)
+?? =6.0
+?? artifacts/reports/Closure_Completion_Report__Phase_4A0_v1.1.md
+?? artifacts/reports/Closure_Diff_Summary__Phase_4A0_v1.1.md
+?? artifacts/reports/Closure_Evidence_Addendum__Phase_4A0_v1.1.md
+?? artifacts/reports/Implementation_Report__Phase_4A0_v1.1_Closure_Repairs__Final.md
+?? artifacts/reports/Packet_Manifest__Phase_4A0_v1.1.md
+?? artifacts/reports/Phase_4A0_v1.1_Coherence_Repair_Summary.md
+?? runtime/tests/test_phase4d_hardening.py
 ```
+
+### Git Status (Post-Commit)
+```bash
+$ git status --porcelain=v1
+ M artifacts/review_packets/Review_Packet_Phase_4A0_Loop_Spine_v1.1.md
+?? artifacts/reports/Strict_Closure_Tightening_Report__Phase_4A0_v1.1.md
+```
+
+**Note:** P0-2 changes (test_executor.py, test_tool_policy_pytest.py, P0-2 report) committed in 08a8479
 
 ### Git Diff Summary
 ```bash
@@ -374,14 +393,22 @@ $ PYTEST_EXECUTION_ENABLED=true pytest runtime/tests -q
 
 ### Platform Compatibility
 
-**Tested on:** Linux/WSL (POSIX)
-- `os.setsid()` / `start_new_session=True`: POSIX standard
-- `os.killpg()`: POSIX standard
-- `/proc/<pid>`: Linux-specific but reliable
+**Tested and Verified:** Linux/WSL (POSIX)
+- `start_new_session=True`: POSIX standard (creates new session/process group)
+- `os.killpg()`: POSIX standard (kills process group)
+- `/proc/<pid>` check: Linux-specific (reliable on Linux/WSL)
+- `os.kill(pid, 0)`: POSIX standard (raises ProcessLookupError if process doesn't exist)
 
-**Expected behavior on other platforms:**
-- macOS: Full support (POSIX)
-- Windows: `start_new_session=True` creates job object (similar semantics)
+**Expected behavior on other POSIX platforms:**
+- **macOS:** Full support (POSIX-compliant, `os.killpg()` available)
+- **Other Unix/BSD:** Expected to work (POSIX-compliant)
+
+**Windows (native):**
+- **NOT IMPLEMENTED/TESTED in this implementation**
+- `start_new_session=True` on Windows creates a new console (NOT a process group)
+- `os.killpg()` does NOT exist on Windows (POSIX-only)
+- Would require alternative implementation using Job Objects or `CTRL_BREAK_EVENT`
+- **Current implementation will FAIL on native Windows** (would need platform-specific code)
 
 ---
 
@@ -397,15 +424,16 @@ $ PYTEST_EXECUTION_ENABLED=true pytest runtime/tests -q
    - Consider configurable grace period (currently 1.5s)
    - Add process tree visualization on timeout (debugging)
 
-3. **Platform Testing:**
-   - Verify behavior on macOS (CI pipeline)
-   - Verify behavior on native Windows (if needed)
+3. **Platform Support:**
+   - Test on macOS (POSIX-compliant, should work as-is)
+   - For Windows: Implement platform-specific alternative using Job Objects or process tree termination
+   - Add platform detection and fail-closed on unsupported platforms
 
 ---
 
 **Status:** COMPLETE ✅
-**Invariant:** NO ORPHANS (proven by adversarial test)
-**Production Ready:** YES
+**Invariant:** NO ORPHANS (empirically demonstrated on Linux/WSL POSIX)
+**Production Ready:** YES (Linux/WSL only; Windows requires platform-specific implementation)
 
 **Implementer:** Claude Sonnet 4.5
 **Date:** 2026-02-03

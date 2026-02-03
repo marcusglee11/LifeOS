@@ -35,7 +35,7 @@ class TestBuildTestIntegration:
         return context
 
     @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.TestExecutor')
+    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
     def test_run_verification_tests_success(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
         """Verification tests run successfully on passing tests."""
         # Mock scope check to allow
@@ -64,7 +64,7 @@ class TestBuildTestIntegration:
         assert result["error"] is None
 
     @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.TestExecutor')
+    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
     def test_run_verification_tests_failure(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
         """Verification tests detect test failures."""
         # Mock scope check to allow
@@ -108,7 +108,7 @@ class TestBuildTestIntegration:
                 "ABSOLUTE_PATH_DENIED" in result["error"])
 
     @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.TestExecutor')
+    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
     def test_verification_timeout_handling(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
         """Long-running tests are terminated with timeout."""
         # Mock scope check to allow
@@ -223,7 +223,7 @@ class TestBuildTestIntegration:
         assert "timeout" in context["suggestion"].lower()
 
     @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.TestExecutor')
+    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
     def test_evidence_captured_in_verification(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
         """Test evidence is properly captured and truncated."""
         # Mock scope check to allow
@@ -269,7 +269,7 @@ class TestBuildTestIntegration:
             assert len(suggestion) > 0
 
     @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.TestExecutor')
+    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
     def test_verification_with_mixed_results(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
         """Verification handles mixed pass/fail test results."""
         # Mock scope check to allow

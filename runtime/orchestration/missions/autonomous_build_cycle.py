@@ -56,7 +56,7 @@ from runtime.orchestration.ceo_queue import (
 
 # Phase 3a: Test Execution
 from runtime.api.governance_api import check_pytest_scope
-from runtime.orchestration.test_executor import TestExecutor, PytestResult
+from runtime.orchestration.test_executor import PytestExecutor, PytestResult
 from runtime.orchestration.loop.failure_classifier import classify_test_failure
 
 class AutonomousBuildCycleMission(BaseMission):
@@ -632,7 +632,7 @@ class AutonomousBuildCycleMission(BaseMission):
             }
 
         # Execute tests
-        executor = TestExecutor(timeout=timeout)
+        executor = PytestExecutor(timeout=timeout)
         result = executor.run(target)
 
         # Build verification result

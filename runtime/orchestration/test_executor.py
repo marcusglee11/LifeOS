@@ -52,12 +52,12 @@ class PytestResult:
     error_messages: Optional[list] = None
 
 
-class TestExecutor:
+class PytestExecutor:
     """
     Executor for pytest with timeout and output capture.
 
     Usage:
-        executor = TestExecutor(timeout=300)
+        executor = PytestExecutor(timeout=300)
         result = executor.run("runtime/tests/test_example.py")
     """
 
