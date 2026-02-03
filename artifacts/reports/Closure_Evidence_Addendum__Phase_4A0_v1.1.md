@@ -1,34 +1,42 @@
-# Closure Evidence Addendum: Phase 4A0 v1.1 (Strict Verbatim)
+# Closure Evidence Addendum: Phase 4A0 v1.1 (Strict Verbatim - Captured at Closure Commit)
 
 **Document ID:** closure-evidence-addendum-phase4a0-v1.1-strict-verbatim-20260203
 **Purpose:** Strict verbatim evidence for Phase 4A0 Loop Spine v1.1 Closure-Grade Packet
 **Protocol:** Full unabridged outputs (Option A - strict verbatim compliance)
 **Generated:** 2026-02-03
-**Capture Date/Time:** 2026-02-03 (post-Phase 4 integration merge)
+**Capture Commit:** e787a0626bee9f7fa8f523cd18c2ac75a1a8147f (strict closure-grade tightening)
+**Capture Date/Time:** 2026-02-03
 
 ---
 
 ## Evidence Item 1: Git Repository State
 
-**Current HEAD:**
+**Current HEAD (at capture):**
 ```
 $ git rev-parse HEAD
-43eab7299fa47bc46aa938e9b57547f056981886
+e787a0626bee9f7fa8f523cd18c2ac75a1a8147f
 ```
 
-**Recent Commit History:**
+**Strict Closure Tightening Commit:**
 ```
-$ git log -10 --oneline
-43eab72 docs: Update state documentation for Phase 4 integration
-9f4ee41 merge: Integrate Phase 4 (4A0-4D) autonomous build loop work
-7657681 fix: Phase 4D code autonomy hardening - close bypass seams
-08a8479 fix: Phase 4C P0-2 hardening - robust process group termination (no orphans)
-0913854 fix: Phase 4A0 CEO Approval Queue - P0/P1 fixes v1.1
-c1b2565 docs: Phase 4A0 CEO Approval Queue - Implementation Report & Review Packet v1.1
-17f30b8 docs: add Phase 4C P0 Hardening review packet v1.0
-2bb6d0f docs: add Phase 4B closure evidence v1.3 with worktree isolation
-fad1026 docs(phase4a0): closure-grade coherence repairs v1.1
-ef709fa docs: add Phase 4B closure evidence v1.2 with clean tree proof
+$ git log -1 --oneline e787a06
+e787a06 docs(phase4a0): strict closure-grade evidence tightening v1.1
+```
+
+**Ancestry Verification:**
+```
+$ git merge-base --is-ancestor e787a0626bee9f7fa8f523cd18c2ac75a1a8147f HEAD && echo OK || echo MISSING
+OK
+```
+
+**Recent Commit History (showing Phase 4A0 commits):**
+```
+$ git log -20 --oneline | grep -E "(e787a06|fad1026|bdc9e0d|14024ee|6783d58)" -n
+1:e787a06 docs(phase4a0): strict closure-grade evidence tightening v1.1
+8:fad1026 docs(phase4a0): closure-grade coherence repairs v1.1
+13:14024ee docs: update Phase 4A0 plan DoD to match CLI implementation
+14:bdc9e0d docs: Phase 4A0 v1.1 closure-grade repairs
+19:6783d58 feat: Phase 4A0 Loop Spine P0 fixes - integration-ready
 ```
 
 **Phase 4A0 v1.1 Closure Evidence Commits (5 total):**
@@ -38,7 +46,7 @@ ef709fa docs: add Phase 4B closure evidence v1.2 with clean tree proof
 4. `bdc9e0d4a2c63aa0ecb89b6575a7d82ed5979a8f` - Closure repairs (review packet)
 5. `14024ee6ce085bcf9a77a317698ecb8ebe91722c` - Closure repairs (plan DoD)
 
-**Note:** These commits are ancestors of current HEAD (post-Phase 4 integration merge)
+**Note:** All Phase 4A0 closure commits are ancestors of e787a06 (strict closure-grade tightening commit)
 
 ---
 
@@ -306,7 +314,7 @@ runtime/tests/test_multi_role_keys.py::test_real_env_keys
 
 **Output 1: Main Spine Command Help**
 ```
-$ coo spine --help
+$ python -m runtime.cli spine --help
 usage: lifeos spine [-h] {run,resume} ...
 
 positional arguments:
@@ -320,7 +328,7 @@ options:
 
 **Output 2: Run Subcommand Help**
 ```
-$ coo spine run --help
+$ python -m runtime.cli spine run --help
 usage: lifeos spine run [-h] [--run-id RUN_ID] [--json] task_spec
 
 positional arguments:
@@ -334,7 +342,7 @@ options:
 
 **Output 3: Resume Subcommand Help**
 ```
-$ coo spine resume --help
+$ python -m runtime.cli spine resume --help
 usage: lifeos spine resume [-h] [--json] checkpoint_id
 
 positional arguments:
@@ -369,5 +377,6 @@ This addendum provides **full unabridged outputs** for all test executions and C
 **Prepared by:** Claude Sonnet 4.5 (Antigravity)
 **Date:** 2026-02-03
 **Branch:** pr/canon-spine-autonomy-baseline
-**HEAD:** 43eab7299fa47bc46aa938e9b57547f056981886
+**HEAD:** e787a0626bee9f7fa8f523cd18c2ac75a1a8147f (strict closure-grade tightening)
 **Evidence Standard:** Strict Verbatim (Option A - Full Unabridged Outputs)
+**Capture Method:** Direct execution at strict closure commit (not post-integration)

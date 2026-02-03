@@ -485,7 +485,7 @@ timestamp: '2026-02-02T12:00:00Z'
 
 **Integration:** Uses existing `AttemptLedger` class from `runtime.orchestration.loop.ledger`
 
-**Future Work:** Spine will write attempt records as chain progresses (not yet implemented in MVP placeholder)
+**Implementation Status:** Spine writes attempt records for terminal and checkpoint outcomes (lines 211, 231, 333). Diff hash computation and comprehensive evidence collection are simplified for MVP; full integration planned for future work.
 
 ---
 
