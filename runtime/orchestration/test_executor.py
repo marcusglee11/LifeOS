@@ -118,18 +118,20 @@ class PytestExecutor:
 
             # Step 1: Send SIGTERM to process group (graceful shutdown)
             try:
-                os.killpg(process.pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass  # Process group already dead
+                pgid = os.getpgid(process.pid)
+                os.killpg(pgid, signal.SIGTERM)
+            except (ProcessLookupError, OSError):
+                pass  # Process group already dead or no longer exists
 
             # Step 2: Wait grace period (1.5 seconds)
             time.sleep(1.5)
 
             # Step 3: Send SIGKILL to process group (forceful kill)
             try:
-                os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass  # Process group already dead
+                pgid = os.getpgid(process.pid)
+                os.killpg(pgid, signal.SIGKILL)
+            except (ProcessLookupError, OSError):
+                pass  # Process group already dead or no longer exists
 
             # Collect any partial output
             try:

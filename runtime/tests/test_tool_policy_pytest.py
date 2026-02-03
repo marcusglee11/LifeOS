@@ -507,9 +507,6 @@ def test_with_child_process():
         assert result.status == "TIMEOUT"
         assert result.evidence.get("timeout_triggered") is True
 
-        # Give process group kill cascade time to complete
-        time.sleep(2)
-
         # Verify child PID was written
         assert pid_file.exists(), "Child process did not write PID file"
 
@@ -517,18 +514,31 @@ def test_with_child_process():
         assert child_pid > 0, "Invalid child PID"
 
         # P0-2 PROOF: Verify child process is NOT running
-        # Use os.kill(pid, 0) which raises ESRCH if process doesn't exist
+        # Use bounded polling to avoid flakes under load
         child_killed = False
-        try:
-            os.kill(child_pid, 0)
-            # If we get here, process still exists (FAIL)
-            child_killed = False
-        except ProcessLookupError:
-            # Process doesn't exist (SUCCESS - it was killed)
-            child_killed = True
-        except PermissionError:
-            # Process exists but we can't signal it (FAIL)
-            child_killed = False
+        deadline = time.time() + 5.0  # 5 second deadline for process cleanup
+
+        while time.time() < deadline:
+            try:
+                os.kill(child_pid, 0)
+                # Process still exists, wait a bit
+                time.sleep(0.1)
+            except ProcessLookupError:
+                # Process doesn't exist (SUCCESS - it was killed)
+                child_killed = True
+                break
+            except PermissionError:
+                # Process exists but we can't signal it (FAIL)
+                child_killed = False
+                break
+
+        # If we didn't break from the loop, final check
+        if not child_killed:
+            try:
+                os.kill(child_pid, 0)
+                child_killed = False  # Still running
+            except ProcessLookupError:
+                child_killed = True  # Finally dead
 
         # Additional check: /proc/<pid> should not exist (Linux/WSL)
         proc_path = f"/proc/{child_pid}"

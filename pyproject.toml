@@ -43,10 +43,6 @@ addopts = [
     # - test_packet_validation.py: 19/20 passing (1 plan_review_packet failure)
 ]
 
-# Asyncio settings
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
-
 # Filter warnings
 filterwarnings = [
     "ignore::DeprecationWarning",
