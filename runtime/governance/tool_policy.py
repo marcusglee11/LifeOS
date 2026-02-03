@@ -515,11 +515,31 @@ def check_code_autonomy_policy(
     tool = request.tool
     action = request.action
 
+    # v1.1: Enumerate known filesystem mutators (fail-closed for unknown)
+    KNOWN_FILESYSTEM_MUTATORS = {"write_file"}  # Exhaustive list as of v1.1
+
     # Only applies to filesystem write operations
-    if tool != "filesystem" or action != "write_file":
+    if tool != "filesystem":
         return True, PolicyDecision(
             allowed=True,
-            decision_reason="Not a write operation",
+            decision_reason="Not a filesystem operation",
+            matched_rules=["code_autonomy_not_applicable"],
+        )
+
+    # v1.1: Fail-closed for unknown filesystem mutators
+    if action not in KNOWN_FILESYSTEM_MUTATORS:
+        # If it's not a mutator, pass through
+        # But if it's a new mutator we don't know about, deny
+        # For now, assume non-mutators are safe (read, list)
+        if action not in ["read_file", "list_dir"]:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason=f"DENIED: Unknown filesystem mutator '{action}' (fail-closed)",
+                matched_rules=["code_autonomy_unknown_mutator"],
+            )
+        return True, PolicyDecision(
+            allowed=True,
+            decision_reason="Not a mutator operation",
             matched_rules=["code_autonomy_not_applicable"],
         )
 
@@ -541,19 +561,26 @@ def check_code_autonomy_policy(
             matched_rules=["code_autonomy_path_violation"],
         )
 
-    # Validate diff budget if provided
-    if diff_lines is not None:
-        budget_ok, budget_reason = validate_diff_budget(diff_lines)
-        if not budget_ok:
-            return False, PolicyDecision(
-                allowed=False,
-                decision_reason=f"DENIED: {budget_reason}",
-                matched_rules=["code_autonomy_diff_budget_exceeded"],
-            )
+    # Validate diff budget (v1.1: REQUIRED, fail-closed)
+    # For any filesystem mutator, diff_lines must be provided
+    if diff_lines is None:
+        return False, PolicyDecision(
+            allowed=False,
+            decision_reason="DENIED: DIFF_BUDGET_UNKNOWN (diff_lines required for mutators)",
+            matched_rules=["code_autonomy_diff_budget_unknown"],
+        )
 
-    # Validate syntax if content provided
+    budget_ok, budget_reason = validate_diff_budget(diff_lines)
+    if not budget_ok:
+        return False, PolicyDecision(
+            allowed=False,
+            decision_reason=f"DENIED: {budget_reason}",
+            matched_rules=["code_autonomy_diff_budget_exceeded"],
+        )
+
+    # Validate syntax if content provided (v1.1: includes empty strings)
     content = request.args.get("content")
-    if content:
+    if content is not None:  # v1.1: Changed from 'if content:' to validate empty strings
         validator = SyntaxValidator()
         validation_result = validator.validate(content, path=path)
 

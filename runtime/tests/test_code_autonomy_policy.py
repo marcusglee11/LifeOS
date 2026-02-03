@@ -308,7 +308,8 @@ class TestCodeAutonomyPolicy:
             }
         )
 
-        allowed, decision = check_code_autonomy_policy(request)
+        # v1.1: diff_lines required
+        allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
 
         assert allowed is False
         assert decision.allowed is False
@@ -358,7 +359,8 @@ class TestCodeAutonomyPolicy:
             }
         )
 
-        allowed, decision = check_code_autonomy_policy(request)
+        # v1.1: diff_lines required
+        allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
 
         assert allowed is False
         assert "SYNTAX_VALIDATION_FAILED" in decision.decision_reason
@@ -390,8 +392,8 @@ class TestCodeAutonomyPolicy:
         assert allowed is False
         assert "requires path" in decision.decision_reason
 
-    def test_diff_budget_none_skips_check(self):
-        """Verify diff budget check is skipped when diff_lines is None."""
+    def test_diff_budget_none_denied(self):
+        """Verify diff budget is required (v1.1: fail-closed)."""
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
@@ -401,10 +403,11 @@ class TestCodeAutonomyPolicy:
             }
         )
 
-        # Should pass even without diff_lines (check is skipped)
+        # v1.1: diff_lines is REQUIRED, None is denied (fail-closed)
         allowed, decision = check_code_autonomy_policy(request, diff_lines=None)
 
-        assert allowed is True
+        assert allowed is False
+        assert "DIFF_BUDGET_UNKNOWN" in decision.decision_reason
 
 
 # =============================================================================
