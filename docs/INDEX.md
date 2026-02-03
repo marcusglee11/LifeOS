@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-02-02 (Phase 4 Autonomy Stewardship)]
+# LifeOS Strategic Corpus [Last Updated: 2026-02-02
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 

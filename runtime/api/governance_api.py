@@ -11,6 +11,7 @@ from runtime.amu0.lineage import AMU0Lineage, LineageEntry
 from runtime.governance.tool_policy import (
     resolve_sandbox_root,
     check_tool_action_allowed,
+    check_pytest_scope,
     GovernanceUnavailable,
     PolicyDenied,
 )
@@ -29,6 +30,7 @@ __all__ = [
     "GovernanceAPI",
     "resolve_sandbox_root",
     "check_tool_action_allowed",
+    "check_pytest_scope",
     "GovernanceUnavailable",
     "PolicyDenied",
     "PolicyLoader",
@@ -36,6 +38,8 @@ __all__ = [
     "PROTECTED_PATHS",
     "is_protected",
     "SelfModProtector",
+    "hash_json",
+    "HASH_ALGORITHM",
 ]
 
 

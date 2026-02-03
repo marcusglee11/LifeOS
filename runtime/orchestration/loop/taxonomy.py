@@ -7,6 +7,7 @@ class FailureClass(Enum):
     TEST_FAILURE = "test_failure"
     SYNTAX_ERROR = "syntax_error"
     TIMEOUT = "timeout"
+    TEST_TIMEOUT = "test_timeout"  # Phase 3a: Test execution exceeded timeout
     VALIDATION_ERROR = "validation_error"  # e.g. Schema validation failed
     REVIEW_REJECTION = "review_rejection"
     LINT_ERROR = "lint_error"

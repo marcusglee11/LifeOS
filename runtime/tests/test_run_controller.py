@@ -17,11 +17,13 @@ from runtime.orchestration.run_controller import (
     RunLockHeld,
     StaleLockDetected,
     RepoDirtyError,
+    CanonSpineError,
     GitCommandError,
     check_kill_switch,
     acquire_run_lock,
     release_run_lock,
     verify_repo_clean,
+    verify_canon_spine,
     mission_startup_sequence,
 )
 
@@ -54,6 +56,10 @@ class TestKillSwitch:
         should halt immediately without acquiring lock.
         """
         (temp_repo / KILL_SWITCH_PATH).touch()
+        # Mock script existence to pass the Canon Spine gate
+        script_dir = temp_repo / "scripts"
+        script_dir.mkdir(exist_ok=True)
+        (script_dir / "validate_canon_spine.py").touch()
         
         with pytest.raises(KillSwitchActive) as exc_info:
             mission_startup_sequence("test-run", "test", temp_repo)
@@ -79,6 +85,11 @@ class TestKillSwitch:
             # Create the file for second check
             (temp_repo / KILL_SWITCH_PATH).touch()
             return True
+        
+        # Mock script existence
+        script_dir = temp_repo / "scripts"
+        script_dir.mkdir(exist_ok=True)
+        (script_dir / "validate_canon_spine.py").touch()
         
         with patch("runtime.orchestration.run_controller.check_kill_switch", mock_check):
             with pytest.raises(KillSwitchActive) as exc_info:
@@ -230,7 +241,54 @@ class TestGitFailClosed:
                 return r
             mock_run.side_effect = mock_subprocess
             
-            with pytest.raises(GitCommandError) as exc_info:
-                mission_startup_sequence("test-run", "test", temp_repo)
+            # Mock script existence and execution
+            script_dir = temp_repo / "scripts"
+            script_dir.mkdir(exist_ok=True)
+            (script_dir / "validate_canon_spine.py").touch()
+            
+            with patch("subprocess.run", side_effect=mock_subprocess) as mock_run_patch:
+                with pytest.raises(GitCommandError) as exc_info:
+                    mission_startup_sequence("test-run", "test", temp_repo)
             
             assert "rev-parse" in exc_info.value.command
+
+
+class TestCanonSpine:
+    """Tests for Canon Spine validation."""
+    
+    def test_verify_canon_spine_passes_on_success(self, temp_repo):
+        """Should pass when scripts/validate_canon_spine.py returns 0."""
+        # Ensure script path exists (even if empty) to trigger check
+        script_dir = temp_repo / "scripts"
+        script_dir.mkdir(exist_ok=True)
+        (script_dir / "validate_canon_spine.py").touch()
+        
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value.returncode = 0
+            mock_run.return_value.stdout = "PASS"
+            # verify_canon_spine doesn't raise on success
+            verify_canon_spine(temp_repo)
+
+    def test_verify_canon_spine_raises_on_failure(self, temp_repo):
+        """Should raise CanonSpineError when script returns non-zero."""
+        # Ensure script path exists
+        script_dir = temp_repo / "scripts"
+        script_dir.mkdir(exist_ok=True)
+        (script_dir / "validate_canon_spine.py").touch()
+        
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value.returncode = 1
+            mock_run.return_value.stdout = "FAIL marker missing"
+            
+            with pytest.raises(CanonSpineError) as exc_info:
+                verify_canon_spine(temp_repo)
+            
+            assert "FAIL marker missing" in str(exc_info.value)
+
+    def test_verify_canon_spine_fails_if_script_missing(self, temp_repo):
+        """Should fail validation if scripts/validate_canon_spine.py is not present."""
+        # temp_repo won't have the script by default
+        with pytest.raises(CanonSpineError) as exc_info:
+            verify_canon_spine(temp_repo)
+        
+        assert "Validator script missing" in str(exc_info.value)

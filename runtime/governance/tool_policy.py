@@ -27,8 +27,27 @@ from runtime.tools.schemas import (
 
 ALLOWED_ACTIONS = {
     "filesystem": ["read_file", "write_file", "list_dir"],
-    "pytest": ["run"],
+    "pytest": ["run"],  # Gated by PYTEST_EXECUTION_ENABLED (default: disabled)
 }
+
+
+# =============================================================================
+# P0: Council Approval Gate for Pytest Execution
+# =============================================================================
+
+def is_pytest_execution_enabled() -> bool:
+    """
+    Check if pytest execution is enabled via environment variable.
+
+    Default: False (requires explicit Council approval)
+    Enable: Set PYTEST_EXECUTION_ENABLED=true after Council Ruling CR-3A-01
+
+    Returns:
+        True if enabled, False otherwise
+    """
+    import os
+    value = os.environ.get("PYTEST_EXECUTION_ENABLED", "false").lower()
+    return value in ("true", "1", "yes")
 
 
 # =============================================================================
@@ -212,6 +231,65 @@ def _has_symlink_in_path(path: Path) -> bool:
 
 
 # =============================================================================
+# Pytest Scope Enforcement (Phase 3a)
+# =============================================================================
+
+def check_pytest_scope(target_path: str) -> Tuple[bool, str]:
+    """
+    Validate pytest target is within allowed test directories.
+
+    Allowed: runtime/tests/**
+    Blocked: Everything else
+
+    Hardening (P0):
+    - Rejects absolute paths (POSIX /, Windows C:\, UNC \\)
+    - Rejects path traversal (.. or . segments)
+    - Rejects confusing siblings (runtime/tests_evil)
+
+    Args:
+        target_path: The pytest target path (file or directory)
+
+    Returns:
+        (allowed, reason) tuple
+    """
+    # Reject empty/None
+    if not target_path or not target_path.strip():
+        return False, "PATH_EMPTY_OR_NONE"
+
+    # Normalize to forward slashes
+    normalized = target_path.replace("\\", "/")
+
+    # Reject absolute paths
+    # POSIX: starts with /
+    if normalized.startswith("/"):
+        return False, f"ABSOLUTE_PATH_DENIED: {target_path}"
+
+    # Windows: starts with drive letter (C:, D:, etc.)
+    if len(normalized) >= 2 and normalized[1] == ":":
+        return False, f"ABSOLUTE_PATH_DENIED (Windows drive): {target_path}"
+
+    # UNC: starts with //
+    if normalized.startswith("//"):
+        return False, f"ABSOLUTE_PATH_DENIED (UNC): {target_path}"
+
+    # Reject path traversal segments
+    segments = normalized.split("/")
+    for segment in segments:
+        if segment in (".", ".."):
+            return False, f"PATH_TRAVERSAL_DENIED (found '{segment}'): {target_path}"
+
+    # Exact match or prefix match with trailing slash
+    # This prevents "runtime/tests_evil" from matching
+    if normalized == "runtime/tests":
+        return True, "Path is runtime/tests (exact match)"
+
+    if normalized.startswith("runtime/tests/"):
+        return True, "Path within allowed test scope: runtime/tests/"
+
+    return False, f"PATH_OUTSIDE_ALLOWED_SCOPE: {target_path}"
+
+
+# =============================================================================
 # Path Scope Enforcement (P0.6)
 # =============================================================================
 
@@ -335,7 +413,33 @@ def check_tool_action_allowed(
                 decision_reason=f"DENIED: filesystem.{action} requires path (fail-closed)",
                 matched_rules=["filesystem_path_required"],
             )
-    
+
+    # Phase 3a: Enforce pytest scope
+    if tool == "pytest" and action == "run":
+        # P0: Council approval gate (default: disabled)
+        if not is_pytest_execution_enabled():
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason="DENIED: pytest execution requires Council approval (CR-3A-01). Set PYTEST_EXECUTION_ENABLED=true after approval.",
+                matched_rules=["pytest_council_approval_required"],
+            )
+
+        target = request.args.get("target", "")
+        if not target:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason="DENIED: pytest.run requires target path (fail-closed)",
+                matched_rules=["pytest_target_required"],
+            )
+
+        allowed, reason = check_pytest_scope(target)
+        if not allowed:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason=f"DENIED: {reason}",
+                matched_rules=["pytest_scope_violation"],
+            )
+
     # P0.6: Enforce path_scope for filesystem operations
     if tool == "filesystem" and path:
         # Default scope for hardcoded rules is WORKSPACE
@@ -378,3 +482,118 @@ def get_allowed_actions(tool: str) -> List[str]:
     if tool not in ALLOWED_ACTIONS:
         return []
     return sorted(ALLOWED_ACTIONS[tool])
+
+
+# =============================================================================
+# Code Autonomy Policy (Phase 4D) - INACTIVE until Council approval
+# =============================================================================
+
+def check_code_autonomy_policy(
+    request: ToolInvokeRequest,
+    diff_lines: Optional[int] = None,
+) -> Tuple[bool, PolicyDecision]:
+    """
+    Check code autonomy policy for write/create operations.
+
+    This function implements Phase 4D policy but is NOT active until:
+    - Council Ruling CR-4D-01 is approved
+    - ALLOWED_ACTIONS is updated to include write operations
+
+    Args:
+        request: Tool invocation request
+        diff_lines: Total diff size in lines (for budget validation)
+
+    Returns:
+        (allowed, PolicyDecision) tuple
+    """
+    from runtime.governance.protected_paths import (
+        validate_write_path,
+        validate_diff_budget,
+    )
+    from runtime.governance.syntax_validator import SyntaxValidator
+
+    tool = request.tool
+    action = request.action
+
+    # v1.1: Enumerate known filesystem mutators (fail-closed for unknown)
+    KNOWN_FILESYSTEM_MUTATORS = {"write_file"}  # Exhaustive list as of v1.1
+
+    # Only applies to filesystem write operations
+    if tool != "filesystem":
+        return True, PolicyDecision(
+            allowed=True,
+            decision_reason="Not a filesystem operation",
+            matched_rules=["code_autonomy_not_applicable"],
+        )
+
+    # v1.1: Fail-closed for unknown filesystem mutators
+    if action not in KNOWN_FILESYSTEM_MUTATORS:
+        # If it's not a mutator, pass through
+        # But if it's a new mutator we don't know about, deny
+        # For now, assume non-mutators are safe (read, list)
+        if action not in ["read_file", "list_dir"]:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason=f"DENIED: Unknown filesystem mutator '{action}' (fail-closed)",
+                matched_rules=["code_autonomy_unknown_mutator"],
+            )
+        return True, PolicyDecision(
+            allowed=True,
+            decision_reason="Not a mutator operation",
+            matched_rules=["code_autonomy_not_applicable"],
+        )
+
+    # Get path from request
+    path = request.get_path()
+    if not path:
+        return False, PolicyDecision(
+            allowed=False,
+            decision_reason="DENIED: write_file requires path (fail-closed)",
+            matched_rules=["filesystem_path_required"],
+        )
+
+    # Validate path is allowed and not protected
+    path_allowed, path_reason = validate_write_path(path)
+    if not path_allowed:
+        return False, PolicyDecision(
+            allowed=False,
+            decision_reason=f"DENIED: {path_reason}",
+            matched_rules=["code_autonomy_path_violation"],
+        )
+
+    # Validate diff budget (v1.1: REQUIRED, fail-closed)
+    # For any filesystem mutator, diff_lines must be provided
+    if diff_lines is None:
+        return False, PolicyDecision(
+            allowed=False,
+            decision_reason="DENIED: DIFF_BUDGET_UNKNOWN (diff_lines required for mutators)",
+            matched_rules=["code_autonomy_diff_budget_unknown"],
+        )
+
+    budget_ok, budget_reason = validate_diff_budget(diff_lines)
+    if not budget_ok:
+        return False, PolicyDecision(
+            allowed=False,
+            decision_reason=f"DENIED: {budget_reason}",
+            matched_rules=["code_autonomy_diff_budget_exceeded"],
+        )
+
+    # Validate syntax if content provided (v1.1: includes empty strings)
+    content = request.args.get("content")
+    if content is not None:  # v1.1: Changed from 'if content:' to validate empty strings
+        validator = SyntaxValidator()
+        validation_result = validator.validate(content, path=path)
+
+        if not validation_result.valid:
+            return False, PolicyDecision(
+                allowed=False,
+                decision_reason=f"DENIED: SYNTAX_VALIDATION_FAILED: {validation_result.error}",
+                matched_rules=["code_autonomy_syntax_invalid"],
+            )
+
+    # All checks passed
+    return True, PolicyDecision(
+        allowed=True,
+        decision_reason="Code autonomy policy satisfied",
+        matched_rules=["code_autonomy_allowed"],
+    )

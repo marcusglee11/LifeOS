@@ -25,11 +25,16 @@ from runtime.tools.schemas import (
 class TestGoldenWorkflow:
     """
     Golden workflow integration test.
-    
+
     Hardcoded subpath + filename under sandbox.
     write_file → read_file (hash match) → pytest run
     """
-    
+
+    @pytest.fixture(autouse=True)
+    def enable_pytest_execution(self, monkeypatch):
+        """Enable pytest execution for integration tests."""
+        monkeypatch.setenv("PYTEST_EXECUTION_ENABLED", "true")
+
     @pytest.fixture
     def sandbox(self, tmp_path):
         """Create sandbox with test file."""
@@ -101,7 +106,7 @@ class TestGoldenWorkflow:
         pytest_request = ToolInvokeRequest(
             tool="pytest",
             action="run",
-            args={"args": ["test_integration.py", "-v"]},
+            args={"target": "runtime/tests/test_integration.py", "args": ["-v"]},
             meta={"request_id": "pytest-001"},
         )
         
