@@ -1,0 +1,7 @@
+{
+  "name": "lifeos-workflow",
+  "description": "LifeOS-specific workflow skills for concurrent development",
+  "version": "1.0.0",
+  "author": "LifeOS Team",
+  "keywords": ["git", "merge", "workflow", "concurrent", "sprints"]
+}
