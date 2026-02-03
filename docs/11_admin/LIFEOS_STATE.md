@@ -11,17 +11,19 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Phase 4 (Autonomous Construction)
-**Active WIP:** Phase 4A0 Loop Spine - Integration-Ready
-**Last Updated:** 2026-02-02
+**Current Focus:** Phase 4 (Autonomous Construction) - MERGED TO MAIN
+**Active WIP:** Post-Phase 4 Integration - Ready for autonomous build loop operations
+**Last Updated:** 2026-02-03
 
 ---
 
 ## 🟥 IMMEDIATE NEXT STEP (The "One Thing")
 
-**Phase 4A0 Loop Spine:**
+**Phase 4 Merged to Main (2026-02-03):**
 
-1. Integration testing with Phase 4A (CEO Queue) and 4B (Backlog Selection)
+1. All Phase 4 work (4A0, 4B, 4C, 4D) successfully integrated to main
+2. Test suite baseline: 1327 passing tests (237 new Phase 4 tests)
+3. Autonomous build loop infrastructure now canonical
 
 ---
 
@@ -35,7 +37,7 @@
 | **CLOSED** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
 | **WAITING** | OpenCode Deletion Logic | Council | Review Ruling |
 | **CLOSED** | **Sprint S1 Phase B (B1–B3)** | Antigravity | Refined Evidence + Boundaries (ACCEPTED + committed) |
-| **COMPLETE** | **Phase 4A0 Loop Spine P0 Fixes** | Antigravity | CLI surface, real policy hash, ledger integration, chain execution |
+| **MERGED** | **Phase 4 (4A0-4D) Full Stack** | Antigravity | CEO Queue, Loop Spine, Test Executor, Code Autonomy - All in main (commit 9f4ee41) |
 
 ---
 
@@ -46,11 +48,13 @@
 - **Phase 3 (Optimization):** **RATIFIED (APPROVE_WITH_CONDITIONS)** — Council Ruling Phase3 Closure v1.0
   - **Condition C1:** CSO Role Constitution v1.0 (RESOLVED 2026-01-23)
   - **Condition C2:** F3/F4/F7 evidence deferred (RESOLVED 2026-01-27) — Review packets: `artifacts/review_packets/Review_Packet_F3_Tier2.5_Activation_v1.0.md`, `artifacts/review_packets/Review_Packet_F4_Tier2.5_Deactivation_v1.0.md`, `artifacts/review_packets/Review_Packet_F7_Runtime_Antigrav_Protocol_v1.0.md`
-- **Phase 4 (Autonomous Construction):** IN PROGRESS
+- **Phase 4 (Autonomous Construction):** MERGED TO MAIN (2026-02-03)
   - **P0 Pre-req:** Trusted Builder Mode v1.1 (RATIFIED 2026-01-26)
-  - **Phase 4A0 (Loop Spine):** COMPLETE - CLI surface, policy hash, ledger, chain execution
-  - **Phase 4A (CEO Queue):** NEXT - Checkpoint resolution backend
-  - **Phase 4B (Backlog Selection):** PENDING - Task selection integration
+  - **Phase 4A0 (Loop Spine):** MERGED - CLI surface, policy hash, ledger, chain execution
+  - **Phase 4A (CEO Queue):** MERGED - Checkpoint resolution backend with escalation
+  - **Phase 4B (Backlog Selection):** MERGED - Task selection integration + closure evidence v1.3
+  - **Phase 4C (OpenCode Test Execution):** MERGED - Pytest runner with P0-2 hardening
+  - **Phase 4D (Code Autonomy Hardening):** MERGED - Protected paths, syntax validation, bypass seam closure
 
 ---
 
@@ -62,6 +66,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-03:** Phase 4 (4A0-4D) MERGED TO MAIN - Full autonomous build loop stack canonical (merge commit 9f4ee41, 1327 passing tests)
 - **2026-02-02:** Phase 4A0 Loop Spine P0 fixes complete - CLI surface (lifeos/coo spine), real policy hash, ledger integration, chain execution
 - **2026-01-29:** Sprint S1 Phase B (B1-B3) refinements ACCEPTED and committed. No regressions (22 baseline failures preserved).
 - **2026-01-29:** P0 Repo Cleanup and Commit (滿足 Preflight Check).

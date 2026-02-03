@@ -16,8 +16,12 @@
 
 ## Capability Matrix
 
-(Derived from baseline pack data)
+(Derived from baseline pack data - Updated 2026-02-03 after Phase 4 merge)
 
-- **Mission Execution:** Partially Implemented
-- **Gating/Governance:** Implemented (Policy Engine)
-- **Recursive Loops:** Planned (Phase 4A)
+- **Mission Execution:** Fully Implemented (Phase 4 merged to main)
+- **Gating/Governance:** Implemented (Policy Engine + CEO Queue)
+- **Recursive Loops:** Implemented (Phase 4A0 Loop Spine merged)
+- **Backlog-Driven Execution:** Implemented (Phase 4B merged)
+- **OpenCode Test Execution:** Implemented (Phase 4C merged)
+- **Code Autonomy Hardening:** Implemented (Phase 4D merged)
+- **Test Suite Baseline:** 1327 passing tests (237 new Phase 4 tests)
