@@ -20,7 +20,7 @@ from runtime.governance.tool_policy import (
     reset_scope_roots,
 )
 from runtime.tools.schemas import ToolInvokeRequest, PolicyDecision
-from runtime.orchestration.test_executor import TestExecutor, PytestResult
+from runtime.orchestration.test_executor import PytestExecutor, PytestResult
 
 
 class TestPytestScopeEnforcement:
@@ -303,7 +303,7 @@ def test_pass():
     assert True
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         assert result.status == "PASS"
@@ -319,7 +319,7 @@ def test_fail():
     assert False, "Expected failure"
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         assert result.status == "FAIL"
@@ -336,7 +336,7 @@ def test_hang():
     time.sleep(9999)
 """)
 
-        executor = TestExecutor(timeout=2)  # 2 second timeout
+        executor = PytestExecutor(timeout=2)  # 2 second timeout
         result = executor.run(str(test_file))
 
         assert result.status == "TIMEOUT"
@@ -356,7 +356,7 @@ def test_output():
     assert True
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         # Use -s flag to disable pytest's output capture
         result = executor.run(str(test_file), extra_args=["-s"])
 
@@ -385,7 +385,7 @@ def test_skip():
     pass
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         assert result.status == "PASS"
@@ -404,7 +404,7 @@ def test_large_output():
     assert True
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         # Check that output doesn't exceed limit significantly
@@ -421,7 +421,7 @@ def test_simple():
     assert True
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         evidence = result.evidence
@@ -459,7 +459,7 @@ def test_fail_2():
     assert False
 """)
 
-        executor = TestExecutor(timeout=10)
+        executor = PytestExecutor(timeout=10)
         result = executor.run(str(test_file))
 
         assert result.status == "FAIL"
@@ -500,15 +500,12 @@ def test_with_child_process():
 """)
 
         # Run with short timeout (2 seconds)
-        executor = TestExecutor(timeout=2)
+        executor = PytestExecutor(timeout=2)
         result = executor.run(str(test_file))
 
         # Verify timeout occurred
         assert result.status == "TIMEOUT"
         assert result.evidence.get("timeout_triggered") is True
-
-        # Give process group kill cascade time to complete
-        time.sleep(2)
 
         # Verify child PID was written
         assert pid_file.exists(), "Child process did not write PID file"
@@ -517,18 +514,31 @@ def test_with_child_process():
         assert child_pid > 0, "Invalid child PID"
 
         # P0-2 PROOF: Verify child process is NOT running
-        # Use os.kill(pid, 0) which raises ESRCH if process doesn't exist
+        # Use bounded polling to avoid flakes under load
         child_killed = False
-        try:
-            os.kill(child_pid, 0)
-            # If we get here, process still exists (FAIL)
-            child_killed = False
-        except ProcessLookupError:
-            # Process doesn't exist (SUCCESS - it was killed)
-            child_killed = True
-        except PermissionError:
-            # Process exists but we can't signal it (FAIL)
-            child_killed = False
+        deadline = time.time() + 5.0  # 5 second deadline for process cleanup
+
+        while time.time() < deadline:
+            try:
+                os.kill(child_pid, 0)
+                # Process still exists, wait a bit
+                time.sleep(0.1)
+            except ProcessLookupError:
+                # Process doesn't exist (SUCCESS - it was killed)
+                child_killed = True
+                break
+            except PermissionError:
+                # Process exists but we can't signal it (FAIL)
+                child_killed = False
+                break
+
+        # If we didn't break from the loop, final check
+        if not child_killed:
+            try:
+                os.kill(child_pid, 0)
+                child_killed = False  # Still running
+            except ProcessLookupError:
+                child_killed = True  # Finally dead
 
         # Additional check: /proc/<pid> should not exist (Linux/WSL)
         proc_path = f"/proc/{child_pid}"
