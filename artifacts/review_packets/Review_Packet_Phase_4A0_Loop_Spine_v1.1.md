@@ -39,8 +39,19 @@ closure_evidence:
 # Scope Envelope
 
 ## Allowed Paths
+**v1.0 scaffold:**
 - `runtime/orchestration/loop/spine.py` (NEW)
 - `runtime/tests/test_loop_spine.py` (NEW)
+
+**v1.1 P0/P1 fixes:**
+- `pyproject.toml` (MODIFIED - CLI entry points)
+- `runtime/cli.py` (MODIFIED - spine subparser)
+- `.gitignore` (MODIFIED - artifact directories)
+- `docs/11_admin/LIFEOS_STATE.md` (MODIFIED - phase status)
+
+**v1.1 closure repairs:**
+- `artifacts/plans/Phase_4A0_Loop_Spine.md` (MODIFIED - DoD alignment)
+- `artifacts/review_packets/Review_Packet_Phase_4A0_Loop_Spine_v1.1.md` (CREATED, then MODIFIED)
 
 ## Forbidden Paths
 - `docs/00_foundations/*` (canonical - requires CEO approval)
@@ -80,7 +91,7 @@ Phase 4A0 Loop Spine has been upgraded from "scaffold" (v1.0) to "integration-re
 The v1.0 implementation provided the foundation but had plan contradictions that blocked integration. v1.1 resolves these, making the spine truly integration-ready for Phase 4A (CEO Queue) and Phase 4B (Backlog Selection).
 
 **Implementation Quality (v1.1):**
-- Minimal focused changes: 6 files modified, +442 lines
+- Minimal focused changes: 8 files modified, +505 lines
 - 100% test coverage maintained: 14/14 spine tests passing
 - Zero new regressions: 1273/1274 full suite passing (1 pre-existing skip)
 - Deterministic artifact formats preserved
@@ -591,12 +602,21 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 **Baseline Tests:** 1273/1274 passing (1 pre-existing skip)
 **Regressions:** 0
 
-## Files Added
+## Files Changed (v1.0 + v1.1)
 
+**New Files (v1.0 scaffold):**
 1. `runtime/orchestration/loop/spine.py` - 560 lines
 2. `runtime/tests/test_loop_spine.py` - 513 lines
 
-**Total:** 1073 lines added, 0 lines modified
+**Modified Files (v1.1 P0/P1 fixes + closure repairs):**
+3. `pyproject.toml` - CLI entry points added
+4. `runtime/cli.py` - Spine subparser added
+5. `.gitignore` - Artifact directories added
+6. `docs/11_admin/LIFEOS_STATE.md` - Phase status updated
+7. `artifacts/plans/Phase_4A0_Loop_Spine.md` - DoD alignment
+8. `artifacts/review_packets/Review_Packet_Phase_4A0_Loop_Spine_v1.1.md` - Created, then closure repairs applied
+
+**Total (v1.0+v1.1):** 8 files changed, 505 lines added (net, excluding test reformatting)
 
 ## Verification
 
