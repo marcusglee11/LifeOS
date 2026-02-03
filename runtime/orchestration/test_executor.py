@@ -8,6 +8,7 @@ Phase 3a capability for autonomous test execution within strict bounds:
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import signal
 from dataclasses import dataclass
@@ -73,6 +74,9 @@ class TestExecutor:
         """
         Execute pytest on target path with timeout enforcement.
 
+        P0-2 Hardening: Process group termination with SIGTERM → SIGKILL cascade
+        to prevent orphaned child processes.
+
         Args:
             target: Path to test file or directory
             extra_args: Optional additional pytest arguments
@@ -81,6 +85,7 @@ class TestExecutor:
             PytestResult with captured output and status
         """
         import time
+        import os
 
         start_time = time.time()
 
@@ -89,35 +94,82 @@ class TestExecutor:
         if extra_args:
             cmd.extend(extra_args)
 
+        # Start pytest in new process group (session)
+        # This allows us to kill the entire process tree
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=Path.cwd(),
+            start_new_session=True,  # Create new process group
+        )
+
+        timeout_triggered = False
+        exit_code = 0
+
         try:
-            # Execute with timeout in new process group
-            # P0 Hardening: Use start_new_session=True to create new process group
-            # This ensures all child processes are killed on timeout
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout,
-                cwd=Path.cwd(),
-                start_new_session=True,  # P0: Kill entire process group on timeout
-            )
+            # Wait for process with timeout
+            stdout_bytes, stderr_bytes = process.communicate(timeout=self.timeout)
+            exit_code = process.returncode
 
-            duration = time.time() - start_time
-            exit_code = result.returncode
+        except subprocess.TimeoutExpired:
+            # Timeout occurred - kill entire process group
+            timeout_triggered = True
 
-            # Determine status
-            if exit_code == 0:
-                status = "PASS"
-            else:
-                status = "FAIL"
+            # Step 1: Send SIGTERM to process group (graceful shutdown)
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass  # Process group already dead
 
-            # Truncate output if needed
-            stdout = self._truncate_output(result.stdout)
-            stderr = self._truncate_output(result.stderr)
+            # Step 2: Wait grace period (1.5 seconds)
+            time.sleep(1.5)
 
-            # Parse test results
+            # Step 3: Send SIGKILL to process group (forceful kill)
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass  # Process group already dead
+
+            # Collect any partial output
+            try:
+                stdout_bytes, stderr_bytes = process.communicate(timeout=1)
+            except subprocess.TimeoutExpired:
+                # Process still hung, force kill
+                process.kill()
+                stdout_bytes, stderr_bytes = process.communicate()
+
+            exit_code = -signal.SIGTERM
+
+        # Decode output (handle both bytes and str)
+        if isinstance(stdout_bytes, bytes):
+            stdout_raw = stdout_bytes.decode("utf-8", errors="replace")
+        else:
+            stdout_raw = stdout_bytes or ""
+
+        if isinstance(stderr_bytes, bytes):
+            stderr_raw = stderr_bytes.decode("utf-8", errors="replace")
+        else:
+            stderr_raw = stderr_bytes or ""
+
+        duration = time.time() - start_time
+
+        # Determine status
+        if timeout_triggered:
+            status = "TIMEOUT"
+        elif exit_code == 0:
+            status = "PASS"
+        else:
+            status = "FAIL"
+
+        # Truncate output if needed
+        stdout = self._truncate_output(stdout_raw)
+        stderr = self._truncate_output(stderr_raw)
+
+        if not timeout_triggered:
+            # Parse test results (only for non-timeout cases)
             counts, passed_tests, failed_tests, error_messages = self._parse_pytest_output(
-                result.stdout
+                stdout_raw
             )
 
             # Build evidence
@@ -129,7 +181,7 @@ class TestExecutor:
                 stdout=stdout,
                 stderr=stderr,
                 counts=counts,
-                truncated=len(result.stdout) > MAX_OUTPUT_SIZE or len(result.stderr) > MAX_OUTPUT_SIZE,
+                truncated=len(stdout_raw) > MAX_OUTPUT_SIZE or len(stderr_raw) > MAX_OUTPUT_SIZE,
                 timeout_triggered=False,
             )
 
@@ -145,18 +197,11 @@ class TestExecutor:
                 counts=counts,
                 error_messages=error_messages,
             )
-
-        except subprocess.TimeoutExpired as e:
-            duration = time.time() - start_time
-
-            # Timeout occurred - capture partial output
-            stdout = self._truncate_output(e.stdout.decode("utf-8") if e.stdout else "")
-            stderr = self._truncate_output(e.stderr.decode("utf-8") if e.stderr else "")
-
-            # Build evidence for timeout
+        else:
+            # Timeout case
             evidence = self._build_evidence(
                 target=target,
-                exit_code=-signal.SIGTERM,
+                exit_code=exit_code,
                 status="TIMEOUT",
                 duration=duration,
                 stdout=stdout,
@@ -168,7 +213,7 @@ class TestExecutor:
 
             return PytestResult(
                 status="TIMEOUT",
-                exit_code=-signal.SIGTERM,
+                exit_code=exit_code,
                 stdout=stdout,
                 stderr=stderr,
                 duration=duration,

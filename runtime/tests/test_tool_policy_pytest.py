@@ -466,3 +466,74 @@ def test_fail_2():
         # failed_tests should contain test identifiers
         # (actual parsing depends on pytest output format)
         assert result.failed_tests is not None or result.counts["failed"] > 0
+
+    def test_timeout_kills_child_processes_no_orphans(self, tmp_path):
+        """P0-2: Timeout kills entire process tree, no orphaned children survive."""
+        import os
+        import signal
+        import time
+
+        # Create PID file to track child process
+        pid_file = tmp_path / "child_pid.txt"
+
+        # Create test that spawns a long-running child process
+        test_file = tmp_path / "test_spawn_child.py"
+        test_file.write_text(f"""
+import subprocess
+import time
+import os
+
+def test_with_child_process():
+    # Spawn child process that sleeps longer than timeout
+    child = subprocess.Popen(
+        ["sleep", "9999"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    # Write child PID to file for verification
+    with open("{str(pid_file)}", "w") as f:
+        f.write(str(child.pid))
+
+    # Parent also sleeps (forces timeout)
+    time.sleep(9999)
+""")
+
+        # Run with short timeout (2 seconds)
+        executor = TestExecutor(timeout=2)
+        result = executor.run(str(test_file))
+
+        # Verify timeout occurred
+        assert result.status == "TIMEOUT"
+        assert result.evidence.get("timeout_triggered") is True
+
+        # Give process group kill cascade time to complete
+        time.sleep(2)
+
+        # Verify child PID was written
+        assert pid_file.exists(), "Child process did not write PID file"
+
+        child_pid = int(pid_file.read_text().strip())
+        assert child_pid > 0, "Invalid child PID"
+
+        # P0-2 PROOF: Verify child process is NOT running
+        # Use os.kill(pid, 0) which raises ESRCH if process doesn't exist
+        child_killed = False
+        try:
+            os.kill(child_pid, 0)
+            # If we get here, process still exists (FAIL)
+            child_killed = False
+        except ProcessLookupError:
+            # Process doesn't exist (SUCCESS - it was killed)
+            child_killed = True
+        except PermissionError:
+            # Process exists but we can't signal it (FAIL)
+            child_killed = False
+
+        # Additional check: /proc/<pid> should not exist (Linux/WSL)
+        proc_path = f"/proc/{child_pid}"
+        proc_exists = os.path.exists(proc_path)
+
+        # INVARIANT: Child process must be killed (no orphans)
+        assert child_killed, f"Child process {child_pid} still running after timeout (orphan detected!)"
+        assert not proc_exists, f"Child process {child_pid} still exists in /proc (orphan detected!)"
