@@ -6,7 +6,7 @@ Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.3 - Mission: steward
 
 CRITICAL: This mission guarantees "repo clean on exit" per architecture §5.3.
 HARDENED: Deterministic repo-clean evidence; no print-only paths.
-MVP STUB: Does NOT actually commit - all steps are explicitly marked *_stub.
+REAL GIT OPS: Performs real git commits with governance guards and diff size validation.
 """
 from __future__ import annotations
 
@@ -29,29 +29,30 @@ from runtime.api.governance_api import SelfModProtector
 class StewardMission(BaseMission):
     """
     Steward mission: Commit approved changes to repository.
-    
+
     Inputs:
         - review_packet (dict): The REVIEW_PACKET with artifacts
         - approval (dict): Council approval decision
-        
+
     Outputs:
-        - simulated_commit_hash (str): Simulated Git commit hash (MVP STUB)
-        
+        - commit_hash (str): Git commit hash of the committed changes
+
     Preconditions:
         - approval.verdict == "approved"
-        
-    Steps (all *_stub for MVP):
-        1. check_envelope_stub: Verify paths are within steward envelope (STUB)
-        2. stage_changes_stub: git add the artifacts (STUB)
-        3. commit_stub: git commit with structured message (STUB)
-        4. record_completion_stub: Update state files (STUB)
-        5. verify_repo_clean: Verify repo is clean on exit (REAL)
-        
+
+    Steps:
+        1. check_envelope: Verify paths are within steward envelope
+        2. validate_diff_size: Validate total diff size against budget limit
+        3. stage_changes: git add the artifacts
+        4. commit: git commit with structured message
+        5. push: git push (conditional on metadata.push flag)
+        6. verify_repo_clean: Verify repo is clean on exit
+
     GUARANTEE: Repo clean on exit
         - Success path: All changes committed, working directory clean
         - Failure path: All changes reverted, evidence preserved in logs/
-        
-    MVP STUB: This does NOT actually commit. All git operations are stubbed.
+
+    REAL GIT OPS: Performs real git operations with governance guards.
     """
     
     @property
@@ -394,13 +395,76 @@ class StewardMission(BaseMission):
             hash_cmd = ["git", "rev-parse", "HEAD"]
             result = subprocess.run(hash_cmd, cwd=context.repo_root, check=True, capture_output=True, text=True)
             commit_hash = result.stdout.strip()
-            
+
+            # 4. Push (conditional on metadata.push flag)
+            if context.metadata.get("push", False):
+                push_cmd = ["git", "push"]
+                push_result = subprocess.run(
+                    push_cmd, cwd=context.repo_root, check=True, capture_output=True, text=True
+                )
+                # Fail-closed: if push fails, return error (commit happened but wasn't pushed)
+
             return (True, commit_hash)
         except subprocess.CalledProcessError as e:
             error_msg = e.stderr.decode() if e.stderr else str(e)
             return (False, f"Git operation failed: {error_msg}")
         except Exception as e:
             return (False, f"Unexpected error during commit: {str(e)}")
+
+    def _validate_diff_size(
+        self, context: MissionContext, artifacts: List[str], max_lines: int = 300
+    ) -> Tuple[bool, int, str]:
+        """
+        Validate total diff size against budget limit.
+
+        Per Trusted Builder §5.3: max_total_line_delta check.
+
+        Args:
+            context: Mission execution context
+            artifacts: List of file paths to check
+            max_lines: Maximum total line delta allowed (default: 300)
+
+        Returns:
+            Tuple of (ok, total_delta, detail)
+            - ok: True if within budget
+            - total_delta: Total lines added + deleted
+            - detail: Human-readable detail string
+        """
+        try:
+            # Stage files temporarily to measure diff
+            stage_cmd = ["git", "add"] + artifacts
+            subprocess.run(stage_cmd, cwd=context.repo_root, check=True, capture_output=True)
+
+            # Get diff stats for staged changes
+            diff_cmd = ["git", "diff", "--cached", "--numstat"]
+            result = subprocess.run(
+                diff_cmd, cwd=context.repo_root, check=True, capture_output=True, text=True
+            )
+
+            # Parse numstat output: "added\tdeleted\tfilename"
+            total_delta = 0
+            for line in result.stdout.strip().split("\n"):
+                if not line:
+                    continue
+                parts = line.split("\t")
+                if len(parts) >= 2:
+                    added = int(parts[0]) if parts[0] != "-" else 0
+                    deleted = int(parts[1]) if parts[1] != "-" else 0
+                    total_delta += added + deleted
+
+            # Unstage (reset to restore original state)
+            reset_cmd = ["git", "reset", "HEAD"] + artifacts
+            subprocess.run(reset_cmd, cwd=context.repo_root, check=True, capture_output=True)
+
+            ok = total_delta <= max_lines
+            detail = f"{total_delta} lines (budget: {max_lines})"
+            return (ok, total_delta, detail)
+
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr.decode() if e.stderr else str(e)
+            return (False, -1, f"Git diff failed: {error_msg}")
+        except Exception as e:
+            return (False, -1, f"Diff validation error: {str(e)}")
 
     def run(
         self,
@@ -420,10 +484,7 @@ class StewardMission(BaseMission):
         HARDENED: All blocking paths are deterministic and auditable.
         """
         executed_steps: List[str] = []
-        evidence: Dict[str, Any] = {
-            "stubbed": True,
-            "simulated_steps": [],
-        }
+        evidence: Dict[str, Any] = {}
 
         try:
             # Step 0: Validate inputs
@@ -470,6 +531,18 @@ class StewardMission(BaseMission):
                     success=False,
                     executed_steps=executed_steps,
                     error=selfmod_error,
+                    evidence=evidence,
+                )
+
+            # Handle empty artifact list - no commit needed
+            if not classified_paths["in_envelope"] and not classified_paths["code"]:
+                return self._make_result(
+                    success=True,
+                    outputs={
+                        "commit_hash": None,
+                        "commit_message": "No artifacts to commit",
+                    },
+                    executed_steps=executed_steps,
                     evidence=evidence,
                 )
 
@@ -520,7 +593,23 @@ class StewardMission(BaseMission):
                 # OpenCode succeeded and verified
                 evidence["opencode_commit_hash"] = commit_result
 
-            # Step 2.5: Commit code changes if present
+            # Step 2.5: Validate diff size for code changes before commit
+            if classified_paths["code"]:
+                ok, total_delta, detail = self._validate_diff_size(
+                    context, classified_paths["code"]
+                )
+                executed_steps.append("validate_diff_size")
+                evidence["diff_size"] = {"total_delta": total_delta, "detail": detail}
+
+                if not ok:
+                    return self._make_result(
+                        success=False,
+                        executed_steps=executed_steps,
+                        error=f"Diff size exceeds budget: {detail}",
+                        evidence=evidence,
+                    )
+
+            # Step 2.6: Commit code changes if present
             if classified_paths["code"]:
                 commit_message = f"Steward commit ({mission_name}): {summary}"
                 success, commit_result = self._commit_code_changes(
@@ -535,25 +624,18 @@ class StewardMission(BaseMission):
                         error=commit_result,
                         evidence=evidence,
                     )
-                
+
                 evidence["code_commit_hash"] = commit_result
-                evidence["stubbed"] = False # Real commit performed
 
             # Step 3: Handle success path
             if classified_paths["in_envelope"] and not classified_paths["code"]:
                 # Doc-only success path - use verified commit hash
                 verified_hash = evidence.get("opencode_commit_hash", "UNKNOWN")
 
-                # Use simulated_commit_hash in stub mode, commit_hash for real commits
-                if evidence.get("stubbed", True):
-                    hash_key = "simulated_commit_hash"
-                else:
-                    hash_key = "commit_hash"
-
                 return self._make_result(
                     success=True,
                     outputs={
-                        hash_key: verified_hash,
+                        "commit_hash": verified_hash,
                         "commit_message": f"OpenCode steward: {mission_name}",
                     },
                     executed_steps=executed_steps,
@@ -576,16 +658,10 @@ class StewardMission(BaseMission):
             # Success path for code or mixed changes
             final_hash = evidence.get("code_commit_hash", evidence.get("opencode_commit", "success"))
 
-            # Use simulated_commit_hash in stub mode, commit_hash for real commits
-            if evidence.get("stubbed", True):
-                hash_key = "simulated_commit_hash"
-            else:
-                hash_key = "commit_hash"
-
             return self._make_result(
                 success=True,
                 outputs={
-                    hash_key: final_hash,
+                    "commit_hash": final_hash,
                     "commit_message": f"Steward committed: {mission_name}",
                 },
                 executed_steps=executed_steps,

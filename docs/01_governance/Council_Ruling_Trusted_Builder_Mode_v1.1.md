@@ -36,9 +36,9 @@ The following non-blocking enhancements are deferred to the P1 backlog (Phase 4)
 
 ## 4. Evidence References
 
-* **Proposal**: [Council_Proposal_Trusted_Builder_v1.1.md](../../../artifacts/Council_Proposal_Trusted_Builder_v1.1.md)
-* **Evidence Packet**: [Council_Rereview_Packet__Trusted_Builder_Mode_v1.1__P0_Fixes.md](../../../artifacts/Council_Rereview_Packet__Trusted_Builder_Mode_v1.1__P0_Fixes.md)
-* **Verbatim Transcript**: [Council_Evidence_Verbatim__Trusted_Builder_Mode_v1.1.md](../../../artifacts/Council_Evidence_Verbatim__Trusted_Builder_Mode_v1.1.md)
+* **Proposal**: [Council_Proposal_Trusted_Builder_v1.1.md](../../artifacts/Council_Proposal_Trusted_Builder_v1.1.md)
+* **Evidence Packet**: [Council_Rereview_Packet__Trusted_Builder_Mode_v1.1__P0_Fixes.md](../../artifacts/Council_Rereview_Packet__Trusted_Builder_Mode_v1.1__P0_Fixes.md)
+* **Verbatim Transcript**: [Council_Evidence_Verbatim__Trusted_Builder_Mode_v1.1.md](../../artifacts/Council_Evidence_Verbatim__Trusted_Builder_Mode_v1.1.md)
 
 Bundle (Non-Versioned):
 * Path: artifacts/packets/council/CLOSURE_BUNDLE_Trusted_Builder_Mode_v1.1.zip
