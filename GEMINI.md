@@ -297,6 +297,8 @@ Antigravity must not:
 6. Infer authority from past approvals.
 7. Modify version numbers unsafely.
 8. Write or delete files without artefact flow (Exception: Non-governance operational files in `artifacts/`).
+   - Use `scripts/safe_cleanup.py --isolate` for untracked file management.
+   - For manual deletions, a "Noise Deletion Manifest" entry is required in the Review Packet.
 9. Combine unrelated changes in one artefact.
 10. Assume permission from silence.
 11. **Call `notify_user` to signal completion without first producing a Review Packet** (see Article XII).
