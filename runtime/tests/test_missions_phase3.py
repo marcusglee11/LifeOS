@@ -529,34 +529,45 @@ class TestStewardMission:
     
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_run_succeeds(self, mock_verify, mock_context: MissionContext, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
-        """Verify steward mission runs successfully with stub markers."""
+        """Verify steward mission runs successfully with empty artifacts (no commit needed)."""
         mock_verify.return_value = None  # Success (no exception)
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         assert result.success is True
         assert result.mission_type == MissionType.STEWARD
-        # HARDENING: Output is simulated_commit_hash, not commit_hash
-        assert "simulated_commit_hash" in result.outputs
-        # HARDENING: Steps are now real, no stub suffixes
+        # HARDENING: Output is commit_hash (None for empty artifacts)
+        assert "commit_hash" in result.outputs
+        assert result.outputs["commit_hash"] is None
+        assert "No artifacts to commit" in result.outputs["commit_message"]
+        # HARDENING: Steps executed before early return
         assert "validate_inputs" in result.executed_steps
         assert "validate_steward_targets" in result.executed_steps
         assert "check_self_mod_protection" in result.executed_steps
-        assert "verify_repo_clean" in result.executed_steps
-        # HARDENING: Evidence shows stubbed=True (no actual commit)
-        assert result.evidence.get("stubbed") is True
+        # verify_repo_clean not called for empty artifacts (early return)
 
+    @patch("runtime.orchestration.missions.steward.StewardMission._commit_code_changes")
+    @patch("runtime.orchestration.missions.steward.StewardMission._validate_diff_size")
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
-    def test_run_fails_with_deterministic_error(self, mock_verify, mock_context: MissionContext, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
+    def test_run_fails_with_deterministic_error(self, mock_verify, mock_diff_size, mock_commit, mock_context: MissionContext, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
         """HARDENING: Verify steward fails with deterministic error when repo not clean."""
+        # Add a code artifact to test repo clean verification
+        valid_review_packet["payload"]["artifacts_produced"] = ["runtime/test.py"]
+
+        # Mock diff size validation to pass
+        mock_diff_size.return_value = (True, 50, "50 lines (budget: 300)")
+
+        # Mock commit to succeed
+        mock_commit.return_value = (True, "abc123def456")
+
         # Simulate repo dirty error
         mock_verify.side_effect = Exception("Uncommitted changes detected")
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,

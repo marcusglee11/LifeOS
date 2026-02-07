@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-02-02
+# LifeOS Strategic Corpus [Last Updated: 2026-02-08]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -53,6 +53,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Autonomy Project Baseline.md](./11_admin/Autonomy%20Project%20Baseline.md) | **Phase 4** — Minimal doc set + Maintenance Protocol |
 | [LifeOS Autonomous Build Loop System - Status Report 20260202.md](./11_admin/LifeOS%20Autonomous%20Build%20Loop%20System%20-%20Status%20Report%2020260202.md) | **Condition** — Status report on Phase 4 autonomy readiness |
 | [Roadmap Fully Autonomous Build Loop20260202.md](./11_admin/Roadmap%20Fully%20Autonomous%20Build%20Loop20260202.md) | **Phase 4 Roadmap** — Re-ordered to match verified reality |
+| [lifeos-master-operating-manual-v2.1.md](./11_admin/lifeos-master-operating-manual-v2.1.md) | **Strategic Plan** — Master Operating Manual v2.1 |
 
 ---
 
@@ -65,6 +66,8 @@ LifeOS Constitution v2.0 (Supreme)
 | [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
 | [Tier_Definition_Spec_v1.1.md](./00_foundations/Tier_Definition_Spec_v1.1.md) | **Canonical** — Tier progression model, definitions, and capabilities |
 | [ARCH_Future_Build_Automation_Operating_Model_v0.2.md](./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md) | **Architecture Proposal** — Future Build Automation Operating Model v0.2 |
+| [lifeos-agent-architecture.md](./00_foundations/lifeos-agent-architecture.md) | **Architecture** — Non-canonical agent architecture |
+| [lifeos-maximum-vision.md](./00_foundations/lifeos-maximum-vision.md) | **Vision** — Non-canonical maximum vision architecture |
 
 ---
 
@@ -231,6 +234,8 @@ Archived documents are in `99_archive/`. Key locations:
 
 - `99_archive/superseded_by_constitution_v2/` — Documents superseded by Constitution v2.0
 - `99_archive/legacy_structures/` — Legacy governance and specs
+- [lifeos-master-operating-manual-v2.md](./99_archive/lifeos-master-operating-manual-v2.md) — Preceding version of the master operations manual
+- [lifeos-operations-manual.md](./99_archive/lifeos-operations-manual.md) — First version of the master operations manual
 
 ---
 

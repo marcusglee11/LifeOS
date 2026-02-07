@@ -1081,6 +1081,271 @@ To scale LifeOS without creating a monolithic bottleneck, we adopt the **Team To
 
 ---
 
+# File: 00_foundations/lifeos-agent-architecture.md
+
+# LifeOS Agent Architecture
+
+## Document Status
+- **Version:** 0.1
+- **Created:** 2026-02-05
+- **Purpose:** Reference architecture for two-agent LifeOS bootstrap system
+
+---
+
+## 1. Vision
+
+### 1.1 The Problem
+LifeOS requires autonomous execution capability to fulfill its purpose. The system cannot govern what it cannot do. Current state: extensive governance design, no autonomous execution.
+
+### 1.2 The Solution
+Bootstrap LifeOS through two complementary agents:
+
+1. **Employee** — Exploration probe that discovers what autonomous agents can do, without committing identity or reputation
+2. **COO** — Orchestration seed that evolves from advisor-with-hands into the LifeOS kernel itself
+
+### 1.3 Key Principles
+
+| Principle | Meaning |
+|-----------|---------|
+| **Probe before commit** | Employee tests the space; learnings inform architecture |
+| **Bootstrap, not integrate** | COO doesn't connect to LifeOS; COO becomes LifeOS |
+| **Governance follows capability** | Prove execution, then add oversight |
+| **Asset, not avatar** | Employee is owned, not identified with |
+| **Seed, not tool** | COO is infrastructure, not peripheral |
+
+---
+
+## 2. Two-Agent Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              PRINCIPAL (CEO)                            │
+│                                                                         │
+│   Provides: Direction, judgment, approval, identity, relationships      │
+│   Retains: Key relationships, final decisions, signature authority      │
+│                                                                         │
+└────────────────────────────┬────────────────────────────────────────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+              ▼                             ▼
+┌─────────────────────────────┐ ┌─────────────────────────────────────────┐
+│     EMPLOYEE (GCP)          │ │              COO (Local)                │
+│                             │ │                                         │
+│  Nature: Exploration probe  │ │  Nature: LifeOS kernel seed             │
+│  Identity: Separate entity  │ │  Identity: LifeOS infrastructure        │
+│  Stability: Production      │ │  Stability: Experimental                │
+│  Codebase: Tracks upstream  │ │  Codebase: Can diverge                  │
+│                             │ │                                         │
+│  ┌───────────────────────┐  │ │  ┌───────────────────────────────────┐  │
+│  │ Capabilities         │  │ │  │ Capabilities                      │  │
+│  │ • Research           │  │ │  │ • LifeOS codebase interaction     │  │
+│  │ • Drafting           │  │ │  │ • Governance operations           │  │
+│  │ • Admin execution    │  │ │  │ • Agent orchestration             │  │
+│  │ • Monitoring         │  │ │  │ • State management                │  │
+│  │ • Information gather │  │ │  │ • Development execution           │  │
+│  │ • Memory building    │  │ │  │ • Strategic advisory              │  │
+│  └───────────────────────┘  │ │  └───────────────────────────────────┘  │
+│                             │ │                                         │
+│  Memory: Gemini embeddings  │ │  Memory: LifeOS-native state docs       │
+│  Accounts: All dedicated    │ │  Accounts: LifeOS infrastructure        │
+│  Uptime: Always on          │ │  Uptime: Development sessions           │
+│                             │ │                                         │
+│  Future: External agent     │ │  Future: The kernel itself              │
+│          LifeOS avatar      │ │          Core of the core               │
+└─────────────────────────────┘ └─────────────────────────────────────────┘
+              │                             │
+              └──────────────┬──────────────┘
+                             │
+                             ▼
+                  ┌─────────────────────┐
+                  │   Shared State      │
+                  │   (Google Drive)    │
+                  │                     │
+                  │ • Current focus     │
+                  │ • Decisions         │
+                  │ • Learnings         │
+                  │ • Handoffs          │
+                  └─────────────────────┘
+```
+
+---
+
+## 3. Employee Specification
+
+### 3.1 Purpose
+Exploration probe that discovers autonomous agent capabilities without committing principal's identity or reputation. Information and capability accrue to principal; actions and identity belong to Employee.
+
+### 3.2 Core Attributes
+
+| Attribute | Value |
+|-----------|-------|
+| **Relationship to Principal** | Asset owned, not extension of self |
+| **Representation** | Does not represent principal |
+| **Identity** | Separate entity with own accounts |
+| **Risk profile** | Contained; failures don't damage principal |
+| **Information flow** | Learnings flow to principal |
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
+# File: 00_foundations/lifeos-maximum-vision.md
+
+# LifeOS: Maximum Vision
+
+## Document Status
+- **Version:** 0.1
+- **Created:** 2026-02-05
+- **Purpose:** Articulate the full extent of what LifeOS can become
+
+---
+
+## The Premise
+
+You are cognitively exceptional but operationally limited.
+
+Every exceptional person faces the same constraint: there's only one of you, you have finite hours, finite attention, and friction consumes most of it. Your potential is bounded not by what you can think or decide, but by what you can execute.
+
+LifeOS is the bet that this constraint can be removed.
+
+Not mitigated. Removed.
+
+---
+
+## The End State: A Life Fully Amplified
+
+### What You Do
+
+- **Think** — Strategy, architecture, creative direction
+- **Decide** — Judgment calls requiring your values
+- **Relate** — Key relationships that are irreducibly human
+- **Create** — Work that only you can do
+- **Direct** — Set priorities, allocate attention, choose paths
+- **Experience** — Live the life you're building
+
+### What LifeOS Does
+
+Everything else.
+
+---
+
+## Dimension 1: Time
+
+### Current State
+- 16 waking hours
+- Work stops when you sleep
+- Momentum lost to context switches
+- Days consumed by low-leverage activity
+
+### End State
+**LifeOS operates continuously. Time becomes a resource you allocate, not a constraint you endure.**
+
+- 24/7 execution across all workstreams
+- You wake to completed work, not pending work
+- Overnight: research completed, drafts written, opportunities identified, admin handled
+- Your sleep is productive time for the system
+- Context never lost; threads persist indefinitely
+- Calendar optimized around your energy patterns (deep work when sharp, review when fading)
+
+**The math:**
+- You: 16 hours × 1 = 16 person-hours
+- LifeOS: 24 hours × N agents = functionally unlimited execution capacity
+- Your time becomes purely high-leverage: direction, decision, creation, relationship
+
+### What This Enables
+- Strategic patience (the system pursues long-game opportunities you can't manually track)
+- Recovery without cost (step away; work continues)
+- Compound progress (every day builds on every previous day, without gaps)
+
+---
+
+## Dimension 2: Attention
+
+### Current State
+- One focus at a time
+- Important things wait while urgent things happen
+- Opportunities missed because attention was elsewhere
+- Cognitive load consumed by tracking, remembering, managing
+
+### End State
+**LifeOS multiplies your attention across unlimited parallel threads.**
+
+```
+                         YOUR ATTENTION
+                               │
+                    Strategic Direction
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                ▼
+         LifeOS          Key Relationships   Deep Work
+         Review              (Human)         (Creation)
+              │
+              └──► Multiplexed across:
+                   • Development workstream
+                   • Revenue workstream  
+                   • Research workstream
+                   • Admin workstream
+                   • Opportunity workstream
+                   • Network cultivation
+                   • Health/life management
+                   • N additional threads
+```
+
+- Every important thread advances every day
+- Nothing waits for your attention unless it requires your judgment
+- System handles monitoring; you handle deciding
+- Cognitive load offloaded: system tracks, remembers, manages
+- You see dashboards, not details (unless you want details)
+
+### What This Enables
+- Pursuit of long-term goals that require sustained attention you can't provide manually
+- Multiple business lines / income streams / projects simultaneously
+- Nothing falls through cracks
+- Ambient awareness of everything without active attention on anything
+
+---
+
+## Dimension 3: Capability
+
+### Current State
+- Your skills are your skills
+- Tasks requiring other skills: learn (slow), outsource (expensive, lossy), or don't do
+- Capability ceiling = your capability
+
+### End State
+**LifeOS provides access to any capability that can be encoded or acquired by agents.**
+
+| Capability | How LifeOS Provides It |
+|------------|------------------------|
+| Research | Agents with web access, document processing, synthesis |
+| Writing | Drafting agents, style-matched to context |
+| Analysis | Quantitative agents, pattern recognition, data processing |
+| Coding | Development agents, full software creation capability |
+| Design | Visual agents, UI/UX, document formatting |
+| Admin | Operations agents, scheduling, correspondence, filing |
+| Monitoring | Continuous surveillance of markets, news, opportunities |
+| Languages | Translation, localization, multi-lingual operation |
+| Domains | Specialist agents for law, finance, tech, health, etc. |
+
+**Capability acquisition:**
+- Agents can learn (within their architecture)
+- New tools can be integrated
+- New agents can be spawned with new specializations
+- Capability grows over time without your direct effort
+
+### What This Enables
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
 # File: 01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md
 
 # **LifeOS Alignment Review — TEMPLATE (v1.0)**  
@@ -1986,9 +2251,9 @@ The following non-blocking enhancements are deferred to the P1 backlog (Phase 4)
 
 ## 4. Evidence References
 
-* **Proposal**: [Council_Proposal_Trusted_Builder_v1.1.md](../../../artifacts/Council_Proposal_Trusted_Builder_v1.1.md)
-* **Evidence Packet**: [Council_Rereview_Packet__Trusted_Builder_Mode_v1.1__P0_Fixes.md](../../../artifacts/Council_Rereview_Packet__Trusted_Builder_Mode_v1.1__P0_Fixes.md)
-* **Verbatim Transcript**: [Council_Evidence_Verbatim__Trusted_Builder_Mode_v1.1.md](../../../artifacts/Council_Evidence_Verbatim__Trusted_Builder_Mode_v1.1.md)
+* **Proposal**: [Council_Proposal_Trusted_Builder_v1.1.md](../../artifacts/Council_Proposal_Trusted_Builder_v1.1.md)
+* **Evidence Packet**: [Council_Rereview_Packet__Trusted_Builder_Mode_v1.1__P0_Fixes.md](../../artifacts/Council_Rereview_Packet__Trusted_Builder_Mode_v1.1__P0_Fixes.md)
+* **Verbatim Transcript**: [Council_Evidence_Verbatim__Trusted_Builder_Mode_v1.1.md](../../artifacts/Council_Evidence_Verbatim__Trusted_Builder_Mode_v1.1.md)
 
 Bundle (Non-Versioned):
 * Path: artifacts/packets/council/CLOSURE_BUNDLE_Trusted_Builder_Mode_v1.1.zip
