@@ -54,4 +54,31 @@ if [ "$IS_VALID" = false ] && [ -n "$CURRENT_BRANCH" ]; then
     echo ""
 fi
 
+# ------------------------------------------------------------------------------
+# Article XIX Enforcement: Untracked Asset Stewardship (Anti-Deletion)
+# ------------------------------------------------------------------------------
+
+UNTRACKED_FILES=$(git ls-files --others --exclude-standard)
+
+if [ -n "$UNTRACKED_FILES" ]; then
+    echo ""
+    echo "🚨 BLOCKED: Untracked files detected in working tree."
+    echo "============================================================"
+    echo "$UNTRACKED_FILES"
+    echo "============================================================"
+    echo ""
+    echo "Article XIX requires untracked assets to be isolated or staged."
+    echo ""
+    echo "To isolate these files (recommended):"
+    echo "   python scripts/safe_cleanup.py --isolate"
+    echo ""
+    echo "To stage them for this commit:"
+    echo "   git add <file>"
+    echo ""
+    echo "To bypass (emergency only):"
+    echo "   git commit --no-verify"
+    echo ""
+    exit 1
+fi
+
 exit 0
