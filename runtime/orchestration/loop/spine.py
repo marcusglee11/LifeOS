@@ -438,7 +438,7 @@ class LoopSpine:
                     review_packet = chain_state.get("review_packet", {})
                     inputs = {
                         "subject_packet": review_packet,
-                        "review_type": "code_review",
+                        "review_type": "build_review",
                     }
                 elif step_name == "steward":
                     # Steward: needs review_packet + approval from review
