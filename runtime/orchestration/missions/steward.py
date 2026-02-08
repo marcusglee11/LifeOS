@@ -252,7 +252,7 @@ class StewardMission(BaseMission):
             result = subprocess.run(
                 cmd,
                 cwd=context.repo_root,
-                timeout=300,  # 5 min timeout
+                timeout=60,  # 1 min timeout
                 capture_output=True,
                 text=True,
                 check=False,  # Don't raise on non-zero exit
@@ -285,7 +285,10 @@ class StewardMission(BaseMission):
 
     def _verify_repo_clean(self, context: MissionContext) -> Tuple[bool, str]:
         """
-        Verify repository is in clean state.
+        Verify repository is in clean state, excluding system artifacts.
+
+        System artifacts (ledger, logs, terminal packets) are modified during
+        loop execution and should not block steward success.
 
         HARDENED: Returns structured (ok, reason) tuple for deterministic error capture.
         No print() statements - all errors are captured in return value.
@@ -294,9 +297,39 @@ class StewardMission(BaseMission):
             (ok: bool, reason: str) - reason is deterministic error message or "clean"
         """
         try:
-            from runtime.orchestration.run_controller import verify_repo_clean
-            verify_repo_clean(context.repo_root)
+            # Check git status, filtering system artifacts
+            result = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=context.repo_root,
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode != 0:
+                return (False, f"git status failed: {result.stderr}")
+
+            # Filter out system artifacts that are modified during loop execution
+            dirty_files = []
+            for line in result.stdout.strip().split('\n'):
+                if not line:
+                    continue
+                # Extract file path: git status --porcelain format is "XY filename"
+                # where X is index status, Y is worktree status
+                # Split on whitespace and take everything after status markers
+                parts = line.strip().split(None, 1)
+                if len(parts) < 2:
+                    continue
+                file_path = parts[1]  # filename is everything after the status
+                # Skip system artifacts
+                if not file_path.startswith(('artifacts/loop_state/', 'artifacts/terminal/', 'logs/')):
+                    dirty_files.append(line)
+
+            if dirty_files:
+                return (False, f"Repo has uncommitted changes: {', '.join(dirty_files[:5])}")
+
             return (True, "clean")
+        except subprocess.TimeoutExpired:
+            return (False, "git status timed out")
         except Exception as e:
             # Capture error deterministically - no print()
             error_type = type(e).__name__
