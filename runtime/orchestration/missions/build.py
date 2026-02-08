@@ -98,7 +98,24 @@ class BuildMission(BaseMission):
             
             response = call_agent(call, run_id=context.run_id)
             executed_steps.append("invoke_builder_llm_call")
-            
+
+            # Detect artifacts created by OpenCode CLI
+            artifacts_produced = []
+            try:
+                import subprocess
+                diff_result = subprocess.run(
+                    ["git", "diff", "--name-only"],
+                    cwd=context.repo_root,
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if diff_result.returncode == 0 and diff_result.stdout.strip():
+                    artifacts_produced = diff_result.stdout.strip().split('\n')
+            except Exception:
+                # If artifact detection fails, continue with empty list
+                pass
+
             # Step 3: Package output as REVIEW_PACKET
             review_packet = {
                 "mission_name": f"build_{context.run_id[:8]}",
@@ -107,6 +124,7 @@ class BuildMission(BaseMission):
                     "build_packet": build_packet,
                     "content": response.content,
                     "packet": response.packet,
+                    "artifacts_produced": artifacts_produced,
                 },
                 "evidence": {
                     "call_id": response.call_id,
