@@ -528,9 +528,18 @@ class OpenCodeClient:
                 raise ValueError("Model must be specified in request or configuration.")
 
         # 2. Build Attempt Chain
-        # Start with primary
-        attempts = [{"model": primary_model, "provider": None}] 
-        
+        # Start with primary (load provider from config)
+        primary_provider = None
+        try:
+            from runtime.agents.models import get_agent_config
+            agent_config = get_agent_config(self.role)
+            if agent_config:
+                primary_provider = agent_config.provider
+        except (ImportError, Exception):
+            pass
+
+        attempts = [{"model": primary_model, "provider": primary_provider}]
+
         # Add fallbacks from config
         try:
             from runtime.agents.models import get_agent_config
@@ -538,7 +547,7 @@ class OpenCodeClient:
             if agent_config and agent_config.fallback:
                 for fb in agent_config.fallback:
                     attempts.append({
-                        "model": fb.get("model"), 
+                        "model": fb.get("model"),
                         "provider": fb.get("provider")
                     })
         except ImportError:
