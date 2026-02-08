@@ -252,7 +252,7 @@ class StewardMission(BaseMission):
             result = subprocess.run(
                 cmd,
                 cwd=context.repo_root,
-                timeout=300,  # 5 min timeout
+                timeout=60,  # 1 min timeout
                 capture_output=True,
                 text=True,
                 check=False,  # Don't raise on non-zero exit
