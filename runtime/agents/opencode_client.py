@@ -204,7 +204,7 @@ class OpenCodeClient:
     def __init__(
         self,
         port: int = 62586,
-        timeout: int = 120,
+        timeout: int = 60,
         api_key: Optional[str] = None,
         upstream_base_url: Optional[str] = None,
         log_calls: bool = True,

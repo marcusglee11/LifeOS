@@ -108,7 +108,7 @@ agents:
 # Zen configuration (Primary)
 zen:
   base_url: "https://opencode.ai/zen/v1/messages"
-  timeout_seconds: 120
+  timeout_seconds: 60
   retry:
     max_attempts: 3
     backoff_base_seconds: 1.0
@@ -117,7 +117,7 @@ zen:
 # OpenRouter configuration (Fallback)
 openrouter:
   base_url: "https://openrouter.ai/api/v1"
-  timeout_seconds: 120
+  timeout_seconds: 60
   retry:
     max_attempts: 3
     backoff_base_seconds: 1.0
