@@ -8,28 +8,22 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-01-23
+**Last Updated:** 2026-02-08
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
 
-- [x] **E2E Test: Runtime Greet** -- DoD: runtime/greet.py exists and is committed -- Owner: antigravity -- Context: Create a new file 'runtime/greet.py' that contains a single print statement: print('Hello from E2E'). Use valid YAML for your design response.
+- [ ] **Install OpenClaw COO on WSL2** — DoD: OpenClaw installed, workspace configured, can read repo and update state docs — Owner: CEO — Context: The only genuine gap blocking autonomous build loop
 
 ### P1 (High)
 
-- [x] **Complete Deferred Evidence: F3 Tier-2.5 Activation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
-- [x] **Complete Deferred Evidence: F4 Tier-2.5 Deactivation** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
-- [x] **Complete Deferred Evidence: F7 Runtime ↔ Antigrav Protocol** — DoD: Review packet created and verified — Owner: antigravity — Context: Deferred from Phase 3 closure (Condition C2)
-
+- [ ] **E2E Loop Test: Real task through full pipeline** — DoD: One task completes select→design→build→review→steward autonomously — Owner: antigravity/COO — Context: All code components exist, needs integration verification
 - [ ] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
-
-- [ ] **Recursive Builder iteration (Phase B)** — Why Now: Immediate focus (Refinement & Automation) — Owner: antigravity
-- [ ] **B1: Strengthen smoke_check failure-path evidence assertions** — DoD: Test computes sha256 of smoke_check.stderr — Owner: antigravity
-- [ ] **B2: Tighten validation exception specificity in tests** — DoD: Tests assert exact exception type (e.g., MissionValidationError) — Owner: antigravity
-- [ ] **B3: Clarify/standardize fail-closed boundary for filesystem errors** — DoD: Documented boundary + consistent behavior — Owner: antigravity
+- [ ] **Fix test_steward_runner.py (25/27 failing)** — DoD: Tests pass or are properly restructured — Owner: antigravity — Context: Import/fixture issues, not code bugs
+- [ ] **Fix test_e2e_smoke_timeout.py (import error)** — DoD: run_with_timeout import fixed or test updated — Owner: antigravity
 - [ ] **Finalize Emergency_Declaration_Protocol v1.0** — DoD: Markers removed — Owner: antigravity
 - [ ] **Finalize Intent_Routing_Rule v1.0** — DoD: Markers removed — Owner: antigravity
 - [ ] **Finalize Test_Protocol v2.0** — DoD: Markers removed — Owner: antigravity
@@ -39,12 +33,11 @@
 
 ## Next (valuable, but not imminent)
 
+- [ ] **Configure GCP Employee instance** — Context: Hardened OpenClaw config, dedicated accounts, Tailscale
+- [ ] **Revenue Track: LinkedIn daily posts** — Context: COO drafts, CEO reviews. Seed: "What autonomous AI agents actually cost to run"
+- [ ] **Revenue Track: B5 Governance Guide** — Context: 19,500 lines of real code + 1,440 tests backing the content
 - [ ] **Mission Type Extensions** — Why Next: Add new mission types based on backlog needs
-- [ ] **Integration Testing** — Why Next: Comprehensive end-to-end testing
-- [ ] **Reactive Layer Hygiene: Tighten Canonical JSON** — DoD: Require explicit escape sequence for non-ASCII input
-- [ ] **Reactive Layer Hygiene: Verify README Authority Pointer** — DoD: Ensure stable canonical link to authority anchor
 - [ ] **Tech Debt: Rehabilitate Legacy Git Workflow Tests** — Context: Quarantined to archive_legacy_r6x due to missing run_cmd mock. Rehabilitate or remove.
-- [ ] **Tier-3 planning** — Why Next: Scope Tier-3 Autonomous Construction Layer
 
 ## Later (not actionable / unclear / exploratory)
 
@@ -53,23 +46,18 @@
 
 ## Done (last ~25 only)
 
+- [x] **Manual v2.1 Reconciliation Sprint** — Date: 2026-02-08 — CRLF fix, 36 tests re-enabled, free Zen models, manual corrected
+- [x] **Deletion Safety Hardening (Article XIX)** — Date: 2026-02-08
+- [x] **Documentation Stewardship** — Date: 2026-02-08 — 5 root docs relocated to canonical locations
+- [x] **StewardMission Git Ops (Full Implementation)** — Date: 2026-02-08 — 691 lines, real git ops, governance guards
+- [x] **LLM Backend Configuration** — Date: 2026-02-08 — config/models.yaml with 5 agents, fallback chains
+- [x] **Phase 4 (4A0-4D) Full Stack Merge** — Date: 2026-02-03 — Autonomous build loop canonical
+- [x] **Repository Branch Cleanup** — Date: 2026-02-03 — 9 branches assessed, 8 archived, single canonical main
+- [x] **E2E Test: Runtime Greet** — Date: 2026-02-01
+- [x] **Complete Deferred Evidence: F3/F4/F7** — Date: 2026-01-27
 - [x] **Standardize Raw Capture Primitive** — Date: 2026-01-18
-- [x] **Finalize CSO_Role_Constitution v1.0 (Remove Waiver W1)** — Date: 2026-01-23
-- [x] **Git Workflow Protocol v1.1 Impact** (Resolved OpenCode deletion logic via Safety Gate) — Date: 2026-01-16
-- [x] **BuildWithValidation v0.1 P0 Patch 2 Refinement** — Date: 2026-01-13
-- [x] **Fix OpenCode Config Compliance v1.0** — Date: 2026-01-13
+- [x] **Finalize CSO_Role_Constitution v1.0** — Date: 2026-01-23
+- [x] **Git Workflow Protocol v1.1 Impact** — Date: 2026-01-16
 - [x] **Grok Fallback Debug & Robustness Fixes v1.0** — Date: 2026-01-18
 - [x] **CLI & Mission Hardening v1.0** — Date: 2026-01-13
 - [x] **Tier-3 CLI Integration (Full)** — Date: 2026-01-13
-- [x] **BuildWithValidation Mission Hardening v0.1** — Date: 2026-01-13
-- [x] **BuildWithValidation Mission Type v0.1** — Date: 2026-01-13
-- [x] **Tier-3 Mission Dispatch Wiring Fixes v1.0** — Date: 2026-01-13
-- [x] **CI Regression Fixes v1.0** — Date: 2026-01-13
-- [x] **OpenCode Sandbox Activation v2.2** — Date: 2026-01-13
-- [x] **A1/A2 Re-closure v2.1c** — Date: 2026-01-12
-- [x] **G-CBS Readiness v1.1** — Date: 2026-01-11
-- [x] **F3 — Tier-2.5 Activation Conditions Checklist** — Date: 2026-01-02
-- [x] **F4 — Tier-2.5 Deactivation & Rollback Conditions** — Date: 2026-01-02
-- [x] **F7 — Runtime ↔ Antigrav Mission Protocol** — Date: 2026-01-02
-- [x] **Strategic Context Generator v1.3** — Date: 2026-01-03
-- [x] **Agent Packet Protocol v1.0** — Date: 2026-01-02

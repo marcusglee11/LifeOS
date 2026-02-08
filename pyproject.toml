@@ -29,18 +29,20 @@ pythonpath = [
     "runtime"
 ]
 
-# Addopts: verbose mode with ignored paths for problematic tests
+# Addopts: verbose mode with ignored paths for excluded tests
+# Each exclusion documented with evidence (verified 2026-02-08):
 addopts = [
     "-v",
+    # Archived legacy tests from pre-Phase 3 rewrite — not maintained
     "--ignore=runtime/tests/archive_legacy_r6x",
+    # 25/27 failing — requires steward_runner refactor (import/fixture issues)
     "--ignore=tests_recursive/test_steward_runner.py",
+    # ImportError: run_with_timeout removed from opencode_ci_runner
     "--ignore=tests_recursive/test_e2e_smoke_timeout.py",
+    # 1/5 failing — test_hardlink_defense triggers SecurityViolation
     "--ignore=runtime/tests/test_sandbox_remediation.py",
+    # 1/1 failing — non-deterministic approval demo
     "--ignore=runtime/tests/test_demo_approval_determinism.py",
-    "--ignore=runtime/tests/orchestration/loop/test_configurable_policy.py"
-    # Re-enabled tests (mostly passing):
-    # - test_missions_phase3.py: 47/49 passing (2 AutonomousBuildCycleMission failures)
-    # - test_packet_validation.py: 19/20 passing (1 plan_review_packet failure)
 ]
 
 # Filter warnings
