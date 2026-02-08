@@ -313,8 +313,13 @@ class StewardMission(BaseMission):
             for line in result.stdout.strip().split('\n'):
                 if not line:
                     continue
-                # Extract file path (everything after status markers)
-                file_path = line[3:] if len(line) > 3 else line
+                # Extract file path: git status --porcelain format is "XY filename"
+                # where X is index status, Y is worktree status
+                # Split on whitespace and take everything after status markers
+                parts = line.strip().split(None, 1)
+                if len(parts) < 2:
+                    continue
+                file_path = parts[1]  # filename is everything after the status
                 # Skip system artifacts
                 if not file_path.startswith(('artifacts/loop_state/', 'artifacts/terminal/', 'logs/')):
                     dirty_files.append(line)
