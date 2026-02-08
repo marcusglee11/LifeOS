@@ -431,7 +431,7 @@ class LoopSpine:
                     build_packet = chain_state.get("build_packet", {})
                     inputs = {
                         "build_packet": build_packet,
-                        "approval_status": "auto_approved",
+                        "approval": {"verdict": "approved"},
                     }
                 elif step_name == "review":
                     # Review: needs review_packet from build as subject_packet
