@@ -443,11 +443,11 @@ class LoopSpine:
                 elif step_name == "steward":
                     # Steward: needs review_packet + approval from review
                     review_packet = chain_state.get("review_packet", {})
-                    verdict = chain_state.get("verdict", {})
+                    verdict = chain_state.get("verdict", "approved")  # verdict is a string
                     council_decision = chain_state.get("council_decision", {})
                     inputs = {
                         "review_packet": review_packet,
-                        "approval": verdict.get("approved", True),  # Default approve in trusted mode
+                        "approval": {"verdict": verdict},  # Wrap string verdict in dict
                         "council_decision": council_decision,
                     }
                 else:
