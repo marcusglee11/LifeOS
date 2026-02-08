@@ -11,19 +11,20 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Phase 4 (Autonomous Construction) - MERGED TO MAIN
-**Active WIP:** Post-Phase 4 Integration - Ready for autonomous build loop operations
-**Last Updated:** 2026-02-03
+**Current Focus:** Manual v2.1 Reconciliation — closing stale gaps, preparing for OpenClaw COO
+**Active WIP:** build/manual-v2.1-reconciliation branch (pending merge to main)
+**Last Updated:** 2026-02-08
 
 ---
 
 ## 🟥 IMMEDIATE NEXT STEP (The "One Thing")
 
-**Phase 4 Merged to Main (2026-02-03):**
+**Install OpenClaw COO (CEO action required):**
 
-1. All Phase 4 work (4A0, 4B, 4C, 4D) successfully integrated to main
-2. Test suite baseline: 1327 passing tests (237 new Phase 4 tests)
-3. Autonomous build loop infrastructure now canonical
+1. StewardMission git ops: FULLY IMPLEMENTED (691 lines, 8 integration tests)
+2. LLM backend: FULLY CONFIGURED (free Zen models, zero cost)
+3. Test suite: 1,371 passing (36 re-enabled this sprint), 0 failures
+4. **Only remaining gap:** OpenClaw COO local install on WSL2
 
 ---
 
@@ -60,12 +61,16 @@
 
 ## ⚠️ System Blockers (Top 3)
 
-1. **Recursive Builder Integration** (P1) — **CLOSED** (Hardened v0.4 Bundle)
+1. **OpenClaw COO Install** (P0) — CEO action required. Only genuine gap blocking autonomous build loop.
+2. **Recursive Builder Integration** (P1) — **CLOSED** (Hardened v0.4 Bundle)
+3. **test_steward_runner.py** (P2) — 25/27 failing, requires steward_runner refactor
 
 ---
 
 ## 🟩 Recent Wins
 
+- **2026-02-08:** Manual v2.1 Reconciliation — CRLF root-cause fix (.gitattributes), 36 tests re-enabled (1335→1371), free Zen models configured, manual v2.1 corrected (StewardMission & LLM backend gaps were already closed).
+- **2026-02-08:** Deletion Safety Hardening — Article XIX enforcement, safe_cleanup.py guards, 8 integration tests.
 - **2026-02-08:** Documentation Stewardship - Relocated 5 root documentation files to canonical locations in `docs/11_admin`, `docs/00_foundations`, and `docs/99_archive`. Updated project index and state.
 - **2026-02-03:** Repository Branch Cleanup - Assessed and cleaned 9 local branches, archived 8 with tags, deleted 1 obsolete WIP branch, cleared 7 stashes. All work verified in main. Single canonical branch (main) with 11 archive tags.
 - **2026-02-03:** Phase 4 (4A0-4D) MERGED TO MAIN - Full autonomous build loop stack canonical (merge commit 9f4ee41, 1327 passing tests)

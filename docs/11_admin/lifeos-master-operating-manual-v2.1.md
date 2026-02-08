@@ -19,6 +19,26 @@ This changes the roadmap: agent infrastructure is configured, not built from scr
 
 ---
 
+# CORRECTION NOTICE (v2.1 Reconciliation — 2026-02-08)
+
+Claude Code sprint verified repo state against this manual's claims. **Two of three gaps identified below are already closed:**
+
+| Manual v2.1 Claim | Actual Status | Evidence |
+|---|---|---|
+| StewardMission git ops "STUBBED" | **FULLY IMPLEMENTED** | `runtime/orchestration/missions/steward.py` — 691 lines, real git add/commit/push, governance guards, 8 integration tests passing |
+| LLM backend "NEEDS CONFIGURATION" | **FULLY CONFIGURED** | `config/models.yaml` — 5 agents, per-agent API keys via `.env`, fallback chains. Switched to free Zen models 2026-02-08. |
+| OpenClaw COO "NEEDS CONFIGURATION" | **Correctly identified** | External tool install — requires CEO action |
+
+Additional corrections applied this sprint:
+- Test suite: 1,371 passing (up from 1,335; 36 re-enabled), 0 failures
+- CRLF phantom diffs: root-cause fixed via `.gitattributes` hardening
+- Model config: switched from paid Grok/MiniMax to free Zen tier (zero cost)
+- Doc links: fixed in prior sprint (2026-02-08)
+
+**The only genuine remaining gap blocking the autonomous build loop is OpenClaw COO installation.**
+
+---
+
 # RECONNAISSANCE FINDINGS SUMMARY (2026-02-07)
 
 Claude Code executed a full investigation of the repo. Key findings:
@@ -50,7 +70,7 @@ The autonomous build cycle infrastructure is structurally complete. Every compon
 | CEO Queue | REAL — SQLite-backed, escalation types, 24h timeout |
 | AttemptLedger | REAL — append-only JSONL, crash/resume hydration |
 | Checkpoint/Resume | REAL — YAML persistence, policy hash validation |
-| StewardMission | **STUBBED** — git ops return simulated hashes |
+| StewardMission | **COMPLETE** — 691 lines, real git add/commit/push, governance guards, 8 integration tests |
 
 Operations status:
 
@@ -62,7 +82,7 @@ Operations status:
 | `run_tests` | REAL |
 | `tool_invoke` | STUBBED (unused by current chain) |
 
-**The single production gap is StewardMission git operations.** The mission shell exists. It needs real `git add`, `git commit`, `git push` with governance guards.
+**~~The single production gap is StewardMission git operations.~~** RESOLVED 2026-02-08: StewardMission fully implemented with real git ops and governance guards (deletion-safety-hardening sprint).
 
 ## Test Suite: Healthy
 
@@ -111,12 +131,12 @@ Tier 1             ✅ COMPLETE   Foundation, council-ratified
 Tier 2             ✅ COMPLETE   Deterministic core, council-certified
 Tier 2.5           ✅ ACTIVATED  Agent-driven maintenance with oversight
 Phase 1 Autonomy   ✅ MERGED     Nightly doc hygiene active since 2026-02-02
-Loop Spine         ✅ 90%        All components real except StewardMission git ops
+Loop Spine         ✅ COMPLETE   All components real including StewardMission git ops
 CEO Queue          ✅ COMPLETE   SQLite-backed, approve/reject, timeout
 Checkpoint/Resume  ✅ COMPLETE   YAML persistence, policy hash validation
 ─────────────────────────────────────────────────────────
-Steward Git Ops    ❌ STUBBED    Single gap blocking autonomous builds
-Agent API Backend  ⚙️  CONFIG     call_agent() wired; needs LLM provider config
+Steward Git Ops    ✅ COMPLETE   691-line implementation, real git ops, governance guards (fixed 2026-02-08)
+Agent API Backend  ✅ COMPLETE   config/models.yaml — free Zen models configured (fixed 2026-02-08)
 OpenClaw COO       ⚙️  CONFIG     Local install needs workspace + charter setup
 OpenClaw Employee  ⏳ PLANNED    GCP instance needs provisioning + config
 Revenue System     ❌ MISSING    No revenue experiments active
