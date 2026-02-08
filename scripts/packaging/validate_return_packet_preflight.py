@@ -17,6 +17,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import zipfile
 from dataclasses import dataclass, field
@@ -219,6 +220,115 @@ def check_path_in_allowlist(path: str, allowlist: list) -> bool:
             if path == allowed:
                 return True
     return False
+
+
+def validate_packet_dir_isolated(packet_dir: Path, repo_root: Path) -> None:
+    """
+    Validate that packet_dir is safe for writes (Article XIX enforcement).
+
+    ALLOW writes if:
+    - packet_dir is OUTSIDE repo_root, OR
+    - packet_dir is INSIDE repo_root AND gitignored
+
+    FAIL-CLOSED otherwise (inside repo but not gitignored).
+
+    Args:
+        packet_dir: Directory where packet files will be written
+        repo_root: Git repository root
+
+    Raises:
+        SystemExit: If packet_dir is inside repo but not gitignored
+    """
+    try:
+        packet_resolved = packet_dir.resolve()
+        repo_resolved = repo_root.resolve()
+
+        # Check if packet_dir is outside repo
+        try:
+            packet_resolved.relative_to(repo_resolved)
+            inside_repo = True
+        except ValueError:
+            # Outside repo - ALLOW
+            inside_repo = False
+
+        if not inside_repo:
+            # Outside repo - safe to write
+            return
+
+        # Inside repo - check if gitignored
+        # Use git check-ignore to test if a probe file would be ignored
+        probe_path = packet_resolved / ".lifeos_ignore_probe"
+
+        try:
+            result = subprocess.run(
+                ["git", "check-ignore", "-q", "--stdin"],
+                cwd=repo_root,
+                input=str(probe_path) + "\n",
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            if result.returncode == 0:
+                # Ignored - ALLOW
+                return
+            elif result.returncode == 1:
+                # Not ignored - FAIL
+                pass
+            else:
+                # Git error - FAIL-CLOSED
+                print(f"ERROR: git check-ignore failed with code {result.returncode}", file=sys.stderr)
+                print(f"stderr: {result.stderr}", file=sys.stderr)
+                sys.exit(1)
+        except subprocess.TimeoutExpired:
+            print("ERROR: git check-ignore timed out", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"ERROR: Failed to check if packet_dir is gitignored: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        # If we reach here, packet_dir is inside repo but NOT gitignored - FAIL
+        print("=" * 70, file=sys.stderr)
+        print("ERROR: Packet directory isolation violation (Article XIX)", file=sys.stderr)
+        print("=" * 70, file=sys.stderr)
+        print(f"packet_dir: {packet_dir}", file=sys.stderr)
+        print(f"  resolved: {packet_resolved}", file=sys.stderr)
+        print(f"repo_root:  {repo_root}", file=sys.stderr)
+        print(f"  resolved: {repo_resolved}", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("The packet directory is inside the repository but NOT gitignored.", file=sys.stderr)
+        print("This would leave the repository dirty after execution.", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Safe options:", file=sys.stderr)
+        print("  1. Use a gitignored in-repo directory:", file=sys.stderr)
+
+        # Suggest safe ignored directories
+        safe_candidates = ["artifacts/for_ceo", "artifacts/packets", "artifacts/99_archive"]
+        for candidate in safe_candidates:
+            candidate_path = repo_root / candidate
+            probe = candidate_path / ".lifeos_ignore_probe"
+            check_result = subprocess.run(
+                ["git", "check-ignore", "-q", "--stdin"],
+                cwd=repo_root,
+                input=str(probe) + "\n",
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if check_result.returncode == 0:
+                print(f"     --packet-dir {candidate}", file=sys.stderr)
+                break
+
+        print("  2. Use an outside-repo directory:", file=sys.stderr)
+        print("     --packet-dir /tmp/lifeos_packets/<run_id>", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Refusing to write. Exiting.", file=sys.stderr)
+        print("=" * 70, file=sys.stderr)
+        sys.exit(1)
+
+    except Exception as e:
+        print(f"FATAL: Error validating packet_dir isolation: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 # ============================================================================
@@ -1003,9 +1113,14 @@ def main():
     parser.add_argument("--mode", default="auto", choices=["auto"], help="Validation mode")
     parser.add_argument("--skip-preflight", action="store_true", help="Request preflight skip (requires valid waiver)")
     parser.add_argument("--json", action="store_true", help="Output JSON")
-    
+
     args = parser.parse_args()
-    
+
+    # CRITICAL: Validate packet_dir isolation before ANY operations
+    # This enforces Article XIX (no dirty repo) by failing-closed if packet_dir
+    # is inside repo but not gitignored
+    validate_packet_dir_isolated(args.packet_dir, args.repo_root)
+
     result = run_preflight(
         repo_root=args.repo_root,
         packet_dir=args.packet_dir,
@@ -1015,7 +1130,10 @@ def main():
         skip_preflight=args.skip_preflight,
         json_output=args.json
     )
-    
+
+    # Defense-in-depth: Re-validate packet_dir isolation before writing report
+    validate_packet_dir_isolated(args.packet_dir, args.repo_root)
+
     # Write report
     report_path = args.packet_dir / "preflight_report.json"
     report_data = {

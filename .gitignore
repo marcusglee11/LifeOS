@@ -57,6 +57,9 @@ temp_verification/
 test_output.txt
 test_report_*.txt
 
+# Preflight validator output (should be in packet_dir, not repo root)
+/preflight_report.*
+
 # Drive upload temp
 docs/.tmp.driveupload/
 
