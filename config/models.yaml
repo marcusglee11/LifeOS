@@ -1,87 +1,110 @@
 # LifeOS Model Configuration
 # Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.1.5
+#
+# Switched to free Zen models (2026-02-08) — zero cost, easily reversible.
+# Previous: openrouter/x-ai/grok-4.1-fast + minimax/minimax-m2.1
+# To revert: replace model IDs with the previous values above.
 
 model_selection:
   # Default fallback chain for roles without overrides
-  # Primaried to grok-4.1-fast per user instruction
-  # Fallback to minimax/minimax-m2.1 per user instruction
   default_chain:
-    - "openrouter/x-ai/grok-4.1-fast"
-    - "minimax/minimax-m2.1"
-  
+    - "opencode/kimi-k2.5-free"
+    - "opencode/glm-4.7-free"
+    - "opencode/minimax-m2.1-free"
+
   # Role-specific model chains
   role_overrides:
     designer:
-      - "openrouter/x-ai/grok-4.1-fast"
-      - "minimax/minimax-m2.1"
-    
+      - "opencode/kimi-k2.5-free"
+      - "opencode/glm-4.7-free"
+      - "opencode/minimax-m2.1-free"
+
     reviewer_architect:
-      - "openrouter/x-ai/grok-4.1-fast"
-      - "minimax/minimax-m2.1"
-    
+      - "opencode/kimi-k2.5-free"
+      - "opencode/glm-4.7-free"
+      - "opencode/minimax-m2.1-free"
+
     builder:
-      - "openrouter/x-ai/grok-4.1-fast"
-      - "minimax/minimax-m2.1"
-    
+      - "opencode/kimi-k2.5-free"
+      - "opencode/glm-4.7-free"
+      - "opencode/minimax-m2.1-free"
+
     steward:
-      - "openrouter/x-ai/grok-4.1-fast"
-      - "minimax/minimax-m2.1"
-      
+      - "opencode/kimi-k2.5-free"
+      - "opencode/glm-4.7-free"
+      - "opencode/minimax-m2.1-free"
+
     build_cycle:
-      - "openrouter/x-ai/grok-4.1-fast"
-      - "minimax/minimax-m2.1"
+      - "opencode/kimi-k2.5-free"
+      - "opencode/glm-4.7-free"
+      - "opencode/minimax-m2.1-free"
 
 
 agents:
   steward:
-    provider: openrouter
-    model: "openrouter/x-ai/grok-4.1-fast"
-    endpoint: "https://openrouter.ai/api/v1/chat/completions"
+    provider: zen
+    model: "opencode/kimi-k2.5-free"
+    endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "OPENROUTER_API_KEY"
     fallback:
-      - model: "anthropic/claude-sonnet-4-5"
-        provider: "anthropic"
-        api_key_env: "ANTHROPIC_API_KEY"
-  
+      - model: "opencode/glm-4.7-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
+      - model: "opencode/minimax-m2.1-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
+
   builder:
-    provider: openrouter
-    model: "openrouter/x-ai/grok-4.1-fast"
-    endpoint: "https://openrouter.ai/api/v1/chat/completions"
+    provider: zen
+    model: "opencode/kimi-k2.5-free"
+    endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "OPENROUTER_API_KEY"
     fallback:
-      - model: "anthropic/claude-sonnet-4-5"
-        provider: "anthropic"
-        api_key_env: "ANTHROPIC_API_KEY"
+      - model: "opencode/glm-4.7-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
+      - model: "opencode/minimax-m2.1-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
 
   designer:
-    provider: openrouter
-    model: "openrouter/x-ai/grok-4.1-fast"
-    endpoint: "https://openrouter.ai/api/v1/chat/completions"
+    provider: zen
+    model: "opencode/kimi-k2.5-free"
+    endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "OPENROUTER_API_KEY"
     fallback:
-      - model: "anthropic/claude-sonnet-4-5"
-        provider: "anthropic"
-        api_key_env: "ANTHROPIC_API_KEY"
+      - model: "opencode/glm-4.7-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
+      - model: "opencode/minimax-m2.1-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
 
   reviewer_architect:
-    provider: openrouter
-    model: "openrouter/x-ai/grok-4.1-fast"
-    endpoint: "https://openrouter.ai/api/v1/chat/completions"
+    provider: zen
+    model: "opencode/kimi-k2.5-free"
+    endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "OPENROUTER_API_KEY"
     fallback:
-      - model: "anthropic/claude-sonnet-4-5"
-        provider: "anthropic"
-        api_key_env: "ANTHROPIC_API_KEY"
+      - model: "opencode/glm-4.7-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
+      - model: "opencode/minimax-m2.1-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
 
   build_cycle:
-    provider: openrouter
-    model: "openrouter/x-ai/grok-4.1-fast"
-    endpoint: "https://openrouter.ai/api/v1/chat/completions"
+    provider: zen
+    model: "opencode/kimi-k2.5-free"
+    endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "OPENROUTER_API_KEY"
     fallback:
-      - model: "anthropic/claude-sonnet-4-5"
-        provider: "anthropic"
-        api_key_env: "ANTHROPIC_API_KEY"
+      - model: "opencode/glm-4.7-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
+      - model: "opencode/minimax-m2.1-free"
+        provider: "zen"
+        api_key_env: "OPENROUTER_API_KEY"
 
 # Zen configuration (Primary)
 zen:
