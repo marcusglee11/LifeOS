@@ -111,7 +111,12 @@ class BuildMission(BaseMission):
                     timeout=5
                 )
                 if diff_result.returncode == 0 and diff_result.stdout.strip():
-                    artifacts_produced = diff_result.stdout.strip().split('\n')
+                    all_changed = diff_result.stdout.strip().split('\n')
+                    # Filter out system artifacts (ledger, logs, terminal packets)
+                    artifacts_produced = [
+                        f for f in all_changed
+                        if not f.startswith(('artifacts/loop_state/', 'artifacts/terminal/', 'logs/'))
+                    ]
             except Exception:
                 # If artifact detection fails, continue with empty list
                 pass
