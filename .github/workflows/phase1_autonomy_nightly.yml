@@ -71,10 +71,7 @@ jobs:
         id: tests
         continue-on-error: true
         run: |
-          # Exclude known-failing tests (1 pre-existing failure - doc links)
-          # Only run tests that should pass to avoid false rollbacks
           pytest --tb=short -v \
-            --ignore=tests_doc/test_links.py \
             > test_results.txt 2>&1
           TEST_EXIT=$?
           echo "exit_code=$TEST_EXIT" >> $GITHUB_OUTPUT
