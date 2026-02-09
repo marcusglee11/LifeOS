@@ -5,7 +5,12 @@ import subprocess
 
 import pytest
 
-from runtime.validation.cleanliness import CleanlinessError, verify_evidence_root_ignored, verify_repo_clean
+from runtime.validation.cleanliness import (
+    CleanlinessError,
+    verify_evidence_root_ignored,
+    verify_output_roots_ignored,
+    verify_repo_clean,
+)
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -50,5 +55,29 @@ def test_verify_evidence_root_ignore_failure(git_repo: Path) -> None:
 
     with pytest.raises(CleanlinessError) as exc:
         verify_evidence_root_ignored(git_repo, evidence_root)
+
+    assert exc.value.code == "EVIDENCE_ROOT_NOT_IGNORED"
+
+
+def test_verify_output_roots_ignore_failure_when_only_evidence_is_ignored(tmp_path: Path) -> None:
+    repo = tmp_path / "repo-partial-ignore"
+    repo.mkdir()
+    _git(repo, "init")
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test User")
+
+    # Partial ignore: only the deepest evidence dir is ignored; run root remains unignored.
+    (repo / ".gitignore").write_text("artifacts/validation_runs/*/*/evidence/\n", encoding="utf-8")
+    (repo / "tracked.txt").write_text("base\n", encoding="utf-8")
+    _git(repo, "add", ".gitignore", "tracked.txt")
+    _git(repo, "commit", "-m", "init")
+
+    run_root = repo / "artifacts" / "validation_runs" / "run-1"
+    attempt_dir = run_root / "attempt-0001"
+    evidence_root = attempt_dir / "evidence"
+    evidence_root.mkdir(parents=True, exist_ok=True)
+
+    with pytest.raises(CleanlinessError) as exc:
+        verify_output_roots_ignored(repo, run_root, attempt_dir, evidence_root)
 
     assert exc.value.code == "EVIDENCE_ROOT_NOT_IGNORED"

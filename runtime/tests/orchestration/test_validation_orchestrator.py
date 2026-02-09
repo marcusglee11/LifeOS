@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import subprocess
 
 from runtime.orchestration.orchestrator import ValidationOrchestrator
@@ -102,5 +103,72 @@ def test_orchestrator_owns_retry_loop(tmp_path: Path) -> None:
     )
 
     assert result.success
+    assert result.attempt_index == 2
+    assert calls["count"] == 2
+
+
+def test_orchestrator_detects_job_spec_tamper_as_terminal(tmp_path: Path) -> None:
+    repo = _setup_repo(tmp_path)
+
+    def _tampering_agent(attempt_dir: Path, _job_spec: JobSpec) -> None:
+        # Agent tries to downgrade tier by rewriting on-disk job_spec.
+        job_spec_path = attempt_dir / "job_spec.json"
+        payload = json.loads(job_spec_path.read_text(encoding="utf-8"))
+        payload["evidence_tier"] = "light"
+        job_spec_path.write_text(json.dumps(payload), encoding="utf-8")
+
+        # Only light evidence emitted (would be insufficient for full).
+        evidence_root = attempt_dir / "evidence"
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        (evidence_root / "meta.json").write_text("{}\n", encoding="utf-8")
+        (evidence_root / "exitcode.txt").write_text("0\n", encoding="utf-8")
+        (evidence_root / "commands.jsonl").write_text('{"cmd":"agent"}\n', encoding="utf-8")
+        compute_manifest(evidence_root)
+
+    orchestrator = ValidationOrchestrator(workspace_root=repo)
+    result = orchestrator.run(
+        mission_kind="build_with_validation",
+        evidence_tier="full",
+        agent_runner=_tampering_agent,
+        run_id="run-job-spec-tamper",
+        retry_caps=RetryCaps(2, 3, 2),
+    )
+
+    assert not result.success
+    assert result.validator_report_path is not None
+
+    report_payload = json.loads(Path(result.validator_report_path).read_text(encoding="utf-8"))
+    assert report_payload["summary_code"] == "JOB_SPEC_TAMPERED"
+    assert report_payload["classification"] == "TERMINAL"
+    assert report_payload["pass"] is False
+
+
+def test_retry_cap_boundary_stops_at_second_failure(tmp_path: Path) -> None:
+    repo = _setup_repo(tmp_path)
+    calls = {"count": 0}
+
+    def _always_failing_agent(attempt_dir: Path, _job_spec: JobSpec) -> None:
+        calls["count"] += 1
+        evidence_root = attempt_dir / "evidence"
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        (evidence_root / "meta.json").write_text("{}\n", encoding="utf-8")
+        # Intentionally omit exitcode.txt so light tier fails every attempt.
+        (evidence_root / "commands.jsonl").write_text('{"cmd":"agent"}\n', encoding="utf-8")
+        compute_manifest(evidence_root)
+
+    orchestrator = ValidationOrchestrator(workspace_root=repo)
+    result = orchestrator.run(
+        mission_kind="build_with_validation",
+        evidence_tier="light",
+        agent_runner=_always_failing_agent,
+        run_id="run-cap-boundary",
+        retry_caps=RetryCaps(
+            max_attempts_per_gate_per_run=2,
+            max_total_attempts_per_run=5,
+            max_consecutive_same_failure_code=5,
+        ),
+    )
+
+    assert not result.success
     assert result.attempt_index == 2
     assert calls["count"] == 2

@@ -57,13 +57,13 @@ def evaluate_retry(
     if code in IMMEDIATE_TERMINAL_CODES:
         return f"immediate_terminal_code:{code}"
 
-    if state.attempts_total > caps.max_total_attempts_per_run:
+    if state.attempts_total >= caps.max_total_attempts_per_run:
         return "max_total_attempts_exceeded"
 
-    if state.attempts_by_gate.get(gate, 0) > caps.max_attempts_per_gate_per_run:
+    if state.attempts_by_gate.get(gate, 0) >= caps.max_attempts_per_gate_per_run:
         return f"max_attempts_per_gate_exceeded:{gate}"
 
-    if state.consecutive_same_failure_code() > caps.max_consecutive_same_failure_code:
+    if state.consecutive_same_failure_code() >= caps.max_consecutive_same_failure_code:
         return "max_consecutive_same_failure_code_exceeded"
 
     if state.distinct_failure_codes() >= 3:

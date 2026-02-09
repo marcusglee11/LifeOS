@@ -30,6 +30,19 @@ def _setup_repo(tmp_path: Path) -> Path:
     return repo
 
 
+def _setup_repo_with_ignore(tmp_path: Path, ignore_rule: str) -> Path:
+    repo = tmp_path / "repo-custom-ignore"
+    repo.mkdir()
+    _git(repo, "init")
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test User")
+    (repo / ".gitignore").write_text(ignore_rule, encoding="utf-8")
+    (repo / "tracked.txt").write_text("base\n", encoding="utf-8")
+    _git(repo, "add", ".gitignore", "tracked.txt")
+    _git(repo, "commit", "-m", "init")
+    return repo
+
+
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -77,6 +90,7 @@ def test_gate_runner_success_mints_token_and_acceptor_records_hash(tmp_path: Pat
     pre = gate_runner.run_preflight(
         workspace_root=repo,
         attempt_dir=attempt_dir,
+        job_spec=_job_spec(),
         attempt_context=_attempt_context(),
     )
     assert pre.success
@@ -84,6 +98,7 @@ def test_gate_runner_success_mints_token_and_acceptor_records_hash(tmp_path: Pat
     post = gate_runner.run_postflight(
         workspace_root=repo,
         attempt_dir=attempt_dir,
+        job_spec=_job_spec(),
         attempt_context=_attempt_context(),
         receipt_required=False,
     )
@@ -110,11 +125,13 @@ def test_acceptor_rejects_invalid_token(tmp_path: Path) -> None:
     assert gate_runner.run_preflight(
         workspace_root=repo,
         attempt_dir=attempt_dir,
+        job_spec=_job_spec(),
         attempt_context=_attempt_context(),
     ).success
     post = gate_runner.run_postflight(
         workspace_root=repo,
         attempt_dir=attempt_dir,
+        job_spec=_job_spec(),
         attempt_context=_attempt_context(),
         receipt_required=False,
     )
@@ -147,12 +164,14 @@ def test_validator_report_is_deterministic_for_same_failure(tmp_path: Path) -> N
     assert gate_runner.run_preflight(
         workspace_root=repo,
         attempt_dir=attempt_dir,
+        job_spec=_job_spec(),
         attempt_context=_attempt_context(),
     ).success
 
     first = gate_runner.run_postflight(
         workspace_root=repo,
         attempt_dir=attempt_dir,
+        job_spec=_job_spec(),
         attempt_context=_attempt_context(),
         receipt_required=False,
     )
@@ -163,6 +182,7 @@ def test_validator_report_is_deterministic_for_same_failure(tmp_path: Path) -> N
     second = gate_runner.run_postflight(
         workspace_root=repo,
         attempt_dir=attempt_dir,
+        job_spec=_job_spec(),
         attempt_context=_attempt_context(),
         receipt_required=False,
     )
@@ -171,3 +191,21 @@ def test_validator_report_is_deterministic_for_same_failure(tmp_path: Path) -> N
     second_bytes = second.report_path.read_bytes()
 
     assert first_bytes == second_bytes
+
+
+def test_preflight_fails_when_only_evidence_root_is_ignored(tmp_path: Path) -> None:
+    repo = _setup_repo_with_ignore(tmp_path, "artifacts/validation_runs/*/*/evidence/\n")
+    attempt_dir = repo / "artifacts" / "validation_runs" / "run-1" / "attempt-0001"
+    (attempt_dir / "evidence").mkdir(parents=True, exist_ok=True)
+
+    gate_runner = GateRunner()
+    outcome = gate_runner.run_preflight(
+        workspace_root=repo,
+        attempt_dir=attempt_dir,
+        job_spec=_job_spec(),
+        attempt_context=_attempt_context(),
+    )
+
+    assert not outcome.success
+    assert outcome.code == "EVIDENCE_ROOT_NOT_IGNORED"
+    assert outcome.report_path is not None

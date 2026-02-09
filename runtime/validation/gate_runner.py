@@ -7,9 +7,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from runtime.validation.cleanliness import CleanlinessError, verify_evidence_root_ignored, verify_repo_clean
+from runtime.validation.cleanliness import CleanlinessError, verify_output_roots_ignored, verify_repo_clean
 from runtime.validation.codes import get_code_spec
-from runtime.validation.core import AttemptContext, CheckResult, JobSpec, JobSpecError, ValidationReport
+from runtime.validation.core import AttemptContext, CheckResult, JobSpec, ValidationReport
 from runtime.validation.evidence import EvidenceError, enforce_evidence_tier, verify_manifest
 from runtime.validation.reporting import sha256_file, write_acceptance_token, write_validator_report
 
@@ -68,44 +68,27 @@ class GateRunner:
             report_path=report_path,
         )
 
-    def _load_job_spec(self, attempt_dir: Path) -> JobSpec:
-        job_spec_path = attempt_dir / "job_spec.json"
-        try:
-            return JobSpec.load(job_spec_path)
-        except (FileNotFoundError, JobSpecError, ValueError) as exc:
-            raise JobSpecError(f"Invalid job_spec.json: {exc}") from exc
-
     def run_preflight(
         self,
         *,
         workspace_root: Path,
         attempt_dir: Path,
+        job_spec: JobSpec,
         attempt_context: AttemptContext,
     ) -> GateRunnerOutcome:
+        _ = job_spec  # Trusted in-memory source of policy; reserved for future checks.
+        run_root = attempt_dir.parent
         evidence_root = attempt_dir / "evidence"
         pointers = {
             "attempt_dir": str(attempt_dir),
+            "run_root": str(run_root),
             "evidence_root": str(evidence_root),
             "manifest_path": str(evidence_root / "evidence_manifest.json"),
             "receipt_path": str(attempt_dir / "receipt.json"),
         }
 
         try:
-            self._load_job_spec(attempt_dir)
-        except JobSpecError as exc:
-            return self._report_failure(
-                attempt_dir=attempt_dir,
-                gate="preflight",
-                code="JOB_SPEC_INVALID",
-                message=str(exc),
-                attempt_context=attempt_context,
-                checks=[CheckResult(name="job_spec", code="JOB_SPEC_INVALID", ok=False, message=str(exc))],
-                pointers=pointers,
-            )
-
-        try:
             verify_repo_clean(workspace_root, code="DIRTY_REPO_PRE")
-            check_message = "repository clean"
         except CleanlinessError as exc:
             return self._report_failure(
                 attempt_dir=attempt_dir,
@@ -118,7 +101,8 @@ class GateRunner:
             )
 
         try:
-            ignore_proof = verify_evidence_root_ignored(workspace_root, evidence_root)
+            proofs = verify_output_roots_ignored(workspace_root, run_root, attempt_dir, evidence_root)
+            pointers["ignore_proof"] = proofs
         except CleanlinessError as exc:
             return self._report_failure(
                 attempt_dir=attempt_dir,
@@ -126,7 +110,7 @@ class GateRunner:
                 code=exc.code,
                 message=str(exc),
                 attempt_context=attempt_context,
-                checks=[CheckResult(name="evidence_root_ignore", code=exc.code, ok=False, message=str(exc))],
+                checks=[CheckResult(name="output_roots_ignore", code=exc.code, ok=False, message=str(exc))],
                 pointers=pointers,
             )
 
@@ -145,6 +129,7 @@ class GateRunner:
         *,
         workspace_root: Path,
         attempt_dir: Path,
+        job_spec: JobSpec,
         attempt_context: AttemptContext,
         receipt_required: bool = False,
     ) -> GateRunnerOutcome:
@@ -154,23 +139,11 @@ class GateRunner:
 
         pointers = {
             "attempt_dir": str(attempt_dir),
+            "run_root": str(attempt_dir.parent),
             "evidence_root": str(evidence_root),
             "manifest_path": str(manifest_path),
             "receipt_path": str(receipt_path),
         }
-
-        try:
-            job_spec = self._load_job_spec(attempt_dir)
-        except JobSpecError as exc:
-            return self._report_failure(
-                attempt_dir=attempt_dir,
-                gate="postflight",
-                code="JOB_SPEC_INVALID",
-                message=str(exc),
-                attempt_context=attempt_context,
-                checks=[CheckResult(name="job_spec", code="JOB_SPEC_INVALID", ok=False, message=str(exc))],
-                pointers=pointers,
-            )
 
         try:
             enforce_evidence_tier(evidence_root, job_spec.evidence_tier)

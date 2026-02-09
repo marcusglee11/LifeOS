@@ -77,6 +77,13 @@ CODE_SPECS: Dict[str, CodeSpec] = {
         default_next_action="HALT_SCHEMA_DRIFT",
         gate="internal",
     ),
+    "JOB_SPEC_TAMPERED": CodeSpec(
+        code="JOB_SPEC_TAMPERED",
+        exit_code=93,
+        classification="TERMINAL",
+        default_next_action="HALT_SCHEMA_DRIFT",
+        gate="internal",
+    ),
     "VALIDATOR_CRASH": CodeSpec(
         code="VALIDATOR_CRASH",
         exit_code=91,
