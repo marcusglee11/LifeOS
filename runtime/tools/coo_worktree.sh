@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1
 
 BUILD_REPO="$(git rev-parse --show-toplevel)"
 TRAIN_WT="$(dirname "$BUILD_REPO")/LifeOS__wt_coo_training"
@@ -103,6 +104,93 @@ write_hashes() {
   ) > "$evid_dir/hashes.sha256"
 }
 
+latest_job_evidence_dir() {
+  local root="$BUILD_REPO/artifacts/evidence/openclaw/jobs"
+  if [ ! -d "$root" ]; then
+    return 1
+  fi
+  local latest
+  latest="$(find "$root" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | LC_ALL=C sort | tail -n 1)"
+  if [ -z "$latest" ]; then
+    return 1
+  fi
+  printf '%s\n' "$root/$latest"
+}
+
+resolve_baseline_ref() {
+  local repo="$1"
+  if git -C "$repo" show-ref --verify --quiet refs/remotes/origin/main; then
+    printf '%s\n' "origin/main"
+  elif git -C "$repo" show-ref --verify --quiet refs/heads/main; then
+    printf '%s\n' "main"
+  else
+    printf '%s\n' ""
+  fi
+}
+
+write_blocked_report() {
+  local evid_dir="$1"
+  local report_name="$2"
+  if [ -z "$evid_dir" ] || [ ! -d "$evid_dir" ]; then
+    echo "ERROR: BLOCKED_REPORT_EVID_UNKNOWN" >&2
+    return 1
+  fi
+  cat > "$evid_dir/$report_name"
+  write_hashes "$evid_dir"
+  return 0
+}
+
+write_worktree_change_set() {
+  local evid_dir="$1"
+  local wt_repo="$2"
+  local wt_head baseline_ref baseline_mode baseline_tip merge_base
+  wt_head="$(git -C "$wt_repo" rev-parse HEAD)"
+  baseline_ref="$(resolve_baseline_ref "$wt_repo")"
+  baseline_mode="baseline_unavailable"
+  if [ "$baseline_ref" = "origin/main" ]; then
+    baseline_mode="origin_main"
+  elif [ "$baseline_ref" = "main" ]; then
+    baseline_mode="local_main_offline"
+  fi
+  baseline_tip=""
+  if [ -n "$baseline_ref" ]; then
+    baseline_tip="$(git -C "$wt_repo" rev-parse --verify --quiet "${baseline_ref}^{commit}" 2>/dev/null || true)"
+  fi
+  merge_base=""
+  if [ -n "$baseline_tip" ]; then
+    merge_base="$(git -C "$wt_repo" merge-base "$baseline_tip" "$wt_head" 2>/dev/null || true)"
+  fi
+
+  printf '%s\n' "$wt_head" > "$evid_dir/worktree_head.txt"
+  git -C "$wt_repo" status --porcelain=v1 > "$evid_dir/worktree_status_porcelain.txt"
+  {
+    if [ -n "$baseline_ref" ]; then
+      echo "BASELINE_REF=$baseline_ref"
+    else
+      echo "BASELINE_REF=(unavailable)"
+    fi
+    echo "BASELINE_MODE=$baseline_mode"
+    if [ -n "$baseline_tip" ]; then
+      echo "BASELINE_HEAD=$baseline_tip"
+    else
+      echo "BASELINE_HEAD=(unavailable)"
+    fi
+    if [ -n "$merge_base" ]; then
+      echo "MERGE_BASE=$merge_base"
+    else
+      echo "MERGE_BASE=(unavailable)"
+    fi
+  } > "$evid_dir/worktree_baseline.txt"
+
+  if [ -n "$merge_base" ]; then
+    git -C "$wt_repo" diff --name-only "$merge_base" "$wt_head" | LC_ALL=C sort -u > "$evid_dir/worktree_diff_name_only.txt"
+  elif [ -n "$baseline_tip" ]; then
+    git -C "$wt_repo" diff --name-only "$baseline_tip" "$wt_head" | LC_ALL=C sort -u > "$evid_dir/worktree_diff_name_only.txt"
+  else
+    : > "$evid_dir/worktree_diff_name_only.txt"
+  fi
+}
+
 render_capsule_marker() {
   local capsule_file="$1"
   local err_file="$2"
@@ -128,6 +216,7 @@ Usage:
   runtime/tools/coo_worktree.sh job e2e
   runtime/tools/coo_worktree.sh run-job <job.json>
   runtime/tools/coo_worktree.sh e2e
+  runtime/tools/coo_worktree.sh land [--evid <dir>] [--src <ref>] [--dest main] [--allow-eol-only] [--emergency] [--skip-e2e]
   runtime/tools/coo_worktree.sh tui -- <tui-args...>
   runtime/tools/coo_worktree.sh run -- <command...>
   runtime/tools/coo_worktree.sh openclaw -- <openclaw-args...>
@@ -639,6 +728,7 @@ PY
       exit 11
     fi
 
+    write_worktree_change_set "$evid_dir" "$TRAIN_WT"
     write_hashes "$evid_dir"
     echo "RESULT_JSON_PATH=$result_file"
     echo "EVID_DIR=$evid_dir"
@@ -919,6 +1009,501 @@ PY
     if [ "$rc_e2e" -ne 0 ]; then
       exit "$rc_e2e"
     fi
+    ;;
+  land)
+    shift || true
+    evid_dir_arg=""
+    src_ref_arg=""
+    dest_ref="main"
+    allow_eol_only=false
+    emergency=false
+    skip_e2e=false
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --evid)
+          shift || true
+          evid_dir_arg="${1:-}"
+          ;;
+        --src)
+          shift || true
+          src_ref_arg="${1:-}"
+          ;;
+        --dest)
+          shift || true
+          dest_ref="${1:-}"
+          ;;
+        --allow-eol-only)
+          allow_eol_only=true
+          ;;
+        --emergency)
+          emergency=true
+          ;;
+        --skip-e2e)
+          skip_e2e=true
+          ;;
+        *)
+          usage
+          exit 2
+          ;;
+      esac
+      shift || true
+    done
+
+    if [ -n "$evid_dir_arg" ]; then
+      if [[ "$evid_dir_arg" = /* ]]; then
+        evid_dir="$evid_dir_arg"
+      else
+        evid_dir="$BUILD_REPO/$evid_dir_arg"
+      fi
+    else
+      evid_dir="$(latest_job_evidence_dir || true)"
+    fi
+
+    if [ -z "${evid_dir:-}" ] || [ ! -d "$evid_dir" ]; then
+      echo "ERROR: EVID_DIR_REQUIRED_FOR_COO_LAND" >&2
+      exit 40
+    fi
+
+    pre_status="$(git -C "$BUILD_REPO" status --porcelain=v1 || true)"
+    pre_diff="$(git -C "$BUILD_REPO" diff --name-only || true)"
+    if [ -n "$pre_status" ] || [ -n "$pre_diff" ]; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__PRE_DIRTY.md" <<EOF
+# REPORT_BLOCKED__coo_land__PRE_DIRTY
+REASON=BUILD_REPO_NOT_CLEAN
+STATUS_PORCELAIN_BEGIN
+${pre_status:-"(empty)"}
+STATUS_PORCELAIN_END
+DIFF_NAME_ONLY_BEGIN
+${pre_diff:-"(empty)"}
+DIFF_NAME_ONLY_END
+EOF
+      echo "ERROR: coo land preflight requires a clean BUILD_REPO." >&2
+      exit 41
+    fi
+
+    src_ref="$src_ref_arg"
+    if [ -z "$src_ref" ] && [ -f "$evid_dir/worktree_head.txt" ]; then
+      src_ref="$(sed -n '1p' "$evid_dir/worktree_head.txt" | tr -d '[:space:]')"
+    fi
+    if [ -z "$src_ref" ] && [ -f "$evid_dir/job.json" ]; then
+      src_ref="$(python3 - "$evid_dir/job.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+try:
+    data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+except Exception:
+    print("")
+    raise SystemExit(0)
+value = data.get("source_ref")
+if isinstance(value, str):
+    print(value.strip())
+else:
+    print("")
+PY
+)"
+    fi
+    if [ -z "$src_ref" ]; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__SRC_REF_MISSING.md" <<'EOF'
+# REPORT_BLOCKED__coo_land__SRC_REF_MISSING
+REASON=SRC_REF_UNRESOLVED
+EOF
+      echo "ERROR: coo land could not resolve --src or worktree_head.txt." >&2
+      exit 41
+    fi
+
+    src_head="$(git -C "$BUILD_REPO" rev-parse --verify --quiet "${src_ref}^{commit}" 2>/dev/null || true)"
+    if [ -z "$src_head" ]; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__SRC_REF_INVALID.md" <<EOF
+# REPORT_BLOCKED__coo_land__SRC_REF_INVALID
+REASON=SRC_REF_NOT_FOUND
+SRC_REF=$src_ref
+EOF
+      echo "ERROR: coo land source ref not found: $src_ref" >&2
+      exit 41
+    fi
+
+    baseline_ref="$(resolve_baseline_ref "$BUILD_REPO")"
+    baseline_mode="baseline_unavailable"
+    if [ "$baseline_ref" = "origin/main" ]; then
+      baseline_mode="origin_main"
+    elif [ "$baseline_ref" = "main" ]; then
+      baseline_mode="local_main_offline"
+    fi
+    baseline_tip=""
+    if [ -n "$baseline_ref" ]; then
+      baseline_tip="$(git -C "$BUILD_REPO" rev-parse --verify --quiet "${baseline_ref}^{commit}" 2>/dev/null || true)"
+    fi
+    if [ -z "$baseline_tip" ]; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__BASELINE_MISSING.md" <<EOF
+# REPORT_BLOCKED__coo_land__BASELINE_MISSING
+REASON=BASELINE_REF_NOT_FOUND
+BASELINE_REF=${baseline_ref:-"(unavailable)"}
+EOF
+      echo "ERROR: coo land baseline ref unavailable: $baseline_ref" >&2
+      exit 41
+    fi
+
+    merge_base="$(git -C "$BUILD_REPO" merge-base "$baseline_tip" "$src_head" 2>/dev/null || true)"
+    provenance_descended=0
+    if [ -n "$merge_base" ] && [ "$merge_base" = "$baseline_tip" ]; then
+      provenance_descended=1
+    fi
+    land_mode="path_transplant"
+
+    allowlist_src="$evid_dir/worktree_diff_name_only.txt"
+    if [ ! -f "$allowlist_src" ]; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__ALLOWLIST_MISSING.md" <<EOF
+# REPORT_BLOCKED__coo_land__ALLOWLIST_MISSING
+REASON=worktree_diff_name_only.txt_NOT_FOUND
+ALLOWLIST_PATH=$allowlist_src
+EOF
+      echo "ERROR: coo land requires worktree_diff_name_only.txt in evidence dir." >&2
+      exit 41
+    fi
+
+    allow_sorted="$(mktemp)"
+    allow_hash_file="$(mktemp)"
+    allow_err="$(mktemp)"
+    actions_file="$(mktemp)"
+    actual_sorted="$(mktemp)"
+    path_mismatch="$(mktemp)"
+    eol_err="$(mktemp)"
+    cleanup_land_files() {
+      rm -f "$allow_sorted" "$allow_hash_file" "$allow_err" "$actions_file" "$actual_sorted" "$path_mismatch" "$eol_err"
+    }
+    trap cleanup_land_files EXIT
+
+    if ! python3 "$BUILD_REPO/runtime/tools/coo_land_policy.py" \
+      allowlist \
+      --input "$allowlist_src" \
+      --output "$allow_sorted" \
+      --hash-output "$allow_hash_file" \
+      2>"$allow_err"; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__ALLOWLIST_INVALID.md" <<EOF
+# REPORT_BLOCKED__coo_land__ALLOWLIST_INVALID
+REASON=ALLOWLIST_POLICY_REJECTED
+DETAIL_BEGIN
+$(sed -n '1,40p' "$allow_err")
+DETAIL_END
+EOF
+      echo "ERROR: coo land rejected allowlist from evidence." >&2
+      exit 41
+    fi
+
+    allowlist_hash="$(sed -n '1p' "$allow_hash_file" | tr -d '[:space:]')"
+    : > "$actions_file"
+    while IFS= read -r allow_path; do
+      [ -z "$allow_path" ] && continue
+      if git -C "$BUILD_REPO" cat-file -e "${src_head}:${allow_path}" 2>/dev/null; then
+        printf 'checkout\t%s\n' "$allow_path" >> "$actions_file"
+      elif git -C "$BUILD_REPO" cat-file -e "${baseline_tip}:${allow_path}" 2>/dev/null; then
+        printf 'delete\t%s\n' "$allow_path" >> "$actions_file"
+      else
+        write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__ALLOWLIST_UNEXPECTED_PATH.md" <<EOF
+# REPORT_BLOCKED__coo_land__ALLOWLIST_UNEXPECTED_PATH
+REASON=ALLOWLIST_PATH_NOT_IN_SRC_OR_BASELINE
+PATH=$allow_path
+SRC_HEAD=$src_head
+BASELINE_HEAD=$baseline_tip
+EOF
+        echo "ERROR: coo land allowlist path not found in src or baseline: $allow_path" >&2
+        exit 41
+      fi
+    done < "$allow_sorted"
+
+    if ! git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__DEST_CHECKOUT_FAILED.md" <<EOF
+# REPORT_BLOCKED__coo_land__DEST_CHECKOUT_FAILED
+REASON=DEST_REF_NOT_FOUND
+DEST_REF=$dest_ref
+EOF
+      echo "ERROR: coo land destination ref not found: $dest_ref" >&2
+      exit 41
+    fi
+    dest_head_before="$(git -C "$BUILD_REPO" rev-parse "$dest_ref")"
+
+    land_branch="land/$(date -u +%Y%m%dT%H%M%SZ)-${src_head:0:7}"
+    if ! git -C "$BUILD_REPO" checkout -b "$land_branch" "$dest_ref" >/dev/null 2>&1; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__LAND_BRANCH_FAILED.md" <<EOF
+# REPORT_BLOCKED__coo_land__LAND_BRANCH_FAILED
+REASON=LAND_BRANCH_CREATE_FAILED
+LAND_BRANCH=$land_branch
+EOF
+      echo "ERROR: coo land could not create temporary landing branch." >&2
+      exit 41
+    fi
+
+    land_failed() {
+      local report_name="$1"
+      local reason="$2"
+      git -C "$BUILD_REPO" merge --abort >/dev/null 2>&1 || true
+      git -C "$BUILD_REPO" cherry-pick --abort >/dev/null 2>&1 || true
+      git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+      git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+      write_blocked_report "$evid_dir" "$report_name" <<EOF
+# $report_name
+REASON=$reason
+SRC_REF=$src_ref
+SRC_HEAD=$src_head
+DEST_REF=$dest_ref
+BASELINE_REF=$baseline_ref
+EOF
+      echo "ERROR: coo land blocked ($reason)." >&2
+      exit 41
+    }
+
+    while IFS=$'\t' read -r action allow_path; do
+      [ -z "$allow_path" ] && continue
+      if [ "$action" = "checkout" ]; then
+        git -C "$BUILD_REPO" checkout "$src_head" -- "$allow_path" || land_failed "REPORT_BLOCKED__coo_land__TRANSPLANT_FAILED.md" "CHECKOUT_PATH_FAILED:$allow_path"
+      elif [ "$action" = "delete" ]; then
+        git -C "$BUILD_REPO" rm -f -- "$allow_path" >/dev/null 2>&1 || land_failed "REPORT_BLOCKED__coo_land__TRANSPLANT_FAILED.md" "DELETE_PATH_FAILED:$allow_path"
+      else
+        land_failed "REPORT_BLOCKED__coo_land__TRANSPLANT_FAILED.md" "UNKNOWN_ACTION:$action"
+      fi
+    done < "$actions_file"
+
+    git -C "$BUILD_REPO" diff --cached --name-only | LC_ALL=C sort -u > "$actual_sorted"
+    if ! diff -u "$allow_sorted" "$actual_sorted" > "$path_mismatch"; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__PATH_MISMATCH.md" <<EOF
+# REPORT_BLOCKED__coo_land__PATH_MISMATCH
+REASON=ACTUAL_CHANGED_PATHS_NOT_EQUAL_ALLOWLIST
+DIFF_BEGIN
+$(cat "$path_mismatch")
+DIFF_END
+EOF
+      git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+      git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+      echo "ERROR: coo land changed-path set mismatches allowlist." >&2
+      exit 41
+    fi
+
+    if ! eol_only_flag="$(python3 "$BUILD_REPO/runtime/tools/coo_land_policy.py" eol-only --repo "$BUILD_REPO" 2>"$eol_err")"; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__EOL_CHECK_FAILED.md" <<EOF
+# REPORT_BLOCKED__coo_land__EOL_CHECK_FAILED
+REASON=EOL_CHECK_ERROR
+DETAIL_BEGIN
+$(sed -n '1,40p' "$eol_err")
+DETAIL_END
+EOF
+      git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+      git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+      echo "ERROR: coo land could not evaluate EOL-only gate." >&2
+      exit 41
+    fi
+    eol_only_allowed="0"
+    if [ "$eol_only_flag" = "1" ]; then
+      if [ "$allow_eol_only" = true ]; then
+        eol_only_allowed="1"
+      else
+        write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__EOL_ONLY.md" <<EOF
+# REPORT_BLOCKED__coo_land__EOL_ONLY
+REASON=EOL_ONLY_CHANGESET
+ALLOW_EOL_ONLY_FLAG=0
+EOF
+        git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+        git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+        echo "ERROR: coo land blocked EOL-only changes; use --allow-eol-only to override." >&2
+        exit 41
+      fi
+    fi
+
+    verify_pytest_cmd="pytest -q runtime/tests/test_coo_capsule_render.py runtime/tests/test_coo_worktree_marker_receipt.py"
+    verify_pytest_out="$evid_dir/land_verify_pytest.out"
+    verify_pytest_err="$evid_dir/land_verify_pytest.err"
+    set +e
+    (
+      cd "$BUILD_REPO"
+      pytest -q runtime/tests/test_coo_capsule_render.py runtime/tests/test_coo_worktree_marker_receipt.py
+    ) >"$verify_pytest_out" 2>"$verify_pytest_err"
+    rc_pytest="$?"
+    set -e
+    if [ "$rc_pytest" -ne 0 ]; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__VERIFY_PYTEST.md" <<EOF
+# REPORT_BLOCKED__coo_land__VERIFY_PYTEST
+REASON=VERIFY_PYTEST_FAILED
+COMMAND=$verify_pytest_cmd
+RC=$rc_pytest
+STDERR_HEAD_BEGIN
+$(sed -n '1,40p' "$verify_pytest_err")
+STDERR_HEAD_END
+EOF
+      git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+      git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+      echo "ERROR: coo land verification pytest command failed." >&2
+      exit 41
+    fi
+
+    verify_e2e_cmd="$0 e2e"
+    verify_e2e_out="$evid_dir/land_verify_e2e.out"
+    verify_e2e_err="$evid_dir/land_verify_e2e.err"
+    rc_e2e="0"
+    if [ "$skip_e2e" = false ]; then
+      set +e
+      (
+        cd "$BUILD_REPO"
+        "$0" e2e
+      ) >"$verify_e2e_out" 2>"$verify_e2e_err"
+      rc_e2e="$?"
+      set -e
+      if [ "$rc_e2e" -ne 0 ]; then
+        write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__VERIFY_E2E.md" <<EOF
+# REPORT_BLOCKED__coo_land__VERIFY_E2E
+REASON=VERIFY_E2E_FAILED
+COMMAND=$verify_e2e_cmd
+RC=$rc_e2e
+STDERR_HEAD_BEGIN
+$(sed -n '1,40p' "$verify_e2e_err")
+STDERR_HEAD_END
+EOF
+        git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+        git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+        echo "ERROR: coo land verification e2e command failed." >&2
+        exit 41
+      fi
+    else
+      printf 'SKIPPED (--skip-e2e)\n' > "$verify_e2e_out"
+      : > "$verify_e2e_err"
+    fi
+
+    land_commit_msg="land: coo path-transplant landing (from ${src_head:0:7})"
+    if ! git -C "$BUILD_REPO" commit -m "$land_commit_msg" >/dev/null 2>&1; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__COMMIT_FAILED.md" <<EOF
+# REPORT_BLOCKED__coo_land__COMMIT_FAILED
+REASON=LAND_COMMIT_FAILED
+EOF
+      git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+      git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+      echo "ERROR: coo land could not commit transplanted change set." >&2
+      exit 41
+    fi
+    land_commit="$(git -C "$BUILD_REPO" rev-parse HEAD)"
+    merge_method="git_workflow_merge"
+    emergency_used="0"
+    merge_reason=""
+
+    merge_out="$evid_dir/land_merge.out"
+    merge_err="$evid_dir/land_merge.err"
+    if [ -f "$BUILD_REPO/scripts/git_workflow.py" ]; then
+      set +e
+      (
+        cd "$BUILD_REPO"
+        python3 scripts/git_workflow.py merge
+      ) >"$merge_out" 2>"$merge_err"
+      rc_merge="$?"
+      set -e
+      if [ "$rc_merge" -ne 0 ]; then
+        if [ "$emergency" = true ]; then
+          merge_method="manual_merge_emergency"
+          emergency_used="1"
+          merge_reason="git_workflow merge failed"
+          (
+            cd "$BUILD_REPO"
+            python3 scripts/git_workflow.py --emergency 'coo-land-merge' --reason "$merge_reason"
+          ) >>"$merge_out" 2>>"$merge_err" || true
+          git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || land_failed "REPORT_BLOCKED__coo_land__MERGE_FAILED.md" "DEST_CHECKOUT_AFTER_WORKFLOW_FAILURE"
+          git -C "$BUILD_REPO" merge --no-ff "$land_branch" -m "merge: coo land emergency integration (${src_head:0:7})" >>"$merge_out" 2>>"$merge_err" || land_failed "REPORT_BLOCKED__coo_land__MERGE_FAILED.md" "MANUAL_MERGE_FAILED_AFTER_WORKFLOW_FAILURE"
+        else
+          write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__MERGE_FAILED.md" <<EOF
+# REPORT_BLOCKED__coo_land__MERGE_FAILED
+REASON=GIT_WORKFLOW_MERGE_FAILED
+RC=$rc_merge
+STDERR_HEAD_BEGIN
+$(sed -n '1,40p' "$merge_err")
+STDERR_HEAD_END
+EOF
+          git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+          git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+          echo "ERROR: coo land merge failed in non-emergency mode." >&2
+          exit 41
+        fi
+      fi
+    else
+      merge_method="manual_merge"
+      git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || land_failed "REPORT_BLOCKED__coo_land__MERGE_FAILED.md" "DEST_CHECKOUT_FAILED_BEFORE_MANUAL_MERGE"
+      git -C "$BUILD_REPO" merge --no-ff "$land_branch" -m "merge: coo land integration (${src_head:0:7})" >"$merge_out" 2>"$merge_err" || land_failed "REPORT_BLOCKED__coo_land__MERGE_FAILED.md" "MANUAL_MERGE_FAILED"
+    fi
+
+    git -C "$BUILD_REPO" checkout "$dest_ref" >/dev/null 2>&1 || true
+    dest_head_after="$(git -C "$BUILD_REPO" rev-parse "$dest_ref")"
+    git -C "$BUILD_REPO" branch -D "$land_branch" >/dev/null 2>&1 || true
+
+    post_status="$(git -C "$BUILD_REPO" status --porcelain=v1 || true)"
+    post_diff="$(git -C "$BUILD_REPO" diff --name-only || true)"
+    if [ -n "$post_status" ] || [ -n "$post_diff" ]; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__POST_DIRTY.md" <<EOF
+# REPORT_BLOCKED__coo_land__POST_DIRTY
+REASON=BUILD_REPO_NOT_CLEAN_AFTER_LAND
+STATUS_PORCELAIN_BEGIN
+${post_status:-"(empty)"}
+STATUS_PORCELAIN_END
+DIFF_NAME_ONLY_BEGIN
+${post_diff:-"(empty)"}
+DIFF_NAME_ONLY_END
+EOF
+      echo "ERROR: coo land left BUILD_REPO dirty." >&2
+      exit 41
+    fi
+
+    receipt_file="$evid_dir/land_receipt.txt"
+    {
+      echo "BASELINE_REF=$baseline_ref"
+      echo "BASELINE_MODE=$baseline_mode"
+      echo "SRC_REF=$src_ref"
+      echo "SRC_HEAD=$src_head"
+      echo "DEST_REF=$dest_ref"
+      echo "DEST_HEAD_BEFORE=$dest_head_before"
+      echo "DEST_HEAD_AFTER=$dest_head_after"
+      echo "MODE=$land_mode"
+      echo "PROVENANCE_DESCENDED=$provenance_descended"
+      echo "ALLOWLIST_HASH=$allowlist_hash"
+      echo "LAND_COMMIT=$land_commit"
+      echo "MERGE_METHOD=$merge_method"
+      echo "EMERGENCY_USED=$emergency_used"
+      echo "EOL_ONLY_ALLOWED=$eol_only_allowed"
+      echo "VERIFICATION_PYTEST_CMD=$verify_pytest_cmd"
+      echo "VERIFICATION_PYTEST_RC=$rc_pytest"
+      if [ "$skip_e2e" = false ]; then
+        echo "VERIFICATION_E2E_CMD=$verify_e2e_cmd"
+      else
+        echo "VERIFICATION_E2E_CMD=SKIPPED(--skip-e2e)"
+      fi
+      echo "VERIFICATION_E2E_RC=$rc_e2e"
+      echo "CHANGED_PATHS_BEGIN"
+      cat "$allow_sorted"
+      echo "CHANGED_PATHS_END"
+      echo "CLEAN_PROOF_PRE_STATUS_BEGIN"
+      if [ -n "$pre_status" ]; then
+        printf '%s\n' "$pre_status"
+      else
+        echo "(empty)"
+      fi
+      echo "CLEAN_PROOF_PRE_STATUS_END"
+      echo "CLEAN_PROOF_PRE_DIFF_BEGIN"
+      if [ -n "$pre_diff" ]; then
+        printf '%s\n' "$pre_diff"
+      else
+        echo "(empty)"
+      fi
+      echo "CLEAN_PROOF_PRE_DIFF_END"
+      echo "CLEAN_PROOF_POST_STATUS_BEGIN"
+      if [ -n "$post_status" ]; then
+        printf '%s\n' "$post_status"
+      else
+        echo "(empty)"
+      fi
+      echo "CLEAN_PROOF_POST_STATUS_END"
+      echo "CLEAN_PROOF_POST_DIFF_BEGIN"
+      if [ -n "$post_diff" ]; then
+        printf '%s\n' "$post_diff"
+      else
+        echo "(empty)"
+      fi
+      echo "CLEAN_PROOF_POST_DIFF_END"
+    } > "$receipt_file"
+    write_hashes "$evid_dir"
+    cat "$receipt_file"
     ;;
   tui)
     shift || true
