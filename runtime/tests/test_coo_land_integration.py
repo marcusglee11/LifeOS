@@ -86,6 +86,9 @@ def test_coo_land_path_transplant_creates_receipt(tmp_path: Path) -> None:
     assert "runtime/tools/coo_worktree.sh" in text
     assert "VERIFICATION_PYTEST_RC=0" in text
     assert "VERIFICATION_E2E_CMD=SKIPPED(--skip-e2e)" in text
+    assert f"EVID_SELECTED={evid}" in text
+    assert "CLEAN_PROOF_PRE_STATUS_BEGIN\n(empty)\nCLEAN_PROOF_PRE_STATUS_END" in text
+    assert "CLEAN_PROOF_POST_STATUS_BEGIN\n(empty)\nCLEAN_PROOF_POST_STATUS_END" in text
 
     assert "land-test-marker" in (repo / "runtime" / "tools" / "coo_worktree.sh").read_text(encoding="utf-8")
     assert _run(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo).stdout.strip() == "main"

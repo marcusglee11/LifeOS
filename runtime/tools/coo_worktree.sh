@@ -1453,6 +1453,7 @@ EOF
       echo "SRC_REF=$src_ref"
       echo "SRC_HEAD=$src_head"
       echo "DEST_REF=$dest_ref"
+      echo "EVID_SELECTED=$evid_dir"
       echo "DEST_HEAD_BEFORE=$dest_head_before"
       echo "DEST_HEAD_AFTER=$dest_head_after"
       echo "MODE=$land_mode"
