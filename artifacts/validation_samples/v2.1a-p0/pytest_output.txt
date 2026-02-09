@@ -1,0 +1,14 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: /mnt/c/Users/cabra/Projects/lifeos-worktrees/validator-suite-v2.1a-p0
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 15 items
+
+runtime/tests/validation/test_evidence.py ...                            [ 20%]
+runtime/tests/validation/test_cleanliness.py ...                         [ 40%]
+runtime/tests/orchestration/test_workspace_lock.py ...                   [ 60%]
+runtime/tests/validation/test_gate_runner_and_acceptor.py ...            [ 80%]
+runtime/tests/orchestration/test_validation_orchestrator.py ...          [100%]
+
+============================== 15 passed in 2.35s ==============================
