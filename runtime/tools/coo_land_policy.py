@@ -8,7 +8,7 @@ import hashlib
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, NamedTuple
 
 
 class AllowlistError(ValueError):
@@ -71,6 +71,113 @@ def is_eol_only_staged(repo: Path) -> bool:
     return not ignored_diff.strip()
 
 
+def is_eol_only_worktree(repo: Path) -> bool:
+    """Check if *unstaged* working-tree diff is EOL-only."""
+    normal_diff = _git_stdout(repo, ["diff", "--no-color"])
+    if not normal_diff.strip():
+        return False
+    ignored_diff = _git_stdout(
+        repo,
+        ["diff", "--ignore-space-at-eol", "--ignore-cr-at-eol", "--no-color"],
+    )
+    return not ignored_diff.strip()
+
+
+# ---------------------------------------------------------------------------
+# Config-aware clean invariant
+# ---------------------------------------------------------------------------
+
+def get_effective_autocrlf(repo: Path) -> str:
+    """Return the effective core.autocrlf value (local > global > system).
+
+    Returns the string value ('true', 'false', 'input') or 'unset'.
+    """
+    proc = subprocess.run(
+        ["git", "-C", str(repo), "config", "--get", "core.autocrlf"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        return "unset"
+    return proc.stdout.strip().lower()
+
+
+def check_eol_config_compliance(repo: Path) -> tuple[bool, str]:
+    """Check that EOL-related git config is compliant.
+
+    Compliant means core.autocrlf is 'false' (not 'true' or 'input').
+    Returns (compliant, detail_string).
+    """
+    value = get_effective_autocrlf(repo)
+    if value == "false":
+        return True, f"core.autocrlf={value} (compliant)"
+    return False, f"core.autocrlf={value} (non-compliant; must be 'false')"
+
+
+class CleanCheckResult(NamedTuple):
+    """Result of a full repo clean-invariant check."""
+
+    clean: bool
+    reason: str  # CLEAN | EOL_CHURN | CONTENT_DIRTY | CONFIG_NONCOMPLIANT
+    file_count: int
+    detail: str
+
+
+def check_repo_clean(repo: Path) -> CleanCheckResult:
+    """Full clean-invariant check: config compliance + working-tree state.
+
+    Checks (in order):
+    1. EOL config compliance (core.autocrlf must be false)
+    2. Working-tree cleanliness (git status --porcelain)
+    3. If dirty, classifies as EOL_CHURN vs CONTENT_DIRTY
+    """
+    # 1. Config compliance
+    compliant, config_detail = check_eol_config_compliance(repo)
+    if not compliant:
+        return CleanCheckResult(
+            clean=False,
+            reason="CONFIG_NONCOMPLIANT",
+            file_count=0,
+            detail=config_detail,
+        )
+
+    # 2. Working-tree status
+    status_output = _git_stdout(repo, ["status", "--porcelain=v1"]).strip()
+    if not status_output:
+        return CleanCheckResult(
+            clean=True,
+            reason="CLEAN",
+            file_count=0,
+            detail="working tree clean; " + config_detail,
+        )
+
+    file_count = len(status_output.splitlines())
+
+    # 3. Classify: EOL-only or content?
+    try:
+        eol_only = is_eol_only_worktree(repo)
+    except RuntimeError:
+        eol_only = False
+
+    if eol_only:
+        return CleanCheckResult(
+            clean=False,
+            reason="EOL_CHURN",
+            file_count=file_count,
+            detail=(
+                f"{file_count} files with EOL-only modifications; "
+                "run: git add --renormalize . && git checkout -- ."
+            ),
+        )
+    return CleanCheckResult(
+        clean=False,
+        reason="CONTENT_DIRTY",
+        file_count=file_count,
+        detail=f"{file_count} files with content modifications",
+    )
+
+
 def cli_allowlist(args: argparse.Namespace) -> int:
     try:
         ordered = load_allowlist(Path(args.input))
@@ -93,6 +200,29 @@ def cli_eol_only(args: argparse.Namespace) -> int:
     return 0
 
 
+def cli_clean_check(args: argparse.Namespace) -> int:
+    """CLI: full clean-invariant check (config + status)."""
+    repo = Path(args.repo)
+    try:
+        result = check_repo_clean(repo)
+    except Exception as exc:
+        print(f"CLEAN_CHECK_ERROR: {exc}", file=sys.stderr)
+        return 2
+    if result.clean:
+        print(f"CLEAN: {result.detail}")
+        return 0
+    print(f"BLOCKED ({result.reason}): {result.detail}")
+    if args.auto_fix and result.reason == "CONFIG_NONCOMPLIANT":
+        print("AUTO_FIX: setting core.autocrlf=false at repo level")
+        subprocess.run(
+            ["git", "-C", str(repo), "config", "--local", "core.autocrlf", "false"],
+            check=True,
+        )
+        print("AUTO_FIX: re-running clean check...")
+        return cli_clean_check(args)
+    return 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Policy helpers for coo land.")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -106,6 +236,18 @@ def main() -> int:
     eol_parser = sub.add_parser("eol-only", help="Check staged diff for EOL-only changes.")
     eol_parser.add_argument("--repo", required=True)
     eol_parser.set_defaults(func=cli_eol_only)
+
+    clean_parser = sub.add_parser(
+        "clean-check",
+        help="Full clean-invariant check (config + working-tree status).",
+    )
+    clean_parser.add_argument("--repo", required=True)
+    clean_parser.add_argument(
+        "--auto-fix",
+        action="store_true",
+        help="Auto-fix config non-compliance (sets core.autocrlf=false locally).",
+    )
+    clean_parser.set_defaults(func=cli_clean_check)
 
     args = parser.parse_args()
     return args.func(args)
