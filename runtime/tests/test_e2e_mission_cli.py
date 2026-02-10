@@ -21,6 +21,15 @@ def test_mission_cli_e2e_harness(tmp_path):
     original_argv = sys.argv
     out_dir = tmp_path / "artifacts" / "evidence" / "mission_cli_e2e"
     
+    # P0.11: Force clean repo in CI to prevent pollution from previous tests
+    if os.environ.get("CI"):
+        import subprocess
+        try:
+            subprocess.run(["git", "checkout", "."], check=False, capture_output=True)
+            subprocess.run(["git", "clean", "-fd"], check=False, capture_output=True)
+        except Exception:
+            pass  # Best effort
+    
     # We call the script logic directly via main()
     # It must detect its own repo root (via walking up from __file__)
     # It must resolve entrypoint (lifeos or python -m)
