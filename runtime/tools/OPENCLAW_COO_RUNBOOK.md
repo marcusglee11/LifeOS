@@ -47,8 +47,15 @@ Expected output:
 - `PASS runtime_receipt=<path> ledger_path=<path>`
 - or `FAIL runtime_receipt=<path> ledger_path=<path>`
 
+Model policy assertion:
+
+```bash
+python3 runtime/tools/openclaw_policy_assert.py --json
+```
+
 ## Safety Invariants
 
 - Default receipt generation must not write to repo paths.
 - Ledger and receipts must remain redacted-safe.
 - Leak scan must pass for runtime receipt + runtime ledger entry.
+- Verify is fail-closed on security audit, sandbox invariants, and policy assertion.

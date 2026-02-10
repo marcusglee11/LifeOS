@@ -54,10 +54,22 @@ runtime_receipt="$runtime_dir/Receipt_Bundle_OpenClaw.md"
 runtime_manifest="$runtime_dir/receipt_manifest.json"
 ledger_file="$STATE_DIR/ledger/openclaw_run_ledger.jsonl"
 runtime_ledger_entry="$runtime_dir/openclaw_run_ledger_entry.jsonl"
-
 export_receipt="$ROOT/artifacts/evidence/openclaw/receipts/Receipt_Bundle_OpenClaw_${TS_UTC}.md"
 
 mkdir -p "$runtime_dir" "$(dirname "$ledger_file")"
+
+declare -A CMD_RC
+declare -A CMD_CAPTURE
+CMD_IDS=(
+  coo_path
+  coo_symlink
+  openclaw_version
+  security_audit_deep
+  models_status_probe
+  status_all_usage
+  sandbox_explain_json
+  gateway_probe_json
+)
 
 redact_stream() {
   sed -E \
@@ -71,13 +83,16 @@ redact_stream() {
 run_capture() {
   local id="$1"
   shift
-  local tmp rc
+  local tmp rc cap
   tmp="$(mktemp)"
+  cap="$runtime_dir/${id}.capture.txt"
   set +e
   timeout "$CMD_TIMEOUT_SEC" "$@" >"$tmp" 2>&1
   rc=$?
   set -e
   CMD_RC["$id"]="$rc"
+  cp "$tmp" "$cap"
+  CMD_CAPTURE["$id"]="$cap"
 
   {
     echo "### $id"
@@ -95,17 +110,6 @@ run_capture() {
   rm -f "$tmp"
 }
 
-declare -A CMD_RC
-CMD_IDS=(
-  coo_path
-  coo_symlink
-  openclaw_version
-  security_audit_deep
-  models_status_probe
-  sandbox_explain_json
-  gateway_probe_json
-)
-
 {
   echo "# OpenClaw Receipt Bundle"
   echo
@@ -122,18 +126,16 @@ run_capture coo_symlink bash -lc 'ls -l "$(which coo)"'
 run_capture openclaw_version openclaw --version
 run_capture security_audit_deep coo openclaw -- security audit --deep
 run_capture models_status_probe coo openclaw -- models status --probe
+run_capture status_all_usage coo openclaw -- status --all --usage
 run_capture sandbox_explain_json coo openclaw -- sandbox explain --json
 run_capture gateway_probe_json coo openclaw -- gateway probe --json
 
 for id in "${CMD_IDS[@]}"; do
   export "RC_${id}=${CMD_RC[$id]:-1}"
 done
-export TS_UTC
-export CFG_PATH
-export ROOT
-export runtime_receipt
-export ledger_file
-export NOTES
+export TS_UTC CFG_PATH ROOT runtime_receipt ledger_file NOTES
+export CAPTURE_models_status_probe="${CMD_CAPTURE[models_status_probe]:-}"
+export CAPTURE_status_all_usage="${CMD_CAPTURE[status_all_usage]:-}"
 
 python3 - "$runtime_manifest" "$runtime_ledger_entry" <<'PY'
 import hashlib
@@ -143,7 +145,6 @@ import re
 import subprocess
 import sys
 from collections import OrderedDict
-from datetime import datetime, timezone
 from pathlib import Path
 
 manifest_path = Path(sys.argv[1])
@@ -175,6 +176,15 @@ def redact(value, key=""):
         return replaced
     return value
 
+def read_capture(env_name: str) -> str:
+    path = os.environ.get(env_name, "")
+    if not path:
+        return ""
+    p = Path(path)
+    if not p.exists():
+        return ""
+    return p.read_text(encoding="utf-8", errors="replace")
+
 cfg_obj = {}
 if cfg_path.exists():
     try:
@@ -194,10 +204,28 @@ gateway_mode = "unknown"
 if isinstance(cfg_obj, dict):
     agent = str((((cfg_obj.get("agents") or {}).get("defaults") or {}).get("agent")) or "main")
     model = str((((cfg_obj.get("agents") or {}).get("defaults") or {}).get("model") or {}).get("primary") or "unknown")
-    think_level = str((((cfg_obj.get("agents") or {}).get("defaults") or {}).get("model") or {}).get("thinkLevel") or "unknown")
+    think_level = str((((cfg_obj.get("agents") or {}).get("defaults") or {}).get("thinkingDefault")) or "unknown")
     channels = [k for k, v in sorted((cfg_obj.get("channels") or {}).items()) if not isinstance(v, dict) or v.get("enabled", True) is not False]
     surface = channels[0] if channels else "unknown"
     gateway_mode = str((((cfg_obj.get("gateway") or {}).get("mode")) or "unknown"))
+
+usage_re = re.compile(r"^\s*-\s*([a-z0-9-]+)\s+usage:\s*(.+)$", re.I)
+pct_re = re.compile(r"(\d{1,3})%\s+left", re.I)
+budget_snapshot = OrderedDict()
+for line in "\n".join([read_capture("CAPTURE_models_status_probe"), read_capture("CAPTURE_status_all_usage")]).splitlines():
+    m = usage_re.search(line)
+    if not m:
+        continue
+    provider = m.group(1).lower()
+    summary = m.group(2).strip()
+    pcts = [int(x) for x in pct_re.findall(summary)]
+    budget_snapshot[provider] = OrderedDict([
+        ("summary", summary),
+        ("min_percent_left", min(pcts) if pcts else None),
+    ])
+
+tripwire_min_percent = int(os.environ.get("OPENCLAW_BUDGET_MIN_PERCENT_LEFT", "20"))
+tripwire_triggered = any(v.get("min_percent_left") is not None and v["min_percent_left"] < tripwire_min_percent for v in budget_snapshot.values())
 
 try:
     coo_wrapper_version = subprocess.check_output(["git", "-C", str(root), "rev-parse", "--short", "HEAD"], text=True).strip()
@@ -216,6 +244,7 @@ for key in [
     "openclaw_version",
     "security_audit_deep",
     "models_status_probe",
+    "status_all_usage",
     "sandbox_explain_json",
     "gateway_probe_json",
 ]:
@@ -237,6 +266,9 @@ entry["receipt_path_runtime"] = os.environ["runtime_receipt"]
 entry["exit_code"] = exit_code
 entry["redactions_applied"] = redaction_count > 0
 entry["redaction_count"] = redaction_count
+entry["budget_tripwire_min_percent_left"] = tripwire_min_percent
+entry["budget_tripwire_triggered"] = tripwire_triggered
+entry["budget_snapshot"] = budget_snapshot
 if os.environ.get("NOTES"):
     entry["notes"] = os.environ["NOTES"]
 
@@ -246,6 +278,9 @@ manifest["mode"] = "runtime-default"
 manifest["runtime_receipt"] = os.environ["runtime_receipt"]
 manifest["ledger_path"] = os.environ["ledger_file"]
 manifest["guardrails_fingerprint"] = guardrails_fingerprint
+manifest["budget_tripwire_min_percent_left"] = tripwire_min_percent
+manifest["budget_tripwire_triggered"] = tripwire_triggered
+manifest["budget_snapshot"] = budget_snapshot
 manifest["exit_codes"] = exit_codes
 
 manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
