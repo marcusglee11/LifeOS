@@ -27,8 +27,12 @@ def _setup_repo(tmp_path: Path) -> Path:
     _git(repo, "init")
     _git(repo, "config", "user.email", "test@example.com")
     _git(repo, "config", "user.name", "Test User")
+    (repo / ".gitignore").write_text(
+        "artifacts/99_archive/**\nlogs/cleanup_ledger.jsonl\n",
+        encoding="utf-8",
+    )
     (repo / "tracked.txt").write_text("tracked\n", encoding="utf-8")
-    _git(repo, "add", "tracked.txt")
+    _git(repo, "add", ".gitignore", "tracked.txt")
     _git(repo, "commit", "-m", "init")
     return repo
 
@@ -37,6 +41,18 @@ def _configure_module_paths(module, repo: Path) -> None:
     module.REPO_ROOT = repo
     module.ISOLATION_VAULT = repo / "artifacts" / "99_archive" / "stray"
     module.CLEANUP_LOG = repo / "logs" / "cleanup_ledger.jsonl"
+
+
+def _setup_repo_without_ignore(tmp_path: Path) -> Path:
+    repo = tmp_path / "repo-no-ignore"
+    repo.mkdir()
+    _git(repo, "init")
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test User")
+    (repo / "tracked.txt").write_text("tracked\n", encoding="utf-8")
+    _git(repo, "add", "tracked.txt")
+    _git(repo, "commit", "-m", "init")
+    return repo
 
 
 def test_isolate_without_apply_is_dry_run(tmp_path: Path) -> None:
@@ -112,3 +128,45 @@ def test_isolate_allow_protected_moves_and_logs_invoker(tmp_path: Path) -> None:
     assert last["rationale"] == "intentional isolation"
     assert "invoker" in last
     assert set(last["invoker"]).issuperset({"pid", "ppid", "argv", "parent_cmd"})
+
+
+def test_isolate_blocks_when_output_paths_not_ignored(tmp_path: Path) -> None:
+    repo = _setup_repo_without_ignore(tmp_path)
+    (repo / "draft.txt").write_text("hello\n", encoding="utf-8")
+
+    mod = _load_safe_cleanup_module()
+    _configure_module_paths(mod, repo)
+
+    rc = mod.isolate(
+        apply=True,
+        rationale="isolate now",
+        allow_protected=False,
+        repo_root=repo,
+    )
+    assert rc == 1
+    assert (repo / "draft.txt").exists()
+
+
+def test_isolate_apply_keeps_git_status_clean_when_outputs_ignored(tmp_path: Path) -> None:
+    repo = _setup_repo(tmp_path)
+    (repo / "draft.txt").write_text("hello\n", encoding="utf-8")
+
+    mod = _load_safe_cleanup_module()
+    _configure_module_paths(mod, repo)
+
+    rc = mod.isolate(
+        apply=True,
+        rationale="cleanup",
+        allow_protected=False,
+        repo_root=repo,
+    )
+    assert rc == 0
+
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert status.stdout.strip() == ""
