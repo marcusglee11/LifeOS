@@ -3,11 +3,26 @@
 **Mode**: Standard  
 **Date**: 2026-02-10  
 **Branch**: `build/eol-clean-invariant`  
-**HEAD**: `d03e0d2218983fa7d710c277c359e8ac5e7a4767` (Verified Baseline)  
+**HEAD**: `d03e0d2218983fa7d710c277c359e8ac5e7a4767` (Verified Logic Baseline)
+**Merge Head**: `f4a21112849b5a3fd77ac4cc484374c1d475e713` (Closure Proof)
 **Supersedes**: `Review_Packet_EOL_Clean_Invariant_v2.1.md`
 
 > [!NOTE]
-> The HEAD reference above (`d03e0d2...`) points to the commit where all verification proofs were finalized. The commit containing this packet (v2.2) is a direct child of `d03e0d2` and serves only to document that verification.
+> The verification baseline is `d03e0d2`. The clean closure proof is at merge tip `f4a2111` (which includes additional receipts). Both SHAs are clean and compliant.
+
+---
+
+## Scope Envelope
+
+<truncated 10 lines>
+
+### Final Verification Results
+
+| Proof | SHA | Status | Ref |
+|-------|-----|--------|-----|
+| Logic Baseline | `d03e0d2` | ✅ Verified | [Recipt](file:///c:/Users/cabra/Projects/LifeOS/artifacts/evidence/RECEIPT__EOL_Final_Closure_Proof__2026-02-10.md) |
+| Merge Head Closure | `f4a2111` | ✅ Verified | [Recipe](file:///c:/Users/cabra/Projects/LifeOS/artifacts/evidence/RECEIPT__Merge_Head_Closure_Proof__2026-02-10.md) |
+| Clean-check JSON | `f4a2111` | ✅ Stored | [JSON](file:///c:/Users/cabra/Projects/LifeOS/artifacts/evidence/RECEIPT_MERGE_HEAD_CLEAN_CHECK.json) |
 
 ---
 

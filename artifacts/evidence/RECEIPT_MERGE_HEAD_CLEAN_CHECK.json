@@ -1,0 +1,10 @@
+{
+  "repo": "C:\\Users\\cabra\\Projects\\LifeOS",
+  "head_sha": "f4a21112849b5a3fd77ac4cc484374c1d475e713",
+  "git_status_porcelain": "(empty)",
+  "core_autocrlf_show_origin": "file:.git/config\tfalse",
+  "result_clean": true,
+  "result_reason": "CLEAN",
+  "result_file_count": 0,
+  "result_detail": "working tree clean; core.autocrlf=false (compliant)"
+}
