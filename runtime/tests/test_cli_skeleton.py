@@ -172,5 +172,6 @@ class TestCLIMission:
             assert main() == 1
 
             captured = capsys.readouterr()
-            assert "Invalid parameter" in captured.out
-            assert "key=value" in captured.out
+            # refactored cli.py prints errors to stderr if not in --json mode
+            assert "Invalid parameter" in captured.err or "Invalid parameter" in captured.out
+            assert "key=value" in captured.err or "key=value" in captured.out

@@ -108,3 +108,4 @@ artifacts/checkpoints/
 artifacts/steps/
 test_autonomous_direct.py
 .claude/settings.local.json
+artifacts/validation_runs/

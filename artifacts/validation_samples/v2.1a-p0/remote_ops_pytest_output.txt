@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: /mnt/c/Users/cabra/Projects/LifeOS
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 23 items
+
+runtime/tests/orchestration/test_remote_ops.py ....                      [ 17%]
+runtime/tests/orchestration/test_validation_orchestrator.py .....        [ 39%]
+runtime/tests/orchestration/test_workspace_lock.py ...                   [ 52%]
+runtime/tests/validation/test_cleanliness.py ....                        [ 69%]
+runtime/tests/validation/test_gate_runner_and_acceptor.py ....           [ 86%]
+runtime/tests/validation/test_evidence.py ...                            [100%]
+
+============================== 23 passed in 3.10s ==============================

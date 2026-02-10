@@ -605,7 +605,7 @@ class AutonomousBuildCycleMission(BaseMission):
         self,
         context: MissionContext,
         target: str = "runtime/tests",
-        timeout: int = 300
+        timeout: int = 60
     ) -> Dict[str, Any]:
         """
         Run pytest on runtime/tests/ after build completes.

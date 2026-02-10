@@ -98,7 +98,55 @@ class BuildMission(BaseMission):
             
             response = call_agent(call, run_id=context.run_id)
             executed_steps.append("invoke_builder_llm_call")
-            
+
+            # Detect artifacts created by OpenCode CLI
+            artifacts_produced = []
+            constructed_packet = None
+            try:
+                import subprocess
+                diff_result = subprocess.run(
+                    ["git", "diff", "--name-only"],
+                    cwd=context.repo_root,
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if diff_result.returncode == 0 and diff_result.stdout.strip():
+                    all_changed = diff_result.stdout.strip().split('\n')
+                    # Filter out system artifacts (ledger, logs, terminal packets)
+                    artifacts_produced = [
+                        f for f in all_changed
+                        if not f.startswith(('artifacts/loop_state/', 'artifacts/terminal/', 'logs/'))
+                    ]
+
+                    # Construct packet from git diff if OpenCode CLI was used (no packet in response)
+                    if not response.packet and artifacts_produced:
+                        files_list = []
+                        for artifact in artifacts_produced:
+                            # Get the diff for this file
+                            diff_cmd = subprocess.run(
+                                ["git", "diff", artifact],
+                                cwd=context.repo_root,
+                                capture_output=True,
+                                text=True,
+                                timeout=5
+                            )
+                            if diff_cmd.returncode == 0:
+                                files_list.append({
+                                    "path": artifact,
+                                    "action": "modify",
+                                    "content": diff_cmd.stdout
+                                })
+
+                        constructed_packet = {
+                            "files": files_list,
+                            "tests": [],
+                            "verification_commands": []
+                        }
+            except Exception:
+                # If artifact detection fails, continue with empty list
+                pass
+
             # Step 3: Package output as REVIEW_PACKET
             review_packet = {
                 "mission_name": f"build_{context.run_id[:8]}",
@@ -106,7 +154,8 @@ class BuildMission(BaseMission):
                 "payload": {
                     "build_packet": build_packet,
                     "content": response.content,
-                    "packet": response.packet,
+                    "packet": constructed_packet or response.packet,  # Use constructed packet if available
+                    "artifacts_produced": artifacts_produced,
                 },
                 "evidence": {
                     "call_id": response.call_id,

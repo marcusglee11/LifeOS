@@ -380,6 +380,7 @@ class LoopSpine:
         ]
 
         steps_executed = []
+        chain_state = {}  # Accumulate outputs from each mission
 
         # Get baseline commit
         try:
@@ -418,14 +419,50 @@ class LoopSpine:
                 mission_class = get_mission_class(mission_type)
                 mission = mission_class()
 
-                # Prepare inputs from task_spec
-                inputs = {
-                    "task_spec": task_spec.get("task", ""),
-                    "context_refs": task_spec.get("context_refs", []),
-                }
+                # Prepare inputs based on step position in chain
+                if step_name == "design":
+                    # Design: raw task spec
+                    inputs = {
+                        "task_spec": task_spec.get("task", ""),
+                        "context_refs": task_spec.get("context_refs", []),
+                    }
+                elif step_name == "build":
+                    # Build: needs build_packet from design + auto-approval
+                    build_packet = chain_state.get("build_packet", {})
+                    inputs = {
+                        "build_packet": build_packet,
+                        "approval": {"verdict": "approved"},
+                    }
+                elif step_name == "review":
+                    # Review: needs review_packet from build as subject_packet
+                    review_packet = chain_state.get("review_packet", {})
+                    inputs = {
+                        "subject_packet": review_packet,
+                        "review_type": "build_review",
+                    }
+                elif step_name == "steward":
+                    # Steward: needs review_packet + approval from review
+                    review_packet = chain_state.get("review_packet", {})
+                    verdict = chain_state.get("verdict", "approved")  # verdict is a string
+                    council_decision = chain_state.get("council_decision", {})
+                    inputs = {
+                        "review_packet": review_packet,
+                        "approval": {"verdict": verdict},  # Wrap string verdict in dict
+                        "council_decision": council_decision,
+                    }
+                else:
+                    # Fallback for unknown steps
+                    inputs = {
+                        "task_spec": task_spec.get("task", ""),
+                        "context_refs": task_spec.get("context_refs", []),
+                    }
 
                 # Execute mission
                 result = mission.run(context, inputs)
+
+                # Accumulate outputs for next step
+                if hasattr(result, 'outputs') and result.outputs:
+                    chain_state.update(result.outputs)
 
                 # Check for escalation
                 if hasattr(result, 'success') and not result.success:

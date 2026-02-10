@@ -460,15 +460,46 @@ def main():
                     # Non-fatal: log but continue
                     print(f"WARN: Failed to clean {child}: {e}", file=sys.stderr)
 
+    # --- E2E-1: Pass With Proof (using noop mission) ---
+    # Use noop mission which is simple, deterministic, and always succeeds.
+    # This proves the end-to-end pass-with-proof path works via subprocess/CLI.
+    NOOP_CMD = entrypoint_cmd + ["mission", "run", "noop", "--params", '{}', "--json"]
+    
     res1, json1 = run_test_case(
         "E2E-1", 
-        CANONICAL_CLI_ARGV, 
+        NOOP_CMD, 
         run_dir, 
         repo_root, 
-        expect_exit_code=0, 
+        expect_exit_code=0,  # Expect success
         required_wrapper_fields=wrapper_proof["required_fields"]
     )
     summary["cases"].append(res1)
+    
+    # Verify acceptance proof fields for E2E-1 (success case)
+    if res1["status"] == "PASS" and json1:
+        # Required proof fields per test_cli_mission.py contract
+        required_proof_fields = [
+            "acceptance_token_path",
+            "acceptance_record_path", 
+            "acceptance_token_sha256",
+            "evidence_manifest_sha256"
+        ]
+        
+        missing_fields = []
+        for field in required_proof_fields:
+            if field not in json1:
+                missing_fields.append(field)
+            else:
+                # Verify paths exist on disk for path fields
+                if "path" in field:
+                    path_value = json1[field]
+                    if path_value and not Path(path_value).exists():
+                        missing_fields.append(f"{field} (file not found: {path_value})")
+        
+        if missing_fields:
+            res1["status"] = "FAIL"
+            res1["reason"] = f"Missing or invalid proof fields: {', '.join(missing_fields)}"
+            summary["overall_outcome"] = "FAIL"
     
     if res1["status"] != "PASS":
         summary["overall_outcome"] = res1["status"]

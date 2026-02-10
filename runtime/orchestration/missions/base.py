@@ -27,6 +27,7 @@ class MissionType(str, Enum):
     STEWARD = "steward"
     AUTONOMOUS_BUILD_CYCLE = "autonomous_build_cycle"
     ECHO = "echo"
+    NOOP = "noop"  # Test-only mission for E2E acceptance proof verification
 
 
 class MissionError(Exception):

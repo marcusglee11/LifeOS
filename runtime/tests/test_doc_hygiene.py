@@ -44,10 +44,12 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         original_content = "# Test\nNo blank line after heading.\n\nContent here.\n"
         test_file.write_text(original_content)
 
+        # Get repo root dynamically
+        repo_root = Path(__file__).parent.parent.parent
         # Run the script
         result = subprocess.run(
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path)],
-            cwd="/mnt/c/Users/cabra/projects/LifeOS",
+            cwd=str(repo_root),
             capture_output=True,
             text=True
         )
@@ -78,10 +80,12 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         clean_content = "# Clean File\n\nThis is a properly formatted markdown file.\n"
         test_file.write_text(clean_content)
 
+        # Get repo root dynamically
+        repo_root = Path(__file__).parent.parent.parent
         # Run the script
         result = subprocess.run(
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path)],
-            cwd="/mnt/c/Users/cabra/projects/LifeOS",
+            cwd=str(repo_root),
             capture_output=True,
             text=True
         )
@@ -114,10 +118,12 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         content = "# Heading\nNo blank line after.\n- List item\nNo blank line around list.\n"
         test_file.write_text(content)
 
+        # Get repo root dynamically
+        repo_root = Path(__file__).parent.parent.parent
         # Run the script
         result = subprocess.run(
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path)],
-            cwd="/mnt/c/Users/cabra/projects/LifeOS",
+            cwd=str(repo_root),
             capture_output=True,
             text=True
         )
@@ -153,10 +159,12 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         test_file = self.test_path / "test.md"
         test_file.write_text("# Test\n\nContent.\n")
 
+        # Get repo root dynamically
+        repo_root = Path(__file__).parent.parent.parent
         # Run with --json flag
         result = subprocess.run(
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path), "--json"],
-            cwd="/mnt/c/Users/cabra/projects/LifeOS",
+            cwd=str(repo_root),
             capture_output=True,
             text=True
         )
@@ -174,10 +182,12 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         original_content = "# Test   \n\nTrailing spaces.   \n"
         test_file.write_text(original_content)
 
+        # Get repo root dynamically
+        repo_root = Path(__file__).parent.parent.parent
         # Run with --dry-run
         result = subprocess.run(
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path), "--dry-run"],
-            cwd="/mnt/c/Users/cabra/projects/LifeOS",
+            cwd=str(repo_root),
             capture_output=True,
             text=True
         )

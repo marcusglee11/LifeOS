@@ -3,9 +3,15 @@ import sys
 import json
 from pathlib import Path
 from datetime import datetime
+import subprocess
+from typing import Any, Dict
 
 from runtime.config import detect_repo_root, load_config
 from runtime.orchestration.ceo_queue import CEOQueue
+from runtime.orchestration.orchestrator import OrchestrationResult, ValidationOrchestrator
+from runtime.validation.core import JobSpec
+from runtime.validation.evidence import compute_manifest
+from runtime.validation.reporting import sha256_file
 
 def cmd_status(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
     """Print status of repo root, config, and validation."""
@@ -69,312 +75,572 @@ def cmd_mission_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def _canonical_json(payload: Dict[str, Any]) -> str:
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _baseline_commit(repo_root: Path) -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            cwd=repo_root,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception:
+        pass
+    return None
+
+
+def _mission_success(payload: Dict[str, Any]) -> bool:
+    if "success" in payload:
+        return bool(payload["success"])
+    if payload.get("status") is not None:
+        return payload.get("status") == "success"
+    return False
+
+
+def _extract_mission_result(result_dict: Dict[str, Any], mission_type: str) -> Dict[str, Any]:
+    final_state = result_dict.get("final_state")
+    if isinstance(final_state, dict):
+        mission_result = final_state.get("mission_result")
+        if isinstance(mission_result, dict):
+            return mission_result
+
+        mission_results = final_state.get("mission_results")
+        if isinstance(mission_results, dict) and mission_results:
+            try:
+                first = next(iter(mission_results.values()))
+            except StopIteration:
+                return {
+                    "mission_type": mission_type,
+                    "success": _mission_success(result_dict),
+                    "outputs": result_dict.get("outputs", result_dict.get("output", {})),
+                    "evidence": result_dict.get("evidence", {}),
+                    "executed_steps": result_dict.get("executed_steps", []),
+                    "error": "Mission iteration failed during extraction",
+                }
+            if isinstance(first, dict):
+                extracted = dict(first)
+                extracted.setdefault("mission_type", mission_type)
+                extracted.setdefault("success", _mission_success(extracted))
+                extracted.setdefault("outputs", extracted.get("outputs", {}))
+                extracted.setdefault("evidence", extracted.get("evidence", {}))
+                extracted.setdefault("executed_steps", extracted.get("executed_steps", []))
+                extracted.setdefault("error", extracted.get("error"))
+                return extracted
+
+    return {
+        "mission_type": mission_type,
+        "success": _mission_success(result_dict),
+        "outputs": result_dict.get("outputs", result_dict.get("output", {})),
+        "evidence": result_dict.get("evidence", {}),
+        "executed_steps": result_dict.get("executed_steps", []),
+        "error": result_dict.get("error") or result_dict.get("error_message"),
+    }
+
+
+def _run_registry_mission(
+    *,
+    repo_root: Path,
+    mission_type: str,
+    mission_inputs: Dict[str, Any],
+    initial_state: Dict[str, Any] | None = None,
+    extra_metadata: Dict[str, Any] | None = None,
+) -> tuple[Dict[str, Any], Dict[str, Any]]:
+    from runtime.orchestration import registry
+    from runtime.orchestration.engine import ExecutionContext
+
+    metadata = {
+        "repo_root": str(repo_root),
+        "baseline_commit": _baseline_commit(repo_root),
+        "cli_invocation": True,
+    }
+    if extra_metadata:
+        metadata.update(extra_metadata)
+
+    ctx = ExecutionContext(
+        initial_state=initial_state or {},
+        metadata=metadata,
+    )
+    result = registry.run_mission(mission_type, ctx, mission_inputs)
+
+    if hasattr(result, "to_dict"):
+        result_dict = result.to_dict()
+    elif isinstance(result, dict):
+        result_dict = result
+    else:
+        result_dict = {"success": False, "error": "Invalid mission result type"}
+
+    return result_dict, _extract_mission_result(result_dict, mission_type)
+
+
+def _write_mission_attempt_evidence(
+    *,
+    attempt_dir: Path,
+    mission_type: str,
+    mission_inputs: Dict[str, Any],
+    mission_result: Dict[str, Any],
+) -> None:
+    evidence_root = attempt_dir / "evidence"
+    evidence_root.mkdir(parents=True, exist_ok=True)
+
+    meta_payload = {
+        "schema_version": "mission_cli_attempt_meta_v1",
+        "mission_type": mission_type,
+        "mission_success": bool(mission_result.get("success")),
+    }
+    (evidence_root / "meta.json").write_text(
+        json.dumps(meta_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
+    (evidence_root / "exitcode.txt").write_text(
+        "0\n" if mission_result.get("success") else "1\n",
+        encoding="utf-8",
+    )
+    command_payload = {
+        "operation": "mission",
+        "mission_type": mission_type,
+        "inputs_keys": sorted(mission_inputs.keys()),
+    }
+    (evidence_root / "commands.jsonl").write_text(
+        json.dumps(command_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
+    compute_manifest(evidence_root)
+
+
+def _verify_acceptance_proof(orchestration: OrchestrationResult) -> tuple[Dict[str, str | None], str | None]:
+    proof: Dict[str, str | None] = {
+        "acceptance_token_path": None,
+        "acceptance_record_path": None,
+        "acceptance_token_sha256": None,
+        "evidence_manifest_sha256": None,
+    }
+
+    if not orchestration.acceptance_token_path:
+        return proof, "Missing acceptance_token_path from orchestrator result"
+    if not orchestration.acceptance_record_path:
+        return proof, "Missing acceptance_record_path from orchestrator result"
+
+    token_path = Path(orchestration.acceptance_token_path)
+    record_path = Path(orchestration.acceptance_record_path)
+
+    if not token_path.exists():
+        return proof, f"Acceptance token missing on disk: {token_path}"
+    if not record_path.exists():
+        return proof, f"Acceptance record missing on disk: {record_path}"
+
+    try:
+        with open(record_path, "r", encoding="utf-8") as handle:
+            record = json.load(handle)
+    except Exception as exc:
+        return proof, f"Failed to read acceptance record: {exc}"
+
+    if not isinstance(record, dict):
+        return proof, "Acceptance record payload must be an object"
+    if record.get("schema_version") != "acceptance_record_v1":
+        return proof, "Acceptance record schema_version mismatch"
+    if record.get("accepted") is not True:
+        return proof, "Acceptance record is not marked accepted=true"
+
+    required_record_fields = {
+        "token_path",
+        "manifest_path",
+        "acceptance_token_sha256",
+        "evidence_manifest_sha256",
+    }
+    missing = sorted(field for field in required_record_fields if not record.get(field))
+    if missing:
+        return proof, f"Acceptance record missing required fields: {missing}"
+
+    record_token_path = Path(str(record["token_path"]))
+    if record_token_path.resolve() != token_path.resolve():
+        return proof, "Acceptance record token_path does not match orchestrator token path"
+
+    token_sha = sha256_file(token_path)
+    if token_sha != record["acceptance_token_sha256"]:
+        return proof, "Acceptance token sha256 mismatch"
+
+    manifest_path = Path(str(record["manifest_path"]))
+    if not manifest_path.exists():
+        return proof, f"Acceptance record manifest_path missing on disk: {manifest_path}"
+
+    manifest_sha = sha256_file(manifest_path)
+    if manifest_sha != record["evidence_manifest_sha256"]:
+        return proof, "Evidence manifest sha256 mismatch"
+
+    proof["acceptance_token_path"] = str(token_path)
+    proof["acceptance_record_path"] = str(record_path)
+    proof["acceptance_token_sha256"] = token_sha
+    proof["evidence_manifest_sha256"] = manifest_sha
+    return proof, None
+
+
+def _build_cli_mission_payload(
+    *,
+    mission_type: str,
+    mission_result: Dict[str, Any],
+    raw_result: Dict[str, Any],
+    orchestration: OrchestrationResult | None,
+    proof: Dict[str, str | None],
+    success: bool,
+    error: str | None = None,
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "success": success,
+        "id": orchestration.run_id if orchestration is not None else "mission-cli-exception",
+        "lineage": raw_result.get("lineage") if isinstance(raw_result, dict) else None,
+        "receipt": raw_result.get("receipt") if isinstance(raw_result, dict) else None,
+        "final_state": {
+            "mission_result": mission_result,
+        },
+        "acceptance_token_path": proof.get("acceptance_token_path"),
+        "acceptance_record_path": proof.get("acceptance_record_path"),
+        "acceptance_token_sha256": proof.get("acceptance_token_sha256"),
+        "evidence_manifest_sha256": proof.get("evidence_manifest_sha256"),
+    }
+    if orchestration is not None:
+        payload["validation_run_id"] = orchestration.run_id
+        payload["attempt_id"] = orchestration.attempt_id
+        payload["attempt_index"] = orchestration.attempt_index
+        if orchestration.validator_report_path:
+            payload["validator_report_path"] = orchestration.validator_report_path
+    if error:
+        payload["error"] = error
+    payload["mission_type"] = mission_type
+    return payload
+
+
+def _run_mission_with_acceptance(
+    *,
+    repo_root: Path,
+    mission_type: str,
+    mission_inputs: Dict[str, Any],
+    initial_state: Dict[str, Any] | None = None,
+    extra_metadata: Dict[str, Any] | None = None,
+) -> tuple[int, Dict[str, Any]]:
+    mission_result: Dict[str, Any] = {
+        "mission_type": mission_type,
+        "success": False,
+        "outputs": {},
+        "evidence": {},
+        "executed_steps": [],
+        "error": "Mission did not execute",
+    }
+    raw_result: Dict[str, Any] = {}
+
+    def _agent_runner(attempt_dir: Path, _job_spec: JobSpec) -> None:
+        nonlocal mission_result, raw_result
+        try:
+            raw_result, mission_result = _run_registry_mission(
+                repo_root=repo_root,
+                mission_type=mission_type,
+                mission_inputs=mission_inputs,
+                initial_state=initial_state,
+                extra_metadata=extra_metadata,
+            )
+        except Exception as exc:
+            raw_result = {}
+            mission_result = {
+                "mission_type": mission_type,
+                "success": False,
+                "outputs": {},
+                "evidence": {},
+                "executed_steps": [],
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+        finally:
+            _write_mission_attempt_evidence(
+                attempt_dir=attempt_dir,
+                mission_type=mission_type,
+                mission_inputs=mission_inputs,
+                mission_result=mission_result,
+            )
+
+    try:
+        orchestration = ValidationOrchestrator(workspace_root=repo_root).run(
+            mission_kind=mission_type,
+            evidence_tier="light",
+            agent_runner=_agent_runner,
+        )
+    except Exception as exc:
+        error = f"{type(exc).__name__}: {exc}"
+        payload = _build_cli_mission_payload(
+            mission_type=mission_type,
+            mission_result=mission_result,
+            raw_result=raw_result,
+            orchestration=None,
+            proof={
+                "acceptance_token_path": None,
+                "acceptance_record_path": None,
+                "acceptance_token_sha256": None,
+                "evidence_manifest_sha256": None,
+            },
+            success=False,
+            error=error,
+        )
+        return 1, payload
+
+    proof, proof_error = _verify_acceptance_proof(orchestration)
+    mission_ok = bool(mission_result.get("success"))
+
+    acceptance_ok = (
+        orchestration.success
+        and proof_error is None
+        and all(
+            proof.get(key)
+            for key in (
+                "acceptance_token_path",
+                "acceptance_record_path",
+                "acceptance_token_sha256",
+                "evidence_manifest_sha256",
+            )
+        )
+    )
+    success = mission_ok and acceptance_ok
+
+    error = None
+    if not acceptance_ok:
+        error = proof_error or orchestration.message
+    elif not mission_ok:
+        error = str(mission_result.get("error") or "Mission execution failed")
+
+    payload = _build_cli_mission_payload(
+        mission_type=mission_type,
+        mission_result=mission_result,
+        raw_result=raw_result,
+        orchestration=orchestration,
+        proof=proof,
+        success=success,
+        error=error,
+    )
+    return (0 if success else 1), payload
+
+
+def _emit_mission_result(
+    *,
+    mission_type: str,
+    payload: Dict[str, Any],
+    as_json: bool,
+    header_lines: list[str] | None = None,
+) -> int:
+    success = bool(payload.get("success"))
+    if as_json:
+        print(_canonical_json(payload))
+        return 0 if success else 1
+
+    if header_lines:
+        for line in header_lines:
+            print(line)
+
+    if success:
+        print(f"Mission '{mission_type}' succeeded.")
+        print(f"Acceptance record: {payload.get('acceptance_record_path')}")
+    else:
+        print(f"Mission '{mission_type}' failed: {payload.get('error', 'Unknown error')}", file=sys.stderr)
+    return 0 if success else 1
+
+
 def cmd_mission_run(args: argparse.Namespace, repo_root: Path) -> int:
-    """
-    Run a mission with specified parameters.
+    """Run a mission through trusted orchestrator + acceptor path."""
+    inputs: Dict[str, Any] = {}
 
-    Returns:
-        0 on success, 1 on failure
-    """
-    # Local imports
-    import uuid
-    import subprocess
-
-    # Parse parameters
-    inputs = {}
-    
-    # Support legacy --param key=value
     if args.param:
         for param in args.param:
             if "=" not in param:
-                print(f"Error: Invalid parameter format '{param}'. Expected 'key=value'")
-                return 1
+                payload = _build_cli_mission_payload(
+                    mission_type=args.mission_type,
+                    mission_result={
+                        "mission_type": args.mission_type,
+                        "success": False,
+                        "outputs": {},
+                        "evidence": {},
+                        "executed_steps": [],
+                        "error": f"Invalid parameter format '{param}'. Expected 'key=value'",
+                    },
+                    raw_result={},
+                    orchestration=None,
+                    proof={
+                        "acceptance_token_path": None,
+                        "acceptance_record_path": None,
+                        "acceptance_token_sha256": None,
+                        "evidence_manifest_sha256": None,
+                    },
+                    success=False,
+                    error=f"Invalid parameter format '{param}'. Expected 'key=value'",
+                )
+                return _emit_mission_result(
+                    mission_type=args.mission_type,
+                    payload=payload,
+                    as_json=args.json,
+                )
             key, value = param.split("=", 1)
             inputs[key] = value
-            
-    # Support new --params JSON (P0.2)
+
     if args.params:
         try:
             json_inputs = json.loads(args.params)
-            if not isinstance(json_inputs, dict):
-                 print("Error: --params must be a JSON object (dict)")
-                 return 1
-            inputs.update(json_inputs)
-        except json.JSONDecodeError as e:
-            print(f"Error: Invalid JSON in --params: {e}")
-            return 1
-
-    try:
-        # Detect git context
-        baseline_commit = None
-        try:
-            cmd_result = subprocess.run(
-                ["git", "rev-parse", "HEAD"],
-                capture_output=True,
-                text=True,
-                timeout=2,
-                cwd=repo_root
+        except json.JSONDecodeError as exc:
+            payload = _build_cli_mission_payload(
+                mission_type=args.mission_type,
+                mission_result={
+                    "mission_type": args.mission_type,
+                    "success": False,
+                    "outputs": {},
+                    "evidence": {},
+                    "executed_steps": [],
+                    "error": f"Invalid JSON in --params: {exc}",
+                },
+                raw_result={},
+                orchestration=None,
+                proof={
+                    "acceptance_token_path": None,
+                    "acceptance_record_path": None,
+                    "acceptance_token_sha256": None,
+                    "evidence_manifest_sha256": None,
+                },
+                success=False,
+                error=f"Invalid JSON in --params: {exc}",
             )
-            if cmd_result.returncode == 0:
-                baseline_commit = cmd_result.stdout.strip()
-        except Exception:
-            pass  # Fail-soft
-
-        # Try registry path first (preferred)
-        try:
-            from runtime.orchestration import registry
-            from runtime.orchestration.engine import ExecutionContext
-
-            # CRITICAL (E4): Create proper ExecutionContext (empty state, metadata for git context)
-            ctx = ExecutionContext(
-                initial_state={},
-                metadata={"repo_root": str(repo_root), "baseline_commit": baseline_commit, "cli_invocation": True}
+            return _emit_mission_result(
+                mission_type=args.mission_type,
+                payload=payload,
+                as_json=args.json,
             )
-            result = registry.run_mission(args.mission_type, ctx, inputs)
-
-            # Extract result dict (prefer to_dict)
-            if hasattr(result, 'to_dict'):
-                result_dict = result.to_dict()
-            elif isinstance(result, dict):
-                result_dict = result
-            else:
-                result_dict = {'success': False, 'error': 'Invalid result format'}
-
-            # Determine success (same logic as engine.py)
-            if 'success' in result_dict:
-                success = bool(result_dict['success'])
-            elif result_dict.get('status') is not None:
-                success = (result_dict['status'] == 'success')
-            else:
-                success = False
-
-        except (ImportError, AttributeError) as e:
-            # Fallback path: Direct mission execution
-            from runtime.orchestration.missions import get_mission_class, MissionContext, MissionError
-
-            mission_class = get_mission_class(args.mission_type)
-            mission = mission_class()
-
-            # Create MissionContext
-            # P0.3: We use uuid for internal execution, but output ID will be deterministic
-            context = MissionContext(
-                repo_root=repo_root,
-                baseline_commit=baseline_commit,
-                run_id=str(uuid.uuid4()),
-                operation_executor=None,
-                journal=None,
-                metadata={"cli_invocation": True}
+        if not isinstance(json_inputs, dict):
+            payload = _build_cli_mission_payload(
+                mission_type=args.mission_type,
+                mission_result={
+                    "mission_type": args.mission_type,
+                    "success": False,
+                    "outputs": {},
+                    "evidence": {},
+                    "executed_steps": [],
+                    "error": "--params must be a JSON object (dict)",
+                },
+                raw_result={},
+                orchestration=None,
+                proof={
+                    "acceptance_token_path": None,
+                    "acceptance_record_path": None,
+                    "acceptance_token_sha256": None,
+                    "evidence_manifest_sha256": None,
+                },
+                success=False,
+                error="--params must be a JSON object (dict)",
             )
+            return _emit_mission_result(
+                mission_type=args.mission_type,
+                payload=payload,
+                as_json=args.json,
+            )
+        inputs.update(json_inputs)
 
-            try:
-                # Execute mission
-                result = mission.run(context, inputs)
-
-                # Normalize result (same as registry path)
-                if hasattr(result, 'to_dict'):
-                    result_dict = result.to_dict()
-                elif isinstance(result, dict):
-                    result_dict = result
-                else:
-                    result_dict = {
-                        'success': bool(getattr(result, 'success', False)),
-                        'status': getattr(result, 'status', None),
-                        'outputs': getattr(result, 'outputs', getattr(result, 'output', {})),
-                        'evidence': getattr(result, 'evidence', {}),
-                        'executed_steps': getattr(result, 'executed_steps', []),
-                        'error': getattr(result, 'error', None),
-                        'mission_type': args.mission_type
-                    }
-                
-                # Determine success for direct path
-                success = result_dict.get('success', False)
-                if result_dict.get('status') == 'success':
-                    success = True
-
-            except MissionError as e:
-                # Handle mission-specific errors gracefully
-                success = False
-                result_dict = {
-                    'success': False,
-                    'mission_type': args.mission_type,
-                    'error': str(e),
-                    'outputs': {},
-                    'evidence': {},
-                    'executed_steps': []
-                }
-
-        # P0.1: Unconditional Canonical Wrapper Enforcement
-        # Applies to BOTH registry path and direct path results
-        if 'final_state' not in result_dict:
-            
-            # Construct standard mission_result if missing
-            mission_result = result_dict if 'mission_type' in result_dict else {
-                'mission_type': args.mission_type,
-                'success': success,
-                'outputs': result_dict.get('outputs', result_dict.get('output', result_dict)),
-                'evidence': result_dict.get('evidence', {}),
-                'executed_steps': result_dict.get('executed_steps', []),
-                'error': result_dict.get('error')
-            }
-            
-            # P0.3: Deterministic Fallback ID
-            # Prefer run_token if available
-            run_token = mission_result.get('outputs', {}).get('run_token')
-            if run_token:
-                fallback_id = f"direct-execution-{run_token}"
-            else:
-                fallback_id = "direct-execution-unknown"
-
-            result_dict = {
-                "success": success,
-                "id": fallback_id,
-                "lineage": None,
-                "receipt": None,
-                "final_state": {
-                    "mission_result": mission_result
-                }
-            }
-        else:
-            # P0.1+: Ensure singular mission_result exists in final_state for strict wrapper invariant
-            final_state = result_dict.setdefault('final_state', {})
-            if 'mission_result' not in final_state:
-                # Synthesize from mission_results (plural) or top-level info
-                mission_results = final_state.get('mission_results', {})
-                if mission_results:
-                    # Prefer result from last executed step
-                    step_ids = [s.get('id') for s in result_dict.get('executed_steps', []) if s.get('id')]
-                    last_id = step_ids[-1] if step_ids else None
-                    if last_id and last_id in mission_results:
-                        match = mission_results[last_id]
-                    else:
-                        match = next(iter(mission_results.values()))
-                    final_state['mission_result'] = match
-                else:
-                    # Final synthetic fallback
-                    final_state['mission_result'] = {
-                        'success': result_dict.get('success', False),
-                        'mission_type': args.mission_type,
-                        'outputs': result_dict.get('outputs', result_dict.get('output', {})),
-                        'evidence': result_dict.get('evidence', {}),
-                        'executed_steps': result_dict.get('executed_steps', []),
-                        'error': result_dict.get('error') or result_dict.get('error_message')
-                    }
-            
-            # Re-verify success top-level matches
-            if final_state.get('mission_result', {}).get('success', False):
-                success = True
-            else:
-                success = False
-
-        # P0.7: Unconditional ID Determinism (if run_token available)
-        # Ensures CLI output ID is stable regardless of orchestration path
-        mission_res = result_dict.get('final_state', {}).get('mission_result', {})
-        run_token = mission_res.get('outputs', {}).get('run_token')
-        if run_token:
-            result_dict['id'] = f"direct-execution-{run_token}"
-        elif 'final_state' in result_dict:
-            # For orchestrator runs using the mission list, overwrite wf-xxx with stable id if no token
-            result_dict['id'] = "direct-execution-unknown"
-
-        # Output result
-        if args.json:
-            # P0.2: Canonical JSON output (no indent, separators, no escape)
-            output = json.dumps(result_dict, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-            print(output)
-        else:
-            # Human-friendly output (P1.2)
-            if success:
-                print(f"Mission '{args.mission_type}' succeeded.")
-                if result_dict.get('output'):
-                     print("Output:")
-                     print(json.dumps(result_dict['output'], indent=2))
-            else:
-                 error = result_dict.get('error', 'Unknown error')
-                 print(f"Mission '{args.mission_type}' failed: {error}", file=sys.stderr)
-
-        return 0 if success else 1
-
-    except Exception as e:
-        if args.json:
-            # Canonical JSON error output
-            error_result = {
-                "success": False,
-                "id": "cli-exception",
-                "lineage": None,
-                "receipt": None,
-                "final_state": {
-                    "mission_result": {
-                        "success": False,
-                        "error": f"{type(e).__name__}: {str(e)}",
-                        "mission_type": args.mission_type,
-                        "outputs": {},
-                        "evidence": {},
-                        "executed_steps": []
-                    }
-                }
-            }
-            # P0.2: Canonical JSON format for errors too
-            print(json.dumps(error_result, sort_keys=True, separators=(",", ":"), ensure_ascii=False))
-        else:
-            print(f"Error: {type(e).__name__}: {e}")
-        return 1
+    _, payload = _run_mission_with_acceptance(
+        repo_root=repo_root,
+        mission_type=args.mission_type,
+        mission_inputs=inputs,
+        initial_state={},
+        extra_metadata={"cli_command": "mission run"},
+    )
+    return _emit_mission_result(
+        mission_type=args.mission_type,
+        payload=payload,
+        as_json=args.json,
+    )
 
 
 def cmd_run_mission(args: argparse.Namespace, repo_root: Path) -> int:
-    """Run a mission from backlog via orchestrator."""
-    from runtime.backlog.synthesizer import synthesize_mission, execute_mission, SynthesisError
-    
+    """Run a mission from backlog via trusted orchestrator + acceptor path."""
+    from runtime.backlog.synthesizer import SynthesisError, synthesize_mission
+
     task_id = args.from_backlog
-    backlog_path = repo_root / (args.backlog if args.backlog else "config/backlog.yaml")
+    backlog_arg = Path(args.backlog) if args.backlog else Path("config/backlog.yaml")
+    backlog_path = backlog_arg if backlog_arg.is_absolute() else repo_root / backlog_arg
     mission_type = args.mission_type if args.mission_type else "steward"
-    
-    print(f"=== Mission Synthesis Engine ===")
-    print(f"Task ID: {task_id}")
-    print(f"Backlog: {backlog_path}")
-    print(f"Mission Type: {mission_type}")
-    print()
-    
-    # Step 1: Synthesize mission packet
+
     try:
-        print("Step 1: Synthesizing mission packet")
         packet = synthesize_mission(
             task_id=task_id,
             backlog_path=backlog_path,
             repo_root=repo_root,
             mission_type=mission_type,
         )
-        print(f"  packet_id: {packet.packet_id}")
-        print(f"  task_description: {packet.task_description[:80]}")
-        print(f"  context_refs: {len(packet.context_refs)} files")
-        print(f"  constraints: {len(packet.constraints)}")
-        print()
-    except SynthesisError as e:
-        print(f"ERROR: Synthesis failed: {e}")
-        return 1
-    
-    # Step 2: Execute via orchestrator
-    try:
-        print("Step 2: Executing mission via orchestrator")
-        result = execute_mission(packet, repo_root)
-        print(f"  success: {result.get('success', False)}")
-        print(f"  mission_type: {result.get('mission_type')}")
-        print()
-    except SynthesisError as e:
-        print(f"ERROR: Execution failed: {e}")
-        return 1
-    except Exception as e:
-        print(f"ERROR: Unexpected execution error: {e}")
-        return 1
-    
-    # Step 3: Report results
-    print("=== Mission Complete ===")
-    print(f"Packet ID: {packet.packet_id}")
-    if result.get('success'):
-        print("Status: SUCCESS")
-        return 0
-    else:
-        print("Status: FAILED")
-        return 1
+    except SynthesisError as exc:
+        payload = _build_cli_mission_payload(
+            mission_type=mission_type,
+            mission_result={
+                "mission_type": mission_type,
+                "success": False,
+                "outputs": {},
+                "evidence": {},
+                "executed_steps": [],
+                "error": f"Synthesis failed: {exc}",
+            },
+            raw_result={},
+            orchestration=None,
+            proof={
+                "acceptance_token_path": None,
+                "acceptance_record_path": None,
+                "acceptance_token_sha256": None,
+                "evidence_manifest_sha256": None,
+            },
+            success=False,
+            error=f"Synthesis failed: {exc}",
+        )
+        return _emit_mission_result(
+            mission_type=mission_type,
+            payload=payload,
+            as_json=args.json,
+        )
+
+    mission_inputs = {
+        "task_spec": packet.task_description,
+        "context_refs": list(packet.context_refs),
+    }
+    initial_state = {
+        "task_id": packet.task_id,
+        "task_description": packet.task_description,
+        "context_refs": list(packet.context_refs),
+        "constraints": list(packet.constraints),
+    }
+    extra_metadata = {
+        "packet_id": packet.packet_id,
+        "priority": packet.priority,
+        "cli_command": "run-mission",
+    }
+
+    _, payload = _run_mission_with_acceptance(
+        repo_root=repo_root,
+        mission_type=packet.mission_type,
+        mission_inputs=mission_inputs,
+        initial_state=initial_state,
+        extra_metadata=extra_metadata,
+    )
+    payload["packet_id"] = packet.packet_id
+    payload["task_id"] = packet.task_id
+
+    header_lines = None
+    if not args.json:
+        header_lines = [
+            "=== Mission Synthesis Engine ===",
+            f"Task ID: {task_id}",
+            f"Backlog: {backlog_path}",
+            f"Mission Type: {mission_type}",
+            "",
+            f"Packet ID: {packet.packet_id}",
+        ]
+
+    return _emit_mission_result(
+        mission_type=packet.mission_type,
+        payload=payload,
+        as_json=args.json,
+        header_lines=header_lines,
+    )
 
 def cmd_queue_list(args: argparse.Namespace, repo_root: Path) -> int:
     """List pending escalations in JSON format."""
@@ -632,6 +898,7 @@ def main() -> int:
     p_run.add_argument("--from-backlog", required=True, help="Task ID from backlog to execute")
     p_run.add_argument("--backlog", type=str, help="Path to backlog file (default: config/backlog.yaml)")
     p_run.add_argument("--mission-type", type=str, help="Mission type override (default: steward)")
+    p_run.add_argument("--json", action="store_true", help="Output results as JSON")
 
     # spine group (Phase 4A0)
     p_spine = subparsers.add_parser("spine", help="Loop Spine (A1 Chain Controller) commands")
