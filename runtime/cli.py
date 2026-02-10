@@ -112,7 +112,17 @@ def _extract_mission_result(result_dict: Dict[str, Any], mission_type: str) -> D
 
         mission_results = final_state.get("mission_results")
         if isinstance(mission_results, dict) and mission_results:
-            first = next(iter(mission_results.values()))
+            try:
+                first = next(iter(mission_results.values()))
+            except StopIteration:
+                return {
+                    "mission_type": mission_type,
+                    "success": _mission_success(result_dict),
+                    "outputs": result_dict.get("outputs", result_dict.get("output", {})),
+                    "evidence": result_dict.get("evidence", {}),
+                    "executed_steps": result_dict.get("executed_steps", []),
+                    "error": "Mission iteration failed during extraction",
+                }
             if isinstance(first, dict):
                 extracted = dict(first)
                 extracted.setdefault("mission_type", mission_type)

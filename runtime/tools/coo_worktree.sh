@@ -5,13 +5,36 @@ export PYTHONDONTWRITEBYTECODE=1
 BUILD_REPO="$(git rev-parse --show-toplevel)"
 TRAIN_WT="$(dirname "$BUILD_REPO")/LifeOS__wt_coo_training"
 TRAIN_BRANCH="coo/training"
-OPENCLAW_PROFILE="lifeos-coo-training"
+OPENCLAW_PROFILE="${OPENCLAW_PROFILE:-}"
+OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
+OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_STATE_DIR/openclaw.json}"
 
 print_header() {
+  local profile_label="(default)"
+  if [ -n "$OPENCLAW_PROFILE" ]; then
+    profile_label="$OPENCLAW_PROFILE"
+  fi
   echo "BUILD_REPO=$BUILD_REPO"
   echo "TRAIN_WT=$TRAIN_WT"
   echo "TRAIN_BRANCH=$TRAIN_BRANCH"
-  echo "OPENCLAW_PROFILE=$OPENCLAW_PROFILE"
+  echo "OPENCLAW_PROFILE=$profile_label"
+  echo "OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
+  echo "OPENCLAW_CONFIG_PATH=$OPENCLAW_CONFIG_PATH"
+}
+
+ensure_openclaw_surface() {
+  mkdir -p "$OPENCLAW_STATE_DIR"
+  export OPENCLAW_STATE_DIR
+  export OPENCLAW_CONFIG_PATH
+}
+
+run_openclaw() {
+  ensure_openclaw_surface
+  if [ -n "$OPENCLAW_PROFILE" ]; then
+    openclaw --profile "$OPENCLAW_PROFILE" "$@"
+    return
+  fi
+  openclaw "$@"
 }
 
 ensure_worktree() {
@@ -270,7 +293,7 @@ EOF
     }
     trap cleanup EXIT
 
-    if ! openclaw --profile "$OPENCLAW_PROFILE" agent --local --agent main --message "$prompt" --json >"$raw_json" 2>"$raw_err"; then
+    if ! run_openclaw agent --local --agent main --message "$prompt" --json >"$raw_json" 2>"$raw_err"; then
       echo "ERROR: coo brief failed to run local agent turn." >&2
       sed -n '1,20p' "$raw_err" | sed -E 's/[A-Za-z0-9_-]{24,}/[REDACTED]/g' >&2
       exit 1
@@ -366,7 +389,7 @@ Rules:
 EOF
 )"
 
-    if ! openclaw --profile "$OPENCLAW_PROFILE" agent --local --agent main --message "$prompt" --json >"$raw_json" 2>"$raw_err"; then
+    if ! run_openclaw agent --local --agent main --message "$prompt" --json >"$raw_json" 2>"$raw_err"; then
       echo "ERROR: coo job e2e failed to generate job request." >&2
       sed -n '1,20p' "$raw_err" | sed -E 's/[A-Za-z0-9_-]{24,}/[REDACTED]/g' >&2
       exit 1
@@ -438,7 +461,7 @@ Output ONLY this JSON object type, no markdown:
 }
 EOF
 )"
-      if ! openclaw --profile "$OPENCLAW_PROFILE" agent --local --agent main --message "$strict_prompt" --json >"$raw_json" 2>"$raw_err"; then
+      if ! run_openclaw agent --local --agent main --message "$strict_prompt" --json >"$raw_json" 2>"$raw_err"; then
         echo "ERROR: coo job e2e retry failed." >&2
         sed -n '1,20p' "$raw_err" | sed -E 's/[A-Za-z0-9_-]{24,}/[REDACTED]/g' >&2
         exit 1
@@ -1534,7 +1557,7 @@ EOF
     fi
     enter_training_dir
     print_header
-    openclaw --profile "$OPENCLAW_PROFILE" tui "$@"
+    run_openclaw tui "$@"
     ;;
   run)
     shift || true
@@ -1560,7 +1583,7 @@ EOF
     shift || true
     print_header
     enter_training_dir
-    openclaw --profile "$OPENCLAW_PROFILE" "$@"
+    run_openclaw "$@"
     ;;
   *)
     usage
