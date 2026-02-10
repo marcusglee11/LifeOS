@@ -15,6 +15,14 @@ class Signature:
         return hashlib.sha256(data).digest()
 
     @staticmethod
+    def verify_data(data: bytes, signature: bytes) -> bool:
+        """
+        Verify data using a simple SHA256 match (legacy v0.1 behavior).
+        Used by RuntimeFSM and sign.py.
+        """
+        return hashlib.sha256(data).digest() == signature
+
+    @staticmethod
     def validate_signature(data: bytes, signature: bytes, public_key: bytes) -> bool:
         """
         Validate a cryptographic signature for the given data.
