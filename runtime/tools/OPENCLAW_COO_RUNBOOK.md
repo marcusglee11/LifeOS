@@ -44,8 +44,16 @@ runtime/tools/openclaw_verify_surface.sh
 
 Expected output:
 
-- `PASS runtime_receipt=<path> ledger_path=<path>`
-- or `FAIL runtime_receipt=<path> ledger_path=<path>`
+- `PASS security_audit_mode=<mode> ... runtime_receipt=<path> ledger_path=<path>`
+- or `FAIL security_audit_mode=<mode> ... runtime_receipt=<path> ledger_path=<path>`
+
+Security audit strategy:
+
+- `security audit --deep` is attempted first.
+- If deep fails with known host confinement signature
+  `uv_interface_addresses returned Unknown system error 1`,
+  verify runs bounded fallback `security audit` (non-deep).
+- Any other deep failure remains fail-closed and verify returns non-zero.
 
 Model policy assertion:
 
