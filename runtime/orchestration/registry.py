@@ -164,6 +164,11 @@ def _build_build_with_validation_workflow(params: Optional[Dict[str, Any]] = Non
     return _build_phase3_mission_workflow("build_with_validation", params)
 
 
+def _build_noop_workflow(params: Optional[Dict[str, Any]] = None) -> WorkflowDefinition:
+    """Build noop mission workflow (test-only)."""
+    return _build_phase3_mission_workflow("noop", params)
+
+
 # =============================================================================
 # Mission Registry
 # =============================================================================
@@ -182,6 +187,7 @@ MISSION_REGISTRY: Dict[str, Callable[[Optional[Dict[str, Any]]], WorkflowDefinit
     "steward": _build_steward_workflow,
     "autonomous_build_cycle": _build_autonomous_build_cycle_workflow,
     "build_with_validation": _build_build_with_validation_workflow,
+    "noop": _build_noop_workflow,  # Test-only mission for E2E acceptance proof verification
 }
 
 
