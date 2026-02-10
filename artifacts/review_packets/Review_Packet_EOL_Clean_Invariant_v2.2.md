@@ -1,10 +1,13 @@
-# Review Packet: EOL Clean Invariant Hardening v2.1 (Closure-Grade)
+# Review Packet: EOL Clean Invariant Hardening v2.2 (Closure-Grade)
 
 **Mode**: Standard  
 **Date**: 2026-02-10  
 **Branch**: `build/eol-clean-invariant`  
-**HEAD**: `37bf665f6a90ffaf774f457d9b9805357dff6c17`  
-**Supersedes**: `Review_Packet_EOL_Clean_Invariant_v2.0.md`
+**HEAD**: `d03e0d2218983fa7d710c277c359e8ac5e7a4767` (Verified Baseline)  
+**Supersedes**: `Review_Packet_EOL_Clean_Invariant_v2.1.md`
+
+> [!NOTE]
+> The HEAD reference above (`d03e0d2...`) points to the commit where all verification proofs were finalized. The commit containing this packet (v2.2) is a direct child of `d03e0d2` and serves only to document that verification.
 
 ---
 
@@ -36,7 +39,7 @@
 
 Eliminated persistent CRLF/EOL "dirty repo" condition caused by system-level `core.autocrlf=true` (Windows Git default) conflicting with repository `.gitattributes eol=lf`.
 
-### Final Verification Results (at HEAD `e02d9b9`)
+### Final Verification Results (at HEAD `d03e0d2`)
 
 | Proof | Result | Ref |
 |-------|--------|-----|
@@ -57,7 +60,7 @@ Eliminated persistent CRLF/EOL "dirty repo" condition caused by system-level `co
 | P0 | No config compliance gate | **RESOLVED** (Commit `3eb111d`) |
 | P0 | Clean gate not wired into choke-points | **RESOLVED** (Commit `c1dc3db`) |
 | P0 | No machine-verifiable gate receipts | **RESOLVED** (Commit `c1dc3db`) |
-| P0 | HEAD inconsistency | **RESOLVED** — Reconciled to `e02d9b9` |
+| P0 | HEAD inconsistency | **RESOLVED** — Reconciled to `d03e0d2` |
 
 ---
 
@@ -75,7 +78,8 @@ Ordered from earliest to latest since `main`:
 8. `d07a6b4` — feat(validation): validator suite v2.1a P0 + hardening (P0.8)
 9. `c1dc3db` — feat(eol): receipt-emitting clean gate + coo land integration + bat/cmd safety
 10. `73010db` — docs: closure-grade evidence — config provenance receipt + review packet v2.0
-11. `e02d9b9` — docs: EOL Clean Invariant closure-grade reconciliation (v2.1)
+11. `d03e0d2` — docs: EOL Clean Invariant closure-grade reconciliation (v2.1)
+12. `(this commit)` — docs: reconcile evidence references (v2.2)
 
 > [!NOTE]
-> Earlier receipts (e.g., `RECEIPT__Renormalization_Mechanical_EOL__2026-02-10.md`) were captured at their respective commit times (e.g., `b4d8713`) to preserve atomic provenance. They remain valid because the files they describe have not changed substantively; only documentation and metadata have been added downstream. Final verification proofs at HEAD `e02d9b9` are captured in `RECEIPT__EOL_Final_Closure_Proof__2026-02-10.md`.
+> Earlier receipts (e.g., `RECEIPT__Renormalization_Mechanical_EOL__2026-02-10.md`) were captured at their respective commit times (e.g., `b4d8713`) to preserve atomic provenance. They remain valid because the files they describe have not changed substantively; only documentation and metadata have been added downstream. Final verification proofs at HEAD `d03e0d2` are captured in `RECEIPT__EOL_Final_Closure_Proof__2026-02-10.md` and `FINAL_CLEAN_CHECK_RECEIPT.json`.

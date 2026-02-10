@@ -1,0 +1,124 @@
+name: Branch Housekeeping Delete Merged Validator Suite
+
+on:
+  schedule:
+    - cron: "19 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  delete-merged-validator-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch remote branch refs
+        run: git fetch --prune --no-tags origin "+refs/heads/*:refs/remotes/origin/*"
+
+      - name: Resolve housekeeping base branch
+        id: resolve_base
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const preferred = "build/eol-clean-invariant";
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            try {
+              await github.rest.repos.getBranch({ owner, repo, branch: preferred });
+              core.setOutput("base_branch", preferred);
+              core.info(`Using preferred base branch: ${preferred}`);
+            } catch (error) {
+              if (error.status === 404) {
+                const fallback = context.payload.repository.default_branch;
+                core.setOutput("base_branch", fallback);
+                core.info(`Preferred base missing; using default branch: ${fallback}`);
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Delete merged validator-suite branches
+        uses: actions/github-script@v7
+        env:
+          BASE_BRANCH: ${{ steps.resolve_base.outputs.base_branch }}
+        with:
+          script: |
+            const { execFileSync } = require("node:child_process");
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const base = process.env.BASE_BRANCH;
+
+            const runGit = (args) => {
+              return execFileSync("git", args, { encoding: "utf8" }).trim();
+            };
+
+            const refsText = runGit(["for-each-ref", "--format=%(refname:strip=3)", "refs/remotes/origin"]);
+            const candidates = refsText
+              .split("\n")
+              .map((line) => line.trim())
+              .filter((line) => line.length > 0)
+              .filter((line) => line.startsWith("validator-suite-"))
+              .sort((a, b) => a.localeCompare(b));
+
+            core.info(`Base branch: ${base}`);
+            core.info(`Candidates (${candidates.length}): ${candidates.join(", ") || "<none>"}`);
+
+            const rows = [];
+            for (const candidate of candidates) {
+              let merged = false;
+              try {
+                runGit(["merge-base", "--is-ancestor", `origin/${candidate}`, `origin/${base}`]);
+                merged = true;
+              } catch (error) {
+                if (error.status === 1) {
+                  merged = false;
+                } else {
+                  const detail = String(error.stderr || error.message || "merge-base failed").trim();
+                  rows.push({ branch: candidate, merged: "unknown", action: "skipped_check_error", detail });
+                  core.warning(`Skip ${candidate}: merge-base check error: ${detail}`);
+                  continue;
+                }
+              }
+
+              if (!merged) {
+                rows.push({ branch: candidate, merged: "no", action: "skipped_not_merged", detail: "not ancestor of base" });
+                continue;
+              }
+
+              try {
+                await github.rest.git.deleteRef({ owner, repo, ref: `heads/${candidate}` });
+                rows.push({ branch: candidate, merged: "yes", action: "deleted", detail: "deleted via deleteRef" });
+              } catch (error) {
+                if (error.status === 404) {
+                  rows.push({ branch: candidate, merged: "yes", action: "already_deleted", detail: "branch vanished before delete" });
+                } else if (error.status === 403) {
+                  rows.push({ branch: candidate, merged: "yes", action: "skipped_protected_or_denied", detail: "permission denied or branch protected" });
+                } else {
+                  const detail = String(error.message || "deleteRef failed").trim();
+                  rows.push({ branch: candidate, merged: "yes", action: "skipped_delete_error", detail });
+                  core.warning(`Skip ${candidate}: deleteRef error: ${detail}`);
+                }
+              }
+            }
+
+            const summary = [
+              "## Validator Suite Branch Housekeeping",
+              `Base branch: ${base}`,
+              "",
+              "| Branch | Merged | Action | Detail |",
+              "|---|---|---|---|",
+              ...rows.map((row) => `| ${row.branch} | ${row.merged} | ${row.action} | ${row.detail} |`),
+            ];
+
+            if (rows.length === 0) {
+              summary.push("No validator-suite branches found.");
+            }
+
+            await core.summary.addRaw(summary.join("\n")).write();
