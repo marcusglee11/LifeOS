@@ -8,6 +8,7 @@ import pytest
 from runtime.tools.coo_land_policy import (
     AllowlistError,
     CleanCheckResult,
+    _write_receipt,
     check_eol_config_compliance,
     check_repo_clean,
     is_eol_only_staged,
@@ -207,4 +208,23 @@ def test_check_repo_clean_detects_content_dirty(tmp_path: Path) -> None:
     assert result.clean is False
     assert result.reason == "CONTENT_DIRTY"
     assert result.file_count == 1
+
+
+def test_write_receipt_emits_json(tmp_path: Path) -> None:
+    """_write_receipt produces a valid JSON file with required fields."""
+    import json
+
+    repo = _init_clean_repo(tmp_path)
+    result = check_repo_clean(repo)
+    receipt = tmp_path / "receipt.json"
+    _write_receipt(repo, result, receipt)
+
+    assert receipt.exists()
+    data = json.loads(receipt.read_text(encoding="utf-8"))
+    assert data["result_clean"] is True
+    assert data["result_reason"] == "CLEAN"
+    assert "head_sha" in data
+    assert len(data["head_sha"]) == 40
+    assert "core_autocrlf_show_origin" in data
+    assert "git_status_porcelain" in data
 

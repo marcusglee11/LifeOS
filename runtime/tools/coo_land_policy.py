@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -208,6 +209,10 @@ def cli_clean_check(args: argparse.Namespace) -> int:
     except Exception as exc:
         print(f"CLEAN_CHECK_ERROR: {exc}", file=sys.stderr)
         return 2
+
+    if getattr(args, "receipt", None):
+        _write_receipt(repo, result, Path(args.receipt))
+
     if result.clean:
         print(f"CLEAN: {result.detail}")
         return 0
@@ -221,6 +226,34 @@ def cli_clean_check(args: argparse.Namespace) -> int:
         print("AUTO_FIX: re-running clean check...")
         return cli_clean_check(args)
     return 1
+
+
+def _write_receipt(repo: Path, result: CleanCheckResult, receipt_path: Path) -> None:
+    """Emit a machine-verifiable JSON receipt for clean-check."""
+    head_sha = _git_stdout(repo, ["rev-parse", "HEAD"]).strip()
+    status_porcelain = _git_stdout(repo, ["status", "--porcelain=v1"]).strip()
+
+    # core.autocrlf --show-origin (captures provenance)
+    ac_proc = subprocess.run(
+        ["git", "-C", str(repo), "config", "--show-origin", "--get", "core.autocrlf"],
+        check=False, capture_output=True, text=True,
+    )
+    autocrlf_show_origin = ac_proc.stdout.strip() if ac_proc.returncode == 0 else "(unset)"
+
+    receipt = {
+        "repo": str(repo.resolve()),
+        "head_sha": head_sha,
+        "git_status_porcelain": status_porcelain or "(empty)",
+        "core_autocrlf_show_origin": autocrlf_show_origin,
+        "result_clean": result.clean,
+        "result_reason": result.reason,
+        "result_file_count": result.file_count,
+        "result_detail": result.detail,
+    }
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(
+        json.dumps(receipt, indent=2) + "\n", encoding="utf-8",
+    )
 
 
 def main() -> int:
@@ -246,6 +279,11 @@ def main() -> int:
         "--auto-fix",
         action="store_true",
         help="Auto-fix config non-compliance (sets core.autocrlf=false locally).",
+    )
+    clean_parser.add_argument(
+        "--receipt",
+        metavar="PATH",
+        help="Write machine-verifiable JSON receipt to PATH.",
     )
     clean_parser.set_defaults(func=cli_clean_check)
 
