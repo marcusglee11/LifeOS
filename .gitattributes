@@ -18,3 +18,7 @@ scripts/hooks/* text eol=lf
 runtime/orchestration/missions/__init__.py text eol=lf
 runtime/orchestration/missions/base.py text eol=lf
 runtime/tests/test_missions_phase3.py text eol=lf
+
+# Windows batch/cmd scripts require CRLF to work with cmd.exe
+*.bat text eol=crlf
+*.cmd text eol=crlf

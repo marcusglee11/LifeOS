@@ -1081,6 +1081,22 @@ EOF
       exit 41
     fi
 
+    # Config-aware clean-check gate (EOL config compliance + receipt)
+    clean_receipt="$evid_dir/clean_check_preflight.json"
+    if ! python3 "$BUILD_REPO/runtime/tools/coo_land_policy.py" \
+         clean-check --repo "$BUILD_REPO" --receipt "$clean_receipt" 2>"$evid_dir/clean_check_preflight.err"; then
+      write_blocked_report "$evid_dir" "REPORT_BLOCKED__coo_land__CLEAN_CHECK_FAILED.md" <<EOF
+# REPORT_BLOCKED__coo_land__CLEAN_CHECK_FAILED
+REASON=CLEAN_CHECK_GATE_FAILED
+RECEIPT=$clean_receipt
+STDERR_BEGIN
+$(sed -n '1,20p' "$evid_dir/clean_check_preflight.err")
+STDERR_END
+EOF
+      echo "ERROR: coo land clean-check gate failed (config non-compliant or dirty)." >&2
+      exit 41
+    fi
+
     src_ref="$src_ref_arg"
     if [ -z "$src_ref" ] && [ -f "$evid_dir/worktree_head.txt" ]; then
       src_ref="$(sed -n '1p' "$evid_dir/worktree_head.txt" | tr -d '[:space:]')"
@@ -1445,6 +1461,11 @@ EOF
       echo "ERROR: coo land left BUILD_REPO dirty." >&2
       exit 41
     fi
+
+    # Postflight config-aware clean-check receipt
+    python3 "$BUILD_REPO/runtime/tools/coo_land_policy.py" \
+        clean-check --repo "$BUILD_REPO" --receipt "$evid_dir/clean_check_postflight.json" \
+        2>"$evid_dir/clean_check_postflight.err" || true
 
     receipt_file="$evid_dir/land_receipt.txt"
     {
