@@ -29,6 +29,13 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
 
+      - name: Enforce Mission CLI Invariants
+        run: |
+          pytest -v runtime/tests/orchestration/test_validation_orchestrator.py
+          pytest -v runtime/tests/test_cli_mission.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
   lint:
     name: Lint Check
     runs-on: ubuntu-latest
