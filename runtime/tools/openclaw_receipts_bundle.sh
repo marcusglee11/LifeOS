@@ -20,6 +20,8 @@ TS_UTC="$(date -u +%Y%m%dT%H%M%SZ)"
 EXPORT_REPO=0
 NOTES=""
 CMD_TIMEOUT_SEC="${OPENCLAW_CMD_TIMEOUT_SEC:-25}"
+SECURITY_AUDIT_MODE="${OPENCLAW_SECURITY_AUDIT_MODE:-unknown}"
+CONFINEMENT_FLAG="${OPENCLAW_CONFINEMENT_FLAG:-}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -133,7 +135,7 @@ run_capture gateway_probe_json coo openclaw -- gateway probe --json
 for id in "${CMD_IDS[@]}"; do
   export "RC_${id}=${CMD_RC[$id]:-1}"
 done
-export TS_UTC CFG_PATH ROOT runtime_receipt ledger_file NOTES
+export TS_UTC CFG_PATH ROOT runtime_receipt ledger_file NOTES SECURITY_AUDIT_MODE CONFINEMENT_FLAG
 export CAPTURE_models_status_probe="${CMD_CAPTURE[models_status_probe]:-}"
 export CAPTURE_status_all_usage="${CMD_CAPTURE[status_all_usage]:-}"
 
@@ -269,6 +271,10 @@ entry["redaction_count"] = redaction_count
 entry["budget_tripwire_min_percent_left"] = tripwire_min_percent
 entry["budget_tripwire_triggered"] = tripwire_triggered
 entry["budget_snapshot"] = budget_snapshot
+entry["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")
+entry["confinement_detected"] = bool(os.environ.get("CONFINEMENT_FLAG", ""))
+if os.environ.get("CONFINEMENT_FLAG"):
+    entry["confinement_flag"] = os.environ["CONFINEMENT_FLAG"]
 if os.environ.get("NOTES"):
     entry["notes"] = os.environ["NOTES"]
 
@@ -281,6 +287,10 @@ manifest["guardrails_fingerprint"] = guardrails_fingerprint
 manifest["budget_tripwire_min_percent_left"] = tripwire_min_percent
 manifest["budget_tripwire_triggered"] = tripwire_triggered
 manifest["budget_snapshot"] = budget_snapshot
+manifest["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")
+manifest["confinement_detected"] = bool(os.environ.get("CONFINEMENT_FLAG", ""))
+if os.environ.get("CONFINEMENT_FLAG"):
+    manifest["confinement_flag"] = os.environ["CONFINEMENT_FLAG"]
 manifest["exit_codes"] = exit_codes
 
 manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")

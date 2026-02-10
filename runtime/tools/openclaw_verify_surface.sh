@@ -18,6 +18,7 @@ PASS=1
 WARNINGS=0
 declare -A CMD_RC
 SECURITY_AUDIT_MODE="unknown"
+CONFINEMENT_FLAG=""
 
 to_file_with_timeout() {
   local timeout_sec="$1"
@@ -59,6 +60,7 @@ else
     to_file_with_timeout "$SECURITY_FALLBACK_TIMEOUT_SEC" security_audit_fallback coo openclaw -- security audit
     if [ "${CMD_RC[security_audit_fallback]:-1}" -eq 0 ]; then
       SECURITY_AUDIT_MODE="non_deep_fallback_due_uv_interface_addresses"
+      CONFINEMENT_FLAG="uv_interface_addresses_unknown_system_error_1"
     else
       PASS=0
       SECURITY_AUDIT_MODE="blocked_fallback_failed"
@@ -88,7 +90,10 @@ if rg -q '"elevated":\s*\{[^}]*"enabled":\s*true' "$OUT_DIR/sandbox_explain_json
 
 receipt_gen="$OUT_DIR/receipt_generation.txt"
 set +e
-OPENCLAW_CMD_TIMEOUT_SEC="$RECEIPT_CMD_TIMEOUT_SEC" runtime/tools/openclaw_receipts_bundle.sh > "$receipt_gen" 2>&1
+OPENCLAW_CMD_TIMEOUT_SEC="$RECEIPT_CMD_TIMEOUT_SEC" \
+OPENCLAW_SECURITY_AUDIT_MODE="$SECURITY_AUDIT_MODE" \
+OPENCLAW_CONFINEMENT_FLAG="$CONFINEMENT_FLAG" \
+runtime/tools/openclaw_receipts_bundle.sh > "$receipt_gen" 2>&1
 rc_receipt=$?
 set -e
 if [ "$rc_receipt" -ne 0 ]; then PASS=0; fi
@@ -122,16 +127,34 @@ if [ "$rc_leak" -ne 0 ]; then PASS=0; fi
   echo "gateway_probe_json_exit=${CMD_RC[gateway_probe_json]:-1}"
   echo "policy_assert_exit=${CMD_RC[policy_assert]:-1}"
   echo "warnings_present=$WARNINGS"
+  if [ -n "$CONFINEMENT_FLAG" ]; then
+    echo "confinement_detected=true"
+    echo "confinement_flag=$CONFINEMENT_FLAG"
+  else
+    echo "confinement_detected=false"
+  fi
 } > "$OUT_DIR/summary.txt"
 
 if [ "$PASS" -eq 1 ]; then
   if [ "$WARNINGS" -eq 1 ]; then
-    echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE notes=command_warnings_present runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    if [ -n "$CONFINEMENT_FLAG" ]; then
+      echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=true confinement_flag=$CONFINEMENT_FLAG notes=command_warnings_present runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    else
+      echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=false notes=command_warnings_present runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    fi
   else
-    echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    if [ -n "$CONFINEMENT_FLAG" ]; then
+      echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=true confinement_flag=$CONFINEMENT_FLAG runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    else
+      echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=false runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    fi
   fi
   exit 0
 fi
 
-echo "FAIL security_audit_mode=$SECURITY_AUDIT_MODE runtime_receipt=$runtime_receipt ledger_path=$ledger_path" >&2
+if [ -n "$CONFINEMENT_FLAG" ]; then
+  echo "FAIL security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=true confinement_flag=$CONFINEMENT_FLAG runtime_receipt=$runtime_receipt ledger_path=$ledger_path" >&2
+else
+  echo "FAIL security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=false runtime_receipt=$runtime_receipt ledger_path=$ledger_path" >&2
+fi
 exit 1

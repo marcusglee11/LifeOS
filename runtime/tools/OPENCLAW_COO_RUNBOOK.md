@@ -44,8 +44,8 @@ runtime/tools/openclaw_verify_surface.sh
 
 Expected output:
 
-- `PASS security_audit_mode=<mode> ... runtime_receipt=<path> ledger_path=<path>`
-- or `FAIL security_audit_mode=<mode> ... runtime_receipt=<path> ledger_path=<path>`
+- `PASS security_audit_mode=<mode> confinement_detected=<true|false> ... runtime_receipt=<path> ledger_path=<path>`
+- or `FAIL security_audit_mode=<mode> confinement_detected=<true|false> ... runtime_receipt=<path> ledger_path=<path>`
 
 Security audit strategy:
 
@@ -54,6 +54,9 @@ Security audit strategy:
   `uv_interface_addresses returned Unknown system error 1`,
   verify runs bounded fallback `security audit` (non-deep).
 - Any other deep failure remains fail-closed and verify returns non-zero.
+- When fallback triggers, verify and ledger include:
+  `confinement_detected=true` and
+  `confinement_flag=uv_interface_addresses_unknown_system_error_1`.
 
 Model policy assertion:
 
