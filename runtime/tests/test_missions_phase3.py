@@ -762,12 +762,16 @@ class TestStewardRouting:
         # Setup in-envelope artifact
         valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
         
-        # Mock subprocess calls: git pre-commit, opencode runner, git post-commit, git status (verification)
+        # Mock subprocess calls: 
+        # 1. git pre-commit hash (pre-routing)
+        # 2. opencode runner
+        # 3. git post-commit hash (verification)
+        # 4. git status (verification cleanliness)
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="commit_hash_before", stderr=""),  # Pre-commit hash
-            MagicMock(returncode=0, stdout="Success log", stderr="No errors"),  # OpenCode runner
-            MagicMock(returncode=0, stdout="commit_hash_after", stderr=""),  # Post-commit hash
-            MagicMock(returncode=0, stdout="", stderr=""),  # git status --porcelain (verification)
+            MagicMock(returncode=0, stdout="commit_hash_before", stderr=""),
+            MagicMock(returncode=0, stdout="Success log", stderr="No errors"),
+            MagicMock(returncode=0, stdout="commit_hash_after", stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
         ]
         
         mission = StewardMission()
@@ -785,7 +789,8 @@ class TestStewardRouting:
         assert result.evidence["opencode_result"]["exit_code"] == 0
         
         # P0: Verify invocation args (check the opencode runner call - second call)
-        assert mock_run.call_count == 4  # git pre, opencode, git post-v1, status-v2. (final skipped in doc-only)
+        # Doc-only changes return early at Step 3, before the final Step 4 cleanliness check.
+        assert mock_run.call_count == 4  # git pre, opencode, git post, status-verify.
         opencode_call = mock_run.call_args_list[1]  # Second call is opencode runner
         args, kwargs = opencode_call
         cmd = args[0]
