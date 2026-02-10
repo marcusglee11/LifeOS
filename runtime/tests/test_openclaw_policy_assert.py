@@ -1,14 +1,22 @@
 from runtime.tools.openclaw_policy_assert import assert_policy, command_authorized
+from pathlib import Path
 
 def _cfg():
     return {
         'commands': {'ownerAllowFrom': ['owner-1']},
         'agents': {
             'defaults': {
+                'workspace': '/home/tester/.openclaw/workspace',
                 'thinkingDefault': 'low',
                 'model': {
                     'primary': 'openai-codex/gpt-5.3-codex',
                     'fallbacks': ['google-gemini-cli/gemini-3-flash-preview'],
+                },
+                'memorySearch': {
+                    'enabled': True,
+                    'provider': 'local',
+                    'fallback': 'none',
+                    'sources': ['memory'],
                 },
             },
             'list': [
@@ -20,9 +28,13 @@ def _cfg():
     }
 
 def test_assert_policy_passes_for_expected_ladders():
-    result = assert_policy(_cfg())
+    cfg = _cfg()
+    cfg['agents']['defaults']['workspace'] = str(Path.home() / '.openclaw' / 'workspace')
+    result = assert_policy(cfg)
     assert result['owners'] == ['owner-1']
     assert result['defaults_thinking'] == 'low'
+    assert result['memory']['provider'] == 'local'
+    assert result['memory']['fallback'] == 'none'
 
 def test_non_owner_cannot_model_or_think_switch():
     cfg = _cfg()

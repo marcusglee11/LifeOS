@@ -64,9 +64,21 @@ Model policy assertion:
 python3 runtime/tools/openclaw_policy_assert.py --json
 ```
 
+Optional memory verifier (not part of P0 security PASS path):
+
+```bash
+runtime/tools/openclaw_verify_memory.sh
+```
+
+Expected output:
+
+- `PASS provider=local fallback=none ...`
+- or `FAIL provider=<x> fallback=<y> ...`
+
 ## Safety Invariants
 
 - Default receipt generation must not write to repo paths.
 - Ledger and receipts must remain redacted-safe.
 - Leak scan must pass for runtime receipt + runtime ledger entry.
 - Verify is fail-closed on security audit, sandbox invariants, and policy assertion.
+- Receipts include a non-deep memory status capture; they do not run memory index by default.

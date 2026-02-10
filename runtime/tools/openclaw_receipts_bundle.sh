@@ -67,6 +67,7 @@ CMD_IDS=(
   coo_symlink
   openclaw_version
   security_audit_deep
+  memory_status_main
   models_status_probe
   status_all_usage
   sandbox_explain_json
@@ -127,6 +128,7 @@ run_capture coo_path which coo
 run_capture coo_symlink bash -lc 'ls -l "$(which coo)"'
 run_capture openclaw_version openclaw --version
 run_capture security_audit_deep coo openclaw -- security audit --deep
+run_capture memory_status_main coo openclaw -- memory status --agent main
 run_capture models_status_probe coo openclaw -- models status --probe
 run_capture status_all_usage coo openclaw -- status --all --usage
 run_capture sandbox_explain_json coo openclaw -- sandbox explain --json
@@ -245,6 +247,7 @@ for key in [
     "coo_symlink",
     "openclaw_version",
     "security_audit_deep",
+    "memory_status_main",
     "models_status_probe",
     "status_all_usage",
     "sandbox_explain_json",
