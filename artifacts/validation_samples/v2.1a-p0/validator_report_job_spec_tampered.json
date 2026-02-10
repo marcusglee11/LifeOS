@@ -1,0 +1,38 @@
+{
+  "schema_version": "validator_report_v1",
+  "pass": false,
+  "gate": "postflight",
+  "summary_code": "JOB_SPEC_TAMPERED",
+  "exit_code": 93,
+  "message": "job_spec.json tampered after preflight: expected_sha256=1111111111111111111111111111111111111111111111111111111111111111 actual_sha256=2222222222222222222222222222222222222222222222222222222222222222",
+  "classification": "TERMINAL",
+  "next_action": "HALT_SCHEMA_DRIFT",
+  "checks": [
+    {
+      "name": "job_spec_integrity",
+      "code": "JOB_SPEC_TAMPERED",
+      "ok": false,
+      "message": "job_spec.json tampered after preflight: expected_sha256=1111111111111111111111111111111111111111111111111111111111111111 actual_sha256=2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  ],
+  "attempt_context": {
+    "run_id": "run-job-spec-tamper",
+    "attempt_id": "attempt-0001",
+    "attempt_index": 1,
+    "max_attempts_per_gate_per_run": 2,
+    "max_total_attempts_per_run": 3,
+    "max_consecutive_same_failure_code": 2,
+    "distinct_failure_codes_count": 0,
+    "consecutive_same_failure_code": 0
+  },
+  "pointers": {
+    "attempt_dir": "/tmp/attempt-0001",
+    "run_root": "/tmp/run-job-spec-tamper",
+    "job_spec_path": "/tmp/attempt-0001/job_spec.json",
+    "job_spec_expected_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "job_spec_actual_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "evidence_root": "/tmp/attempt-0001/evidence",
+    "manifest_path": "/tmp/attempt-0001/evidence/evidence_manifest.json",
+    "receipt_path": "/tmp/attempt-0001/receipt.json"
+  }
+}
