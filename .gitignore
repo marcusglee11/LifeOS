@@ -109,5 +109,3 @@ artifacts/steps/
 test_autonomous_direct.py
 .claude/settings.local.json
 artifacts/validation_runs/
-runtime/tests/test_openclaw_policy_assert.py
-runtime/tools/openclaw_policy_assert.py
