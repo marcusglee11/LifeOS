@@ -1,0 +1,39 @@
+$ pytest -v runtime/tests/orchestration/test_validation_orchestrator.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/Projects/LifeOS
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collecting ... collected 5 items
+
+runtime/tests/orchestration/test_validation_orchestrator.py::test_orchestrator_success_path PASSED [ 20%]
+runtime/tests/orchestration/test_validation_orchestrator.py::test_orchestrator_preflight_failure_is_terminal PASSED [ 40%]
+runtime/tests/orchestration/test_validation_orchestrator.py::test_orchestrator_owns_retry_loop PASSED [ 60%]
+runtime/tests/orchestration/test_validation_orchestrator.py::test_orchestrator_detects_job_spec_tamper_as_terminal PASSED [ 80%]
+runtime/tests/orchestration/test_validation_orchestrator.py::test_retry_cap_boundary_stops_at_second_failure PASSED [100%]
+
+============================== 5 passed in 2.11s ===============================
+
+$ pytest -v runtime/tests/test_cli_mission.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/Projects/LifeOS
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collecting ... collected 11 items
+
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_mission_list_returns_sorted_json PASSED [  9%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_mission_run_json_success_includes_acceptance_proof PASSED [ 18%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_run_mission_json_success_includes_acceptance_proof PASSED [ 27%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[missing_record-mission_run] PASSED [ 36%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[missing_record-run_mission] PASSED [ 45%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[missing_token-mission_run] PASSED [ 54%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[missing_token-run_mission] PASSED [ 63%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[tampered_token-mission_run] PASSED [ 72%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[tampered_token-run_mission] PASSED [ 81%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_without_acceptance_record_path[mission_run] PASSED [ 90%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_without_acceptance_record_path[run_mission] PASSED [100%]
+
+============================== 11 passed in 2.81s ==============================

@@ -1,3 +1,100 @@
+# Review Packet Wiring Switchover v1.0
+
+## Mission
+P0 v2.1a Hard Switch-Over: Non-Bypassable Acceptance for `lifeos mission run` and `lifeos run-mission`.
+
+## Scope
+In scope:
+1. `lifeos mission run`
+2. `lifeos run-mission`
+
+Out of scope:
+1. `lifeos spine *`
+2. non-mission commands/scripts
+3. governance redesign
+4. CI redesign
+5. new dependencies
+6. compatibility flags/modes
+
+## Breaking Change
+Mission CLI success semantics changed:
+1. `success=true` and `exit 0` now require acceptance proof verification.
+2. A mission run without valid acceptance token/record proof now fails closed (`success=false`, non-zero exit).
+3. In `--json` mode, successful mission outputs now include mandatory proof fields:
+   - `acceptance_token_path`
+   - `acceptance_record_path`
+   - `acceptance_token_sha256`
+   - `evidence_manifest_sha256`
+
+## Canonical Chokepoints
+1. Canonical writer: `runtime/orchestration/orchestrator.py::ValidationOrchestrator.run()`
+2. Canonical verifier/recorder: `runtime/validation/acceptor.py::accept()`
+3. Accepted run definition: only runs with Acceptor-generated acceptance record derived from verified token.
+
+## Pre-State Evidence (Verbatim)
+Command: `git status --porcelain=v1`
+
+```text
+?? artifacts/validation_samples/v2.1a-p0/PRE_git_diff_name_only.txt
+?? artifacts/validation_samples/v2.1a-p0/PRE_git_status_porcelain.txt
+```
+
+Command: `git diff --name-only`
+
+```text
+```
+
+## Post-State Evidence (Verbatim)
+Command: `git status --porcelain=v1`
+
+```text
+ M runtime/cli.py
+ M runtime/tests/test_cli_mission.py
+?? artifacts/Review_Packet_Wiring_Switchover_v1.0.md
+?? artifacts/validation_samples/v2.1a-p0/WIRING_AUDIT_MAP.md
+?? artifacts/validation_samples/v2.1a-p0/WIRING_SWITCHOVER_PYTEST_OUTPUT.txt
+```
+
+Command: `git diff --name-only`
+
+```text
+runtime/cli.py
+runtime/tests/test_cli_mission.py
+```
+
+## Files Changed
+1. `runtime/cli.py`
+2. `runtime/tests/test_cli_mission.py`
+3. `artifacts/validation_samples/v2.1a-p0/WIRING_AUDIT_MAP.md`
+4. `artifacts/validation_samples/v2.1a-p0/WIRING_SWITCHOVER_PYTEST_OUTPUT.txt`
+
+## Tests Executed
+1. `pytest -v runtime/tests/orchestration/test_validation_orchestrator.py` (PASS)
+2. `pytest -v runtime/tests/test_cli_mission.py` (PASS)
+
+Verbatim output:
+- `artifacts/validation_samples/v2.1a-p0/WIRING_SWITCHOVER_PYTEST_OUTPUT.txt`
+
+## Verbatim Passing `--json` Mission Output Sample
+Command context: `lifeos mission run echo --params '{"message":"sample"}' --json`
+
+```json
+{"acceptance_record_path":"/tmp/lifeos_sample_1k5t2ao_/repo/artifacts/validation_runs/69546b611c774995a878c05edbcb3237/attempt-0001/acceptance_record.json","acceptance_token_path":"/tmp/lifeos_sample_1k5t2ao_/repo/artifacts/validation_runs/69546b611c774995a878c05edbcb3237/attempt-0001/acceptance_token.json","acceptance_token_sha256":"8e4e5c46cc7b4a456286d8cb36c6016f4b9bff8d83ee8aff0349956751fd143b","attempt_id":"attempt-0001","attempt_index":1,"evidence_manifest_sha256":"377bed3a9eee52d47a4001515402126bc532b93a00c3832191914915c1ba2018","final_state":{"mission_result":{"error":null,"escalation_reason":null,"evidence":{},"executed_steps":[],"mission_type":"echo","outputs":{"message":"sample"},"success":true}},"id":"69546b611c774995a878c05edbcb3237","lineage":{"executed_step_ids":["echo-execute"],"workflow_id":"wf-echo"},"mission_type":"echo","receipt":{"id":"wf-echo","steps":["echo-execute"]},"success":true,"validation_run_id":"69546b611c774995a878c05edbcb3237"}
+```
+
+## Outcome
+1. Both in-scope mission commands now route through trusted orchestrator + acceptor path.
+2. Success emission is fail-closed on acceptance proof verification.
+3. JSON success includes required acceptance proof fields.
+4. Wiring audit AFTER map shows zero in-scope bypass paths.
+
+## BLOCKED
+No blockers encountered.
+
+## Appendix A — Flattened Changed Files (Full Content, No Omissions)
+
+### `runtime/cli.py`
+```python
 import argparse
 import sys
 import json
@@ -961,3 +1058,408 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+```
+
+### `runtime/tests/test_cli_mission.py`
+```python
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import subprocess
+
+import pytest
+
+from runtime.cli import cmd_mission_list, cmd_mission_run, cmd_run_mission
+from runtime.orchestration.orchestrator import OrchestrationResult
+from runtime.validation.acceptor import accept
+from runtime.validation.core import JobSpec, RetryCaps
+from runtime.validation.reporting import sha256_file, write_acceptance_token
+
+
+def _git(repo: Path, *args: str) -> None:
+    subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True, check=True)
+
+
+def _setup_repo(tmp_path: Path) -> Path:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init")
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test User")
+
+    (repo / ".gitignore").write_text("artifacts/validation_runs/\n", encoding="utf-8")
+    (repo / "tracked.txt").write_text("base\n", encoding="utf-8")
+
+    config_dir = repo / "config"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    (config_dir / "backlog.yaml").write_text(
+        """
+schema_version: "1.0"
+tasks:
+  - id: TASK001
+    description: Echo mission backlog task
+    priority: P1
+    context_hints: []
+    constraints: []
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    _git(repo, "add", ".gitignore", "tracked.txt", "config/backlog.yaml")
+    _git(repo, "commit", "-m", "init")
+    return repo
+
+
+@pytest.fixture
+def temp_repo(tmp_path: Path) -> Path:
+    return _setup_repo(tmp_path)
+
+
+def _mission_run_args(params: str = "{}") -> argparse.Namespace:
+    return argparse.Namespace(
+        mission_type="echo",
+        param=None,
+        params=params,
+        json=True,
+    )
+
+
+def _run_mission_args() -> argparse.Namespace:
+    return argparse.Namespace(
+        from_backlog="TASK001",
+        backlog="config/backlog.yaml",
+        mission_type="echo",
+        json=True,
+    )
+
+
+def _assert_success_payload(payload: dict) -> None:
+    required = (
+        "acceptance_token_path",
+        "acceptance_record_path",
+        "acceptance_token_sha256",
+        "evidence_manifest_sha256",
+    )
+    for field in required:
+        assert field in payload
+        assert isinstance(payload[field], str)
+        assert payload[field]
+
+    assert Path(payload["acceptance_token_path"]).exists()
+    assert Path(payload["acceptance_record_path"]).exists()
+
+
+def _fake_orchestrator_run(repo_root: Path, corruption: str):
+    def _run(
+        self,
+        *,
+        mission_kind: str,
+        evidence_tier: str,
+        agent_runner,
+        run_id: str | None = None,
+        gate_pipeline_version: str = "v2.1a-p0",
+        retry_caps=None,
+        receipt_required: bool = False,
+    ) -> OrchestrationResult:
+        _ = evidence_tier
+        _ = retry_caps
+        _ = receipt_required
+        run_id = run_id or "fake-run"
+        attempt_id = "attempt-0001"
+
+        attempt_dir = repo_root / "artifacts" / "validation_runs" / run_id / attempt_id
+        attempt_dir.mkdir(parents=True, exist_ok=True)
+
+        job_spec = JobSpec(
+            schema_version="job_spec_v1",
+            run_id=run_id,
+            mission_kind=mission_kind,
+            evidence_tier="light",
+            gate_pipeline_version=gate_pipeline_version,
+            retry_caps=RetryCaps(2, 3, 2),
+        )
+        agent_runner(attempt_dir, job_spec)
+
+        manifest_path = attempt_dir / "evidence" / "evidence_manifest.json"
+        token_path = attempt_dir / "acceptance_token.json"
+
+        token_payload = {
+            "schema_version": "acceptance_token_v1",
+            "pass": True,
+            "run_id": run_id,
+            "attempt_id": attempt_id,
+            "attempt_index": 1,
+            "gate_pipeline_version": gate_pipeline_version,
+            "evidence_manifest_sha256": sha256_file(manifest_path),
+            "receipt_sha256": None,
+            "created_at": "2026-02-10T00:00:00+00:00",
+            "provenance": {
+                "minted_by": "runtime.tests.test_cli_mission",
+                "attempt_dir": str(attempt_dir),
+                "manifest_path": str(manifest_path),
+                "receipt_path": str(attempt_dir / "receipt.json"),
+            },
+        }
+        write_acceptance_token(token_path, token_payload)
+        accept(token_path)
+
+        record_path = attempt_dir / "acceptance_record.json"
+
+        if corruption == "missing_record":
+            record_path.unlink()
+        elif corruption == "missing_token":
+            token_path.unlink()
+        elif corruption == "tampered_token":
+            tampered_payload = json.loads(token_path.read_text(encoding="utf-8"))
+            tampered_payload["pass"] = False
+            token_path.write_text(json.dumps(tampered_payload, sort_keys=True), encoding="utf-8")
+        elif corruption == "missing_record_path":
+            return OrchestrationResult(
+                success=True,
+                run_id=run_id,
+                attempt_id=attempt_id,
+                attempt_index=1,
+                message="Accepted",
+                acceptance_token_path=str(token_path),
+                acceptance_record_path=None,
+            )
+
+        return OrchestrationResult(
+            success=True,
+            run_id=run_id,
+            attempt_id=attempt_id,
+            attempt_index=1,
+            message="Accepted",
+            acceptance_token_path=str(token_path),
+            acceptance_record_path=str(record_path),
+        )
+
+    return _run
+
+
+class TestMissionCLI:
+    def test_mission_list_returns_sorted_json(self, capsys):
+        ret = cmd_mission_list(None)
+        assert ret == 0
+
+        output = json.loads(capsys.readouterr().out)
+        assert isinstance(output, list)
+        assert output == sorted(output)
+        assert "echo" in output
+
+    def test_mission_run_json_success_includes_acceptance_proof(self, temp_repo: Path, capsys):
+        ret = cmd_mission_run(_mission_run_args('{"message":"hello"}'), temp_repo)
+        assert ret == 0
+
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["success"] is True
+        assert payload["final_state"]["mission_result"]["success"] is True
+        _assert_success_payload(payload)
+
+    def test_run_mission_json_success_includes_acceptance_proof(self, temp_repo: Path, capsys):
+        ret = cmd_run_mission(_run_mission_args(), temp_repo)
+        assert ret == 0
+
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["success"] is True
+        assert payload["final_state"]["mission_result"]["success"] is True
+        _assert_success_payload(payload)
+
+    @pytest.mark.parametrize("command", ["mission_run", "run_mission"])
+    @pytest.mark.parametrize("corruption", ["missing_record", "missing_token", "tampered_token"])
+    def test_commands_fail_closed_when_proof_invalid(
+        self,
+        temp_repo: Path,
+        capsys,
+        monkeypatch: pytest.MonkeyPatch,
+        command: str,
+        corruption: str,
+    ):
+        monkeypatch.setattr(
+            "runtime.cli.ValidationOrchestrator.run",
+            _fake_orchestrator_run(temp_repo, corruption),
+        )
+
+        if command == "mission_run":
+            ret = cmd_mission_run(_mission_run_args('{"message":"hello"}'), temp_repo)
+        else:
+            ret = cmd_run_mission(_run_mission_args(), temp_repo)
+
+        assert ret == 1
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["success"] is False
+
+    @pytest.mark.parametrize("command", ["mission_run", "run_mission"])
+    def test_commands_fail_closed_without_acceptance_record_path(
+        self,
+        temp_repo: Path,
+        capsys,
+        monkeypatch: pytest.MonkeyPatch,
+        command: str,
+    ):
+        monkeypatch.setattr(
+            "runtime.cli.ValidationOrchestrator.run",
+            _fake_orchestrator_run(temp_repo, "missing_record_path"),
+        )
+
+        if command == "mission_run":
+            ret = cmd_mission_run(_mission_run_args('{"message":"hello"}'), temp_repo)
+        else:
+            ret = cmd_run_mission(_run_mission_args(), temp_repo)
+
+        assert ret == 1
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["success"] is False
+        assert payload.get("acceptance_record_path") is None
+```
+
+### `artifacts/validation_samples/v2.1a-p0/WIRING_AUDIT_MAP.md`
+```markdown
+# Wiring Audit Map — v2.1a P0 Mission CLI Acceptance Enforcement
+
+## Scope
+In scope mission entrypoints:
+1. `lifeos mission run`
+2. `lifeos run-mission`
+
+Out of scope:
+1. `lifeos spine *`
+2. non-mission commands
+3. non-mission scripts
+
+## Pre-State Evidence (Verbatim)
+Command: `git status --porcelain=v1`
+
+```text
+?? artifacts/validation_samples/v2.1a-p0/PRE_git_diff_name_only.txt
+?? artifacts/validation_samples/v2.1a-p0/PRE_git_status_porcelain.txt
+```
+
+Command: `git diff --name-only`
+
+```text
+
+```
+
+## Invocation Surfaces (In Scope)
+| Surface | Source | Path |
+|---|---|---|
+| Console script `lifeos` | `pyproject.toml` `[project.scripts]` | `lifeos = "runtime.cli:main"` |
+| Console script `coo` | `pyproject.toml` `[project.scripts]` | `coo = "runtime.cli:main"` |
+| Module entrypoint | `runtime/__main__.py` | `python -m runtime -> runtime.cli.main()` |
+| CLI dispatch route 1 | `runtime/cli.py` | `main() -> subcommand mission/run -> cmd_mission_run()` |
+| CLI dispatch route 2 | `runtime/cli.py` | `main() -> subcommand run-mission -> cmd_run_mission()` |
+
+## CI Workflow Scan (Direct Invocation of In-Scope Commands)
+Scan target: `.github/workflows/*`
+
+Patterns scanned:
+1. `lifeos mission run`
+2. `lifeos run-mission`
+3. `python -m runtime` with mission command
+
+Result: **none found** (no direct in-scope mission command invocation in workflow files).
+
+## Acceptance/Success Emitters and Transitions
+| Component | Function | Role |
+|---|---|---|
+| `runtime/orchestration/orchestrator.py` | `ValidationOrchestrator.run()` | canonical orchestration flow with gate + acceptor call |
+| `runtime/validation/acceptor.py` | `accept()` | canonical token verification + acceptance record writer |
+| `runtime/cli.py` | `cmd_mission_run()` | mission result JSON builder + exit emitter |
+| `runtime/cli.py` | `cmd_run_mission()` | mission status print + exit emitter |
+
+## BEFORE Map (Entrypoint -> Call Chain -> Success Emitter)
+| Entrypoint | Call Chain (BEFORE) | Success Emitter(s) |
+|---|---|---|
+| `lifeos mission run` (also via `coo` and `python -m runtime`) | `runtime.cli.main()` -> `cmd_mission_run()` -> `registry.run_mission()` OR direct fallback mission execution -> local wrapper synthesis in `cmd_mission_run()` | `cmd_mission_run()` emits JSON with `success` and returns exit code from local success logic (no acceptance proof gate) |
+| `lifeos run-mission` (also via `coo` and `python -m runtime`) | `runtime.cli.main()` -> `cmd_run_mission()` -> `synthesize_mission()` -> `execute_mission()` -> `registry.run_mission()` | `cmd_run_mission()` prints `Status: SUCCESS` and returns `0` from `result.get('success')` (no acceptance proof gate) |
+
+## Explicit In-Scope Bypass Risks (BEFORE)
+1. `cmd_mission_run()` can emit `success=true` and return `0` without `ValidationOrchestrator.run()` and without acceptance record verification.
+2. `cmd_run_mission()` can return `0` on mission success without acceptance token verification and without acceptance record existence.
+3. Mission success in both in-scope commands is currently tied to mission completion status, not canonical acceptance state.
+
+## Canonical Chokepoint Decision (LOCK)
+1. Canonical acceptance writer: `runtime/orchestration/orchestrator.py::ValidationOrchestrator.run()`
+2. Canonical verifier/recorder: `runtime/validation/acceptor.py::accept()`
+3. Accepted run definition: run is accepted only if Acceptor verifies token and writes `acceptance_record.json` derived from that verified token.
+4. Legacy mission success emitters in `runtime/cli.py` that bypass the canonical acceptance flow are deprecated and must be removed from in-scope paths.
+
+## AFTER Map (Post-Switchover)
+| Entrypoint | Call Chain (AFTER) | Success Emitter(s) |
+|---|---|---|
+| `lifeos mission run` (also via `coo` and `python -m runtime`) | `runtime.cli.main()` -> `cmd_mission_run()` -> `_run_mission_with_acceptance()` -> `ValidationOrchestrator.run()` -> `GateRunner.run_postflight()` token mint -> `accept()` acceptance record mint -> `_verify_acceptance_proof()` -> `_emit_mission_result()` | `_emit_mission_result()` can return exit `0` only when payload `success=true`, where payload `success` is gated by mission success **and** verified acceptance record proof |
+| `lifeos run-mission` (also via `coo` and `python -m runtime`) | `runtime.cli.main()` -> `cmd_run_mission()` -> `synthesize_mission()` -> `_run_mission_with_acceptance()` -> `ValidationOrchestrator.run()` -> `GateRunner.run_postflight()` token mint -> `accept()` acceptance record mint -> `_verify_acceptance_proof()` -> `_emit_mission_result()` | `_emit_mission_result()` can return exit `0` only when payload `success=true`, where payload `success` is gated by mission success **and** verified acceptance record proof |
+
+## Acceptance Proof Contract (AFTER)
+For `--json` success (`success=true`) both commands now emit:
+1. `acceptance_token_path`
+2. `acceptance_record_path`
+3. `acceptance_token_sha256`
+4. `evidence_manifest_sha256`
+
+Proof gate now validates:
+1. token path exists
+2. acceptance record path exists
+3. acceptance record schema and accepted flag
+4. record token path matches emitted token path
+5. token sha256 matches record
+6. evidence manifest exists and sha256 matches record
+
+Any failed check forces fail-closed: `success=false`, non-zero exit.
+
+## In-Scope Bypass Risk Status (AFTER)
+1. Prior `cmd_mission_run()` local success emitter bypass is removed from in-scope path.
+2. Prior `cmd_run_mission()` direct status-based success emitter bypass is removed from in-scope path.
+3. In-scope mission command success now converges on canonical chokepoints (`ValidationOrchestrator.run()` + `accept()`).
+4. **Zero in-scope bypass paths identified** from repository evidence after switchover.
+
+## Blockers
+None.
+```
+
+### `artifacts/validation_samples/v2.1a-p0/WIRING_SWITCHOVER_PYTEST_OUTPUT.txt`
+```text
+$ pytest -v runtime/tests/orchestration/test_validation_orchestrator.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/Projects/LifeOS
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collecting ... collected 5 items
+
+runtime/tests/orchestration/test_validation_orchestrator.py::test_orchestrator_success_path PASSED [ 20%]
+runtime/tests/orchestration/test_validation_orchestrator.py::test_orchestrator_preflight_failure_is_terminal PASSED [ 40%]
+runtime/tests/orchestration/test_validation_orchestrator.py::test_orchestrator_owns_retry_loop PASSED [ 60%]
+runtime/tests/orchestration/test_validation_orchestrator.py::test_orchestrator_detects_job_spec_tamper_as_terminal PASSED [ 80%]
+runtime/tests/orchestration/test_validation_orchestrator.py::test_retry_cap_boundary_stops_at_second_failure PASSED [100%]
+
+============================== 5 passed in 2.11s ===============================
+
+$ pytest -v runtime/tests/test_cli_mission.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/cabra/Projects/LifeOS
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collecting ... collected 11 items
+
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_mission_list_returns_sorted_json PASSED [  9%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_mission_run_json_success_includes_acceptance_proof PASSED [ 18%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_run_mission_json_success_includes_acceptance_proof PASSED [ 27%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[missing_record-mission_run] PASSED [ 36%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[missing_record-run_mission] PASSED [ 45%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[missing_token-mission_run] PASSED [ 54%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[missing_token-run_mission] PASSED [ 63%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[tampered_token-mission_run] PASSED [ 72%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_when_proof_invalid[tampered_token-run_mission] PASSED [ 81%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_without_acceptance_record_path[mission_run] PASSED [ 90%]
+runtime/tests/test_cli_mission.py::TestMissionCLI::test_commands_fail_closed_without_acceptance_record_path[run_mission] PASSED [100%]
+
+============================== 11 passed in 2.81s ==============================
+```
