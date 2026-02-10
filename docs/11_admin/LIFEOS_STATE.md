@@ -13,7 +13,7 @@
 
 **Current Focus:** Manual v2.1 Reconciliation — closing stale gaps, preparing for OpenClaw COO
 **Active WIP:** build/manual-v2.1-reconciliation branch (pending merge to main)
-**Last Updated:** 2026-02-08
+**Last Updated:** 2026-02-10
 
 ---
 
@@ -69,6 +69,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-10:** EOL Clean Invariant Hardening — Root cause fixed (system `core.autocrlf=true` conflicted with `.gitattributes eol=lf`), 289-file mechanical renormalization, config-aware clean gate (`coo_land_policy clean-check`), acceptance closure validator (`coo_acceptance_policy`), EOL_Policy_v1.0 canonical doc, 37 new tests.
 - **2026-02-08:** Manual v2.1 Reconciliation — CRLF root-cause fix (.gitattributes), 36 tests re-enabled (1335→1371), free Zen models configured, manual v2.1 corrected (StewardMission & LLM backend gaps were already closed).
 - **2026-02-08:** Deletion Safety Hardening — Article XIX enforcement, safe_cleanup.py guards, 8 integration tests.
 - **2026-02-08:** Documentation Stewardship - Relocated 5 root documentation files to canonical locations in `docs/11_admin`, `docs/00_foundations`, and `docs/99_archive`. Updated project index and state.
