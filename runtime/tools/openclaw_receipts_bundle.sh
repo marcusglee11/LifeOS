@@ -22,6 +22,11 @@ NOTES=""
 CMD_TIMEOUT_SEC="${OPENCLAW_CMD_TIMEOUT_SEC:-25}"
 SECURITY_AUDIT_MODE="${OPENCLAW_SECURITY_AUDIT_MODE:-unknown}"
 CONFINEMENT_FLAG="${OPENCLAW_CONFINEMENT_FLAG:-}"
+RECALL_TRACE_ENABLED="${OPENCLAW_RECALL_TRACE_ENABLED:-false}"
+LAST_RECALL_QUERY_HASH="${OPENCLAW_LAST_RECALL_QUERY_HASH:-}"
+LAST_RECALL_HIT_COUNT="${OPENCLAW_LAST_RECALL_HIT_COUNT:-0}"
+LAST_RECALL_SOURCES="${OPENCLAW_LAST_RECALL_SOURCES:-}"
+LAST_RECALL_TIMESTAMP_UTC="${OPENCLAW_LAST_RECALL_TIMESTAMP_UTC:-}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -142,6 +147,7 @@ for id in "${CMD_IDS[@]}"; do
   export "RC_${id}=${CMD_RC[$id]:-1}"
 done
 export TS_UTC CFG_PATH ROOT runtime_receipt ledger_file NOTES SECURITY_AUDIT_MODE CONFINEMENT_FLAG
+export RECALL_TRACE_ENABLED LAST_RECALL_QUERY_HASH LAST_RECALL_HIT_COUNT LAST_RECALL_SOURCES LAST_RECALL_TIMESTAMP_UTC
 export CAPTURE_models_status_probe="${CMD_CAPTURE[models_status_probe]:-}"
 export CAPTURE_status_all_usage="${CMD_CAPTURE[status_all_usage]:-}"
 export CAPTURE_memory_policy_guard_summary="${CMD_CAPTURE[memory_policy_guard_summary]:-}"
@@ -251,6 +257,13 @@ tripwire_triggered = any(v.get("min_percent_left") is not None and v["min_percen
 memory_policy_summary = read_json_from_capture("CAPTURE_memory_policy_guard_summary")
 memory_policy_ok = bool(memory_policy_summary.get("policy_ok", False))
 memory_policy_violations_count = int(memory_policy_summary.get("violations_count", 0) or 0)
+last_recall_sources = [s for s in os.environ.get("LAST_RECALL_SOURCES", "").split(",") if s]
+last_recall = OrderedDict([
+    ("query_hash", os.environ.get("LAST_RECALL_QUERY_HASH", "")),
+    ("hit_count", int(os.environ.get("LAST_RECALL_HIT_COUNT", "0") or 0)),
+    ("sources", last_recall_sources),
+    ("timestamp_utc", os.environ.get("LAST_RECALL_TIMESTAMP_UTC", "")),
+])
 
 try:
     coo_wrapper_version = subprocess.check_output(["git", "-C", str(root), "rev-parse", "--short", "HEAD"], text=True).strip()
@@ -299,6 +312,8 @@ entry["budget_tripwire_triggered"] = tripwire_triggered
 entry["budget_snapshot"] = budget_snapshot
 entry["memory_policy_ok"] = memory_policy_ok
 entry["memory_policy_violations_count"] = memory_policy_violations_count
+entry["recall_trace_enabled"] = str(os.environ.get("RECALL_TRACE_ENABLED", "false")).lower() == "true"
+entry["last_recall"] = last_recall
 entry["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")
 entry["confinement_detected"] = bool(os.environ.get("CONFINEMENT_FLAG", ""))
 if os.environ.get("CONFINEMENT_FLAG"):
@@ -317,6 +332,8 @@ manifest["budget_tripwire_triggered"] = tripwire_triggered
 manifest["budget_snapshot"] = budget_snapshot
 manifest["memory_policy_ok"] = memory_policy_ok
 manifest["memory_policy_violations_count"] = memory_policy_violations_count
+manifest["recall_trace_enabled"] = str(os.environ.get("RECALL_TRACE_ENABLED", "false")).lower() == "true"
+manifest["last_recall"] = last_recall
 manifest["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")
 manifest["confinement_detected"] = bool(os.environ.get("CONFINEMENT_FLAG", ""))
 if os.environ.get("CONFINEMENT_FLAG"):

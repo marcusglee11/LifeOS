@@ -97,6 +97,24 @@ Expected output:
 - `PASS telegram_posture=allowlist+requireMention replyToMode=first ...`
 - or `FAIL telegram_posture=allowlist+requireMention replyToMode=<x> ...`
 
+Grounded recall verifier (memory ↔ interface contract):
+
+```bash
+runtime/tools/openclaw_verify_recall_e2e.sh
+```
+
+Expected output:
+
+- `PASS recall_mode=telegram_sim|cli_only sources_present=true MANUAL_SMOKE_REQUIRED=<true|false> ...`
+- or `FAIL recall_mode=... sources_present=false ...`
+
+Recall contract:
+
+- Recall/decision intents must use memory search first.
+- Answers must include a `Sources:` section with `file:line-range` pointers.
+- If no hits, response must be: `No grounded memory found. Which timeframe or document should I check?`
+- Receipts/ledger store recall metadata only (`query_hash`, hit count, sources), never raw query content.
+
 ## Telegram Hardening
 
 - `channels.telegram.allowFrom` must be non-empty and must not include `"*"`.
@@ -128,4 +146,5 @@ HTTP mode setup (when provisioning is approved):
 - Verify is fail-closed on security audit, sandbox invariants, and policy assertion.
 - Receipts include a non-deep memory status capture; they do not run memory index by default.
 - Receipts include memory policy guard summary status (`memory_policy_ok`, violation count).
+- Receipts include recall trace metadata (`recall_trace_enabled`, `last_recall`).
 - Receipts include a non-deep channels status capture and never include Slack secrets.
