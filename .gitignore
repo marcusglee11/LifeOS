@@ -37,6 +37,7 @@ docs/.obsidian/
 # OS files
 .DS_Store
 Thumbs.db
+/session_logs/
 
 # Logs
 *.log
@@ -89,6 +90,12 @@ temp_*
 *.log
 nul
 
+# Local agent runtime scaffolding (non-repo assets)
+/.agent/
+/.athena_root
+/.context/
+/.framework/
+
 # LifeOS Closures & Ephemeral
 artifacts/closures/*.zip
 artifacts/closures/Phase_3_*/
@@ -109,3 +116,10 @@ artifacts/steps/
 test_autonomous_direct.py
 .claude/settings.local.json
 artifacts/validation_runs/
+
+# Packaging & Environments
+/*.egg-info/
+/build/
+/dist/
+/.venv*/
+/venv*/

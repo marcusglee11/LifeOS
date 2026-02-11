@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json
+import argparse, json, os
 from pathlib import Path
 from typing import Any, Dict, List
 DAILY_PRIMARY='openai-codex/gpt-5.3-codex'
@@ -9,6 +9,8 @@ REVIEW_PRIMARY='openai-codex/gpt-5.3-codex'
 REVIEW_FALLBACKS=['github-copilot/claude-opus-4.6']
 MANUAL_ONLY_MODELS=['openrouter/pony-alpha','openrouter/deepseek-v3.2','opencode/kimi-k2.5-free']
 OWNER_ONLY_COMMANDS={'/model','/models','/think'}
+MEMORY_PROVIDER='local'
+MEMORY_FALLBACK='none'
 
 def _agent_by_id(cfg: Dict[str, Any], agent_id: str) -> Dict[str, Any]:
     for item in ((cfg.get('agents') or {}).get('list') or []):
@@ -61,6 +63,46 @@ def command_authorized(cfg: Dict[str, Any], sender: str, command: str) -> bool:
         return False
     return sender in owners
 
+def _assert_memory_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    defaults = ((cfg.get('agents') or {}).get('defaults') or {})
+    workspace_raw = str(defaults.get('workspace') or '')
+    if not workspace_raw:
+        raise AssertionError('agents.defaults.workspace must be set')
+
+    workspace = os.path.abspath(os.path.expanduser(workspace_raw))
+    openclaw_home = os.path.abspath(os.path.expanduser('~/.openclaw'))
+    if not (workspace == openclaw_home or workspace.startswith(openclaw_home + os.sep)):
+        raise AssertionError(f'agents.defaults.workspace must be under ~/.openclaw, got {workspace_raw}')
+
+    memory = defaults.get('memorySearch')
+    if not isinstance(memory, dict):
+        raise AssertionError('agents.defaults.memorySearch must be configured')
+    if memory.get('enabled') is not True:
+        raise AssertionError('agents.defaults.memorySearch.enabled must be true')
+
+    provider = str(memory.get('provider') or '')
+    fallback = str(memory.get('fallback') or '')
+    if provider != MEMORY_PROVIDER:
+        raise AssertionError(f'agents.defaults.memorySearch.provider must be {MEMORY_PROVIDER}, got {provider}')
+    if fallback != MEMORY_FALLBACK:
+        raise AssertionError(f'agents.defaults.memorySearch.fallback must be {MEMORY_FALLBACK}, got {fallback}')
+
+    sources = memory.get('sources')
+    if not isinstance(sources, list):
+        raise AssertionError('agents.defaults.memorySearch.sources must be a list')
+    normalized_sources = [str(x) for x in sources]
+    if 'memory' not in normalized_sources:
+        raise AssertionError('agents.defaults.memorySearch.sources must include "memory"')
+    if 'sessions' in normalized_sources:
+        raise AssertionError('agents.defaults.memorySearch.sources must not include "sessions" at P1.1')
+
+    return {
+        'workspace': workspace_raw,
+        'provider': provider,
+        'fallback': fallback,
+        'sources': normalized_sources,
+    }
+
 def assert_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
     defaults = ((cfg.get('agents') or {}).get('defaults') or {})
     defaults_think = str(defaults.get('thinkingDefault') or 'unknown')
@@ -80,12 +122,14 @@ def assert_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
         raise AssertionError('non-owner must be rejected for /model')
     if command_authorized(cfg, '__non_owner__', '/think high'):
         raise AssertionError('non-owner must be rejected for /think')
+    memory = _assert_memory_policy(cfg)
     return {
         'daily_ladder': {'primary': DAILY_PRIMARY, 'fallbacks': DAILY_FALLBACKS},
         'review_ladder': {'primary': REVIEW_PRIMARY, 'fallbacks': REVIEW_FALLBACKS},
         'manual_only_models': MANUAL_ONLY_MODELS,
         'owners': owners,
         'defaults_thinking': defaults_think,
+        'memory': memory,
     }
 
 def main() -> int:

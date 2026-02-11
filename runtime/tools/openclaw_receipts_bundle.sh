@@ -20,6 +20,13 @@ TS_UTC="$(date -u +%Y%m%dT%H%M%SZ)"
 EXPORT_REPO=0
 NOTES=""
 CMD_TIMEOUT_SEC="${OPENCLAW_CMD_TIMEOUT_SEC:-25}"
+SECURITY_AUDIT_MODE="${OPENCLAW_SECURITY_AUDIT_MODE:-unknown}"
+CONFINEMENT_FLAG="${OPENCLAW_CONFINEMENT_FLAG:-}"
+RECALL_TRACE_ENABLED="${OPENCLAW_RECALL_TRACE_ENABLED:-false}"
+LAST_RECALL_QUERY_HASH="${OPENCLAW_LAST_RECALL_QUERY_HASH:-}"
+LAST_RECALL_HIT_COUNT="${OPENCLAW_LAST_RECALL_HIT_COUNT:-0}"
+LAST_RECALL_SOURCES="${OPENCLAW_LAST_RECALL_SOURCES:-}"
+LAST_RECALL_TIMESTAMP_UTC="${OPENCLAW_LAST_RECALL_TIMESTAMP_UTC:-}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -65,6 +72,9 @@ CMD_IDS=(
   coo_symlink
   openclaw_version
   security_audit_deep
+  memory_policy_guard_summary
+  memory_status_main
+  channels_status_json
   models_status_probe
   status_all_usage
   sandbox_explain_json
@@ -125,6 +135,9 @@ run_capture coo_path which coo
 run_capture coo_symlink bash -lc 'ls -l "$(which coo)"'
 run_capture openclaw_version openclaw --version
 run_capture security_audit_deep coo openclaw -- security audit --deep
+run_capture memory_policy_guard_summary python3 runtime/tools/openclaw_memory_policy_guard.py --json-summary
+run_capture memory_status_main coo openclaw -- memory status --agent main
+run_capture channels_status_json coo openclaw -- channels status --json
 run_capture models_status_probe coo openclaw -- models status --probe
 run_capture status_all_usage coo openclaw -- status --all --usage
 run_capture sandbox_explain_json coo openclaw -- sandbox explain --json
@@ -133,9 +146,11 @@ run_capture gateway_probe_json coo openclaw -- gateway probe --json
 for id in "${CMD_IDS[@]}"; do
   export "RC_${id}=${CMD_RC[$id]:-1}"
 done
-export TS_UTC CFG_PATH ROOT runtime_receipt ledger_file NOTES
+export TS_UTC CFG_PATH ROOT runtime_receipt ledger_file NOTES SECURITY_AUDIT_MODE CONFINEMENT_FLAG
+export RECALL_TRACE_ENABLED LAST_RECALL_QUERY_HASH LAST_RECALL_HIT_COUNT LAST_RECALL_SOURCES LAST_RECALL_TIMESTAMP_UTC
 export CAPTURE_models_status_probe="${CMD_CAPTURE[models_status_probe]:-}"
 export CAPTURE_status_all_usage="${CMD_CAPTURE[status_all_usage]:-}"
+export CAPTURE_memory_policy_guard_summary="${CMD_CAPTURE[memory_policy_guard_summary]:-}"
 
 python3 - "$runtime_manifest" "$runtime_ledger_entry" <<'PY'
 import hashlib
@@ -185,6 +200,19 @@ def read_capture(env_name: str) -> str:
         return ""
     return p.read_text(encoding="utf-8", errors="replace")
 
+def read_json_from_capture(env_name: str) -> dict:
+    raw = read_capture(env_name)
+    if not raw:
+        return {}
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        return {}
+    try:
+        return json.loads(raw[start:end + 1])
+    except Exception:
+        return {}
+
 cfg_obj = {}
 if cfg_path.exists():
     try:
@@ -226,6 +254,16 @@ for line in "\n".join([read_capture("CAPTURE_models_status_probe"), read_capture
 
 tripwire_min_percent = int(os.environ.get("OPENCLAW_BUDGET_MIN_PERCENT_LEFT", "20"))
 tripwire_triggered = any(v.get("min_percent_left") is not None and v["min_percent_left"] < tripwire_min_percent for v in budget_snapshot.values())
+memory_policy_summary = read_json_from_capture("CAPTURE_memory_policy_guard_summary")
+memory_policy_ok = bool(memory_policy_summary.get("policy_ok", False))
+memory_policy_violations_count = int(memory_policy_summary.get("violations_count", 0) or 0)
+last_recall_sources = [s for s in os.environ.get("LAST_RECALL_SOURCES", "").split(",") if s]
+last_recall = OrderedDict([
+    ("query_hash", os.environ.get("LAST_RECALL_QUERY_HASH", "")),
+    ("hit_count", int(os.environ.get("LAST_RECALL_HIT_COUNT", "0") or 0)),
+    ("sources", last_recall_sources),
+    ("timestamp_utc", os.environ.get("LAST_RECALL_TIMESTAMP_UTC", "")),
+])
 
 try:
     coo_wrapper_version = subprocess.check_output(["git", "-C", str(root), "rev-parse", "--short", "HEAD"], text=True).strip()
@@ -243,6 +281,9 @@ for key in [
     "coo_symlink",
     "openclaw_version",
     "security_audit_deep",
+    "memory_policy_guard_summary",
+    "memory_status_main",
+    "channels_status_json",
     "models_status_probe",
     "status_all_usage",
     "sandbox_explain_json",
@@ -269,6 +310,14 @@ entry["redaction_count"] = redaction_count
 entry["budget_tripwire_min_percent_left"] = tripwire_min_percent
 entry["budget_tripwire_triggered"] = tripwire_triggered
 entry["budget_snapshot"] = budget_snapshot
+entry["memory_policy_ok"] = memory_policy_ok
+entry["memory_policy_violations_count"] = memory_policy_violations_count
+entry["recall_trace_enabled"] = str(os.environ.get("RECALL_TRACE_ENABLED", "false")).lower() == "true"
+entry["last_recall"] = last_recall
+entry["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")
+entry["confinement_detected"] = bool(os.environ.get("CONFINEMENT_FLAG", ""))
+if os.environ.get("CONFINEMENT_FLAG"):
+    entry["confinement_flag"] = os.environ["CONFINEMENT_FLAG"]
 if os.environ.get("NOTES"):
     entry["notes"] = os.environ["NOTES"]
 
@@ -281,6 +330,14 @@ manifest["guardrails_fingerprint"] = guardrails_fingerprint
 manifest["budget_tripwire_min_percent_left"] = tripwire_min_percent
 manifest["budget_tripwire_triggered"] = tripwire_triggered
 manifest["budget_snapshot"] = budget_snapshot
+manifest["memory_policy_ok"] = memory_policy_ok
+manifest["memory_policy_violations_count"] = memory_policy_violations_count
+manifest["recall_trace_enabled"] = str(os.environ.get("RECALL_TRACE_ENABLED", "false")).lower() == "true"
+manifest["last_recall"] = last_recall
+manifest["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")
+manifest["confinement_detected"] = bool(os.environ.get("CONFINEMENT_FLAG", ""))
+if os.environ.get("CONFINEMENT_FLAG"):
+    manifest["confinement_flag"] = os.environ["CONFINEMENT_FLAG"]
 manifest["exit_codes"] = exit_codes
 
 manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
