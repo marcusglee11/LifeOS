@@ -1,5 +1,0 @@
-doc_steward
-opencode_governance
-project_builder
-recursive_kernel
-runtime

@@ -115,6 +115,39 @@ Recall contract:
 - If no hits, response must be: `No grounded memory found. Which timeframe or document should I check?`
 - Receipts/ledger store recall metadata only (`query_hash`, hit count, sources), never raw query content.
 
+## Manual Telegram Smoke (Metadata-Only)
+
+Operator step (allowed Telegram DM only):
+
+1. Send exactly:
+   `what did we decide last week about lobster-memory-seed-001?`
+2. Expected behavior:
+   - grounded answer returned
+   - `Sources:` section includes `memory/daily/2026-02-10.md:1-5`
+3. Record metadata only (no message text, no IDs/usernames/phone numbers):
+
+```bash
+coo run -- bash -lc 'cd /mnt/c/Users/cabra/Projects/LifeOS && P1_5_EVDIR=artifacts/evidence/openclaw/p1_5/<UTC_TS> runtime/tools/openclaw_record_manual_smoke.sh --surface telegram_dm --result pass --sources memory/daily/2026-02-10.md:1-5'
+```
+
+Fail branch:
+
+```bash
+coo run -- bash -lc 'cd /mnt/c/Users/cabra/Projects/LifeOS && P1_5_EVDIR=artifacts/evidence/openclaw/p1_5/<UTC_TS> runtime/tools/openclaw_record_manual_smoke.sh --surface telegram_dm --result fail --sources "(none)"'
+```
+
+## P1 Acceptance Verifier
+
+Run:
+
+```bash
+coo run -- bash -lc 'cd /mnt/c/Users/cabra/Projects/LifeOS && P1_5_EVDIR=artifacts/evidence/openclaw/p1_5/<UTC_TS> runtime/tools/openclaw_verify_p1_acceptance.sh'
+```
+
+Expected:
+
+- `PASS p1_acceptance=true manual_smoke=pass source_pointer=memory/daily/2026-02-10.md:1-5 ...`
+
 ## Telegram Hardening
 
 - `channels.telegram.allowFrom` must be non-empty and must not include `"*"`.
