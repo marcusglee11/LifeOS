@@ -72,8 +72,19 @@ runtime/tools/openclaw_verify_memory.sh
 
 Expected output:
 
-- `PASS provider=local fallback=none ...`
-- or `FAIL provider=<x> fallback=<y> ...`
+- `PASS memory_policy_ok=true provider=local fallback=none ...`
+- or `FAIL memory_policy_ok=false provider=<x> fallback=<y> ...`
+
+Safe memory indexing wrapper (guarded):
+
+```bash
+runtime/tools/openclaw_memory_index_safe.sh
+```
+
+Behavior:
+
+- Runs `runtime/tools/openclaw_memory_policy_guard.py` first (fail-closed).
+- Runs `coo openclaw -- memory index --agent main --verbose` only when guard passes.
 
 Optional interfaces verifier (Telegram hardening posture):
 
@@ -116,4 +127,5 @@ HTTP mode setup (when provisioning is approved):
 - Leak scan must pass for runtime receipt + runtime ledger entry.
 - Verify is fail-closed on security audit, sandbox invariants, and policy assertion.
 - Receipts include a non-deep memory status capture; they do not run memory index by default.
+- Receipts include memory policy guard summary status (`memory_policy_ok`, violation count).
 - Receipts include a non-deep channels status capture and never include Slack secrets.
