@@ -75,6 +75,40 @@ Expected output:
 - `PASS provider=local fallback=none ...`
 - or `FAIL provider=<x> fallback=<y> ...`
 
+Optional interfaces verifier (Telegram hardening posture):
+
+```bash
+runtime/tools/openclaw_verify_interfaces.sh
+```
+
+Expected output:
+
+- `PASS telegram_posture=allowlist+requireMention replyToMode=first ...`
+- or `FAIL telegram_posture=allowlist+requireMention replyToMode=<x> ...`
+
+## Telegram Hardening
+
+- `channels.telegram.allowFrom` must be non-empty and must not include `"*"`.
+- `channels.telegram.groups` must use explicit group IDs (no `"*"`), with `requireMention: true`.
+- `agents.list[].groupChat.mentionPatterns` should include stable mention triggers (for example `@openclaw`, `openclaw`).
+- `messages.groupChat.historyLimit` should stay conservative (30-50).
+- `channels.telegram.replyToMode` uses `first` for predictable threading.
+
+## Slack Scaffold (Blocked Until Tokens)
+
+Slack is scaffolded in secure-by-default mode only:
+
+- `channels.slack.enabled=false`
+- optional HTTP wiring keys only (`mode="http"`, `webhookPath="/slack/events"`)
+- no `botToken`, `appToken`, or `signingSecret` in config
+
+HTTP mode setup (when provisioning is approved):
+
+1. Create Slack app and copy Signing Secret + Bot Token.
+2. Configure `channels.slack.mode="http"` and `channels.slack.webhookPath="/slack/events"`.
+3. Set Slack Event Subscriptions, Interactivity, and Slash Command Request URL to `/slack/events`.
+4. Keep channel disabled until tokens are injected and validated.
+
 ## Safety Invariants
 
 - Default receipt generation must not write to repo paths.
@@ -82,3 +116,4 @@ Expected output:
 - Leak scan must pass for runtime receipt + runtime ledger entry.
 - Verify is fail-closed on security audit, sandbox invariants, and policy assertion.
 - Receipts include a non-deep memory status capture; they do not run memory index by default.
+- Receipts include a non-deep channels status capture and never include Slack secrets.
