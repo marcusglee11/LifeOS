@@ -89,6 +89,12 @@ temp_*
 *.log
 nul
 
+# Local agent runtime scaffolding (non-repo assets)
+/.agent/
+/.athena_root
+/.context/
+/.framework/
+
 # LifeOS Closures & Ephemeral
 artifacts/closures/*.zip
 artifacts/closures/Phase_3_*/
