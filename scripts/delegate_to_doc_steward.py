@@ -152,6 +152,46 @@ class DocStewardOrchestrator:
         self.opencode_url = opencode_url
         self.model = model
         self.session_id: Optional[str] = None
+
+    def _extract_text_from_payload(self, payload: Any) -> str:
+        """Best-effort text extraction across known OpenCode response shapes."""
+        if payload is None:
+            return ""
+        if isinstance(payload, str):
+            return payload
+        if isinstance(payload, list):
+            return "\n".join(self._extract_text_from_payload(item) for item in payload if item)
+        if not isinstance(payload, dict):
+            return str(payload)
+
+        # Direct text fields
+        for key in ("text", "content", "message", "output"):
+            val = payload.get(key)
+            if isinstance(val, str) and val.strip():
+                return val
+
+        # OpenCode-like parts array
+        parts = payload.get("parts", [])
+        if isinstance(parts, list):
+            text_parts = []
+            for part in parts:
+                if isinstance(part, dict):
+                    t = part.get("text") or part.get("content")
+                    if isinstance(t, str) and t:
+                        text_parts.append(t)
+            if text_parts:
+                return "\n".join(text_parts)
+
+        # Message collections
+        messages = payload.get("messages", [])
+        if isinstance(messages, list):
+            # Prefer latest entries first
+            for msg in reversed(messages):
+                t = self._extract_text_from_payload(msg)
+                if t.strip():
+                    return t
+
+        return ""
     
     def create_request(self, mission_type: str, case_id: str,
                        mode: str = "dry-run", trial_type: str = "trial") -> DocStewardRequest:
@@ -344,7 +384,39 @@ class DocStewardOrchestrator:
                     f"Prompt failed: {resp.status_code} - {resp.text}", start_time)
             
             # Parse response
-            return self._parse_steward_response(request, resp.json(), start_time)
+            parsed = None
+            response_text = (resp.text or "").strip()
+            if response_text:
+                try:
+                    parsed = resp.json()
+                except ValueError:
+                    # Some OpenCode builds return plain text.
+                    parsed = {"parts": [{"type": "text", "text": response_text}]}
+            else:
+                # Async/OpenCode variants may ACK with empty body; poll session state.
+                for _ in range(5):
+                    time.sleep(0.5)
+                    snapshot_resp = requests.get(
+                        f"{self.opencode_url}/session/{self.session_id}",
+                        headers={"Content-Type": "application/json"},
+                        timeout=10,
+                    )
+                    if snapshot_resp.status_code != 200:
+                        continue
+                    snapshot = snapshot_resp.json()
+                    extracted = self._extract_text_from_payload(snapshot)
+                    if extracted.strip():
+                        parsed = snapshot
+                        break
+
+            if parsed is None:
+                return self._error_result(
+                    request,
+                    "EMPTY_RESPONSE_BODY",
+                    "OpenCode message endpoint returned 200 with empty body and no retrievable session text.",
+                    start_time,
+                )
+            return self._parse_steward_response(request, parsed, start_time)
             
         except requests.exceptions.Timeout:
             return self._error_result(request, "TIMEOUT", "API request timed out", start_time)
