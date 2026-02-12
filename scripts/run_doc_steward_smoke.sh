@@ -4,6 +4,14 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Load .env automatically when present (key=value lines only).
+if [[ -f ".env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source ".env"
+  set +a
+fi
+
 MODEL="${OPENCODE_MODEL:-opencode/kimi-k2.5-free}"
 PORT="${OPENCODE_PORT:-4096}"
 URL="http://127.0.0.1:${PORT}"
