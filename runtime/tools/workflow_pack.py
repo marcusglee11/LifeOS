@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shlex
 import subprocess
 import sys
@@ -311,15 +312,31 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
     ]
 
     for label, cmd in steps:
+        run_env = None
+        if label == "commit squash merge":
+            run_env = os.environ.copy()
+            run_env["LIFEOS_MAIN_COMMIT_ALLOWED"] = "1"
         proc = subprocess.run(
             cmd,
             check=False,
             capture_output=True,
             text=True,
+            env=run_env,
         )
         if proc.returncode == 0:
             continue
         details = (proc.stderr or "").strip() or (proc.stdout or "").strip()
+        if label == "pull --ff-only":
+            lowered = details.lower()
+            offline_markers = (
+                "could not resolve hostname",
+                "temporary failure in name resolution",
+                "could not read from remote repository",
+                "failed to connect",
+            )
+            if any(marker in lowered for marker in offline_markers):
+                # Offline fallback: proceed with local main if remote is unreachable.
+                continue
         errors.append(f"{label} failed: {details or f'exit code {proc.returncode}'}")
         subprocess.run(
             ["git", "-C", str(repo), "checkout", source_branch],

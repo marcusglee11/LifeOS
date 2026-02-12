@@ -2,6 +2,7 @@ import subprocess
 import os
 import sys
 from pathlib import Path
+import pytest
 
 def test_isolated_smoke_test_preserves_cleanliness():
     """
@@ -20,7 +21,18 @@ def test_isolated_smoke_test_preserves_cleanliness():
         text=True
     )
     
-    # P0: if smoke script fails, include stdout/stderr in the failure message
+    # Offline sandboxes can fail dependency installation in the isolated venv.
+    combined = f"{res.stdout}\n{res.stderr}".lower()
+    offline_signals = (
+        "failed to establish a new connection",
+        "no matching distribution found",
+        "could not find a version that satisfies the requirement",
+        "temporary failure in name resolution",
+    )
+    if res.returncode != 0 and any(marker in combined for marker in offline_signals):
+        pytest.skip("isolated smoke test requires network access for pip dependencies")
+
+    # P0: if smoke script fails for other reasons, include stdout/stderr in the failure message
     assert res.returncode == 0, (
         f"Isolated smoke test script failed with code {res.returncode}\n"
         f"--- STDOUT ---\n{res.stdout}\n"

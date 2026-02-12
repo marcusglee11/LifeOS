@@ -37,6 +37,8 @@ def _setup_repo(tmp_path: Path) -> tuple[Path, Path]:
     _run(["git", "init", "-b", "main"], repo)
     _run(["git", "config", "user.email", "test@example.com"], repo)
     _run(["git", "config", "user.name", "Test User"], repo)
+    # coo_land clean-check requires explicit autocrlf=false compliance.
+    _run(["git", "config", "core.autocrlf", "false"], repo)
     _run(["git", "add", "."], repo)
     _run(["git", "commit", "-m", "init"], repo)
     return repo, source_repo

@@ -8,6 +8,8 @@ TRAIN_BRANCH="coo/training"
 OPENCLAW_PROFILE="${OPENCLAW_PROFILE:-}"
 OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
 OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_STATE_DIR/openclaw.json}"
+OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
+OPENCLAW_BIN="${OPENCLAW_BIN:-}"
 
 print_header() {
   local profile_label="(default)"
@@ -20,21 +22,52 @@ print_header() {
   echo "OPENCLAW_PROFILE=$profile_label"
   echo "OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
   echo "OPENCLAW_CONFIG_PATH=$OPENCLAW_CONFIG_PATH"
+  if [ -n "$OPENCLAW_BIN" ]; then
+    echo "OPENCLAW_BIN=$OPENCLAW_BIN"
+  fi
 }
 
 ensure_openclaw_surface() {
   mkdir -p "$OPENCLAW_STATE_DIR"
   export OPENCLAW_STATE_DIR
   export OPENCLAW_CONFIG_PATH
+  resolve_openclaw_bin
+  export OPENCLAW_BIN
+  export OPENCLAW_GATEWAY_PORT
+}
+
+resolve_openclaw_bin() {
+  if [ -n "$OPENCLAW_BIN" ] && [ -x "$OPENCLAW_BIN" ]; then
+    return 0
+  fi
+
+  if command -v openclaw >/dev/null 2>&1; then
+    OPENCLAW_BIN="$(command -v openclaw)"
+    return 0
+  fi
+
+  for candidate in \
+    /home/linuxbrew/.linuxbrew/bin/openclaw \
+    /usr/local/bin/openclaw \
+    /usr/bin/openclaw; do
+    if [ -x "$candidate" ]; then
+      OPENCLAW_BIN="$candidate"
+      return 0
+    fi
+  done
+
+  echo "ERROR: OpenClaw binary not found. Install OpenClaw or add it to PATH." >&2
+  echo "Checked: PATH, /home/linuxbrew/.linuxbrew/bin/openclaw, /usr/local/bin/openclaw, /usr/bin/openclaw" >&2
+  exit 127
 }
 
 run_openclaw() {
   ensure_openclaw_surface
   if [ -n "$OPENCLAW_PROFILE" ]; then
-    openclaw --profile "$OPENCLAW_PROFILE" "$@"
+    "$OPENCLAW_BIN" --profile "$OPENCLAW_PROFILE" "$@"
     return
   fi
-  openclaw "$@"
+  "$OPENCLAW_BIN" "$@"
 }
 
 ensure_worktree() {
@@ -115,6 +148,24 @@ safe_redact_file_head() {
   if [ -f "$file" ]; then
     sed -n "1,${lines}p" "$file" | sed -E 's/[A-Za-z0-9_-]{24,}/[REDACTED]/g'
   fi
+}
+
+redact_sensitive_stream() {
+  python3 - <<'PY'
+import re
+import sys
+
+text = sys.stdin.read()
+text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[REDACTED_EMAIL]', text)
+text = re.sub(r'Authorization\s*:\s*Bearer\s+\S+', 'Authorization: Bearer [REDACTED]', text, flags=re.I)
+text = re.sub(r'\bxapp-[A-Za-z0-9-]{6,}\b', 'xapp-[REDACTED]', text)
+text = re.sub(r'\bxoxb-[A-Za-z0-9-]{6,}\b', 'xoxb-[REDACTED]', text)
+text = re.sub(r'\bsk-or-v1[a-zA-Z0-9._-]{6,}\b', 'sk-or-v1[REDACTED]', text)
+text = re.sub(r'\bsk-[A-Za-z0-9_-]{8,}\b', 'sk-[REDACTED]', text)
+text = re.sub(r'\bAIza[0-9A-Za-z_-]{10,}\b', 'AIza[REDACTED]', text)
+text = re.sub(r'[A-Za-z0-9+/_=-]{80,}', '[REDACTED_LONG]', text)
+sys.stdout.write(text)
+PY
 }
 
 write_hashes() {
@@ -231,6 +282,11 @@ render_capsule_marker() {
 usage() {
   cat <<'EOF'
 Usage:
+  runtime/tools/coo_worktree.sh start
+  runtime/tools/coo_worktree.sh tui [-- <tui-args...>]
+  runtime/tools/coo_worktree.sh app
+  runtime/tools/coo_worktree.sh stop
+  runtime/tools/coo_worktree.sh diag
   runtime/tools/coo_worktree.sh ensure
   runtime/tools/coo_worktree.sh path
   runtime/tools/coo_worktree.sh cd
@@ -253,7 +309,74 @@ case "$cmd" in
     ;;
   ensure)
     ensure_worktree
+    ensure_openclaw_surface
     print_header
+    ;;
+  start)
+    shift || true
+    ensure_openclaw_surface
+    print_header
+    (
+      cd "$BUILD_REPO"
+      runtime/tools/openclaw_gateway_ensure.sh
+      runtime/tools/openclaw_models_preflight.sh
+    )
+    echo "DASHBOARD_URL=http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
+    ;;
+  tui)
+    shift || true
+    if [ "${1:-}" = "--" ]; then
+      shift || true
+    fi
+    "$0" start
+    ensure_openclaw_surface
+    print_header
+    enter_training_dir
+    run_openclaw tui --deliver --session main "$@"
+    ;;
+  app)
+    shift || true
+    "$0" start
+    ensure_openclaw_surface
+    print_header
+    app_url="http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
+    if powershell.exe -NoProfile -Command "Start-Process '$app_url'" >/dev/null 2>&1; then
+      echo "APP_OPENED=$app_url"
+    else
+      echo "APP_OPEN_FAILED URL=$app_url"
+    fi
+    ;;
+  stop)
+    shift || true
+    ensure_openclaw_surface
+    print_header
+    (
+      cd "$BUILD_REPO"
+      runtime/tools/openclaw_gateway_stop_local.sh
+    )
+    ;;
+  diag)
+    shift || true
+    ensure_openclaw_surface
+    print_header
+    (
+      cd "$BUILD_REPO"
+      echo "GATEWAY_PORT=$OPENCLAW_GATEWAY_PORT"
+      runtime/tools/openclaw_gateway_ensure.sh --check-only || true
+      echo "MODELS_STATUS_BEGIN"
+      status_tmp="$(mktemp)"
+      if run_openclaw models status >"$status_tmp" 2>&1; then
+        redact_sensitive_stream <"$status_tmp"
+      else
+        redact_sensitive_stream <"$status_tmp"
+      fi
+      rm -f "$status_tmp"
+      echo "MODELS_STATUS_END"
+      echo "MODEL_POLICY_ASSERT_BEGIN"
+      python3 runtime/tools/openclaw_model_policy_assert.py --json || true
+      echo "MODEL_POLICY_ASSERT_END"
+      echo "HINT=Run 'openclaw models status --probe' for deeper provider diagnostics."
+    )
     ;;
   path)
     echo "$TRAIN_WT"
@@ -1549,15 +1672,6 @@ EOF
     } > "$receipt_file"
     write_hashes "$evid_dir"
     cat "$receipt_file"
-    ;;
-  tui)
-    shift || true
-    if [ "${1:-}" = "--" ]; then
-      shift || true
-    fi
-    enter_training_dir
-    print_header
-    run_openclaw tui "$@"
     ;;
   run)
     shift || true

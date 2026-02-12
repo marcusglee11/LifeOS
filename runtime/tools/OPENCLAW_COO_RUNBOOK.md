@@ -86,6 +86,31 @@ Behavior:
 - Runs `runtime/tools/openclaw_memory_policy_guard.py` first (fail-closed).
 - Runs `coo openclaw -- memory index --agent main --verbose` only when guard passes.
 
+## Embedding Provider Trial (Opt-In, No Default Drift)
+
+Default policy stays enforced as local-only memory embeddings:
+
+- `memorySearch.provider=local`
+- `memorySearch.fallback=none`
+
+Use this trial command only for A/B checks. It runs with a temporary overlay config under `$OPENCLAW_STATE_DIR/embedding-trials/` and does not mutate your base config:
+
+```bash
+python3 runtime/tools/openclaw_embedding_trial.py --provider openai --model text-embedding-3-small --index --json
+```
+
+Other provider trials:
+
+```bash
+python3 runtime/tools/openclaw_embedding_trial.py --provider gemini --model gemini-embedding-001 --index --json
+python3 runtime/tools/openclaw_embedding_trial.py --provider voyage --model voyage-3.5-lite --index --json
+```
+
+Interpretation:
+
+- `trial_pass=true` with `hit_count>=1` means the provider worked for current corpus/search.
+- `trial_pass=false` means auth/model/provider failed in trial mode; baseline local policy remains unchanged.
+
 Optional interfaces verifier (Telegram hardening posture):
 
 ```bash
@@ -192,12 +217,32 @@ Slack is scaffolded in secure-by-default mode only:
 - optional HTTP wiring keys only (`mode="http"`, `webhookPath="/slack/events"`)
 - no `botToken`, `appToken`, or `signingSecret` in config
 
-HTTP mode setup (when provisioning is approved):
+Slack enablement uses env-only overlay generation. Tokens are never written into
+`~/.openclaw/openclaw.json`, repo files, or evidence artifacts.
 
-1. Create Slack app and copy Signing Secret + Bot Token.
-2. Configure `channels.slack.mode="http"` and `channels.slack.webhookPath="/slack/events"`.
-3. Set Slack Event Subscriptions, Interactivity, and Slash Command Request URL to `/slack/events`.
-4. Keep channel disabled until tokens are injected and validated.
+Socket mode enablement (when provisioning is approved):
+
+1. Export env vars in shell/session only:
+   - `OPENCLAW_SLACK_MODE=socket`
+   - `OPENCLAW_SLACK_APP_TOKEN`
+   - `OPENCLAW_SLACK_BOT_TOKEN`
+2. Launch with overlay:
+   - `runtime/tools/openclaw_slack_launch.sh --apply`
+3. Run post-enable checks:
+   - `runtime/tools/openclaw_verify_interfaces.sh`
+   - `runtime/tools/openclaw_verify_multiuser_posture.sh`
+   - `runtime/tools/openclaw_verify_slack_guards.sh`
+
+HTTP mode enablement (when provisioning is approved):
+
+1. Export env vars in shell/session only:
+   - `OPENCLAW_SLACK_MODE=http`
+   - `OPENCLAW_SLACK_BOT_TOKEN`
+   - `OPENCLAW_SLACK_SIGNING_SECRET`
+2. Ensure request URL uses `/slack/events` and signature verification remains enabled.
+3. Launch with overlay:
+   - `runtime/tools/openclaw_slack_launch.sh --apply`
+4. Run same post-enable checks as socket mode.
 
 ## Safety Invariants
 
@@ -210,3 +255,4 @@ HTTP mode setup (when provisioning is approved):
 - Receipts include recall trace metadata (`recall_trace_enabled`, `last_recall`).
 - Receipts include a non-deep channels status capture and never include Slack secrets.
 - Receipts include multi-user posture status (`multiuser_posture_ok`, channel names, allowlist counts, violations count) and never include allowlist values.
+- Receipts include Slack guard posture (`slack_ready_to_enable`, `slack_base_enabled`, `slack_env_present`, `slack_overlay_last_mode`) with booleans/counts only.

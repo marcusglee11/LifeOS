@@ -269,6 +269,27 @@ multiuser_allowlist_sizes = {
     if str(k).strip()
 }
 multiuser_violations_count = len(list(multiuser_summary.get("violations") or []))
+slack_cfg = {}
+if isinstance(cfg_obj, dict):
+    channels_obj = cfg_obj.get("channels") or {}
+    if isinstance(channels_obj, dict):
+        raw_slack = channels_obj.get("slack")
+        if isinstance(raw_slack, dict):
+            slack_cfg = raw_slack
+slack_base_enabled = bool(slack_cfg.get("enabled") is True)
+slack_secret_keys = [
+    key for key in ("appToken", "botToken", "signingSecret")
+    if str(slack_cfg.get(key) or "").strip()
+]
+slack_secrets_in_base = bool(slack_secret_keys)
+slack_overlay_last_mode = str(os.environ.get("OPENCLAW_SLACK_OVERLAY_LAST_MODE") or slack_cfg.get("mode") or "unknown")
+if slack_overlay_last_mode == "http":
+    slack_env_present = bool(os.environ.get("OPENCLAW_SLACK_BOT_TOKEN")) and bool(os.environ.get("OPENCLAW_SLACK_SIGNING_SECRET"))
+elif slack_overlay_last_mode == "socket":
+    slack_env_present = bool(os.environ.get("OPENCLAW_SLACK_APP_TOKEN")) and bool(os.environ.get("OPENCLAW_SLACK_BOT_TOKEN"))
+else:
+    slack_env_present = False
+slack_ready_to_enable = (not slack_base_enabled) and (not slack_secrets_in_base)
 last_recall_sources = [s for s in os.environ.get("LAST_RECALL_SOURCES", "").split(",") if s]
 last_recall = OrderedDict([
     ("query_hash", os.environ.get("LAST_RECALL_QUERY_HASH", "")),
@@ -329,6 +350,10 @@ entry["multiuser_posture_ok"] = multiuser_posture_ok
 entry["multiuser_enabled_channels"] = multiuser_enabled_channels
 entry["multiuser_allowlist_sizes"] = multiuser_allowlist_sizes
 entry["multiuser_violations_count"] = multiuser_violations_count
+entry["slack_ready_to_enable"] = slack_ready_to_enable
+entry["slack_base_enabled"] = slack_base_enabled
+entry["slack_env_present"] = slack_env_present
+entry["slack_overlay_last_mode"] = slack_overlay_last_mode
 entry["recall_trace_enabled"] = str(os.environ.get("RECALL_TRACE_ENABLED", "false")).lower() == "true"
 entry["last_recall"] = last_recall
 entry["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")
@@ -353,6 +378,10 @@ manifest["multiuser_posture_ok"] = multiuser_posture_ok
 manifest["multiuser_enabled_channels"] = multiuser_enabled_channels
 manifest["multiuser_allowlist_sizes"] = multiuser_allowlist_sizes
 manifest["multiuser_violations_count"] = multiuser_violations_count
+manifest["slack_ready_to_enable"] = slack_ready_to_enable
+manifest["slack_base_enabled"] = slack_base_enabled
+manifest["slack_env_present"] = slack_env_present
+manifest["slack_overlay_last_mode"] = slack_overlay_last_mode
 manifest["recall_trace_enabled"] = str(os.environ.get("RECALL_TRACE_ENABLED", "false")).lower() == "true"
 manifest["last_recall"] = last_recall
 manifest["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")

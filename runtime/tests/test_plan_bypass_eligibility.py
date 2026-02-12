@@ -7,6 +7,7 @@ when loop retries can proceed without Plan approval.
 
 import pytest
 from runtime.orchestration.loop.configurable_policy import ConfigurableLoopPolicy
+from runtime.orchestration.loop.ledger import AttemptLedger, AttemptRecord
 from runtime.orchestration.loop.taxonomy import FailureClass
 
 
@@ -21,7 +22,9 @@ def policy_with_bypass():
                 "TYPO": 3,
                 "FORMATTING_ERROR": 3,
                 "TEST_FAILURE": 3,
-            }
+            },
+            "global_bypass_limit": 5,
+            "default_per_class_limit": 3,
         },
         "failure_routing": {
             "LINT_ERROR": {
@@ -213,3 +216,150 @@ class TestGovernancePathDetection:
         assert not policy_with_bypass._is_governance_path("src/main.py")
         assert not policy_with_bypass._is_governance_path("README.md")
         assert not policy_with_bypass._is_governance_path("docs/03_specs/feature.md")
+
+
+_USE_DEFAULT_PBI = object()
+
+
+def _mk_record(
+    *,
+    attempt_id: int,
+    failure_class: str | None,
+    applied: object,
+    plan_bypass_info: object = _USE_DEFAULT_PBI,
+) -> AttemptRecord:
+    if plan_bypass_info is _USE_DEFAULT_PBI:
+        plan_bypass_info = {"applied": applied, "rule_id": "loop.lint_error"}
+    return AttemptRecord(
+        attempt_id=attempt_id,
+        timestamp="2026-02-01T00:00:00Z",
+        run_id="run-budget",
+        policy_hash="p",
+        input_hash="i",
+        actions_taken=[],
+        diff_hash=None,
+        changed_files=["src/file.py"],
+        evidence_hashes={},
+        success=False,
+        failure_class=failure_class,
+        terminal_reason=None,
+        next_action="retry",
+        rationale="test",
+        plan_bypass_info=plan_bypass_info,
+    )
+
+
+def _mk_ledger(tmp_path, records: list[AttemptRecord]) -> AttemptLedger:
+    ledger = AttemptLedger(tmp_path / "attempt_ledger.jsonl")
+    ledger.history = records
+    return ledger
+
+
+class TestBudgetEnforcement:
+    def test_budget_denies_when_per_class_limit_exhausted(self, policy_with_bypass, tmp_path):
+        ledger = _mk_ledger(
+            tmp_path,
+            [
+                _mk_record(attempt_id=1, failure_class="lint_error", applied=True),
+                _mk_record(attempt_id=2, failure_class="LINT_ERROR", applied=True),
+                _mk_record(attempt_id=3, failure_class="lint_error", applied=True),
+            ],
+        )
+        decision = policy_with_bypass.evaluate_plan_bypass(
+            failure_class_key="lint_error",
+            proposed_patch={"files_touched": 1, "total_line_delta": 1, "files": ["src/file.py"]},
+            protected_path_registry=[],
+            ledger=ledger,
+        )
+        assert decision["eligible"] is False
+        assert "per-class bypass budget exhausted" in decision["decision_reason"].lower()
+        assert decision["budget"]["per_class_remaining"] == 0
+        assert decision["budget"]["global_remaining"] == 2
+
+    def test_budget_denies_when_global_limit_exhausted(self, policy_with_bypass, tmp_path):
+        ledger = _mk_ledger(
+            tmp_path,
+            [
+                _mk_record(attempt_id=1, failure_class="lint_error", applied=True),
+                _mk_record(attempt_id=2, failure_class="typo", applied=True),
+                _mk_record(attempt_id=3, failure_class="formatting_error", applied=True),
+                _mk_record(attempt_id=4, failure_class="test_flake", applied=True),
+                _mk_record(attempt_id=5, failure_class="typo", applied=True),
+            ],
+        )
+        decision = policy_with_bypass.evaluate_plan_bypass(
+            failure_class_key="lint_error",
+            proposed_patch={"files_touched": 1, "total_line_delta": 1, "files": ["src/file.py"]},
+            protected_path_registry=[],
+            ledger=ledger,
+        )
+        assert decision["eligible"] is False
+        assert "global bypass budget exhausted" in decision["decision_reason"].lower()
+        assert decision["budget"]["global_remaining"] == 0
+        assert decision["budget"]["per_class_remaining"] == 2
+
+    def test_budget_allows_when_under_limits(self, policy_with_bypass, tmp_path):
+        ledger = _mk_ledger(
+            tmp_path,
+            [
+                _mk_record(attempt_id=1, failure_class="lint_error", applied=True),
+                _mk_record(attempt_id=2, failure_class="typo", applied=True),
+            ],
+        )
+        decision = policy_with_bypass.evaluate_plan_bypass(
+            failure_class_key="lint_error",
+            proposed_patch={"files_touched": 1, "total_line_delta": 1, "files": ["src/file.py"]},
+            protected_path_registry=[],
+            ledger=ledger,
+        )
+        assert decision["eligible"] is True
+        assert decision["decision_reason"] == "Eligible"
+        assert decision["budget"]["per_class_remaining"] == 2
+        assert decision["budget"]["global_remaining"] == 3
+
+    def test_budget_allows_on_fresh_empty_ledger(self, policy_with_bypass, tmp_path):
+        ledger = _mk_ledger(tmp_path, [])
+        decision = policy_with_bypass.evaluate_plan_bypass(
+            failure_class_key="lint_error",
+            proposed_patch={"files_touched": 1, "total_line_delta": 1, "files": ["src/file.py"]},
+            protected_path_registry=[],
+            ledger=ledger,
+        )
+        assert decision["eligible"] is True
+        assert decision["budget"]["per_class_remaining"] == 3
+        assert decision["budget"]["global_remaining"] == 5
+
+    def test_budget_counts_only_applied_true_entries(self, policy_with_bypass, tmp_path):
+        ledger = _mk_ledger(
+            tmp_path,
+            [
+                _mk_record(attempt_id=1, failure_class="lint_error", applied=False),
+                _mk_record(attempt_id=2, failure_class="lint_error", applied=True),
+                _mk_record(attempt_id=3, failure_class="lint_error", applied=True, plan_bypass_info=None),
+                _mk_record(attempt_id=4, failure_class="lint_error", applied=True, plan_bypass_info="bad-shape"),
+            ],
+        )
+        decision = policy_with_bypass.evaluate_plan_bypass(
+            failure_class_key="lint_error",
+            proposed_patch={"files_touched": 1, "total_line_delta": 1, "files": ["src/file.py"]},
+            protected_path_registry=[],
+            ledger=ledger,
+        )
+        assert decision["eligible"] is True
+        assert decision["budget"]["per_class_remaining"] == 2
+        assert decision["budget"]["global_remaining"] == 4
+
+    def test_budget_decision_includes_remaining_fields(self, policy_with_bypass, tmp_path):
+        ledger = _mk_ledger(
+            tmp_path,
+            [_mk_record(attempt_id=1, failure_class="lint_error", applied=True)],
+        )
+        decision = policy_with_bypass.evaluate_plan_bypass(
+            failure_class_key="lint_error",
+            proposed_patch={"files_touched": 1, "total_line_delta": 1, "files": ["src/file.py"]},
+            protected_path_registry=[],
+            ledger=ledger,
+        )
+        assert "budget" in decision
+        assert "per_class_remaining" in decision["budget"]
+        assert "global_remaining" in decision["budget"]

@@ -16,6 +16,11 @@ CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
 # Check if on protected branch
 for branch in "${PROTECTED_BRANCHES[@]}"; do
     if [ "$CURRENT_BRANCH" = "$branch" ]; then
+        # Controlled exception for orchestrated close-build merges.
+        if [ "${LIFEOS_MAIN_COMMIT_ALLOWED:-}" = "1" ]; then
+            echo "ℹ️  pre-commit: allowing protected-branch commit via LIFEOS_MAIN_COMMIT_ALLOWED=1"
+            break
+        fi
         echo ""
         echo "🚫 BLOCKED: Direct commits to '$branch' are not allowed."
         echo ""

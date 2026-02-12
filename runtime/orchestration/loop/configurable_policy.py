@@ -534,8 +534,69 @@ class ConfigurableLoopPolicy:
             decision["decision_reason"] = f"Scope: files {decision['scope']['files_touched']} > max_files {max_files}"
             return decision
 
-        # 5. Check Budgets (Simplified stub - assume global=5, per_class=3)
-        # LIFEOS_TODO: Connect to real budget controller
+        # 5. Check Budgets (Ledger-backed enforcement)
+        global_limit = self.budgets.get("global_bypass_limit", 5)
+        per_class_limit = self.retry_limits.get(
+            fc_norm, self.budgets.get("default_per_class_limit", 3)
+        )
+
+        # Be robust to mocked ledgers in tests.
+        raw_history = getattr(ledger, "history", []) or []
+        if isinstance(raw_history, list):
+            history = raw_history
+        else:
+            try:
+                history = list(raw_history)
+            except Exception:
+                history = []
+
+        bypass_class_count = 0
+        bypass_global_count = 0
+        for record in history:
+            pbi = getattr(record, "plan_bypass_info", None)
+            if not isinstance(pbi, dict) or not pbi.get("applied"):
+                continue
+
+            bypass_global_count += 1
+
+            # Primary key for per-class accounting: AttemptRecord.failure_class.
+            rec_fc = getattr(record, "failure_class", None)
+            if rec_fc:
+                rec_fc_norm = self.normalize_failure_class(rec_fc)
+            else:
+                rec_fc_norm = ""
+
+            # Fallback for legacy/malformed records that omitted failure_class.
+            if not rec_fc_norm:
+                pbi_fc = pbi.get("failure_class")
+                if not pbi_fc:
+                    rule_id = pbi.get("rule_id", "")
+                    if isinstance(rule_id, str):
+                        pbi_fc = rule_id.replace("loop.", "", 1)
+                rec_fc_norm = self.normalize_failure_class(pbi_fc) if pbi_fc else ""
+
+            if rec_fc_norm == fc_norm:
+                bypass_class_count += 1
+
+        decision["budget"] = {
+            "per_class_remaining": max(0, per_class_limit - bypass_class_count),
+            "global_remaining": max(0, global_limit - bypass_global_count),
+        }
+
+        if bypass_class_count >= per_class_limit:
+            decision["decision_reason"] = (
+                f"Per-class bypass budget exhausted: "
+                f"{bypass_class_count}/{per_class_limit} for {fc_norm}"
+            )
+            return decision
+
+        if bypass_global_count >= global_limit:
+            decision["decision_reason"] = (
+                f"Global bypass budget exhausted: "
+                f"{bypass_global_count}/{global_limit}"
+            )
+            return decision
+
         decision["eligible"] = True
         decision["decision_reason"] = "Eligible"
         return decision

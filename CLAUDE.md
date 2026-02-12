@@ -120,6 +120,38 @@ Before writing new code:
 
 ---
 
+## Review-Fix-Report Protocol (Multi-Agent)
+
+When reviewing builds (from Codex, Claude Code, or any agent), **fix obvious issues in-place rather than just reporting them**. This saves round-trips and tokens.
+
+### Tiered Response Model
+
+| Fix Complexity | Action | Examples |
+|---|---|---|
+| **Obvious** — dead code, missing catch, copy-paste of existing pattern | Fix it, commit, report what changed | Unreachable code, unhandled exception type |
+| **Patterned** — follows existing convention, just missing | Fix it, commit, report with rationale | Missing token extraction matching sibling phases |
+| **Judgment call** — multiple valid approaches, design trade-off | Propose 2-3 options, let owner pick | Schema coupling strategy, error semantics |
+| **Architectural** — changes contracts, affects multiple modules | Report only, escalate to Council/owner | New cross-module interfaces, governance changes |
+
+### Inter-Agent Communication
+
+- **Git is the shared bus** — commits, diffs, and files are the only truly shared memory between agents
+- **CLAUDE.md is the shared protocol** — both Codex and Claude Code read this automatically
+- **Athena files (`.context/`)** — persistent memory across sessions; agents must explicitly read them
+- **Conversation history is NOT shared** — each agent has its own session context
+- **Minimize copy-paste** — reference commits (`see d848d1f`) or file paths instead of pasting prose between agents
+- When handing off between agents, prefer: "review branch X" or "address findings in commit Y"
+
+### Review Workflow
+
+1. **Reviewing agent** reads diffs, runs tests, identifies issues by tier
+2. **Obvious/Patterned** → fix in-place, commit, report what changed and why
+3. **Judgment/Architectural** → report with options, wait for owner decision
+4. **Verify** → run targeted tests + full suite, confirm zero regressions
+5. **Report** includes: what was fixed, test results, remaining items (if any)
+
+---
+
 ## Mistakes to Avoid
 
 ### 1. Over-Scoping
