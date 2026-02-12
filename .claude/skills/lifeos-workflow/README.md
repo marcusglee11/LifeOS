@@ -43,17 +43,23 @@ Claude Code skills specific to LifeOS concurrent development workflows.
 
 **Purpose:** Compact deterministic handoff packs (`to_codex` / `from_codex`) with fixed section order.
 
+### close-build
+
+**Purpose:** Finalize a passing branch in one step (tests, conditional doc stewardship, merge, cleanup).
+
 ## Commands
 
 - `/review-build`
 - `/handoff`
 - `/review-fix`
 - `/handoff-pack`
+- `/close-build`
 
 ## Workflow Utilities
 
 - `scripts/workflow/test_router.sh` - Map changed files to targeted test commands.
 - `scripts/workflow/active_work.py` - Maintain compact context artifact at `.context/active_work.yaml` (ignored by git).
+- `scripts/workflow/closure_pack.py` - Run the final close lifecycle with strict report output.
 
 ## Installation
 
