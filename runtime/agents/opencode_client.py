@@ -589,8 +589,8 @@ class OpenCodeClient:
                 return {}
             out: Dict[str, int] = {}
             field_map = {
-                "prompt_tokens": ("prompt_tokens", "input_tokens", "promptTokenCount", "inputTokenCount"),
-                "completion_tokens": ("completion_tokens", "output_tokens", "candidatesTokenCount", "outputTokenCount"),
+                "input_tokens": ("input_tokens", "prompt_tokens", "promptTokenCount", "inputTokenCount"),
+                "output_tokens": ("output_tokens", "completion_tokens", "candidatesTokenCount", "outputTokenCount"),
                 "total_tokens": ("total_tokens", "totalTokenCount"),
             }
             for canonical_key, aliases in field_map.items():
