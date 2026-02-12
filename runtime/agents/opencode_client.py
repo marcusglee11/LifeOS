@@ -173,6 +173,7 @@ class LLMResponse:
     model_used: str
     latency_ms: int
     timestamp: str
+    usage: Dict[str, int] = field(default_factory=dict)
 
 
 # ============================================================================
@@ -582,6 +583,23 @@ class OpenCodeClient:
         """Execute a single LLM attempt with specific model and dynamic key swapping."""
         call_id = str(uuid.uuid4())
         start_time = time.time()
+
+        def _normalize_usage(usage: Any) -> Dict[str, int]:
+            if not isinstance(usage, dict):
+                return {}
+            out: Dict[str, int] = {}
+            field_map = {
+                "prompt_tokens": ("prompt_tokens", "input_tokens", "promptTokenCount", "inputTokenCount"),
+                "completion_tokens": ("completion_tokens", "output_tokens", "candidatesTokenCount", "outputTokenCount"),
+                "total_tokens": ("total_tokens", "totalTokenCount"),
+            }
+            for canonical_key, aliases in field_map.items():
+                for alias in aliases:
+                    value = usage.get(alias)
+                    if isinstance(value, int) and value >= 0:
+                        out[canonical_key] = value
+                        break
+            return out
         
         # Build environment for this attempt
         env = os.environ.copy()
@@ -680,7 +698,8 @@ class OpenCodeClient:
                             content=text,
                             model_used=f"OR:{data.get('model', model)}",
                             latency_ms=int((time.time() - start_time) * 1000),
-                            timestamp=datetime.now().isoformat()
+                            timestamp=datetime.now().isoformat(),
+                            usage=_normalize_usage(data.get("usage")),
                         )
                         
                         # Log the call
@@ -763,7 +782,8 @@ class OpenCodeClient:
                                  content=text,
                                  model_used=f"ZEN:{model}",
                                  latency_ms=int((time.time() - start_time) * 1000),
-                                 timestamp=datetime.now().isoformat()
+                                 timestamp=datetime.now().isoformat(),
+                                 usage=_normalize_usage(data.get("usageMetadata")),
                              )
                              if self.log_calls:
                                  self._log_call(request, llm_response)
@@ -808,7 +828,8 @@ class OpenCodeClient:
                                  content=text,
                                  model_used=f"ZEN:{data.get('model', model)}",
                                  latency_ms=int((time.time() - start_time) * 1000),
-                                 timestamp=datetime.now().isoformat()
+                                 timestamp=datetime.now().isoformat(),
+                                 usage=_normalize_usage(data.get("usage")),
                              )
                              
                              # Log the call
@@ -878,6 +899,7 @@ class OpenCodeClient:
                 model_used=model,
                 latency_ms=latency_ms,
                 timestamp=timestamp,
+                usage={},
             )
 
             # Log the call

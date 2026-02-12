@@ -107,6 +107,7 @@ class AgentCall:
     model: str = "auto"
     temperature: float = 0.0
     max_tokens: int = 8192
+    require_usage: bool = False
 
 
 @dataclass
@@ -143,6 +144,35 @@ class AgentTimeoutError(AgentAPIError):
 class AgentResponseInvalid(AgentAPIError):
     """Response failed packet schema validation."""
     pass
+
+
+def _normalize_usage(usage: Any) -> dict[str, int]:
+    """Normalize provider usage payload into canonical token fields."""
+    if not isinstance(usage, dict):
+        return {}
+
+    def _pick_int(*keys: str) -> int | None:
+        for key in keys:
+            value = usage.get(key)
+            if isinstance(value, int) and value >= 0:
+                return value
+        return None
+
+    input_tokens = _pick_int("input_tokens", "prompt_tokens", "promptTokenCount", "inputTokenCount")
+    output_tokens = _pick_int("output_tokens", "completion_tokens", "candidatesTokenCount", "outputTokenCount")
+    total_tokens = _pick_int("total_tokens", "totalTokenCount")
+
+    normalized: dict[str, int] = {}
+    if input_tokens is not None:
+        normalized["input_tokens"] = input_tokens
+    if output_tokens is not None:
+        normalized["output_tokens"] = output_tokens
+    if total_tokens is not None:
+        normalized["total_tokens"] = total_tokens
+    elif input_tokens is not None and output_tokens is not None:
+        normalized["total_tokens"] = input_tokens + output_tokens
+
+    return normalized
 
 
 def _load_role_prompt(role: str, config_dir: str = "config/agent_roles") -> tuple[str, str]:
@@ -321,6 +351,9 @@ def call_agent(
         
         # Execute call via client (handles retry and fallback internally)
         response = client.call(llm_request)
+        normalized_usage = _normalize_usage(getattr(response, "usage", {}))
+        if call.require_usage and not normalized_usage:
+            raise AgentAPIError("TOKEN_ACCOUNTING_UNAVAILABLE: upstream usage missing")
         
         latency_ms = int((time.monotonic() - start_time) * 1000)
         
@@ -351,8 +384,8 @@ def call_agent(
             model_version=model_version,
             input_packet_hash=packet_hash,
             prompt_hash=prompt_hash,
-            input_tokens=0, # Client doesn't return usage yet
-            output_tokens=0,
+            input_tokens=normalized_usage.get("input_tokens", 0),
+            output_tokens=normalized_usage.get("output_tokens", 0),
             latency_ms=latency_ms,
             output_packet_hash=output_packet_hash,
             status="success",
@@ -366,7 +399,7 @@ def call_agent(
             model_version=model_version,
             content=content,
             packet=packet,
-            usage={"input_tokens": 0, "output_tokens": 0},
+            usage=normalized_usage,
             latency_ms=latency_ms,
             timestamp=timestamp,
         )
@@ -383,7 +416,7 @@ def call_agent(
         model_version=model_version,
         content=content,
         packet=packet,
-        usage={"input_tokens": 0, "output_tokens": 0},
+        usage={},
         latency_ms=latency_ms,
         timestamp=timestamp,
     )

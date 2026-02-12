@@ -93,6 +93,42 @@ def test_token_accounting_fail_closed(mock_context, mock_sub_missions):
     assert result.success is False
     assert result.escalation_reason == TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
 
+
+def test_token_accounting_fail_closed_when_design_usage_missing(mock_context, mock_sub_missions):
+    MockDesign, _, _, _ = mock_sub_missions
+
+    d_inst = MockDesign.return_value
+    d_inst.run.return_value = MissionResult(
+        True,
+        MissionType.DESIGN,
+        outputs={"build_packet": {}},
+        evidence={},
+    )
+
+    mission = AutonomousBuildCycleMission()
+    result = mission.run(mock_context, {"task_spec": "design without usage"})
+
+    assert result.success is False
+    assert result.escalation_reason == TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+
+
+def test_token_accounting_fail_closed_when_review_usage_missing(mock_context, mock_sub_missions):
+    _, _, MockReview, _ = mock_sub_missions
+
+    r_inst = MockReview.return_value
+    r_inst.run.return_value = MissionResult(
+        True,
+        MissionType.REVIEW,
+        outputs={"verdict": "approved", "council_decision": {}},
+        evidence={},
+    )
+
+    mission = AutonomousBuildCycleMission()
+    result = mission.run(mock_context, {"task_spec": "review without usage"})
+
+    assert result.success is False
+    assert result.escalation_reason == TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+
 def test_budget_exhausted(mock_context, mock_sub_missions):
     _, _, MockReview, _ = mock_sub_missions
     # Make Review reject everything -> Loop -> Exhaust Budget

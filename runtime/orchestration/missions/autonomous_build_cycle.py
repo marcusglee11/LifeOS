@@ -115,6 +115,32 @@ class AutonomousBuildCycleMission(BaseMission):
         s = json.dumps(obj, sort_keys=True, default=str)
         return hashlib.sha256(s.encode('utf-8')).hexdigest()
 
+    def _extract_usage_tokens(self, evidence: Dict[str, Any]) -> Optional[int]:
+        """Return normalized token usage total, or None when unavailable."""
+        usage = evidence.get("usage")
+        if not isinstance(usage, dict) or not usage:
+            return None
+
+        total_tokens = usage.get("total_tokens")
+        if isinstance(total_tokens, int) and total_tokens >= 0:
+            return total_tokens
+
+        input_tokens = usage.get("input_tokens")
+        output_tokens = usage.get("output_tokens")
+        if (
+            isinstance(input_tokens, int)
+            and input_tokens >= 0
+            and isinstance(output_tokens, int)
+            and output_tokens >= 0
+        ):
+            return input_tokens + output_tokens
+
+        legacy_total = usage.get("total")
+        if isinstance(legacy_total, int) and legacy_total >= 0:
+            return legacy_total
+
+        return None
+
     def _emit_packet(self, name: str, content: Dict[str, Any], context: MissionContext):
         """Emit a canonical packet to artifacts/"""
         path = context.repo_root / "artifacts" / name
@@ -379,21 +405,16 @@ class AutonomousBuildCycleMission(BaseMission):
         design = DesignMission()
         d_res = design.run(context, inputs)
         executed_steps.append("design_phase")
-        
-        if d_res.evidence.get("usage"):
-             total_tokens += d_res.evidence["usage"].get("total_tokens", 0) # total_tokens key might differ, checking api.py
-             # api.py usage has input_tokens, output_tokens.
-             u = d_res.evidence["usage"]
-             total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
-        else:
-             # P0: Fail Closed if accounting missing
-             # But Design might be cached? or Stubbed? 
-             # If Stubbed, usage might be missing.
-             # We should check if it was a real call. 
-             pass
 
         if not d_res.success:
             return self._make_result(success=False, error=f"Design failed: {d_res.error}", executed_steps=executed_steps)
+
+        design_tokens = self._extract_usage_tokens(d_res.evidence)
+        if design_tokens is None:
+            reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+            self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+            return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+        total_tokens += design_tokens
             
         build_packet = d_res.outputs["build_packet"]
         
@@ -401,10 +422,13 @@ class AutonomousBuildCycleMission(BaseMission):
         review = ReviewMission()
         r_res = review.run(context, {"subject_packet": build_packet, "review_type": "build_review"})
         executed_steps.append("design_review")
-        
-        if r_res.evidence.get("usage"):
-             u = r_res.evidence["usage"]
-             total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+
+        review_tokens = self._extract_usage_tokens(r_res.evidence)
+        if review_tokens is None:
+            reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+            self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+            return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+        total_tokens += review_tokens
 
         if not r_res.success or r_res.outputs.get("verdict") != "approved":
              return self._make_result(
@@ -465,18 +489,13 @@ class AutonomousBuildCycleMission(BaseMission):
             b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
             executed_steps.append(f"build_attempt_{attempt_id}")
             
-            # Token Accounting (Fail Closed)
-            has_tokens = False
-            if b_res.evidence.get("usage"):
-                u = b_res.evidence["usage"]
-                total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
-                has_tokens = True
-            
-            if not has_tokens:
+            build_tokens = self._extract_usage_tokens(b_res.evidence)
+            if build_tokens is None:
                 # P0: Fail Closed on Token Accounting
                 reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
                 self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
                 return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+            total_tokens += build_tokens
 
             if not b_res.success:
                 # Internal mission error (crash?)
@@ -513,10 +532,12 @@ class AutonomousBuildCycleMission(BaseMission):
             out_review = ReviewMission()
             or_res = out_review.run(context, {"subject_packet": review_packet, "review_type": "output_review"})
             executed_steps.append(f"review_attempt_{attempt_id}")
-
-            if or_res.evidence.get("usage"):
-                 u = or_res.evidence["usage"]
-                 total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+            output_review_tokens = self._extract_usage_tokens(or_res.evidence)
+            if output_review_tokens is None:
+                reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+                self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+            total_tokens += output_review_tokens
 
             # Classification
             success = False
