@@ -41,8 +41,7 @@ except ImportError:
 try:
     import yaml
 except ImportError:
-    print("ERROR: PyYAML library required. Install with: pip install pyyaml")
-    sys.exit(1)
+    yaml = None
 
 
 # === Configuration ===
@@ -51,6 +50,19 @@ OPENCODE_MODEL = os.environ.get("OPENCODE_MODEL", "google/gemini-2.0-flash-001")
 LEDGER_DIR = Path(__file__).parent.parent / "artifacts" / "ledger" / "dl_doc"
 DOCS_DIR = Path(__file__).parent.parent / "docs"
 REPO_ROOT = Path(__file__).parent.parent
+
+
+def _dump_struct(data: Dict[str, Any], path: Path) -> None:
+    """
+    Persist structured evidence with YAML when available, else JSON fallback.
+    Keeps the orchestration path usable in constrained/offline environments.
+    """
+    with open(path, "w", encoding="utf-8") as f:
+        if yaml is not None:
+            yaml.dump(data, f, default_flow_style=False, sort_keys=True, allow_unicode=True)
+        else:
+            json.dump(data, f, indent=2, sort_keys=True, ensure_ascii=False)
+            f.write("\n")
 
 
 def sha256_of_content(content: str) -> str:
@@ -387,7 +399,8 @@ class DocStewardOrchestrator:
         LEDGER_DIR.mkdir(parents=True, exist_ok=True)
         
         timestamp = datetime.now().strftime("%Y-%m-%d")
-        filename = f"{timestamp}_{trial_type}_{request.case_id[:8]}.yaml"
+        ext = "yaml" if yaml is not None else "json"
+        filename = f"{timestamp}_{trial_type}_{request.case_id[:8]}.{ext}"
         filepath = LEDGER_DIR / filename
         
         # P0.3: Handle findings truncation with explicit reference
@@ -399,10 +412,9 @@ class DocStewardOrchestrator:
         
         if findings_truncated:
             # Store full findings in separate file
-            findings_filename = f"{timestamp}_{trial_type}_{request.case_id[:8]}_findings.yaml"
+            findings_filename = f"{timestamp}_{trial_type}_{request.case_id[:8]}_findings.{ext}"
             findings_filepath = LEDGER_DIR / findings_filename
-            with open(findings_filepath, "w", encoding="utf-8") as f:
-                yaml.dump({"findings": all_findings}, f, default_flow_style=False, sort_keys=True, allow_unicode=True)
+            _dump_struct({"findings": all_findings}, findings_filepath)
             findings_ref = findings_filename
             findings_ref_sha256 = sha256_of_file(findings_filepath)
         
@@ -447,10 +459,8 @@ class DocStewardOrchestrator:
             }
         }
         
-        # Write as YAML (stable sorted format)
-        with open(filepath, "w", encoding="utf-8") as f:
-            yaml.dump(entry, f, default_flow_style=False, sort_keys=True, allow_unicode=True)
-        
+        _dump_struct(entry, filepath)
+
         return str(filepath)
     
     def run(self, mission_type: str, case_id: str = None,
