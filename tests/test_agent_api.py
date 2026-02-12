@@ -365,3 +365,34 @@ class TestCallAgentReplayMode:
         reloaded = cache.get("sha256:test123")
         assert reloaded is not None
         assert reloaded.response_content == "cached content"
+
+    def test_replay_mode_require_usage_fails_closed(self, tmp_path, monkeypatch):
+        """Should fail closed when replay mode is used with require_usage=True."""
+        from runtime.agents.fixtures import CachedResponse
+
+        agent_roles = tmp_path / "config" / "agent_roles"
+        agent_roles.mkdir(parents=True)
+        (agent_roles / "designer.md").write_text("You are a designer agent.", encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("LIFEOS_TEST_MODE", "replay")
+
+        cached = CachedResponse(
+            call_id_deterministic="sha256:cached",
+            role="designer",
+            model_version="minimax-m2.1-free",
+            input_packet_hash="sha256:input",
+            prompt_hash="sha256:prompt",
+            response_content="cached content",
+            response_packet={"key": "value"},
+        )
+
+        with patch("runtime.agents.fixtures.get_cached_response", return_value=cached):
+            with pytest.raises(AgentAPIError, match="TOKEN_ACCOUNTING_UNAVAILABLE"):
+                call_agent(
+                    AgentCall(
+                        role="designer",
+                        packet={"task": "test"},
+                        require_usage=True,
+                    )
+                )

@@ -59,7 +59,7 @@ def mock_sub_missions():
         r_inst.run.return_value = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
         
         s_inst = MockSteward.return_value
-        s_inst.run.return_value = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "hash"}, evidence={"usage": {}})
+        s_inst.run.return_value = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "hash"}, evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
         
         yield MockDesign, MockBuild, MockReview, MockSteward
 
@@ -125,6 +125,24 @@ def test_token_accounting_fail_closed_when_review_usage_missing(mock_context, mo
 
     mission = AutonomousBuildCycleMission()
     result = mission.run(mock_context, {"task_spec": "review without usage"})
+
+    assert result.success is False
+    assert result.escalation_reason == TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+
+
+def test_token_accounting_fail_closed_when_steward_usage_missing(mock_context, mock_sub_missions):
+    _, _, _, MockSteward = mock_sub_missions
+
+    s_inst = MockSteward.return_value
+    s_inst.run.return_value = MissionResult(
+        True,
+        MissionType.STEWARD,
+        outputs={"commit_hash": "hash"},
+        evidence={},
+    )
+
+    mission = AutonomousBuildCycleMission()
+    result = mission.run(mock_context, {"task_spec": "steward without usage"})
 
     assert result.success is False
     assert result.escalation_reason == TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value

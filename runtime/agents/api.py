@@ -300,6 +300,10 @@ def call_agent(
     if is_replay_mode():
         try:
             cached = get_cached_response(call_id)
+            if call.require_usage:
+                raise AgentAPIError(
+                    "TOKEN_ACCOUNTING_UNAVAILABLE: replay fixtures do not include usage"
+                )
             return AgentResponse(
                 call_id=call_id,
                 call_id_audit=call_id_audit,
@@ -407,16 +411,3 @@ def call_agent(
     except Exception as e:
         logger.error(f"Agent call failed: {e}")
         raise AgentAPIError(f"Agent call failed: {str(e)}")
-    
-    return AgentResponse(
-        call_id=call_id,
-        call_id_audit=call_id_audit,
-        role=call.role,
-        model_used=model_version,
-        model_version=model_version,
-        content=content,
-        packet=packet,
-        usage={},
-        latency_ms=latency_ms,
-        timestamp=timestamp,
-    )

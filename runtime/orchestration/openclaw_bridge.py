@@ -251,20 +251,33 @@ def verify_openclaw_evidence_contract(evidence_dir: Path) -> tuple[bool, list[st
     if errors:
         return False, errors
 
+    def _safe_load_json(filename: str) -> dict[str, Any] | None:
+        try:
+            payload = json.loads((evidence_path / filename).read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            errors.append(f"{filename} is not valid JSON")
+            return None
+        if not isinstance(payload, dict):
+            errors.append(f"{filename} must contain a JSON object")
+            return None
+        return payload
+
     for filename, field_name in (
         ("packet_refs.json", "packet_refs"),
         ("ledger_refs.json", "ledger_refs"),
     ):
-        payload = json.loads((evidence_path / filename).read_text(encoding="utf-8"))
+        payload = _safe_load_json(filename)
+        if payload is None:
+            continue
         refs = payload.get(field_name)
         if not isinstance(refs, list) or not refs:
             errors.append(f"{filename} missing non-empty '{field_name}'")
 
-    manifest_lines = [
-        line.strip()
-        for line in (evidence_path / "hash_manifest.sha256").read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    manifest_lines = []
+    for line in (evidence_path / "hash_manifest.sha256").read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped:
+            manifest_lines.append(stripped)
     manifest_map: dict[str, str] = {}
     for line in manifest_lines:
         parts = line.split("  ", 1)

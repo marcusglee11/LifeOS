@@ -143,3 +143,37 @@ def test_verify_openclaw_evidence_contract_fails_when_required_file_missing(tmp_
     ok, errors = verify_openclaw_evidence_contract(evidence_dir)
     assert ok is False
     assert any("packet_refs.json" in error for error in errors)
+
+
+def test_verify_openclaw_evidence_contract_reports_corrupt_json(tmp_path: Path) -> None:
+    written = write_openclaw_evidence_contract(
+        repo_root=tmp_path,
+        job_id="JOB-779",
+        packet_refs=["artifacts/terminal/TP_run-779.yaml"],
+        ledger_refs=["artifacts/loop_state/attempt_ledger.jsonl"],
+    )
+
+    evidence_dir = Path(written["evidence_dir"])
+    (evidence_dir / "packet_refs.json").write_text("{not-json}\n", encoding="utf-8")
+    ok, errors = verify_openclaw_evidence_contract(evidence_dir)
+    assert ok is False
+    assert any("packet_refs.json is not valid JSON" == error for error in errors)
+
+
+@pytest.mark.parametrize(
+    "job_id",
+    [
+        "",
+        "   ",
+        "../escape",
+        "..\\escape",
+        "bad/job",
+        "bad\\job",
+        "bad*char",
+    ],
+)
+def test_resolve_openclaw_job_evidence_dir_rejects_invalid_job_id(
+    tmp_path: Path, job_id: str
+) -> None:
+    with pytest.raises(OpenClawBridgeError):
+        resolve_openclaw_job_evidence_dir(tmp_path, job_id)

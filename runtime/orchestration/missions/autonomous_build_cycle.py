@@ -552,6 +552,13 @@ class AutonomousBuildCycleMission(BaseMission):
                 steward = StewardMission()
                 s_res = steward.run(context, {"review_packet": review_packet, "approval": or_res.outputs.get("council_decision")})
                 if s_res.success:
+                    steward_tokens = self._extract_usage_tokens(s_res.evidence)
+                    if steward_tokens is None:
+                        reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+                        self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+                        return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+                    total_tokens += steward_tokens
+
                     # SUCCESS! Capture commit hash and add steward step
                     final_commit_hash = s_res.outputs.get("commit_hash", s_res.outputs.get("simulated_commit_hash", "UNKNOWN"))
                     executed_steps.append("steward")
