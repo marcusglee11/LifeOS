@@ -27,6 +27,39 @@ Claude Code skills specific to LifeOS concurrent development workflows.
 - `skills/merge-concurrent-sprints/SKILL.md` - Main workflow guide
 - `skills/merge-concurrent-sprints/branch-audit.sh` - Branch inventory script
 
+### review-build
+
+**Purpose:** Tiered review + fix flow for incoming builds.
+
+### handoff
+
+**Purpose:** Structured outbound/inbound handoff between agents.
+
+### review-fix
+
+**Purpose:** Diff-first review remediation (read reviewer commit diff first, then fix/report).
+
+### handoff-pack
+
+**Purpose:** Compact deterministic handoff packs (`to_codex` / `from_codex`) with fixed section order.
+
+### close-build
+
+**Purpose:** Finalize a passing branch in one step (tests, conditional doc stewardship, merge, cleanup).
+
+## Commands
+
+- `/review-build`
+- `/handoff`
+- `/review-fix`
+- `/handoff-pack`
+- `/close-build`
+
+## Workflow Utilities
+
+- `scripts/workflow/test_router.sh` - Map changed files to targeted test commands.
+- `scripts/workflow/active_work.py` - Maintain compact context artifact at `.context/active_work.yaml` (ignored by git).
+- `scripts/workflow/closure_pack.py` - Run the final close lifecycle with strict report output.
 ## Installation
 
 This plugin is auto-loaded when working in the LifeOS repository since it's located in `.claude/skills/`.
