@@ -73,6 +73,7 @@ CMD_IDS=(
   openclaw_version
   security_audit_deep
   memory_policy_guard_summary
+  multiuser_posture_assert
   memory_status_main
   channels_status_json
   models_status_probe
@@ -136,6 +137,7 @@ run_capture coo_symlink bash -lc 'ls -l "$(which coo)"'
 run_capture openclaw_version openclaw --version
 run_capture security_audit_deep coo openclaw -- security audit --deep
 run_capture memory_policy_guard_summary python3 runtime/tools/openclaw_memory_policy_guard.py --json-summary
+run_capture multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --json
 run_capture memory_status_main coo openclaw -- memory status --agent main
 run_capture channels_status_json coo openclaw -- channels status --json
 run_capture models_status_probe coo openclaw -- models status --probe
@@ -151,6 +153,7 @@ export RECALL_TRACE_ENABLED LAST_RECALL_QUERY_HASH LAST_RECALL_HIT_COUNT LAST_RE
 export CAPTURE_models_status_probe="${CMD_CAPTURE[models_status_probe]:-}"
 export CAPTURE_status_all_usage="${CMD_CAPTURE[status_all_usage]:-}"
 export CAPTURE_memory_policy_guard_summary="${CMD_CAPTURE[memory_policy_guard_summary]:-}"
+export CAPTURE_multiuser_posture_assert="${CMD_CAPTURE[multiuser_posture_assert]:-}"
 
 python3 - "$runtime_manifest" "$runtime_ledger_entry" <<'PY'
 import hashlib
@@ -257,6 +260,15 @@ tripwire_triggered = any(v.get("min_percent_left") is not None and v["min_percen
 memory_policy_summary = read_json_from_capture("CAPTURE_memory_policy_guard_summary")
 memory_policy_ok = bool(memory_policy_summary.get("policy_ok", False))
 memory_policy_violations_count = int(memory_policy_summary.get("violations_count", 0) or 0)
+multiuser_summary = read_json_from_capture("CAPTURE_multiuser_posture_assert")
+multiuser_posture_ok = bool(multiuser_summary.get("multiuser_posture_ok", False))
+multiuser_enabled_channels = [str(x) for x in (multiuser_summary.get("enabled_channels") or [])]
+multiuser_allowlist_sizes = {
+    str(k): int(v)
+    for k, v in sorted((multiuser_summary.get("allowlist_sizes") or {}).items())
+    if str(k).strip()
+}
+multiuser_violations_count = len(list(multiuser_summary.get("violations") or []))
 last_recall_sources = [s for s in os.environ.get("LAST_RECALL_SOURCES", "").split(",") if s]
 last_recall = OrderedDict([
     ("query_hash", os.environ.get("LAST_RECALL_QUERY_HASH", "")),
@@ -282,6 +294,7 @@ for key in [
     "openclaw_version",
     "security_audit_deep",
     "memory_policy_guard_summary",
+    "multiuser_posture_assert",
     "memory_status_main",
     "channels_status_json",
     "models_status_probe",
@@ -312,6 +325,10 @@ entry["budget_tripwire_triggered"] = tripwire_triggered
 entry["budget_snapshot"] = budget_snapshot
 entry["memory_policy_ok"] = memory_policy_ok
 entry["memory_policy_violations_count"] = memory_policy_violations_count
+entry["multiuser_posture_ok"] = multiuser_posture_ok
+entry["multiuser_enabled_channels"] = multiuser_enabled_channels
+entry["multiuser_allowlist_sizes"] = multiuser_allowlist_sizes
+entry["multiuser_violations_count"] = multiuser_violations_count
 entry["recall_trace_enabled"] = str(os.environ.get("RECALL_TRACE_ENABLED", "false")).lower() == "true"
 entry["last_recall"] = last_recall
 entry["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")
@@ -332,6 +349,10 @@ manifest["budget_tripwire_triggered"] = tripwire_triggered
 manifest["budget_snapshot"] = budget_snapshot
 manifest["memory_policy_ok"] = memory_policy_ok
 manifest["memory_policy_violations_count"] = memory_policy_violations_count
+manifest["multiuser_posture_ok"] = multiuser_posture_ok
+manifest["multiuser_enabled_channels"] = multiuser_enabled_channels
+manifest["multiuser_allowlist_sizes"] = multiuser_allowlist_sizes
+manifest["multiuser_violations_count"] = multiuser_violations_count
 manifest["recall_trace_enabled"] = str(os.environ.get("RECALL_TRACE_ENABLED", "false")).lower() == "true"
 manifest["last_recall"] = last_recall
 manifest["security_audit_mode"] = os.environ.get("SECURITY_AUDIT_MODE", "unknown")

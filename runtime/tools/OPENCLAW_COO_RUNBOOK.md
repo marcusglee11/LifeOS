@@ -148,6 +148,34 @@ Expected:
 
 - `PASS p1_acceptance=true manual_smoke=pass source_pointer=memory/daily/2026-02-10.md:1-5 ...`
 
+## Multi-User Posture Verifier
+
+Run:
+
+```bash
+runtime/tools/openclaw_verify_multiuser_posture.sh
+```
+
+Expected:
+
+- `PASS multiuser_posture_ok=true enabled_channels_count=<n> allowlist_counts=<k=v,...> ...`
+- or `FAIL ...` when any allowlist/owner boundary/Telegram posture invariant drifts.
+
+## Operator Onboarding (Controlled + Auditable)
+
+Generate an onboarding checklist with a non-sensitive internal reference label:
+
+```bash
+runtime/tools/openclaw_onboard_operator.sh --candidate-ref operator-two-change-request
+```
+
+Notes:
+
+- The helper stores only `candidate_ref_sha256` and never raw identifiers.
+- Apply config changes manually via reviewed PR/commit; then run:
+  - `python3 runtime/tools/openclaw_multiuser_posture_assert.py --json`
+  - `runtime/tools/openclaw_verify_multiuser_posture.sh`
+
 ## Telegram Hardening
 
 - `channels.telegram.allowFrom` must be non-empty and must not include `"*"`.
@@ -181,3 +209,4 @@ HTTP mode setup (when provisioning is approved):
 - Receipts include memory policy guard summary status (`memory_policy_ok`, violation count).
 - Receipts include recall trace metadata (`recall_trace_enabled`, `last_recall`).
 - Receipts include a non-deep channels status capture and never include Slack secrets.
+- Receipts include multi-user posture status (`multiuser_posture_ok`, channel names, allowlist counts, violations count) and never include allowlist values.
