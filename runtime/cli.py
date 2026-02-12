@@ -449,6 +449,40 @@ def cmd_mission_run(args: argparse.Namespace, repo_root: Path) -> int:
     """Run a mission through trusted orchestrator + acceptor path."""
     inputs: Dict[str, Any] = {}
 
+    # Deprecation guard: autonomous_build_cycle is no longer a valid entrypoint for new runs.
+    if args.mission_type == "autonomous_build_cycle":
+        msg = (
+            "Mission type 'autonomous_build_cycle' is deprecated for new runs. "
+            "Use 'lifeos spine run <task_spec>' instead."
+        )
+        payload = _build_cli_mission_payload(
+            mission_type=args.mission_type,
+            mission_result={
+                "mission_type": args.mission_type,
+                "success": False,
+                "outputs": {},
+                "evidence": {"deprecation": "autonomous_build_cycle"},
+                "executed_steps": ["deprecation_guard"],
+                "error": msg,
+            },
+            raw_result={},
+            orchestration=None,
+            proof={
+                "acceptance_token_path": None,
+                "acceptance_record_path": None,
+                "acceptance_token_sha256": None,
+                "evidence_manifest_sha256": None,
+            },
+            success=False,
+            error=msg,
+        )
+        return _emit_mission_result(
+            mission_type=args.mission_type,
+            payload=payload,
+            as_json=args.json,
+            header_lines=[msg] if not args.json else None,
+        )
+
     if args.param:
         for param in args.param:
             if "=" not in param:

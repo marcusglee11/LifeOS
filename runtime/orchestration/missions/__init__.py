@@ -6,7 +6,7 @@ Implements mission types per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md Â
 - review: Run council review on a packet
 - build: Invoke builder with approved BUILD_PACKET
 - steward: Commit approved changes
-- autonomous_build_cycle: Compose the above into end-to-end workflow
+- autonomous_build_cycle: Deprecated for new runs (kept for compatibility/testing)
 
 All missions:
 - Are deterministic (pure functions of inputs + state)

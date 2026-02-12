@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-02-10]
+# LifeOS Strategic Corpus [Last Updated: 2026-02-12 (rev2)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -50,6 +50,8 @@ LifeOS Constitution v2.0 (Supreme)
 | [PROJECT_GANTT_CHART.md](./11_admin/PROJECT_GANTT_CHART.md) | **Information Only** — Project timeline and Gantt chart |
 | [PROJECT_MASTER_TASK_LIST.md](./11_admin/PROJECT_MASTER_TASK_LIST.md) | **Information Only** — Master list of all tracked project tasks |
 | [PROJECT_STATUS_v1.0.md](./11_admin/PROJECT_STATUS_v1.0.md) | **Information Only** — Snapshot of project status (legacy) |
+| [Plan_Supersession_Register.md](./11_admin/Plan_Supersession_Register.md) | **Control** — Canonical register of superseded and active plans |
+| [Doc_Freshness_Gate_Spec_v1.0.md](./11_admin/Doc_Freshness_Gate_Spec_v1.0.md) | **Control** — Runtime-backed doc freshness and contradiction gate spec |
 | [Autonomy Project Baseline.md](./11_admin/Autonomy%20Project%20Baseline.md) | **Phase 4** — Minimal doc set + Maintenance Protocol |
 | [LifeOS Autonomous Build Loop System - Status Report 20260202.md](./11_admin/LifeOS%20Autonomous%20Build%20Loop%20System%20-%20Status%20Report%2020260202.md) | **Condition** — Status report on Phase 4 autonomy readiness |
 | [Roadmap Fully Autonomous Build Loop20260202.md](./11_admin/Roadmap%20Fully%20Autonomous%20Build%20Loop20260202.md) | **Phase 4 Roadmap** — Re-ordered to match verified reality |

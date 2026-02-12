@@ -7,13 +7,14 @@ Each test creates a temporary worktree, runs the runner, and validates
 both exit codes and log contents.
 
 Run with:
-    python -m pytest tests_recursive/test_steward_runner.py -v
+    python3 -m pytest tests_recursive/test_steward_runner.py -v
 """
 
 import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 import importlib.util
@@ -21,6 +22,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
+PYTHON = sys.executable
 
 # --- Test Fixtures ---
 
@@ -117,14 +119,14 @@ def test_config(worktree: Path) -> Path:
 repo_root: "."
 
 tests:
-  command: ["python", "-c", "print('tests pass')"]
+  command: ["python3", "-c", "print('tests pass')"]
   paths: []
 
 validators:
   commands: []
 
 corpus:
-  command: ["python", "-c", "print('corpus generated')"]
+  command: ["python3", "-c", "print('corpus generated')"]
   outputs_expected: []
 
 git:
@@ -173,7 +175,7 @@ def run_steward(
     """
     runner_path = worktree / "scripts" / "steward_runner.py"
     
-    cmd = ["python", str(runner_path)]
+    cmd = [PYTHON, str(runner_path)]
     cmd.extend(["--config", str(config_path.relative_to(worktree))])
     
     if run_id:
@@ -233,7 +235,7 @@ class TestAT01MissingRunId:
         runner_path = worktree / "scripts" / "steward_runner.py"
         
         result = subprocess.run(
-            ["python", str(runner_path), "--config", str(test_config.relative_to(worktree))],
+            [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree))],
             cwd=worktree,
             capture_output=True,
             text=True,
@@ -277,8 +279,8 @@ class TestAT03TestsFailureBlocksDownstream:
         """Make tests return non-zero → validators/corpus/commit never run."""
         # Update config with failing tests
         config_content = test_config.read_text().replace(
-            'command: ["python", "-c", "print(\'tests pass\')"]',
-            'command: ["python", "-c", "import sys; sys.exit(1)"]'
+            'command: ["python3", "-c", "print(\'tests pass\')"]',
+            'command: ["python3", "-c", "import sys; sys.exit(1)"]'
         )
         test_config.write_text(config_content)
         
@@ -306,7 +308,7 @@ class TestAT04ValidatorFailureBlocksCorpus:
         # Update config with failing validator
         config_content = test_config.read_text().replace(
             "validators:\n  commands: []",
-            'validators:\n  commands:\n    - ["python", "-c", "import sys; sys.exit(1)"]'
+            'validators:\n  commands:\n    - ["python3", "-c", "import sys; sys.exit(1)"]'
         )
         test_config.write_text(config_content)
         
@@ -375,8 +377,8 @@ class TestAT07ChangeWithinAllowedPathsCommits:
         )
         # Make corpus create a file in docs/
         config_content = config_content.replace(
-            'command: ["python", "-c", "print(\'corpus generated\')"]',
-            'command: ["python", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
         )
         config_content = config_content.replace(
             "commit_paths: [\"docs/\"]",
@@ -432,8 +434,8 @@ class TestAT08ChangeOutsideAllowedPathsFails:
         )
         # Make corpus create a file outside docs/
         config_content = config_content.replace(
-            'command: ["python", "-c", "print(\'corpus generated\')"]',
-            'command: ["python", "-c", "open(\'outside.txt\', \'w\').write(\'disallowed\')"]'
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "open(\'outside.txt\', \'w\').write(\'disallowed\')"]'
         )
         test_config.write_text(config_content)
         
@@ -476,8 +478,8 @@ class TestAT09DryRunNeverCommits:
             "commit_enabled: true"
         )
         config_content = config_content.replace(
-            'command: ["python", "-c", "print(\'corpus generated\')"]',
-            'command: ["python", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
         )
         test_config.write_text(config_content)
         
@@ -608,8 +610,8 @@ class TestAT12AllowlistNormalization:
             "commit_enabled: true"
         )
         config_content = config_content.replace(
-            'command: ["python", "-c", "print(\'corpus generated\')"]',
-            'command: ["python", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
         )
         test_config.write_text(config_content)
         
@@ -668,8 +670,8 @@ class TestAT13FailClosedUnsafePaths:
         )
         # Create a change so commit is attempted
         config_content = config_content.replace(
-            'command: ["python", "-c", "print(\'corpus generated\')"]',
-            'command: ["python", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
         )
         test_config.write_text(config_content)
         
@@ -793,8 +795,8 @@ class TestAT16DefaultDryRun:
             "commit_enabled: true"
         )
         config_content = config_content.replace(
-            'command: ["python", "-c", "print(\'corpus generated\')"]',
-            'command: ["python", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
         )
         test_config.write_text(config_content)
         
@@ -804,7 +806,7 @@ class TestAT16DefaultDryRun:
         
         # Manual run without helper to ensure no flags
         result = subprocess.run(
-            ["python", str(runner_path), "--config", str(test_config.relative_to(worktree)), "--run-id", "at16"],
+            [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree)), "--run-id", "at16"],
             cwd=worktree,
             capture_output=True,
             text=True,
@@ -831,8 +833,8 @@ class TestAT17CommitFlagEnables:
             "commit_enabled: true"
         )
         config_content = config_content.replace(
-            'command: ["python", "-c", "print(\'corpus generated\')"]',
-            'command: ["python", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
         )
         test_config.write_text(config_content)
         
@@ -872,8 +874,8 @@ class TestAT18ExplicitDryRun:
             "commit_enabled: true"
         )
         config_content = config_content.replace(
-            'command: ["python", "-c", "print(\'corpus generated\')"]',
-            'command: ["python", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
         )
         test_config.write_text(config_content)
         
@@ -881,7 +883,7 @@ class TestAT18ExplicitDryRun:
         
         # Pass --dry-run
         result = subprocess.run(
-            ["python", str(runner_path), "--config", str(test_config.relative_to(worktree)), "--run-id", "at18", "--dry-run"],
+            [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree)), "--run-id", "at18", "--dry-run"],
             cwd=worktree,
             capture_output=True,
             text=True,

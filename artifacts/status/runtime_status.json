@@ -1,0 +1,12 @@
+{
+  "contradictions": [],
+  "facts": {
+    "backlog_openclaw_install_unchecked": false,
+    "lifeos_state_claims_openclaw_blocker": false,
+    "openclaw_bin": "/home/linuxbrew/.linuxbrew/bin/openclaw",
+    "openclaw_installed": true
+  },
+  "generated_at_utc": "2026-02-12T02:11:03.609985+00:00",
+  "repo_root": "/mnt/c/Users/cabra/Projects/LifeOS",
+  "status": "ok"
+}

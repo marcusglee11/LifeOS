@@ -8,17 +8,18 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-10
+**Last Updated:** 2026-02-12
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
 
-- [ ] **Install OpenClaw COO on WSL2** — DoD: OpenClaw installed, workspace configured, can read repo and update state docs — Owner: CEO — Context: The only genuine gap blocking autonomous build loop
+- [ ] **E2E Loop Test: Real task through full pipeline** — DoD: One task completes select→design→build→review→steward autonomously — Owner: antigravity/COO — Context: All code components exist, needs integration verification
+- [ ] **Guard deprecated `autonomous_build_cycle` path** — DoD: New runs blocked with migration guidance to `lifeos spine run` — Owner: antigravity — Context: Prevent latent split-path execution
+- [ ] **Doc freshness skeleton gate** — DoD: Runtime status generator + CI warning check + blocking switch date committed — Owner: antigravity
 
 ### P1 (High)
 
-- [ ] **E2E Loop Test: Real task through full pipeline** — DoD: One task completes select→design→build→review→steward autonomously — Owner: antigravity/COO — Context: All code components exist, needs integration verification
 - [ ] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
@@ -48,6 +49,7 @@
 ## Done (last ~25 only)
 
 - [x] **EOL Clean Invariant Hardening** — Date: 2026-02-10 — 289-file renormalization, config-aware clean gate, acceptance closure validator, 37 tests, EOL_Policy_v1.0
+- [x] **Install OpenClaw COO on WSL2** — Date: 2026-02-11 — OpenClaw installed and acceptance-verified
 - [x] **Manual v2.1 Reconciliation Sprint** — Date: 2026-02-08 — CRLF fix, 36 tests re-enabled, free Zen models, manual corrected
 - [x] **Deletion Safety Hardening (Article XIX)** — Date: 2026-02-08
 - [x] **Documentation Stewardship** — Date: 2026-02-08 — 5 root docs relocated to canonical locations

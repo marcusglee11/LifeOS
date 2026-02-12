@@ -223,6 +223,23 @@ class AutonomousBuildCycleMission(BaseMission):
         return selected
 
     def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
+        # Deprecated path guard: keep class for compatibility/historical replay/tests.
+        # Block only CLI mission-run entrypoint for new autonomous runs.
+        if (
+            context.metadata.get("cli_command") == "mission run"
+            and not inputs.get("allow_deprecated_replay", False)
+        ):
+            return self._make_result(
+                success=False,
+                executed_steps=["deprecation_guard"],
+                error=(
+                    "autonomous_build_cycle is deprecated for new runs. "
+                    "Use 'lifeos spine run <task_spec>' instead."
+                ),
+                escalation_reason="DEPRECATED_PATH",
+                evidence={"deprecation": "autonomous_build_cycle"},
+            )
+
         executed_steps: List[str] = []
         total_tokens = 0
         final_commit_hash = "UNKNOWN"  # Track commit hash from steward

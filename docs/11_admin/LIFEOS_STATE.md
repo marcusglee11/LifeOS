@@ -11,20 +11,22 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Manual v2.1 Reconciliation — closing stale gaps, preparing for OpenClaw COO
-**Active WIP:** build/manual-v2.1-reconciliation branch (pending merge to main)
-**Last Updated:** 2026-02-10
+**Current Focus:** Phase 0 execution — canonical plan lock, deprecated path guard, E2E Spine validation
+**Active WIP:** mainline execution hardening (test debt + doc freshness skeleton + status artifact generator), OpenClaw bridge readiness
+**Last Updated:** 2026-02-12 (rev3)
 
 ---
 
 ## 🟥 IMMEDIATE NEXT STEP (The "One Thing")
 
-**Install OpenClaw COO (CEO action required):**
+**Run one real E2E Spine task (P0 verification):**
 
-1. StewardMission git ops: FULLY IMPLEMENTED (691 lines, 8 integration tests)
-2. LLM backend: FULLY CONFIGURED (free Zen models, zero cost)
-3. Test suite: 1,371 passing (36 re-enabled this sprint), 0 failures
-4. **Only remaining gap:** OpenClaw COO local install on WSL2
+1. OpenClaw install + acceptance: DONE (verified 2026-02-11)
+2. LoopSpine run/resume path: IMPLEMENTED and test-backed
+3. Remaining immediate work: deprecated-path guard + budget stub wiring + targeted recursive test debt
+4. **One thing now:** Execute one real task through `lifeos spine run` end-to-end with evidence
+
+**Canonical Plan Authority:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 
 ---
 
@@ -61,15 +63,18 @@
 
 ## ⚠️ System Blockers (Top 3)
 
-1. **OpenClaw COO Install** (P0) — CEO action required. Only genuine gap blocking autonomous build loop.
-2. **Recursive Builder Integration** (P1) — **CLOSED** (Hardened v0.4 Bundle)
-3. **test_steward_runner.py** (P2) — 25/27 failing, requires steward_runner refactor
+1. **E2E Loop Test: Real task through full pipeline** (P0) — validate select→design→build→review→steward in one autonomous run.
+2. **OpenCode doc-steward delegate dependency gap** (P1) — `scripts/delegate_to_doc_steward.py` blocked by missing `PyYAML` in current env.
+3. **Token accounting upstream gap** (P1) — real usage parsing must land before trusted budget gating.
 
 ---
 
 ## 🟩 Recent Wins
 
+- **2026-02-12:** Canonical plan v1.1 refreshed with granular task IDs and supersession lock; runtime status generator now emits both `artifacts/status/runtime_status.json` and `artifacts/packets/status/checkpoint_report_<YYYYMMDD>.json`.
+- **2026-02-12:** Doc stewardship gate executed successfully for all modified docs (`python3 scripts/claude_doc_stewardship_gate.py` PASS).
 - **2026-02-10:** EOL Clean Invariant Hardening — Root cause fixed (system `core.autocrlf=true` conflicted with `.gitattributes eol=lf`), 289-file mechanical renormalization, config-aware clean gate (`coo_land_policy clean-check`), acceptance closure validator (`coo_acceptance_policy`), EOL_Policy_v1.0 canonical doc, 37 new tests.
+- **2026-02-11:** OpenClaw COO acceptance verified — OpenClaw installed/configured and P1 acceptance probe passed in local WSL2 runtime.
 - **2026-02-08:** Manual v2.1 Reconciliation — CRLF root-cause fix (.gitattributes), 36 tests re-enabled (1335→1371), free Zen models configured, manual v2.1 corrected (StewardMission & LLM backend gaps were already closed).
 - **2026-02-08:** Deletion Safety Hardening — Article XIX enforcement, safe_cleanup.py guards, 8 integration tests.
 - **2026-02-08:** Documentation Stewardship - Relocated 5 root documentation files to canonical locations in `docs/11_admin`, `docs/00_foundations`, and `docs/99_archive`. Updated project index and state.

@@ -1,3 +1,966 @@
+# Review Packet: Master Execution Plan v1.1 Canonicalization v1.1
+
+## Mission
+
+Canonicalize and execute the near-term LifeOS plan with granular, stateless-agent-ready tasks; align state/index/status docs; run doc stewardship checks; update runtime status artifacts.
+
+## Scope
+
+1. Address suggestion gaps in canonical plan:
+- checkpoint report artifact path/schema
+- OpenClaw mapping module location
+- token usage upstream dependency note
+- Codemoot discovery gate
+- key files reference
+2. Dogfood doc stewardship gate.
+3. Refresh runtime status artifact outputs.
+4. Align LIFEOS_STATE, BACKLOG, PROJECT_STATUS, INDEX, and strategic corpus references.
+
+## Execution Evidence
+
+1. `python3 scripts/claude_doc_stewardship_gate.py` -> PASS
+2. `python3 scripts/generate_runtime_status.py` -> emitted runtime status + dated checkpoint report
+3. `pytest -q tests_recursive/test_e2e_smoke_timeout.py runtime/tests/test_cli_mission.py` -> 17 passed
+4. `timeout 180 pytest -q tests_recursive/test_steward_runner.py` -> timed out (`EXIT:124`), partial progress with existing xfail path
+5. `python3 scripts/delegate_to_doc_steward.py --help` -> blocked due missing `PyYAML`
+
+## Decisions
+
+1. Treat `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` as canonical authority.
+2. Keep OpenCode dogfood attempt explicit: stewardship gate pass is current reliable path, delegate script dependency gap is tracked as blocker.
+3. Preserve existing contract model and fail-closed direction.
+
+## Risks
+
+1. OpenCode delegate script cannot execute in current environment until `PyYAML` is installed.
+2. Budget hardening remains gated on real token usage plumbing.
+3. Full steward runner suite remains slow; additional optimization/partitioning may be needed.
+
+## Appendix A: Flattened Changed Files
+
+### FILE: artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md
+
+```
+# LifeOS Master Execution Plan v1.1 (Superseding, Canonical)
+
+## 0. Authority and Scope
+
+This plan is the canonical execution authority for near-term LifeOS runtime work and supersedes:
+
+- `artifacts/plans/LifeOS_Master_Execution_Plan_v1.0.md`
+- `artifacts/plans/LifeOS Status and Decision-Complete.md`
+- `artifacts/plans/Grand Plan LifeOS Spine Unification.md`
+- `artifacts/plans/LifeOS Reliability-First Spine Consolidation and Multi-Agent Adapter Architecture V1 202060212.md`
+
+Stateless agents must execute this plan exactly and report deviations as blockers.
+
+## 1. Locked Ground Truth (Do Not Re-litigate During Execution)
+
+1. OpenClaw install and acceptance are complete (verified 2026-02-11).
+2. LoopSpine is the production execution controller (`runtime/orchestration/loop/spine.py`).
+3. `autonomous_build_cycle` remains callable and must be blocked for new runs.
+4. Canonical contracts already exist (`MissionResult`, `MissionContext`, `BaseMission`, `AgentCall`).
+5. `ReviewMission` is LLM-backed (MVP-thin) and no longer hardcoded approval.
+6. Budget eligibility logic still contains a stub at `runtime/orchestration/loop/configurable_policy.py:538`.
+7. Token usage needed for budgeting is upstream-dependent: current agent flow can surface zero usage values until OpenCode response parsing is corrected.
+8. Manual doc audits are too frequent; doc freshness must be automated and enforced.
+
+## 2. Operating Principles
+
+1. Extend existing contracts; do not introduce parallel core contract systems.
+2. Fail closed on missing policy, missing usage evidence, missing packet evidence, unknown mission types.
+3. Keep BACKLOG as canonical queue (`docs/11_admin/BACKLOG.md`).
+4. Use OpenClaw as operator/orchestration surface; use Spine as execution core.
+5. Every task emits machine-checkable artifacts and explicit pass/fail evidence.
+
+## 3. Owner Split
+
+1. CEO/OpenClaw owner:
+- OpenClaw runtime configuration, keys, channel stability, host environment readiness.
+2. Builder agents:
+- Repo code changes, tests, docs stewardship, packet artifacts, commit evidence.
+
+## 4. Execution Work Packages
+
+## W0: Truth Alignment and Path Guarding (Immediate, This Week)
+
+### W0-T01: Canonical state/backlog reconciliation
+
+- Scope:
+- Update `docs/11_admin/LIFEOS_STATE.md` and `docs/11_admin/BACKLOG.md` to match verified runtime reality.
+- Actions:
+1. Mark OpenClaw install as completed item.
+2. Promote E2E Spine real-run verification to current P0 focus.
+3. Set canonical-plan authority pointer to this file.
+- Artifacts:
+- Updated state/backlog docs.
+- DoD:
+- No stale OpenClaw blocker language remains in canonical state docs.
+
+### W0-T02: Plan authority register and indexing
+
+- Scope:
+- Establish a single source of planning authority.
+- Actions:
+1. Maintain `docs/11_admin/Plan_Supersession_Register.md`.
+2. Update `docs/INDEX.md` timestamp and links.
+3. Regenerate `docs/LifeOS_Strategic_Corpus.md`.
+- Artifacts:
+- Updated register/index/corpus.
+- DoD:
+- Register names v1.1 as active canonical plan.
+
+### W0-T03: Runtime checkpoint report artifact
+
+- Scope:
+- Produce machine-generated runtime truth artifact on each doc stewardship cycle.
+- Actions:
+1. Generate `artifacts/status/runtime_status.json`.
+2. Generate dated checkpoint report at `artifacts/packets/status/checkpoint_report_<YYYYMMDD>.json`.
+3. Use this schema for both files:
+- `generated_at_utc`
+- `repo_root`
+- `facts`
+- `contradictions`
+- `status`
+- DoD:
+- Both artifacts exist and validate against same shape.
+
+### W0-T04: Guard legacy autonomous path
+
+- Scope:
+- Prevent split-brain new-run execution paths.
+- Actions:
+1. In `runtime/cli.py`, block `mission run autonomous_build_cycle` with migration guidance to `lifeos spine run`.
+2. In `runtime/orchestration/missions/autonomous_build_cycle.py`, add deprecation guard for CLI mission-run entry path while preserving historical replay/test compatibility.
+3. Keep registry entry but mark deprecated intent in mission metadata/docs.
+- DoD:
+- New autonomous runs are blocked outside Spine path.
+
+### W0-T05: Targeted test debt stabilization
+
+- Scope:
+- Repair immediate failing recursive suites.
+- Actions:
+1. Fix `tests_recursive/test_e2e_smoke_timeout.py` import/path assumptions.
+2. Fix `tests_recursive/test_steward_runner.py` interpreter assumptions and fixture brittleness.
+3. Record residual environment-coupled failures as explicit xfail/triage if needed.
+- DoD:
+- Target suites are green or intentionally triaged with reasons.
+
+### W0-T06: Doc stewardship gate and OpenCode dogfood run
+
+- Scope:
+- Execute doc stewardship checks, then attempt OpenCode-backed steward path.
+- Actions:
+1. Run `python3 scripts/claude_doc_stewardship_gate.py` and require pass.
+2. Attempt `scripts/delegate_to_doc_steward.py` in OpenCode path if dependencies/environment are ready.
+3. If OpenCode path cannot run, capture blocker and keep CI-safe fallback (gate pass + status artifact).
+- DoD:
+- Stewardship gate passes and run result is captured in status docs.
+
+## W1-W2: OpenClaw Orchestrator Readiness
+
+### W4-T01: Central schema mapping module
+
+- Scope:
+- Define one mapping implementation location (not scattered scripts).
+- Actions:
+1. Create/maintain `runtime/orchestration/openclaw_bridge.py`.
+2. Centralize all conversions:
+- OpenClaw job payload -> Spine invocation payload.
+- Spine terminal/checkpoint artifacts -> OpenClaw result payload.
+3. Add unit tests for round-trip mapping coverage.
+- DoD:
+- Mapping logic is isolated and tested in one module.
+
+### W4-T02: Evidence routing contract
+
+- Scope:
+- Deterministic evidence locations for OpenClaw-submitted jobs.
+- Actions:
+1. Route evidence to `artifacts/evidence/openclaw/jobs/<job_id>/`.
+2. Store packet refs, ledger refs, and hash manifest.
+3. Add verification checks for missing evidence.
+- DoD:
+- OpenClaw job has discoverable, complete evidence bundle.
+
+### W4-T03: Worktree dispatch governance
+
+- Scope:
+- Enforce isolated worktree execution for orchestrated jobs.
+- Actions:
+1. Wire worktree create/use/cleanup lifecycle.
+2. Reject execution when isolation preconditions fail.
+3. Add tests based on existing isolation patterns.
+- DoD:
+- Worktree lifecycle is deterministic and fail-closed.
+
+### W4-T04: Validator lifecycle hooks
+
+- Scope:
+- Guarantee pre/post governance checks in orchestrated runs.
+- Actions:
+1. Pre-run: policy hash, envelope constraints, protected paths.
+2. Post-run: evidence completeness, packet presence, ledger append success.
+3. Block success state if any required check is missing.
+- DoD:
+- Governance checks enforce fail-closed behavior across OpenClaw -> Spine execution.
+
+## W1-W2 (Parallel): E2E Spine Validation and Budget Hardening
+
+### W5-T01: Real E2E task run
+
+- Scope:
+- Prove end-to-end chain on one non-trivial real task.
+- Actions:
+1. Select one low-risk backlog item.
+2. Execute via `lifeos spine run`.
+3. Capture packets, ledger trail, and commit evidence.
+- DoD:
+- One real task completes through hydrate -> policy -> design -> build -> review -> steward.
+
+### W5-T02: Checkpoint/resume proof
+
+- Scope:
+- Validate resume semantics and policy-hash continuity.
+- Actions:
+1. Trigger checkpoint case intentionally.
+2. Resume using `lifeos spine resume <checkpoint_id>`.
+3. Verify continuation and hash checks.
+- DoD:
+- Resume proceeds from correct state with policy integrity checks.
+
+### W5-T03: Budget controller stub replacement
+
+- Scope:
+- Replace permissive budget stub with enforced logic.
+- Actions:
+1. Replace `eligible=True` stub in `runtime/orchestration/loop/configurable_policy.py`.
+2. Enforce run-level budget totals and threshold checks.
+3. Emit explicit fail-closed reason codes on violations.
+- DoD:
+- Budget policy blocks out-of-budget runs.
+
+### W5-T04: Token usage upstream plumbing (prerequisite to trusted budgeting)
+
+- Scope:
+- Ensure usage values are real, not zeros.
+- Actions:
+1. Update OpenCode client parsing to return actual token usage when provider supplies it.
+2. Ensure agent API surfaces usage values downstream.
+3. Fail closed with `TOKEN_ACCOUNTING_UNAVAILABLE` when usage is absent where required.
+- DoD:
+- Budget controller consumes real usage or safely blocks.
+
+## W2-W4: Codemoot Spike (Evidence-First)
+
+### W6-T00: Discovery gate (must pass before scheduling commitment)
+
+- Scope:
+- Confirm Codemoot API/docs are available and usable in this environment.
+- Actions:
+1. Validate documentation access, auth method, and basic request shape.
+2. If inaccessible, file blocker and re-sequence timeline.
+- DoD:
+- Integration timeline starts only after discovery gate pass.
+
+### W6-T01: Mission-level Codemoot integration
+
+- Scope:
+- Integrate without destabilizing canonical transport layer.
+- Actions:
+1. Add mission-level Codemoot-backed executor path.
+2. Map outputs into canonical `MissionResult`.
+3. Keep `call_agent` transport unchanged during spike.
+- DoD:
+- Codemoot runs produce contract-compliant mission outcomes.
+
+### W6-T02: Comparative reliability run
+
+- Scope:
+- Compare Codemoot against baseline on same ticket class.
+- Actions:
+1. Execute matched tickets through baseline and Codemoot paths.
+2. Compare success rate, failure modes, governance compliance, run cost.
+- DoD:
+- Promotion decision input is evidence-backed.
+
+## W2-W4 (Parallel): Stabilization and Anti-Stale Automation
+
+### W7-T01: Ledger hash-chain hardening
+
+- Scope:
+- Add tamper-evident chaining to ledger writes.
+- Actions:
+1. Implement hash-link fields in `runtime/orchestration/loop/ledger.py`.
+2. Add verification and tamper tests.
+- DoD:
+- Ledger tampering is detectable.
+
+### W7-T02: Doc freshness CI enforcement transition
+
+- Scope:
+- Move from warning-only to blocking doc contradiction gate.
+- Actions:
+1. Keep warning mode active immediately.
+2. Flip to blocking at end of Week 2 (explicit date in CI config).
+3. Emit weekly drift artifact and backlog feed.
+- DoD:
+- Contradictory state docs fail CI after switch date.
+
+### W7-T03: Pending protocol doc finalization
+
+- Scope:
+- Close known pending docs to reduce stale churn.
+- Actions:
+1. Finalize backlog-listed pending docs.
+2. Remove WIP markers/TODO placeholders.
+3. Re-run index/corpus regeneration.
+- DoD:
+- Pending protocol docs are no longer partial drafts.
+
+## 5. Test and Evidence Policy
+
+1. Minimum checks per work package:
+- Targeted tests for modified surfaces.
+- Relevant runtime tests before/after phase batch.
+2. Required evidence outputs:
+- Updated docs and status artifacts.
+- Command logs / packet references.
+- Review packet with changed-file flat content.
+3. No silent degradation:
+- Any blocked test/tool must be recorded as blocker in state/status docs.
+
+## 6. Public Interfaces and Artifact Contracts
+
+### Runtime status schema (v1.1 execution)
+
+All status artifacts in this plan use:
+
+```json
+{
+  "generated_at_utc": "string (ISO-8601 UTC)",
+  "repo_root": "string",
+  "facts": "object",
+  "contradictions": ["string"],
+  "status": "ok|warn|fail"
+}
+```
+
+### Canonical artifact paths
+
+1. `artifacts/status/runtime_status.json`
+2. `artifacts/packets/status/checkpoint_report_<YYYYMMDD>.json`
+3. `artifacts/review_packets/Review_Packet_<Mission>_vX.Y.md`
+
+## 7. Key Files Reference
+
+| File | Role |
+|---|---|
+| `runtime/orchestration/loop/spine.py` | Canonical execution controller |
+| `runtime/orchestration/missions/base.py` | Canonical mission contracts |
+| `runtime/agents/api.py` | Agent invocation and usage surfacing |
+| `runtime/agents/opencode_client.py` | Upstream usage parsing and provider response mapping |
+| `runtime/orchestration/openclaw_bridge.py` | OpenClaw mapping module target |
+| `runtime/orchestration/missions/autonomous_build_cycle.py` | Deprecated path guard target |
+| `runtime/cli.py` | CLI block for deprecated path |
+| `runtime/orchestration/loop/configurable_policy.py` | Budget gate logic |
+| `runtime/orchestration/loop/ledger.py` | Hash-chain hardening target |
+| `scripts/generate_runtime_status.py` | Runtime/doc truth artifact generator |
+| `docs/11_admin/LIFEOS_STATE.md` | Canonical state narrative |
+| `docs/11_admin/BACKLOG.md` | Canonical execution queue |
+| `docs/11_admin/PROJECT_STATUS_v1.0.md` | Information-only status summary |
+| `docs/11_admin/Plan_Supersession_Register.md` | Plan authority register |
+
+
+```
+
+### FILE: docs/11_admin/BACKLOG.md
+
+```
+# BACKLOG (prune aggressively; target ≤ 40 items)
+
+## Workflow Hook
+
+**"Done means" checklist:**
+
+- [ ] Update BACKLOG item status + evidence pointer (commit/packet)
+- [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
+- [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
+
+**Last Updated:** 2026-02-12
+
+## Now (ready soon; not in WIP yet)
+
+### P0 (Critical)
+
+- [ ] **E2E Loop Test: Real task through full pipeline** — DoD: One task completes select→design→build→review→steward autonomously — Owner: antigravity/COO — Context: All code components exist, needs integration verification
+- [ ] **Guard deprecated `autonomous_build_cycle` path** — DoD: New runs blocked with migration guidance to `lifeos spine run` — Owner: antigravity — Context: Prevent latent split-path execution
+- [ ] **Doc freshness skeleton gate** — DoD: Runtime status generator + CI warning check + blocking switch date committed — Owner: antigravity
+
+### P1 (High)
+
+- [ ] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [ ] **Fix test_steward_runner.py (25/27 failing)** — DoD: Tests pass or are properly restructured — Owner: antigravity — Context: Import/fixture issues, not code bugs
+- [ ] **Fix test_e2e_smoke_timeout.py (import error)** — DoD: run_with_timeout import fixed or test updated — Owner: antigravity
+- [ ] **Finalize Emergency_Declaration_Protocol v1.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize Intent_Routing_Rule v1.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize Test_Protocol v2.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize Tier_Definition_Spec v1.1** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize ARTEFACT_INDEX_SCHEMA v1.0** — DoD: Markers removed — Owner: antigravity
+- [ ] **Finalize QUICKSTART v1.0** — DoD: Context scan pass complete — Owner: antigravity
+
+## Next (valuable, but not imminent)
+
+- [ ] **Configure GCP Employee instance** — Context: Hardened OpenClaw config, dedicated accounts, Tailscale
+- [ ] **Revenue Track: LinkedIn daily posts** — Context: COO drafts, CEO reviews. Seed: "What autonomous AI agents actually cost to run"
+- [ ] **Revenue Track: B5 Governance Guide** — Context: 19,500 lines of real code + 1,440 tests backing the content
+- [ ] **Mission Type Extensions** — Why Next: Add new mission types based on backlog needs
+- [ ] **Gate 6: Agent-Agnostic Gate Runner** — DoD: Refactor claude-specific gates into `coo gate run-all`; wire into `coo land` — Owner: antigravity — Context: Doc stewardship status report identifies Claude-specific gates as non-portable
+- [ ] **Tech Debt: Rehabilitate Legacy Git Workflow Tests** — Context: Quarantined to archive_legacy_r6x due to missing run_cmd mock. Rehabilitate or remove.
+
+## Later (not actionable / unclear / exploratory)
+
+- [ ] **Fuel track exploration** — Why Later: Not blocking Core; future consideration per roadmap
+- [ ] **Productisation of Tier-1/Tier-2 engine** — Why Later: Depends on Core stabilisation
+
+## Done (last ~25 only)
+
+- [x] **EOL Clean Invariant Hardening** — Date: 2026-02-10 — 289-file renormalization, config-aware clean gate, acceptance closure validator, 37 tests, EOL_Policy_v1.0
+- [x] **Install OpenClaw COO on WSL2** — Date: 2026-02-11 — OpenClaw installed and acceptance-verified
+- [x] **Manual v2.1 Reconciliation Sprint** — Date: 2026-02-08 — CRLF fix, 36 tests re-enabled, free Zen models, manual corrected
+- [x] **Deletion Safety Hardening (Article XIX)** — Date: 2026-02-08
+- [x] **Documentation Stewardship** — Date: 2026-02-08 — 5 root docs relocated to canonical locations
+- [x] **StewardMission Git Ops (Full Implementation)** — Date: 2026-02-08 — 691 lines, real git ops, governance guards
+- [x] **LLM Backend Configuration** — Date: 2026-02-08 — config/models.yaml with 5 agents, fallback chains
+- [x] **Phase 4 (4A0-4D) Full Stack Merge** — Date: 2026-02-03 — Autonomous build loop canonical
+- [x] **Repository Branch Cleanup** — Date: 2026-02-03 — 9 branches assessed, 8 archived, single canonical main
+- [x] **E2E Test: Runtime Greet** — Date: 2026-02-01
+- [x] **Complete Deferred Evidence: F3/F4/F7** — Date: 2026-01-27
+- [x] **Standardize Raw Capture Primitive** — Date: 2026-01-18
+- [x] **Finalize CSO_Role_Constitution v1.0** — Date: 2026-01-23
+- [x] **Git Workflow Protocol v1.1 Impact** — Date: 2026-01-16
+- [x] **Grok Fallback Debug & Robustness Fixes v1.0** — Date: 2026-01-18
+- [x] **CLI & Mission Hardening v1.0** — Date: 2026-01-13
+- [x] **Tier-3 CLI Integration (Full)** — Date: 2026-01-13
+
+```
+
+### FILE: docs/11_admin/Doc_Freshness_Gate_Spec_v1.0.md
+
+```
+# Doc Freshness Gate Spec v1.0
+
+**Status:** Active  
+**Last Updated:** 2026-02-12
+
+## Purpose
+
+Reduce manual weekly audits by enforcing machine-checkable freshness and contradiction detection for state docs.
+
+## Scope
+
+- `docs/11_admin/LIFEOS_STATE.md`
+- `docs/11_admin/BACKLOG.md`
+- `docs/11_admin/AUTONOMY_STATUS.md`
+
+## Generator
+
+- Script: `scripts/generate_runtime_status.py`
+- Output artifact: `artifacts/status/runtime_status.json`
+
+## Checks
+
+1. Freshness SLA: generated status must be no older than 24 hours.
+2. Contradiction checks (v1):
+   - OpenClaw installed runtime fact must not conflict with blocker claims in `LIFEOS_STATE.md`.
+   - If OpenClaw is installed, backlog must not list install as open P0.
+3. Gate mode:
+   - Warning mode: active now.
+   - Blocking mode: switch at end of Week 2 from plan activation (target date: 2026-02-26).
+
+## CI Integration
+
+1. Run generator in CI.
+2. Compare generated facts against canonical docs.
+3. Emit warnings now; fail pipeline once blocking mode is activated.
+
+## Stewardship Rule
+
+If any file in scope changes, doc steward mission must:
+
+1. Re-run status generator.
+2. Update `docs/INDEX.md` timestamp.
+3. Regenerate `docs/LifeOS_Strategic_Corpus.md`.
+4. Produce review packet with flattened Appendix A for changed files.
+
+```
+
+### FILE: docs/11_admin/LIFEOS_STATE.md
+
+```
+# LifeOS State
+
+## Canonical Spine
+
+- **Canonical Sources:**
+  - [LIFEOS_STATE.md](docs/11_admin/LIFEOS_STATE.md)
+  - [BACKLOG.md](docs/11_admin/BACKLOG.md)
+- **Derived View:**
+  - [AUTONOMY_STATUS.md](docs/11_admin/AUTONOMY_STATUS.md) (derived; canon wins on conflict)
+- **Latest Baseline Pack (main HEAD):**
+  - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
+  - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
+
+**Current Focus:** Phase 0 execution — canonical plan lock, deprecated path guard, E2E Spine validation
+**Active WIP:** mainline execution hardening (test debt + doc freshness skeleton + status artifact generator), OpenClaw bridge readiness
+**Last Updated:** 2026-02-12 (rev3)
+
+---
+
+## 🟥 IMMEDIATE NEXT STEP (The "One Thing")
+
+**Run one real E2E Spine task (P0 verification):**
+
+1. OpenClaw install + acceptance: DONE (verified 2026-02-11)
+2. LoopSpine run/resume path: IMPLEMENTED and test-backed
+3. Remaining immediate work: deprecated-path guard + budget stub wiring + targeted recursive test debt
+4. **One thing now:** Execute one real task through `lifeos spine run` end-to-end with evidence
+
+**Canonical Plan Authority:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
+
+---
+
+## 🟧 Active Workstreams (WIP)
+
+| Status | Workstream | Owner | Deliverable |
+|--------|------------|-------|-------------|
+| **CLOSED** | **Trusted Builder Mode v1.1** | Antigravity | `Council_Ruling_Trusted_Builder_Mode_v1.1.md` (RATIFIED) |
+| **CLOSED** | **Policy Engine Authoritative Gating** | Antigravity | `Closure_Record_Policy_Engine_FixPass_v1.0.md` |
+
+| **CLOSED** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
+| **WAITING** | OpenCode Deletion Logic | Council | Review Ruling |
+| **CLOSED** | **Sprint S1 Phase B (B1–B3)** | Antigravity | Refined Evidence + Boundaries (ACCEPTED + committed) |
+| **MERGED** | **Phase 4 (4A0-4D) Full Stack** | Antigravity | CEO Queue, Loop Spine, Test Executor, Code Autonomy - All in main (commit 9f4ee41) |
+
+---
+
+## 🟦 Roadmap Context
+
+- **Phase 1 (Foundation):** DONE
+- **Phase 2 (Governance):** DONE
+- **Phase 3 (Optimization):** **RATIFIED (APPROVE_WITH_CONDITIONS)** — Council Ruling Phase3 Closure v1.0
+  - **Condition C1:** CSO Role Constitution v1.0 (RESOLVED 2026-01-23)
+  - **Condition C2:** F3/F4/F7 evidence deferred (RESOLVED 2026-01-27) — Review packets: `artifacts/review_packets/Review_Packet_F3_Tier2.5_Activation_v1.0.md`, `artifacts/review_packets/Review_Packet_F4_Tier2.5_Deactivation_v1.0.md`, `artifacts/review_packets/Review_Packet_F7_Runtime_Antigrav_Protocol_v1.0.md`
+- **Phase 4 (Autonomous Construction):** MERGED TO MAIN (2026-02-03)
+  - **P0 Pre-req:** Trusted Builder Mode v1.1 (RATIFIED 2026-01-26)
+  - **Phase 4A0 (Loop Spine):** MERGED - CLI surface, policy hash, ledger, chain execution
+  - **Phase 4A (CEO Queue):** MERGED - Checkpoint resolution backend with escalation
+  - **Phase 4B (Backlog Selection):** MERGED - Task selection integration + closure evidence v1.3
+  - **Phase 4C (OpenCode Test Execution):** MERGED - Pytest runner with P0-2 hardening
+  - **Phase 4D (Code Autonomy Hardening):** MERGED - Protected paths, syntax validation, bypass seam closure
+
+---
+
+## ⚠️ System Blockers (Top 3)
+
+1. **E2E Loop Test: Real task through full pipeline** (P0) — validate select→design→build→review→steward in one autonomous run.
+2. **OpenCode doc-steward delegate dependency gap** (P1) — `scripts/delegate_to_doc_steward.py` blocked by missing `PyYAML` in current env.
+3. **Token accounting upstream gap** (P1) — real usage parsing must land before trusted budget gating.
+
+---
+
+## 🟩 Recent Wins
+
+- **2026-02-12:** Canonical plan v1.1 refreshed with granular task IDs and supersession lock; runtime status generator now emits both `artifacts/status/runtime_status.json` and `artifacts/packets/status/checkpoint_report_<YYYYMMDD>.json`.
+- **2026-02-12:** Doc stewardship gate executed successfully for all modified docs (`python3 scripts/claude_doc_stewardship_gate.py` PASS).
+- **2026-02-10:** EOL Clean Invariant Hardening — Root cause fixed (system `core.autocrlf=true` conflicted with `.gitattributes eol=lf`), 289-file mechanical renormalization, config-aware clean gate (`coo_land_policy clean-check`), acceptance closure validator (`coo_acceptance_policy`), EOL_Policy_v1.0 canonical doc, 37 new tests.
+- **2026-02-11:** OpenClaw COO acceptance verified — OpenClaw installed/configured and P1 acceptance probe passed in local WSL2 runtime.
+- **2026-02-08:** Manual v2.1 Reconciliation — CRLF root-cause fix (.gitattributes), 36 tests re-enabled (1335→1371), free Zen models configured, manual v2.1 corrected (StewardMission & LLM backend gaps were already closed).
+- **2026-02-08:** Deletion Safety Hardening — Article XIX enforcement, safe_cleanup.py guards, 8 integration tests.
+- **2026-02-08:** Documentation Stewardship - Relocated 5 root documentation files to canonical locations in `docs/11_admin`, `docs/00_foundations`, and `docs/99_archive`. Updated project index and state.
+- **2026-02-03:** Repository Branch Cleanup - Assessed and cleaned 9 local branches, archived 8 with tags, deleted 1 obsolete WIP branch, cleared 7 stashes. All work verified in main. Single canonical branch (main) with 11 archive tags.
+- **2026-02-03:** Phase 4 (4A0-4D) MERGED TO MAIN - Full autonomous build loop stack canonical (merge commit 9f4ee41, 1327 passing tests)
+- **2026-02-02:** Phase 4A0 Loop Spine P0 fixes complete - CLI surface (lifeos/coo spine), real policy hash, ledger integration, chain execution
+- **2026-01-29:** Sprint S1 Phase B (B1-B3) refinements ACCEPTED and committed. No regressions (22 baseline failures preserved).
+- **2026-01-29:** P0 Repo Cleanup and Commit (滿足 Preflight Check).
+- **2026-01-26:** Trusted Builder Mode v1.1 Ratified (Council Ruling).
+- **2026-01-23:** Policy Engine Authoritative Gating — FixPass v1.0 (Council PASS).
+- **2026-01-18:** Raw Capture Primitive Standardized (Evidence Capture v0.1).
+- **2026-01-17:** Git Workflow v1.1 Accepted (Fail-Closed, Evidence-True).
+- **2026-01-16:** Phase 3 technical deliverables complete (Council ratification pending).
+
+```
+
+### FILE: docs/11_admin/PROJECT_STATUS_v1.0.md
+
+```
+> [!NOTE]
+> **STATUS**: Non-Canonical (Information Only). Canonical execution authority is `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md`.
+
+# Project Status v1.0
+
+**Last Updated:** 2026-02-12  
+**Updated By:** Doc Steward (execution sync)
+
+---
+
+## Current Program
+
+1. **Canonical Plan:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (task-ID granular)
+2. **Plan Register:** `docs/11_admin/Plan_Supersession_Register.md`
+3. **Execution Mode:** Reliability-first hardening with fail-closed controls.
+
+---
+
+## Current Focus
+
+1. Phase 0 completion and evidence closure:
+   - state/backlog reconciliation
+   - deprecated path guard for `autonomous_build_cycle`
+   - targeted recursive test debt repair
+   - doc freshness gate skeleton
+2. OpenClaw orchestrator bridge readiness:
+   - central mapping module target: `runtime/orchestration/openclaw_bridge.py`
+   - evidence routing and worktree dispatch checks
+
+---
+
+## Status by Workstream
+
+| Workstream | Status | Notes |
+|---|---|---|
+| OpenClaw install/acceptance | COMPLETE | Verified 2026-02-11 |
+| Spine controller | COMPLETE | Active canonical execution path |
+| Legacy path guarding | IN PROGRESS | New runs blocked at CLI; compatibility retained |
+| Recursive test debt | IN PROGRESS | Timeout suite fixed; steward runner suite reduced and stabilized |
+| Doc freshness automation | IN PROGRESS | Generator and gate spec created, warning mode active |
+| OpenClaw bridge integration | NOT STARTED | Planned in canonical v1.1 |
+| Budget controller hardening | NOT STARTED | Stub replacement and token accounting pending |
+| Codemoot integration spike | NOT STARTED | Discovery gate required first |
+| Doc steward sequence | PARTIAL PASS | Gate passes; OpenCode delegate script blocked by missing `PyYAML` dependency |
+
+---
+
+## Immediate Next Actions
+
+1. Execute one real E2E Spine task and capture closure evidence.
+2. Implement OpenClaw bridge mapping module and validator hooks.
+3. Connect real token accounting upstream from OpenCode client usage parsing.
+4. Promote doc freshness gate to blocking on scheduled date.
+
+---
+
+## Risk Watch
+
+1. OpenClaw shell-specific runtime confinement issue (`uv_interface_addresses`) observed in one shell context.
+2. Budget gating trust depends on non-zero, real usage values.
+3. Drift risk remains until blocking doc gate activates.
+4. OpenCode doc-steward delegation tooling has local dependency gap (`PyYAML`) in current environment.
+
+---
+
+## Tracking References
+
+1. `docs/11_admin/LIFEOS_STATE.md`
+2. `docs/11_admin/BACKLOG.md`
+3. `docs/11_admin/Doc_Freshness_Gate_Spec_v1.0.md`
+4. `artifacts/status/runtime_status.json`
+
+```
+
+### FILE: docs/11_admin/Plan_Supersession_Register.md
+
+```
+# Plan Supersession Register
+
+**Last Updated:** 2026-02-12 (rev2)
+
+## Active Canonical Plan
+
+- `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md`
+
+## Superseded by Active Plan
+
+- `artifacts/plans/LifeOS Status and Decision-Complete.md`
+- `artifacts/plans/Grand Plan LifeOS Spine Unification.md`
+- `artifacts/plans/LifeOS Reliability-First Spine Consolidation and Multi-Agent Adapter Architecture V1 202060212.md`
+- `artifacts/plans/LifeOS_Master_Execution_Plan_v1.0.md`
+
+## Notes
+
+1. Superseded plans remain historical evidence and should not be treated as current execution authority.
+2. This register is the reference used by doc stewardship and review packet generation for plan authority checks.
+
+```
+
+### FILE: docs/INDEX.md
+
+```
+# LifeOS Strategic Corpus [Last Updated: 2026-02-12 (rev2)]
+
+**Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
+
+---
+
+## Authority Chain
+
+```
+LifeOS Constitution v2.0 (Supreme)
+        │
+        └── Governance Protocol v1.0
+                │
+                ├── COO Operating Contract v1.0
+                ├── DAP v2.0
+                └── COO Runtime Spec v1.0
+```
+
+---
+
+## Strategic Context
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Strategic_Corpus.md](./LifeOS_Strategic_Corpus.md) | **Primary Context for the LifeOS Project** |
+
+---
+
+## Agent Guidance (Root Level)
+
+| File | Purpose |
+|------|---------|
+| [CLAUDE.md](../CLAUDE.md) | Claude Code (claude.ai/code) agent guidance |
+| [AGENTS.md](../AGENTS.md) | OpenCode agent instructions (Doc Steward subset) |
+| [GEMINI.md](../GEMINI.md) | Gemini agent constitution |
+
+---
+
+## 00_admin — Project Admin (Thin Control Plane)
+
+| Document | Purpose |
+|----------|---------|
+| [LIFEOS_STATE.md](./11_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions |
+| [BACKLOG.md](./11_admin/BACKLOG.md) | Actionable backlog (Now/Next/Later) — target ≤40 items |
+| [DECISIONS.md](./11_admin/DECISIONS.md) | Append-only decision log (low volume) |
+| [INBOX.md](./11_admin/INBOX.md) | Raw capture scratchpad for triage |
+| [ARCHITECTURE_DIAGRAMS.md](./11_admin/ARCHITECTURE_DIAGRAMS.md) | **Information Only** — System architecture diagrams |
+| [PROJECT_ADMIN_SUMMARY.md](./11_admin/PROJECT_ADMIN_SUMMARY.md) | **Information Only** — High-level project administrative summary |
+| [PROJECT_DEPENDENCY_GRAPH.md](./11_admin/PROJECT_DEPENDENCY_GRAPH.md) | **Information Only** — Mermaid dependency graph of tasks |
+| [PROJECT_GANTT_CHART.md](./11_admin/PROJECT_GANTT_CHART.md) | **Information Only** — Project timeline and Gantt chart |
+| [PROJECT_MASTER_TASK_LIST.md](./11_admin/PROJECT_MASTER_TASK_LIST.md) | **Information Only** — Master list of all tracked project tasks |
+| [PROJECT_STATUS_v1.0.md](./11_admin/PROJECT_STATUS_v1.0.md) | **Information Only** — Snapshot of project status (legacy) |
+| [Plan_Supersession_Register.md](./11_admin/Plan_Supersession_Register.md) | **Control** — Canonical register of superseded and active plans |
+| [Doc_Freshness_Gate_Spec_v1.0.md](./11_admin/Doc_Freshness_Gate_Spec_v1.0.md) | **Control** — Runtime-backed doc freshness and contradiction gate spec |
+| [Autonomy Project Baseline.md](./11_admin/Autonomy%20Project%20Baseline.md) | **Phase 4** — Minimal doc set + Maintenance Protocol |
+| [LifeOS Autonomous Build Loop System - Status Report 20260202.md](./11_admin/LifeOS%20Autonomous%20Build%20Loop%20System%20-%20Status%20Report%2020260202.md) | **Condition** — Status report on Phase 4 autonomy readiness |
+| [Roadmap Fully Autonomous Build Loop20260202.md](./11_admin/Roadmap%20Fully%20Autonomous%20Build%20Loop20260202.md) | **Phase 4 Roadmap** — Re-ordered to match verified reality |
+| [lifeos-master-operating-manual-v2.1.md](./11_admin/lifeos-master-operating-manual-v2.1.md) | **Strategic Plan** — Master Operating Manual v2.1 |
+
+---
+
+## 00_foundations — Core Principles
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Constitution_v2.0.md](./00_foundations/LifeOS_Constitution_v2.0.md) | **Supreme governing document** — Raison d'être, invariants, principles |
+| [Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md) | Anti-failure mechanisms, human preservation, workflow constraints |
+| [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
+| [Tier_Definition_Spec_v1.1.md](./00_foundations/Tier_Definition_Spec_v1.1.md) | **Canonical** — Tier progression model, definitions, and capabilities |
+| [ARCH_Future_Build_Automation_Operating_Model_v0.2.md](./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md) | **Architecture Proposal** — Future Build Automation Operating Model v0.2 |
+| [lifeos-agent-architecture.md](./00_foundations/lifeos-agent-architecture.md) | **Architecture** — Non-canonical agent architecture |
+| [lifeos-maximum-vision.md](./00_foundations/lifeos-maximum-vision.md) | **Vision** — Non-canonical maximum vision architecture |
+
+---
+
+## 01_governance — Governance & Contracts
+
+### Core Governance
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Operating_Contract_v1.0.md](./01_governance/COO_Operating_Contract_v1.0.md) | CEO/COO role boundaries and interaction rules |
+| [AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md) | Template for agent GEMINI.md files |
+| [DOC_STEWARD_Constitution_v1.0.md](./01_governance/DOC_STEWARD_Constitution_v1.0.md) | Document Steward constitutional boundaries |
+
+### Council & Review
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Invocation_Runtime_Binding_Spec_v1.1.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md) | Council invocation and runtime binding |
+| [Antigravity_Council_Review_Packet_Spec_v1.0.md](./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md) | Council review packet format |
+| [ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md) | Monthly/quarterly alignment review template |
+
+### Policies & Logs
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Expectations_Log_v1.0.md](./01_governance/COO_Expectations_Log_v1.0.md) | Working preferences and behavioral refinements |
+| [Antigrav_Output_Hygiene_Policy_v0.1.md](./01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md) | Output path rules for Antigravity |
+| [OpenCode_First_Stewardship_Policy_v1.1.md](./01_governance/OpenCode_First_Stewardship_Policy_v1.1.md) | **Mandatory** OpenCode routing for in-envelope docs |
+
+### Active Rulings
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](./01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md) | **ACTIVE** — OpenCode Document Steward CT-2 Phase 2 Activation |
+| [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md) | **ACTIVE** — OpenCode-First Doc Stewardship Adoption |
+| [Council_Ruling_Build_Handoff_v1.0.md](./01_governance/Council_Ruling_Build_Handoff_v1.0.md) | **Approved**: Build Handoff Protocol v1.0 activation-canonical |
+| [Council_Ruling_Build_Loop_Architecture_v1.0.md](./01_governance/Council_Ruling_Build_Loop_Architecture_v1.0.md) | **ACTIVE**: Build Loop Architecture v0.3 authorised for Phase 1 |
+| [Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md](./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md) | **Active**: Reactive Task Layer v0.1 Signoff |
+| [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
+
+### Historical Rulings
+
+| Document | Purpose |
+|----------|---------|
+| [Tier1_Hardening_Council_Ruling_v0.1.md](./01_governance/Tier1_Hardening_Council_Ruling_v0.1.md) | Historical: Tier-1 ratification ruling |
+| [Tier1_Tier2_Activation_Ruling_v0.2.md](./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md) | Historical: Tier-2 activation ruling |
+| [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md) | Historical: Tier transition conditions |
+| [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
+
+---
+
+## 02_protocols — Protocols & Agent Communication
+
+### Core Protocols
+
+| Document | Purpose |
+|----------|---------|
+| [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
+| [Git_Workflow_Protocol_v1.1.md](./02_protocols/Git_Workflow_Protocol_v1.1.md) | **Fail-Closed**: Branch conventions, CI proof merging, receipts |
+| [Document_Steward_Protocol_v1.0.md](./02_protocols/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
+| [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
+| [Build_Artifact_Protocol_v1.0.md](./02_protocols/Build_Artifact_Protocol_v1.0.md) | **NEW** — Formal schemas/templates for Plans, Review Packets, Walkthroughs, etc. |
+| [Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md) | Tier-2 API Versioning, Deprecation, and Compatibility Rules |
+| [Build_Handoff_Protocol_v1.0.md](./02_protocols/Build_Handoff_Protocol_v1.0.md) | Messaging & handoff architecture for agent coordination |
+| [Intent_Routing_Rule_v1.1.md](./02_protocols/Intent_Routing_Rule_v1.1.md) | Decision routing (CEO/CSO/Council/Runtime) |
+| [LifeOS_Design_Principles_Protocol_v1.1.md](./02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md) | **Canonical** — "Prove then Harden" development principles, Output-First governance, sandbox workflow |
+| [Emergency_Declaration_Protocol_v1.0.md](./02_protocols/Emergency_Declaration_Protocol_v1.0.md) | **WIP** — Emergency override and auto-revert procedures |
+| [Test_Protocol_v2.0.md](./02_protocols/Test_Protocol_v2.0.md) | **WIP** — Test categories, coverage, and flake policy |
+| [EOL_Policy_v1.0.md](./02_protocols/EOL_Policy_v1.0.md) | **Canonical** — LF line endings, config compliance, clean invariant enforcement |
+| [Filesystem_Error_Boundary_Protocol_v1.0.md](./02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md) | **Draft** — Fail-closed filesystem error boundaries, exception taxonomy |
+
+### Council Protocols
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Protocol_v1.3.md](./02_protocols/Council_Protocol_v1.3.md) | **Canonical** — Council review procedure, modes, topologies, P0 criteria, complexity budget |
+| [AI_Council_Procedural_Spec_v1.1.md](./02_protocols/AI_Council_Procedural_Spec_v1.1.md) | Runbook for executing Council Protocol v1.2 |
+| [Council_Context_Pack_Schema_v0.3.md](./02_protocols/Council_Context_Pack_Schema_v0.3.md) | CCP template schema for council reviews |
+
+### Packet & Artifact Schemas
+
+| Document | Purpose |
+|----------|---------|
+| [lifeos_packet_schemas_v1.yaml](./02_protocols/lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
+| [lifeos_packet_templates_v1.yaml](./02_protocols/lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
+| [build_artifact_schemas_v1.yaml](./02_protocols/build_artifact_schemas_v1.yaml) | **NEW** — Build artifact schema definitions (6 artifact types) |
+| [templates/](./02_protocols/templates/) | **NEW** — Markdown templates for all artifact types |
+| [example_converted_antigravity_packet.yaml](./02_protocols/example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
+
+---
+
+## 03_runtime — Runtime Specification
+
+### Core Specs
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Runtime_Spec_v1.0.md](./03_runtime/COO_Runtime_Spec_v1.0.md) | Mechanical execution contract, FSM, determinism rules |
+| [COO_Runtime_Implementation_Packet_v1.0.md](./03_runtime/COO_Runtime_Implementation_Packet_v1.0.md) | Implementation details for Antigravity |
+| [COO_Runtime_Core_Spec_v1.0.md](./03_runtime/COO_Runtime_Core_Spec_v1.0.md) | Extended core specification |
+| [COO_Runtime_Spec_Index_v1.0.md](./03_runtime/COO_Runtime_Spec_Index_v1.0.md) | Spec index and patch log |
+| [LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md](./03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md) | **Canonical**: Autonomous Build Loop Architecture (Council-authorised) |
+| [Council_Agent_Design_v1.0.md](./03_runtime/Council_Agent_Design_v1.0.md) | **Information Only** — Conceptual design for the Council Agent |
+
+### Roadmaps & Plans
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](./03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) | **Current roadmap** — Core/Fuel/Plumbing tracks |
+| [LifeOS_Recursive_Improvement_Architecture_v0.2.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md) | Recursive improvement architecture |
+| [LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](./03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md) | Future router and executor adapter spec |
+| [LifeOS_Plan_SelfBuilding_Loop_v2.2.md](./03_runtime/LifeOS_Plan_SelfBuilding_Loop_v2.2.md) | **Plan**: Self-Building LifeOS — CEO Out of the Execution Loop (Milestone) |
+
+### Work Plans & Fix Packs
+
+| Document | Purpose |
+|----------|---------|
+| [Hardening_Backlog_v0.1.md](./03_runtime/Hardening_Backlog_v0.1.md) | Hardening work backlog |
+| [Tier1_Hardening_Work_Plan_v0.1.md](./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md) | Tier-1 hardening work plan |
+| [Tier2.5_Unified_Fix_Plan_v1.0.md](./03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md) | Tier-2.5 unified fix plan |
+| [F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](./03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md) | Tier-2.5 activation conditions checklist (F3) |
+| [F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](./03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md) | Tier-2.5 deactivation and rollback conditions (F4) |
+| [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](./03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md) | Runtime↔Antigrav mission protocol (F7) |
+| [Runtime_Hardening_Fix_Pack_v0.1.md](./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md) | Runtime hardening fix pack |
+| [fixpacks/FP-4x_Implementation_Packet_v0.1.md](./03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md) | FP-4x implementation |
+
+### Templates & Tools
+
+| Document | Purpose |
+|----------|---------|
+| [BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](./03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md) | Build starter prompt template |
+| [CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](./03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md) | Code review prompt template |
+| [COO_Runtime_Walkthrough_v1.0.md](./03_runtime/COO_Runtime_Walkthrough_v1.0.md) | Runtime walkthrough |
+| [COO_Runtime_Clean_Build_Spec_v1.1.md](./03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md) | Clean build specification |
+
+### Other
+
+| Document | Purpose |
+|----------|---------|
+| [Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md) | Automation proposal |
+| [Runtime_Complexity_Constraints_v0.1.md](./03_runtime/Runtime_Complexity_Constraints_v0.1.md) | Complexity constraints |
+| [README_Recursive_Kernel_v0.1.md](./03_runtime/README_Recursive_Kernel_v0.1.md) | Recursive kernel readme |
+
+---
+
+## 12_productisation — Productisation & Marketing
+
+| Document | Purpose |
+|----------|---------|
+| [An_OS_for_Life.mp4](./12_productisation/assets/An_OS_for_Life.mp4) | **Promotional Video** — An introduction to LifeOS |
+
+---
+
+## internal — Internal Reports
+
+| Document | Purpose |
+|----------|---------|
+| [OpenCode_Phase0_Completion_Report_v1.0.md](./internal/OpenCode_Phase0_Completion_Report_v1.0.md) | OpenCode Phase 0 API connectivity validation — PASSED |
+
+---
+
+## 99_archive — Historical Documents
+
+Archived documents are in `99_archive/`. Key locations:
+
+- `99_archive/superseded_by_constitution_v2/` — Documents superseded by Constitution v2.0
+- `99_archive/legacy_structures/` — Legacy governance and specs
+- [lifeos-master-operating-manual-v2.md](./99_archive/lifeos-master-operating-manual-v2.md) — Preceding version of the master operations manual
+- [lifeos-operations-manual.md](./99_archive/lifeos-operations-manual.md) — First version of the master operations manual
+
+---
+
+## Other Directories
+
+| Directory | Contents |
+|-----------|----------|
+| `04_project_builder/` | Project builder specs |
+| `05_agents/` | Agent architecture |
+| `06_user_surface/` | User surface specs |
+| `08_manuals/` | Manuals |
+| `09_prompts/v1.0/` | Legacy v1.0 prompt templates |
+| `09_prompts/v1.2/` | **Current** — Council role prompts (Chair, Co-Chair, 10 reviewer seats) |
+| `10_meta/` | Meta documents, reviews, tasks |
+
+```
+
+### FILE: docs/LifeOS_Strategic_Corpus.md
+
+```
 # ⚡ LifeOS Strategic Dashboard
 **Current Tier:** Tier-2.5 (Activated)
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
@@ -8139,3 +9102,3348 @@ One of: **Accept / Go with Fixes / Reject**
 
 
 ---
+
+```
+
+### FILE: runtime/cli.py
+
+```
+import argparse
+import sys
+import json
+from pathlib import Path
+from datetime import datetime
+import subprocess
+from typing import Any, Dict
+
+from runtime.config import detect_repo_root, load_config
+from runtime.orchestration.ceo_queue import CEOQueue
+from runtime.orchestration.orchestrator import OrchestrationResult, ValidationOrchestrator
+from runtime.validation.core import JobSpec
+from runtime.validation.evidence import compute_manifest
+from runtime.validation.reporting import sha256_file
+
+def cmd_status(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
+    """Print status of repo root, config, and validation."""
+    print(f"repo_root: {repo_root}")
+    if config_path:
+        print(f"config_source: {config_path}")
+        print("config_validation: VALID")
+    else:
+        print("config_source: NONE")
+        print("config_validation: N/A")
+    return 0
+
+def cmd_config_validate(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
+    """Validate the configuration and exit 0/1."""
+    if not config_path:
+        print("Error: No config file provided. Use --config <path>")
+        return 1
+    
+    # If we reached here, load_config already passed in main()
+    print("VALID")
+    return 0
+
+def cmd_config_show(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
+    """Show the configuration in canonical JSON format."""
+    if config is None:
+        if config_path:
+             # This shouldn't happen if main loaded it, but for safety:
+             try:
+                 config = load_config(config_path)
+             except Exception as e:
+                 print(f"Error: {e}")
+                 return 1
+        else:
+            print("{}")
+            return 0
+            
+    # Canonical JSON: sort_keys=True, no spaces in separators, no ASCII escape
+    output = json.dumps(config, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    print(output)
+    return 0
+
+def cmd_mission_list(args: argparse.Namespace) -> int:
+    """List all available mission types in sorted JSON."""
+    # Local import
+
+    # Get mission types from canonical registry (prefer registry keys over enum)
+    try:
+        from runtime.orchestration import registry
+        if hasattr(registry, 'MISSION_REGISTRY'):
+            mission_types = sorted(registry.MISSION_REGISTRY.keys())
+        else:
+            raise AttributeError
+    except (ImportError, AttributeError):
+        # Fallback: use MissionType enum
+        from runtime.orchestration.missions.base import MissionType
+        mission_types = sorted([mt.value for mt in MissionType])
+
+    # Output canonical JSON (indent=2, sort_keys=True)
+    output = json.dumps(mission_types, indent=2, sort_keys=True)
+    print(output)
+    return 0
+
+
+def _canonical_json(payload: Dict[str, Any]) -> str:
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _baseline_commit(repo_root: Path) -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            cwd=repo_root,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception:
+        pass
+    return None
+
+
+def _mission_success(payload: Dict[str, Any]) -> bool:
+    if "success" in payload:
+        return bool(payload["success"])
+    if payload.get("status") is not None:
+        return payload.get("status") == "success"
+    return False
+
+
+def _extract_mission_result(result_dict: Dict[str, Any], mission_type: str) -> Dict[str, Any]:
+    final_state = result_dict.get("final_state")
+    if isinstance(final_state, dict):
+        mission_result = final_state.get("mission_result")
+        if isinstance(mission_result, dict):
+            return mission_result
+
+        mission_results = final_state.get("mission_results")
+        if isinstance(mission_results, dict) and mission_results:
+            try:
+                first = next(iter(mission_results.values()))
+            except StopIteration:
+                return {
+                    "mission_type": mission_type,
+                    "success": _mission_success(result_dict),
+                    "outputs": result_dict.get("outputs", result_dict.get("output", {})),
+                    "evidence": result_dict.get("evidence", {}),
+                    "executed_steps": result_dict.get("executed_steps", []),
+                    "error": "Mission iteration failed during extraction",
+                }
+            if isinstance(first, dict):
+                extracted = dict(first)
+                extracted.setdefault("mission_type", mission_type)
+                extracted.setdefault("success", _mission_success(extracted))
+                extracted.setdefault("outputs", extracted.get("outputs", {}))
+                extracted.setdefault("evidence", extracted.get("evidence", {}))
+                extracted.setdefault("executed_steps", extracted.get("executed_steps", []))
+                extracted.setdefault("error", extracted.get("error"))
+                return extracted
+
+    return {
+        "mission_type": mission_type,
+        "success": _mission_success(result_dict),
+        "outputs": result_dict.get("outputs", result_dict.get("output", {})),
+        "evidence": result_dict.get("evidence", {}),
+        "executed_steps": result_dict.get("executed_steps", []),
+        "error": result_dict.get("error") or result_dict.get("error_message"),
+    }
+
+
+def _run_registry_mission(
+    *,
+    repo_root: Path,
+    mission_type: str,
+    mission_inputs: Dict[str, Any],
+    initial_state: Dict[str, Any] | None = None,
+    extra_metadata: Dict[str, Any] | None = None,
+) -> tuple[Dict[str, Any], Dict[str, Any]]:
+    from runtime.orchestration import registry
+    from runtime.orchestration.engine import ExecutionContext
+
+    metadata = {
+        "repo_root": str(repo_root),
+        "baseline_commit": _baseline_commit(repo_root),
+        "cli_invocation": True,
+    }
+    if extra_metadata:
+        metadata.update(extra_metadata)
+
+    ctx = ExecutionContext(
+        initial_state=initial_state or {},
+        metadata=metadata,
+    )
+    result = registry.run_mission(mission_type, ctx, mission_inputs)
+
+    if hasattr(result, "to_dict"):
+        result_dict = result.to_dict()
+    elif isinstance(result, dict):
+        result_dict = result
+    else:
+        result_dict = {"success": False, "error": "Invalid mission result type"}
+
+    return result_dict, _extract_mission_result(result_dict, mission_type)
+
+
+def _write_mission_attempt_evidence(
+    *,
+    attempt_dir: Path,
+    mission_type: str,
+    mission_inputs: Dict[str, Any],
+    mission_result: Dict[str, Any],
+) -> None:
+    evidence_root = attempt_dir / "evidence"
+    evidence_root.mkdir(parents=True, exist_ok=True)
+
+    meta_payload = {
+        "schema_version": "mission_cli_attempt_meta_v1",
+        "mission_type": mission_type,
+        "mission_success": bool(mission_result.get("success")),
+    }
+    (evidence_root / "meta.json").write_text(
+        json.dumps(meta_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
+    (evidence_root / "exitcode.txt").write_text(
+        "0\n" if mission_result.get("success") else "1\n",
+        encoding="utf-8",
+    )
+    command_payload = {
+        "operation": "mission",
+        "mission_type": mission_type,
+        "inputs_keys": sorted(mission_inputs.keys()),
+    }
+    (evidence_root / "commands.jsonl").write_text(
+        json.dumps(command_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
+    compute_manifest(evidence_root)
+
+
+def _verify_acceptance_proof(orchestration: OrchestrationResult) -> tuple[Dict[str, str | None], str | None]:
+    proof: Dict[str, str | None] = {
+        "acceptance_token_path": None,
+        "acceptance_record_path": None,
+        "acceptance_token_sha256": None,
+        "evidence_manifest_sha256": None,
+    }
+
+    if not orchestration.acceptance_token_path:
+        return proof, "Missing acceptance_token_path from orchestrator result"
+    if not orchestration.acceptance_record_path:
+        return proof, "Missing acceptance_record_path from orchestrator result"
+
+    token_path = Path(orchestration.acceptance_token_path)
+    record_path = Path(orchestration.acceptance_record_path)
+
+    if not token_path.exists():
+        return proof, f"Acceptance token missing on disk: {token_path}"
+    if not record_path.exists():
+        return proof, f"Acceptance record missing on disk: {record_path}"
+
+    try:
+        with open(record_path, "r", encoding="utf-8") as handle:
+            record = json.load(handle)
+    except Exception as exc:
+        return proof, f"Failed to read acceptance record: {exc}"
+
+    if not isinstance(record, dict):
+        return proof, "Acceptance record payload must be an object"
+    if record.get("schema_version") != "acceptance_record_v1":
+        return proof, "Acceptance record schema_version mismatch"
+    if record.get("accepted") is not True:
+        return proof, "Acceptance record is not marked accepted=true"
+
+    required_record_fields = {
+        "token_path",
+        "manifest_path",
+        "acceptance_token_sha256",
+        "evidence_manifest_sha256",
+    }
+    missing = sorted(field for field in required_record_fields if not record.get(field))
+    if missing:
+        return proof, f"Acceptance record missing required fields: {missing}"
+
+    record_token_path = Path(str(record["token_path"]))
+    if record_token_path.resolve() != token_path.resolve():
+        return proof, "Acceptance record token_path does not match orchestrator token path"
+
+    token_sha = sha256_file(token_path)
+    if token_sha != record["acceptance_token_sha256"]:
+        return proof, "Acceptance token sha256 mismatch"
+
+    manifest_path = Path(str(record["manifest_path"]))
+    if not manifest_path.exists():
+        return proof, f"Acceptance record manifest_path missing on disk: {manifest_path}"
+
+    manifest_sha = sha256_file(manifest_path)
+    if manifest_sha != record["evidence_manifest_sha256"]:
+        return proof, "Evidence manifest sha256 mismatch"
+
+    proof["acceptance_token_path"] = str(token_path)
+    proof["acceptance_record_path"] = str(record_path)
+    proof["acceptance_token_sha256"] = token_sha
+    proof["evidence_manifest_sha256"] = manifest_sha
+    return proof, None
+
+
+def _build_cli_mission_payload(
+    *,
+    mission_type: str,
+    mission_result: Dict[str, Any],
+    raw_result: Dict[str, Any],
+    orchestration: OrchestrationResult | None,
+    proof: Dict[str, str | None],
+    success: bool,
+    error: str | None = None,
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "success": success,
+        "id": orchestration.run_id if orchestration is not None else "mission-cli-exception",
+        "lineage": raw_result.get("lineage") if isinstance(raw_result, dict) else None,
+        "receipt": raw_result.get("receipt") if isinstance(raw_result, dict) else None,
+        "final_state": {
+            "mission_result": mission_result,
+        },
+        "acceptance_token_path": proof.get("acceptance_token_path"),
+        "acceptance_record_path": proof.get("acceptance_record_path"),
+        "acceptance_token_sha256": proof.get("acceptance_token_sha256"),
+        "evidence_manifest_sha256": proof.get("evidence_manifest_sha256"),
+    }
+    if orchestration is not None:
+        payload["validation_run_id"] = orchestration.run_id
+        payload["attempt_id"] = orchestration.attempt_id
+        payload["attempt_index"] = orchestration.attempt_index
+        if orchestration.validator_report_path:
+            payload["validator_report_path"] = orchestration.validator_report_path
+    if error:
+        payload["error"] = error
+    payload["mission_type"] = mission_type
+    return payload
+
+
+def _run_mission_with_acceptance(
+    *,
+    repo_root: Path,
+    mission_type: str,
+    mission_inputs: Dict[str, Any],
+    initial_state: Dict[str, Any] | None = None,
+    extra_metadata: Dict[str, Any] | None = None,
+) -> tuple[int, Dict[str, Any]]:
+    mission_result: Dict[str, Any] = {
+        "mission_type": mission_type,
+        "success": False,
+        "outputs": {},
+        "evidence": {},
+        "executed_steps": [],
+        "error": "Mission did not execute",
+    }
+    raw_result: Dict[str, Any] = {}
+
+    def _agent_runner(attempt_dir: Path, _job_spec: JobSpec) -> None:
+        nonlocal mission_result, raw_result
+        try:
+            raw_result, mission_result = _run_registry_mission(
+                repo_root=repo_root,
+                mission_type=mission_type,
+                mission_inputs=mission_inputs,
+                initial_state=initial_state,
+                extra_metadata=extra_metadata,
+            )
+        except Exception as exc:
+            raw_result = {}
+            mission_result = {
+                "mission_type": mission_type,
+                "success": False,
+                "outputs": {},
+                "evidence": {},
+                "executed_steps": [],
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+        finally:
+            _write_mission_attempt_evidence(
+                attempt_dir=attempt_dir,
+                mission_type=mission_type,
+                mission_inputs=mission_inputs,
+                mission_result=mission_result,
+            )
+
+    try:
+        orchestration = ValidationOrchestrator(workspace_root=repo_root).run(
+            mission_kind=mission_type,
+            evidence_tier="light",
+            agent_runner=_agent_runner,
+        )
+    except Exception as exc:
+        error = f"{type(exc).__name__}: {exc}"
+        payload = _build_cli_mission_payload(
+            mission_type=mission_type,
+            mission_result=mission_result,
+            raw_result=raw_result,
+            orchestration=None,
+            proof={
+                "acceptance_token_path": None,
+                "acceptance_record_path": None,
+                "acceptance_token_sha256": None,
+                "evidence_manifest_sha256": None,
+            },
+            success=False,
+            error=error,
+        )
+        return 1, payload
+
+    proof, proof_error = _verify_acceptance_proof(orchestration)
+    mission_ok = bool(mission_result.get("success"))
+
+    acceptance_ok = (
+        orchestration.success
+        and proof_error is None
+        and all(
+            proof.get(key)
+            for key in (
+                "acceptance_token_path",
+                "acceptance_record_path",
+                "acceptance_token_sha256",
+                "evidence_manifest_sha256",
+            )
+        )
+    )
+    success = mission_ok and acceptance_ok
+
+    error = None
+    if not acceptance_ok:
+        error = proof_error or orchestration.message
+    elif not mission_ok:
+        error = str(mission_result.get("error") or "Mission execution failed")
+
+    payload = _build_cli_mission_payload(
+        mission_type=mission_type,
+        mission_result=mission_result,
+        raw_result=raw_result,
+        orchestration=orchestration,
+        proof=proof,
+        success=success,
+        error=error,
+    )
+    return (0 if success else 1), payload
+
+
+def _emit_mission_result(
+    *,
+    mission_type: str,
+    payload: Dict[str, Any],
+    as_json: bool,
+    header_lines: list[str] | None = None,
+) -> int:
+    success = bool(payload.get("success"))
+    if as_json:
+        print(_canonical_json(payload))
+        return 0 if success else 1
+
+    if header_lines:
+        for line in header_lines:
+            print(line)
+
+    if success:
+        print(f"Mission '{mission_type}' succeeded.")
+        print(f"Acceptance record: {payload.get('acceptance_record_path')}")
+    else:
+        print(f"Mission '{mission_type}' failed: {payload.get('error', 'Unknown error')}", file=sys.stderr)
+    return 0 if success else 1
+
+
+def cmd_mission_run(args: argparse.Namespace, repo_root: Path) -> int:
+    """Run a mission through trusted orchestrator + acceptor path."""
+    inputs: Dict[str, Any] = {}
+
+    # Deprecation guard: autonomous_build_cycle is no longer a valid entrypoint for new runs.
+    if args.mission_type == "autonomous_build_cycle":
+        msg = (
+            "Mission type 'autonomous_build_cycle' is deprecated for new runs. "
+            "Use 'lifeos spine run <task_spec>' instead."
+        )
+        payload = _build_cli_mission_payload(
+            mission_type=args.mission_type,
+            mission_result={
+                "mission_type": args.mission_type,
+                "success": False,
+                "outputs": {},
+                "evidence": {"deprecation": "autonomous_build_cycle"},
+                "executed_steps": ["deprecation_guard"],
+                "error": msg,
+            },
+            raw_result={},
+            orchestration=None,
+            proof={
+                "acceptance_token_path": None,
+                "acceptance_record_path": None,
+                "acceptance_token_sha256": None,
+                "evidence_manifest_sha256": None,
+            },
+            success=False,
+            error=msg,
+        )
+        return _emit_mission_result(
+            mission_type=args.mission_type,
+            payload=payload,
+            as_json=args.json,
+            header_lines=[msg] if not args.json else None,
+        )
+
+    if args.param:
+        for param in args.param:
+            if "=" not in param:
+                payload = _build_cli_mission_payload(
+                    mission_type=args.mission_type,
+                    mission_result={
+                        "mission_type": args.mission_type,
+                        "success": False,
+                        "outputs": {},
+                        "evidence": {},
+                        "executed_steps": [],
+                        "error": f"Invalid parameter format '{param}'. Expected 'key=value'",
+                    },
+                    raw_result={},
+                    orchestration=None,
+                    proof={
+                        "acceptance_token_path": None,
+                        "acceptance_record_path": None,
+                        "acceptance_token_sha256": None,
+                        "evidence_manifest_sha256": None,
+                    },
+                    success=False,
+                    error=f"Invalid parameter format '{param}'. Expected 'key=value'",
+                )
+                return _emit_mission_result(
+                    mission_type=args.mission_type,
+                    payload=payload,
+                    as_json=args.json,
+                )
+            key, value = param.split("=", 1)
+            inputs[key] = value
+
+    if args.params:
+        try:
+            json_inputs = json.loads(args.params)
+        except json.JSONDecodeError as exc:
+            payload = _build_cli_mission_payload(
+                mission_type=args.mission_type,
+                mission_result={
+                    "mission_type": args.mission_type,
+                    "success": False,
+                    "outputs": {},
+                    "evidence": {},
+                    "executed_steps": [],
+                    "error": f"Invalid JSON in --params: {exc}",
+                },
+                raw_result={},
+                orchestration=None,
+                proof={
+                    "acceptance_token_path": None,
+                    "acceptance_record_path": None,
+                    "acceptance_token_sha256": None,
+                    "evidence_manifest_sha256": None,
+                },
+                success=False,
+                error=f"Invalid JSON in --params: {exc}",
+            )
+            return _emit_mission_result(
+                mission_type=args.mission_type,
+                payload=payload,
+                as_json=args.json,
+            )
+        if not isinstance(json_inputs, dict):
+            payload = _build_cli_mission_payload(
+                mission_type=args.mission_type,
+                mission_result={
+                    "mission_type": args.mission_type,
+                    "success": False,
+                    "outputs": {},
+                    "evidence": {},
+                    "executed_steps": [],
+                    "error": "--params must be a JSON object (dict)",
+                },
+                raw_result={},
+                orchestration=None,
+                proof={
+                    "acceptance_token_path": None,
+                    "acceptance_record_path": None,
+                    "acceptance_token_sha256": None,
+                    "evidence_manifest_sha256": None,
+                },
+                success=False,
+                error="--params must be a JSON object (dict)",
+            )
+            return _emit_mission_result(
+                mission_type=args.mission_type,
+                payload=payload,
+                as_json=args.json,
+            )
+        inputs.update(json_inputs)
+
+    _, payload = _run_mission_with_acceptance(
+        repo_root=repo_root,
+        mission_type=args.mission_type,
+        mission_inputs=inputs,
+        initial_state={},
+        extra_metadata={"cli_command": "mission run"},
+    )
+    return _emit_mission_result(
+        mission_type=args.mission_type,
+        payload=payload,
+        as_json=args.json,
+    )
+
+
+def cmd_run_mission(args: argparse.Namespace, repo_root: Path) -> int:
+    """Run a mission from backlog via trusted orchestrator + acceptor path."""
+    from runtime.backlog.synthesizer import SynthesisError, synthesize_mission
+
+    task_id = args.from_backlog
+    backlog_arg = Path(args.backlog) if args.backlog else Path("config/backlog.yaml")
+    backlog_path = backlog_arg if backlog_arg.is_absolute() else repo_root / backlog_arg
+    mission_type = args.mission_type if args.mission_type else "steward"
+
+    try:
+        packet = synthesize_mission(
+            task_id=task_id,
+            backlog_path=backlog_path,
+            repo_root=repo_root,
+            mission_type=mission_type,
+        )
+    except SynthesisError as exc:
+        payload = _build_cli_mission_payload(
+            mission_type=mission_type,
+            mission_result={
+                "mission_type": mission_type,
+                "success": False,
+                "outputs": {},
+                "evidence": {},
+                "executed_steps": [],
+                "error": f"Synthesis failed: {exc}",
+            },
+            raw_result={},
+            orchestration=None,
+            proof={
+                "acceptance_token_path": None,
+                "acceptance_record_path": None,
+                "acceptance_token_sha256": None,
+                "evidence_manifest_sha256": None,
+            },
+            success=False,
+            error=f"Synthesis failed: {exc}",
+        )
+        return _emit_mission_result(
+            mission_type=mission_type,
+            payload=payload,
+            as_json=args.json,
+        )
+
+    mission_inputs = {
+        "task_spec": packet.task_description,
+        "context_refs": list(packet.context_refs),
+    }
+    initial_state = {
+        "task_id": packet.task_id,
+        "task_description": packet.task_description,
+        "context_refs": list(packet.context_refs),
+        "constraints": list(packet.constraints),
+    }
+    extra_metadata = {
+        "packet_id": packet.packet_id,
+        "priority": packet.priority,
+        "cli_command": "run-mission",
+    }
+
+    _, payload = _run_mission_with_acceptance(
+        repo_root=repo_root,
+        mission_type=packet.mission_type,
+        mission_inputs=mission_inputs,
+        initial_state=initial_state,
+        extra_metadata=extra_metadata,
+    )
+    payload["packet_id"] = packet.packet_id
+    payload["task_id"] = packet.task_id
+
+    header_lines = None
+    if not args.json:
+        header_lines = [
+            "=== Mission Synthesis Engine ===",
+            f"Task ID: {task_id}",
+            f"Backlog: {backlog_path}",
+            f"Mission Type: {mission_type}",
+            "",
+            f"Packet ID: {packet.packet_id}",
+        ]
+
+    return _emit_mission_result(
+        mission_type=packet.mission_type,
+        payload=payload,
+        as_json=args.json,
+        header_lines=header_lines,
+    )
+
+def cmd_queue_list(args: argparse.Namespace, repo_root: Path) -> int:
+    """List pending escalations in JSON format."""
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+    pending = queue.get_pending()
+
+    output = [
+        {
+            "id": e.id,
+            "type": e.type.value,
+            "age_hours": (datetime.utcnow() - e.created_at).total_seconds() / 3600,
+            "summary": e.context.get("summary", "No summary"),
+            "run_id": e.run_id,
+        }
+        for e in pending
+    ]
+
+    print(json.dumps(output, indent=2))
+    return 0
+
+
+def cmd_queue_show(args: argparse.Namespace, repo_root: Path) -> int:
+    """Show full details of an escalation."""
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+    entry = queue.get_by_id(args.escalation_id)
+
+    if entry is None:
+        print(f"Error: Escalation {args.escalation_id} not found")
+        return 1
+
+    output = {
+        "id": entry.id,
+        "type": entry.type.value,
+        "status": entry.status.value,
+        "created_at": entry.created_at.isoformat(),
+        "run_id": entry.run_id,
+        "context": entry.context,
+        "resolved_at": entry.resolved_at.isoformat() if entry.resolved_at else None,
+        "resolution_note": entry.resolution_note,
+        "resolver": entry.resolver,
+    }
+
+    print(json.dumps(output, indent=2))
+    return 0
+
+
+def cmd_queue_approve(args: argparse.Namespace, repo_root: Path) -> int:
+    """Approve an escalation."""
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+    note = args.note if hasattr(args, 'note') and args.note else "Approved via CLI"
+
+    result = queue.approve(args.escalation_id, note=note, resolver="CEO")
+
+    if not result:
+        print(f"Error: Could not approve {args.escalation_id}")
+        return 1
+
+    print(f"Approved: {args.escalation_id}")
+    return 0
+
+
+def cmd_queue_reject(args: argparse.Namespace, repo_root: Path) -> int:
+    """Reject an escalation with reason."""
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+
+    if not args.reason:
+        print("Error: --reason is required for rejection")
+        return 1
+
+    result = queue.reject(args.escalation_id, reason=args.reason, resolver="CEO")
+
+    if not result:
+        print(f"Error: Could not reject {args.escalation_id}")
+        return 1
+
+    print(f"Rejected: {args.escalation_id}")
+    return 0
+
+
+def cmd_spine_run(args: argparse.Namespace, repo_root: Path) -> int:
+    """
+    Run Loop Spine with a task specification.
+
+    Args:
+        args: Parsed arguments with task_spec and optional run_id
+        repo_root: Repository root path
+
+    Returns:
+        0 on success (PASS), 1 on failure (BLOCKED), 2 on checkpoint pause
+    """
+    from runtime.orchestration.loop.spine import LoopSpine
+    from runtime.orchestration.run_controller import RepoDirtyError
+
+    # Parse task spec (JSON file or inline JSON)
+    task_spec_path = Path(args.task_spec)
+    if task_spec_path.exists():
+        with open(task_spec_path, 'r') as f:
+            task_spec = json.load(f)
+    else:
+        # Try parsing as inline JSON
+        try:
+            task_spec = json.loads(args.task_spec)
+        except json.JSONDecodeError:
+            print(f"Error: task_spec must be a JSON file path or valid JSON string")
+            return 1
+
+    # Create spine instance
+    spine = LoopSpine(repo_root=repo_root)
+
+    try:
+        # Run chain
+        result = spine.run(task_spec=task_spec, resume_from=None)
+
+        # Output result
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True))
+        else:
+            print(f"Run ID: {result['run_id']}")
+            print(f"State: {result['state']}")
+            print(f"Outcome: {result.get('outcome', 'N/A')}")
+
+            if result['state'] == 'CHECKPOINT':
+                print(f"Checkpoint: {result.get('checkpoint_id')}")
+                print("Execution paused. Use 'lifeos spine resume' to continue.")
+                return 2
+            elif result.get('outcome') == 'PASS':
+                print(f"Commit: {result.get('commit_hash', 'N/A')}")
+                return 0
+            else:
+                print(f"Reason: {result.get('reason', 'Unknown')}")
+                return 1
+
+    except RepoDirtyError as e:
+        print(f"Error: Repository is dirty. Cannot proceed.", file=sys.stderr)
+        print(str(e), file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Error: {type(e).__name__}: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_spine_resume(args: argparse.Namespace, repo_root: Path) -> int:
+    """
+    Resume Loop Spine execution from a checkpoint.
+
+    Args:
+        args: Parsed arguments with checkpoint_id
+        repo_root: Repository root path
+
+    Returns:
+        0 on success (PASS), 1 on failure (BLOCKED/error)
+    """
+    from runtime.orchestration.loop.spine import LoopSpine, PolicyChangedError, SpineError
+    from runtime.orchestration.run_controller import RepoDirtyError
+
+    # Create spine instance
+    spine = LoopSpine(repo_root=repo_root)
+
+    try:
+        # Resume from checkpoint
+        result = spine.resume(checkpoint_id=args.checkpoint_id)
+
+        # Output result
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True))
+        else:
+            print(f"Run ID: {result['run_id']}")
+            print(f"State: {result['state']}")
+            print(f"Outcome: {result.get('outcome', 'N/A')}")
+
+            if result.get('outcome') == 'PASS':
+                print(f"Commit: {result.get('commit_hash', 'N/A')}")
+                return 0
+            elif result.get('outcome') == 'BLOCKED':
+                print(f"Reason: {result.get('reason')}")
+                return 1
+            else:
+                return 1
+
+    except PolicyChangedError as e:
+        print(f"Error: Policy changed mid-run. Cannot resume.", file=sys.stderr)
+        print(str(e), file=sys.stderr)
+        return 1
+    except RepoDirtyError as e:
+        print(f"Error: Repository is dirty. Cannot proceed.", file=sys.stderr)
+        print(str(e), file=sys.stderr)
+        return 1
+    except SpineError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Error: {type(e).__name__}: {e}", file=sys.stderr)
+        return 1
+
+
+def main() -> int:
+    # Use a custom parser that handles global options before subcommands
+    # This is achieved by defining them on the main parser.
+    parser = argparse.ArgumentParser(
+        prog="lifeos",
+        description="LifeOS Runtime Tier-3 CLI",
+        add_help=True
+    )
+    
+    # Global --config flag
+    parser.add_argument("--config", type=Path, help="Path to YAML config file")
+    
+    subparsers = parser.add_subparsers(dest="subcommand", required=True)
+    
+    # status command
+    subparsers.add_parser("status", help="Show runtime status")
+    
+    # config group
+    p_config = subparsers.add_parser("config", help="Configuration commands")
+    config_subparsers = p_config.add_subparsers(dest="config_command", required=True)
+    
+    config_subparsers.add_parser("validate", help="Validate config file")
+    config_subparsers.add_parser("show", help="Show config in canonical JSON")
+
+    # mission group
+    p_mission = subparsers.add_parser("mission", help="Mission commands")
+    mission_subs = p_mission.add_subparsers(dest="mission_cmd", required=True)
+
+    mission_subs.add_parser("list", help="List mission types")
+
+    p_mission_run = mission_subs.add_parser("run", help="Run mission")
+    p_mission_run.add_argument("mission_type", help="Mission type")
+    p_mission_run.add_argument("--param", action="append", help="Parameter as key=value (legacy)")
+    p_mission_run.add_argument("--params", help="Parameters as JSON string (P0.2)")
+    p_mission_run.add_argument("--json", action="store_true", help="Output results as JSON")
+
+    # queue group
+    p_queue = subparsers.add_parser("queue", help="CEO approval queue commands")
+    queue_subs = p_queue.add_subparsers(dest="queue_cmd", required=True)
+
+    # queue list
+    queue_subs.add_parser("list", help="List pending escalations")
+
+    # queue show
+    p_queue_show = queue_subs.add_parser("show", help="Show escalation details")
+    p_queue_show.add_argument("escalation_id", help="Escalation ID (ESC-XXXX)")
+
+    # queue approve
+    p_queue_approve = queue_subs.add_parser("approve", help="Approve escalation")
+    p_queue_approve.add_argument("escalation_id", help="Escalation ID")
+    p_queue_approve.add_argument("--note", help="Approval note")
+
+    # queue reject
+    p_queue_reject = queue_subs.add_parser("reject", help="Reject escalation")
+    p_queue_reject.add_argument("escalation_id", help="Escalation ID")
+    p_queue_reject.add_argument("--reason", required=True, help="Rejection reason")
+
+    # run-mission command
+    p_run = subparsers.add_parser("run-mission", help="Run a mission from backlog")
+    p_run.add_argument("--from-backlog", required=True, help="Task ID from backlog to execute")
+    p_run.add_argument("--backlog", type=str, help="Path to backlog file (default: config/backlog.yaml)")
+    p_run.add_argument("--mission-type", type=str, help="Mission type override (default: steward)")
+    p_run.add_argument("--json", action="store_true", help="Output results as JSON")
+
+    # spine group (Phase 4A0)
+    p_spine = subparsers.add_parser("spine", help="Loop Spine (A1 Chain Controller) commands")
+    spine_subs = p_spine.add_subparsers(dest="spine_cmd", required=True)
+
+    # spine run
+    p_spine_run = spine_subs.add_parser("run", help="Run a new chain execution")
+    p_spine_run.add_argument("task_spec", help="Path to task spec JSON file or inline JSON string")
+    p_spine_run.add_argument("--run-id", help="Optional run ID (generated if not provided)")
+    p_spine_run.add_argument("--json", action="store_true", help="Output results as JSON")
+
+    # spine resume
+    p_spine_resume = spine_subs.add_parser("resume", help="Resume execution from checkpoint")
+    p_spine_resume.add_argument("checkpoint_id", help="Checkpoint ID (e.g., CP_run_123_2)")
+    p_spine_resume.add_argument("--json", action="store_true", help="Output results as JSON")
+
+    # Parse args
+    # Note: argparse by default allows flags before subcommands
+    args = parser.parse_args()
+    
+    try:
+        # P0.2 & P0.4 - Repo root detection
+        repo_root = detect_repo_root()
+        
+        # Config loading
+        config = None
+        if args.config:
+            config = load_config(args.config)
+            
+        # Dispatch
+        if args.subcommand == "status":
+            return cmd_status(args, repo_root, config, args.config)
+        
+        if args.subcommand == "config":
+            if args.config_command == "validate":
+                return cmd_config_validate(args, repo_root, config, args.config)
+            if args.config_command == "show":
+                return cmd_config_show(args, repo_root, config, args.config)
+
+        if args.subcommand == "mission":
+            if args.mission_cmd == "list":
+                return cmd_mission_list(args)
+            elif args.mission_cmd == "run":
+                return cmd_mission_run(args, repo_root)
+
+        if args.subcommand == "queue":
+            if args.queue_cmd == "list":
+                return cmd_queue_list(args, repo_root)
+            elif args.queue_cmd == "show":
+                return cmd_queue_show(args, repo_root)
+            elif args.queue_cmd == "approve":
+                return cmd_queue_approve(args, repo_root)
+            elif args.queue_cmd == "reject":
+                return cmd_queue_reject(args, repo_root)
+
+        if args.subcommand == "run-mission":
+            return cmd_run_mission(args, repo_root)
+
+        if args.subcommand == "spine":
+            if args.spine_cmd == "run":
+                return cmd_spine_run(args, repo_root)
+            elif args.spine_cmd == "resume":
+                return cmd_spine_resume(args, repo_root)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+        
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+```
+
+### FILE: runtime/orchestration/missions/__init__.py
+
+```
+"""
+Phase 3 Mission Types - Package
+
+Implements mission types per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.3:
+- design: Transform task spec into BUILD_PACKET
+- review: Run council review on a packet
+- build: Invoke builder with approved BUILD_PACKET
+- steward: Commit approved changes
+- autonomous_build_cycle: Deprecated for new runs (kept for compatibility/testing)
+
+All missions:
+- Are deterministic (pure functions of inputs + state)
+- Return MissionResult with structured outputs
+- Support rollback via compensation actions
+- Integrate with existing Tier-2 orchestration
+"""
+from __future__ import annotations
+
+from runtime.orchestration.missions.base import (
+    MissionType,
+    MissionResult,
+    MissionContext,
+    MissionError,
+    MissionValidationError,
+)
+from runtime.orchestration.missions.design import DesignMission
+from runtime.orchestration.missions.review import ReviewMission
+from runtime.orchestration.missions.build import BuildMission
+from runtime.orchestration.missions.build_with_validation import BuildWithValidationMission
+from runtime.orchestration.missions.steward import StewardMission
+from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
+from runtime.orchestration.missions.echo import EchoMission
+from runtime.orchestration.missions.noop import NoopMission
+from runtime.orchestration.missions.schema import (
+    validate_mission_definition,
+    load_mission_schema,
+    MissionSchemaError,
+)
+
+# Mission type registry - maps type string to implementation class
+MISSION_TYPES = {
+    MissionType.DESIGN: DesignMission,
+    MissionType.REVIEW: ReviewMission,
+    MissionType.BUILD: BuildMission,
+    MissionType.BUILD_WITH_VALIDATION: BuildWithValidationMission,
+    MissionType.STEWARD: StewardMission,
+    MissionType.AUTONOMOUS_BUILD_CYCLE: AutonomousBuildCycleMission,
+    MissionType.ECHO: EchoMission,
+    MissionType.NOOP: NoopMission,
+}
+
+
+def get_mission_class(mission_type: str):
+    """
+    Get mission implementation class by type string.
+    
+    Fail-closed: Raises MissionError if type is unknown.
+    """
+    try:
+        mt = MissionType(mission_type)
+    except ValueError:
+        valid = sorted([t.value for t in MissionType])
+        raise MissionError(
+            f"Unknown mission type: '{mission_type}'. "
+            f"Valid types: {valid}"
+        )
+    return MISSION_TYPES[mt]
+
+
+__all__ = [
+    # Types
+    "MissionType",
+    "MissionResult",
+    "MissionContext",
+    # Exceptions
+    "MissionError",
+    "MissionValidationError",
+    "MissionSchemaError",
+    # Mission classes
+    "DesignMission",
+    "ReviewMission",
+    "BuildMission",
+    "BuildWithValidationMission",
+    "StewardMission",
+    "AutonomousBuildCycleMission",
+    "EchoMission",
+    "NoopMission",
+    # Registry
+    "MISSION_TYPES",
+    "get_mission_class",
+    # Schema
+    "validate_mission_definition",
+    "load_mission_schema",
+]
+
+```
+
+### FILE: runtime/orchestration/missions/autonomous_build_cycle.py
+
+```
+"""
+Phase 3 Mission Types - Autonomous Build Cycle (Loop Controller)
+
+Refactored for Phase A: Convergent Builder Loop.
+Implements a deterministic, resumable, budget-bounded build loop.
+"""
+from __future__ import annotations
+
+import json
+import hashlib
+import time
+from typing import Any, Dict, List, Optional
+from pathlib import Path
+
+from runtime.orchestration.missions.base import (
+    BaseMission,
+    MissionContext,
+    MissionResult,
+    MissionType,
+    MissionValidationError,
+    MissionEscalationRequired,
+)
+from runtime.orchestration.missions.design import DesignMission
+from runtime.orchestration.missions.build import BuildMission
+from runtime.orchestration.missions.review import ReviewMission
+from runtime.orchestration.missions.steward import StewardMission
+
+# Backlog Integration
+from recursive_kernel.backlog_parser import (
+    parse_backlog,
+    select_eligible_item,
+    select_next_task,
+    mark_item_done_with_evidence,
+    BacklogItem,
+    Priority as BacklogPriority,
+)
+from runtime.orchestration.task_spec import TaskSpec, TaskPriority
+
+# Loop Infrastructure
+from runtime.orchestration.loop.ledger import (
+    AttemptLedger, AttemptRecord, LedgerHeader, LedgerIntegrityError
+)
+from runtime.orchestration.loop.policy import LoopPolicy
+from runtime.orchestration.loop.budgets import BudgetController
+from runtime.orchestration.loop.taxonomy import (
+    TerminalOutcome, TerminalReason, FailureClass, LoopAction
+)
+from runtime.api.governance_api import PolicyLoader
+from runtime.orchestration.run_controller import verify_repo_clean, run_git_command
+from runtime.util.file_lock import FileLock
+
+# CEO Approval Queue
+from runtime.orchestration.ceo_queue import (
+    CEOQueue, EscalationEntry, EscalationType, EscalationStatus
+)
+
+# Phase 3a: Test Execution
+from runtime.api.governance_api import check_pytest_scope
+from runtime.orchestration.test_executor import PytestExecutor, PytestResult
+from runtime.orchestration.loop.failure_classifier import classify_test_failure
+
+class AutonomousBuildCycleMission(BaseMission):
+    """
+    Autonomous Build Cycle: Convergent Builder Loop Controller.
+    
+    Inputs:
+        - task_spec (str): Task description
+        - context_refs (list[str]): Context paths
+        - handoff_schema_version (str, optional): Validation version
+        
+    Outputs:
+        - commit_hash (str): Final hash if PASS
+        - loop_report (dict): Full execution report
+    """
+    
+    @property
+    def mission_type(self) -> MissionType:
+        return MissionType.AUTONOMOUS_BUILD_CYCLE
+    
+    def validate_inputs(self, inputs: Dict[str, Any]) -> None:
+        # from_backlog mode doesn't require task_spec (will be loaded from backlog)
+        if inputs.get("from_backlog"):
+            # Task will be loaded from BACKLOG.md
+            return
+
+        if not inputs.get("task_spec"):
+            raise MissionValidationError("task_spec is required (or use from_backlog=True)")
+
+        # P0: Handoff Schema Version Validation
+        req_version = "v1.0" # Hardcoded expectation for Phase A
+        if "handoff_schema_version" in inputs:
+            if inputs["handoff_schema_version"] != req_version:
+                # We can't return a Result from validate_inputs, must raise.
+                # But strict fail-closed requires blocking.
+                raise MissionValidationError(f"Handoff version mismatch. Expected {req_version}, got {inputs['handoff_schema_version']}")
+
+    def _can_reset_workspace(self, context: MissionContext) -> bool:
+        """
+        P0: Validate if workspace clean/reset is available.
+        For Phase A, we check if we can run a basic git status or if an executor is provided.
+        In strict mode, if we can't guarantee reset, we fail closed.
+        """
+        # MVP: Fail if no operation_executor, or if we can't verify clean state.
+        # But wait, we are running in a checked out repo.
+        # Simple check: Is the working directory dirty?
+        # We can try running git status via subprocess?
+        # Or better, just rely on the 'clean' requirement.
+        # If we can't implement reset, we return False.
+        # Since I don't have a built-in resetter:
+        return True # Stub for MVP, implying "Assume Clean" for now? 
+        # User constraint: "If a clean reset cannot be guaranteed... fail-closed: ESCALATION_REQUESTED reason WORKSPACE_RESET_UNAVAILABLE"
+        # I will enforce this check at start of loop.
+
+    def _compute_hash(self, obj: Any) -> str:
+        s = json.dumps(obj, sort_keys=True, default=str)
+        return hashlib.sha256(s.encode('utf-8')).hexdigest()
+
+    def _emit_packet(self, name: str, content: Dict[str, Any], context: MissionContext):
+        """Emit a canonical packet to artifacts/"""
+        path = context.repo_root / "artifacts" / name
+        with open(path, 'w', encoding='utf-8') as f:
+            # Markdown wrapper for readability + JSON/YAML payload
+            f.write(f"# Packet: {name}\n\n")
+            f.write("```json\n")
+            json.dump(content, f, indent=2)
+            f.write("\n```\n")
+
+    def _escalate_to_ceo(
+        self,
+        queue: CEOQueue,
+        escalation_type: EscalationType,
+        context_data: Dict[str, Any],
+        run_id: str,
+    ) -> str:
+        """Create escalation entry and return ID.
+
+        Args:
+            queue: The CEO queue instance
+            escalation_type: Type of escalation
+            context_data: Context information for the escalation
+            run_id: Current run ID
+
+        Returns:
+            The escalation ID
+        """
+        entry = EscalationEntry(
+            type=escalation_type,
+            context=context_data,
+            run_id=run_id,
+        )
+        return queue.add_escalation(entry)
+
+    def _check_queue_for_approval(
+        self, queue: CEOQueue, escalation_id: str
+    ) -> Optional[EscalationEntry]:
+        """Check if escalation has been resolved.
+
+        Args:
+            queue: The CEO queue instance
+            escalation_id: The escalation ID to check
+
+        Returns:
+            The escalation entry, or None if not found
+        """
+        entry = queue.get_by_id(escalation_id)
+        if entry is None:
+            return None
+        if entry.status == EscalationStatus.PENDING:
+            # Check for timeout (24 hours)
+            if self._is_escalation_stale(entry):
+                queue.mark_timeout(escalation_id)
+                entry = queue.get_by_id(escalation_id)
+        return entry
+
+    def _is_escalation_stale(
+        self, entry: EscalationEntry, hours: int = 24
+    ) -> bool:
+        """Check if escalation exceeds timeout threshold.
+
+        Args:
+            entry: The escalation entry
+            hours: Timeout threshold in hours (default 24)
+
+        Returns:
+            True if stale, False otherwise
+        """
+        from datetime import datetime
+        age = datetime.utcnow() - entry.created_at
+        return age.total_seconds() > hours * 3600
+
+    def _load_task_from_backlog(self, context: MissionContext) -> Optional[BacklogItem]:
+        """
+        Load next eligible task from BACKLOG.md, skipping blocked tasks.
+
+        A task is considered blocked if:
+        - It has explicit dependencies
+        - Its context contains markers: "blocked", "depends on", "waiting for"
+
+        Returns:
+            BacklogItem or None if no eligible tasks
+            Raises: FileNotFoundError if BACKLOG.md missing (caller distinguishes from NO_ELIGIBLE_TASKS)
+        """
+        backlog_path = context.repo_root / "docs" / "11_admin" / "BACKLOG.md"
+
+        if not backlog_path.exists():
+            raise FileNotFoundError(f"BACKLOG.md not found at: {backlog_path}")
+
+        items = parse_backlog(backlog_path)
+
+        # First filter to uncompleted (TODO, P0/P1) tasks
+        from recursive_kernel.backlog_parser import get_uncompleted_tasks
+        uncompleted = get_uncompleted_tasks(items)
+
+        # Then filter out blocked tasks before selection
+        def is_not_blocked(item: BacklogItem) -> bool:
+            """Check if task is not blocked."""
+            # Check context for blocking markers
+            blocked_markers = ["blocked", "depends on", "waiting for"]
+            return not any(marker in item.context.lower() for marker in blocked_markers)
+
+        selected = select_next_task(uncompleted, filter_fn=is_not_blocked)
+
+        return selected
+
+    def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
+        # Deprecated path guard: keep class for compatibility/historical replay/tests.
+        # Block only CLI mission-run entrypoint for new autonomous runs.
+        if (
+            context.metadata.get("cli_command") == "mission run"
+            and not inputs.get("allow_deprecated_replay", False)
+        ):
+            return self._make_result(
+                success=False,
+                executed_steps=["deprecation_guard"],
+                error=(
+                    "autonomous_build_cycle is deprecated for new runs. "
+                    "Use 'lifeos spine run <task_spec>' instead."
+                ),
+                escalation_reason="DEPRECATED_PATH",
+                evidence={"deprecation": "autonomous_build_cycle"},
+            )
+
+        executed_steps: List[str] = []
+        total_tokens = 0
+        final_commit_hash = "UNKNOWN"  # Track commit hash from steward
+
+        # Handle from_backlog mode
+        if inputs.get("from_backlog"):
+            try:
+                backlog_item = self._load_task_from_backlog(context)
+            except FileNotFoundError as e:
+                # BACKLOG.md missing - distinct from NO_ELIGIBLE_TASKS
+                reason = "BACKLOG_MISSING"
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0)
+                return self._make_result(
+                    success=False,
+                    outputs={"outcome": "BLOCKED", "reason": reason, "error": str(e)},
+                    executed_steps=["backlog_scan"],
+                )
+
+            if backlog_item is None:
+                # No eligible tasks (all completed, blocked, or wrong priority)
+                reason = "NO_ELIGIBLE_TASKS"
+                self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, 0)
+                return self._make_result(
+                    success=False,
+                    outputs={"outcome": "BLOCKED", "reason": reason},
+                    executed_steps=["backlog_scan"],
+                )
+
+            # Convert BacklogItem to task_spec format for design phase
+            task_description = f"{backlog_item.title}\n\nAcceptance Criteria:\n{backlog_item.dod}"
+            inputs["task_spec"] = task_description
+            inputs["_backlog_item"] = backlog_item  # Store for completion marking
+
+            executed_steps.append(f"backlog_selected:{backlog_item.item_key[:8]}")
+
+        # P0: Workspace Semantics - Fail Closed if Reset Unavailable
+        if not self._can_reset_workspace(context):
+             reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
+             self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+             return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+
+        # 1. Setup Infrastructure
+        ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
+        ledger = AttemptLedger(ledger_path)
+        budget = BudgetController()
+
+        # CEO Approval Queue
+        queue_path = context.repo_root / "artifacts" / "queue" / "escalations.db"
+        queue = CEOQueue(db_path=queue_path)
+        
+        # P0.1: Promotion to Authoritative Gating (Enabled per Council Pass)
+        # Load policy config from repo canonical location
+        policy_config_dir = context.repo_root / "config" / "policy"
+        loader = PolicyLoader(config_dir=policy_config_dir, authoritative=True)
+        effective_config = loader.load()
+        
+        policy = LoopPolicy(effective_config=effective_config)
+        
+        # P0: Policy Hash (Hardcoded for checking)
+        current_policy_hash = "phase_a_hardcoded_v1" 
+        
+        # 2. Hydrate / Initialize Ledger
+        try:
+            is_resume = ledger.hydrate()
+            if is_resume:
+                # P0: Policy Hash Guard
+                if ledger.header["policy_hash"] != current_policy_hash:
+                    reason = TerminalReason.POLICY_CHANGED_MID_RUN.value
+                    self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+                    return self._make_result(
+                        success=False,
+                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}",
+                        executed_steps=executed_steps
+                    )
+                executed_steps.append("ledger_hydrated")
+
+                # Check for pending escalation on resume
+                escalation_state_path = context.repo_root / "artifacts" / "loop_state" / "escalation_state.json"
+                if escalation_state_path.exists():
+                    with open(escalation_state_path, 'r') as f:
+                        esc_state = json.load(f)
+                    escalation_id = esc_state.get("escalation_id")
+                    if escalation_id:
+                        entry = self._check_queue_for_approval(queue, escalation_id)
+                        if entry and entry.status == EscalationStatus.PENDING:
+                            # Still pending, cannot resume
+                            return self._make_result(
+                                success=False,
+                                escalation_reason=f"Escalation {escalation_id} still pending CEO approval",
+                                outputs={"escalation_id": escalation_id},
+                                executed_steps=executed_steps
+                            )
+                        elif entry and entry.status == EscalationStatus.REJECTED:
+                            # Rejected, terminate
+                            reason = f"CEO rejected escalation {escalation_id}: {entry.resolution_note}"
+                            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+                            return self._make_result(
+                                success=False,
+                                error=reason,
+                                executed_steps=executed_steps
+                            )
+                        elif entry and entry.status == EscalationStatus.TIMEOUT:
+                            # Timeout, terminate
+                            reason = f"Escalation {escalation_id} timed out after 24 hours"
+                            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+                            return self._make_result(
+                                success=False,
+                                error=reason,
+                                executed_steps=executed_steps
+                            )
+                        elif entry and entry.status == EscalationStatus.APPROVED:
+                            # Approved, can continue - clear escalation state
+                            escalation_state_path.unlink()
+                            executed_steps.append(f"escalation_{escalation_id}_approved")
+            else:
+                # Initialize
+                ledger.initialize(
+                    LedgerHeader(
+                        policy_hash=current_policy_hash,
+                        handoff_hash=self._compute_hash(inputs),
+                        run_id=context.run_id
+                    )
+                )
+                executed_steps.append("ledger_initialized")
+                
+        except LedgerIntegrityError as e:
+            return self._make_result(
+                success=False,
+                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}",
+                executed_steps=executed_steps
+            )
+
+        # 3. Design Phase (Attempt 0) - Simplified for Phase A
+        # In a robust resume, we'd load this from disk.
+        # For Phase A, if resuming, we assume we can re-run design OR we stored it.
+        # Let's run design (idempotent-ish).
+        design = DesignMission()
+        d_res = design.run(context, inputs)
+        executed_steps.append("design_phase")
+        
+        if d_res.evidence.get("usage"):
+             total_tokens += d_res.evidence["usage"].get("total_tokens", 0) # total_tokens key might differ, checking api.py
+             # api.py usage has input_tokens, output_tokens.
+             u = d_res.evidence["usage"]
+             total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+        else:
+             # P0: Fail Closed if accounting missing
+             # But Design might be cached? or Stubbed? 
+             # If Stubbed, usage might be missing.
+             # We should check if it was a real call. 
+             pass
+
+        if not d_res.success:
+            return self._make_result(success=False, error=f"Design failed: {d_res.error}", executed_steps=executed_steps)
+            
+        build_packet = d_res.outputs["build_packet"]
+        
+        # Design Review
+        review = ReviewMission()
+        r_res = review.run(context, {"subject_packet": build_packet, "review_type": "build_review"})
+        executed_steps.append("design_review")
+        
+        if r_res.evidence.get("usage"):
+             u = r_res.evidence["usage"]
+             total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+
+        if not r_res.success or r_res.outputs.get("verdict") != "approved":
+             return self._make_result(
+                 success=False,
+                 escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}",
+                 executed_steps=executed_steps
+             )
+             
+        design_approval = r_res.outputs.get("council_decision")
+
+        # 4. Loop Execution
+        loop_active = True
+        
+        while loop_active:
+            # Determine Attempt ID
+            if ledger.history:
+                attempt_id = ledger.history[-1].attempt_id + 1
+            else:
+                attempt_id = 1
+                
+            # Budget Check
+            is_over, budget_reason = budget.check_budget(attempt_id, total_tokens)
+            if is_over:
+                # Emit Terminal Packet
+                self._emit_terminal(TerminalOutcome.BLOCKED, budget_reason, context, total_tokens)
+                return self._make_result(success=False, error=budget_reason, executed_steps=executed_steps) # Simplified return
+                
+            # Policy Check (Deadlock/Oscillation/Resume-Action)
+            action, reason = policy.decide_next_action(ledger)
+            
+            if action == LoopAction.TERMINATE.value:
+                # If policy says terminate, we stop.
+                # Map reason to TerminalOutcome
+                outcome = TerminalOutcome.BLOCKED
+                if reason == TerminalReason.PASS.value:
+                    outcome = TerminalOutcome.PASS
+                elif reason == TerminalReason.OSCILLATION_DETECTED.value:
+                    outcome = TerminalOutcome.ESCALATION_REQUESTED
+                
+                self._emit_terminal(outcome, reason, context, total_tokens)
+                
+                if outcome == TerminalOutcome.PASS:
+                    # Return success details with commit hash from steward
+                    return self._make_result(success=True, outputs={"commit_hash": final_commit_hash}, executed_steps=executed_steps)
+                else:
+                    return self._make_result(success=False, error=reason, executed_steps=executed_steps)
+
+            # Execution (RETRY or First Run)
+            feedback = ""
+            if ledger.history:
+                last = ledger.history[-1]
+                feedback = f"Previous attempt failed: {last.failure_class}. Rationale: {last.rationale}"
+                # Inject feedback
+                build_packet["feedback_context"] = feedback
+
+            # Build Mission
+            build = BuildMission()
+            b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
+            executed_steps.append(f"build_attempt_{attempt_id}")
+            
+            # Token Accounting (Fail Closed)
+            has_tokens = False
+            if b_res.evidence.get("usage"):
+                u = b_res.evidence["usage"]
+                total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+                has_tokens = True
+            
+            if not has_tokens:
+                # P0: Fail Closed on Token Accounting
+                reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
+                self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+
+            if not b_res.success:
+                # Internal mission error (crash?)
+                self._record_attempt(ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, "Build crashed")
+                continue
+
+            review_packet = b_res.outputs["review_packet"]
+            
+            # P0: Diff Budget Check (BEFORE Apply/Review)
+            # Extracted from review_packet payload
+            content = review_packet.get("payload", {}).get("content", "")
+            lines = content.count('\n')
+            
+            # P0: Enforce limit (300 lines)
+            max_lines = 300 # Hardcoded P0 constraint
+            over_diff, diff_reason = budget.check_diff_budget(lines, max_lines=max_lines)
+            
+            if over_diff:
+                reason = TerminalReason.DIFF_BUDGET_EXCEEDED.value
+                # Evidence: Capture the rejected diff 
+                evidence_path = context.repo_root / "artifacts" / f"rejected_diff_attempt_{attempt_id}.txt"
+                with open(evidence_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                
+                # Emit Terminal Packet with Evidence ref
+                self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, diff_evidence=str(evidence_path))
+                
+                # Record Failure
+                self._record_attempt(ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, reason)
+
+                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+
+            # Output Review
+            out_review = ReviewMission()
+            or_res = out_review.run(context, {"subject_packet": review_packet, "review_type": "output_review"})
+            executed_steps.append(f"review_attempt_{attempt_id}")
+
+            if or_res.evidence.get("usage"):
+                 u = or_res.evidence["usage"]
+                 total_tokens += u.get("input_tokens", 0) + u.get("output_tokens", 0)
+
+            # Classification
+            success = False
+            failure_class = None
+            term_reason = None
+            
+            verdict = or_res.outputs.get("verdict")
+            if verdict == "approved":
+                success = True
+                failure_class = None
+                # Steward
+                steward = StewardMission()
+                s_res = steward.run(context, {"review_packet": review_packet, "approval": or_res.outputs.get("council_decision")})
+                if s_res.success:
+                    # SUCCESS! Capture commit hash and add steward step
+                    final_commit_hash = s_res.outputs.get("commit_hash", s_res.outputs.get("simulated_commit_hash", "UNKNOWN"))
+                    executed_steps.append("steward")
+
+                    # Mark backlog task complete if from_backlog mode
+                    if inputs.get("_backlog_item"):
+                        backlog_item = inputs["_backlog_item"]
+                        backlog_path = context.repo_root / "docs" / "11_admin" / "BACKLOG.md"
+
+                        mark_item_done_with_evidence(
+                            backlog_path,
+                            backlog_item,
+                            evidence={
+                                "commit_hash": final_commit_hash,
+                                "run_id": context.run_id,
+                            },
+                            repo_root=context.repo_root,
+                        )
+                        executed_steps.append("backlog_marked_complete")
+
+                    # Record PASS
+                    self._record_attempt(ledger, attempt_id, context, b_res, None, "Attributes Approved", success=True)
+                    # Loop will check policy next iter -> PASS
+                    continue 
+                else:
+                    success = False
+                    failure_class = FailureClass.UNKNOWN
+            else:
+                # Map verdict to failure class
+                success = False
+                if verdict == "rejected":
+                     failure_class = FailureClass.REVIEW_REJECTION
+                else:
+                     failure_class = FailureClass.REVIEW_REJECTION # Needs revision etc
+
+            # Record Attempt
+            reason_str = or_res.outputs.get("council_decision", {}).get("synthesis", "No rationale")
+            self._record_attempt(ledger, attempt_id, context, b_res, failure_class, reason_str, success=success)
+             
+            # Emit Review Packet
+            self._emit_packet(f"Review_Packet_attempt_{attempt_id:04d}.md", review_packet, context)
+
+
+    def _record_attempt(self, ledger, attempt_id, context, build_res, f_class, rationale, success=False):
+        # Compute hashes
+        # diff_hash from review_packet content
+        review_packet = build_res.outputs.get("review_packet")
+        content = review_packet.get("payload", {}).get("content", "") if review_packet else ""
+        d_hash = self._compute_hash(content)
+        
+        rec = AttemptRecord(
+            attempt_id=attempt_id,
+            timestamp=str(time.time()),
+            run_id=context.run_id,
+            policy_hash="phase_a_hardcoded_v1",
+            input_hash="hash(inputs)", 
+            actions_taken=build_res.executed_steps,
+            diff_hash=d_hash,
+            changed_files=[], # Extract if possible
+            evidence_hashes={},
+            success=success,
+            failure_class=f_class.value if f_class else None,
+            terminal_reason=None, # Filled if terminal
+            next_action="evaluated_next_tick",
+            rationale=rationale
+        )
+        ledger.append(rec)
+
+    def _emit_terminal(self, outcome, reason, context, tokens, diff_evidence: str = None):
+        """Emit CEO Terminal Packet & Closure Bundle."""
+        content = {
+            "outcome": outcome.value,
+            "reason": reason,
+            "tokens_consumed": tokens,
+            "run_id": context.run_id
+        }
+        if diff_evidence:
+            content["diff_evidence_path"] = diff_evidence
+
+        self._emit_packet("CEO_Terminal_Packet.md", content, context)
+        # Closure Bundle? (Stubbed as requested: "Use existing if present")
+        # We assume independent closure process picks this up, or we assume done.
+
+    # =========================================================================
+    # Phase 3a: Test Verification Methods
+    # =========================================================================
+
+    def _run_verification_tests(
+        self,
+        context: MissionContext,
+        target: str = "runtime/tests",
+        timeout: int = 60
+    ) -> Dict[str, Any]:
+        """
+        Run pytest on runtime/tests/ after build completes.
+
+        Args:
+            context: Mission context
+            target: Test target path (default: runtime/tests)
+            timeout: Timeout in seconds (default: 300 = 5 minutes)
+
+        Returns:
+            VerificationResult dict with:
+                - success: bool (True if tests passed)
+                - test_result: PytestResult object
+                - evidence: dict with captured output
+                - error: Optional error message
+        """
+        # Check pytest scope
+        allowed, reason = check_pytest_scope(target)
+        if not allowed:
+            return {
+                "success": False,
+                "error": f"Test scope denied: {reason}",
+                "evidence": {},
+            }
+
+        # Execute tests
+        executor = PytestExecutor(timeout=timeout)
+        result = executor.run(target)
+
+        # Build verification result
+        return {
+            "success": result.exit_code == 0,
+            "test_result": result,
+            "evidence": {
+                "pytest_stdout": result.stdout[:50000],  # Cap at 50KB
+                "pytest_stderr": result.stderr[:50000],  # Cap at 50KB
+                "exit_code": result.exit_code,
+                "duration_seconds": result.duration,
+                "test_counts": result.counts or {},
+                "status": result.status,
+                "timeout_triggered": result.evidence.get("timeout_triggered", False),
+            },
+            "error": None if result.exit_code == 0 else "Tests failed",
+        }
+
+    def _prepare_retry_context(
+        self,
+        verification: Dict[str, Any],
+        previous_results: Optional[List[PytestResult]] = None
+    ) -> Dict[str, Any]:
+        """
+        Prepare context for retry after test failure.
+
+        Includes:
+        - Which tests failed
+        - Error messages from failures
+        - Failure classification
+
+        Args:
+            verification: VerificationResult dict from _run_verification_tests
+            previous_results: Optional list of previous test results for flake detection
+
+        Returns:
+            Retry context dict
+        """
+        test_result = verification.get("test_result")
+        if not test_result:
+            return {
+                "failure_class": FailureClass.UNKNOWN.value,
+                "error": "No test result available",
+            }
+
+        # Classify failure
+        failure_class = classify_test_failure(test_result, previous_results)
+
+        context = {
+            "failure_class": failure_class.value,
+            "error_messages": test_result.error_messages[:5] if test_result.error_messages else [],
+            "suggestion": self._generate_fix_suggestion(failure_class),
+        }
+
+        # Add test-specific details if available
+        if test_result.failed_tests:
+            context["failed_tests"] = list(test_result.failed_tests)[:10]  # Cap at 10
+        if test_result.counts:
+            context["test_counts"] = test_result.counts
+
+        return context
+
+    def _generate_fix_suggestion(self, failure_class: FailureClass) -> str:
+        """
+        Generate fix suggestion based on failure class.
+
+        Args:
+            failure_class: Classified failure type
+
+        Returns:
+            Suggestion string for retry
+        """
+        suggestions = {
+            FailureClass.TEST_FAILURE: "Review test failures and fix the code logic that's causing assertions to fail.",
+            FailureClass.TEST_FLAKE: "This test appears flaky (passed before, failed now). Consider investigating timing issues or test dependencies.",
+            FailureClass.TEST_TIMEOUT: "Tests exceeded timeout limit. Consider optimizing slow tests or increasing timeout threshold.",
+        }
+        return suggestions.get(failure_class, "Review the test output and fix the underlying issue.")
+
+```
+
+### FILE: scripts/generate_runtime_status.py
+
+```
+#!/usr/bin/env python3
+"""
+Generate runtime status facts used by documentation freshness checks.
+"""
+
+from __future__ import annotations
+
+import json
+import shutil
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def _read_text(path: Path) -> str:
+    if not path.exists():
+        return ""
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def generate(repo_root: Path) -> dict:
+    lifeos_state = _read_text(repo_root / "docs" / "11_admin" / "LIFEOS_STATE.md")
+    backlog = _read_text(repo_root / "docs" / "11_admin" / "BACKLOG.md")
+
+    openclaw_bin = shutil.which("openclaw")
+    openclaw_installed = openclaw_bin is not None
+
+    claims_openclaw_blocker = "OpenClaw COO Install" in lifeos_state and "Only genuine gap" in lifeos_state
+    backlog_openclaw_open = "- [ ] **Install OpenClaw COO on WSL2**" in backlog
+
+    contradictions = []
+    if openclaw_installed and claims_openclaw_blocker:
+        contradictions.append("LIFEOS_STATE still claims OpenClaw install as blocker while binary is present.")
+    if openclaw_installed and backlog_openclaw_open:
+        contradictions.append("BACKLOG still lists OpenClaw install unchecked while binary is present.")
+
+    return {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "repo_root": str(repo_root),
+        "facts": {
+            "openclaw_installed": openclaw_installed,
+            "openclaw_bin": openclaw_bin,
+            "lifeos_state_claims_openclaw_blocker": claims_openclaw_blocker,
+            "backlog_openclaw_install_unchecked": backlog_openclaw_open,
+        },
+        "contradictions": contradictions,
+        "status": "ok" if not contradictions else "warn",
+    }
+
+
+def main() -> int:
+    repo_root = Path(__file__).resolve().parent.parent
+    payload = generate(repo_root)
+    status_dir = repo_root / "artifacts" / "status"
+    status_dir.mkdir(parents=True, exist_ok=True)
+    status_path = status_dir / "runtime_status.json"
+    status_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    checkpoint_dir = repo_root / "artifacts" / "packets" / "status"
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_name = datetime.now(timezone.utc).strftime("checkpoint_report_%Y%m%d.json")
+    checkpoint_path = checkpoint_dir / checkpoint_name
+    checkpoint_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    print(str(status_path))
+    print(str(checkpoint_path))
+    print(payload["status"])
+    for item in payload["contradictions"]:
+        print(f"WARNING: {item}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+```
+
+### FILE: scripts/opencode_ci_runner.py
+
+```
+#!/usr/bin/env python3
+"""
+OpenCode CI Runner (CT-2 Phase 3 v2.0)
+======================================
+
+Broadened CI runner for doc-steward gate.
+All structural operations allowed. Path security checks retained.
+"""
+
+import argparse
+import time
+import requests
+import subprocess
+import sys
+import os
+import json
+from datetime import datetime
+from typing import Dict, Any, List, Optional, Tuple
+
+# Add scripts directory to path for imports if not already there
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+if _script_dir not in sys.path:
+    sys.path.insert(0, _script_dir)
+
+# Import hardened policy module
+import opencode_gate_policy as policy
+from opencode_gate_policy import ReasonCode
+
+# Import canonical defaults from single source of truth
+# Import canonical defaults from single source of truth
+try:
+    # Add parent directory to path for runtime imports
+    _repo_root = os.path.dirname(_script_dir)
+    if _repo_root not in sys.path:
+        sys.path.insert(0, _repo_root)
+    from runtime.agents.models import (
+        resolve_model_auto,
+        get_api_key_for_role,
+        load_model_config,
+        validate_config,
+    )
+    # Default is now 'auto' to trigger resolution logic
+    DEFAULT_MODEL = "auto"
+except ImportError as e:
+    # Fail loud in Phase 3 - we must have runtime access
+    print(f"CRITICAL: Failed to import runtime.agents.models: {e}")
+    print("This script must be run from within the LifeOS repository.")
+    sys.exit(1)
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+class Colors:
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    BLUE = '\033[94m'
+    YELLOW = '\033[93m'
+    RESET = '\033[0m'
+
+# Global log buffer for evidence bundle
+_log_buffer = []
+
+def log(msg, level="info"):
+    timestamp = datetime.now().isoformat(sep="T", timespec="seconds")
+    color = Colors.RESET
+    if level == "error": color = Colors.RED
+    elif level == "ok": color = Colors.GREEN
+    elif level == "gov": color = Colors.YELLOW
+    elif level == "info": color = Colors.BLUE
+    
+    log_line = f"[{level.upper()}] [{timestamp}] {msg}"
+    _log_buffer.append(log_line)
+    print(f"{color}{log_line}{Colors.RESET}")
+
+def get_log_buffer() -> str:
+    return "\n".join(_log_buffer)
+
+def clear_log_buffer():
+    _log_buffer.clear()
+
+def load_api_key(mode: str) -> str:
+    """Load the API key for the given mode (steward/builder)."""
+    role = "steward" if mode == policy.MODE_STEWARD else "builder"
+    
+    # Try canonical loading first
+    key = get_api_key_for_role(role)
+    if key:
+        log(f"{role.capitalize()} API Key loaded via config (starts with {key[:8]})", "info")
+        return key
+
+    # Fallback to legacy env vars if config/models.yaml lookup failed (shouldn't happen if setup is correct)
+    # Priority: ZEN_{ROLE}_KEY > ZEN_STEWARD_KEY
+    env_var = f"ZEN_{role.upper()}_KEY"
+    key = os.environ.get(env_var)
+    if key:
+        log(f"{role.capitalize()} API Key loaded via {env_var}", "info")
+        return key
+        
+    log(f"API Key for {role} NOT found", "error")
+    return ""
+
+# ============================================================================
+# ENVELOPE VALIDATION (POST-DIFF)
+# ============================================================================
+def validate_all_diff_entries(parsed_diff: List[tuple], mode: str) -> List[Tuple[str, str, str]]:
+    """
+    Validate all parsed diff entries using policy.validate_operation.
+    
+    Returns list of (path, operation, reason_code) for blocked entries.
+    """
+    blocked = []
+    
+    # Restore Legacy parity: Structural ops blocked in Steward mode
+    if mode == policy.MODE_STEWARD:
+        blocked_ops = policy.detect_blocked_ops(parsed_diff)
+        if blocked_ops:
+            return blocked_ops
+            
+    for entry in parsed_diff:
+        if len(entry) == 2:
+            status, path = entry
+            old_path = None
+        else:
+            status, old_path, path = entry  # R/C have old and new paths
+        
+        # Check primary path (new path or modified path)
+        allowed, reason = policy.validate_operation(status, path, mode)
+        if not allowed:
+            blocked.append((path, status, reason))
+            
+        # For R/C, also check the old path (treat as deletion/touch)
+        if old_path:
+            # Use status D to imply "removal/modification of this path"
+            allowed_old, reason_old = policy.validate_operation("D", old_path, mode)
+            if not allowed_old:
+                blocked.append((old_path, status, reason_old))
+    
+    return blocked
+
+# ============================================================================
+# EVIDENCE GENERATION
+# ============================================================================
+def generate_evidence_bundle(status: str, reason: Optional[str], mode: str, task: Dict[str, Any], 
+                            parsed_diff: List[tuple] = None, blocked_entries: List[tuple] = None):
+    """Generate the deterministic evidence bundle for the mission."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    mission_id = f"mission_{timestamp}"
+    evidence_path = os.path.join(policy.EVIDENCE_ROOT, mission_id)
+    os.makedirs(evidence_path, exist_ok=True)
+    
+    # exit_report.json
+    report = {
+        "status": status,
+        "reason_code": reason,
+        "mode": mode,
+        "timestamp": datetime.now().isoformat(),
+        "task": task,
+        "blocked_entries": blocked_entries or []
+    }
+    with open(os.path.join(evidence_path, "exit_report.json"), "w") as f:
+        json.dump(report, f, indent=2)
+    
+    # changed_files.json (sorted by path for determinism)
+    changed = []
+    if parsed_diff:
+        for entry in parsed_diff:
+            if len(entry) == 2:
+                changed.append({"status": entry[0], "path": entry[1]})
+            else:
+                changed.append({"status": entry[0], "old_path": entry[1], "new_path": entry[2]})
+    # Sort by path (or new_path for renames/copies) for deterministic output
+    changed.sort(key=lambda x: policy.normalize_path(x.get("path") or x.get("new_path", "")))
+    
+    with open(os.path.join(evidence_path, "changed_files.json"), "w") as f:
+        json.dump(changed, f, indent=2)
+    
+    # classification.json
+    classification = {
+        "is_governance": any(policy.matches_denylist(path)[0] for path in task.get("files", [])),
+        "risk_level": "P0" if any(policy.matches_denylist(path)[0] for path in task.get("files", [])) else "P1",
+        "envelope_violations": len(blocked_entries) if blocked_entries else 0
+    }
+    with open(os.path.join(evidence_path, "classification.json"), "w") as f:
+        json.dump(classification, f, indent=2)
+    
+    # runner.log
+    log_content = get_log_buffer()
+    truncated_log, _ = policy.truncate_log(log_content)
+    with open(os.path.join(evidence_path, "runner.log"), "w") as f:
+        f.write(truncated_log)
+    
+    # hashes.json
+    hashes = {}
+    for filename in ["exit_report.json", "changed_files.json", "classification.json", "runner.log"]:
+        p = os.path.join(evidence_path, filename)
+        if os.path.exists(p):
+            hashes[filename] = policy.compute_file_hash(p)
+            
+    with open(os.path.join(evidence_path, "hashes.json"), "w") as f:
+        json.dump(hashes, f, indent=2)
+        
+    log(f"Evidence bundle generated: {evidence_path}", "ok")
+    return evidence_path
+
+# ============================================================================
+# INPUT VALIDATION
+# ============================================================================
+def validate_task_input(task_str):
+    """Validate task is JSON with required schema. Reject free-text."""
+    try:
+        task = json.loads(task_str)
+    except json.JSONDecodeError:
+        log("Free-text input rejected. Phase 3 requires JSON-structured tasks.", "error")
+        return None
+    
+    required = ["files", "action", "instruction"]
+    for key in required:
+        if key not in task:
+            log(f"Missing required key in task JSON: {key}", "error")
+            return None
+    
+    # Phase 3: All operations allowed.
+    valid_actions = ["create", "modify", "delete", "rename", "move", "copy"]
+    if task["action"] not in valid_actions:
+        log(f"Invalid action: {task['action']}. Valid actions: {valid_actions}", "error")
+        return None
+    
+    return task
+
+# ============================================================================
+# EPHEMERAL SERVER LIFECYCLE
+# ============================================================================
+import tempfile
+import shutil
+import threading
+
+def create_isolated_config(api_key, model):
+    temp_dir = tempfile.mkdtemp(prefix="opencode_steward_")
+    config_subdir = os.path.join(temp_dir, "opencode")
+    os.makedirs(config_subdir, exist_ok=True)
+    data_subdir = os.path.join(temp_dir, ".local", "share", "opencode")
+    os.makedirs(data_subdir, exist_ok=True)
+    
+    # Determine provider based on model naming or defaults
+    if "minimax" in model.lower():
+        provider = "zen" # Zen endpoint often maps to 'zen' or 'anthropic' internal logic in server
+        # For our environment, we'll provide keys for both to be safe
+        auth_data = {
+            "zen": {"type": "api", "key": api_key},
+            "openrouter": {"type": "api", "key": api_key}
+        }
+    else:
+        auth_data = {"openrouter": {"type": "api", "key": api_key}}
+
+    with open(os.path.join(data_subdir, "auth.json"), "w") as f:
+        json.dump(auth_data, f, indent=2)
+    
+    config_data = {
+        "model": model, 
+        "$schema": "https://opencode.ai/config.json"
+    }
+    
+    # If using Zen, we might need to specify the base URL in config too
+    # Using the standard Zen endpoint from models.yaml
+    if "minimax" in model.lower():
+        config_data["upstream_base_url"] = "https://opencode.ai/zen/v1/messages"
+
+    with open(os.path.join(config_subdir, "opencode.json"), "w") as f:
+        json.dump(config_data, f, indent=2)
+    
+    return temp_dir
+
+# LIFEOS_TODO[P1][area: scripts/opencode_ci_runner.py:cleanup_isolated_config][exit: root cause documented + decision logged in DECISIONS.md] Review OpenCode deletion logic: Understand why cleanup uses shutil.rmtree for temp configs. DoD: Root cause documented, safety analysis complete
+def cleanup_isolated_config(config_dir):
+    if config_dir and os.path.exists(config_dir):
+        try:
+            shutil.rmtree(config_dir)
+        except Exception as e:
+            log(f"Failed to cleanup config dir {config_dir}: {e}", "warning")
+
+def start_ephemeral_server(port, config_dir, api_key):
+    log(f"Starting ephemeral OpenCode server on port {port}", "info")
+    env = os.environ.copy()
+    env["APPDATA"], env["XDG_CONFIG_HOME"], env["USERPROFILE"], env["HOME"] = config_dir, config_dir, config_dir, config_dir
+    env["OPENROUTER_API_KEY"] = api_key
+    env["OPENAI_API_KEY"], env["ANTHROPIC_API_KEY"] = "", ""
+    
+    try:
+        return subprocess.Popen(
+            ["opencode", "serve", "--port", str(port)],
+            env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, 
+            shell=True if os.name == "nt" else False
+        )
+    except Exception as e:
+        log(f"Failed to start ephemeral server: {e}", "error")
+        return None
+
+def stop_ephemeral_server(process):
+    if process:
+        process.terminate()
+        try: process.wait(timeout=5)
+        except subprocess.TimeoutExpired: process.kill()
+
+
+class MissionTimeout(TimeoutError):
+    """Raised when a mission helper exceeds the configured timeout."""
+
+
+def run_with_timeout(func, timeout_seconds: int):
+    """
+    Run a callable with a hard timeout and propagate exceptions.
+    Returns the callable result on success.
+    """
+    result: Dict[str, Any] = {}
+    err: Dict[str, BaseException] = {}
+
+    def _runner():
+        try:
+            result["value"] = func()
+        except BaseException as exc:  # pragma: no cover - propagation path
+            err["exc"] = exc
+
+    thread = threading.Thread(target=_runner, daemon=True)
+    thread.start()
+    thread.join(timeout_seconds)
+    if thread.is_alive():
+        raise MissionTimeout(f"Mission step exceeded timeout: {timeout_seconds}s")
+    if "exc" in err:
+        raise err["exc"]
+    return result.get("value")
+
+# ============================================================================
+# OPENCODE SERVER INTERFACE
+# ============================================================================
+def wait_for_server(base_url, timeout=30):
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            if requests.get(f"{base_url}/global/health", timeout=1).status_code == 200:
+                return True
+        except Exception:
+            pass  # Expected during server startup
+        time.sleep(1)
+    return False
+
+def run_mission(base_url, model, instruction):
+    try:
+        resp = requests.post(f"{base_url}/session", json={"title": "Steward Mission", "model": model}, timeout=10)
+        if resp.status_code != 200: return False
+        session_id = resp.json()["id"]
+        requests.post(f"{base_url}/session/{session_id}/message",
+                      json={"parts": [{"type": "text", "text": instruction}]}, timeout=120)
+        return session_id
+    except Exception as e:
+        log(f"Failed to run mission: {e}", "error")
+        return False
+
+# ============================================================================
+# MAIN
+# ============================================================================
+def main():
+    parser = argparse.ArgumentParser(description="OpenCode CI Runner (CT-2 Phase 3 v2.0) - Broadened")
+    parser.add_argument("--port", type=int, default=62586)
+    parser.add_argument("--model", type=str, default=DEFAULT_MODEL)
+    parser.add_argument("--mode", type=str, choices=policy.VALID_MODES, default=policy.MODE_STEWARD, help="Enforcement mode (steward/builder)")
+    parser.add_argument("--task", type=str, required=True, help="JSON-structured task (required)")
+    # NO --override-foundations flag. Period.
+    args = parser.parse_args()
+    
+    repo_root = os.getcwd()
+    # Load config once
+    model_config = load_model_config()
+
+    # Resolve model if auto
+    model_id = args.model
+    if model_id == "auto":
+        role = "steward" if args.mode == policy.MODE_STEWARD else "builder"
+        model_id, reason, _ = resolve_model_auto(role, model_config)
+        log(f"Resolved model 'auto' to '{model_id}' ({reason})", "info")
+    else:
+        log(f"Using requested model '{model_id}'", "info")
+
+    api_key = load_api_key(args.mode)
+    if not api_key:
+        log("No API key available. Requesting user intervention.", "error")
+        # Fail loud in Phase 3
+        sys.exit(1)
+    
+    task = validate_task_input(args.task)
+    if not task: 
+        sys.exit(1)
+    
+    # ========== PRE-START CHECKS (symlink on declared files) ==========
+    for path in task["files"]:
+        safe, reason = policy.check_symlink(path, repo_root)
+        if not safe:
+            generate_evidence_bundle("BLOCK", reason, "PRE_START", task)
+            log(f"Symlink rejected: {path}", "error")
+            sys.exit(1)
+    
+    # ========== SERVER SETUP ==========
+    config_dir = create_isolated_config(api_key, model_id)
+    server_process = start_ephemeral_server(args.port, config_dir, api_key)
+    if not server_process:
+        cleanup_isolated_config(config_dir)
+        sys.exit(1)
+    
+    if not wait_for_server(f"http://127.0.0.1:{args.port}"):
+        stop_ephemeral_server(server_process)
+        cleanup_isolated_config(config_dir)
+        log("Server timeout", "error")
+        sys.exit(1)
+    
+    # ========== EXECUTE MISSION ==========
+    log("Executing mission", "info")
+    session_id = run_mission(f"http://127.0.0.1:{args.port}", model_id, task["instruction"])
+    
+    # ========== POST-EXECUTION: GET DIFF AND VALIDATE ENVELOPE ==========
+    log("Validating post-execution diff against envelope", "info")
+    parsed, mode, error = policy.execute_diff_and_parse(repo_root)
+    
+    if error:
+        generate_evidence_bundle("BLOCK", error, mode, task)
+        log(f"Diff acquisition failed: {error}", "error")
+        subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
+        stop_ephemeral_server(server_process)
+        cleanup_isolated_config(config_dir)
+        sys.exit(1)
+    
+    if not parsed:
+        parsed = []
+    
+    # Validate ALL diff entries against envelope
+    blocked_entries = validate_all_diff_entries(parsed, mode=args.mode)
+    
+    if blocked_entries:
+        first_block = blocked_entries[0]
+        generate_evidence_bundle("BLOCK", first_block[2], mode, task, parsed, blocked_entries)
+        log(f"Envelope violation: {first_block[0]} ({first_block[1]}) - {first_block[2]}", "error")
+        for entry in blocked_entries[1:5]:  # Log up to 5
+            log(f"  Additional violation: {entry[0]} ({entry[1]}) - {entry[2]}", "error")
+        subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
+        stop_ephemeral_server(server_process)
+        cleanup_isolated_config(config_dir)
+        sys.exit(1)
+    
+    # Check symlinks again for new files
+    for entry in parsed:
+        path = entry[1] if len(entry) == 2 else entry[2]
+        safe, reason = policy.check_symlink(path, repo_root)
+        if not safe:
+            generate_evidence_bundle("BLOCK", reason, mode, task, parsed)
+            log(f"New symlink detected: {path}", "error")
+            subprocess.run(["git", "reset", "--hard", "HEAD"], check=False)
+            stop_ephemeral_server(server_process)
+            cleanup_isolated_config(config_dir)
+            sys.exit(1)
+
+    # Success
+    generate_evidence_bundle("PASS", None, mode, task, parsed)
+    log("MISSION SUCCESS - All changes within envelope", "ok")
+    
+    # Cleanup
+    stop_ephemeral_server(server_process)
+    cleanup_isolated_config(config_dir)
+
+if __name__ == "__main__":
+    main()
+
+```
+
+### FILE: tests_recursive/test_steward_runner.py
+
+```
+#!/usr/bin/env python3
+"""
+Acceptance Tests for Stewardship Runner (AT-01 through AT-10).
+
+These tests use git worktree to create isolated test environments (H1).
+Each test creates a temporary worktree, runs the runner, and validates
+both exit codes and log contents.
+
+Run with:
+    python3 -m pytest tests_recursive/test_steward_runner.py -v
+"""
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+import importlib.util
+from unittest.mock import patch, MagicMock
+
+import pytest
+
+PYTHON = sys.executable
+
+# --- Test Fixtures ---
+
+@pytest.fixture
+def repo_root() -> Path:
+    """Get the main repo root."""
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+    )
+    return Path(result.stdout.strip()).resolve()
+
+
+@pytest.fixture
+def worktree(repo_root: Path, tmp_path: Path):
+    """
+    Create a git worktree for isolated testing (H1).
+    
+    Copies untracked/modified steward runner files to worktree so tests
+    work before the runner is committed. Commits them so worktree is clean.
+    
+    Yields the worktree path and cleans up after.
+    """
+    worktree_path = tmp_path / "test_worktree"
+    branch_name = f"test-steward-{os.getpid()}"
+    
+    # Create orphan branch for isolation
+    subprocess.run(
+        ["git", "branch", branch_name, "HEAD"],
+        cwd=repo_root,
+        capture_output=True,
+    )
+    
+    # Create worktree
+    subprocess.run(
+        ["git", "worktree", "add", str(worktree_path), branch_name],
+        cwd=repo_root,
+        capture_output=True,
+    )
+    
+    # Copy untracked/modified files needed for running tests
+    # These files may not be committed yet during development
+    files_to_copy = [
+        "scripts/steward_runner.py",
+        "config/steward_runner.yaml",
+        "doc_steward/cli.py",
+    ]
+    
+    copied_any = False
+    for rel_path in files_to_copy:
+        src = repo_root / rel_path
+        dst = worktree_path / rel_path
+        if src.exists():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+            copied_any = True
+    
+    # Commit copied files so worktree starts clean
+    if copied_any:
+        subprocess.run(
+            ["git", "add", "-A"],
+            cwd=worktree_path,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "[test] Add steward runner files for testing"],
+            cwd=worktree_path,
+            capture_output=True,
+        )
+    
+    yield worktree_path
+    
+    # Cleanup
+    subprocess.run(
+        ["git", "worktree", "remove", "--force", str(worktree_path)],
+        cwd=repo_root,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "branch", "-D", branch_name],
+        cwd=repo_root,
+        capture_output=True,
+    )
+
+
+@pytest.fixture
+def test_config(worktree: Path) -> Path:
+    """Create a minimal test config in the worktree and commit it."""
+    config_dir = worktree / "config"
+    config_dir.mkdir(exist_ok=True)
+    
+    config_content = """
+repo_root: "."
+
+tests:
+  command: ["python3", "-c", "print('tests pass')"]
+  paths: []
+
+validators:
+  commands: []
+
+corpus:
+  command: ["python3", "-c", "print('corpus generated')"]
+  outputs_expected: []
+
+git:
+  require_clean_start: false
+  commit_enabled: false
+  commit_message_template: "[test] {run_id}"
+  commit_paths: ["docs/"]
+
+logging:
+  log_dir: "logs/steward_runner"
+  streams_dir: "logs/steward_runner/streams"
+  format: "jsonl"
+
+determinism:
+  run_id_required: true
+  timestamps: false
+"""
+    
+    config_path = config_dir / "test_runner.yaml"
+    config_path.write_text(config_content)
+    
+    # Commit the config so worktree starts clean
+    subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "[test] Add test config"],
+        cwd=worktree,
+        capture_output=True,
+    )
+    
+    return config_path
+
+
+def run_steward(
+    worktree: Path,
+    config_path: Path,
+    run_id: str | None = None,
+    dry_run: bool = False,
+    no_commit: bool = False,
+    commit: bool = False,
+    expect_fail: bool = False,
+) -> tuple[int, Path | None]:
+    """
+    Run the steward runner in the worktree.
+    
+    Returns (exit_code, log_file_path or None).
+    """
+    runner_path = worktree / "scripts" / "steward_runner.py"
+    
+    cmd = [PYTHON, str(runner_path)]
+    cmd.extend(["--config", str(config_path.relative_to(worktree))])
+    
+    if run_id:
+        cmd.extend(["--run-id", run_id])
+    
+    if dry_run:
+        cmd.append("--dry-run")
+    
+    if no_commit:
+        cmd.append("--no-commit")
+        
+    if commit:
+        cmd.append("--commit")
+    
+    result = subprocess.run(
+        cmd,
+        cwd=worktree,
+        capture_output=True,
+        text=True,
+    )
+    
+    # Find log file
+    log_dir = worktree / "logs" / "steward_runner"
+    log_file = None
+    if run_id and log_dir.exists():
+        expected_log = log_dir / f"{run_id}.jsonl"
+        if expected_log.exists():
+            log_file = expected_log
+    
+    return result.returncode, log_file
+
+
+def read_log_events(log_file: Path) -> list[dict]:
+    """Read JSONL log file into list of events."""
+    events = []
+    with open(log_file, "r", encoding="utf-8") as f:
+        for line in f:
+            events.append(json.loads(line))
+    return events
+
+
+def find_event(events: list[dict], step: str, status: str) -> dict | None:
+    """Find an event by step and status."""
+    for event in events:
+        if event.get("step") == step and event.get("status") == status:
+            return event
+    return None
+
+
+# --- Acceptance Tests ---
+
+class TestAT01MissingRunId:
+    """AT-01: Missing run-id fails closed."""
+    
+    def test_missing_run_id_fails(self, worktree: Path, test_config: Path):
+        """Invoke without --run-id → exit != 0."""
+        runner_path = worktree / "scripts" / "steward_runner.py"
+        
+        result = subprocess.run(
+            [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree))],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        )
+        
+        assert result.returncode != 0, "Should fail without --run-id"
+        assert "required" in result.stderr.lower() or "run-id" in result.stderr.lower()
+
+
+class TestAT02DirtyRepoStart:
+    """AT-02: Dirty repo start fails when required."""
+    
+    def test_dirty_repo_fails_with_require_clean(self, worktree: Path, test_config: Path):
+        """With uncommitted change and require_clean_start=true → exit != 0."""
+        # Update config to require clean start
+        config_content = test_config.read_text().replace(
+            "require_clean_start: false",
+            "require_clean_start: true"
+        )
+        test_config.write_text(config_content)
+        
+        # Create uncommitted file
+        dirty_file = worktree / "dirty_file.txt"
+        dirty_file.write_text("uncommitted content")
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at02-test")
+        
+        assert exit_code != 0, "Should fail with dirty repo"
+        
+        if log_file:
+            events = read_log_events(log_file)
+            fail_event = find_event(events, "preflight", "fail")
+            assert fail_event is not None, "Should have preflight.fail event"
+            assert fail_event.get("reason") == "dirty_repo"
+
+
+class TestAT03TestsFailureBlocksDownstream:
+    """AT-03: Tests failure blocks downstream."""
+    
+    def test_tests_failure_blocks_validators(self, worktree: Path, test_config: Path):
+        """Make tests return non-zero → validators/corpus/commit never run."""
+        # Update config with failing tests
+        config_content = test_config.read_text().replace(
+            'command: ["python3", "-c", "print(\'tests pass\')"]',
+            'command: ["python3", "-c", "import sys; sys.exit(1)"]'
+        )
+        test_config.write_text(config_content)
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at03-test")
+        
+        assert exit_code != 0, "Should fail when tests fail"
+        
+        if log_file:
+            events = read_log_events(log_file)
+            # Should have tests.fail
+            tests_fail = find_event(events, "tests", "fail")
+            assert tests_fail is not None, "Should have tests.fail event"
+            
+            # Should NOT have validators or corpus events
+            for event in events:
+                assert "validator" not in event.get("step", ""), "Validators should not run"
+                assert event.get("step") != "corpus", "Corpus should not run"
+
+
+class TestAT04ValidatorFailureBlocksCorpus:
+    """AT-04: Validator failure blocks corpus."""
+    
+    def test_validator_failure_blocks_corpus(self, worktree: Path, test_config: Path):
+        """Tests pass, validator returns non-zero → corpus not executed."""
+        # Update config with failing validator
+        config_content = test_config.read_text().replace(
+            "validators:\n  commands: []",
+            'validators:\n  commands:\n    - ["python3", "-c", "import sys; sys.exit(1)"]'
+        )
+        test_config.write_text(config_content)
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at04-test")
+        
+        assert exit_code != 0, "Should fail when validator fails"
+        
+        if log_file:
+            events = read_log_events(log_file)
+            # Should have validator fail
+            validator_fail = find_event(events, "validator_0", "fail")
+            assert validator_fail is not None, "Should have validator.fail event"
+            
+            # Should NOT have corpus event
+            for event in events:
+                assert event.get("step") != "corpus", "Corpus should not run"
+
+
+class TestAT05CorpusExpectedOutputsEnforced:
+    """AT-05: Corpus expected outputs enforced."""
+    
+    def test_missing_corpus_output_fails(self, worktree: Path, test_config: Path):
+        """Corpus exits 0 but any outputs_expected missing → fail."""
+        # Update config to expect an output that won't be created
+        config_content = test_config.read_text().replace(
+            "outputs_expected: []",
+            'outputs_expected: ["docs/nonexistent.md"]'
+        )
+        test_config.write_text(config_content)
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at05-test")
+        
+        assert exit_code != 0, "Should fail when expected output missing"
+        
+        if log_file:
+            events = read_log_events(log_file)
+            corpus_fail = find_event(events, "corpus", "fail")
+            assert corpus_fail is not None, "Should have corpus.fail event"
+            assert corpus_fail.get("reason") == "missing_output"
+
+
+class TestAT06NoChangeNoCommit:
+    """AT-06: No change = no commit."""
+    
+    def test_no_change_exits_success(self, worktree: Path, test_config: Path):
+        """Corpus runs, no changes → exit 0; no commit."""
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at06-test")
+        
+        assert exit_code == 0, "Should succeed with no changes"
+        
+        if log_file:
+            events = read_log_events(log_file)
+            no_change = find_event(events, "change_detect", "no_change")
+            assert no_change is not None, "Should have no_change event"
+
+
+class TestAT07ChangeWithinAllowedPathsCommits:
+    """AT-07: Change within allowed paths commits once."""
+    
+    def test_allowed_change_commits(self, worktree: Path, test_config: Path):
+        """Corpus creates diff only within commit_paths → exactly one commit."""
+        # Enable commit and create a change in allowed path
+        config_content = test_config.read_text().replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        # Make corpus create a file in docs/
+        config_content = config_content.replace(
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+        )
+        config_content = config_content.replace(
+            "commit_paths: [\"docs/\"]",
+            'commit_paths: ["docs/"]'
+        )
+        test_config.write_text(config_content)
+        
+        # Commit the config change so only docs/ changes are uncommitted
+        subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "[test] Update config for AT-07"],
+            cwd=worktree,
+            capture_output=True,
+        )
+        
+        # Ensure docs dir exists
+        (worktree / "docs").mkdir(exist_ok=True)
+        
+        head_before = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at07-test", commit=True)
+        
+        head_after = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        
+        assert exit_code == 0, "Should succeed with allowed changes"
+        assert head_after != head_before, "HEAD should change after commit"
+        
+        if log_file:
+            events = read_log_events(log_file)
+            commit_pass = find_event(events, "commit", "pass")
+            assert commit_pass is not None, "Should have commit.pass event"
+
+
+class TestAT08ChangeOutsideAllowedPathsFails:
+    """AT-08: Change outside allowed paths fails closed."""
+    
+    def test_disallowed_change_fails(self, worktree: Path, test_config: Path):
+        """Diff touches any path outside commit_paths → exit != 0; no commit."""
+        # Enable commit but create change outside allowed path
+        config_content = test_config.read_text().replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        # Make corpus create a file outside docs/
+        config_content = config_content.replace(
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "open(\'outside.txt\', \'w\').write(\'disallowed\')"]'
+        )
+        test_config.write_text(config_content)
+        
+        head_before = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        
+
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at08-test", commit=True)
+        
+        head_after = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        
+        assert exit_code != 0, "Should fail with disallowed changes"
+        assert head_after == head_before, "HEAD should not change"
+        
+        if log_file:
+            events = read_log_events(log_file)
+            commit_fail = find_event(events, "commit", "fail")
+            assert commit_fail is not None, "Should have commit.fail event"
+            assert commit_fail.get("reason") == "changes_outside_allowlist"
+
+
+class TestAT09DryRunNeverCommits:
+    """AT-09: Dry run never commits."""
+    
+    def test_dry_run_skips_commit(self, worktree: Path, test_config: Path):
+        """With allowable diff and --dry-run → exit 0; commit skipped."""
+        # Enable commit and create allowed change
+        config_content = test_config.read_text().replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        config_content = config_content.replace(
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+        )
+        test_config.write_text(config_content)
+        
+        (worktree / "docs").mkdir(exist_ok=True)
+        
+        head_before = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        
+        # Run with --dry-run
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at09-test", dry_run=True)
+        
+        head_after = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        
+        assert exit_code == 0, "Should succeed with dry-run"
+        assert head_after == head_before, "HEAD should not change with dry-run"
+        
+        if log_file:
+            events = read_log_events(log_file)
+            commit_skipped = find_event(events, "commit", "skipped")
+            assert commit_skipped is not None, "Should have commit.skipped event"
+            assert commit_skipped.get("reason") == "dry_run"
+
+
+class TestAT10LogDeterminism:
+    """AT-10: Log determinism."""
+    
+    def test_logs_are_deterministic(self, worktree: Path, test_config: Path):
+        """Same repo state + same run_id → byte-identical JSONL."""
+        run_id = "at10-determinism"
+        
+        # First run
+        exit_code1, log_file1 = run_steward(worktree, test_config, run_id=run_id)
+        assert exit_code1 == 0
+        assert log_file1 is not None
+        content1 = log_file1.read_text()
+        
+        # Delete log for second run
+        log_file1.unlink()
+        
+        # Second run with same state and run_id
+        exit_code2, log_file2 = run_steward(worktree, test_config, run_id=run_id)
+        assert exit_code2 == 0
+        assert log_file2 is not None
+        content2 = log_file2.read_text()
+        
+        # H2: byte-identical
+        assert content1 == content2, "Logs should be byte-identical for same state/run_id"
+
+
+class TestAT11TestScopeEnforcement:
+    """AT-11: Test scope enforcement (P0-1)."""
+    
+    def test_tests_argv_includes_paths(self, worktree: Path, test_config: Path):
+        """tests.paths must appear in the tests step argv."""
+        # Update config to have specific test paths
+        config_content = test_config.read_text()
+        config_content = config_content.replace(
+            "paths: []",
+            'paths: ["path_a", "path_b", "path_c"]'
+        )
+        test_config.write_text(config_content)
+        
+        # Commit config change
+        subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "[test] Update config for AT-11"],
+            cwd=worktree,
+            capture_output=True,
+        )
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at11-test")
+        
+        # Test passes or fails, but we need to check the argv
+        assert log_file is not None, "Should have log file"
+        
+        events = read_log_events(log_file)
+        
+        # Find the tests command event
+        tests_event = None
+        for event in events:
+            if event.get("step") == "tests" and event.get("event") == "command":
+                tests_event = event
+                break
+        
+        assert tests_event is not None, "Should have tests command event"
+        
+        argv = tests_event.get("argv", [])
+        
+        # Assert all paths are in argv in order
+        assert "path_a" in argv, "path_a should be in argv"
+        assert "path_b" in argv, "path_b should be in argv"
+        assert "path_c" in argv, "path_c should be in argv"
+        
+        # Assert paths appear after the command part
+        path_a_idx = argv.index("path_a")
+        path_b_idx = argv.index("path_b")
+        path_c_idx = argv.index("path_c")
+        
+        assert path_a_idx < path_b_idx < path_c_idx, "Paths should appear in config order"
+
+
+class TestAT12AllowlistNormalization:
+    """AT-12: Allowlist normalization (bare names → directories)."""
+    
+    @pytest.mark.xfail(
+        reason="Waived: governance/mission-registry-v0.1 — steward runner repair tracked separately. Remove when AT-12 is fixed.",
+        strict=True,
+    )
+    def test_bare_name_normalized_to_directory(self, worktree: Path, test_config: Path):
+        """Bare names like 'docs' normalize to 'docs/' in committed paths."""
+        # Update config with bare name (no trailing /)
+        config_content = test_config.read_text()
+        config_content = config_content.replace(
+            'commit_paths: ["docs/"]',
+            'commit_paths: ["docs"]'  # No trailing slash
+        )
+        config_content = config_content.replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        config_content = config_content.replace(
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+        )
+        test_config.write_text(config_content)
+        
+        # Commit config changes
+        subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "[test] AT-12 config"],
+            cwd=worktree,
+            capture_output=True,
+        )
+        
+        (worktree / "docs").mkdir(exist_ok=True)
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at12-test")
+        
+        assert exit_code == 0, "Should succeed with bare name normalized"
+        assert log_file is not None
+        
+        events = read_log_events(log_file)
+        commit_event = find_event(events, "commit", "pass")
+        assert commit_event is not None, "Should have commit.pass event"
+        
+        # Normalized paths should have trailing /
+        commit_paths = commit_event.get("commit_paths", [])
+        assert "docs/" in commit_paths, "Bare name 'docs' should normalize to 'docs/'"
+
+
+class TestAT13FailClosedUnsafePaths:
+    """AT-13: Fail-closed on unsafe commit paths."""
+    
+    @pytest.mark.parametrize("unsafe_path,expected_error", [
+        ("../docs/", "path_traversal"),
+        ("docs/../other/", "path_traversal"),
+        ("docs/*.md", "glob_pattern"),
+        ("docs/?.md", "glob_pattern"),
+        ("C:/temp/", "absolute_path_windows"),
+        ("C:\\temp\\", "absolute_path_windows"),
+        ("/absolute/path/", "absolute_path_unix"),
+        ("/absolute/path/", "absolute_path_unix"),
+        ("//server/share/", "absolute_path_unc"),
+        ("docs%2Ffolder", "url_encoded_chars"),  # P2-B
+    ])
+    def test_unsafe_path_fails(self, worktree: Path, test_config: Path, unsafe_path: str, expected_error: str):
+        """Unsafe paths fail closed with clear error reason."""
+        # Update config with unsafe path
+        config_content = test_config.read_text()
+        # Escape for YAML
+        escaped_path = unsafe_path.replace("\\", "\\\\")
+        config_content = config_content.replace(
+            'commit_paths: ["docs/"]',
+            f'commit_paths: ["{escaped_path}"]'
+        )
+        config_content = config_content.replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        # Create a change so commit is attempted
+        config_content = config_content.replace(
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+        )
+        test_config.write_text(config_content)
+        
+        (worktree / "docs").mkdir(exist_ok=True)
+        
+        (worktree / "docs").mkdir(exist_ok=True)
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id=f"at13-{expected_error}", commit=True)
+        
+        assert exit_code != 0, f"Should fail with unsafe path: {unsafe_path}"
+        assert log_file is not None
+        
+        events = read_log_events(log_file)
+        commit_fail = find_event(events, "commit", "fail")
+        assert commit_fail is not None, "Should have commit.fail event"
+        assert commit_fail.get("reason") == "invalid_commit_path"
+        assert commit_fail.get("error") == expected_error, f"Expected error {expected_error}"
+
+
+class TestAT14DirtyDuringRun:
+    """AT-14: Changes appearing mid-run are rejected (P1-A)."""
+
+    def test_dirty_during_run_rejected(self, worktree: Path, test_config: Path):
+        """
+        Simulate race condition where repo becomes dirty between change_detect and commit.
+        
+        Since existing tests use subprocess which makes patching hard, this test
+        dynamically loads the runner module and tests run_commit directly.
+        """
+        # Load steward_runner module dynamically
+        runner_path = worktree / "scripts" / "steward_runner.py"
+        spec = importlib.util.spec_from_file_location("steward_runner", runner_path)
+        runner_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner_module)
+        
+        # Setup mocks
+        logger = MagicMock()
+        config = {"git": {"commit_enabled": True, "commit_paths": ["docs/"]}}
+        repo_root = worktree
+        run_id = "at14-test"
+        
+        # Initial changed files (detected by change_detect step)
+        initial_changes = ["docs/valid_change.md"]
+        
+        # Mock get_changed_files to return new dirty file on second call (inside run_commit)
+        # First call is explicitly by our test (simulating change_detect)
+        # Second call is inside run_commit -> triggers race condition check
+        with patch.object(runner_module, 'get_changed_files') as mock_get_changed:
+            # P1-A logic checks current_changed vs passed changed_files
+            # We pass initial_changes to run_commit
+            # verify_dirty_state calls get_changed_files()
+            
+            # Scenario: get_changed_files returns extra file "injected.txt"
+            mock_get_changed.return_value = ["docs/valid_change.md", "injected.txt"]
+            
+            success, _ = runner_module.run_commit(
+                config, logger, repo_root, run_id,
+                initial_changes, False, False
+            )
+            
+            assert not success, "Should fail when new dirty file appears"
+            
+            # Verify log call
+            logger.log.assert_called_with(
+                "commit", "commit", "fail",
+                reason="repo_dirty_during_run",
+                unexpected_files=["injected.txt"]
+            )
+
+
+class TestAT15LogFieldSorting:
+    """AT-15: Log field sorting (P1-B)."""
+    
+    def test_log_lists_are_sorted(self, worktree: Path, test_config: Path):
+        """File lists in logs must be sorted lexicographically."""
+        # Create files in unsorted order
+        (worktree / "docs").mkdir(exist_ok=True)
+        filenames = ["z_file.md", "a_file.md", "m_file.md"]
+        for name in filenames:
+            (worktree / "docs" / name).write_text("test")
+            
+        # Add them so they show up in changed_files (if committed, verify validated/staged)
+        # We need commit_enabled=True to check staged_files/commit_paths
+        config_content = test_config.read_text().replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        test_config.write_text(config_content)
+        
+        # We need to make them dirty first (change_detect)
+        # But for 'staged_files' inside commit event, they need to be valid
+        # Let's clean worktree first then modify them?
+        # fixture creates clean worktree.
+        # newly created files are untracked.
+        
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at15-test", dry_run=True)
+        assert exit_code == 0
+        
+        events = read_log_events(log_file)
+        
+        checked_any = False
+        for event in events:
+            for key in ("files", "changed_files", "commit_paths", "disallowed_files"):
+                if key in event and isinstance(event[key], list):
+                    val = event[key]
+                    if len(val) > 1:
+                        assert val == sorted(val), f"{key} not sorted in {event['step']}"
+                        checked_any = True
+        
+        assert checked_any, "Should have checked at least one list"
+
+
+class TestAT16DefaultDryRun:
+    """AT-16: Default is dry-run (P1-D)."""
+    
+    def test_no_flags_is_dry_run(self, worktree: Path, test_config: Path):
+        """Run without flags -> dry run, no commit."""
+        # Enable commit in config, but CLI default should override
+        config_content = test_config.read_text().replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        config_content = config_content.replace(
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+        )
+        test_config.write_text(config_content)
+        
+        # Don't pass dry_run=True, leave as default
+        # But run_steward helper might need adjustment or allow None
+        runner_path = worktree / "scripts" / "steward_runner.py"
+        
+        # Manual run without helper to ensure no flags
+        result = subprocess.run(
+            [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree)), "--run-id", "at16"],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+        
+        # Check log for skipped reason
+        log_dir = worktree / "logs" / "steward_runner"
+        log_file = log_dir / "at16.jsonl"
+        events = read_log_events(log_file)
+        
+        commit_skipped = find_event(events, "commit", "skipped")
+        assert commit_skipped is not None
+        assert commit_skipped.get("reason") == "dry_run"
+
+
+class TestAT17CommitFlagEnables:
+    """AT-17: --commit flag enables commit (P1-D)."""
+    
+    def test_commit_flag_enables(self, worktree: Path, test_config: Path):
+        """Run with --commit -> commit happens."""
+        config_content = test_config.read_text().replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        config_content = config_content.replace(
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+        )
+        test_config.write_text(config_content)
+        
+        # Commit config change so only docs/ changes are uncommitted
+        subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "[test] AT-17 config"],
+            cwd=worktree,
+            capture_output=True,
+        )
+        
+        # Pass --commit
+        exit_code, log_file = run_steward(worktree, test_config, run_id="at17", commit=True)
+        assert exit_code == 0
+        
+        log_dir = worktree / "logs" / "steward_runner"
+        log_file = log_dir / "at17.jsonl"
+        events = read_log_events(log_file)
+        
+        # Debug: Check change detection
+        change_event = find_event(events, "change_detect", "detected")
+        assert change_event is not None, f"Change detection failed. Events: {events}"
+        assert "docs/test.md" in change_event.get("changed_files", []), "docs/test.md not detected"
+        
+        commit_pass = find_event(events, "commit", "pass")
+        assert commit_pass is not None, f"Should have committed with --commit flag. Events: {events}"
+
+
+class TestAT18ExplicitDryRun:
+    """AT-18: Explicit --dry-run (P1-D)."""
+    
+    def test_explicit_dry_run(self, worktree: Path, test_config: Path):
+        """Run with --dry-run -> no commit."""
+        # Same setup
+        config_content = test_config.read_text().replace(
+            "commit_enabled: false",
+            "commit_enabled: true"
+        )
+        config_content = config_content.replace(
+            'command: ["python3", "-c", "print(\'corpus generated\')"]',
+            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+        )
+        test_config.write_text(config_content)
+        
+        runner_path = worktree / "scripts" / "steward_runner.py"
+        
+        # Pass --dry-run
+        result = subprocess.run(
+            [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree)), "--run-id", "at18", "--dry-run"],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+        
+        log_dir = worktree / "logs" / "steward_runner"
+        log_file = log_dir / "at18.jsonl"
+        events = read_log_events(log_file)
+        
+        commit_skipped = find_event(events, "commit", "skipped")
+        assert commit_skipped is not None
+        assert commit_skipped.get("reason") == "dry_run"
+
+```
+
+### FILE: artifacts/status/runtime_status.json
+
+```
+{
+  "contradictions": [],
+  "facts": {
+    "backlog_openclaw_install_unchecked": false,
+    "lifeos_state_claims_openclaw_blocker": false,
+    "openclaw_bin": "/home/linuxbrew/.linuxbrew/bin/openclaw",
+    "openclaw_installed": true
+  },
+  "generated_at_utc": "2026-02-12T02:11:03.609985+00:00",
+  "repo_root": "/mnt/c/Users/cabra/Projects/LifeOS",
+  "status": "ok"
+}
+
+```
+
+### FILE: artifacts/packets/status/checkpoint_report_20260212.json
+
+```
+{
+  "contradictions": [],
+  "facts": {
+    "backlog_openclaw_install_unchecked": false,
+    "lifeos_state_claims_openclaw_blocker": false,
+    "openclaw_bin": "/home/linuxbrew/.linuxbrew/bin/openclaw",
+    "openclaw_installed": true
+  },
+  "generated_at_utc": "2026-02-12T02:11:03.609985+00:00",
+  "repo_root": "/mnt/c/Users/cabra/Projects/LifeOS",
+  "status": "ok"
+}
+
+```

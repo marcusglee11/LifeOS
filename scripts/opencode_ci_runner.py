@@ -232,6 +232,7 @@ def validate_task_input(task_str):
 # ============================================================================
 import tempfile
 import shutil
+import threading
 
 def create_isolated_config(api_key, model):
     temp_dir = tempfile.mkdtemp(prefix="opencode_steward_")
@@ -299,6 +300,34 @@ def stop_ephemeral_server(process):
         process.terminate()
         try: process.wait(timeout=5)
         except subprocess.TimeoutExpired: process.kill()
+
+
+class MissionTimeout(TimeoutError):
+    """Raised when a mission helper exceeds the configured timeout."""
+
+
+def run_with_timeout(func, timeout_seconds: int):
+    """
+    Run a callable with a hard timeout and propagate exceptions.
+    Returns the callable result on success.
+    """
+    result: Dict[str, Any] = {}
+    err: Dict[str, BaseException] = {}
+
+    def _runner():
+        try:
+            result["value"] = func()
+        except BaseException as exc:  # pragma: no cover - propagation path
+            err["exc"] = exc
+
+    thread = threading.Thread(target=_runner, daemon=True)
+    thread.start()
+    thread.join(timeout_seconds)
+    if thread.is_alive():
+        raise MissionTimeout(f"Mission step exceeded timeout: {timeout_seconds}s")
+    if "exc" in err:
+        raise err["exc"]
+    return result.get("value")
 
 # ============================================================================
 # OPENCODE SERVER INTERFACE
