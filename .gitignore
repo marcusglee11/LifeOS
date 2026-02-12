@@ -107,6 +107,8 @@ dogfood_worktree/
 generate_bundle*.py
 artifacts/active_branches.json
 artifacts/ledger/dl_doc/mock_*.txt
+artifacts/ledger/dl_doc/*.yaml
+artifacts/ledger/dl_doc/*.json
 artifacts/CEO_Terminal_Packet.md
 artifacts/loop_state/
 artifacts/queue/
@@ -115,6 +117,7 @@ artifacts/checkpoints/
 artifacts/steps/
 test_autonomous_direct.py
 .claude/settings.local.json
+.claude/worktrees/
 artifacts/validation_runs/
 
 # Packaging & Environments
