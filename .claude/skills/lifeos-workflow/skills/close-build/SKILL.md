@@ -1,11 +1,11 @@
 ---
 name: close-build
-description: Use when a branch is ready to close with low friction. Runs closure tests, doc stewardship when needed, merge to main, and cleanup.
+description: Use when a branch is ready to close. Closure gates (tests, doc stewardship) are enforced automatically by the PreToolUse hook on git merge/push. This skill handles merge orchestration, cleanup, and the final report.
 ---
 
 # Close Build
 
-Complete the final lifecycle step with minimal prompts.
+Merge to main and clean up. Closure gates run automatically via the PreToolUse hook.
 
 ## Default behavior
 
@@ -14,18 +14,20 @@ python3 scripts/workflow/closure_pack.py
 ```
 
 This runs:
-- targeted closure tests,
-- doc stewardship gate only when `docs/` changed,
 - squash merge to `main`,
-- local cleanup.
+- local cleanup (branch delete + active context clear).
 
-## Dry run
+Note: targeted closure tests and doc stewardship are enforced by the
+`.claude/hooks/close-build-gate.sh` PreToolUse hook on `git merge`/`git push`.
+They no longer need to be invoked manually.
+
+## Dry run (gates only)
 
 ```bash
-python3 scripts/workflow/closure_pack.py --dry-run
+python3 scripts/workflow/closure_gate.py
 ```
 
-Use for preflight verification without merge/cleanup.
+Use to check gate status without merge/cleanup. Returns JSON verdict.
 
 ## No cleanup mode
 
