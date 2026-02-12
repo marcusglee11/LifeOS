@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from runtime.orchestration.openclaw_bridge import (
@@ -7,6 +10,9 @@ from runtime.orchestration.openclaw_bridge import (
     OpenClawBridgeError,
     map_openclaw_job_to_spine_invocation,
     map_spine_artifacts_to_openclaw_result,
+    resolve_openclaw_job_evidence_dir,
+    verify_openclaw_evidence_contract,
+    write_openclaw_evidence_contract,
 )
 
 
@@ -67,6 +73,8 @@ def test_map_spine_terminal_to_openclaw_result_success() -> None:
     assert result["job_id"] == "JOB-001"
     assert result["state"] == "terminal"
     assert result["terminal_packet_ref"] == "artifacts/terminal/TP_run-123.yaml"
+    assert result["packet_refs"] == []
+    assert result["ledger_refs"] == []
 
 
 def test_map_spine_checkpoint_to_openclaw_result_success() -> None:
@@ -95,3 +103,43 @@ def test_map_spine_result_rejects_ambiguous_inputs() -> None:
             checkpoint_packet={"run_id": "r", "timestamp": "t", "trigger": "x", "checkpoint_id": "cp"},
         )
 
+
+def test_resolve_openclaw_job_evidence_dir_is_deterministic(tmp_path: Path) -> None:
+    expected = tmp_path / "artifacts" / "evidence" / "openclaw" / "jobs" / "JOB-009"
+    assert resolve_openclaw_job_evidence_dir(tmp_path, "JOB-009") == expected
+
+
+def test_write_and_verify_openclaw_evidence_contract(tmp_path: Path) -> None:
+    written = write_openclaw_evidence_contract(
+        repo_root=tmp_path,
+        job_id="JOB-777",
+        packet_refs=["artifacts/terminal/TP_run-777.yaml"],
+        ledger_refs=["artifacts/loop_state/attempt_ledger.jsonl"],
+    )
+
+    evidence_dir = Path(written["evidence_dir"])
+    assert evidence_dir == tmp_path / "artifacts" / "evidence" / "openclaw" / "jobs" / "JOB-777"
+
+    packet_refs_payload = json.loads((evidence_dir / "packet_refs.json").read_text(encoding="utf-8"))
+    ledger_refs_payload = json.loads((evidence_dir / "ledger_refs.json").read_text(encoding="utf-8"))
+    assert packet_refs_payload["packet_refs"] == ["artifacts/terminal/TP_run-777.yaml"]
+    assert ledger_refs_payload["ledger_refs"] == ["artifacts/loop_state/attempt_ledger.jsonl"]
+
+    ok, errors = verify_openclaw_evidence_contract(evidence_dir)
+    assert ok is True
+    assert errors == []
+
+
+def test_verify_openclaw_evidence_contract_fails_when_required_file_missing(tmp_path: Path) -> None:
+    written = write_openclaw_evidence_contract(
+        repo_root=tmp_path,
+        job_id="JOB-778",
+        packet_refs=["artifacts/terminal/TP_run-778.yaml"],
+        ledger_refs=["artifacts/loop_state/attempt_ledger.jsonl"],
+    )
+
+    evidence_dir = Path(written["evidence_dir"])
+    (evidence_dir / "packet_refs.json").unlink()
+    ok, errors = verify_openclaw_evidence_contract(evidence_dir)
+    assert ok is False
+    assert any("packet_refs.json" in error for error in errors)
