@@ -9,7 +9,7 @@ REPO_ROOT="${CWD:-${CLAUDE_PROJECT_DIR:-.}}"
 PORCELAIN=$(git -C "$REPO_ROOT" status --porcelain=v1 2>/dev/null || true)
 
 if [ -z "$PORCELAIN" ]; then
-    echo '{"decision":"continue"}'
+    echo '{"continue":true}'
     exit 0
 fi
 
@@ -17,8 +17,8 @@ DIRTY_COUNT=$(echo "$PORCELAIN" | wc -l | tr -d ' ')
 
 cat <<EOF
 {
-  "decision": "continue",
-  "reason": "REPO DIRTY: $DIRTY_COUNT uncommitted file(s). Run 'git status' to review. Commit, stash, or explain in your handoff."
+  "continue": true,
+  "systemMessage": "REPO DIRTY: $DIRTY_COUNT uncommitted file(s). Run 'git status' to review. Commit, stash, or explain in your handoff."
 }
 EOF
 exit 0
