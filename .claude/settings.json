@@ -1,4 +1,31 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)",
+      "Bash(git reset:*)",
+      "Bash(git clone:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(zip:*)",
+      "Bash(sync)",
+      "Bash(tee:*)",
+      "Bash(python -m scripts.*:*)",
+      "Bash(scripts/workflow/*:*)",
+      "WebFetch(domain:docs.claude.com)",
+      "WebFetch(domain:code.claude.com)",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:claudefa.st)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(rm -rf:*)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -9,6 +36,18 @@
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/close-build-gate.sh",
             "timeout": 300,
             "statusMessage": "Running close-build enforcement gates..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/repo-cleanliness-check.sh",
+            "timeout": 10,
+            "statusMessage": "Checking repo cleanliness..."
           }
         ]
       }

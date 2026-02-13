@@ -5,10 +5,21 @@ STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
 RUNTIME_DIR="$STATE_DIR/runtime"
 PIDFILE="$RUNTIME_DIR/openclaw-gateway.pid"
 
-if ! mkdir -p "$RUNTIME_DIR" 2>/dev/null; then
+activate_fallback_runtime_dir() {
   RUNTIME_DIR="/tmp/openclaw-runtime"
   mkdir -p "$RUNTIME_DIR"
   PIDFILE="$RUNTIME_DIR/openclaw-gateway.pid"
+}
+
+if ! mkdir -p "$RUNTIME_DIR" 2>/dev/null; then
+  activate_fallback_runtime_dir
+else
+  probe="$(mktemp "$RUNTIME_DIR/.write-probe.XXXXXX" 2>/dev/null || true)"
+  if [ -z "$probe" ]; then
+    activate_fallback_runtime_dir
+  else
+    rm -f "$probe"
+  fi
 fi
 
 stopped=false

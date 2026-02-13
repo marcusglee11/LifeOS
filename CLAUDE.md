@@ -104,6 +104,12 @@ python -m doc_steward.cli dap-validate .
 4. **Tests matter** - Run tests before and after. If tests break, fix before moving on
 5. **Match code style** - Follow conventions in the existing codebase
 
+### TODO & Documentation Discipline
+
+1. **No bare TODOs** - Never leave `TODO`, `FIXME`, `HACK`, or `XXX` in code. Use `LIFEOS_TODO[P0|P1|P2]` format
+2. **Doc updates with code changes** - When modifying `runtime/` behavior, check if `docs/02_protocols/` needs updating. When adding/removing docs, update `docs/INDEX.md`
+3. **Clean repo on exit** - Before finishing, run `git status`. Commit, stash, or explain any dirty files in your handoff summary
+
 ### TDD When Practical
 
 - Write test first when adding new functionality

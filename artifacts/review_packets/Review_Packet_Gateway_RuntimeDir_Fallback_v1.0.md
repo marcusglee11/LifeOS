@@ -1,3 +1,26 @@
+# Review Packet — Gateway RuntimeDir Fallback v1.0
+
+- Mission: Diagnose startup failures and harden gateway scripts against unwritable `~/.openclaw/runtime`.
+- Branch: main
+- HEAD (pre-commit): 5c602f0 feat: Merge build/ux-coo-single-command (squashed)
+
+## Findings
+- `coo start` failed with permission denied writing `openclaw-gateway.pid` and `openclaw-gateway.nohup.log`.
+- Root cause: scripts only checked directory creation, not writeability of existing runtime directory.
+- Secondary environment issue (`uv_interface_addresses ...`) is separate and host/sandbox-related.
+
+## Changes
+- Updated `runtime/tools/openclaw_gateway_ensure.sh` to verify runtime dir writeability and auto-fallback to `/tmp/openclaw-runtime`.
+- Updated `runtime/tools/openclaw_gateway_stop_local.sh` with the same writeability/fallback behavior.
+
+## Validation
+- `bash -n runtime/tools/openclaw_gateway_ensure.sh runtime/tools/openclaw_gateway_stop_local.sh` passed.
+- `coo start` no longer fails on permission denied in this environment; remaining failure is the known uv interface confinement signature.
+
+## Appendix A — Flattened Code
+
+### runtime/tools/openclaw_gateway_ensure.sh
+```text
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -218,3 +241,58 @@ done
 write_receipt "$started_via" "false"
 echo "ERROR: gateway still unreachable after startup attempt (started_via=$started_via port=$PORT)." >&2
 exit 1
+
+```
+
+### runtime/tools/openclaw_gateway_stop_local.sh
+```text
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
+RUNTIME_DIR="$STATE_DIR/runtime"
+PIDFILE="$RUNTIME_DIR/openclaw-gateway.pid"
+
+activate_fallback_runtime_dir() {
+  RUNTIME_DIR="/tmp/openclaw-runtime"
+  mkdir -p "$RUNTIME_DIR"
+  PIDFILE="$RUNTIME_DIR/openclaw-gateway.pid"
+}
+
+if ! mkdir -p "$RUNTIME_DIR" 2>/dev/null; then
+  activate_fallback_runtime_dir
+else
+  probe="$(mktemp "$RUNTIME_DIR/.write-probe.XXXXXX" 2>/dev/null || true)"
+  if [ -z "$probe" ]; then
+    activate_fallback_runtime_dir
+  else
+    rm -f "$probe"
+  fi
+fi
+
+stopped=false
+
+if command -v tmux >/dev/null 2>&1; then
+  if tmux has-session -t openclaw-gateway >/dev/null 2>&1; then
+    tmux kill-session -t openclaw-gateway >/dev/null 2>&1 || true
+    stopped=true
+  fi
+fi
+
+if [ -f "$PIDFILE" ]; then
+  pid="$(sed -n '1p' "$PIDFILE" | tr -d '[:space:]')"
+  if [ -n "$pid" ] && kill -0 "$pid" >/dev/null 2>&1; then
+    kill "$pid" >/dev/null 2>&1 || true
+    stopped=true
+  fi
+  rm -f "$PIDFILE"
+fi
+
+if [ "$stopped" = true ]; then
+  echo "GATEWAY_STOP=local_process_stopped"
+else
+  echo "GATEWAY_STOP=no_local_gateway_process"
+fi
+
+```
+
