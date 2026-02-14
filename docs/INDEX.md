@@ -38,24 +38,27 @@ LifeOS Constitution v2.0 (Supreme)
 
 ## 00_admin — Project Admin (Thin Control Plane)
 
+### Canonical Files
+
 | Document | Purpose |
 |----------|---------|
-| [LIFEOS_STATE.md](./11_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions |
-| [BACKLOG.md](./11_admin/BACKLOG.md) | Actionable backlog (Now/Next/Later) — target ≤40 items |
-| [DECISIONS.md](./11_admin/DECISIONS.md) | Append-only decision log (low volume) |
+| [LIFEOS_STATE.md](./11_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions (auto-updated) |
+| [BACKLOG.md](./11_admin/BACKLOG.md) | **Canonical backlog** — Actionable backlog (Now/Next/Later), target ≤40 items (auto-updated) |
+| [DECISIONS.md](./11_admin/DECISIONS.md) | **Append-only** — Decision log (low volume) |
 | [INBOX.md](./11_admin/INBOX.md) | Raw capture scratchpad for triage |
-| [ARCHITECTURE_DIAGRAMS.md](./11_admin/ARCHITECTURE_DIAGRAMS.md) | **Information Only** — System architecture diagrams |
-| [PROJECT_ADMIN_SUMMARY.md](./11_admin/PROJECT_ADMIN_SUMMARY.md) | **Information Only** — High-level project administrative summary |
-| [PROJECT_DEPENDENCY_GRAPH.md](./11_admin/PROJECT_DEPENDENCY_GRAPH.md) | **Information Only** — Mermaid dependency graph of tasks |
-| [PROJECT_GANTT_CHART.md](./11_admin/PROJECT_GANTT_CHART.md) | **Information Only** — Project timeline and Gantt chart |
-| [PROJECT_MASTER_TASK_LIST.md](./11_admin/PROJECT_MASTER_TASK_LIST.md) | **Information Only** — Master list of all tracked project tasks |
-| [PROJECT_STATUS_v1.0.md](./11_admin/PROJECT_STATUS_v1.0.md) | **Information Only** — Snapshot of project status (legacy) |
 | [Plan_Supersession_Register.md](./11_admin/Plan_Supersession_Register.md) | **Control** — Canonical register of superseded and active plans |
+| [LifeOS_Master_Execution_Plan_v1.1.md](./11_admin/LifeOS_Master_Execution_Plan_v1.1.md) | **Canonical plan** — Current master execution plan (per supersession register) |
 | [Doc_Freshness_Gate_Spec_v1.0.md](./11_admin/Doc_Freshness_Gate_Spec_v1.0.md) | **Control** — Runtime-backed doc freshness and contradiction gate spec |
-| [Autonomy Project Baseline.md](./11_admin/Autonomy%20Project%20Baseline.md) | **Phase 4** — Minimal doc set + Maintenance Protocol |
-| [LifeOS Autonomous Build Loop System - Status Report 20260202.md](./11_admin/LifeOS%20Autonomous%20Build%20Loop%20System%20-%20Status%20Report%2020260202.md) | **Condition** — Status report on Phase 4 autonomy readiness |
-| [Roadmap Fully Autonomous Build Loop20260202.md](./11_admin/Roadmap%20Fully%20Autonomous%20Build%20Loop20260202.md) | **Phase 4 Roadmap** — Re-ordered to match verified reality |
-| [lifeos-master-operating-manual-v2.1.md](./11_admin/lifeos-master-operating-manual-v2.1.md) | **Strategic Plan** — Master Operating Manual v2.1 |
+| [AUTONOMY_STATUS.md](./11_admin/AUTONOMY_STATUS.md) | **Derived view** — Autonomy capability matrix (derived from canonical sources) |
+| [WIP_LOG.md](./11_admin/WIP_LOG.md) | **WIP tracker** — Work-in-progress log with controlled status enum |
+| [lifeos-master-operating-manual-v2.1.md](./11_admin/lifeos-master-operating-manual-v2.1.md) | **Strategic context** — Master Operating Manual v2.1 |
+
+### Subdirectories
+
+| Directory | Purpose | Naming Rule |
+|-----------|---------|-------------|
+| `build_summaries/` | Timestamped build evidence summaries | `*_Build_Summary_YYYY-MM-DD.md` |
+| `archive/` | Historical documents (reference only; immutable) | Archive subdirs: `YYYY-MM-DD_<topic>/` |
 
 ---
 
@@ -249,7 +252,16 @@ Archived documents are in `99_archive/`. Key locations:
 | `04_project_builder/` | Project builder specs |
 | `05_agents/` | Agent architecture |
 | `06_user_surface/` | User surface specs |
-| `08_manuals/` | Manuals |
+| `08_manuals/` | Operational manuals (COO Doc Management, Governance Runtime) |
 | `09_prompts/v1.0/` | Legacy v1.0 prompt templates |
 | `09_prompts/v1.2/` | **Current** — Council role prompts (Chair, Co-Chair, 10 reviewer seats) |
 | `10_meta/` | Meta documents, reviews, tasks |
+
+---
+
+## 08_manuals — Operational Manuals
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Doc_Management_Manual_v1.0.md](./08_manuals/COO_Doc_Management_Manual_v1.0.md) | **Executable runbook** — Doc stewardship operations, validators, governance boundaries |
+| [Governance_Runtime_Manual_v1.0.md](./08_manuals/Governance_Runtime_Manual_v1.0.md) | Governance runtime operations |

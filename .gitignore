@@ -135,3 +135,6 @@ artifacts/validation_runs/
 /SOUL.md
 /TOOLS.md
 /USER.md
+
+# Claude Code memory directory (session-specific)
+COO/

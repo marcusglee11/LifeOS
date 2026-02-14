@@ -241,6 +241,49 @@ def check_doc_stewardship(
             "auto_fixed": False,
         }
 
+    errors = []
+
+    # Check if docs/11_admin/ files changed -> run admin validators
+    admin_changed = any(
+        path == "docs/11_admin" or path.startswith("docs/11_admin/")
+        for path in changed_files
+    )
+
+    if admin_changed:
+        # Admin structure check (always blocking)
+        admin_struct_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "admin-structure-check", str(repo_root)],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if admin_struct_proc.returncode != 0:
+            errors.append(f"Admin structure check failed:\n{admin_struct_proc.stdout}")
+
+        # Admin archive link ban check (always blocking)
+        admin_archive_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "admin-archive-link-ban-check", str(repo_root)],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if admin_archive_proc.returncode != 0:
+            errors.append(f"Admin archive link ban check failed:\n{admin_archive_proc.stdout}")
+
+        # Freshness check (mode-gated: off/warn/block)
+        freshness_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "freshness-check", str(repo_root)],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if freshness_proc.returncode != 0:
+            errors.append(f"Freshness check failed:\n{freshness_proc.stdout}")
+
+    # Run existing canonical doc stewardship gate (unchanged)
     cmd = [sys.executable, "scripts/claude_doc_stewardship_gate.py"]
     if auto_fix:
         cmd.append("--auto-fix")
@@ -263,7 +306,6 @@ def check_doc_stewardship(
         if isinstance(loaded, dict):
             payload = loaded
 
-    errors = []
     for item in payload.get("errors", []):
         text = str(item).strip()
         if text:
@@ -272,7 +314,7 @@ def check_doc_stewardship(
         stderr = (proc.stderr or "").strip()
         errors.append(stderr or "doc stewardship gate returned non-zero without JSON output")
 
-    passed = bool(payload.get("passed")) and proc.returncode == 0
+    passed = (not errors) and bool(payload.get("passed")) and proc.returncode == 0
     auto_fixed = bool(payload.get("auto_fix_applied") or payload.get("auto_fix_success"))
 
     return {
