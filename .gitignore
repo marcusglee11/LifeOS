@@ -128,3 +128,10 @@ artifacts/validation_runs/
 /dist/
 /.venv*/
 /venv*/
+
+# Agent workspace metadata (OpenClaw/COO runtime)
+/HEARTBEAT.md
+/IDENTITY.md
+/SOUL.md
+/TOOLS.md
+/USER.md

@@ -4277,11 +4277,9 @@ python -m runtime.tools.coo_land_policy clean-check --repo .
 
 # Emergency Declaration Protocol v1.0
 
-<!-- LIFEOS_TODO[P1][area: docs/02_protocols/Emergency_Declaration_Protocol_v1.0.md][exit: status change to ACTIVE + DAP validate] Finalize Emergency_Declaration_Protocol v1.0: Remove WIP/Provisional markers -->
-
-**Status**: WIP (Non-Canonical)
+**Status**: ACTIVE (Canonical)
 **Authority**: LifeOS Constitution v2.0 → Council Protocol v1.2
-**Effective**: 2026-01-07 (Provisional)
+**Effective**: 2026-01-07
 
 ---
 

@@ -11,20 +11,20 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Phase 0 execution — canonical plan lock, deprecated path guard, E2E Spine validation
-**Active WIP:** mainline execution hardening (test debt + doc freshness skeleton + status artifact generator), OpenClaw bridge readiness
-**Last Updated:** 2026-02-14 (rev4)
+**Current Focus:** W5-T01 E2E Spine proof COMPLETE — W7 stabilization tasks next (ledger hash-chain, doc freshness CI, protocol finalization)
+**Active WIP:** Model configuration hardening, remaining protocol doc finalization
+**Last Updated:** 2026-02-14 (rev5)
 
 ---
 
 ## 🟥 IMMEDIATE NEXT STEP (The "One Thing")
 
-**Run one real E2E Spine task (P0 verification):**
+**W7 Stabilization Batch (post-E2E proof):**
 
-1. OpenClaw install + acceptance: DONE (verified 2026-02-11)
-2. LoopSpine run/resume path: IMPLEMENTED and test-backed
-3. Remaining immediate work: deprecated-path guard + budget stub wiring + targeted recursive test debt
-4. **One thing now:** Execute one real task through `lifeos spine run` end-to-end with evidence
+1. ~~E2E Loop Test: Real task through full pipeline~~ ✓ **COMPLETE** (2026-02-14, run_20260214_053357)
+2. **Next immediate:** W7-T01 Ledger hash-chain hardening — add `prev_hash` field, tamper detection, verification tests
+3. **Then:** W7-T02 Doc freshness CI enforcement — make contradiction detection blocking
+4. **Then:** W7-T03 Pending protocol doc finalization — 5 remaining P1 docs (Test_Protocol, Intent_Routing, Tier_Definition, ARTEFACT_INDEX, QUICKSTART)
 
 **Canonical Plan Authority:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 
@@ -63,14 +63,15 @@
 
 ## ⚠️ System Blockers (Top 3)
 
-1. **E2E Loop Test: Real task through full pipeline** (P0) — validate select→design→build→review→steward in one autonomous run.
+1. **Model reliability for autonomous runs** (P1) — Free OpenCode models (minimax-m2.5, kimi-k2.5, gpt-5-nano) are slow/unreliable; may need paid tier for production autonomy.
 2. **OpenCode doc-steward delegate dependency gap** (P1) — `scripts/delegate_to_doc_steward.py` blocked by missing `PyYAML` in current env.
-3. **Token accounting upstream gap** (P1) — real usage parsing must land before trusted budget gating.
+3. **Auto-commit integration gap** (P1) — Spine E2E run completed work but auto-commit failed; manual commit required. Needs investigation (see E2E build summary).
 
 ---
 
 ## 🟩 Recent Wins
 
+- **2026-02-14:** **E2E Spine Proof COMPLETE (W5-T01)** — First successful autonomous build loop execution: `run_20260214_053357` finalized Emergency_Declaration_Protocol v1.0 through full 6-phase chain (hydrate→policy→design→build→review→steward). Evidence: `artifacts/terminal/TP_run_20260214_053357.yaml`, commit `195bd4d`. Discovered/fixed 2 blockers: obsolete model names (`glm-4.7-free`, `minimax-m2.1-free`) and insufficient timeout (120s→300s). **Core spine infrastructure validated.**
 - **2026-02-14:** Auto State Backlog Update — feat: automatic STATE/BACKLOG updates during build closure — 1/1 targeted test command(s) passed. (merge commit b7a879e)
 - **2026-02-12:** Canonical plan v1.1 refreshed with granular task IDs and supersession lock; runtime status generator now emits both `artifacts/status/runtime_status.json` and `artifacts/packets/status/checkpoint_report_<YYYYMMDD>.json`.
 - **2026-02-12:** Doc stewardship gate executed successfully for all modified docs (`python3 scripts/claude_doc_stewardship_gate.py` PASS).

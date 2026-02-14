@@ -242,7 +242,7 @@ def check_pytest_scope(target_path: str) -> Tuple[bool, str]:
     Blocked: Everything else
 
     Hardening (P0):
-    - Rejects absolute paths (POSIX /, Windows C:\, UNC \\)
+    - Rejects absolute paths (POSIX /, Windows C:\\, UNC \\\\)
     - Rejects path traversal (.. or . segments)
     - Rejects confusing siblings (runtime/tests_evil)
 

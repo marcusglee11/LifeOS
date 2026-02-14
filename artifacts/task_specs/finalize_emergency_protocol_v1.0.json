@@ -1,0 +1,17 @@
+{
+  "task": "Finalize Emergency_Declaration_Protocol v1.0",
+  "description": "Remove WIP markers and change status to ACTIVE for Emergency_Declaration_Protocol v1.0",
+  "context_refs": [
+    "docs/02_protocols/Emergency_Declaration_Protocol_v1.0.md",
+    "docs/11_admin/BACKLOG.md"
+  ],
+  "expected_changes": [
+    "Remove LIFEOS_TODO[P1] marker from line 3",
+    "Change status from 'WIP (Non-Canonical)' to 'ACTIVE' on line 5"
+  ],
+  "success_criteria": [
+    "No WIP markers remain in the document",
+    "Status field shows ACTIVE",
+    "DAP validation passes"
+  ]
+}
