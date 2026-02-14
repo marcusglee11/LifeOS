@@ -1,5 +1,8 @@
 # LifeOS Master Execution Plan v1.1 (Superseding, Canonical)
 
+**Status:** IN PROGRESS — W0 complete, W5-T01 complete, W7 stabilization next
+**Last Updated:** 2026-02-14 (rev2)
+
 ## 0. Authority and Scope
 
 This plan is the canonical execution authority for near-term LifeOS runtime work and supersedes:
@@ -37,9 +40,34 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 2. Builder agents:
 - Repo code changes, tests, docs stewardship, packet artifacts, commit evidence.
 
-## 4. Execution Work Packages
+## 4. Execution Status Summary
 
-## W0: Truth Alignment and Path Guarding (Immediate, This Week)
+| Package | Task | Status | Date | Notes |
+|---------|------|--------|------|-------|
+| W0 | T01 | ✅ DONE | 2026-02-12 | State/backlog reconciled |
+| W0 | T02 | ✅ DONE | 2026-02-12 | Plan authority registered |
+| W0 | T03 | ✅ DONE | 2026-02-12 | Runtime status artifacts exist |
+| W0 | T04 | ✅ DONE | 2026-02-13 | Deprecated path guarded |
+| W0 | T05 | ✅ DONE | 2026-02-14 | Test debt stabilized (test_e2e_smoke passes, test_steward_runner skipped on WSL) |
+| W0 | T06 | ✅ DONE | 2026-02-14 | Doc stewardship gate integrated |
+| W4 | T01 | ✅ DONE | 2026-02-13 | openclaw_bridge.py schema mapping |
+| W4 | T02 | ✅ DONE | 2026-02-13 | Evidence routing integrated |
+| W4 | T03 | ⏸️ OPEN | — | Worktree dispatch not yet implemented |
+| W4 | T04 | ⏸️ OPEN | — | Validator lifecycle hooks not yet implemented |
+| W5 | T01 | ✅ DONE | 2026-02-14 | E2E proof run_20260214_053357 complete |
+| W5 | T02 | ⏸️ OPEN | — | Checkpoint/resume needs E2E environment |
+| W5 | T03 | ✅ DONE | 2026-02-13 | Budget controller has real enforcement (W5-T04 landed) |
+| W5 | T04 | ✅ DONE | 2026-02-13 | Token plumbing fail-closed, integrated |
+| W6 | T00-T02 | ⏸️ DEFERRED | — | Codemoot spike deferred pending W7 stabilization |
+| W7 | T01 | ⏸️ NEXT | — | Ledger hash-chain hardening |
+| W7 | T02 | ⏸️ NEXT | — | Doc freshness CI enforcement |
+| W7 | T03 | ⏸️ NEXT | — | Pending protocol finalization (5 docs remain) |
+
+**Current Focus:** W7 Stabilization (hash-chain, doc CI, protocol finalization)
+
+## 5. Execution Work Packages
+
+## W0: Truth Alignment and Path Guarding (Immediate, This Week) — ✅ COMPLETE
 
 ### W0-T01: Canonical state/backlog reconciliation
 
@@ -277,7 +305,7 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 - DoD:
 - Pending protocol docs are no longer partial drafts.
 
-## 5. Test and Evidence Policy
+## 6. Test and Evidence Policy
 
 1. Minimum checks per work package:
 - Targeted tests for modified surfaces.
@@ -289,7 +317,7 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 3. No silent degradation:
 - Any blocked test/tool must be recorded as blocker in state/status docs.
 
-## 6. Public Interfaces and Artifact Contracts
+## 7. Public Interfaces and Artifact Contracts
 
 ### Runtime status schema (v1.1 execution)
 
@@ -311,7 +339,7 @@ All status artifacts in this plan use:
 2. `artifacts/packets/status/checkpoint_report_<YYYYMMDD>.json`
 3. `artifacts/review_packets/Review_Packet_<Mission>_vX.Y.md`
 
-## 7. Key Files Reference
+## 8. Key Files Reference
 
 | File | Role |
 |---|---|

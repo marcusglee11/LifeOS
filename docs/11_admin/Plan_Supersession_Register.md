@@ -1,10 +1,10 @@
 # Plan Supersession Register
 
-**Last Updated:** 2026-02-12 (rev2)
+**Last Updated:** 2026-02-14 (rev3)
 
 ## Active Canonical Plan
 
-- `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md`
+- `docs/11_admin/LifeOS_Master_Execution_Plan_v1.1.md` (elevated from artifacts/ 2026-02-14)
 
 ## Superseded by Active Plan
 
