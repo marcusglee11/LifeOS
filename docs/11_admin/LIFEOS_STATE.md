@@ -13,7 +13,7 @@
 
 **Current Focus:** Phase 0 execution — canonical plan lock, deprecated path guard, E2E Spine validation
 **Active WIP:** mainline execution hardening (test debt + doc freshness skeleton + status artifact generator), OpenClaw bridge readiness
-**Last Updated:** 2026-02-12 (rev3)
+**Last Updated:** 2026-02-14 (rev4)
 
 ---
 
@@ -71,6 +71,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-14:** Auto State Backlog Update — feat: automatic STATE/BACKLOG updates during build closure — 1/1 targeted test command(s) passed. (merge commit b7a879e)
 - **2026-02-12:** Canonical plan v1.1 refreshed with granular task IDs and supersession lock; runtime status generator now emits both `artifacts/status/runtime_status.json` and `artifacts/packets/status/checkpoint_report_<YYYYMMDD>.json`.
 - **2026-02-12:** Doc stewardship gate executed successfully for all modified docs (`python3 scripts/claude_doc_stewardship_gate.py` PASS).
 - **2026-02-10:** EOL Clean Invariant Hardening — Root cause fixed (system `core.autocrlf=true` conflicted with `.gitattributes eol=lf`), 289-file mechanical renormalization, config-aware clean gate (`coo_land_policy clean-check`), acceptance closure validator (`coo_acceptance_policy`), EOL_Policy_v1.0 canonical doc, 37 new tests.
