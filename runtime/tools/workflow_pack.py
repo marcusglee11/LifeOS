@@ -283,6 +283,104 @@ def check_doc_stewardship(
         if freshness_proc.returncode != 0:
             errors.append(f"Freshness check failed:\n{freshness_proc.stdout}")
 
+    # Check if docs/02_protocols/ files changed -> run protocols validators
+    protocols_changed = any(
+        path == "docs/02_protocols" or path.startswith("docs/02_protocols/")
+        for path in changed_files
+    )
+
+    if protocols_changed:
+        # Protocols structure check (always blocking)
+        protocols_struct_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "protocols-structure-check", str(repo_root)],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if protocols_struct_proc.returncode != 0:
+            errors.append(f"Protocols structure check failed:\n{protocols_struct_proc.stdout}")
+
+        # Artefact index check (always blocking)
+        protocols_index_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "artefact-index-check", str(repo_root), "--directory", "docs/02_protocols"],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if protocols_index_proc.returncode != 0:
+            errors.append(f"Protocols artefact index check failed:\n{protocols_index_proc.stdout}")
+
+        # Global archive link ban check (always blocking)
+        protocols_link_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "docs-archive-link-ban-check", str(repo_root)],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if protocols_link_proc.returncode != 0:
+            errors.append(f"Archive link ban check failed:\n{protocols_link_proc.stdout}")
+
+    # Check if docs/03_runtime/ files changed -> run runtime validators
+    runtime_changed = any(
+        path == "docs/03_runtime" or path.startswith("docs/03_runtime/")
+        for path in changed_files
+    )
+
+    if runtime_changed:
+        # Runtime structure check (always blocking)
+        runtime_struct_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "runtime-structure-check", str(repo_root)],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if runtime_struct_proc.returncode != 0:
+            errors.append(f"Runtime structure check failed:\n{runtime_struct_proc.stdout}")
+
+        # Artefact index check (always blocking)
+        runtime_index_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "artefact-index-check", str(repo_root), "--directory", "docs/03_runtime"],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if runtime_index_proc.returncode != 0:
+            errors.append(f"Runtime artefact index check failed:\n{runtime_index_proc.stdout}")
+
+        # Global archive link ban check (always blocking)
+        runtime_link_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "docs-archive-link-ban-check", str(repo_root)],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if runtime_link_proc.returncode != 0:
+            errors.append(f"Archive link ban check failed:\n{runtime_link_proc.stdout}")
+
+    # Check if docs/99_archive/ files changed -> run archive validators
+    archive_changed = any(
+        path == "docs/99_archive" or path.startswith("docs/99_archive/")
+        for path in changed_files
+    )
+
+    if archive_changed:
+        # Archive structure check (always blocking)
+        archive_struct_proc = subprocess.run(
+            [sys.executable, "-m", "doc_steward.cli", "archive-structure-check", str(repo_root)],
+            check=False,
+            cwd=Path(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if archive_struct_proc.returncode != 0:
+            errors.append(f"Archive structure check failed:\n{archive_struct_proc.stdout}")
+
     # Run existing canonical doc stewardship gate (unchanged)
     cmd = [sys.executable, "scripts/claude_doc_stewardship_gate.py"]
     if auto_fix:
