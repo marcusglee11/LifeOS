@@ -31,6 +31,7 @@
 
 ## Next (valuable, but not imminent)
 
+- [ ] **Strategic refresh of lifeos-master-operating-manual to v2.2** — Scope: Strategic rewrite and alignment with current runtime state — Deliverable: Diff-based update reflecting consolidation, alignment, and automation changes — Owner: antigravity — Context: Out-of-band for admin consolidation initiative; deferred
 - [ ] **Configure GCP Employee instance** — Context: Hardened OpenClaw config, dedicated accounts, Tailscale
 - [ ] **Revenue Track: LinkedIn daily posts** — Context: COO drafts, CEO reviews. Seed: "What autonomous AI agents actually cost to run"
 - [ ] **Revenue Track: B5 Governance Guide** — Context: 19,500 lines of real code + 1,440 tests backing the content

@@ -19,6 +19,9 @@ from pathlib import Path
 from .dap_validator import check_dap_compliance
 from .index_checker import check_index
 from .link_checker import check_links
+from .admin_structure_validator import check_admin_structure
+from .admin_archive_link_ban_validator import check_admin_archive_link_ban
+from .freshness_validator import check_freshness, get_freshness_mode
 
 def cmd_opencode_validate(args: argparse.Namespace) -> int:
     """Run OpenCode artefact validation."""
@@ -73,7 +76,7 @@ def cmd_link_check(args: argparse.Namespace) -> int:
     """Run link validation."""
     doc_root = str(Path(args.doc_root).resolve())
     errors = check_links(doc_root)
-    
+
     if errors:
         print(f"[FAILED] Link check failed ({len(errors)} errors):\n")
         for err in errors:
@@ -82,6 +85,66 @@ def cmd_link_check(args: argparse.Namespace) -> int:
     else:
         print("[PASSED] Link check passed.")
         return 0
+
+
+def cmd_admin_structure_check(args: argparse.Namespace) -> int:
+    """Run admin structure validation."""
+    repo_root = str(Path(args.repo_root).resolve())
+    errors = check_admin_structure(repo_root)
+
+    if errors:
+        print(f"[FAILED] Admin structure check failed ({len(errors)} errors):\n")
+        for err in errors:
+            print(f"  * {err}")
+        return 1
+    else:
+        print("[PASSED] Admin structure check passed.")
+        return 0
+
+
+def cmd_admin_archive_link_ban_check(args: argparse.Namespace) -> int:
+    """Run admin archive link ban validation."""
+    repo_root = str(Path(args.repo_root).resolve())
+    errors = check_admin_archive_link_ban(repo_root)
+
+    if errors:
+        print(f"[FAILED] Admin archive link ban check failed ({len(errors)} errors):\n")
+        for err in errors:
+            print(f"  * {err}")
+        return 1
+    else:
+        print("[PASSED] Admin archive link ban check passed.")
+        return 0
+
+
+def cmd_freshness_check(args: argparse.Namespace) -> int:
+    """Run freshness check (mode-gated)."""
+    repo_root = str(Path(args.repo_root).resolve())
+    mode = get_freshness_mode()
+
+    warnings, errors = check_freshness(repo_root)
+
+    if mode == "off":
+        print("[SKIPPED] Freshness check disabled (LIFEOS_DOC_FRESHNESS_MODE=off)")
+        return 0
+
+    if warnings:
+        print(f"[WARNINGS] Freshness check warnings ({len(warnings)}):\n")
+        for warn in warnings:
+            print(f"  * {warn}")
+
+    if errors:
+        print(f"\n[FAILED] Freshness check failed ({len(errors)} errors):\n")
+        for err in errors:
+            print(f"  * {err}")
+        return 1
+
+    if not warnings and not errors:
+        print(f"[PASSED] Freshness check passed (mode: {mode}).")
+    elif mode == "warn":
+        print(f"\n[PASSED] Freshness check passed with warnings (mode: {mode}).")
+
+    return 0
 
 
 def main() -> int:
@@ -111,7 +174,22 @@ def main() -> int:
     p_oc = subparsers.add_parser("opencode-validate", help="Validate OpenCode artefacts")
     p_oc.add_argument("doc_root", help="Repo root directory")
     p_oc.set_defaults(func=cmd_opencode_validate)
-    
+
+    # admin-structure-check
+    p_admin_struct = subparsers.add_parser("admin-structure-check", help="Validate docs/11_admin/ structure")
+    p_admin_struct.add_argument("repo_root", help="Repository root directory")
+    p_admin_struct.set_defaults(func=cmd_admin_structure_check)
+
+    # admin-archive-link-ban-check
+    p_admin_archive = subparsers.add_parser("admin-archive-link-ban-check", help="Check for links to archived docs")
+    p_admin_archive.add_argument("repo_root", help="Repository root directory")
+    p_admin_archive.set_defaults(func=cmd_admin_archive_link_ban_check)
+
+    # freshness-check
+    p_freshness = subparsers.add_parser("freshness-check", help="Check doc freshness (mode-gated)")
+    p_freshness.add_argument("repo_root", help="Repository root directory")
+    p_freshness.set_defaults(func=cmd_freshness_check)
+
     args = parser.parse_args()
     return args.func(args)
 
