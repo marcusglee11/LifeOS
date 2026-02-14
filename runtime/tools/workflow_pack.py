@@ -4,11 +4,24 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
+from datetime import datetime
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Iterable, Sequence
+
+from runtime.util.atomic_write import atomic_write_text
+
+# Import for BACKLOG parsing (will handle import error gracefully)
+try:
+    from recursive_kernel.backlog_parser import ItemStatus, mark_item_done, parse_backlog
+except ImportError:
+    parse_backlog = None
+    mark_item_done = None
+    ItemStatus = None
 
 
 ACTIVE_WORK_RELATIVE_PATH = Path(".context/active_work.yaml")
@@ -395,5 +408,375 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
     return {
         "branch_deleted": branch_deleted,
         "context_cleared": context_cleared,
+        "errors": errors,
+    }
+
+
+def _extract_win_details(
+    repo_root: Path,
+    branch: str,
+    merge_sha: str,
+    test_summary: str,
+) -> dict:
+    """
+    Extract meaningful Recent Win entry from branch and commits.
+
+    Args:
+        repo_root: Repository root path
+        branch: Branch name (e.g., "build/doc-refresh-and-test-debt")
+        merge_sha: Merge commit SHA
+        test_summary: Test summary string from test run
+
+    Returns:
+        dict with keys: title, details, merge_sha_short
+    """
+    # Extract title from branch name
+    # Remove prefixes like "build/", "fix/", "hotfix/", "spike/"
+    title_raw = re.sub(r"^(build|fix|hotfix|spike)/", "", branch)
+    # Replace hyphens/underscores with spaces and title-case
+    title_words = re.split(r"[-_]+", title_raw)
+    title = " ".join(word.capitalize() for word in title_words if word)
+
+    # Get commit messages
+    commits_output = ""
+    proc = subprocess.run(
+        ["git", "-C", str(repo_root), "log", "--format=%s", f"{branch}", "--not", "main"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode == 0:
+        commits_output = proc.stdout.strip()
+
+    # Build details from commits
+    if commits_output:
+        commit_lines = [line.strip() for line in commits_output.splitlines() if line.strip()]
+        # Truncate to first 5 if too many
+        if len(commit_lines) > 5:
+            details = "; ".join(commit_lines[:5]) + f" (and {len(commit_lines) - 5} more)"
+        else:
+            details = "; ".join(commit_lines)
+    else:
+        # Fallback to title if git log fails
+        details = title
+
+    # Include test metrics if non-trivial
+    if test_summary and "passed" in test_summary.lower():
+        details += f" — {test_summary}"
+
+    return {
+        "title": title,
+        "details": details,
+        "merge_sha_short": merge_sha[:7],
+    }
+
+
+def _update_lifeos_state(
+    state_path: Path,
+    title: str,
+    details: str,
+    merge_sha_short: str,
+    skip_on_error: bool = True,
+) -> dict:
+    """
+    Update LIFEOS_STATE.md with Recent Win and timestamp.
+
+    Args:
+        state_path: Path to LIFEOS_STATE.md
+        title: Win title (e.g., "Doc Refresh And Test Debt")
+        details: Win details (e.g., "Fixed bugs; Added tests")
+        merge_sha_short: Short merge SHA (7 chars)
+        skip_on_error: If True, return error dict instead of raising
+
+    Returns:
+        dict with keys: success (bool), errors (list)
+    """
+    errors = []
+
+    if not state_path.exists():
+        msg = f"STATE file not found: {state_path}"
+        if skip_on_error:
+            return {"success": False, "errors": [msg]}
+        raise FileNotFoundError(msg)
+
+    try:
+        content = state_path.read_text(encoding="utf-8")
+    except Exception as exc:
+        msg = f"Failed to read STATE file: {exc}"
+        if skip_on_error:
+            return {"success": False, "errors": [msg]}
+        raise
+
+    # Update Last Updated timestamp and revision
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    def increment_revision(match):
+        rev_str = match.group(1)
+        try:
+            rev_num = int(rev_str)
+            return f"**Last Updated:** {today} (rev{rev_num + 1})"
+        except ValueError:
+            # If can't parse, just use (updated)
+            return f"**Last Updated:** {today} (updated)"
+
+    # Try to update Last Updated line with revision increment
+    updated_content, num_subs = re.subn(
+        r"\*\*Last Updated:\*\* \d{4}-\d{2}-\d{2} \(rev(\d+)\)",
+        increment_revision,
+        content,
+    )
+
+    # If no match with revision, try without revision
+    if num_subs == 0:
+        updated_content = re.sub(
+            r"\*\*Last Updated:\*\* \d{4}-\d{2}-\d{2}",
+            f"**Last Updated:** {today}",
+            content,
+        )
+
+    # Find the Recent Wins section and add new entry
+    recent_wins_pattern = r"(## 🟩 Recent Wins\s*\n)"
+    new_win_entry = f"- **{today}:** {title} — {details} (merge commit {merge_sha_short})\n"
+
+    match = re.search(recent_wins_pattern, updated_content)
+    if match:
+        # Insert new win right after the section header
+        insert_pos = match.end()
+        updated_content = (
+            updated_content[:insert_pos]
+            + new_win_entry
+            + updated_content[insert_pos:]
+        )
+    else:
+        # Recent Wins section not found - skip win addition
+        msg = "Recent Wins section not found in STATE file"
+        errors.append(msg)
+
+    # Write atomically
+    try:
+        atomic_write_text(state_path, updated_content)
+    except Exception as exc:
+        msg = f"Failed to write STATE file: {exc}"
+        if skip_on_error:
+            return {"success": False, "errors": [msg]}
+        raise
+
+    return {"success": True, "errors": errors}
+
+
+def _match_backlog_item(
+    branch: str,
+    commit_messages: list[str],
+    backlog_items: list,
+    threshold: float = 0.7,
+):
+    """
+    Match branch/commits to BACKLOG items using fuzzy similarity.
+
+    Args:
+        branch: Branch name (e.g., "build/doc-refresh-and-test-debt")
+        commit_messages: List of commit message subjects
+        backlog_items: List of BacklogItem objects
+        threshold: Minimum similarity score (0.0-1.0)
+
+    Returns:
+        Best matching BacklogItem or None if no match above threshold
+    """
+    if not backlog_items:
+        return None
+
+    # Extract keywords from branch and commits
+    keywords = []
+    # Remove branch prefix and split on hyphens/underscores
+    branch_clean = re.sub(r"^(build|fix|hotfix|spike)/", "", branch)
+    keywords.extend(re.split(r"[-_/]+", branch_clean.lower()))
+
+    # Add words from commit messages
+    for msg in commit_messages:
+        keywords.extend(msg.lower().split())
+
+    # Combine into a search string
+    search_text = " ".join(keywords)
+
+    # Score each BACKLOG item
+    best_match = None
+    best_score = 0.0
+
+    for item in backlog_items:
+        item_text = item.title.lower()
+        # Use SequenceMatcher for fuzzy matching
+        score = SequenceMatcher(None, search_text, item_text).ratio()
+
+        # Also check for substring matches (boost score)
+        for keyword in keywords:
+            if len(keyword) > 3 and keyword in item_text:
+                score += 0.15  # Boost for keyword match
+
+        if score > best_score:
+            best_score = score
+            best_match = item
+
+    if best_score >= threshold:
+        return best_match
+
+    return None
+
+
+def _update_backlog_state(
+    backlog_path: Path,
+    branch: str,
+    commit_messages: list[str],
+    skip_on_error: bool = True,
+) -> dict:
+    """
+    Update BACKLOG.md timestamp and mark matching items as done.
+
+    Args:
+        backlog_path: Path to BACKLOG.md
+        branch: Branch name
+        commit_messages: List of commit message subjects
+        skip_on_error: If True, return error dict instead of raising
+
+    Returns:
+        dict with keys: success (bool), items_marked (int), errors (list)
+    """
+    errors = []
+    items_marked = 0
+
+    if not backlog_path.exists():
+        msg = f"BACKLOG file not found: {backlog_path}"
+        if skip_on_error:
+            return {"success": False, "items_marked": 0, "errors": [msg]}
+        raise FileNotFoundError(msg)
+
+    # Update timestamp
+    today = datetime.now().strftime("%Y-%m-%d")
+    try:
+        content = backlog_path.read_text(encoding="utf-8")
+        updated_content = re.sub(
+            r"\*\*Last Updated:\*\* \d{4}-\d{2}-\d{2}",
+            f"**Last Updated:** {today}",
+            content,
+        )
+        atomic_write_text(backlog_path, updated_content)
+    except Exception as exc:
+        msg = f"Failed to update BACKLOG timestamp: {exc}"
+        if skip_on_error:
+            return {"success": False, "items_marked": 0, "errors": [msg]}
+        raise
+
+    # Try to find and mark matching item
+    if parse_backlog is None or mark_item_done is None:
+        errors.append("backlog_parser not available (import failed)")
+        return {"success": True, "items_marked": 0, "errors": errors}
+
+    try:
+        items = parse_backlog(backlog_path)
+        # Filter to TODO items only
+        todo_items = [item for item in items if item.status == ItemStatus.TODO]
+
+        if todo_items:
+            matched_item = _match_backlog_item(
+                branch=branch,
+                commit_messages=commit_messages,
+                backlog_items=todo_items,
+                threshold=0.3,  # Lower threshold to catch more matches
+            )
+
+            if matched_item:
+                mark_item_done(backlog_path, matched_item)
+                items_marked = 1
+        else:
+            errors.append("No TODO items found in BACKLOG")
+
+    except Exception as exc:
+        msg = f"Failed to mark BACKLOG item: {exc}"
+        if skip_on_error:
+            errors.append(msg)
+        else:
+            raise
+
+    return {"success": True, "items_marked": items_marked, "errors": errors}
+
+
+def update_state_and_backlog(
+    repo_root: Path,
+    branch: str,
+    merge_sha: str,
+    test_summary: str,
+    skip_on_error: bool = True,
+) -> dict:
+    """
+    Orchestrate STATE and BACKLOG updates after successful merge.
+
+    Args:
+        repo_root: Repository root path
+        branch: Branch name (e.g., "build/test-debt-stabilization")
+        merge_sha: Merge commit SHA
+        test_summary: Test summary string from test run
+        skip_on_error: If True, continue on errors (warn, don't block)
+
+    Returns:
+        dict with keys:
+            - state_updated (bool): STATE file was updated
+            - backlog_updated (bool): BACKLOG file was updated
+            - items_marked (int): Number of BACKLOG items marked done
+            - errors (list): Any errors/warnings encountered
+    """
+    repo_root = Path(repo_root)
+    errors = []
+    state_updated = False
+    backlog_updated = False
+    items_marked = 0
+
+    # Extract win details
+    win_details = _extract_win_details(
+        repo_root=repo_root,
+        branch=branch,
+        merge_sha=merge_sha,
+        test_summary=test_summary,
+    )
+
+    # Get commit messages for BACKLOG matching
+    commit_messages = []
+    proc = subprocess.run(
+        ["git", "-C", str(repo_root), "log", "--format=%s", f"{branch}", "--not", "main"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode == 0:
+        commit_messages = [
+            line.strip() for line in proc.stdout.splitlines() if line.strip()
+        ]
+
+    # Update STATE
+    state_path = repo_root / "docs" / "11_admin" / "LIFEOS_STATE.md"
+    state_result = _update_lifeos_state(
+        state_path=state_path,
+        title=win_details["title"],
+        details=win_details["details"],
+        merge_sha_short=win_details["merge_sha_short"],
+        skip_on_error=skip_on_error,
+    )
+    state_updated = state_result["success"]
+    errors.extend(state_result["errors"])
+
+    # Update BACKLOG
+    backlog_path = repo_root / "docs" / "11_admin" / "BACKLOG.md"
+    backlog_result = _update_backlog_state(
+        backlog_path=backlog_path,
+        branch=branch,
+        commit_messages=commit_messages,
+        skip_on_error=skip_on_error,
+    )
+    backlog_updated = backlog_result["success"]
+    items_marked = backlog_result.get("items_marked", 0)
+    errors.extend(backlog_result["errors"])
+
+    return {
+        "state_updated": state_updated,
+        "backlog_updated": backlog_updated,
+        "items_marked": items_marked,
         "errors": errors,
     }

@@ -19,6 +19,7 @@ from runtime.tools.workflow_pack import (  # noqa: E402
     discover_changed_files,
     merge_to_main,
     run_closure_tests,
+    update_state_and_backlog,
 )
 
 
@@ -138,6 +139,11 @@ def main() -> int:
         action="store_true",
         help="Skip post-merge cleanup (branch delete + active context clear).",
     )
+    parser.add_argument(
+        "--no-state-update",
+        action="store_true",
+        help="Skip automatic STATE/BACKLOG updates after merge.",
+    )
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
@@ -249,6 +255,29 @@ def main() -> int:
         )
         return 1
     what_done.append(f"Merged to main (squash): {merge['merge_sha']}.")
+
+    # Update STATE and BACKLOG
+    if not args.no_state_update:
+        state_update = update_state_and_backlog(
+            repo_root,
+            branch=branch,
+            merge_sha=merge["merge_sha"],
+            test_summary=test_run["summary"],
+            skip_on_error=True,
+        )
+        if state_update["state_updated"]:
+            what_done.append("Updated LIFEOS_STATE.md with Recent Win.")
+        if state_update["backlog_updated"]:
+            if state_update["items_marked"] > 0:
+                what_done.append(
+                    f"Updated BACKLOG.md: marked {state_update['items_marked']} item(s) done."
+                )
+            else:
+                what_done.append("Updated BACKLOG.md timestamp (no matching items).")
+        for err in state_update["errors"]:
+            what_remains.append(f"State update warning: {err}")
+    else:
+        what_done.append("State update skipped by --no-state-update.")
 
     if args.no_cleanup:
         what_done.append("Cleanup skipped by --no-cleanup.")
