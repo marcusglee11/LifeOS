@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 from runtime.tools.workflow_pack import (
@@ -197,11 +198,12 @@ def test_update_lifeos_state_adds_recent_win(tmp_path: Path) -> None:
     assert result["errors"] == []
 
     content = state_path.read_text(encoding="utf-8")
+    today = datetime.now().strftime("%Y-%m-%d")
     # Should have new win at the top
-    assert "**2026-02-14:** Doc Refresh And Test Debt — Fixed test debt" in content
+    assert f"**{today}:** Doc Refresh And Test Debt — Fixed test debt" in content
     assert "(merge commit abc123d)" in content
     # Should have updated timestamp with rev4
-    assert "**Last Updated:** 2026-02-14 (rev4)" in content
+    assert f"**Last Updated:** {today} (rev4)" in content
 
 
 def test_update_lifeos_state_increments_revision(tmp_path: Path) -> None:
@@ -232,8 +234,9 @@ def test_update_lifeos_state_increments_revision(tmp_path: Path) -> None:
 
     assert result["success"] is True
     content = state_path.read_text(encoding="utf-8")
+    today = datetime.now().strftime("%Y-%m-%d")
     # Should increment from rev10 to rev11
-    assert "**Last Updated:** 2026-02-14 (rev11)" in content
+    assert f"**Last Updated:** {today} (rev11)" in content
 
 
 def test_match_backlog_item_finds_match() -> None:
@@ -342,8 +345,9 @@ def test_update_backlog_marks_item_done(tmp_path: Path) -> None:
 
     assert result["success"] is True
     content = backlog_path.read_text(encoding="utf-8")
+    today = datetime.now().strftime("%Y-%m-%d")
     # Should update timestamp
-    assert "**Last Updated:** 2026-02-14" in content
+    assert f"**Last Updated:** {today}" in content
     # Should mark matching item as done
     assert "[x] **Fix test_steward_runner.py" in content
 
@@ -375,8 +379,9 @@ def test_update_backlog_updates_timestamp_only_if_no_match(tmp_path: Path) -> No
 
     assert result["success"] is True
     content = backlog_path.read_text(encoding="utf-8")
+    today = datetime.now().strftime("%Y-%m-%d")
     # Should update timestamp
-    assert "**Last Updated:** 2026-02-14" in content
+    assert f"**Last Updated:** {today}" in content
     # Should NOT mark item as done
     assert "[ ] **Some unrelated task**" in content
 
@@ -444,14 +449,16 @@ def test_update_state_and_backlog_integration(tmp_path: Path, monkeypatch) -> No
 
     # Verify STATE was updated
     state_content = state_path.read_text(encoding="utf-8")
-    assert "**2026-02-14:** Test Debt Stabilization" in state_content
+    today = datetime.now().strftime("%Y-%m-%d")
+    assert f"**{today}:** Test Debt Stabilization" in state_content
     assert "(merge commit abc123d)" in state_content
-    assert "**Last Updated:** 2026-02-14 (rev4)" in state_content
+    assert f"**Last Updated:** {today} (rev4)" in state_content
 
     # Verify BACKLOG was updated
     backlog_content = backlog_path.read_text(encoding="utf-8")
+    today = datetime.now().strftime("%Y-%m-%d")
     assert "[x] **Fix test debt**" in backlog_content
-    assert "**Last Updated:** 2026-02-14" in backlog_content
+    assert f"**Last Updated:** {today}" in backlog_content
 
 
 def test_update_graceful_on_missing_files(tmp_path: Path) -> None:

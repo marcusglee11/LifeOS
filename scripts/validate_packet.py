@@ -20,7 +20,7 @@ EXIT_LINEAGE_VIOLATION = 4
 EXIT_REPLAY_VIOLATION = 5
 EXIT_VERSION_INCOMPATIBLE = 6
 
-DEFAULT_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "../docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml")
+DEFAULT_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "../docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml")
 
 # Global Schema Holder (loaded at runtime)
 SCHEMA: Dict[str, Any] = {}

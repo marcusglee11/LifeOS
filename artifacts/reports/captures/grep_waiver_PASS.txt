@@ -13,7 +13,7 @@ docs/02_protocols/Council_Protocol_v1.3.md:  - CSO may audit override patterns; 
 docs/02_protocols/Council_Protocol_v1.3.md:Independence waivers under SHOULD conditions are recorded in the Council Run Log `notes.override_rationale` field. CSO audits waiver frequency.
 docs/02_protocols/Council_Protocol_v1.3.md:- F4: Added waiver logging and CSO audit requirement
 docs/02_protocols/Emergency_Declaration_Protocol_v1.0.md:- Normal waiver justification requirements relaxed
-docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml:      - waiver_rationale
+docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml:      - waiver_rationale
 docs/02_protocols/lifeos_packet_schemas_v1.2.yaml:      - waiver_rationale
 docs/02_protocols/lifeos_packet_templates_v1.yaml:      waiver_rationale: ""       # Required if WAIVED
 docs/11_admin/BACKLOG.md:- [ ] **Re-close A1/A2 using G-CBS** — DoD: Convert or rerun cleanly; replace waiver with strict PASS — Owner: antigravity
