@@ -1,0 +1,47 @@
+{
+    "meta": {
+        "version": "3.2.0",
+        "updated": "2026-02-14",
+        "description": "Protocols and Specifications Index (docs/02_protocols/)",
+        "sha256_policy": "Hash raw file bytes (repo-stored LF-normalized bytes enforced by .gitattributes) for provenance in closure bundles"
+    },
+    "artefacts": [
+        {"_comment": "Active Protocols (v1.0+)"},
+        {"path": "docs/02_protocols/AI_Council_Procedural_Spec_v1.1.md"},
+        {"path": "docs/02_protocols/Build_Artifact_Protocol_v1.0.md"},
+        {"path": "docs/02_protocols/Build_Handoff_Protocol_v1.1.md"},
+        {"path": "docs/02_protocols/Core_TDD_Design_Principles_v1.0.md"},
+        {"path": "docs/02_protocols/Council_Context_Pack_Schema_v0.3.md"},
+        {"path": "docs/02_protocols/Council_Protocol_v1.3.md"},
+        {"path": "docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md"},
+        {"path": "docs/02_protocols/Document_Steward_Protocol_v1.1.md"},
+        {"path": "docs/02_protocols/EOL_Policy_v1.0.md"},
+        {"path": "docs/02_protocols/Emergency_Declaration_Protocol_v1.0.md"},
+        {"path": "docs/02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md"},
+        {"path": "docs/02_protocols/G-CBS_Standard_v1.1.md"},
+        {"path": "docs/02_protocols/Git_Workflow_Protocol_v1.1.md"},
+        {"path": "docs/02_protocols/Governance_Protocol_v1.0.md"},
+        {"path": "docs/02_protocols/Intent_Routing_Rule_v1.1.md"},
+        {"path": "docs/02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md"},
+        {"path": "docs/02_protocols/Packet_Schema_Versioning_Policy_v1.0.md"},
+        {"path": "docs/02_protocols/Project_Planning_Protocol_v1.0.md"},
+        {"path": "docs/02_protocols/Test_Protocol_v1.0.md"},
+        {"path": "docs/02_protocols/Test_Protocol_v2.0.md"},
+        {"path": "docs/02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md"},
+        {"path": "docs/02_protocols/TODO_Standard_v1.0.md"},
+        {"path": "docs/02_protocols/VALIDATION_IMPLEMENTATION_NOTES.md"},
+        {"_comment": "Archived Versions (superseded)"},
+        {
+            "path": "docs/02_protocols/archive/2026-02_versioning/G-CBS_Standard_v1.0.md",
+            "superseded_by": "docs/02_protocols/G-CBS_Standard_v1.1.md"
+        },
+        {
+            "path": "docs/02_protocols/archive/2026-02_versioning/Git_Workflow_Protocol_v1.0.md",
+            "superseded_by": "docs/02_protocols/Git_Workflow_Protocol_v1.1.md"
+        },
+        {
+            "path": "docs/02_protocols/archive/2026-02_drafts/LifeOS_Design_Principles_Protocol_v0.1.md",
+            "superseded_by": "docs/02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md"
+        }
+    ]
+}
