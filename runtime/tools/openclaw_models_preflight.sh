@@ -8,6 +8,7 @@ TS_UTC="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT_DIR="${OPENCLAW_MODELS_PREFLIGHT_OUT_DIR:-$STATE_DIR/runtime/models_preflight/$TS_UTC}"
 LIST_TIMEOUT_SEC="${OPENCLAW_MODELS_LIST_TIMEOUT_SEC:-20}"
 PROBE_TIMEOUT_SEC="${OPENCLAW_MODELS_PROBE_TIMEOUT_SEC:-70}"
+ENFORCEMENT_MODE="${COO_ENFORCEMENT_MODE:-interactive}"
 
 if [ -z "$OPENCLAW_BIN" ] || [ ! -x "$OPENCLAW_BIN" ]; then
   echo "ERROR: OPENCLAW_BIN is not executable." >&2
@@ -151,7 +152,43 @@ if [ "$pass" = true ]; then
   exit 0
 fi
 
-echo "FAIL models_preflight=false reason=$reason summary=$summary_out" >&2
+# Enforcement mode: interactive = warn and continue, mission = block
+if [ "$ENFORCEMENT_MODE" = "interactive" ]; then
+  echo "WARNING models_preflight=false reason=$reason summary=$summary_out enforcement_mode=interactive" >&2
+  echo "WARNING: Model ladder preflight failed, but continuing in interactive mode." >&2
+  if [ "$reason" = "policy_violated" ]; then
+    echo "NEXT: Fix ladder ordering/fallback policy in $OPENCLAW_CONFIG_PATH" >&2
+    echo "NEXT: Run 'coo models status' to see details." >&2
+    echo "NEXT: Run 'coo models fix' for guided repair." >&2
+    python3 - <<'PY' "$policy_json" >&2
+import json,sys
+try:
+    obj=json.loads(open(sys.argv[1],encoding='utf-8').read())
+    for v in obj.get("violations") or []:
+        print(f"- {v}")
+except Exception:
+    print("- Unable to parse policy violation details.")
+PY
+  elif [ "$reason" = "top_rung_auth_missing" ]; then
+    echo "NEXT: openclaw onboard" >&2
+    IFS=',' read -r -a provs <<< "$providers_referenced"
+    for provider in "${provs[@]}"; do
+      case "$provider" in
+        openai-codex|github-copilot|google-gemini-cli|openrouter|opencode|zen)
+          echo "NEXT: openclaw models auth login --provider $provider" >&2
+          ;;
+      esac
+    done
+  elif [ "$reason" = "no_working_model_for_agent" ]; then
+    echo "NEXT: Verify provider auth and model availability; ensure at least one working model per agent." >&2
+  elif [ "$reason" = "gateway_unreachable" ]; then
+    echo "NEXT: Check OpenClaw gateway is running or start it with 'coo start'" >&2
+  fi
+  exit 0
+fi
+
+# Mission mode: fail-closed
+echo "FAIL models_preflight=false reason=$reason summary=$summary_out enforcement_mode=mission" >&2
 if [ "$reason" = "policy_violated" ]; then
   echo "NEXT: Fix ladder ordering/fallback policy in $OPENCLAW_CONFIG_PATH and re-run preflight." >&2
   python3 - <<'PY' "$policy_json" >&2
