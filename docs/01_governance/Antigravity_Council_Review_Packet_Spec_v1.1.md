@@ -1,7 +1,7 @@
 # Antigravity Council Review Packet Spec v1.1
 
 **Status**: Canonical Packaging Spec  
-**Authority**: [lifeos_packet_schemas_CURRENT.yaml](../02_protocols/lifeos_packet_schemas_CURRENT.yaml)  
+**Authority**: [lifeos_packet_schemas_CURRENT.yaml](../02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml)  
 **Date**: 2026-01-06
 
 ---
