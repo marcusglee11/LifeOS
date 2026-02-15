@@ -1,0 +1,33 @@
+{
+    "meta": {
+        "version": "3.2.0",
+        "updated": "2026-02-15",
+        "description": "Foundations & Architecture Index (docs/00_foundations/) - DRAFT FOR COUNCIL REVIEW",
+        "sha256_policy": "Hash raw file bytes (repo-stored LF-normalized bytes enforced by .gitattributes) for provenance in closure bundles",
+        "status": "DRAFT - Awaiting Council approval per Consolidation_00_Foundations_v1.0.md"
+    },
+    "artefacts": [
+        {"_comment": "Core Constitutional & Architectural Documents"},
+        {"path": "docs/00_foundations/LifeOS_Constitution_v2.0.md"},
+        {"path": "docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md"},
+        {"path": "docs/00_foundations/Architecture_Skeleton_v1.0.md"},
+        {"path": "docs/00_foundations/Tier_Definition_Spec_v1.1.md"},
+        {"_comment": "Orientation & Quickstart"},
+        {"path": "docs/00_foundations/QUICKSTART.md"},
+        {"path": "docs/00_foundations/LifeOS_Overview.md"},
+        {"_comment": "Vision & Strategic Context"},
+        {"path": "docs/00_foundations/lifeos-maximum-vision.md"},
+        {"path": "docs/00_foundations/lifeos-agent-architecture.md"},
+        {"_comment": "Operating Model Specifications"},
+        {"path": "docs/00_foundations/ARCH_Builder_North-Star_Operating_Model_v0.5.md"},
+        {"path": "docs/00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md"},
+        {"path": "docs/00_foundations/ARCH_LifeOS_Operating_Model_v0.4.md"},
+        {"path": "docs/00_foundations/SPEC-001_ LifeOS Operating Model - Agentic Platform & Evaluation Framework.md"},
+        {"_comment": "Archived Versions (if Council approves archiving)"},
+        {
+            "path": "docs/00_foundations/archive/2026-02_versioning/ARCH_LifeOS_Operating_Model_v0.3.md",
+            "superseded_by": "docs/00_foundations/ARCH_LifeOS_Operating_Model_v0.4.md",
+            "_note": "Only created if Council approves archiving v0.3"
+        }
+    ]
+}
