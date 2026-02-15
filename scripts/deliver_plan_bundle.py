@@ -3,8 +3,8 @@ import shutil
 import os
 
 files_to_bundle = [
-    'docs/02_protocols/lifeos_packet_schemas_v1.2.yaml',
-    'docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml',
+    'docs/02_protocols/schemas/lifeos_packet_schemas_v1.2.yaml',
+    'docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml',
     'scripts/validate_packet.py',
     'runtime/tests/test_packet_validation.py',
     'artifacts/review_packets/Review_Packet_AUR_20260105_Plan_Cycle_v1.4.md'

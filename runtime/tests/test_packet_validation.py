@@ -8,7 +8,7 @@ import hashlib
 from datetime import datetime, timezone, timedelta
 
 VALIDATOR_SCRIPT = "scripts/validate_packet.py"
-CURRENT_SCHEMA = "docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml"
+CURRENT_SCHEMA = "docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml"
 
 def run_validator(path, args=None):
     if args is None:
@@ -195,7 +195,7 @@ def test_compression_fail(tmp_path, base_envelope):
 
 def test_schema_validity():
     # Verify the actual schema file on disk parses correctly
-    with open("docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml", 'r') as f:
+    with open("docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml", 'r') as f:
         schema = yaml.safe_load(f)
     assert schema['schema_version'] == "1.2"
     assert "max_clock_skew_seconds" in schema['limits']
@@ -203,7 +203,7 @@ def test_schema_validity():
 
 def test_validator_uses_schema_override(tmp_path, base_envelope):
     # 1. Create a schema with tiny skew limit
-    with open("docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml", 'r') as f:
+    with open("docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml", 'r') as f:
         custom_schema = yaml.safe_load(f)
     
     custom_schema['limits']['max_clock_skew_seconds'] = 1 # 1 second tolerance
@@ -235,7 +235,7 @@ def test_validator_uses_schema_override(tmp_path, base_envelope):
 
 def test_no_hardcoded_taxonomy(tmp_path, base_envelope):
     # 1. Create schema that removes HANDOFF_PACKET from core types
-    with open("docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml", 'r') as f:
+    with open("docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml", 'r') as f:
         custom_schema = yaml.safe_load(f)
         
     if "HANDOFF_PACKET" in custom_schema['taxonomy']['core_packet_types']:
@@ -398,7 +398,7 @@ def test_plan_build_packet_valid(tmp_path, base_envelope):
     p.write_text(yaml.dump(data), encoding='utf-8')
     
     # Use CURRENT schema (v1.2)
-    code, out, err = run_validator(str(p), args=["--schema", "docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml"])
+    code, out, err = run_validator(str(p), args=["--schema", "docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml"])
     assert code == 0
 
 def test_plan_review_packet_valid(tmp_path, base_envelope):
@@ -419,7 +419,7 @@ def test_plan_review_packet_valid(tmp_path, base_envelope):
     p = tmp_path / "review_plan.yaml"
     p.write_text(yaml.dump(data), encoding='utf-8')
 
-    code, out, err = run_validator(str(p), args=["--schema", "docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml"])
+    code, out, err = run_validator(str(p), args=["--schema", "docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml"])
     assert code == 0
 
 def test_semver_incompatible(tmp_path, base_envelope):
@@ -431,7 +431,7 @@ def test_semver_incompatible(tmp_path, base_envelope):
     p = tmp_path / "future_packet.yaml"
     p.write_text(yaml.dump(data), encoding='utf-8')
     
-    code, out, err = run_validator(str(p), args=["--schema", "docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml"])
+    code, out, err = run_validator(str(p), args=["--schema", "docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml"])
     assert code == 6 # VERSION_INCOMPATIBLE
 
 # --- P0.3 Regression Tests ---

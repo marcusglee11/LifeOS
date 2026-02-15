@@ -29,7 +29,7 @@ Propagate the "CLOSED / GO" decision for the Plan Cycle v1.4 Amendment. Update c
    - `docs/INDEX.md`: Update timestamp. Add/Ensure `artifacts/signoffs/AUR_20260105_Plan_Cycle_Signoff_v1.0.md` is linked in relevant section (or `01_governance/INDEX.md`).
    - `docs/01_governance/INDEX.md`: Link the Sign-Off artifact.
 2. **Canonical References**:
-   - Update any "Current Schema" refs to `docs/02_protocols/lifeos_packet_schemas_CURRENT.yaml`.
+   - Update any "Current Schema" refs to `docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml`.
    - Update `docs/11_admin/LIFEOS_STATE.md`: Mark `AUR_20260105` as CLOSED (Evidence: v1.4 Sign-Off).
 3. **Status Updates**:
    - MARK `Bundle_AUR_20260105_Plan_Cycle_v1.0` through `v1.3` as SUPERSEDED in any tracking lists.
