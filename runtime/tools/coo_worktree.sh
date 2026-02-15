@@ -287,6 +287,7 @@ Usage:
   runtime/tools/coo_worktree.sh app
   runtime/tools/coo_worktree.sh stop
   runtime/tools/coo_worktree.sh diag
+  runtime/tools/coo_worktree.sh models {status|fix}
   runtime/tools/coo_worktree.sh ensure
   runtime/tools/coo_worktree.sh path
   runtime/tools/coo_worktree.sh cd
@@ -299,6 +300,10 @@ Usage:
   runtime/tools/coo_worktree.sh tui -- <tui-args...>
   runtime/tools/coo_worktree.sh run -- <command...>
   runtime/tools/coo_worktree.sh openclaw -- <openclaw-args...>
+
+Enforcement modes:
+  - Interactive mode (tui, app, diag, start, models, openclaw): Fail-soft on ladder issues
+  - Mission mode (e2e, job, run-job): Fail-closed on ladder issues
 EOF
 }
 
@@ -318,6 +323,7 @@ case "$cmd" in
     print_header
     (
       cd "$BUILD_REPO"
+      export COO_ENFORCEMENT_MODE=interactive
       runtime/tools/openclaw_gateway_ensure.sh
       runtime/tools/openclaw_models_preflight.sh
     )
@@ -377,6 +383,84 @@ case "$cmd" in
       echo "MODEL_POLICY_ASSERT_END"
       echo "HINT=Run 'openclaw models status --probe' for deeper provider diagnostics."
     )
+    ;;
+  models)
+    shift || true
+    sub="${1:-}"
+    case "$sub" in
+      status)
+        ensure_openclaw_surface
+        print_header
+        (
+          cd "$BUILD_REPO"
+          python3 runtime/tools/openclaw_model_policy_assert.py --json | python3 - <<'PY'
+import json
+import sys
+
+try:
+    result = json.loads(sys.stdin.read())
+    policy_ok = result.get("policy_ok", False)
+    violations = result.get("violations", [])
+    ladders = result.get("ladders", {})
+
+    print("=== Model Ladder Health Status ===\n")
+
+    if policy_ok:
+        print("STATUS: OK - All ladder policies satisfied")
+    else:
+        print(f"STATUS: INVALID - {len(violations)} violation(s) detected")
+
+    print("\nLadder Details:")
+    for agent_id in ("main", "quick", "think"):
+        ladder = ladders.get(agent_id, {})
+        actual = ladder.get("actual", [])
+        expected = ladder.get("expected", [])
+        working_count = ladder.get("working_count", 0)
+        top_rung_auth_missing = ladder.get("top_rung_auth_missing", False)
+
+        print(f"\n  {agent_id}:")
+        if not actual:
+            print("    ERROR: Ladder missing or empty")
+            print(f"    Expected: {', '.join(expected[:3])}...")
+        else:
+            print(f"    Configured: {', '.join(actual[:3])}{'...' if len(actual) > 3 else ''}")
+            print(f"    Working models: {working_count}/{len(actual)}")
+            if top_rung_auth_missing:
+                print(f"    WARNING: Top rung ({actual[0]}) not authenticated")
+
+    if violations:
+        print("\nViolations:")
+        for v in violations[:10]:
+            print(f"  - {v}")
+        if len(violations) > 10:
+            print(f"  ... and {len(violations) - 10} more")
+
+    print("\nNext steps:")
+    if not policy_ok:
+        print("  - Run 'coo models fix' for guided repair")
+        print("  - Or manually edit $OPENCLAW_CONFIG_PATH")
+    else:
+        print("  - All checks passed")
+
+except Exception as e:
+    print(f"ERROR: Could not parse policy status: {e}", file=sys.stderr)
+    sys.exit(1)
+PY
+        )
+        ;;
+      fix)
+        ensure_openclaw_surface
+        print_header
+        (
+          cd "$BUILD_REPO"
+          python3 runtime/tools/openclaw_model_ladder_fix.py
+        )
+        ;;
+      *)
+        echo "Usage: coo models {status|fix}" >&2
+        exit 2
+        ;;
+    esac
     ;;
   path)
     echo "$TRAIN_WT"
@@ -708,6 +792,18 @@ PY
 
     job_dir="$(cd "$(dirname "$job_path")" && pwd)"
     blocked_reason="$job_dir/blocked_reason.txt"
+
+    # Mission mode preflight
+    ensure_openclaw_surface
+    (
+      cd "$BUILD_REPO"
+      export COO_ENFORCEMENT_MODE=mission
+      if ! runtime/tools/openclaw_models_preflight.sh >/dev/null 2>&1; then
+        echo "ERROR: Model preflight failed in mission mode." >&2
+        printf 'Model preflight failed in mission mode\n' > "$blocked_reason"
+        exit 11
+      fi
+    )
 
     if ! build_repo_clean; then
       echo "ERROR: BUILD_REPO not clean before run-job." >&2
