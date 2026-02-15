@@ -78,6 +78,7 @@ def test_coo_e2e_marker_receipt_projects_canonical_capsule(tmp_path: Path) -> No
 
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+    env["OPENCLAW_MODELS_PREFLIGHT_SKIP"] = "1"  # Skip model preflight for test
 
     proc = subprocess.run(
         [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "e2e"],
