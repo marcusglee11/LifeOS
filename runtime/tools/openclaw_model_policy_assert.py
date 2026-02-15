@@ -131,10 +131,10 @@ def _agent_ladder(cfg: Dict[str, Any], agent_id: str) -> List[str]:
         primary = model.get("primary")
         fallbacks = model.get("fallbacks") or []
         ladder = []
-        if isinstance(primary, str):
+        if isinstance(primary, str) and primary.strip():
             ladder.append(primary)
         if isinstance(fallbacks, list):
-            ladder.extend([str(x) for x in fallbacks if isinstance(x, str)])
+            ladder.extend([str(x) for x in fallbacks if isinstance(x, str) and str(x).strip()])
         return ladder
     return []
 
@@ -175,7 +175,7 @@ def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]],
     def validate(agent_id: str, expected: List[str]) -> None:
         actual = _agent_ladder(cfg, agent_id)
         if not actual:
-            violations.append(f"{agent_id}: ladder missing")
+            violations.append(f"{agent_id}: ladder missing or empty")
             ladders[agent_id] = {
                 "actual": [],
                 "expected": expected,
@@ -185,6 +185,7 @@ def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]],
             }
             return
 
+        # Safe access to actual[0] - we know actual is non-empty here
         if actual[0] != expected[0]:
             violations.append(f"{agent_id}: primary must be {expected[0]}, got {actual[0]}")
         if not _ordered_subsequence(actual, expected):
@@ -241,7 +242,7 @@ def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]],
     )
     auth_missing_providers = sorted(
         {
-            _provider_of((ladders.get(aid) or {}).get("actual", [None])[0] or "")
+            _provider_of((ladders.get(aid) or {}).get("actual", [""])[0] or "")
             for aid in ("main", "quick", "think")
             if (ladders.get(aid) or {}).get("top_rung_auth_missing") is True
         }
@@ -266,29 +267,67 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    cfg_path = Path(args.config).expanduser()
-    cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+    try:
+        cfg_path = Path(args.config).expanduser()
+        if not cfg_path.exists():
+            error_result = {
+                "policy_ok": False,
+                "error": "config_not_found",
+                "error_detail": f"Config file not found: {cfg_path}",
+                "violations": ["config file missing"],
+                "ladders": {},
+                "execution_ladder_expected": list(EXECUTION_BASE),
+                "thinking_ladder_expected": list(THINKING_BASE),
+                "unresolved_optional_rungs": [],
+                "providers_referenced": [],
+                "auth_missing_providers": [],
+            }
+            if args.json:
+                print(json.dumps(error_result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+            else:
+                print(f"policy_ok=false violations=1 error=config_not_found")
+            return 1
 
-    list_text = ""
-    if args.models_list_file:
-        list_text = Path(args.models_list_file).read_text(encoding="utf-8", errors="replace")
-    else:
-        rc, out = _safe_run([OPENCLAW_BIN, "models", "list"], timeout_s=25)
-        list_text = out if rc == 0 else ""
+        cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
 
-    models_status = _parse_models_list_text(list_text)
-    cfg_ids = _collect_model_ids_from_config(cfg)
-    list_ids = list(models_status.keys())
-    kimi_id = _discover_kimi_id(cfg_ids, list_ids)
-    if not kimi_id:
-        kimi_id = _discover_kimi_id(cfg_ids, _probe_kimi_via_provider_lists())
+        list_text = ""
+        if args.models_list_file:
+            list_text = Path(args.models_list_file).read_text(encoding="utf-8", errors="replace")
+        else:
+            rc, out = _safe_run([OPENCLAW_BIN, "models", "list"], timeout_s=25)
+            list_text = out if rc == 0 else ""
 
-    result = assert_policy(cfg, models_status, kimi_id)
-    if args.json:
-        print(json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
-    else:
-        print(f"policy_ok={'true' if result['policy_ok'] else 'false'} violations={len(result['violations'])}")
-    return 0 if result["policy_ok"] else 1
+        models_status = _parse_models_list_text(list_text)
+        cfg_ids = _collect_model_ids_from_config(cfg)
+        list_ids = list(models_status.keys())
+        kimi_id = _discover_kimi_id(cfg_ids, list_ids)
+        if not kimi_id:
+            kimi_id = _discover_kimi_id(cfg_ids, _probe_kimi_via_provider_lists())
+
+        result = assert_policy(cfg, models_status, kimi_id)
+        if args.json:
+            print(json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+        else:
+            print(f"policy_ok={'true' if result['policy_ok'] else 'false'} violations={len(result['violations'])}")
+        return 0 if result["policy_ok"] else 1
+    except (FileNotFoundError, json.JSONDecodeError, KeyError, ValueError, IndexError, TypeError) as e:
+        error_result = {
+            "policy_ok": False,
+            "error": type(e).__name__.lower(),
+            "error_detail": str(e),
+            "violations": [f"preflight error: {type(e).__name__}: {str(e)}"],
+            "ladders": {},
+            "execution_ladder_expected": list(EXECUTION_BASE),
+            "thinking_ladder_expected": list(THINKING_BASE),
+            "unresolved_optional_rungs": [],
+            "providers_referenced": [],
+            "auth_missing_providers": [],
+        }
+        if args.json:
+            print(json.dumps(error_result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+        else:
+            print(f"policy_ok=false violations=1 error={type(e).__name__.lower()}")
+        return 1
 
 
 if __name__ == "__main__":
