@@ -795,15 +795,17 @@ PY
 
     # Mission mode preflight
     ensure_openclaw_surface
-    (
-      cd "$BUILD_REPO"
-      export COO_ENFORCEMENT_MODE=mission
-      if ! runtime/tools/openclaw_models_preflight.sh >/dev/null 2>&1; then
-        echo "ERROR: Model preflight failed in mission mode." >&2
-        printf 'Model preflight failed in mission mode\n' > "$blocked_reason"
-        exit 11
-      fi
-    )
+    if [ "${OPENCLAW_MODELS_PREFLIGHT_SKIP:-}" != "1" ]; then
+      (
+        cd "$BUILD_REPO"
+        export COO_ENFORCEMENT_MODE=mission
+        if ! runtime/tools/openclaw_models_preflight.sh >/dev/null 2>&1; then
+          echo "ERROR: Model preflight failed in mission mode." >&2
+          printf 'Model preflight failed in mission mode\n' > "$blocked_reason"
+          exit 11
+        fi
+      )
+    fi
 
     if ! build_repo_clean; then
       echo "ERROR: BUILD_REPO not clean before run-job." >&2
