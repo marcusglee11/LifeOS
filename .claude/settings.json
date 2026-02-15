@@ -38,6 +38,40 @@
             "statusMessage": "Running close-build enforcement gates..."
           }
         ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protected-path-guard.js",
+            "timeout": 5000,
+            "statusMessage": "Checking governance protection..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protected-path-guard.js",
+            "timeout": 5000,
+            "statusMessage": "Checking governance protection..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-context-inject.py",
+            "timeout": 10000,
+            "statusMessage": "Loading project context..."
+          }
+        ]
       }
     ],
     "Stop": [
