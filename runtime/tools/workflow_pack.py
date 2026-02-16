@@ -166,6 +166,17 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
             add("pytest -q runtime/tests/test_workflow_pack.py")
             continue
 
+        if _matches(
+            file_path,
+            (
+                "runtime/tools/openclaw_models_preflight.sh",
+                "runtime/tools/openclaw_model_policy_assert.py",
+                "runtime/tests/test_openclaw_model_policy_assert.py",
+            ),
+        ):
+            add("pytest -q runtime/tests/test_openclaw_model_policy_assert.py")
+            continue
+
     if not routed:
         routed.append("pytest -q runtime/tests")
     return routed

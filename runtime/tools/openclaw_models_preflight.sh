@@ -3,6 +3,7 @@ set -euo pipefail
 
 STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
 OPENCLAW_BIN="${OPENCLAW_BIN:-$(command -v openclaw || true)}"
+OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$STATE_DIR/openclaw.json}"
 PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
 TS_UTC="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT_DIR="${OPENCLAW_MODELS_PREFLIGHT_OUT_DIR:-$STATE_DIR/runtime/models_preflight/$TS_UTC}"
@@ -214,4 +215,3 @@ elif [ "$reason" = "no_working_model_for_agent" ]; then
   echo "NEXT: Verify provider auth and model availability; ensure at least one working model per agent." >&2
 fi
 exit 1
-
