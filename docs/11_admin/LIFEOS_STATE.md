@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** W5-T01 E2E Spine proof COMPLETE — W7 stabilization tasks next (ledger hash-chain, doc freshness CI, protocol finalization)
-**Active WIP:** Model configuration hardening, remaining protocol doc finalization
-**Last Updated:** 2026-02-16 (rev8)
+**Current Focus:** W7 Stabilization COMPLETE — ledger hash-chain (T01), doc freshness CI (T02), protocol finalization (T03) all done. Next: W4-T03/T04 or W6 spike
+**Active WIP:** None — W7 stabilization batch closed
+**Last Updated:** 2026-02-16 (rev9)
 
 ---
 
@@ -22,9 +22,10 @@
 **W7 Stabilization Batch (post-E2E proof):**
 
 1. ~~E2E Loop Test: Real task through full pipeline~~ ✓ **COMPLETE** (2026-02-14, run_20260214_053357)
-2. **Next immediate:** W7-T01 Ledger hash-chain hardening — add `prev_hash` field, tamper detection, verification tests
-3. **Then:** W7-T02 Doc freshness CI enforcement — make contradiction detection blocking
-4. **Then:** W7-T03 Pending protocol doc finalization — 5 remaining P1 docs (Test_Protocol, Intent_Routing, Tier_Definition, ARTEFACT_INDEX, QUICKSTART)
+2. ~~W7-T01 Ledger hash-chain hardening~~ ✓ **COMPLETE** (2026-02-16, commit 558c375)
+3. ~~W7-T02 Doc freshness CI enforcement~~ ✓ **COMPLETE** (2026-02-16, CI + close-build wired)
+4. ~~W7-T03 Protocol doc finalization (5/5 docs)~~ ✓ **COMPLETE** (2026-02-16, all ACTIVE)
+5. **Next:** W4-T03 Worktree dispatch governance / W4-T04 Validator lifecycle hooks / W6 Codemoot spike
 
 **Canonical Plan Authority:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 

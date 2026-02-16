@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-02-16 (rev6)]
+# LifeOS Strategic Corpus [Last Updated: 2026-02-16 (rev7)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -240,8 +240,8 @@ Archived documents are in `99_archive/`. Key locations:
 
 - `99_archive/superseded_by_constitution_v2/` — Documents superseded by Constitution v2.0
 - `99_archive/legacy_structures/` — Legacy governance and specs
-- [lifeos-master-operating-manual-v2.md](./99_archive/lifeos-master-operating-manual-v2.md) — Preceding version of the master operations manual
-- [lifeos-operations-manual.md](./99_archive/lifeos-operations-manual.md) — First version of the master operations manual
+- `99_archive/lifeos-master-operating-manual-v2.md` — Preceding version of the master operations manual
+- `99_archive/lifeos-operations-manual.md` — First version of the master operations manual
 
 ---
 

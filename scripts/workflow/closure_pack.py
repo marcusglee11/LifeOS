@@ -195,6 +195,34 @@ def main() -> int:
         return 1
     what_done.append("Closure targeted tests passed.")
 
+    # Regenerate runtime status artifact so freshness check stays current
+    status_gen = Path(repo_root) / "scripts" / "generate_runtime_status.py"
+    if status_gen.exists():
+        status_proc = subprocess.run(
+            [sys.executable, str(status_gen)],
+            check=False,
+            cwd=str(repo_root),
+            capture_output=True,
+            text=True,
+        )
+        if status_proc.returncode == 0:
+            # Commit regenerated artifact to avoid dirty-tree merge blocker
+            status_file = "artifacts/status/runtime_status.json"
+            subprocess.run(
+                ["git", "-C", str(repo_root), "add", status_file],
+                check=False, capture_output=True, text=True,
+            )
+            has_staged = _git_stdout(repo_root, ["diff", "--cached", "--name-only"])
+            if has_staged:
+                subprocess.run(
+                    ["git", "-C", str(repo_root), "commit", "-m",
+                     "chore: refresh runtime_status.json (closure)"],
+                    check=False, capture_output=True, text=True,
+                )
+            what_done.append("Regenerated and committed runtime_status.json for freshness compliance.")
+        else:
+            what_remains.append(f"Runtime status generation failed: {status_proc.stderr.strip()}")
+
     doc_check = check_doc_stewardship(repo_root, changed_files, auto_fix=True)
     if not doc_check["passed"]:
         test_results.append("FAIL: Doc stewardship gate failed.")

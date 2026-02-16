@@ -61,16 +61,15 @@ jobs:
   docs:
     name: Documentation Validation
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -78,8 +77,20 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run doc link validator
+        if: github.event_name == 'pull_request'
         run: pytest tests_doc/test_links.py -v
         continue-on-error: true  # Report but don't block initially
+
+      - name: DAP validation
+        run: python -m doc_steward.cli dap-validate .
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Doc freshness check (warn until 2026-02-26, then block)
+        run: python -m doc_steward.cli freshness-check .
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          LIFEOS_DOC_FRESHNESS_MODE: warn
 
   validate:
     name: Validate Artefact Index

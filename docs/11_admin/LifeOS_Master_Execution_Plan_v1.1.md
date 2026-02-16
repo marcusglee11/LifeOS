@@ -1,7 +1,7 @@
 # LifeOS Master Execution Plan v1.1 (Superseding, Canonical)
 
-**Status:** IN PROGRESS — W0 complete, W5-T01 complete, W7 stabilization next
-**Last Updated:** 2026-02-14 (rev2)
+**Status:** IN PROGRESS — W0 complete, W5-T01 complete, W7 stabilization active
+**Last Updated:** 2026-02-16 (rev3)
 
 ## 0. Authority and Scope
 
@@ -59,11 +59,11 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 | W5 | T03 | ✅ DONE | 2026-02-13 | Budget controller has real enforcement (W5-T04 landed) |
 | W5 | T04 | ✅ DONE | 2026-02-13 | Token plumbing fail-closed, integrated |
 | W6 | T00-T02 | ⏸️ DEFERRED | — | Codemoot spike deferred pending W7 stabilization |
-| W7 | T01 | ⏸️ NEXT | — | Ledger hash-chain hardening |
-| W7 | T02 | ⏸️ NEXT | — | Doc freshness CI enforcement |
-| W7 | T03 | ⏸️ NEXT | — | Pending protocol finalization (5 docs remain) |
+| W7 | T01 | ✅ DONE | 2026-02-16 | Ledger hash-chain hardened (commit 558c375) |
+| W7 | T02 | ✅ DONE | 2026-02-16 | Freshness check wired into CI (warn mode) + close-build gate |
+| W7 | T03 | ✅ DONE | 2026-02-16 | All 5 protocol docs finalized (ACTIVE, no TODO markers) |
 
-**Current Focus:** W7 Stabilization (hash-chain, doc CI, protocol finalization)
+**Current Focus:** W7 Stabilization COMPLETE — all three tasks done; next: W4-T03/T04 or W6 spike
 
 ## 5. Execution Work Packages
 

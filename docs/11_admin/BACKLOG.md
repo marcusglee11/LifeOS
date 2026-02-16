@@ -8,7 +8,7 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-16 (rev3)
+**Last Updated:** 2026-02-16 (rev4)
 
 ## Now (ready soon; not in WIP yet)
 
@@ -23,10 +23,10 @@
 - [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Fix test_steward_runner.py (25/27 failing)** — DoD: Tests pass or are properly restructured — Owner: antigravity — Context: Import/fixture issues, not code bugs; currently skipped on WSL (build/doc-refresh-and-test-debt)
 - [x] **Finalize Intent_Routing_Rule v1.1** — DoD: Markers removed — Owner: antigravity
-- [ ] **Finalize Test_Protocol v2.0** — DoD: Markers removed — Owner: antigravity
+- [x] **Finalize Test_Protocol v2.0** — DoD: Markers removed — Owner: antigravity
 - [x] **Finalize Tier_Definition_Spec v1.1** — DoD: Markers removed — Owner: antigravity
-- [ ] **Finalize ARTEFACT_INDEX_SCHEMA v1.0** — DoD: Markers removed — Owner: antigravity
-- [ ] **Finalize QUICKSTART v1.0** — DoD: Context scan pass complete — Owner: antigravity
+- [x] **Finalize ARTEFACT_INDEX_SCHEMA v1.0** — DoD: Markers removed — Owner: antigravity
+- [x] **Finalize QUICKSTART v1.0** — DoD: Context scan pass complete — Owner: antigravity
 - [ ] **Fix claude_doc_stewardship_gate.py INDEX.md timestamp bug** — DoD: --auto-fix handles `[Last Updated: YYYY-MM-DD (revN)]` format correctly — Owner: antigravity — Context: Auto-fix regex corrupts INDEX.md timestamp in bracket format (P2)
 
 ## Next (valuable, but not imminent)
