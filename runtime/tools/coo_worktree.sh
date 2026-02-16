@@ -70,6 +70,46 @@ run_openclaw() {
   "$OPENCLAW_BIN" "$@"
 }
 
+resolve_gateway_token_from_config() {
+  local token
+  token="$(python3 - "$OPENCLAW_CONFIG_PATH" <<'PY'
+import json
+import os
+import sys
+
+path = sys.argv[1]
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    token = (((data or {}).get("gateway") or {}).get("auth") or {}).get("token")
+    if isinstance(token, str) and token:
+        print(token)
+except Exception:
+    pass
+PY
+)"
+  printf '%s\n' "$token"
+}
+
+resolve_dashboard_url() {
+  local fallback_url output parsed token
+  fallback_url="http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
+  output="$(run_openclaw dashboard --no-open 2>/dev/null || true)"
+  parsed="$(printf '%s\n' "$output" | sed -n 's/.*Dashboard URL: \(http[^[:space:]]*\).*/\1/p' | tail -n 1)"
+  if [ -n "$parsed" ]; then
+    printf '%s\n' "$parsed"
+    return 0
+  fi
+  token="$(resolve_gateway_token_from_config)"
+  if [ -n "$token" ]; then
+    printf '%s#token=%s\n' "$fallback_url" "$token"
+    return 0
+  fi
+  echo "WARN: gateway token not found; opening unauthenticated dashboard URL." >&2
+  printf '%s\n' "$fallback_url"
+  return 0
+}
+
 ensure_worktree() {
   if [ ! -d "$TRAIN_WT" ]; then
     git -C "$BUILD_REPO" worktree add -B "$TRAIN_BRANCH" "$TRAIN_WT" HEAD
@@ -327,7 +367,8 @@ case "$cmd" in
       runtime/tools/openclaw_gateway_ensure.sh
       runtime/tools/openclaw_models_preflight.sh
     )
-    echo "DASHBOARD_URL=http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
+    dashboard_url="$(resolve_dashboard_url)"
+    echo "DASHBOARD_URL=$dashboard_url"
     ;;
   tui)
     shift || true
@@ -345,7 +386,7 @@ case "$cmd" in
     "$0" start
     ensure_openclaw_surface
     print_header
-    app_url="http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
+    app_url="$(resolve_dashboard_url)"
     if powershell.exe -NoProfile -Command "Start-Process '$app_url'" >/dev/null 2>&1; then
       echo "APP_OPENED=$app_url"
     else
