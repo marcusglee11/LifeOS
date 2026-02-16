@@ -8,7 +8,7 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-16 (rev4)
+**Last Updated:** 2026-02-17 (rev4)
 
 ## Now (ready soon; not in WIP yet)
 
@@ -27,7 +27,7 @@
 - [x] **Finalize Tier_Definition_Spec v1.1** — DoD: Markers removed — Owner: antigravity
 - [x] **Finalize ARTEFACT_INDEX_SCHEMA v1.0** — DoD: Markers removed — Owner: antigravity
 - [x] **Finalize QUICKSTART v1.0** — DoD: Context scan pass complete — Owner: antigravity
-- [ ] **Fix claude_doc_stewardship_gate.py INDEX.md timestamp bug** — DoD: --auto-fix handles `[Last Updated: YYYY-MM-DD (revN)]` format correctly — Owner: antigravity — Context: Auto-fix regex corrupts INDEX.md timestamp in bracket format (P2)
+- [x] **Fix claude_doc_stewardship_gate.py INDEX.md timestamp bug** — DoD: --auto-fix handles `[Last Updated: YYYY-MM-DD (revN)]` format correctly — Owner: antigravity — Context: Auto-fix regex corrupts INDEX.md timestamp in bracket format (P2)
 
 ## Next (valuable, but not imminent)
 
