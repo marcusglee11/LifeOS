@@ -89,6 +89,10 @@ class TerminalPacket:
     reason: str  # TerminalReason value
     steps_executed: List[str]
     commit_hash: Optional[str] = None
+    # Ledger chain anchor (W7-T01) — external commitment for truncation detection
+    ledger_chain_tip: Optional[str] = None
+    ledger_attempt_count: int = 0
+    ledger_schema_version: Optional[str] = None
 
 
 class SpineError(Exception):
@@ -194,7 +198,18 @@ class LoopSpine:
         try:
             result = self._run_chain_steps(task_spec=task_spec)
 
-            # Emit terminal packet
+            # Write ledger record first so chain tip includes final record
+            terminal_file_path = f"artifacts/terminal/TP_{self.run_id}.yaml"
+            self._write_ledger_record(
+                success=(result["outcome"] == "PASS"),
+                terminal_reason=result.get("reason", "pass"),
+                actions_taken=result.get("steps_executed", []),
+                terminal_packet_path=terminal_file_path,
+                checkpoint_path=None,
+                commit_hash=result.get("commit_hash"),
+            )
+
+            # Emit terminal packet with ledger chain anchor
             terminal_packet = TerminalPacket(
                 run_id=self.run_id,
                 timestamp=self._get_timestamp(),
@@ -202,20 +217,13 @@ class LoopSpine:
                 reason=result.get("reason", "pass"),
                 steps_executed=result.get("steps_executed", []),
                 commit_hash=result.get("commit_hash"),
+                ledger_chain_tip=self.ledger.get_chain_tip(),
+                ledger_attempt_count=len(self.ledger.history),
+                ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
             )
 
             terminal_file = self._emit_terminal(terminal_packet)
             self.state = SpineState.TERMINAL
-
-            # Write ledger record for completed execution
-            self._write_ledger_record(
-                success=(result["outcome"] == "PASS"),
-                terminal_reason=result.get("reason", "pass"),
-                actions_taken=result.get("steps_executed", []),
-                terminal_packet_path=str(terminal_file.relative_to(self.repo_root)),
-                checkpoint_path=None,
-                commit_hash=result.get("commit_hash"),
-            )
 
             return {
                 "outcome": result["outcome"],
@@ -311,13 +319,34 @@ class LoopSpine:
         self.current_policy_hash = checkpoint.policy_hash
         self.was_resumed = True
 
+        # Hydrate ledger from prior run; initialize if missing (e.g. test scenario)
+        if not self.ledger.hydrate():
+            self.ledger.initialize(
+                LedgerHeader(
+                    policy_hash=checkpoint.policy_hash,
+                    handoff_hash=self._compute_hash(checkpoint.task_spec),
+                    run_id=checkpoint.run_id,
+                )
+            )
+
         # Continue from checkpoint step
         result = self._run_chain_steps(
             task_spec=checkpoint.task_spec,
             start_from_step=checkpoint.step_index,
         )
 
-        # Emit terminal packet
+        # Write ledger record first so chain tip includes final record
+        terminal_file_path = f"artifacts/terminal/TP_{self.run_id}.yaml"
+        self._write_ledger_record(
+            success=(result["outcome"] == "PASS"),
+            terminal_reason=result.get("reason", "pass"),
+            actions_taken=result.get("steps_executed", []),
+            terminal_packet_path=terminal_file_path,
+            checkpoint_path=str((self.checkpoint_dir / checkpoint_id).with_suffix('.yaml').relative_to(self.repo_root)),
+            commit_hash=result.get("commit_hash"),
+        )
+
+        # Emit terminal packet with ledger chain anchor
         terminal_packet = TerminalPacket(
             run_id=self.run_id,
             timestamp=self._get_timestamp(),
@@ -325,19 +354,12 @@ class LoopSpine:
             reason=result.get("reason", "pass"),
             steps_executed=result.get("steps_executed", []),
             commit_hash=result.get("commit_hash"),
+            ledger_chain_tip=self.ledger.get_chain_tip(),
+            ledger_attempt_count=len(self.ledger.history),
+            ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
         )
 
         terminal_file = self._emit_terminal(terminal_packet)
-
-        # Write ledger record for resumed execution
-        self._write_ledger_record(
-            success=(result["outcome"] == "PASS"),
-            terminal_reason=result.get("reason", "pass"),
-            actions_taken=result.get("steps_executed", []),
-            terminal_packet_path=str(terminal_file.relative_to(self.repo_root)),
-            checkpoint_path=str((self.checkpoint_dir / checkpoint_id).with_suffix('.yaml').relative_to(self.repo_root)),
-            commit_hash=result.get("commit_hash"),
-        )
 
         # Return RESUMED state to indicate this was a resumed execution
         # (even though we've completed and could transition to TERMINAL)
