@@ -13,7 +13,7 @@
 
 **Current Focus:** W5-T01 E2E Spine proof COMPLETE — W7 stabilization tasks next (ledger hash-chain, doc freshness CI, protocol finalization)
 **Active WIP:** Model configuration hardening, remaining protocol doc finalization
-**Last Updated:** 2026-02-14 (rev6)
+**Last Updated:** 2026-02-16 (rev7)
 
 ---
 
@@ -71,6 +71,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-16:** W7 T01 Ledger Hash Chain — fix: W7-T01 review fixes — numeric schema parsing + fail-closed append hardening; feat: W7-T01 Ledger hash-chain hardening with fail-closed v1.1 enforcement — 1/1 targeted test command(s) passed. (merge commit 558c375)
 - **2026-02-14:** E2e Spine Proof — chore: gitignore agent workspace metadata files; Fix review findings: stale blocker, artifact path, doc stewardship; docs: Add E2E Spine Proof build summary; docs: Update STATE and BACKLOG after E2E spine proof; feat: Finalize Emergency_Declaration_Protocol v1.0 (E2E Spine Proof) (and 4 more) — 1/1 targeted test command(s) passed. (merge commit 55a362b)
 - **2026-02-14:** **E2E Spine Proof COMPLETE (W5-T01)** — First successful autonomous build loop execution: `run_20260214_053357` finalized Emergency_Declaration_Protocol v1.0 through full 6-phase chain (hydrate→policy→design→build→review→steward). Evidence: `artifacts/terminal/TP_run_20260214_053357.yaml`, commit `195bd4d`. Discovered/fixed 2 blockers: obsolete model names (`glm-4.7-free`, `minimax-m2.1-free`) and insufficient timeout (120s→300s). **Core spine infrastructure validated.**
 - **2026-02-14:** Auto State Backlog Update — feat: automatic STATE/BACKLOG updates during build closure — 1/1 targeted test command(s) passed. (merge commit b7a879e)
