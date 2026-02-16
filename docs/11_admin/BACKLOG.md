@@ -22,7 +22,7 @@
 - [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Fix test_steward_runner.py (25/27 failing)** — DoD: Tests pass or are properly restructured — Owner: antigravity — Context: Import/fixture issues, not code bugs; currently skipped on WSL (build/doc-refresh-and-test-debt)
-- [ ] **Finalize Intent_Routing_Rule v1.1** — DoD: Markers removed — Owner: antigravity
+- [x] **Finalize Intent_Routing_Rule v1.1** — DoD: Markers removed — Owner: antigravity
 - [ ] **Finalize Test_Protocol v2.0** — DoD: Markers removed — Owner: antigravity
 - [x] **Finalize Tier_Definition_Spec v1.1** — DoD: Markers removed — Owner: antigravity
 - [ ] **Finalize ARTEFACT_INDEX_SCHEMA v1.0** — DoD: Markers removed — Owner: antigravity
