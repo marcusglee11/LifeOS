@@ -26,6 +26,12 @@ from runtime.governance.self_mod_protection import (
     SelfModProtector,
 )
 
+# Re-export envelope enforcer for orchestration path validation
+from runtime.governance.envelope_enforcer import EnvelopeEnforcer
+
+# Re-export protected paths for orchestration governance gates
+from runtime.governance.protected_paths import is_path_protected
+
 __all__ = [
     "GovernanceAPI",
     "resolve_sandbox_root",
@@ -40,6 +46,8 @@ __all__ = [
     "SelfModProtector",
     "hash_json",
     "HASH_ALGORITHM",
+    "EnvelopeEnforcer",
+    "is_path_protected",
 ]
 
 

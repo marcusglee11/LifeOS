@@ -99,6 +99,7 @@ def map_openclaw_job_to_spine_invocation(job_payload: Mapping[str, Any]) -> dict
         "job_id": job_id,
         "run_id": run_id,
         "task_spec": task_spec,
+        "use_worktree": True,
     }
 
 
