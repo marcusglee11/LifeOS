@@ -26,6 +26,8 @@ WARNINGS=0
 declare -A CMD_RC
 SECURITY_AUDIT_MODE="unknown"
 CONFINEMENT_FLAG=""
+AUTH_HEALTH_STATE="unknown"
+AUTH_HEALTH_REASON="auth_health_unavailable"
 declare -a BLOCKING_REASONS=()
 
 add_blocking_reason() {
@@ -93,6 +95,50 @@ to_file policy_assert python3 runtime/tools/openclaw_policy_assert.py --json
 to_file model_ladder_policy_assert python3 runtime/tools/openclaw_model_policy_assert.py --json
 to_file multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --json
 to_file interfaces_policy_assert python3 runtime/tools/openclaw_interfaces_policy_assert.py --json
+
+auth_health_raw="$OUT_DIR/auth_health_raw.json"
+auth_health_out="$OUT_DIR/auth_health.txt"
+set +e
+timeout "$VERIFY_CMD_TIMEOUT_SEC" python3 runtime/tools/openclaw_auth_health.py --json > "$auth_health_raw" 2>&1
+rc_auth_health=$?
+set -e
+CMD_RC["auth_health"]="$rc_auth_health"
+if [ "$rc_auth_health" -ne 0 ]; then
+  WARNINGS=1
+fi
+{
+  echo '```bash'
+  printf '%q ' python3 runtime/tools/openclaw_auth_health.py --json
+  echo
+  echo '```'
+  echo '```text'
+  cat "$auth_health_raw" 2>/dev/null || true
+  echo
+  echo "[exit_code]=$rc_auth_health"
+  echo '```'
+} > "$auth_health_out"
+
+if [ "$rc_auth_health" -eq 0 ] && [ -s "$auth_health_raw" ]; then
+  auth_health_parse_out="$(python3 - <<'PY' "$auth_health_raw"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    obj = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+except Exception:
+    print("unknown\tauth_health_parse_failed")
+    raise SystemExit(0)
+
+state = str(obj.get("state") or "unknown").strip() or "unknown"
+reason = str(obj.get("reason_code") or "auth_health_reason_missing").strip() or "auth_health_reason_missing"
+print(f"{state}\t{reason}")
+PY
+)"
+  AUTH_HEALTH_STATE="$(printf '%s' "$auth_health_parse_out" | awk -F'\t' '{print $1}')"
+  AUTH_HEALTH_REASON="$(printf '%s' "$auth_health_parse_out" | awk -F'\t' '{print $2}')"
+fi
 
 SECURITY_FILE="$OUT_DIR/security_audit_deep.txt"
 if [ "$SECURITY_AUDIT_MODE" = "non_deep_fallback_due_uv_interface_addresses" ]; then
@@ -166,6 +212,9 @@ fi
   echo "security_audit_fallback_exit=${CMD_RC[security_audit_fallback]:-NA}"
   echo "cron_delivery_guard_exit=${CMD_RC[cron_delivery_guard]:-1}"
   echo "models_status_probe_exit=${CMD_RC[models_status_probe]:-1}"
+  echo "auth_health_exit=${CMD_RC[auth_health]:-1}"
+  echo "auth_health_state=$AUTH_HEALTH_STATE"
+  echo "auth_health_reason=$AUTH_HEALTH_REASON"
   echo "sandbox_explain_json_exit=${CMD_RC[sandbox_explain_json]:-1}"
   echo "gateway_probe_json_exit=${CMD_RC[gateway_probe_json]:-1}"
   echo "policy_assert_exit=${CMD_RC[policy_assert]:-1}"
@@ -201,7 +250,7 @@ export CHECK_INTERFACES_POLICY="$([ "${CMD_RC[interfaces_policy_assert]:-1}" -eq
 export CHECK_RECEIPT_GENERATION="$([ "$rc_receipt" -eq 0 ] && echo true || echo false)"
 export CHECK_LEAK_SCAN="$([ "$rc_leak" -eq 0 ] && echo true || echo false)"
 
-python3 - <<'PY' "$GATE_STATUS_PATH" "$TS_UTC" "$policy_fingerprint" "$SECURITY_AUDIT_MODE" "$CONFINEMENT_FLAG" "$OUT_DIR" "$reasons_file"
+python3 - <<'PY' "$GATE_STATUS_PATH" "$TS_UTC" "$policy_fingerprint" "$SECURITY_AUDIT_MODE" "$CONFINEMENT_FLAG" "$OUT_DIR" "$reasons_file" "$AUTH_HEALTH_STATE" "$AUTH_HEALTH_REASON"
 import json
 import os
 import sys
@@ -215,6 +264,8 @@ security_audit_mode = sys.argv[4]
 confinement_flag = sys.argv[5]
 out_dir = Path(sys.argv[6])
 reasons_file = Path(sys.argv[7])
+auth_health_state = str(sys.argv[8] or "unknown")
+auth_health_reason = str(sys.argv[9] or "auth_health_unavailable")
 
 def env_bool(key: str) -> bool:
     return str(os.environ.get(key, "")).strip().lower() == "true"
@@ -253,6 +304,8 @@ payload: Dict[str, Any] = {
     "security_audit_mode": security_audit_mode,
     "confinement_detected": bool(confinement_flag),
     "policy_fingerprint": policy_fingerprint,
+    "auth_health_state": auth_health_state,
+    "auth_health_reason": auth_health_reason,
 }
 if confinement_flag:
     payload["confinement_flag"] = confinement_flag

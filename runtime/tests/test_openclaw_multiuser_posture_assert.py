@@ -5,6 +5,9 @@ from runtime.tools.openclaw_multiuser_posture_assert import assert_multiuser_pos
 
 def _cfg():
     return {
+        "session": {
+            "dmScope": "per-account-channel-peer",
+        },
         "commands": {
             "ownerAllowFrom": ["owner-1"],
             "useAccessGroups": True,
@@ -81,3 +84,18 @@ def test_multiuser_posture_summary_exposes_counts_only():
     dumped = json.dumps(result, sort_keys=True)
     assert "owner-1" not in dumped
 
+
+def test_multiuser_posture_rejects_missing_dmscope():
+    cfg = _cfg()
+    del cfg["session"]["dmScope"]
+    result = assert_multiuser_posture(cfg)
+    assert result["multiuser_posture_ok"] is False
+    assert any("session.dmScope" in v for v in result["violations"])
+
+
+def test_multiuser_posture_rejects_wrong_dmscope():
+    cfg = _cfg()
+    cfg["session"]["dmScope"] = "per-channel-peer"
+    result = assert_multiuser_posture(cfg)
+    assert result["multiuser_posture_ok"] is False
+    assert any("session.dmScope" in v for v in result["violations"])

@@ -151,6 +151,107 @@ if isinstance(reasons, list) and reasons:
 PY
 }
 
+annotate_gate_breakglass_status() {
+  local gate_status_path="$1"
+  local used="$2"
+  local scope="$3"
+  local reasons_csv="${4:-}"
+  if [ ! -f "$gate_status_path" ]; then
+    return 0
+  fi
+  python3 - <<'PY' "$gate_status_path" "$used" "$scope" "$reasons_csv"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+used = str(sys.argv[2]).strip().lower() == "true"
+scope = str(sys.argv[3] or "").strip() or "policy_drift_only"
+raw_reasons = str(sys.argv[4] or "")
+reasons = [item for item in raw_reasons.split(",") if item]
+
+try:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+except Exception:
+    payload = {}
+
+if not isinstance(payload, dict):
+    payload = {}
+
+payload["break_glass_used"] = used
+payload["break_glass_scope"] = scope
+payload["break_glass_bypass_reasons"] = reasons
+path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+PY
+}
+
+classify_breakglass_gate_reasons() {
+  local gate_status_path="$1"
+  python3 - <<'PY' "$gate_status_path"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+drift_allowed = {
+    "policy_assert_failed",
+    "model_ladder_policy_failed",
+    "multiuser_posture_failed",
+    "interfaces_policy_failed",
+    "cron_delivery_guard_failed",
+}
+hard_exact = {
+    "sandbox_mode_not_non_main",
+    "sandbox_elevated_enabled",
+    "gateway_probe_failed",
+    "receipt_generation_failed",
+    "leak_scan_failed",
+}
+hard_prefixes = ("security_audit_",)
+
+if not path.exists():
+    print("can_bypass=false")
+    print("hard_reasons=gate_status_missing")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
+try:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+except Exception:
+    print("can_bypass=false")
+    print("hard_reasons=gate_status_parse_error")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
+reasons = payload.get("blocking_reasons") or []
+if not isinstance(reasons, list):
+    reasons = []
+reasons = [str(r).strip() for r in reasons if str(r).strip()]
+
+if not reasons:
+    print("can_bypass=false")
+    print("hard_reasons=startup_failure_without_gate_reasons")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
+bypass = []
+hard = []
+for reason in reasons:
+    if reason in drift_allowed:
+        bypass.append(reason)
+        continue
+    if reason in hard_exact or any(reason.startswith(prefix) for prefix in hard_prefixes):
+        hard.append(reason)
+        continue
+    hard.append(reason)
+
+can_bypass = bool(bypass) and not hard
+print(f"can_bypass={'true' if can_bypass else 'false'}")
+print("hard_reasons=" + ",".join(hard))
+print("bypass_reasons=" + ",".join(bypass))
+PY
+}
+
 ensure_worktree() {
   if [ ! -d "$TRAIN_WT" ]; then
     git -C "$BUILD_REPO" worktree add -B "$TRAIN_BRANCH" "$TRAIN_WT" HEAD
@@ -387,7 +488,7 @@ Usage:
 
 Enforcement modes:
   - Default startup mode is fail-closed for security/model/posture gates.
-  - Use --unsafe-allow-drift for local emergency startup bypass.
+  - Use --unsafe-allow-drift for local emergency bypass of policy drift checks only.
 EOF
 }
 
@@ -440,15 +541,38 @@ case "$cmd" in
       start_failed=1
     fi
     popd >/dev/null
+    gate_status_path="${OPENCLAW_GATE_STATUS_PATH:-$OPENCLAW_STATE_DIR/runtime/gates/gate_status.json}"
+    break_glass_scope="policy_drift_only"
     if [ "$start_failed" -ne 0 ] && [ "$unsafe_allow_drift" -ne 1 ]; then
+      annotate_gate_breakglass_status "$gate_status_path" "false" "$break_glass_scope" ""
       emit_gate_blocking_summary
       echo "ERROR: startup blocked by fail-closed gate policy." >&2
       echo "NEXT: fix blocking reasons above, or re-run with --unsafe-allow-drift for emergency local use only." >&2
       exit 1
     fi
     if [ "$start_failed" -ne 0 ] && [ "$unsafe_allow_drift" -eq 1 ]; then
-      emit_gate_blocking_summary
-      echo "WARNING: --unsafe-allow-drift bypass active. Continuing despite startup gate failures." >&2
+      classify_lines="$(classify_breakglass_gate_reasons "$gate_status_path")"
+      can_bypass="$(printf '%s\n' "$classify_lines" | sed -n 's/^can_bypass=//p' | tail -n 1)"
+      hard_reasons="$(printf '%s\n' "$classify_lines" | sed -n 's/^hard_reasons=//p' | tail -n 1)"
+      bypass_reasons="$(printf '%s\n' "$classify_lines" | sed -n 's/^bypass_reasons=//p' | tail -n 1)"
+      if [ "$can_bypass" = "true" ]; then
+        annotate_gate_breakglass_status "$gate_status_path" "true" "$break_glass_scope" "$bypass_reasons"
+        emit_gate_blocking_summary
+        echo "WARNING: --unsafe-allow-drift bypass active for policy drift checks only." >&2
+      else
+        annotate_gate_breakglass_status "$gate_status_path" "true" "$break_glass_scope" ""
+        emit_gate_blocking_summary
+        if [ -n "$hard_reasons" ]; then
+          echo "ERROR: --unsafe-allow-drift cannot bypass non-policy gate failures: $hard_reasons" >&2
+        else
+          echo "ERROR: --unsafe-allow-drift cannot classify gate failures safely; refusing bypass." >&2
+        fi
+        echo "ERROR: startup blocked by fail-closed gate policy." >&2
+        exit 1
+      fi
+    fi
+    if [ "$start_failed" -eq 0 ]; then
+      annotate_gate_breakglass_status "$gate_status_path" "false" "$break_glass_scope" ""
     fi
     dashboard_url="$(resolve_dashboard_url "$show_token_url")"
     echo "DASHBOARD_URL=$dashboard_url"
