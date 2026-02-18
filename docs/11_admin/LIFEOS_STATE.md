@@ -13,7 +13,7 @@
 
 **Current Focus:** W4 Integration COMPLETE (T03/T04) — OpenClaw->Spine bridge, worktree clean enforcement, lifecycle hooks done. Next: W5-T02 checkpoint/resume proof or W6 Codemoot spike
 **Active WIP:** None — W4-T03/T04 integration closed
-**Last Updated:** 2026-02-18 (rev13)
+**Last Updated:** 2026-02-18 (rev14)
 
 ---
 
@@ -74,6 +74,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-18:** Worktree Outside Repo Resolution 20260218 — chore: refresh runtime_status.json (closure); fix(worktree): resolve repo root from script location when invoked outside repo — 1/1 targeted test command(s) passed. (merge commit ba63f57)
 - **2026-02-18:** W4-T03/T04 OpenClaw Integration — feat: OpenClaw->Spine execution bridge, clean-worktree enforcement, CLI command spine run-openclaw-job — 1/1 targeted test command(s) passed. (merge commit c53bdcc)
 - **2026-02-18:** Openclaw Boundary Enforcement 20260218 — chore: refresh runtime_status.json (closure); feat: OpenClaw boundary enforcement gap-fill (dmScope, AuthHealth, break-glass) — 1/1 targeted test command(s) passed. (merge commit 9230ac7)
 - **2026-02-18:** Openclaw Security Hardening 20260218 — chore: refresh runtime_status.json (closure); feat(openclaw): security hardening — fail-closed startup, cron egress parking, policy alignment — 1/1 targeted test command(s) passed. (merge commit 446c6dc)
