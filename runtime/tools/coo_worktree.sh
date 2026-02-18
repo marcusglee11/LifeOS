@@ -2,7 +2,17 @@
 set -euo pipefail
 export PYTHONDONTWRITEBYTECODE=1
 
-BUILD_REPO="$(git rev-parse --show-toplevel)"
+# Tier 1: explicit env override (hermetic tests, CI)
+# Tier 2: script-relative resolution via BASH_SOURCE[0] (works outside-repo invocations)
+# Tier 3: git rev-parse fallback (when invoked from inside the repo)
+if [ -n "${LIFEOS_BUILD_REPO:-}" ]; then
+    BUILD_REPO="$LIFEOS_BUILD_REPO"
+elif _script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null)"; then
+    BUILD_REPO="$(cd "$_script_dir/../.." && pwd)"
+else
+    BUILD_REPO="$(git rev-parse --show-toplevel)"
+fi
+unset _script_dir
 TRAIN_WT="$(dirname "$BUILD_REPO")/LifeOS__wt_coo_training"
 TRAIN_BRANCH="coo/training"
 OPENCLAW_PROFILE="${OPENCLAW_PROFILE:-}"

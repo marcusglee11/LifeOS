@@ -177,3 +177,24 @@ def test_start_without_failures_keeps_breakglass_off(tmp_path: Path) -> None:
     assert gate["break_glass_used"] is False
     assert gate["break_glass_scope"] == "policy_drift_only"
     assert gate["break_glass_bypass_reasons"] == []
+
+
+def test_start_resolves_repo_when_invoked_outside_repo(tmp_path: Path) -> None:
+    """Script resolves repo root via BASH_SOURCE[0] even when cwd is outside any git repo."""
+    repo_dir, env, state_dir = _prepare_repo(tmp_path)
+    env["STUB_VERIFY_RC"] = "0"
+    env["STUB_GATE_STATUS_JSON"] = json.dumps({"pass": True, "blocking_reasons": []})
+
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    proc = subprocess.run(
+        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "start"],
+        cwd=outside,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    gate = _gate_status(state_dir)
+    assert gate["break_glass_used"] is False
