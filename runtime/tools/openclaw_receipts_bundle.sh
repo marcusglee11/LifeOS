@@ -85,8 +85,12 @@ CMD_IDS=(
 redact_stream() {
   sed -E \
     -e 's/(Authorization:[[:space:]]*Bearer[[:space:]]+)[^[:space:]]+/\1[REDACTED]/Ig' \
+    -e 's/\b(gh[opurs]_[A-Za-z0-9]{6})[A-Za-z0-9]+/\1...[REDACTED]/g' \
     -e 's/\b(sk-[A-Za-z0-9_-]{6})[A-Za-z0-9_-]+/\1...[REDACTED]/g' \
+    -e 's/\b(sk-ant-[A-Za-z0-9_-]{6})[A-Za-z0-9_-]+/\1...[REDACTED]/g' \
     -e 's/\b(AIza[0-9A-Za-z_-]{6})[0-9A-Za-z_-]+/\1...[REDACTED]/g' \
+    -e 's/\b(ya29\.[0-9A-Za-z._-]{6})[0-9A-Za-z._-]+/\1...[REDACTED]/g' \
+    -e 's/\b(xox[aboprs]-[A-Za-z0-9-]{6})[A-Za-z0-9-]+/\1...[REDACTED]/g' \
     -e 's/(("|\x27)?(apiKey|botToken|token|Authorization|password|secret)("|\x27)?[[:space:]]*[:=][[:space:]]*("|\x27)?)[^",\x27[:space:]]+/\1[REDACTED]/Ig' \
     -e 's/[A-Za-z0-9+\/_=-]{80,}/[REDACTED_LONG]/g'
 }
@@ -140,7 +144,7 @@ run_capture memory_policy_guard_summary python3 runtime/tools/openclaw_memory_po
 run_capture multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --json
 run_capture memory_status_main coo openclaw -- memory status --agent main
 run_capture channels_status_json coo openclaw -- channels status --json
-run_capture models_status_probe coo openclaw -- models status --probe
+run_capture models_status_probe coo openclaw -- models status
 run_capture status_all_usage coo openclaw -- status --all --usage
 run_capture sandbox_explain_json coo openclaw -- sandbox explain --json
 run_capture gateway_probe_json coo openclaw -- gateway probe --json

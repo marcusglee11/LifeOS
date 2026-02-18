@@ -9,6 +9,7 @@ TS_UTC="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT_DIR="${OPENCLAW_MODELS_PREFLIGHT_OUT_DIR:-$STATE_DIR/runtime/models_preflight/$TS_UTC}"
 LIST_TIMEOUT_SEC="${OPENCLAW_MODELS_LIST_TIMEOUT_SEC:-20}"
 PROBE_TIMEOUT_SEC="${OPENCLAW_MODELS_PROBE_TIMEOUT_SEC:-70}"
+ENABLE_PROBE="${OPENCLAW_MODELS_PREFLIGHT_ENABLE_PROBE:-0}"
 ENFORCEMENT_MODE="${COO_ENFORCEMENT_MODE:-interactive}"
 
 if [ -z "$OPENCLAW_BIN" ] || [ ! -x "$OPENCLAW_BIN" ]; then
@@ -47,7 +48,13 @@ fi
 set +e
 timeout "$LIST_TIMEOUT_SEC" "$OPENCLAW_BIN" models list > "$models_list_out" 2>&1
 rc_list=$?
-timeout "$PROBE_TIMEOUT_SEC" "$OPENCLAW_BIN" models status --probe > "$probe_raw" 2>&1
+if [ "$ENABLE_PROBE" = "1" ]; then
+  timeout "$PROBE_TIMEOUT_SEC" "$OPENCLAW_BIN" models status --probe > "$probe_raw" 2>&1
+  probe_mode="probe"
+else
+  timeout "$PROBE_TIMEOUT_SEC" "$OPENCLAW_BIN" models status > "$probe_raw" 2>&1
+  probe_mode="status"
+fi
 rc_probe=$?
 set -e
 
@@ -58,8 +65,12 @@ text=inp
 text=re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}','[REDACTED_EMAIL]',text)
 text=re.sub(r'Authorization\s*:\s*Bearer\s+\S+','Authorization: Bearer [REDACTED]',text,flags=re.I)
 text=re.sub(r'\bxapp-[A-Za-z0-9-]{6,}\b','xapp-[REDACTED]',text)
-text=re.sub(r'\bxoxb-[A-Za-z0-9-]{6,}\b','xoxb-[REDACTED]',text)
+text=re.sub(r'\bxox[aboprs]-[A-Za-z0-9-]{6,}\b','xox?-[REDACTED]',text)
 text=re.sub(r'\bsk-[A-Za-z0-9_-]{8,}\b','sk-[REDACTED]',text)
+text=re.sub(r'\bsk-ant-[A-Za-z0-9_-]{8,}\b','sk-ant-[REDACTED]',text)
+text=re.sub(r'\bgh[opurs]_[A-Za-z0-9]{12,}\b','gh*_[REDACTED]',text)
+text=re.sub(r'\bAIza[0-9A-Za-z_-]{10,}\b','AIza[REDACTED]',text)
+text=re.sub(r'\bya29\.[0-9A-Za-z._-]{12,}\b','ya29.[REDACTED]',text)
 text=re.sub(r'[A-Za-z0-9+/_=-]{80,}','[REDACTED_LONG]',text)
 open(sys.argv[2],'w',encoding='utf-8').write(text)
 PY
@@ -119,6 +130,7 @@ PY
 
 pass=true
 reason=""
+degraded_reason=""
 if [ "$gateway_reachable" != "true" ]; then
   pass=false
   reason="gateway_unreachable"
@@ -129,8 +141,7 @@ elif [ "$working_ok" != "true" ]; then
   pass=false
   reason="no_working_model_for_agent"
 elif [ -n "$missing_auth_agents" ]; then
-  pass=false
-  reason="top_rung_auth_missing"
+  degraded_reason="top_rung_auth_missing"
 fi
 
 {
@@ -142,14 +153,24 @@ fi
   echo "providers_referenced=$providers_referenced"
   echo "rc_list=$rc_list"
   echo "rc_probe=$rc_probe"
+  echo "probe_mode=$probe_mode"
   echo "rc_policy=$rc_policy"
+  echo "degraded_reason=$degraded_reason"
   echo "models_list_out=$models_list_out"
   echo "models_probe_sanitized=$probe_sanitized"
   echo "policy_json=$policy_json"
 } > "$summary_out"
 
 if [ "$pass" = true ]; then
-  echo "PASS models_preflight=true reason=ok summary=$summary_out"
+  if [ -n "$degraded_reason" ]; then
+    echo "PASS models_preflight=true reason=$degraded_reason degraded=true summary=$summary_out"
+    if [ "$degraded_reason" = "top_rung_auth_missing" ]; then
+      echo "WARN: Top rung auth missing for agents=$missing_auth_agents; fallback routing remains available." >&2
+      echo "NEXT: Re-auth top provider(s) to restore preferred routing order." >&2
+    fi
+  else
+    echo "PASS models_preflight=true reason=ok summary=$summary_out"
+  fi
   exit 0
 fi
 
@@ -170,16 +191,6 @@ try:
 except Exception:
     print("- Unable to parse policy violation details.")
 PY
-  elif [ "$reason" = "top_rung_auth_missing" ]; then
-    echo "NEXT: openclaw onboard" >&2
-    IFS=',' read -r -a provs <<< "$providers_referenced"
-    for provider in "${provs[@]}"; do
-      case "$provider" in
-        openai-codex|github-copilot|google-gemini-cli|openrouter|opencode|zen)
-          echo "NEXT: openclaw models auth login --provider $provider" >&2
-          ;;
-      esac
-    done
   elif [ "$reason" = "no_working_model_for_agent" ]; then
     echo "NEXT: Verify provider auth and model availability; ensure at least one working model per agent." >&2
   elif [ "$reason" = "gateway_unreachable" ]; then
@@ -201,16 +212,6 @@ try:
 except Exception:
     print("- Unable to parse policy violation details.")
 PY
-elif [ "$reason" = "top_rung_auth_missing" ]; then
-  echo "NEXT: openclaw onboard" >&2
-  IFS=',' read -r -a provs <<< "$providers_referenced"
-  for provider in "${provs[@]}"; do
-    case "$provider" in
-      openai-codex|github-copilot|google-gemini-cli|openrouter|opencode|zen)
-        echo "NEXT: openclaw models auth login --provider $provider" >&2
-        ;;
-    esac
-  done
 elif [ "$reason" = "no_working_model_for_agent" ]; then
   echo "NEXT: Verify provider auth and model availability; ensure at least one working model per agent." >&2
 fi

@@ -17,7 +17,11 @@ patterns = [
     ("botToken", re.compile(r"botToken\s*[:=]\s*[\"']?[^\"'\s]+", re.I)),
     ("Authorization: Bearer", re.compile(r"Authorization:\s*Bearer\s+\S+", re.I)),
     ("sk-", re.compile(r"\bsk-[A-Za-z0-9_-]{8,}")),
+    ("sk-ant-", re.compile(r"\bsk-ant-[A-Za-z0-9_-]{8,}")),
+    ("ghu_/gho_/ghp_", re.compile(r"\bgh[opurs]_[A-Za-z0-9]{12,}\b")),
+    ("xox*", re.compile(r"\bxox[aboprs]-[A-Za-z0-9-]{8,}\b")),
     ("AIza", re.compile(r"\bAIza[0-9A-Za-z_-]{8,}")),
+    ("ya29.", re.compile(r"\bya29\.[0-9A-Za-z._-]{12,}\b")),
     ("base64-ish", re.compile(r"\b[A-Za-z0-9+/=_-]{80,}\b")),
 ]
 

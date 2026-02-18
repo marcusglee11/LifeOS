@@ -91,23 +91,64 @@ PY
   printf '%s\n' "$token"
 }
 
+strip_dashboard_token_fragments() {
+  sed -E \
+    -e 's/#token=[^[:space:]#&?]+//g' \
+    -e 's/([?&])token=[^[:space:]#&?]+/\1/g' \
+    -e 's/[?&]+$//'
+}
+
 resolve_dashboard_url() {
+  local include_token_url="${1:-0}"
   local fallback_url output parsed token
   fallback_url="http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
   output="$(run_openclaw dashboard --no-open 2>/dev/null || true)"
   parsed="$(printf '%s\n' "$output" | sed -n 's/.*Dashboard URL: \(http[^[:space:]]*\).*/\1/p' | tail -n 1)"
   if [ -n "$parsed" ]; then
-    printf '%s\n' "$parsed"
+    if [ "$include_token_url" = "1" ]; then
+      printf '%s\n' "$parsed"
+    else
+      printf '%s\n' "$parsed" | strip_dashboard_token_fragments
+    fi
     return 0
   fi
   token="$(resolve_gateway_token_from_config)"
-  if [ -n "$token" ]; then
+  if [ "$include_token_url" = "1" ] && [ -n "$token" ]; then
     printf '%s#token=%s\n' "$fallback_url" "$token"
     return 0
   fi
-  echo "WARN: gateway token not found; opening unauthenticated dashboard URL." >&2
   printf '%s\n' "$fallback_url"
   return 0
+}
+
+emit_gate_blocking_summary() {
+  local gate_status_path="${OPENCLAW_GATE_STATUS_PATH:-$OPENCLAW_STATE_DIR/runtime/gates/gate_status.json}"
+  if [ ! -f "$gate_status_path" ]; then
+    echo "GATE_STATUS_PATH_MISSING=$gate_status_path"
+    return 0
+  fi
+
+  echo "GATE_STATUS_PATH=$gate_status_path"
+  python3 - <<'PY' "$gate_status_path"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    obj = json.loads(path.read_text(encoding="utf-8"))
+except Exception as exc:
+    print(f"GATE_STATUS_PARSE_ERROR={type(exc).__name__}:{exc}")
+    raise SystemExit(0)
+
+print(f"GATE_PASS={'true' if obj.get('pass') else 'false'}")
+reasons = obj.get("blocking_reasons") or []
+if isinstance(reasons, list) and reasons:
+    print("GATE_BLOCKING_REASONS_BEGIN")
+    for reason in reasons:
+        print(f"- {reason}")
+    print("GATE_BLOCKING_REASONS_END")
+PY
 }
 
 ensure_worktree() {
@@ -199,10 +240,13 @@ text = sys.stdin.read()
 text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[REDACTED_EMAIL]', text)
 text = re.sub(r'Authorization\s*:\s*Bearer\s+\S+', 'Authorization: Bearer [REDACTED]', text, flags=re.I)
 text = re.sub(r'\bxapp-[A-Za-z0-9-]{6,}\b', 'xapp-[REDACTED]', text)
-text = re.sub(r'\bxoxb-[A-Za-z0-9-]{6,}\b', 'xoxb-[REDACTED]', text)
+text = re.sub(r'\bxox[aboprs]-[A-Za-z0-9-]{6,}\b', 'xox?-[REDACTED]', text)
 text = re.sub(r'\bsk-or-v1[a-zA-Z0-9._-]{6,}\b', 'sk-or-v1[REDACTED]', text)
 text = re.sub(r'\bsk-[A-Za-z0-9_-]{8,}\b', 'sk-[REDACTED]', text)
+text = re.sub(r'\bsk-ant-[A-Za-z0-9_-]{8,}\b', 'sk-ant-[REDACTED]', text)
+text = re.sub(r'\bgh[opurs]_[A-Za-z0-9]{12,}\b', 'gh*_[REDACTED]', text)
 text = re.sub(r'\bAIza[0-9A-Za-z_-]{10,}\b', 'AIza[REDACTED]', text)
+text = re.sub(r'\bya29\.[0-9A-Za-z._-]{12,}\b', 'ya29.[REDACTED]', text)
 text = re.sub(r'[A-Za-z0-9+/_=-]{80,}', '[REDACTED_LONG]', text)
 sys.stdout.write(text)
 PY
@@ -322,9 +366,9 @@ render_capsule_marker() {
 usage() {
   cat <<'EOF'
 Usage:
-  runtime/tools/coo_worktree.sh start
-  runtime/tools/coo_worktree.sh tui [-- <tui-args...>]
-  runtime/tools/coo_worktree.sh app
+  runtime/tools/coo_worktree.sh start [--show-token-url] [--unsafe-allow-drift]
+  runtime/tools/coo_worktree.sh tui [--show-token-url] [--unsafe-allow-drift] [-- <tui-args...>]
+  runtime/tools/coo_worktree.sh app [--show-token-url] [--unsafe-allow-drift]
   runtime/tools/coo_worktree.sh stop
   runtime/tools/coo_worktree.sh diag
   runtime/tools/coo_worktree.sh models {status|fix}
@@ -342,8 +386,8 @@ Usage:
   runtime/tools/coo_worktree.sh openclaw -- <openclaw-args...>
 
 Enforcement modes:
-  - Interactive mode (tui, app, diag, start, models, openclaw): Fail-soft on ladder issues
-  - Mission mode (e2e, job, run-job): Fail-closed on ladder issues
+  - Default startup mode is fail-closed for security/model/posture gates.
+  - Use --unsafe-allow-drift for local emergency startup bypass.
 EOF
 }
 
@@ -359,23 +403,87 @@ case "$cmd" in
     ;;
   start)
     shift || true
+    show_token_url=0
+    unsafe_allow_drift=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --show-token-url)
+          show_token_url=1
+          shift
+          ;;
+        --redacted-dashboard)
+          show_token_url=0
+          shift
+          ;;
+        --unsafe-allow-drift)
+          unsafe_allow_drift=1
+          shift
+          ;;
+        *)
+          echo "ERROR: unknown start argument: $1" >&2
+          exit 2
+          ;;
+      esac
+    done
     ensure_openclaw_surface
     print_header
-    (
-      cd "$BUILD_REPO"
-      export COO_ENFORCEMENT_MODE=interactive
-      runtime/tools/openclaw_gateway_ensure.sh
-      runtime/tools/openclaw_models_preflight.sh
-    )
-    dashboard_url="$(resolve_dashboard_url)"
+    start_failed=0
+    pushd "$BUILD_REPO" >/dev/null
+    if ! runtime/tools/openclaw_gateway_ensure.sh; then
+      start_failed=1
+    fi
+    export COO_ENFORCEMENT_MODE=mission
+    if ! runtime/tools/openclaw_models_preflight.sh; then
+      start_failed=1
+    fi
+    if ! runtime/tools/openclaw_verify_surface.sh; then
+      start_failed=1
+    fi
+    popd >/dev/null
+    if [ "$start_failed" -ne 0 ] && [ "$unsafe_allow_drift" -ne 1 ]; then
+      emit_gate_blocking_summary
+      echo "ERROR: startup blocked by fail-closed gate policy." >&2
+      echo "NEXT: fix blocking reasons above, or re-run with --unsafe-allow-drift for emergency local use only." >&2
+      exit 1
+    fi
+    if [ "$start_failed" -ne 0 ] && [ "$unsafe_allow_drift" -eq 1 ]; then
+      emit_gate_blocking_summary
+      echo "WARNING: --unsafe-allow-drift bypass active. Continuing despite startup gate failures." >&2
+    fi
+    dashboard_url="$(resolve_dashboard_url "$show_token_url")"
     echo "DASHBOARD_URL=$dashboard_url"
     ;;
   tui)
     shift || true
-    if [ "${1:-}" = "--" ]; then
-      shift || true
+    show_token_url=0
+    unsafe_allow_drift=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --show-token-url)
+          show_token_url=1
+          shift
+          ;;
+        --unsafe-allow-drift)
+          unsafe_allow_drift=1
+          shift
+          ;;
+        --)
+          shift
+          break
+          ;;
+        *)
+          break
+          ;;
+      esac
+    done
+    start_args=()
+    if [ "$show_token_url" -eq 1 ]; then
+      start_args+=("--show-token-url")
     fi
-    "$0" start
+    if [ "$unsafe_allow_drift" -eq 1 ]; then
+      start_args+=("--unsafe-allow-drift")
+    fi
+    "$0" start "${start_args[@]}"
     ensure_openclaw_surface
     print_header
     enter_training_dir
@@ -383,10 +491,35 @@ case "$cmd" in
     ;;
   app)
     shift || true
-    "$0" start
+    show_token_url=0
+    unsafe_allow_drift=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --show-token-url)
+          show_token_url=1
+          shift
+          ;;
+        --unsafe-allow-drift)
+          unsafe_allow_drift=1
+          shift
+          ;;
+        *)
+          echo "ERROR: unknown app argument: $1" >&2
+          exit 2
+          ;;
+      esac
+    done
+    start_args=()
+    if [ "$show_token_url" -eq 1 ]; then
+      start_args+=("--show-token-url")
+    fi
+    if [ "$unsafe_allow_drift" -eq 1 ]; then
+      start_args+=("--unsafe-allow-drift")
+    fi
+    "$0" start "${start_args[@]}"
     ensure_openclaw_surface
     print_header
-    app_url="$(resolve_dashboard_url)"
+    app_url="$(resolve_dashboard_url "$show_token_url")"
     if powershell.exe -NoProfile -Command "Start-Process '$app_url'" >/dev/null 2>&1; then
       echo "APP_OPENED=$app_url"
     else

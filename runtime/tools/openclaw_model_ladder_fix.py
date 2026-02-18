@@ -8,25 +8,19 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import shutil
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 EXECUTION_BASE = [
     "openai-codex/gpt-5.3-codex",
-    "google-gemini-cli/gemini-3-flash-preview",
-    "openrouter/pony-alpha",
-]
-THINKING_BASE = [
-    "openai-codex/gpt-5.3-codex",
     "github-copilot/claude-opus-4.6",
-    "openrouter/deepseek-v3.2",
+    "google-gemini-cli/gemini-3-flash-preview",
 ]
+THINKING_BASE = list(EXECUTION_BASE)
 
 
 def sha256_file(path: Path) -> str:
@@ -36,24 +30,6 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: f.read(8192), b""):
             h.update(chunk)
     return h.hexdigest()
-
-
-def redact_tokens(cfg: Dict[str, Any]) -> Dict[str, Any]:
-    """Create a redacted copy of config for display (remove auth tokens)."""
-    import copy
-    redacted = copy.deepcopy(cfg)
-
-    # Redact common token locations
-    if isinstance(redacted, dict):
-        for key in list(redacted.keys()):
-            if any(x in key.lower() for x in ("token", "key", "secret", "password", "credential")):
-                redacted[key] = "[REDACTED]"
-            elif isinstance(redacted[key], dict):
-                redacted[key] = redact_tokens(redacted[key])
-            elif isinstance(redacted[key], list):
-                redacted[key] = [redact_tokens(x) if isinstance(x, dict) else x for x in redacted[key]]
-
-    return redacted
 
 
 def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
@@ -92,9 +68,21 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
                     model["primary"] = ladder_base[0]
                     changes.append(f"{agent_id}: set primary to {ladder_base[0]}")
 
-                if not isinstance(fallbacks, list) or not fallbacks:
-                    model["fallbacks"] = ladder_base[1:]
-                    changes.append(f"{agent_id}: set fallbacks to policy ladder")
+                if not isinstance(fallbacks, list):
+                    fallbacks = []
+
+                required_prefix = ladder_base[1:]
+                existing = [str(x) for x in fallbacks if isinstance(x, str) and str(x).strip()]
+                filtered_existing = [
+                    x
+                    for x in existing
+                    if ("haiku" not in x.lower()) and ("small" not in x.lower()) and (not x.lower().startswith("claude-max/"))
+                ]
+                extras = [x for x in filtered_existing if x not in required_prefix]
+                normalized_fallbacks = required_prefix + extras
+                if existing != normalized_fallbacks:
+                    model["fallbacks"] = normalized_fallbacks
+                    changes.append(f"{agent_id}: normalized fallback prefix to subscription-first ladder")
 
                 return
 
