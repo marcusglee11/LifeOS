@@ -13,7 +13,7 @@
 
 **Current Focus:** W4 Integration COMPLETE (T03/T04) — OpenClaw->Spine bridge, worktree clean enforcement, lifecycle hooks done. Next: W5-T02 checkpoint/resume proof or W6 Codemoot spike
 **Active WIP:** None — W4-T03/T04 integration closed
-**Last Updated:** 2026-02-18 (rev12)
+**Last Updated:** 2026-02-18 (rev13)
 
 ---
 
@@ -74,7 +74,7 @@
 
 ## 🟩 Recent Wins
 
-- **2026-02-18:** W4-T03/T04 OpenClaw Integration — OpenClaw->Spine execution bridge (execute_openclaw_job), clean-worktree enforcement in Spine run/resume, CLI command spine run-openclaw-job, full test coverage — 79 targeted tests passed.
+- **2026-02-18:** W4-T03/T04 OpenClaw Integration — feat: OpenClaw->Spine execution bridge, clean-worktree enforcement, CLI command spine run-openclaw-job — 1/1 targeted test command(s) passed. (merge commit c53bdcc)
 - **2026-02-18:** Openclaw Boundary Enforcement 20260218 — chore: refresh runtime_status.json (closure); feat: OpenClaw boundary enforcement gap-fill (dmScope, AuthHealth, break-glass) — 1/1 targeted test command(s) passed. (merge commit 9230ac7)
 - **2026-02-18:** Openclaw Security Hardening 20260218 — chore: refresh runtime_status.json (closure); feat(openclaw): security hardening — fail-closed startup, cron egress parking, policy alignment — 1/1 targeted test command(s) passed. (merge commit 446c6dc)
 - **2026-02-17:** W7 T02 T03 Stabilization 20260216 — chore: refresh runtime_status.json (closure); fix: commit regenerated runtime_status.json during closure; chore: refresh runtime_status.json (pre-merge); chore: normalize CRLF→LF in test_packet_dir_isolation.py; fix: remove -uall flag from cleanliness_gate.py (WSL timeout) (and 3 more) — 1/1 targeted test command(s) passed. (merge commit e566dc3)
