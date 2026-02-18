@@ -13,7 +13,7 @@
 
 **Current Focus:** W7 Stabilization COMPLETE — ledger hash-chain (T01), doc freshness CI (T02), protocol finalization (T03) all done. Next: W4-T03/T04 or W6 spike
 **Active WIP:** None — W7 stabilization batch closed
-**Last Updated:** 2026-02-17 (rev10)
+**Last Updated:** 2026-02-18 (rev11)
 
 ---
 
@@ -72,6 +72,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-18:** Openclaw Security Hardening 20260218 — chore: refresh runtime_status.json (closure); feat(openclaw): security hardening — fail-closed startup, cron egress parking, policy alignment — 1/1 targeted test command(s) passed. (merge commit 446c6dc)
 - **2026-02-17:** W7 T02 T03 Stabilization 20260216 — chore: refresh runtime_status.json (closure); fix: commit regenerated runtime_status.json during closure; chore: refresh runtime_status.json (pre-merge); chore: normalize CRLF→LF in test_packet_dir_isolation.py; fix: remove -uall flag from cleanliness_gate.py (WSL timeout) (and 3 more) — 1/1 targeted test command(s) passed. (merge commit e566dc3)
 - **2026-02-16:** Openclaw Closure Routing Fix 20260216 — fix: stabilize openclaw closure preflight routing — 2/2 targeted test command(s) passed. (merge commit e5b0cb1)
 - **2026-02-16:** W7 T01 Ledger Hash Chain — fix: W7-T01 review fixes — numeric schema parsing + fail-closed append hardening; feat: W7-T01 Ledger hash-chain hardening with fail-closed v1.1 enforcement — 1/1 targeted test command(s) passed. (merge commit 558c375)
