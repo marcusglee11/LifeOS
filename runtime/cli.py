@@ -816,6 +816,52 @@ def cmd_spine_run(args: argparse.Namespace, repo_root: Path) -> int:
         return 1
 
 
+def cmd_spine_run_openclaw_job(args: argparse.Namespace, repo_root: Path) -> int:
+    """Run an OpenClaw job payload through LoopSpine."""
+    from runtime.orchestration.openclaw_bridge import execute_openclaw_job
+
+    payload_path = Path(args.job_payload)
+    if payload_path.exists():
+        with open(payload_path, 'r', encoding='utf-8') as f:
+            job_payload = json.load(f)
+    else:
+        try:
+            job_payload = json.loads(args.job_payload)
+        except json.JSONDecodeError:
+            print("Error: job_payload must be a JSON file path or valid JSON string")
+            return 1
+
+    if not isinstance(job_payload, dict):
+        print("Error: job_payload must decode to a JSON object")
+        return 1
+
+    result = execute_openclaw_job(
+        repo_root=repo_root,
+        job_payload=job_payload,
+    )
+
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    else:
+        print(f"Job ID: {result.get('job_id', 'N/A')}")
+        print(f"Run ID: {result.get('run_id', 'N/A')}")
+        print(f"State: {result.get('state', 'N/A')}")
+
+        if result.get("state") == "checkpoint":
+            print(f"Checkpoint: {result.get('checkpoint_id', 'N/A')}")
+            print(f"Trigger: {result.get('trigger', 'N/A')}")
+            return 2
+
+        print(f"Outcome: {result.get('outcome', 'N/A')}")
+        print(f"Reason: {result.get('reason', 'N/A')}")
+
+    if result.get("state") == "checkpoint":
+        return 2
+    if result.get("outcome") == "PASS":
+        return 0
+    return 1
+
+
 def cmd_spine_resume(args: argparse.Namespace, repo_root: Path) -> int:
     """
     Resume Loop Spine execution from a checkpoint.
@@ -949,6 +995,17 @@ def main() -> int:
     p_spine_resume.add_argument("checkpoint_id", help="Checkpoint ID (e.g., CP_run_123_2)")
     p_spine_resume.add_argument("--json", action="store_true", help="Output results as JSON")
 
+    # spine run-openclaw-job
+    p_spine_run_openclaw = spine_subs.add_parser(
+        "run-openclaw-job",
+        help="Run an OpenClaw job payload through LoopSpine",
+    )
+    p_spine_run_openclaw.add_argument(
+        "job_payload",
+        help="Path to OpenClaw job JSON file or inline JSON string",
+    )
+    p_spine_run_openclaw.add_argument("--json", action="store_true", help="Output results as JSON")
+
     # Parse args
     # Note: argparse by default allows flags before subcommands
     args = parser.parse_args()
@@ -996,6 +1053,8 @@ def main() -> int:
                 return cmd_spine_run(args, repo_root)
             elif args.spine_cmd == "resume":
                 return cmd_spine_resume(args, repo_root)
+            elif args.spine_cmd == "run-openclaw-job":
+                return cmd_spine_run_openclaw_job(args, repo_root)
 
     except Exception as e:
         print(f"Error: {e}")

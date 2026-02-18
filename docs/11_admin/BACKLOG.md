@@ -8,13 +8,13 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-18 (rev4)
+**Last Updated:** 2026-02-18 (rev5)
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
 
-(None — W5-T01 E2E proof complete, W7 stabilization next)
+(None — W4-T03/T04 integration complete, next queued item is W5-T02 checkpoint/resume proof)
 
 ### P1 (High)
 
@@ -46,6 +46,8 @@
 
 ## Done (last ~25 only)
 
+- [x] **W4-T03 Worktree Dispatch Governance** — Date: 2026-02-18 — Spine now enforces isolated worktree lifecycle + clean-worktree fail-closed check (`runtime/orchestration/loop/spine.py`)
+- [x] **W4-T04 Validator Lifecycle Hooks (OpenClaw Path)** — Date: 2026-02-18 — OpenClaw execution bridge + CLI command + lifecycle-integrated test coverage (`runtime/orchestration/openclaw_bridge.py`, `runtime/cli.py`)
 - [x] **Guard deprecated `autonomous_build_cycle` path** (W0-T04) — Date: 2026-02-13 — cli.py deprecation guard + autonomous_build_cycle.py migration notice
 - [x] **Doc freshness skeleton gate** (W0-T06) — Date: 2026-02-14 — Runtime status generator, checkpoint artifacts, close-build integration
 - [x] **Fix test_e2e_smoke_timeout.py** (W0-T05) — Date: 2026-02-14 — Tests already passing, no work needed

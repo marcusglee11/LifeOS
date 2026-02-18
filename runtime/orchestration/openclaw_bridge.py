@@ -9,9 +9,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
+import yaml
 
 OPENCLAW_JOB_KIND = "lifeos.job.v0.1"
 OPENCLAW_RESULT_KIND = "lifeos.result.v0.2"
@@ -20,6 +22,10 @@ OPENCLAW_EVIDENCE_ROOT = Path("artifacts/evidence/openclaw/jobs")
 
 class OpenClawBridgeError(ValueError):
     """Raised when bridge payload mapping fails validation."""
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _validate_job_id(job_id: str) -> str:
@@ -46,6 +52,63 @@ def _normalize_string_list(value: Any, *, key: str) -> list[str]:
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
         raise OpenClawBridgeError(f"'{key}' must be a list[str]")
     return [item.strip() for item in value if item.strip()]
+
+
+def _safe_result_id(value: Any, *, fallback: str) -> str:
+    if isinstance(value, str) and value.strip():
+        candidate = value.strip()
+        if re.fullmatch(r"[A-Za-z0-9._:-]+", candidate):
+            return candidate
+    return fallback
+
+
+def _blocked_result(
+    *,
+    job_id: str,
+    run_id: str,
+    reason: str,
+    packet_refs: list[str] | None = None,
+    ledger_refs: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "kind": OPENCLAW_RESULT_KIND,
+        "job_id": job_id,
+        "run_id": run_id,
+        "state": "terminal",
+        "outcome": "BLOCKED",
+        "reason": reason,
+        "terminal_at": _utc_now_iso(),
+        "packet_refs": sorted(set(packet_refs or [])),
+        "ledger_refs": sorted(set(ledger_refs or [])),
+    }
+
+
+def _repo_relative_path(*, repo_root: Path, path: Path) -> str:
+    root = Path(repo_root).resolve()
+    resolved = Path(path).resolve()
+    try:
+        return resolved.relative_to(root).as_posix()
+    except ValueError as exc:
+        raise OpenClawBridgeError(f"artifact path escapes repo root: {path}") from exc
+
+
+def _load_yaml_packet(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        raise OpenClawBridgeError(f"artifact packet not found: {path}")
+    try:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise OpenClawBridgeError(f"invalid YAML packet: {path}") from exc
+    if not isinstance(payload, dict):
+        raise OpenClawBridgeError(f"packet must decode to an object: {path}")
+    return payload
+
+
+def _discover_ledger_refs(repo_root: Path) -> list[str]:
+    ledger_path = Path(repo_root) / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
+    if ledger_path.exists():
+        return [_repo_relative_path(repo_root=repo_root, path=ledger_path)]
+    return []
 
 
 def map_openclaw_job_to_spine_invocation(job_payload: Mapping[str, Any]) -> dict[str, Any]:
@@ -298,3 +361,113 @@ def verify_openclaw_evidence_contract(evidence_dir: Path) -> tuple[bool, list[st
             errors.append(f"hash mismatch for {filename}")
 
     return len(errors) == 0, errors
+
+
+def execute_openclaw_job(
+    *,
+    repo_root: Path,
+    job_payload: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Execute OpenClaw job via LoopSpine and return OpenClaw result payload."""
+    fallback_job_id = _safe_result_id(job_payload.get("job_id"), fallback="unknown_job")
+    fallback_run_id = _safe_result_id(job_payload.get("run_id"), fallback=f"openclaw:{fallback_job_id}")
+    resolved_repo_root = Path(repo_root).resolve()
+
+    try:
+        invocation = map_openclaw_job_to_spine_invocation(job_payload)
+        job_id = invocation["job_id"]
+        run_id = invocation["run_id"]
+
+        from runtime.orchestration.loop.spine import LoopSpine
+
+        spine = LoopSpine(
+            repo_root=resolved_repo_root,
+            use_worktree=bool(invocation.get("use_worktree", False)),
+        )
+        spine_result = spine.run(task_spec=invocation["task_spec"], resume_from=None)
+
+        run_id = _safe_result_id(spine_result.get("run_id"), fallback=run_id)
+        packet_refs: list[str] = []
+        checkpoint_packet: dict[str, Any] | None = None
+        checkpoint_packet_ref: str | None = None
+        terminal_packet: dict[str, Any] | None = None
+        terminal_packet_ref: str | None = None
+
+        if spine_result.get("state") == "CHECKPOINT":
+            checkpoint_id = spine_result.get("checkpoint_id")
+            if not isinstance(checkpoint_id, str) or not checkpoint_id.strip():
+                raise OpenClawBridgeError("checkpoint state missing checkpoint_id")
+            checkpoint_path = resolved_repo_root / "artifacts" / "checkpoints" / f"{checkpoint_id}.yaml"
+            checkpoint_packet = _load_yaml_packet(checkpoint_path)
+            checkpoint_packet_ref = _repo_relative_path(repo_root=resolved_repo_root, path=checkpoint_path)
+            packet_refs.append(checkpoint_packet_ref)
+        else:
+            terminal_path = resolved_repo_root / "artifacts" / "terminal" / f"TP_{run_id}.yaml"
+            if terminal_path.exists():
+                terminal_packet = _load_yaml_packet(terminal_path)
+                terminal_packet_ref = _repo_relative_path(repo_root=resolved_repo_root, path=terminal_path)
+                packet_refs.append(terminal_packet_ref)
+            else:
+                return _blocked_result(
+                    job_id=job_id,
+                    run_id=run_id,
+                    reason=f"TERMINAL_PACKET_MISSING: TP_{run_id}.yaml",
+                    ledger_refs=_discover_ledger_refs(resolved_repo_root),
+                )
+
+        ledger_refs = _discover_ledger_refs(resolved_repo_root)
+        if not ledger_refs:
+            return _blocked_result(
+                job_id=job_id,
+                run_id=run_id,
+                reason="LEDGER_REF_MISSING: artifacts/loop_state/attempt_ledger.jsonl",
+                packet_refs=packet_refs,
+            )
+
+        evidence_contract = write_openclaw_evidence_contract(
+            repo_root=resolved_repo_root,
+            job_id=job_id,
+            packet_refs=packet_refs,
+            ledger_refs=ledger_refs,
+        )
+        evidence_ok, evidence_errors = verify_openclaw_evidence_contract(
+            Path(evidence_contract["evidence_dir"])
+        )
+        if not evidence_ok:
+            failure_reason = evidence_errors[0] if evidence_errors else "unknown evidence validation failure"
+            return _blocked_result(
+                job_id=job_id,
+                run_id=run_id,
+                reason=f"EVIDENCE_CONTRACT_INVALID: {failure_reason}",
+                packet_refs=packet_refs,
+                ledger_refs=ledger_refs,
+            )
+
+        hash_manifest_ref = _repo_relative_path(
+            repo_root=resolved_repo_root,
+            path=Path(evidence_contract["hash_manifest_file"]),
+        )
+
+        return map_spine_artifacts_to_openclaw_result(
+            job_id=job_id,
+            terminal_packet=terminal_packet,
+            checkpoint_packet=checkpoint_packet,
+            terminal_packet_ref=terminal_packet_ref,
+            checkpoint_packet_ref=checkpoint_packet_ref,
+            packet_refs=packet_refs,
+            ledger_refs=ledger_refs,
+            hash_manifest_ref=hash_manifest_ref,
+        )
+
+    except OpenClawBridgeError as exc:
+        return _blocked_result(
+            job_id=fallback_job_id,
+            run_id=fallback_run_id,
+            reason=f"OPENCLAW_BRIDGE_ERROR: {exc}",
+        )
+    except Exception as exc:  # pragma: no cover - defensive fail-closed fallback
+        return _blocked_result(
+            job_id=fallback_job_id,
+            run_id=fallback_run_id,
+            reason=f"OPENCLAW_EXECUTION_ERROR: {type(exc).__name__}: {exc}",
+        )

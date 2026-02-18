@@ -46,6 +46,7 @@ from runtime.orchestration.loop.lifecycle_hooks import (
 from runtime.orchestration.loop.worktree_dispatch import (
     worktree_scope,
     WorktreeError,
+    validate_worktree_clean,
 )
 
 
@@ -187,7 +188,7 @@ class LoopSpine:
             SpineError: On other execution errors
         """
         # P0: Fail-closed on dirty repo
-        verify_repo_clean()
+        verify_repo_clean(self.repo_root)
 
         # Generate run ID
         self.run_id = self._generate_run_id()
@@ -227,6 +228,7 @@ class LoopSpine:
                         task_spec=task_spec,
                         execution_root=wt_handle.worktree_path,
                     )
+                    validate_worktree_clean(wt_handle)
             else:
                 result = self._run_chain_steps(task_spec=task_spec)
 
@@ -339,7 +341,7 @@ class LoopSpine:
             SpineError: On other errors
         """
         # P0: Fail-closed on dirty repo
-        verify_repo_clean()
+        verify_repo_clean(self.repo_root)
 
         # Load checkpoint
         checkpoint = self._load_checkpoint(checkpoint_id)

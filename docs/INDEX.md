@@ -1,4 +1,4 @@
-# LifeOS Strategic Corpus [Last Updated: 2026-02-16 (rev7)]
+# LifeOS Strategic Corpus [Last Updated: 2026-02-18 (rev8)]
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 

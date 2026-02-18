@@ -145,6 +145,68 @@ class TestCLI:
                 captured = capsys.readouterr()
                 assert "Error: No config file" in captured.out
 
+    def test_cli_spine_run_openclaw_job_json(self, temp_repo, tmp_path, capsys):
+        """spine run-openclaw-job should emit JSON and PASS exit code."""
+        payload_path = tmp_path / "job_payload.json"
+        payload_path.write_text('{"kind":"lifeos.job.v0.1"}', encoding="utf-8")
+
+        mocked_result = {
+            "kind": "lifeos.result.v0.2",
+            "job_id": "JOB-CLI-1",
+            "run_id": "run_cli_1",
+            "state": "terminal",
+            "outcome": "PASS",
+            "reason": "pass",
+            "terminal_at": "2026-02-18T00:00:00Z",
+            "packet_refs": [],
+            "ledger_refs": [],
+        }
+
+        with patch("runtime.cli.detect_repo_root", return_value=temp_repo):
+            with patch(
+                "runtime.orchestration.openclaw_bridge.execute_openclaw_job",
+                return_value=mocked_result,
+            ):
+                with patch(
+                    "sys.argv",
+                    ["runtime", "spine", "run-openclaw-job", str(payload_path), "--json"],
+                ):
+                    assert main() == 0
+                    captured = capsys.readouterr()
+                    payload = json.loads(captured.out)
+                    assert payload["job_id"] == "JOB-CLI-1"
+                    assert payload["outcome"] == "PASS"
+
+    def test_cli_spine_run_openclaw_job_checkpoint_exit_code(self, temp_repo, tmp_path, capsys):
+        """spine run-openclaw-job should return 2 for checkpoint state."""
+        payload_path = tmp_path / "job_payload.json"
+        payload_path.write_text('{"kind":"lifeos.job.v0.1"}', encoding="utf-8")
+
+        mocked_result = {
+            "kind": "lifeos.result.v0.2",
+            "job_id": "JOB-CLI-2",
+            "run_id": "run_cli_2",
+            "state": "checkpoint",
+            "checkpoint_id": "CP_run_cli_2_3",
+            "trigger": "ESCALATION_REQUESTED",
+            "checkpoint_at": "2026-02-18T00:00:00Z",
+            "packet_refs": [],
+            "ledger_refs": [],
+        }
+
+        with patch("runtime.cli.detect_repo_root", return_value=temp_repo):
+            with patch(
+                "runtime.orchestration.openclaw_bridge.execute_openclaw_job",
+                return_value=mocked_result,
+            ):
+                with patch(
+                    "sys.argv",
+                    ["runtime", "spine", "run-openclaw-job", str(payload_path)],
+                ):
+                    assert main() == 2
+                    captured = capsys.readouterr()
+                    assert "Checkpoint: CP_run_cli_2_3" in captured.out
+
 
 class TestCLIMission:
     """Tests for mission CLI commands."""

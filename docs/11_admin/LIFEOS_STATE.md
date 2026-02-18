@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** W7 Stabilization COMPLETE — ledger hash-chain (T01), doc freshness CI (T02), protocol finalization (T03) all done. Next: W4-T03/T04 or W6 spike
-**Active WIP:** None — W7 stabilization batch closed
-**Last Updated:** 2026-02-18 (rev11)
+**Current Focus:** W4 Integration COMPLETE (T03/T04) — OpenClaw->Spine bridge, worktree clean enforcement, lifecycle hooks done. Next: W5-T02 checkpoint/resume proof or W6 Codemoot spike
+**Active WIP:** None — W4-T03/T04 integration closed
+**Last Updated:** 2026-02-18 (rev12)
 
 ---
 
@@ -25,7 +25,9 @@
 2. ~~W7-T01 Ledger hash-chain hardening~~ ✓ **COMPLETE** (2026-02-16, commit 558c375)
 3. ~~W7-T02 Doc freshness CI enforcement~~ ✓ **COMPLETE** (2026-02-16, CI + close-build wired)
 4. ~~W7-T03 Protocol doc finalization (5/5 docs)~~ ✓ **COMPLETE** (2026-02-16, all ACTIVE)
-5. **Next:** W4-T03 Worktree dispatch governance / W4-T04 Validator lifecycle hooks / W6 Codemoot spike
+5. ~~W4-T03 Worktree dispatch governance~~ ✓ **COMPLETE** (2026-02-18, Spine clean-worktree enforcement)
+6. ~~W4-T04 Validator lifecycle hooks (OpenClaw path)~~ ✓ **COMPLETE** (2026-02-18, openclaw_bridge execute + CLI)
+7. **Next:** W5-T02 Checkpoint/resume E2E proof or W6 Codemoot spike
 
 **Canonical Plan Authority:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 
@@ -72,6 +74,8 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-18:** W4-T03/T04 OpenClaw Integration — OpenClaw->Spine execution bridge (execute_openclaw_job), clean-worktree enforcement in Spine run/resume, CLI command spine run-openclaw-job, full test coverage — 79 targeted tests passed.
+- **2026-02-18:** Openclaw Boundary Enforcement 20260218 — chore: refresh runtime_status.json (closure); feat: OpenClaw boundary enforcement gap-fill (dmScope, AuthHealth, break-glass) — 1/1 targeted test command(s) passed. (merge commit 9230ac7)
 - **2026-02-18:** Openclaw Security Hardening 20260218 — chore: refresh runtime_status.json (closure); feat(openclaw): security hardening — fail-closed startup, cron egress parking, policy alignment — 1/1 targeted test command(s) passed. (merge commit 446c6dc)
 - **2026-02-17:** W7 T02 T03 Stabilization 20260216 — chore: refresh runtime_status.json (closure); fix: commit regenerated runtime_status.json during closure; chore: refresh runtime_status.json (pre-merge); chore: normalize CRLF→LF in test_packet_dir_isolation.py; fix: remove -uall flag from cleanliness_gate.py (WSL timeout) (and 3 more) — 1/1 targeted test command(s) passed. (merge commit e566dc3)
 - **2026-02-16:** Openclaw Closure Routing Fix 20260216 — fix: stabilize openclaw closure preflight routing — 2/2 targeted test command(s) passed. (merge commit e5b0cb1)

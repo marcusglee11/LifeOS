@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict, List
+from unittest.mock import patch
 
 import pytest
 
@@ -283,7 +284,8 @@ class TestResumePostRunHooks:
         spine._run_chain_steps = mock_run_chain  # type: ignore
 
         # Execute resume
-        result = spine.resume(checkpoint_id)
+        with patch("runtime.orchestration.loop.spine.verify_repo_clean"):
+            result = spine.resume(checkpoint_id)
 
         # Verify hook was called
         assert hook_executed["called"], "Post-run hook should have been called on resume"
@@ -357,7 +359,8 @@ class TestResumePostRunHooks:
         spine._run_chain_steps = mock_run_chain  # type: ignore
 
         # Execute resume
-        result = spine.resume(checkpoint_id)
+        with patch("runtime.orchestration.loop.spine.verify_repo_clean"):
+            result = spine.resume(checkpoint_id)
 
         # Verify outcome was downgraded to BLOCKED
         assert result["outcome"] == "BLOCKED"
