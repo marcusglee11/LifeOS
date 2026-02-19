@@ -15,9 +15,11 @@ APPLY=0
 MODE="${OPENCLAW_SLACK_MODE:-socket}"
 STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
 TS_UTC="$(date -u +%Y%m%dT%H%M%SZ)"
+OVERLAY_ROOT="${OPENCLAW_SLACK_OVERLAY_ROOT:-$STATE_DIR/runtime/slack_overlay}"
 OVERLAY_DIR="${OPENCLAW_SLACK_OVERLAY_DIR:-$STATE_DIR/runtime/slack_overlay/$TS_UTC}"
 QUARANTINE_DIR="${OPENCLAW_SLACK_QUARANTINE_DIR:-$STATE_DIR/runtime/slack_overlay_quarantine/$TS_UTC}"
 GEN_OUT_JSON="/tmp/openclaw-slack-overlay-${TS_UTC}.json"
+STALE_MINUTES="${OPENCLAW_SLACK_STALE_MINUTES:-10}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -65,6 +67,30 @@ if [ "$APPLY" -ne 1 ]; then
   exit 0
 fi
 
+sweep_stale_overlays() {
+  local stale_root="$OVERLAY_ROOT"
+  local quarantine_root
+  quarantine_root="$(dirname "$QUARANTINE_DIR")/stale-$TS_UTC"
+  local moved=0
+
+  if [ ! -d "$stale_root" ]; then
+    return 0
+  fi
+
+  while IFS= read -r stale_file; do
+    [ -z "$stale_file" ] && continue
+    mkdir -p "$quarantine_root"
+    if mv -f "$stale_file" "$quarantine_root/" 2>/dev/null; then
+      moved=1
+    fi
+  done < <(find "$stale_root" -type f \( -name 'openclaw_slack_overlay.json' -o -name 'overlay_metadata.json' \) -mmin +"$STALE_MINUTES" 2>/dev/null || true)
+
+  if [ "$moved" -eq 1 ]; then
+    find "$stale_root" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+    echo "overlay_stale_sweep=quarantined stale_minutes=$STALE_MINUTES quarantine_dir=$quarantine_root"
+  fi
+}
+
 cleanup_overlay() {
   local overlay_path="$1"
   local metadata_path="$2"
@@ -78,6 +104,8 @@ cleanup_overlay() {
   echo "overlay_cleanup=quarantined quarantine_dir=$QUARANTINE_DIR"
   return 0
 }
+
+sweep_stale_overlays
 
 python3 runtime/tools/openclaw_slack_overlay.py \
   --mode "$MODE" \
@@ -106,4 +134,3 @@ export OPENCLAW_SLACK_OVERLAY_LAST_MODE="$MODE"
 echo "APPLY slack_launch mode=$MODE overlay_generated=true overlay_path=$overlay_path"
 echo "Launching: coo openclaw -- gateway run"
 coo openclaw -- gateway run
-

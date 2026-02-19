@@ -8,26 +8,26 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-14 (rev3)
+**Last Updated:** 2026-02-19 (rev6)
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
 
-(None — W5-T01 E2E proof complete, W7 stabilization next)
+(None — W5-T02 checkpoint/resume proof complete, next queued item is W6 Codemoot spike)
 
 ### P1 (High)
 
-- [ ] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [x] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Fix test_steward_runner.py (25/27 failing)** — DoD: Tests pass or are properly restructured — Owner: antigravity — Context: Import/fixture issues, not code bugs; currently skipped on WSL (build/doc-refresh-and-test-debt)
-- [ ] **Finalize Intent_Routing_Rule v1.1** — DoD: Markers removed — Owner: antigravity
-- [ ] **Finalize Test_Protocol v2.0** — DoD: Markers removed — Owner: antigravity
+- [x] **Finalize Intent_Routing_Rule v1.1** — DoD: Markers removed — Owner: antigravity
+- [x] **Finalize Test_Protocol v2.0** — DoD: Markers removed — Owner: antigravity
 - [x] **Finalize Tier_Definition_Spec v1.1** — DoD: Markers removed — Owner: antigravity
-- [ ] **Finalize ARTEFACT_INDEX_SCHEMA v1.0** — DoD: Markers removed — Owner: antigravity
-- [ ] **Finalize QUICKSTART v1.0** — DoD: Context scan pass complete — Owner: antigravity
-- [ ] **Fix claude_doc_stewardship_gate.py INDEX.md timestamp bug** — DoD: --auto-fix handles `[Last Updated: YYYY-MM-DD (revN)]` format correctly — Owner: antigravity — Context: Auto-fix regex corrupts INDEX.md timestamp in bracket format (P2)
+- [x] **Finalize ARTEFACT_INDEX_SCHEMA v1.0** — DoD: Markers removed — Owner: antigravity
+- [x] **Finalize QUICKSTART v1.0** — DoD: Context scan pass complete — Owner: antigravity
+- [x] **Fix claude_doc_stewardship_gate.py INDEX.md timestamp bug** — DoD: --auto-fix handles `[Last Updated: YYYY-MM-DD (revN)]` format correctly — Owner: antigravity — Context: Auto-fix regex corrupts INDEX.md timestamp in bracket format (P2)
 
 ## Next (valuable, but not imminent)
 
@@ -46,6 +46,9 @@
 
 ## Done (last ~25 only)
 
+- [x] **W5-T02 Checkpoint/Resume E2E Proof** — Date: 2026-02-19 — 6 integration tests proving full checkpoint/resume cycle with policy hash continuity and ledger anchoring. Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt`
+- [x] **W4-T03 Worktree Dispatch Governance** — Date: 2026-02-18 — Spine now enforces isolated worktree lifecycle + clean-worktree fail-closed check (`runtime/orchestration/loop/spine.py`)
+- [x] **W4-T04 Validator Lifecycle Hooks (OpenClaw Path)** — Date: 2026-02-18 — OpenClaw execution bridge + CLI command + lifecycle-integrated test coverage (`runtime/orchestration/openclaw_bridge.py`, `runtime/cli.py`)
 - [x] **Guard deprecated `autonomous_build_cycle` path** (W0-T04) — Date: 2026-02-13 — cli.py deprecation guard + autonomous_build_cycle.py migration notice
 - [x] **Doc freshness skeleton gate** (W0-T06) — Date: 2026-02-14 — Runtime status generator, checkpoint artifacts, close-build integration
 - [x] **Fix test_e2e_smoke_timeout.py** (W0-T05) — Date: 2026-02-14 — Tests already passing, no work needed

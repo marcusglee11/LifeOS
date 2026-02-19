@@ -32,6 +32,11 @@ def assert_multiuser_posture(cfg: Dict[str, Any]) -> Dict[str, Any]:
     allowlist_sizes: Dict[str, int] = {}
     enabled_channels: List[str] = []
 
+    session = cfg.get("session") or {}
+    dm_scope = str(session.get("dmScope") or "").strip()
+    if dm_scope != "per-account-channel-peer":
+        violations.append('session.dmScope must be "per-account-channel-peer"')
+
     commands = cfg.get("commands") or {}
     owner_allow = _as_list(commands.get("ownerAllowFrom"))
     if commands.get("useAccessGroups") is not True:

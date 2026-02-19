@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** W5-T01 E2E Spine proof COMPLETE — W7 stabilization tasks next (ledger hash-chain, doc freshness CI, protocol finalization)
-**Active WIP:** Model configuration hardening, remaining protocol doc finalization
-**Last Updated:** 2026-02-14 (rev6)
+**Current Focus:** W5-T02 Checkpoint/Resume E2E Proof COMPLETE — Full cycle proven (escalation → checkpoint YAML → resolve → resume → terminal with ledger continuity). Next: W6 Codemoot spike
+**Active WIP:** None — W5-T02 closed
+**Last Updated:** 2026-02-19 (rev15)
 
 ---
 
@@ -22,9 +22,13 @@
 **W7 Stabilization Batch (post-E2E proof):**
 
 1. ~~E2E Loop Test: Real task through full pipeline~~ ✓ **COMPLETE** (2026-02-14, run_20260214_053357)
-2. **Next immediate:** W7-T01 Ledger hash-chain hardening — add `prev_hash` field, tamper detection, verification tests
-3. **Then:** W7-T02 Doc freshness CI enforcement — make contradiction detection blocking
-4. **Then:** W7-T03 Pending protocol doc finalization — 5 remaining P1 docs (Test_Protocol, Intent_Routing, Tier_Definition, ARTEFACT_INDEX, QUICKSTART)
+2. ~~W7-T01 Ledger hash-chain hardening~~ ✓ **COMPLETE** (2026-02-16, commit 558c375)
+3. ~~W7-T02 Doc freshness CI enforcement~~ ✓ **COMPLETE** (2026-02-16, CI + close-build wired)
+4. ~~W7-T03 Protocol doc finalization (5/5 docs)~~ ✓ **COMPLETE** (2026-02-16, all ACTIVE)
+5. ~~W4-T03 Worktree dispatch governance~~ ✓ **COMPLETE** (2026-02-18, Spine clean-worktree enforcement)
+6. ~~W4-T04 Validator lifecycle hooks (OpenClaw path)~~ ✓ **COMPLETE** (2026-02-18, openclaw_bridge execute + CLI)
+7. ~~W5-T02 Checkpoint/resume E2E proof~~ ✓ **COMPLETE** (2026-02-19, 6/6 integration tests)
+8. **Next:** W6 Codemoot spike
 
 **Canonical Plan Authority:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 
@@ -71,6 +75,14 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-19:** **W5-T02 Checkpoint/Resume E2E Proof COMPLETE** — 6 integration tests proving full checkpoint/resume cycle: escalation → checkpoint YAML on disk → resolution seam → resume with policy hash continuity → terminal packet with ledger anchor. Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt`
+- **2026-02-18:** Worktree Outside Repo Resolution 20260218 — chore: refresh runtime_status.json (closure); fix(worktree): resolve repo root from script location when invoked outside repo — 1/1 targeted test command(s) passed. (merge commit ba63f57)
+- **2026-02-18:** W4-T03/T04 OpenClaw Integration — feat: OpenClaw->Spine execution bridge, clean-worktree enforcement, CLI command spine run-openclaw-job — 1/1 targeted test command(s) passed. (merge commit c53bdcc)
+- **2026-02-18:** Openclaw Boundary Enforcement 20260218 — chore: refresh runtime_status.json (closure); feat: OpenClaw boundary enforcement gap-fill (dmScope, AuthHealth, break-glass) — 1/1 targeted test command(s) passed. (merge commit 9230ac7)
+- **2026-02-18:** Openclaw Security Hardening 20260218 — chore: refresh runtime_status.json (closure); feat(openclaw): security hardening — fail-closed startup, cron egress parking, policy alignment — 1/1 targeted test command(s) passed. (merge commit 446c6dc)
+- **2026-02-17:** W7 T02 T03 Stabilization 20260216 — chore: refresh runtime_status.json (closure); fix: commit regenerated runtime_status.json during closure; chore: refresh runtime_status.json (pre-merge); chore: normalize CRLF→LF in test_packet_dir_isolation.py; fix: remove -uall flag from cleanliness_gate.py (WSL timeout) (and 3 more) — 1/1 targeted test command(s) passed. (merge commit e566dc3)
+- **2026-02-16:** Openclaw Closure Routing Fix 20260216 — fix: stabilize openclaw closure preflight routing — 2/2 targeted test command(s) passed. (merge commit e5b0cb1)
+- **2026-02-16:** W7 T01 Ledger Hash Chain — fix: W7-T01 review fixes — numeric schema parsing + fail-closed append hardening; feat: W7-T01 Ledger hash-chain hardening with fail-closed v1.1 enforcement — 1/1 targeted test command(s) passed. (merge commit 558c375)
 - **2026-02-14:** E2e Spine Proof — chore: gitignore agent workspace metadata files; Fix review findings: stale blocker, artifact path, doc stewardship; docs: Add E2E Spine Proof build summary; docs: Update STATE and BACKLOG after E2E spine proof; feat: Finalize Emergency_Declaration_Protocol v1.0 (E2E Spine Proof) (and 4 more) — 1/1 targeted test command(s) passed. (merge commit 55a362b)
 - **2026-02-14:** **E2E Spine Proof COMPLETE (W5-T01)** — First successful autonomous build loop execution: `run_20260214_053357` finalized Emergency_Declaration_Protocol v1.0 through full 6-phase chain (hydrate→policy→design→build→review→steward). Evidence: `artifacts/terminal/TP_run_20260214_053357.yaml`, commit `195bd4d`. Discovered/fixed 2 blockers: obsolete model names (`glm-4.7-free`, `minimax-m2.1-free`) and insufficient timeout (120s→300s). **Core spine infrastructure validated.**
 - **2026-02-14:** Auto State Backlog Update — feat: automatic STATE/BACKLOG updates during build closure — 1/1 targeted test command(s) passed. (merge commit b7a879e)

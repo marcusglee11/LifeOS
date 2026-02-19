@@ -11,19 +11,19 @@ def _base_cfg():
                 "thinkingDefault": "low",
                 "model": {
                     "primary": "openai-codex/gpt-5.3-codex",
-                    "fallbacks": ["google-gemini-cli/gemini-3-flash-preview"],
+                    "fallbacks": ["github-copilot/gpt-5-mini", "google-gemini-cli/gemini-3-flash-preview"],
                 },
                 "memorySearch": {
-                    "enabled": True,
+                    "enabled": False,
                     "provider": "local",
                     "fallback": "none",
                     "sources": ["memory"],
                 },
             },
             "list": [
-                {"id": "main", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["google-gemini-cli/gemini-3-flash-preview"]}},
-                {"id": "quick", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["google-gemini-cli/gemini-3-flash-preview"]}},
-                {"id": "think", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["github-copilot/claude-opus-4.6"]}},
+                {"id": "main", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["github-copilot/gpt-5-mini", "google-gemini-cli/gemini-3-flash-preview"]}},
+                {"id": "quick", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["github-copilot/gpt-5-mini", "google-gemini-cli/gemini-3-flash-preview"]}},
+                {"id": "think", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["github-copilot/gpt-5-mini", "google-gemini-cli/gemini-3-flash-preview"]}},
             ],
         },
     }
@@ -33,6 +33,7 @@ def test_memory_policy_accepts_local_no_fallback_and_memory_source_only():
     cfg = _base_cfg()
     cfg["agents"]["defaults"]["workspace"] = str(Path.home() / ".openclaw" / "workspace")
     result = assert_policy(cfg)
+    assert result["memory"]["enabled"] is False
     assert result["memory"]["provider"] == "local"
     assert result["memory"]["fallback"] == "none"
     assert result["memory"]["sources"] == ["memory"]
@@ -60,6 +61,18 @@ def test_memory_policy_rejects_sessions_source():
         assert 'must not include "sessions"' in str(exc)
     else:
         raise AssertionError("expected sessions source assertion")
+
+
+def test_memory_policy_rejects_enabled_true_during_burn_in():
+    cfg = _base_cfg()
+    cfg["agents"]["defaults"]["workspace"] = str(Path.home() / ".openclaw" / "workspace")
+    cfg["agents"]["defaults"]["memorySearch"]["enabled"] = True
+    try:
+        assert_policy(cfg)
+    except AssertionError as exc:
+        assert "memorySearch.enabled must be false during burn-in" in str(exc)
+    else:
+        raise AssertionError("expected memory enabled assertion")
 
 
 def test_memory_policy_rejects_workspace_outside_openclaw_home():

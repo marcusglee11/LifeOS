@@ -519,3 +519,66 @@ class TestArtifactOutputContract:
             data = json.loads(content)
             keys = list(data.keys())
             assert keys == sorted(keys)
+
+
+class TestTerminalPacketLedgerAnchor:
+    """Test: Terminal packet includes ledger chain anchor fields (W7-T01)"""
+
+    def test_terminal_packet_includes_anchor_fields(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+        """Terminal packet YAML contains ledger_chain_tip, ledger_attempt_count, ledger_schema_version."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+
+        with patch.object(spine, "_run_chain_steps") as mock_steps:
+            mock_steps.return_value = {
+                "outcome": "PASS",
+                "steps_executed": ["hydrate", "policy", "design", "build", "review", "steward"],
+                "commit_hash": "abc123",
+            }
+
+            result = spine.run(task_spec=task_spec)
+
+            # Read the terminal packet
+            terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
+            assert len(terminal_packets) == 1
+
+            with open(terminal_packets[0]) as f:
+                packet_data = yaml.safe_load(f)
+
+            # Anchor fields must be present
+            assert "ledger_chain_tip" in packet_data
+            assert "ledger_attempt_count" in packet_data
+            assert "ledger_schema_version" in packet_data
+
+            # Validate values
+            assert packet_data["ledger_chain_tip"] is not None
+            assert len(packet_data["ledger_chain_tip"]) == 64  # SHA-256 hex
+            assert packet_data["ledger_attempt_count"] == 1  # One record written
+            assert packet_data["ledger_schema_version"] == "v1.1"
+
+    def test_terminal_packet_anchor_matches_ledger_state(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+        """Terminal packet anchor values match actual ledger state at completion."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+
+        with patch.object(spine, "_run_chain_steps") as mock_steps:
+            mock_steps.return_value = {
+                "outcome": "PASS",
+                "steps_executed": ["hydrate", "policy", "design", "build", "review", "steward"],
+                "commit_hash": "def456",
+            }
+
+            spine.run(task_spec=task_spec)
+
+            # Read ledger directly
+            from runtime.orchestration.loop.ledger import AttemptLedger
+            ledger = AttemptLedger(clean_repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl")
+            ledger.hydrate()
+
+            # Read terminal packet
+            terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
+            with open(terminal_packets[0]) as f:
+                packet_data = yaml.safe_load(f)
+
+            # Verify anchor matches actual ledger
+            assert packet_data["ledger_chain_tip"] == ledger.get_chain_tip()
+            assert packet_data["ledger_attempt_count"] == len(ledger.history)
+            assert packet_data["ledger_schema_version"] == ledger.header.get("schema_version")

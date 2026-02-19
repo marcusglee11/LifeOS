@@ -59,6 +59,24 @@ def test_route_targeted_tests_deduplicates() -> None:
     ]
 
 
+def test_route_targeted_tests_routes_openclaw_model_preflight() -> None:
+    commands = route_targeted_tests(["runtime/tools/openclaw_models_preflight.sh"])
+    assert commands == [
+        "pytest -q runtime/tests/test_openclaw_model_policy_assert.py "
+        "runtime/tests/test_openclaw_policy_assert.py "
+        "runtime/tests/test_openclaw_memory_policy_assert.py"
+    ]
+
+
+def test_route_targeted_tests_routes_openclaw_policy_bundle() -> None:
+    commands = route_targeted_tests(["runtime/tools/openclaw_policy_assert.py"])
+    assert commands == [
+        "pytest -q runtime/tests/test_openclaw_model_policy_assert.py "
+        "runtime/tests/test_openclaw_policy_assert.py "
+        "runtime/tests/test_openclaw_memory_policy_assert.py"
+    ]
+
+
 def test_route_targeted_tests_fallback() -> None:
     commands = route_targeted_tests(["docs/11_admin/BACKLOG.md"])
     assert commands == ["pytest -q runtime/tests"]

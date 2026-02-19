@@ -1,3 +1,6 @@
+# Worktrees (agent-managed, ephemeral)
+.worktrees/
+
 # Python
 __pycache__/
 *.pyc

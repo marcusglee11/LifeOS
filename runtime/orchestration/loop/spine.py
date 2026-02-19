@@ -38,6 +38,16 @@ from runtime.orchestration.loop.taxonomy import (
     LoopAction,
 )
 from runtime.api.governance_api import PolicyLoader, hash_json
+from runtime.orchestration.loop.lifecycle_hooks import (
+    run_pre_hooks,
+    run_post_hooks,
+    HookSequenceResult,
+)
+from runtime.orchestration.loop.worktree_dispatch import (
+    worktree_scope,
+    WorktreeError,
+    validate_worktree_clean,
+)
 
 
 class SpineState(Enum):
@@ -89,6 +99,10 @@ class TerminalPacket:
     reason: str  # TerminalReason value
     steps_executed: List[str]
     commit_hash: Optional[str] = None
+    # Ledger chain anchor (W7-T01) — external commitment for truncation detection
+    ledger_chain_tip: Optional[str] = None
+    ledger_attempt_count: int = 0
+    ledger_schema_version: Optional[str] = None
 
 
 class SpineError(Exception):
@@ -129,9 +143,12 @@ class LoopSpine:
         result = spine.resume(checkpoint_id="CP_...")
     """
 
-    def __init__(self, repo_root: Path):
+    def __init__(self, repo_root: Path, *, use_worktree: bool = False, pre_run_hooks=None, post_run_hooks=None):
         self.repo_root = Path(repo_root)
         self.state = SpineState.INIT
+        self.use_worktree = use_worktree
+        self._pre_run_hooks = pre_run_hooks
+        self._post_run_hooks = post_run_hooks
 
         # Artifact paths
         self.artifacts_dir = self.repo_root / "artifacts"
@@ -171,7 +188,7 @@ class LoopSpine:
             SpineError: On other execution errors
         """
         # P0: Fail-closed on dirty repo
-        verify_repo_clean()
+        verify_repo_clean(self.repo_root)
 
         # Generate run ID
         self.run_id = self._generate_run_id()
@@ -190,38 +207,104 @@ class LoopSpine:
             )
         )
 
-        # Run chain steps
-        try:
-            result = self._run_chain_steps(task_spec=task_spec)
+        # Pre-run governance hooks (fail-closed)
+        pre_kwargs = self._build_hook_kwargs(task_spec)
+        pre_result = run_pre_hooks(pre_kwargs, hooks=self._pre_run_hooks)
+        if not pre_result.all_passed:
+            failed = [h.name for h in pre_result.failed_hooks]
+            self.state = SpineState.TERMINAL
+            return {
+                "outcome": "BLOCKED",
+                "reason": f"pre_run_hook_failed: {failed}",
+                "state": self.state.value,
+                "run_id": self.run_id,
+            }
 
-            # Emit terminal packet
+        # Run chain steps (optionally in isolated worktree)
+        try:
+            if self.use_worktree:
+                with worktree_scope(self.repo_root, self.run_id) as wt_handle:
+                    result = self._run_chain_steps(
+                        task_spec=task_spec,
+                        execution_root=wt_handle.worktree_path,
+                    )
+                    validate_worktree_clean(wt_handle)
+            else:
+                result = self._run_chain_steps(task_spec=task_spec)
+
+            # Write ledger record first so chain tip includes final record
+            terminal_file_path = f"artifacts/terminal/TP_{self.run_id}.yaml"
+            ledger_write_ok = True
+            try:
+                self._write_ledger_record(
+                    success=(result["outcome"] == "PASS"),
+                    terminal_reason=result.get("reason", "pass"),
+                    actions_taken=result.get("steps_executed", []),
+                    terminal_packet_path=terminal_file_path,
+                    checkpoint_path=None,
+                    commit_hash=result.get("commit_hash"),
+                )
+            except Exception:
+                ledger_write_ok = False
+
+            # Emit terminal packet with ledger chain anchor
+            outcome = result["outcome"]
+            reason = result.get("reason", "pass")
             terminal_packet = TerminalPacket(
                 run_id=self.run_id,
                 timestamp=self._get_timestamp(),
-                outcome=result["outcome"],
-                reason=result.get("reason", "pass"),
+                outcome=outcome,
+                reason=reason,
                 steps_executed=result.get("steps_executed", []),
                 commit_hash=result.get("commit_hash"),
+                ledger_chain_tip=self.ledger.get_chain_tip(),
+                ledger_attempt_count=len(self.ledger.history),
+                ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
             )
-
             terminal_file = self._emit_terminal(terminal_packet)
+
+            # Post-run governance hooks (can downgrade PASS → BLOCKED)
+            post_kwargs = {
+                "terminal_packet_path": terminal_file,
+                "ledger_write_ok": ledger_write_ok,
+                "evidence_dir": task_spec.get("evidence_dir"),
+                "evidence_tier": task_spec.get("evidence_tier", "light"),
+            }
+            post_result = run_post_hooks(post_kwargs, hooks=self._post_run_hooks)
+            if not post_result.all_passed and outcome == "PASS":
+                failed = [h.name for h in post_result.failed_hooks]
+                outcome = "BLOCKED"
+                reason = f"post_run_hook_failed: {failed}"
+                # Re-emit terminal packet with downgraded outcome
+                terminal_packet = TerminalPacket(
+                    run_id=self.run_id,
+                    timestamp=self._get_timestamp(),
+                    outcome=outcome,
+                    reason=reason,
+                    steps_executed=result.get("steps_executed", []),
+                    commit_hash=result.get("commit_hash"),
+                    ledger_chain_tip=self.ledger.get_chain_tip(),
+                    ledger_attempt_count=len(self.ledger.history),
+                    ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+                )
+                self._emit_terminal(terminal_packet)
+
             self.state = SpineState.TERMINAL
 
-            # Write ledger record for completed execution
-            self._write_ledger_record(
-                success=(result["outcome"] == "PASS"),
-                terminal_reason=result.get("reason", "pass"),
-                actions_taken=result.get("steps_executed", []),
-                terminal_packet_path=str(terminal_file.relative_to(self.repo_root)),
-                checkpoint_path=None,
-                commit_hash=result.get("commit_hash"),
-            )
-
             return {
-                "outcome": result["outcome"],
+                "outcome": outcome,
                 "state": self.state.value,
                 "run_id": self.run_id,
                 "commit_hash": result.get("commit_hash"),
+            }
+
+        except WorktreeError as wt_exc:
+            self.state = SpineState.TERMINAL
+            return {
+                "outcome": "BLOCKED",
+                "reason": f"worktree_error: {wt_exc.code}",
+                "state": self.state.value,
+                "run_id": self.run_id,
             }
 
         except CheckpointTriggered as checkpoint_exc:
@@ -258,7 +341,7 @@ class LoopSpine:
             SpineError: On other errors
         """
         # P0: Fail-closed on dirty repo
-        verify_repo_clean()
+        verify_repo_clean(self.repo_root)
 
         # Load checkpoint
         checkpoint = self._load_checkpoint(checkpoint_id)
@@ -311,38 +394,84 @@ class LoopSpine:
         self.current_policy_hash = checkpoint.policy_hash
         self.was_resumed = True
 
+        # Hydrate ledger from prior run; initialize if missing (e.g. test scenario)
+        if not self.ledger.hydrate():
+            self.ledger.initialize(
+                LedgerHeader(
+                    policy_hash=checkpoint.policy_hash,
+                    handoff_hash=self._compute_hash(checkpoint.task_spec),
+                    run_id=checkpoint.run_id,
+                )
+            )
+
         # Continue from checkpoint step
         result = self._run_chain_steps(
             task_spec=checkpoint.task_spec,
             start_from_step=checkpoint.step_index,
         )
 
-        # Emit terminal packet
+        # Write ledger record first so chain tip includes final record
+        terminal_file_path = f"artifacts/terminal/TP_{self.run_id}.yaml"
+        ledger_write_ok = True
+        try:
+            self._write_ledger_record(
+                success=(result["outcome"] == "PASS"),
+                terminal_reason=result.get("reason", "pass"),
+                actions_taken=result.get("steps_executed", []),
+                terminal_packet_path=terminal_file_path,
+                checkpoint_path=str((self.checkpoint_dir / checkpoint_id).with_suffix('.yaml').relative_to(self.repo_root)),
+                commit_hash=result.get("commit_hash"),
+            )
+        except Exception:
+            ledger_write_ok = False
+
+        # Emit terminal packet with ledger chain anchor
+        outcome = result["outcome"]
+        reason = result.get("reason", "pass")
         terminal_packet = TerminalPacket(
             run_id=self.run_id,
             timestamp=self._get_timestamp(),
-            outcome=result["outcome"],
-            reason=result.get("reason", "pass"),
+            outcome=outcome,
+            reason=reason,
             steps_executed=result.get("steps_executed", []),
             commit_hash=result.get("commit_hash"),
+            ledger_chain_tip=self.ledger.get_chain_tip(),
+            ledger_attempt_count=len(self.ledger.history),
+            ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
         )
 
         terminal_file = self._emit_terminal(terminal_packet)
 
-        # Write ledger record for resumed execution
-        self._write_ledger_record(
-            success=(result["outcome"] == "PASS"),
-            terminal_reason=result.get("reason", "pass"),
-            actions_taken=result.get("steps_executed", []),
-            terminal_packet_path=str(terminal_file.relative_to(self.repo_root)),
-            checkpoint_path=str((self.checkpoint_dir / checkpoint_id).with_suffix('.yaml').relative_to(self.repo_root)),
-            commit_hash=result.get("commit_hash"),
-        )
+        # Post-run governance hooks (can downgrade PASS → BLOCKED)
+        post_kwargs = {
+            "terminal_packet_path": terminal_file,
+            "ledger_write_ok": ledger_write_ok,
+            "evidence_dir": checkpoint.task_spec.get("evidence_dir"),
+            "evidence_tier": checkpoint.task_spec.get("evidence_tier", "light"),
+        }
+        post_result = run_post_hooks(post_kwargs, hooks=self._post_run_hooks)
+        if not post_result.all_passed and outcome == "PASS":
+            failed = [h.name for h in post_result.failed_hooks]
+            outcome = "BLOCKED"
+            reason = f"post_run_hook_failed: {failed}"
+            # Re-emit terminal packet with downgraded outcome
+            terminal_packet = TerminalPacket(
+                run_id=self.run_id,
+                timestamp=self._get_timestamp(),
+                outcome=outcome,
+                reason=reason,
+                steps_executed=result.get("steps_executed", []),
+                commit_hash=result.get("commit_hash"),
+                ledger_chain_tip=self.ledger.get_chain_tip(),
+                ledger_attempt_count=len(self.ledger.history),
+                ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+            )
+            self._emit_terminal(terminal_packet)
 
         # Return RESUMED state to indicate this was a resumed execution
         # (even though we've completed and could transition to TERMINAL)
         return {
-            "outcome": result["outcome"],
+            "outcome": outcome,
             "state": SpineState.RESUMED.value,
             "run_id": self.run_id,
             "commit_hash": result.get("commit_hash"),
@@ -353,6 +482,7 @@ class LoopSpine:
         self,
         task_spec: Dict[str, Any],
         start_from_step: int = 0,
+        execution_root: Optional[Path] = None,
     ) -> Dict[str, Any]:
         """
         Run chain steps: hydrate → policy → design → build → review → steward.
@@ -360,6 +490,7 @@ class LoopSpine:
         Args:
             task_spec: Task specification
             start_from_step: Step index to start from (for resume)
+            execution_root: Override for repo_root (worktree path when isolated)
 
         Returns:
             Result dict with outcome, steps_executed, commit_hash
@@ -379,6 +510,8 @@ class LoopSpine:
             ("steward", MissionType.STEWARD),
         ]
 
+        effective_root = execution_root or self.repo_root
+
         steps_executed = []
         chain_state = {}  # Accumulate outputs from each mission
 
@@ -389,7 +522,7 @@ class LoopSpine:
                 capture_output=True,
                 text=True,
                 timeout=2,
-                cwd=self.repo_root
+                cwd=effective_root
             )
             baseline_commit = cmd_result.stdout.strip() if cmd_result.returncode == 0 else "unknown"
         except Exception:
@@ -406,7 +539,7 @@ class LoopSpine:
 
             # Create mission context
             context = MissionContext(
-                repo_root=self.repo_root,
+                repo_root=effective_root,
                 baseline_commit=baseline_commit,
                 run_id=self.run_id,
                 operation_executor=None,
@@ -510,7 +643,7 @@ class LoopSpine:
                 capture_output=True,
                 text=True,
                 timeout=2,
-                cwd=self.repo_root
+                cwd=effective_root
             )
             commit_hash = cmd_result.stdout.strip() if cmd_result.returncode == 0 else None
         except Exception:
@@ -692,6 +825,17 @@ class LoopSpine:
 
         except Exception as e:
             raise SpineError(f"Failed to compute policy hash: {e}")
+
+    def _build_hook_kwargs(self, task_spec: Dict[str, Any]) -> Dict[str, Any]:
+        """Build keyword arguments for pre-run lifecycle hooks."""
+        constraints = task_spec.get("constraints", {})
+        return {
+            "policy_hash": self.current_policy_hash,
+            "scope_paths": constraints.get("scope", []),
+            "repo_root": self.repo_root,
+            "allowed_paths": constraints.get("allowed_paths", ["runtime/**", "tests/**", "artifacts/**"]),
+            "denied_paths": constraints.get("denied_paths", []),
+        }
 
     def _compute_hash(self, obj: Any) -> str:
         """

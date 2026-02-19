@@ -46,11 +46,11 @@ def check_cleanliness(repo_root: Path) -> tuple[bool, str]:
     """
     try:
         result = subprocess.run(
-            ["git", "status", "--porcelain=v1", "-uall"],
+            ["git", "status", "--porcelain=v1"],
             cwd=repo_root,
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=30
         )
 
         porcelain = result.stdout.strip()

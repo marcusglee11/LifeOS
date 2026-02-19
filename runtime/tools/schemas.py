@@ -121,6 +121,34 @@ class SchemaValidationResult:
     errors: List[str] = field(default_factory=list)
 
 
+@dataclass
+class AuthHealthResult:
+    """
+    Machine-readable auth health state for OpenClaw model routing.
+
+    State values:
+    - ok
+    - expiring
+    - invalid_missing
+    - cooldown
+    """
+
+    provider: str
+    state: str
+    reason_code: str
+    recommended_action: str
+    ts_utc: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "provider": self.provider,
+            "state": self.state,
+            "reason_code": self.reason_code,
+            "recommended_action": self.recommended_action,
+            "ts_utc": self.ts_utc,
+        }
+
+
 # =============================================================================
 # Policy Decision
 # =============================================================================

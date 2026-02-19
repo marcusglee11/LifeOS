@@ -901,8 +901,6 @@ LifeOS is not just productivity software; it is a **Cybernetic extension of huma
 
 # LifeOS QuickStart Guide
 
-<!-- LIFEOS_TODO[P1][area: docs/QUICKSTART.md][exit: context scan complete + status change to ACTIVE + DAP validate] Finalize QUICKSTART v1.0: Complete context scan pass, remove WIP/Provisional markers -->
-
 **Status**: Active
 **Authority**: COO Operating Contract v1.0
 **Effective**: 2026-01-27
@@ -1474,11 +1472,9 @@ _Concise statement integrating: outcomes → alignment → required corrections.
 
 # ARTEFACT_INDEX Schema v1.0
 
-<!-- LIFEOS_TODO[P1][area: docs/01_governance/ARTEFACT_INDEX_SCHEMA.md][exit: status change to ACTIVE + DAP validate] Finalize ARTEFACT_INDEX_SCHEMA v1.0: Remove WIP/Provisional markers -->
-
-**Status**: WIP (Non-Canonical)
+**Status**: ACTIVE
 **Authority**: LifeOS Constitution v2.0 → Document Steward Protocol v1.1
-**Effective**: 2026-01-07 (Provisional)
+**Effective**: 2026-02-16
 
 ---
 
@@ -5410,11 +5406,9 @@ python scripts/todo_inventory.py
 
 # Test Protocol v2.0
 
-<!-- LIFEOS_TODO[P1][area: docs/02_protocols/Test_Protocol_v2.0.md][exit: status change to ACTIVE + DAP validate] Finalize Test_Protocol v2.0: Remove WIP/Provisional markers -->
-
-**Status**: WIP (Non-Canonical)
+**Status**: ACTIVE
 **Authority**: LifeOS Constitution v2.0 → Core TDD Principles v1.0
-**Effective**: 2026-01-07 (Provisional)
+**Effective**: 2026-02-16
 **Supersedes**: Test Protocol v1.0
 
 ---
@@ -5665,7 +5659,592 @@ The following parameters are derived from the canonical schema YAML (no hardcodi
 
 ---
 
-# File: 02_protocols/backlog_schema_v1.0.yaml
+# File: 02_protocols/archive/2026-02_drafts/LifeOS_Design_Principles_Protocol_v0.1.md
+
+# LifeOS Design Principles Protocol
+
+**Version:** v0.1  
+**Status:** Draft — For CEO Review  
+**Date:** 2026-01-08  
+**Author:** Claude (Execution Partner)  
+**Intended Placement:** `docs/01_governance/LifeOS_Design_Principles_Protocol_v0.1.md`
+
+---
+
+## 1. Purpose
+
+This document establishes design principles for LifeOS development that prioritize working software over comprehensive documentation, while maintaining appropriate governance for production systems.
+
+**The Problem It Solves:**
+
+Council reviews produce thorough, hardened specifications. This is correct for production systems. However, applying full council rigor to unproven concepts creates:
+
+- Weeks of specification work before any code runs
+- Governance overhead for systems that don't exist
+- Edge case handling for scenarios never encountered
+- Analysis paralysis disguised as thoroughness
+
+**The Principle:**
+
+> Governance follows capability. Prove it works, then harden it.
+
+---
+
+## 2. Authority & Binding
+
+### 2.1 Subordination
+
+This document is subordinate to:
+
+1. LifeOS Constitution v2.0 (Supreme)
+2. Council Protocol v1.2
+3. Tier Definition Spec v1.1
+
+### 2.2 Scope
+
+This protocol applies to:
+
+- New capability development (features, systems, integrations)
+- Architectural exploration
+- Prototypes and proofs of concept
+
+This protocol does NOT override:
+
+- Existing governance surface protections
+- Council authority for production deployments
+- CEO authority invariants
+
+---
+
+## 3. Core Principles
+
+### 3.1 Working Software Over Comprehensive Specification
+
+**Do:** Write code that runs and produces observable results.  
+**Don't:** Write specifications for code that doesn't exist.
+
+A 50-line script that executes is more valuable than a 500-line specification describing what a script might do.
+
+### 3.2 Prove Then Harden
+
+Development follows three stages:
+
+| Stage | Focus | Governance |
+|-------|-------|------------|
+| **Prove** | Does it work at all? | Minimal — CEO oversight only |
+| **Stabilize** | Does it work reliably? | Light — Tests, basic error handling |
+| **Harden** | Is it production-ready? | Full — Council review, edge cases, compliance |
+
+Moving to Harden before completing Prove is forbidden. It produces governance for vaporware.
+
+### 3.3 Tests Are The Specification
+
+Code without tests is a prototype. Code with tests is a candidate for production.
+
+Tests serve as:
+- Executable specification (what the code should do)
+- Regression protection (proof it still works)
+- Documentation (examples of correct usage)
+
+A feature is "done" when its tests pass, not when its specification is complete.
+
+### 3.4 Smallest Viable Increment
+
+Each development cycle should produce the smallest increment that:
+- Runs end-to-end (no partial implementations)
+- Is observable (produces output CEO can verify)
+- Is reversible (can be deleted without breaking other systems)
+
+Prefer 5 small increments over 1 large increment. Each small increment teaches something.
+
+### 3.5 Fail Fast, Learn Faster
+
+Early failures are cheap. Late failures are expensive.
+
+- Prototype the riskiest part first
+- If it can't work, find out in hours, not weeks
+- Dead ends are acceptable; late dead ends are not
+
+---
+
+## 4. Development Workflow
+
+### 4.1 The Spike
+
+A **spike** is a time-boxed exploration to answer a specific question.
+
+**Format:**
+```
+Question: Can X work?
+Time box: [2 hours / 1 day / 3 days]
+Success criteria: [Observable result that answers the question]
+```
+
+**Rules:**
+- Spikes produce code, not documents
+- Spike code is disposable — it exists to learn, not to ship
+- Spikes end with a decision: proceed, pivot, or abandon
+
+**Example:**
+```
+Question: Can we invoke OpenCode programmatically via HTTP?
+Time box: 2 hours
+Success criteria: Python script that sends prompt, receives response
+```
+
+### 4.2 The MVP Build
+
+Once a spike proves viability, build the **Minimum Viable Product**:
+
+**Definition:** The smallest implementation that delivers end-to-end value.
+
+**MVP Checklist:**
+- [ ] Runs without manual intervention (for its scope)
+- [ ] Produces observable output
+- [ ] Has at least one happy-path test
+- [ ] Has basic error handling (fails loudly, not silently)
+- [ ] Is documented in a README or inline comments
+
+**MVP Exclusions (defer to Harden phase):**
+- Edge case handling
+- Performance optimization
+- Comprehensive error recovery
+- Audit logging
+- Governance compliance
+
+### 4.3 Test-Driven Development
+
+For MVP builds, follow TDD:
+
+1. **Write a failing test** — Define what success looks like
+2. **Write minimal code to pass** — No more than needed
+3. **Refactor** — Clean up without changing behavior
+4. **Repeat** — Next test, next increment
+
+**Test Priorities:**
+
+| Priority | Test Type | When to Write |
+|----------|-----------|---------------|
+| P0 | Happy path | Always — MVP requirement |
+| P1 | Obvious failure modes | MVP if time permits |
+| P2 | Edge cases | Stabilize phase |
+| P3 | Adversarial inputs | Harden phase |
+
+### 4.4 The Hardening Pass
+
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
+# File: 02_protocols/archive/2026-02_drafts/README.md
+
+# Archive: 2026-02 Drafts
+
+Draft/pre-release protocol versions archived during docs consolidation.
+
+## Disposition Table
+
+| File | Reason archived | Superseded by | Last-known date | Notes (do not resurrect) |
+|------|----------------|---------------|-----------------|--------------------------|
+| LifeOS_Design_Principles_Protocol_v0.1.md | Draft superseded | LifeOS_Design_Principles_Protocol_v1.1.md | 2026-02-14 | v1.1 is canonical |
+
+
+---
+
+# File: 02_protocols/archive/2026-02_versioning/G-CBS_Standard_v1.0.md
+
+# Generic Closure Bundle Standard (G-CBS) v1.0
+
+| Field | Value |
+|-------|-------|
+| **Version** | 1.0 |
+| **Date** | 2026-01-06 |
+| **Author** | Antigravity |
+| **Status** | DRAFT |
+| **Governance** | CT-2 Council Review Required for Activation |
+
+---
+
+## 1. Overview
+
+The Generic Closure Bundle Standard (G-CBS) defines the schema, validation rules, and attestation model for closure bundles in LifeOS. Closure bundles provide auditable, deterministic evidence packages for step gates, council rulings, and other governance actions.
+
+**Authority:** This protocol becomes binding when (1) approved via CT-2 council review and (2) listed in `docs/01_governance/ARTEFACT_INDEX.json`.
+
+---
+
+## 2. Detached Digest Mode
+
+### 2.1 Purpose
+
+Detached digest mode resolves circular dependencies when the validator transcript is embedded inside the bundle it validates.
+
+### 2.2 Marker
+
+**Manifest Field:** `zip_sha256`
+**Detached Value:** `"DETACHED_SEE_SIBLING_FILE"`
+
+When this marker is present, container integrity is attested by an external sidecar file.
+
+### 2.3 Sidecar Specification
+
+| Aspect | Requirement |
+|--------|-------------|
+| **Naming** | `<bundle_filename>.sha256` (e.g., `Bundle_v1.0.zip.sha256`) |
+| **Content** | `<lowercase_hex_sha256>  <filename>` (two-space separator) |
+| **Encoding** | UTF-8, LF line endings |
+| **Location** | Same directory as bundle |
+
+**Example:**
+```
+a1b2c3d4e5f6...  Bundle_v1.0.zip
+```
+
+### 2.4 Validator Requirements
+
+| Condition | Behavior |
+|-----------|----------|
+| Sidecar missing | FAIL: `E_DIGEST_SIDECAR_MISSING` |
+| Sidecar malformed | FAIL: `E_DIGEST_SIDECAR_MALFORMED` |
+| Hash mismatch | FAIL: `E_DIGEST_MISMATCH` |
+| Hash match | Print: `Sidecar digest verified: <sha256>` |
+
+### 2.5 Backward Compatibility
+
+If `zip_sha256` contains an actual hash (not the detached marker), the validator computes and compares directly (embedded mode). Embedded mode is DEPRECATED for new bundles.
+
+---
+
+## 3. Two-Part Attestation Model
+
+### 3.1 Overview
+
+G-CBS separates attestation into two distinct claims to eliminate circularity:
+
+| Attestation | What is Validated | Evidence |
+|-------------|-------------------|----------|
+| **Payload Compliance** | Evidence files per manifest | Embedded transcript |
+| **Container Integrity** | Shipped ZIP bytes | Detached sidecar |
+
+### 3.2 Payload Compliance Attestation
+
+**Domain:** All evidence files listed in `closure_manifest.json`
+**Checks:**
+- Schema validity
+- Evidence SHA256 match
+- Profile-specific rules
+- Forbidden token scan
+
+**Evidence Role:** `validator_payload_pass`
+
+The embedded transcript MUST NOT claim to validate the final ZIP bytes (that's container integrity).
+
+### 3.3 Container Integrity Attestation
+
+**Domain:** Shipped ZIP file bytes
+**Evidence:** Sidecar digest verification
+**Validator Output:**
+```
+Detached digest mode: true
+Sidecar digest path: <path>
+Sidecar digest verified: <sha256>
+```
+
+---
+
+## 4. Evidence Roles
+
+### 4.1 Required Role
+
+| Role | Description | Status |
+|------|-------------|--------|
+| `validator_payload_pass` | Payload compliance attestation | **REQUIRED** |
+
+### 4.2 Legacy Role (Compatibility Window)
+
+| Role | Description | Status |
+|------|-------------|--------|
+| `validator_final_shipped` | Legacy role | DEPRECATED |
+
+**Compatibility Policy:**
+- G-CBS v1.0: Accept both roles; emit warning for legacy
+- G-CBS v1.1+: Reject `validator_final_shipped` with `E_ROLE_DEPRECATED`
+
+### 4.3 Validator Behavior
+
+```
+IF neither role present:
+  → E_REQUIRED_EVIDENCE_MISSING (exit 1)
+
+IF validator_final_shipped AND gcbs_version < 1.1:
+  → WARN: "Deprecated role, use validator_payload_pass"
+
+IF validator_final_shipped AND gcbs_version >= 1.1:
+  → E_ROLE_DEPRECATED (exit 1)
+
+IF validator_payload_pass:
+  → Accept (no warning)
+```
+
+---
+
+## 5. Provenance Fields
+
+### 5.1 Required Manifest Fields
+
+| Field | Description |
+|-------|-------------|
+| `activated_protocols_ref` | Repo-relative path to `ARTEFACT_INDEX.json` |
+| `activated_protocols_sha256` | SHA-256 of raw file bytes (uppercase hex) |
+| `gcbs_standard_version` | Version of this standard (e.g., `"1.0"`) |
+
+### 5.2 Optional Fields
+
+| Field | Description |
+|-------|-------------|
+| `gcbs_standard_ref` | Path to this document |
+| `validator_version` | Validator script version |
+
+### 5.3 Validation
+
+| Condition | Behavior |
+|-----------|----------|
+| `gcbs_standard_version` missing | FAIL: `E_GCBS_STANDARD_VERSION_MISSING` |
+| `activated_protocols_sha256` mismatch | FAIL: `E_PROTOCOLS_PROVENANCE_MISMATCH` |
+
+---
+
+## 6. Validator Output Contract
+
+### 6.1 Deterministic Stdout Lines
+
+On detached digest mode success:
+```
+Detached digest mode: true
+Sidecar digest path: <path>
+Sidecar digest verified: <sha256>
+```
+
+On payload compliance success:
+```
+Payload compliance: PASS
+Evidence roles verified: [validator_payload_pass]
+```
+
+### 6.2 Audit Report
+
+| Mode | Bundle Hash Field |
+|------|-------------------|
+| Detached | `**Digest Strategy**: Detached (Sidecar Verified)` |
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
+# File: 02_protocols/archive/2026-02_versioning/Git_Workflow_Protocol_v1.0.md
+
+# Git Workflow Protocol v1.0
+
+**Status:** Active  
+**Enforcement:** `scripts/git_workflow.py`  
+**Last Updated:** 2026-01-16
+
+---
+
+## 1. Core Principles
+
+1. **Branch-per-build**: Every mission/build gets its own branch
+2. **Main is sacred**: Direct commits to `main` are prohibited
+3. **Test before merge**: CI must pass before merge to `main`
+4. **No orphan work**: All branches must be merged or explicitly archived
+
+---
+
+## 2. Branch Naming Convention
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Feature/Mission | `build/<topic>` | `build/cso-constitution` |
+| Bugfix | `fix/<issue>` | `fix/test-failures` |
+| Hotfix | `hotfix/<issue>` | `hotfix/ci-regression` |
+| Experiment | `spike/<topic>` | `spike/new-validator` |
+
+**Enforcement:** `scripts/git_workflow.py branch create <name>` validates pattern.
+
+---
+
+## 3. Workflow Stages
+
+### Stage 1: Start Mission
+
+```bash
+python scripts/git_workflow.py branch create build/<topic>
+```
+
+- Creates branch from latest `main`
+- Validates naming convention
+- Records branch in `artifacts/active_branches.json`
+
+### Stage 2: Work-in-Progress
+
+- Commit freely to feature branch
+- Push to remote for backup: `git push -u origin <branch>`
+
+### Stage 3: Review Ready
+
+```bash
+python scripts/git_workflow.py review prepare
+```
+
+- Runs all tests
+- Generates Review Packet checklist
+- Creates PR if tests pass
+
+### Stage 4: Approved
+
+```bash
+python scripts/git_workflow.py merge
+```
+
+- Verifies CI passed
+- Squash-merges to `main`
+- Deletes feature branch
+- Updates `artifacts/active_branches.json`
+
+---
+
+## 4. Prohibited Operations
+
+The following are **BLOCKED** by the workflow script:
+
+| Operation | Why Blocked |
+|-----------|-------------|
+| `git checkout main && git commit` | Direct commits to main |
+| `git push origin main` | Direct push to main (use PR) |
+| `git branch -D` without merge | Orphan work detection |
+| `git checkout <branch>` without safety gate | Branch divergence risk |
+
+---
+
+## 5. Emergency Override
+
+For exceptional cases only:
+
+```bash
+python scripts/git_workflow.py --emergency <operation>
+```
+
+- Logs override to `artifacts/emergency_overrides.log`
+- Requires explicit reason
+- CEO must approve in retrospective
+
+---
+
+## 6. Integration Points
+
+| System | Integration |
+|--------|-------------|
+| GitHub Branch Protection | `main` requires PR + CI pass |
+| `repo_safety_gate.py` | Preflight before checkout |
+| GEMINI.md Article XIX | Constitutional mandate |
+| CI Pipeline | Runs on all PRs |
+
+---
+
+## 7. Recovery Procedures
+
+### Orphan Branch Detected
+
+```bash
+python scripts/git_workflow.py recover orphan
+```
+
+### Divergence Detected
+
+```bash
+python scripts/git_workflow.py recover divergence
+```
+
+### Missing Critical Files
+
+```bash
+python scripts/git_workflow.py recover files
+```
+
+
+---
+
+# File: 02_protocols/archive/2026-02_versioning/README.md
+
+# Archive: 2026-02 Versioning
+
+Superseded protocol versions archived during docs consolidation.
+
+## Disposition Table
+
+| File | Reason archived | Superseded by | Last-known date | Notes (do not resurrect) |
+|------|----------------|---------------|-----------------|--------------------------|
+| G-CBS_Standard_v1.0.md | Version superseded | G-CBS_Standard_v1.1.md | 2026-02-14 | v1.1 is canonical |
+| Git_Workflow_Protocol_v1.0.md | Version superseded | Git_Workflow_Protocol_v1.1.md | 2026-02-14 | v1.1 is canonical |
+
+
+---
+
+# File: 02_protocols/guides/plan_writing_guide.md
+
+# How to Write a Plan that Passes Preflight (PLAN_PACKET)
+
+## 1. Structure is Strict
+
+Your plan **must** follow the exact section order:
+
+1. `Scope Envelope`
+2. `Proposed Changes`
+3. `Claims`
+4. `Targets`
+5. `Validator Contract`
+6. `Verification Matrix`
+7. `Migration Plan`
+8. `Governance Impact`
+
+**Failure Code**: `PPV002`
+
+## 2. Claims Need Evidence
+
+If you make a `policy_mandate` or `canonical_path` claim, you **must** provide an Evidence Pointer.
+
+* **Format**: `path/to/file:L10-L20` or `path#sha256:HEX` or `N/A(reason)` (proposals only).
+* **Invalid**: `N/A`, `Just trust me`, `See existing code`.
+
+**Failure Code**: `PPV003`, `PPV004`
+
+## 3. Targets via Discovery
+
+Do not hardcode paths unless strictly necessary. Use discovery queries in your execution steps, but if you must use `fixed_path` in a target, you must back it up with a `canonical_path` claim.
+
+## 4. Validator Contract
+
+You must explicitly confirm the output format:
+
+```markdown
+# Validator Contract
+- **Output Format**: PASS/FAIL
+- **Failure Codes**: ...
+```
+
+**Failure Code**: `PPV007`
+
+
+---
+
+# File: 02_protocols/schemas/backlog_schema_v1.0.yaml
 
 # Backlog Schema v1.0
 # ===================
@@ -5716,7 +6295,7 @@ fail_closed:
 
 ---
 
-# File: 02_protocols/build_artifact_schemas_v1.yaml
+# File: 02_protocols/schemas/build_artifact_schemas_v1.yaml
 
 # ============================================================================
 # LifeOS Build Artifact Schemas v1.0
@@ -5836,61 +6415,14 @@ review_packet_schema:
 
 ---
 
-# File: 02_protocols/example_converted_antigravity_packet.yaml
+# File: 02_protocols/schemas/example_converted_antigravity_packet.yaml
 
 *[Reference Pointer: Raw schema/example omitted for strategic clarity]*
 
 
 ---
 
-# File: 02_protocols/guides/plan_writing_guide.md
-
-# How to Write a Plan that Passes Preflight (PLAN_PACKET)
-
-## 1. Structure is Strict
-
-Your plan **must** follow the exact section order:
-
-1. `Scope Envelope`
-2. `Proposed Changes`
-3. `Claims`
-4. `Targets`
-5. `Validator Contract`
-6. `Verification Matrix`
-7. `Migration Plan`
-8. `Governance Impact`
-
-**Failure Code**: `PPV002`
-
-## 2. Claims Need Evidence
-
-If you make a `policy_mandate` or `canonical_path` claim, you **must** provide an Evidence Pointer.
-
-* **Format**: `path/to/file:L10-L20` or `path#sha256:HEX` or `N/A(reason)` (proposals only).
-* **Invalid**: `N/A`, `Just trust me`, `See existing code`.
-
-**Failure Code**: `PPV003`, `PPV004`
-
-## 3. Targets via Discovery
-
-Do not hardcode paths unless strictly necessary. Use discovery queries in your execution steps, but if you must use `fixed_path` in a target, you must back it up with a `canonical_path` claim.
-
-## 4. Validator Contract
-
-You must explicitly confirm the output format:
-
-```markdown
-# Validator Contract
-- **Output Format**: PASS/FAIL
-- **Failure Codes**: ...
-```
-
-**Failure Code**: `PPV007`
-
-
----
-
-# File: 02_protocols/implementation_plan_schema_v1.0.yaml
+# File: 02_protocols/schemas/implementation_plan_schema_v1.0.yaml
 
 # IMPL_PLAN Schema v1.0
 # ========================
@@ -5946,28 +6478,28 @@ validation_rules:
 
 ---
 
-# File: 02_protocols/lifeos_packet_schemas_CURRENT.yaml
+# File: 02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml
 
 *[Reference Pointer: Raw schema/example omitted for strategic clarity]*
 
 
 ---
 
-# File: 02_protocols/lifeos_packet_schemas_v1.2.yaml
+# File: 02_protocols/schemas/lifeos_packet_schemas_v1.2.yaml
 
 *[Reference Pointer: Raw schema/example omitted for strategic clarity]*
 
 
 ---
 
-# File: 02_protocols/lifeos_packet_templates_v1.yaml
+# File: 02_protocols/schemas/lifeos_packet_templates_v1.yaml
 
 *[Reference Pointer: See full text in Universal Corpus for implementation details]*
 
 
 ---
 
-# File: 02_protocols/lifeos_state_schema_v1.0.yaml
+# File: 02_protocols/schemas/lifeos_state_schema_v1.0.yaml
 
 # LIFEOS_STATE Schema v1.0
 # =========================
@@ -6871,6 +7403,66 @@ None of the roadmap items listed in the original roadmap are explicitly Fuel. Ho
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
+# File: 09_prompts/README.md
+
+# Agent Prompt Templates
+
+Agent role prompts, system messages, and reviewer templates.
+
+## Versioning Strategy
+
+Prompts are organized by version, with each version directory containing a complete set of prompts for that release.
+
+### Active Versions
+
+- **v1.2/** - Current active prompt set (12 reviewer prompts + chair/cochair)
+  - Council chair and co-chair prompts
+  - 10 specialized reviewer prompts (alignment, architect, determinism, governance, etc.)
+
+- **v1.0/** - Legacy prompt structure (deprecated but preserved)
+  - Contains older organizational structure (initialisers/, protocols/, roles/, system/)
+  - Superseded by v1.2 flat structure
+
+### Version Selection
+
+**Default:** Use v1.2/ prompts for all current operations.
+
+**Legacy compatibility:** v1.0/ structure preserved for reference but should not be actively used.
+
+## Directory Structure
+
+```
+docs/09_prompts/
+├── v1.0/           # Legacy (deprecated)
+│   ├── initialisers/
+│   ├── protocols/
+│   ├── roles/
+│   └── system/
+└── v1.2/           # Current (active)
+    ├── chair_prompt_v1.2.md
+    ├── cochair_prompt_v1.2.md
+    └── reviewer_*.md (10 specialized reviewers)
+```
+
+## Related Directories
+
+- **docs/05_agents/**: Agent specifications
+- **docs/01_governance/**: Agent constitutions
+- **docs/02_protocols/**: Agent interaction protocols
+
+## Future Versioning
+
+When creating v1.3 or later versions:
+1. Create new version directory (e.g., `v1.3/`)
+2. Copy relevant prompts from previous version
+
+> [!NOTE]
+> **TRUNCATED**: Only first 50 lines included. See Universal Corpus for full prompt details.
 
 
 

@@ -30,7 +30,21 @@ jobs:
           sudo apt-get install -y ripgrep
           sudo npm install -g markdownlint-cli
           pip install -r requirements-dev.txt
-      
+
+      - name: Enforce OpenClaw fallback policy constants
+        run: |
+          set -euo pipefail
+          if rg -n "github-copilot/claude-opus-4.6" \
+            runtime/tools/openclaw_policy_assert.py \
+            runtime/tools/openclaw_model_policy_assert.py \
+            runtime/tools/openclaw_model_ladder_fix.py \
+            runtime/tests/test_openclaw_policy_assert.py \
+            runtime/tests/test_openclaw_memory_policy_assert.py \
+            runtime/tests/test_openclaw_model_policy_assert.py; then
+            echo "::error::Legacy fallback github-copilot/claude-opus-4.6 detected in OpenClaw policy/test sources."
+            exit 1
+          fi
+
       - name: Run tests
         run: pytest -v --tb=short
         env:
@@ -61,16 +75,15 @@ jobs:
   docs:
     name: Documentation Validation
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -78,8 +91,20 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run doc link validator
+        if: github.event_name == 'pull_request'
         run: pytest tests_doc/test_links.py -v
         continue-on-error: true  # Report but don't block initially
+
+      - name: DAP validation
+        run: python -m doc_steward.cli dap-validate .
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Doc freshness check (warn until 2026-02-26, then block)
+        run: python -m doc_steward.cli freshness-check .
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          LIFEOS_DOC_FRESHNESS_MODE: warn
 
   validate:
     name: Validate Artefact Index

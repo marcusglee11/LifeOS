@@ -1,10 +1,8 @@
 # ARTEFACT_INDEX Schema v1.0
 
-<!-- LIFEOS_TODO[P1][area: docs/01_governance/ARTEFACT_INDEX_SCHEMA.md][exit: status change to ACTIVE + DAP validate] Finalize ARTEFACT_INDEX_SCHEMA v1.0: Remove WIP/Provisional markers -->
-
-**Status**: WIP (Non-Canonical)
+**Status**: ACTIVE
 **Authority**: LifeOS Constitution v2.0 → Document Steward Protocol v1.1
-**Effective**: 2026-01-07 (Provisional)
+**Effective**: 2026-02-16
 
 ---
 

@@ -2,7 +2,17 @@
 set -euo pipefail
 export PYTHONDONTWRITEBYTECODE=1
 
-BUILD_REPO="$(git rev-parse --show-toplevel)"
+# Tier 1: explicit env override (hermetic tests, CI)
+# Tier 2: script-relative resolution via BASH_SOURCE[0] (works outside-repo invocations)
+# Tier 3: git rev-parse fallback (when invoked from inside the repo)
+if [ -n "${LIFEOS_BUILD_REPO:-}" ]; then
+    BUILD_REPO="$LIFEOS_BUILD_REPO"
+elif _script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null)"; then
+    BUILD_REPO="$(cd "$_script_dir/../.." && pwd)"
+else
+    BUILD_REPO="$(git rev-parse --show-toplevel)"
+fi
+unset _script_dir
 TRAIN_WT="$(dirname "$BUILD_REPO")/LifeOS__wt_coo_training"
 TRAIN_BRANCH="coo/training"
 OPENCLAW_PROFILE="${OPENCLAW_PROFILE:-}"
@@ -68,6 +78,188 @@ run_openclaw() {
     return
   fi
   "$OPENCLAW_BIN" "$@"
+}
+
+resolve_gateway_token_from_config() {
+  local token
+  token="$(python3 - "$OPENCLAW_CONFIG_PATH" <<'PY'
+import json
+import os
+import sys
+
+path = sys.argv[1]
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    token = (((data or {}).get("gateway") or {}).get("auth") or {}).get("token")
+    if isinstance(token, str) and token:
+        print(token)
+except Exception:
+    pass
+PY
+)"
+  printf '%s\n' "$token"
+}
+
+strip_dashboard_token_fragments() {
+  sed -E \
+    -e 's/#token=[^[:space:]#&?]+//g' \
+    -e 's/([?&])token=[^[:space:]#&?]+/\1/g' \
+    -e 's/[?&]+$//'
+}
+
+resolve_dashboard_url() {
+  local include_token_url="${1:-0}"
+  local fallback_url output parsed token
+  fallback_url="http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
+  output="$(run_openclaw dashboard --no-open 2>/dev/null || true)"
+  parsed="$(printf '%s\n' "$output" | sed -n 's/.*Dashboard URL: \(http[^[:space:]]*\).*/\1/p' | tail -n 1)"
+  if [ -n "$parsed" ]; then
+    if [ "$include_token_url" = "1" ]; then
+      printf '%s\n' "$parsed"
+    else
+      printf '%s\n' "$parsed" | strip_dashboard_token_fragments
+    fi
+    return 0
+  fi
+  token="$(resolve_gateway_token_from_config)"
+  if [ "$include_token_url" = "1" ] && [ -n "$token" ]; then
+    printf '%s#token=%s\n' "$fallback_url" "$token"
+    return 0
+  fi
+  printf '%s\n' "$fallback_url"
+  return 0
+}
+
+emit_gate_blocking_summary() {
+  local gate_status_path="${OPENCLAW_GATE_STATUS_PATH:-$OPENCLAW_STATE_DIR/runtime/gates/gate_status.json}"
+  if [ ! -f "$gate_status_path" ]; then
+    echo "GATE_STATUS_PATH_MISSING=$gate_status_path"
+    return 0
+  fi
+
+  echo "GATE_STATUS_PATH=$gate_status_path"
+  python3 - <<'PY' "$gate_status_path"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    obj = json.loads(path.read_text(encoding="utf-8"))
+except Exception as exc:
+    print(f"GATE_STATUS_PARSE_ERROR={type(exc).__name__}:{exc}")
+    raise SystemExit(0)
+
+print(f"GATE_PASS={'true' if obj.get('pass') else 'false'}")
+reasons = obj.get("blocking_reasons") or []
+if isinstance(reasons, list) and reasons:
+    print("GATE_BLOCKING_REASONS_BEGIN")
+    for reason in reasons:
+        print(f"- {reason}")
+    print("GATE_BLOCKING_REASONS_END")
+PY
+}
+
+annotate_gate_breakglass_status() {
+  local gate_status_path="$1"
+  local used="$2"
+  local scope="$3"
+  local reasons_csv="${4:-}"
+  if [ ! -f "$gate_status_path" ]; then
+    return 0
+  fi
+  python3 - <<'PY' "$gate_status_path" "$used" "$scope" "$reasons_csv"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+used = str(sys.argv[2]).strip().lower() == "true"
+scope = str(sys.argv[3] or "").strip() or "policy_drift_only"
+raw_reasons = str(sys.argv[4] or "")
+reasons = [item for item in raw_reasons.split(",") if item]
+
+try:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+except Exception:
+    payload = {}
+
+if not isinstance(payload, dict):
+    payload = {}
+
+payload["break_glass_used"] = used
+payload["break_glass_scope"] = scope
+payload["break_glass_bypass_reasons"] = reasons
+path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+PY
+}
+
+classify_breakglass_gate_reasons() {
+  local gate_status_path="$1"
+  python3 - <<'PY' "$gate_status_path"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+drift_allowed = {
+    "policy_assert_failed",
+    "model_ladder_policy_failed",
+    "multiuser_posture_failed",
+    "interfaces_policy_failed",
+    "cron_delivery_guard_failed",
+}
+hard_exact = {
+    "sandbox_mode_not_non_main",
+    "sandbox_elevated_enabled",
+    "gateway_probe_failed",
+    "receipt_generation_failed",
+    "leak_scan_failed",
+}
+hard_prefixes = ("security_audit_",)
+
+if not path.exists():
+    print("can_bypass=false")
+    print("hard_reasons=gate_status_missing")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
+try:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+except Exception:
+    print("can_bypass=false")
+    print("hard_reasons=gate_status_parse_error")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
+reasons = payload.get("blocking_reasons") or []
+if not isinstance(reasons, list):
+    reasons = []
+reasons = [str(r).strip() for r in reasons if str(r).strip()]
+
+if not reasons:
+    print("can_bypass=false")
+    print("hard_reasons=startup_failure_without_gate_reasons")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
+bypass = []
+hard = []
+for reason in reasons:
+    if reason in drift_allowed:
+        bypass.append(reason)
+        continue
+    if reason in hard_exact or any(reason.startswith(prefix) for prefix in hard_prefixes):
+        hard.append(reason)
+        continue
+    hard.append(reason)
+
+can_bypass = bool(bypass) and not hard
+print(f"can_bypass={'true' if can_bypass else 'false'}")
+print("hard_reasons=" + ",".join(hard))
+print("bypass_reasons=" + ",".join(bypass))
+PY
 }
 
 ensure_worktree() {
@@ -159,10 +351,13 @@ text = sys.stdin.read()
 text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[REDACTED_EMAIL]', text)
 text = re.sub(r'Authorization\s*:\s*Bearer\s+\S+', 'Authorization: Bearer [REDACTED]', text, flags=re.I)
 text = re.sub(r'\bxapp-[A-Za-z0-9-]{6,}\b', 'xapp-[REDACTED]', text)
-text = re.sub(r'\bxoxb-[A-Za-z0-9-]{6,}\b', 'xoxb-[REDACTED]', text)
+text = re.sub(r'\bxox[aboprs]-[A-Za-z0-9-]{6,}\b', 'xox?-[REDACTED]', text)
 text = re.sub(r'\bsk-or-v1[a-zA-Z0-9._-]{6,}\b', 'sk-or-v1[REDACTED]', text)
 text = re.sub(r'\bsk-[A-Za-z0-9_-]{8,}\b', 'sk-[REDACTED]', text)
+text = re.sub(r'\bsk-ant-[A-Za-z0-9_-]{8,}\b', 'sk-ant-[REDACTED]', text)
+text = re.sub(r'\bgh[opurs]_[A-Za-z0-9]{12,}\b', 'gh*_[REDACTED]', text)
 text = re.sub(r'\bAIza[0-9A-Za-z_-]{10,}\b', 'AIza[REDACTED]', text)
+text = re.sub(r'\bya29\.[0-9A-Za-z._-]{12,}\b', 'ya29.[REDACTED]', text)
 text = re.sub(r'[A-Za-z0-9+/_=-]{80,}', '[REDACTED_LONG]', text)
 sys.stdout.write(text)
 PY
@@ -282,9 +477,9 @@ render_capsule_marker() {
 usage() {
   cat <<'EOF'
 Usage:
-  runtime/tools/coo_worktree.sh start
-  runtime/tools/coo_worktree.sh tui [-- <tui-args...>]
-  runtime/tools/coo_worktree.sh app
+  runtime/tools/coo_worktree.sh start [--show-token-url] [--unsafe-allow-drift]
+  runtime/tools/coo_worktree.sh tui [--show-token-url] [--unsafe-allow-drift] [-- <tui-args...>]
+  runtime/tools/coo_worktree.sh app [--show-token-url] [--unsafe-allow-drift]
   runtime/tools/coo_worktree.sh stop
   runtime/tools/coo_worktree.sh diag
   runtime/tools/coo_worktree.sh models {status|fix}
@@ -302,8 +497,8 @@ Usage:
   runtime/tools/coo_worktree.sh openclaw -- <openclaw-args...>
 
 Enforcement modes:
-  - Interactive mode (tui, app, diag, start, models, openclaw): Fail-soft on ladder issues
-  - Mission mode (e2e, job, run-job): Fail-closed on ladder issues
+  - Default startup mode is fail-closed for security/model/posture gates.
+  - Use --unsafe-allow-drift for local emergency bypass of policy drift checks only.
 EOF
 }
 
@@ -319,22 +514,110 @@ case "$cmd" in
     ;;
   start)
     shift || true
+    show_token_url=0
+    unsafe_allow_drift=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --show-token-url)
+          show_token_url=1
+          shift
+          ;;
+        --redacted-dashboard)
+          show_token_url=0
+          shift
+          ;;
+        --unsafe-allow-drift)
+          unsafe_allow_drift=1
+          shift
+          ;;
+        *)
+          echo "ERROR: unknown start argument: $1" >&2
+          exit 2
+          ;;
+      esac
+    done
     ensure_openclaw_surface
     print_header
-    (
-      cd "$BUILD_REPO"
-      export COO_ENFORCEMENT_MODE=interactive
-      runtime/tools/openclaw_gateway_ensure.sh
-      runtime/tools/openclaw_models_preflight.sh
-    )
-    echo "DASHBOARD_URL=http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
+    start_failed=0
+    pushd "$BUILD_REPO" >/dev/null
+    if ! runtime/tools/openclaw_gateway_ensure.sh; then
+      start_failed=1
+    fi
+    export COO_ENFORCEMENT_MODE=mission
+    if ! runtime/tools/openclaw_models_preflight.sh; then
+      start_failed=1
+    fi
+    if ! runtime/tools/openclaw_verify_surface.sh; then
+      start_failed=1
+    fi
+    popd >/dev/null
+    gate_status_path="${OPENCLAW_GATE_STATUS_PATH:-$OPENCLAW_STATE_DIR/runtime/gates/gate_status.json}"
+    break_glass_scope="policy_drift_only"
+    if [ "$start_failed" -ne 0 ] && [ "$unsafe_allow_drift" -ne 1 ]; then
+      annotate_gate_breakglass_status "$gate_status_path" "false" "$break_glass_scope" ""
+      emit_gate_blocking_summary
+      echo "ERROR: startup blocked by fail-closed gate policy." >&2
+      echo "NEXT: fix blocking reasons above, or re-run with --unsafe-allow-drift for emergency local use only." >&2
+      exit 1
+    fi
+    if [ "$start_failed" -ne 0 ] && [ "$unsafe_allow_drift" -eq 1 ]; then
+      classify_lines="$(classify_breakglass_gate_reasons "$gate_status_path")"
+      can_bypass="$(printf '%s\n' "$classify_lines" | sed -n 's/^can_bypass=//p' | tail -n 1)"
+      hard_reasons="$(printf '%s\n' "$classify_lines" | sed -n 's/^hard_reasons=//p' | tail -n 1)"
+      bypass_reasons="$(printf '%s\n' "$classify_lines" | sed -n 's/^bypass_reasons=//p' | tail -n 1)"
+      if [ "$can_bypass" = "true" ]; then
+        annotate_gate_breakglass_status "$gate_status_path" "true" "$break_glass_scope" "$bypass_reasons"
+        emit_gate_blocking_summary
+        echo "WARNING: --unsafe-allow-drift bypass active for policy drift checks only." >&2
+      else
+        annotate_gate_breakglass_status "$gate_status_path" "true" "$break_glass_scope" ""
+        emit_gate_blocking_summary
+        if [ -n "$hard_reasons" ]; then
+          echo "ERROR: --unsafe-allow-drift cannot bypass non-policy gate failures: $hard_reasons" >&2
+        else
+          echo "ERROR: --unsafe-allow-drift cannot classify gate failures safely; refusing bypass." >&2
+        fi
+        echo "ERROR: startup blocked by fail-closed gate policy." >&2
+        exit 1
+      fi
+    fi
+    if [ "$start_failed" -eq 0 ]; then
+      annotate_gate_breakglass_status "$gate_status_path" "false" "$break_glass_scope" ""
+    fi
+    dashboard_url="$(resolve_dashboard_url "$show_token_url")"
+    echo "DASHBOARD_URL=$dashboard_url"
     ;;
   tui)
     shift || true
-    if [ "${1:-}" = "--" ]; then
-      shift || true
+    show_token_url=0
+    unsafe_allow_drift=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --show-token-url)
+          show_token_url=1
+          shift
+          ;;
+        --unsafe-allow-drift)
+          unsafe_allow_drift=1
+          shift
+          ;;
+        --)
+          shift
+          break
+          ;;
+        *)
+          break
+          ;;
+      esac
+    done
+    start_args=()
+    if [ "$show_token_url" -eq 1 ]; then
+      start_args+=("--show-token-url")
     fi
-    "$0" start
+    if [ "$unsafe_allow_drift" -eq 1 ]; then
+      start_args+=("--unsafe-allow-drift")
+    fi
+    "$0" start "${start_args[@]}"
     ensure_openclaw_surface
     print_header
     enter_training_dir
@@ -342,10 +625,35 @@ case "$cmd" in
     ;;
   app)
     shift || true
-    "$0" start
+    show_token_url=0
+    unsafe_allow_drift=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --show-token-url)
+          show_token_url=1
+          shift
+          ;;
+        --unsafe-allow-drift)
+          unsafe_allow_drift=1
+          shift
+          ;;
+        *)
+          echo "ERROR: unknown app argument: $1" >&2
+          exit 2
+          ;;
+      esac
+    done
+    start_args=()
+    if [ "$show_token_url" -eq 1 ]; then
+      start_args+=("--show-token-url")
+    fi
+    if [ "$unsafe_allow_drift" -eq 1 ]; then
+      start_args+=("--unsafe-allow-drift")
+    fi
+    "$0" start "${start_args[@]}"
     ensure_openclaw_surface
     print_header
-    app_url="http://127.0.0.1:${OPENCLAW_GATEWAY_PORT}/"
+    app_url="$(resolve_dashboard_url "$show_token_url")"
     if powershell.exe -NoProfile -Command "Start-Process '$app_url'" >/dev/null 2>&1; then
       echo "APP_OPENED=$app_url"
     else
