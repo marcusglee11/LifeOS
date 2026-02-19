@@ -30,7 +30,21 @@ jobs:
           sudo apt-get install -y ripgrep
           sudo npm install -g markdownlint-cli
           pip install -r requirements-dev.txt
-      
+
+      - name: Enforce OpenClaw fallback policy constants
+        run: |
+          set -euo pipefail
+          if rg -n "github-copilot/claude-opus-4.6" \
+            runtime/tools/openclaw_policy_assert.py \
+            runtime/tools/openclaw_model_policy_assert.py \
+            runtime/tools/openclaw_model_ladder_fix.py \
+            runtime/tests/test_openclaw_policy_assert.py \
+            runtime/tests/test_openclaw_memory_policy_assert.py \
+            runtime/tests/test_openclaw_model_policy_assert.py; then
+            echo "::error::Legacy fallback github-copilot/claude-opus-4.6 detected in OpenClaw policy/test sources."
+            exit 1
+          fi
+
       - name: Run tests
         run: pytest -v --tb=short
         env:

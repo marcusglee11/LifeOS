@@ -10,7 +10,7 @@ from typing import Any, Dict, List
 
 PRIMARY_MODEL = "openai-codex/gpt-5.3-codex"
 SUBSCRIPTION_FALLBACKS = [
-    "github-copilot/claude-opus-4.6",
+    "github-copilot/gpt-5-mini",
     "google-gemini-cli/gemini-3-flash-preview",
 ]
 OWNER_ONLY_COMMANDS = {"/model", "/models", "/think"}

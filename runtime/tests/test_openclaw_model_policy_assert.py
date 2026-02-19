@@ -14,7 +14,7 @@ def _cfg() -> dict:
                     "model": {
                         "primary": "openai-codex/gpt-5.3-codex",
                         "fallbacks": [
-                            "github-copilot/claude-opus-4.6",
+                            "github-copilot/gpt-5-mini",
                             "google-gemini-cli/gemini-3-flash-preview",
                             "openrouter/openai/gpt-4.1-mini",
                         ],
@@ -25,7 +25,7 @@ def _cfg() -> dict:
                     "model": {
                         "primary": "openai-codex/gpt-5.3-codex",
                         "fallbacks": [
-                            "github-copilot/claude-opus-4.6",
+                            "github-copilot/gpt-5-mini",
                             "google-gemini-cli/gemini-3-flash-preview",
                         ],
                     },
@@ -36,7 +36,7 @@ def _cfg() -> dict:
                     "model": {
                         "primary": "openai-codex/gpt-5.3-codex",
                         "fallbacks": [
-                            "github-copilot/claude-opus-4.6",
+                            "github-copilot/gpt-5-mini",
                             "google-gemini-cli/gemini-3-flash-preview",
                             "openrouter/openai/gpt-4.1-mini",
                         ],
@@ -51,7 +51,7 @@ def _models_list_text() -> str:
     return """\
 Model                                      Input      Ctx      Local Auth  Tags
 openai-codex/gpt-5.3-codex                 text+image 266k     no    yes   configured
-github-copilot/claude-opus-4.6             text+image 125k     no    yes   configured
+github-copilot/gpt-5-mini                  text+image 125k     no    yes   configured
 google-gemini-cli/gemini-3-flash-preview   text+image 1024k    no    yes   configured
 openrouter/openai/gpt-4.1-mini             text+image 200k     no    yes   configured
 opencode/kimi-k2.5-free                    text+image 256k     no    yes   configured
@@ -72,7 +72,7 @@ def test_policy_assert_fails_on_wrong_prefix_order():
     cfg = _cfg()
     cfg["agents"]["list"][0]["model"]["fallbacks"] = [
         "google-gemini-cli/gemini-3-flash-preview",
-        "github-copilot/claude-opus-4.6",
+        "github-copilot/gpt-5-mini",
     ]
     status = _parse_models_list_text(_models_list_text())
     result = assert_policy(cfg, status, None)
@@ -83,7 +83,7 @@ def test_policy_assert_fails_on_wrong_prefix_order():
 def test_policy_assert_fails_on_disallowed_haiku():
     cfg = _cfg()
     cfg["agents"]["list"][1]["model"]["fallbacks"] = [
-        "github-copilot/claude-opus-4.6",
+        "github-copilot/gpt-5-mini",
         "google-gemini-cli/gemini-3-flash-preview",
         "anthropic/claude-3-haiku-20240307",
     ]

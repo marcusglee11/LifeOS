@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Tuple
 
 EXECUTION_BASE = [
     "openai-codex/gpt-5.3-codex",
-    "github-copilot/claude-opus-4.6",
+    "github-copilot/gpt-5-mini",
     "google-gemini-cli/gemini-3-flash-preview",
 ]
 THINKING_BASE = list(EXECUTION_BASE)
