@@ -1,7 +1,7 @@
 # LifeOS Master Execution Plan v1.1 (Superseding, Canonical)
 
-**Status:** IN PROGRESS — W0/W4/W5/W7 core stabilization complete; W5-T02 + W6 pending
-**Last Updated:** 2026-02-18 (rev4)
+**Status:** IN PROGRESS — W0/W4/W5/W7 core stabilization complete; W5-T02 DONE, W6 pending
+**Last Updated:** 2026-02-19 (rev5)
 
 ## 0. Authority and Scope
 
@@ -63,7 +63,7 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 | W7 | T02 | ✅ DONE | 2026-02-16 | Freshness check wired into CI (warn mode) + close-build gate |
 | W7 | T03 | ✅ DONE | 2026-02-16 | All 5 protocol docs finalized (ACTIVE, no TODO markers) |
 
-**Current Focus:** W4 Integration COMPLETE (T03/T04). Next: W5-T02 checkpoint/resume proof or W6 Codemoot spike
+**Current Focus:** W5-T02 Checkpoint/Resume E2E Proof COMPLETE. Next: W6 Codemoot spike
 
 ## 5. Execution Work Packages
 
@@ -205,7 +205,7 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 - DoD:
 - One real task completes through hydrate -> policy -> design -> build -> review -> steward.
 
-### W5-T02: Checkpoint/resume proof
+### W5-T02: Checkpoint/resume proof ✅ DONE (2026-02-19)
 
 - Scope:
 - Validate resume semantics and policy-hash continuity.
@@ -215,6 +215,7 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 3. Verify continuation and hash checks.
 - DoD:
 - Resume proceeds from correct state with policy integrity checks.
+- Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt` (6/6 tests PASS)
 
 ### W5-T03: Budget controller stub replacement
 

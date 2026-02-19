@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** W4 Integration COMPLETE (T03/T04) — OpenClaw->Spine bridge, worktree clean enforcement, lifecycle hooks done. Next: W5-T02 checkpoint/resume proof or W6 Codemoot spike
-**Active WIP:** None — W4-T03/T04 integration closed
-**Last Updated:** 2026-02-18 (rev14)
+**Current Focus:** W5-T02 Checkpoint/Resume E2E Proof COMPLETE — Full cycle proven (escalation → checkpoint YAML → resolve → resume → terminal with ledger continuity). Next: W6 Codemoot spike
+**Active WIP:** None — W5-T02 closed
+**Last Updated:** 2026-02-19 (rev15)
 
 ---
 
@@ -27,7 +27,8 @@
 4. ~~W7-T03 Protocol doc finalization (5/5 docs)~~ ✓ **COMPLETE** (2026-02-16, all ACTIVE)
 5. ~~W4-T03 Worktree dispatch governance~~ ✓ **COMPLETE** (2026-02-18, Spine clean-worktree enforcement)
 6. ~~W4-T04 Validator lifecycle hooks (OpenClaw path)~~ ✓ **COMPLETE** (2026-02-18, openclaw_bridge execute + CLI)
-7. **Next:** W5-T02 Checkpoint/resume E2E proof or W6 Codemoot spike
+7. ~~W5-T02 Checkpoint/resume E2E proof~~ ✓ **COMPLETE** (2026-02-19, 6/6 integration tests)
+8. **Next:** W6 Codemoot spike
 
 **Canonical Plan Authority:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 
@@ -74,6 +75,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-02-19:** **W5-T02 Checkpoint/Resume E2E Proof COMPLETE** — 6 integration tests proving full checkpoint/resume cycle: escalation → checkpoint YAML on disk → resolution seam → resume with policy hash continuity → terminal packet with ledger anchor. Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt`
 - **2026-02-18:** Worktree Outside Repo Resolution 20260218 — chore: refresh runtime_status.json (closure); fix(worktree): resolve repo root from script location when invoked outside repo — 1/1 targeted test command(s) passed. (merge commit ba63f57)
 - **2026-02-18:** W4-T03/T04 OpenClaw Integration — feat: OpenClaw->Spine execution bridge, clean-worktree enforcement, CLI command spine run-openclaw-job — 1/1 targeted test command(s) passed. (merge commit c53bdcc)
 - **2026-02-18:** Openclaw Boundary Enforcement 20260218 — chore: refresh runtime_status.json (closure); feat: OpenClaw boundary enforcement gap-fill (dmScope, AuthHealth, break-glass) — 1/1 targeted test command(s) passed. (merge commit 9230ac7)

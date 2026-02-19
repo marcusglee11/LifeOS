@@ -8,13 +8,13 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-18 (rev5)
+**Last Updated:** 2026-02-19 (rev6)
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
 
-(None — W4-T03/T04 integration complete, next queued item is W5-T02 checkpoint/resume proof)
+(None — W5-T02 checkpoint/resume proof complete, next queued item is W6 Codemoot spike)
 
 ### P1 (High)
 
@@ -46,6 +46,7 @@
 
 ## Done (last ~25 only)
 
+- [x] **W5-T02 Checkpoint/Resume E2E Proof** — Date: 2026-02-19 — 6 integration tests proving full checkpoint/resume cycle with policy hash continuity and ledger anchoring. Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt`
 - [x] **W4-T03 Worktree Dispatch Governance** — Date: 2026-02-18 — Spine now enforces isolated worktree lifecycle + clean-worktree fail-closed check (`runtime/orchestration/loop/spine.py`)
 - [x] **W4-T04 Validator Lifecycle Hooks (OpenClaw Path)** — Date: 2026-02-18 — OpenClaw execution bridge + CLI command + lifecycle-integrated test coverage (`runtime/orchestration/openclaw_bridge.py`, `runtime/cli.py`)
 - [x] **Guard deprecated `autonomous_build_cycle` path** (W0-T04) — Date: 2026-02-13 — cli.py deprecation guard + autonomous_build_cycle.py migration notice
