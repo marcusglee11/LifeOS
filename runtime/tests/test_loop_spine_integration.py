@@ -1,8 +1,10 @@
 """
-W5-T02: Checkpoint/Resume E2E Integration Proof
+W5-T02: Checkpoint/Resume Integration Proof
 
-Proves the full cycle: run → escalation → checkpoint YAML on disk →
-resolution seam → resume → terminal packet with ledger continuity.
+Integration tests for the checkpoint/resume contract. Chain execution
+(_run_chain_steps) is mocked; these tests exercise the checkpoint YAML
+persistence, resolution seam, policy-hash gating, ledger continuity,
+and CLI routing — not the real chain steps themselves.
 
 DoD: "Resume proceeds from correct state with policy integrity checks."
 """
@@ -190,6 +192,16 @@ class TestCheckpointResumeE2ECycle:
         assert tp_data["ledger_chain_tip"] is not None
         assert len(tp_data["ledger_chain_tip"]) == 64  # SHA-256 hex
         assert tp_data["ledger_schema_version"] == "v1.1"
+
+        # Verify anchor matches actual ledger state (chain continuity)
+        from runtime.orchestration.loop.ledger import AttemptLedger
+        ledger = AttemptLedger(
+            clean_repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
+        )
+        ledger.hydrate()
+        assert tp_data["ledger_chain_tip"] == ledger.get_chain_tip()
+        assert tp_data["ledger_attempt_count"] == len(ledger.history)
+        assert len(ledger.history) >= 1  # At least 1 record written
 
 
 # ── Test Class 2: Policy Change Rejection ────────────────────────────────────
