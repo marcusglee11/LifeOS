@@ -237,6 +237,62 @@ class TestFullChainMocked:
 
 _LIVE_TASK = "Add docstrings to check_invariant and InvariantViolation in runtime/invariants.py"
 
+# Canonical no-docstrings form of the task target file.
+# Used to self-reset after a successful run commits docstrings into HEAD.
+_INVARIANTS_CANONICAL = (
+    "class InvariantViolation(Exception):\n"
+    "    pass\n"
+    "\n"
+    "def check_invariant(condition: bool, message: str):\n"
+    "    if not condition:\n"
+    '        raise InvariantViolation(f"Invariant violated: {message}")\n'
+)
+
+
+def _ensure_invariants_undone(repo_root: Path) -> None:
+    """
+    Guarantee runtime/invariants.py is in its no-docstrings (undone) state.
+
+    Handles two cases:
+    - Dirty worktree (failed run left changes): git checkout HEAD resets them.
+    - HEAD itself has docstrings (prior PASS committed them): write canonical
+      content and commit a restore so the spine sees a clean repo.
+    """
+    # First restore the ledger (always needed between runs)
+    subprocess.run(
+        ["git", "checkout", "HEAD", "--",
+         "artifacts/loop_state/attempt_ledger.jsonl"],
+        cwd=repo_root, capture_output=True,
+    )
+
+    invariants_path = repo_root / "runtime" / "invariants.py"
+
+    # Check HEAD version
+    head_result = subprocess.run(
+        ["git", "show", "HEAD:runtime/invariants.py"],
+        cwd=repo_root, capture_output=True, text=True,
+    )
+    head_content = head_result.stdout if head_result.returncode == 0 else ""
+
+    if head_content == _INVARIANTS_CANONICAL:
+        # HEAD is already undone — just restore any dirty worktree changes
+        subprocess.run(
+            ["git", "checkout", "HEAD", "--", "runtime/invariants.py"],
+            cwd=repo_root, capture_output=True,
+        )
+    else:
+        # HEAD has docstrings (prior PASS) — write canonical and commit reset
+        invariants_path.write_text(_INVARIANTS_CANONICAL, encoding="utf-8")
+        subprocess.run(
+            ["git", "add", "runtime/invariants.py"],
+            cwd=repo_root, check=True, capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "--no-verify", "-m",
+             "chore(test): restore invariants.py to undone state for live test"],
+            cwd=repo_root, check=True, capture_output=True,
+        )
+
 
 @pytest.mark.skipif(
     os.environ.get("RUN_LIVE_STAGE3_FREE") != "1",
@@ -254,13 +310,8 @@ def test_live_spine_free_models():
 
     repo_root = Path(__file__).parent.parent.parent
 
-    # Restore files dirtied by previous failed runs so pre-flight passes.
-    subprocess.run(
-        ["git", "checkout", "HEAD", "--",
-         "artifacts/loop_state/attempt_ledger.jsonl",
-         "runtime/invariants.py"],
-        cwd=repo_root, capture_output=True,
-    )
+    # Ensure task target is in its undone state, even if HEAD has docstrings.
+    _ensure_invariants_undone(repo_root)
 
     task_spec = {"task": _LIVE_TASK}
     spine = LoopSpine(repo_root=repo_root)
@@ -301,14 +352,9 @@ def test_live_spine_paid_models():
 
     repo_root = Path(__file__).parent.parent.parent
 
-    # Restore any files dirtied by previous failed runs (ledger, task target file).
+    # Ensure task target is in its undone state, even if HEAD has docstrings.
     # The spine pre-flight check requires a completely clean repo.
-    subprocess.run(
-        ["git", "checkout", "HEAD", "--",
-         "artifacts/loop_state/attempt_ledger.jsonl",
-         "runtime/invariants.py"],
-        cwd=repo_root, capture_output=True,
-    )
+    _ensure_invariants_undone(repo_root)
 
     # Identify which model will actually be used (from models.yaml)
     model_label_model, _, _ = resolve_model_auto("designer")
@@ -340,7 +386,13 @@ def _log_comparison_result(
     elapsed_seconds: float,
     repo_root: Path,
 ) -> None:
-    """Append a comparison row to artifacts/comparison_results.jsonl."""
+    """Append a comparison row to artifacts/comparison_results.jsonl.
+
+    Fields:
+        model, outcome, commit_hash, elapsed_seconds, run_id  — core metrics
+        reviewer_packet_parsed  — True/False/None; False = silent YAML failure
+        artifacts_produced      — int count of changed files; None if unavailable
+    """
     row = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "model": model_label,
@@ -348,6 +400,8 @@ def _log_comparison_result(
         "commit_hash": result.get("commit_hash"),
         "elapsed_seconds": round(elapsed_seconds, 1),
         "run_id": result.get("run_id"),
+        "reviewer_packet_parsed": result.get("reviewer_packet_parsed"),
+        "artifacts_produced": result.get("artifacts_produced"),
     }
     log_path = repo_root / "artifacts" / "comparison_results.jsonl"
     log_path.parent.mkdir(parents=True, exist_ok=True)

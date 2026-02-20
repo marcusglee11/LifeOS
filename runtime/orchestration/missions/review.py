@@ -6,6 +6,7 @@ Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.3 - Mission: review
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List
 
 from runtime.orchestration.missions.base import (
@@ -102,14 +103,28 @@ class ReviewMission(BaseMission):
             executed_steps.append("architect_review_llm_call")
             
             # Step 3: Synthesize decision
-            # For MVP, we treat the architect's verdict as the final verdict
-            decision = response.packet or {
-                "verdict": "needs_revision",
-                "rationale": response.content,
-                "concerns": [],
-                "recommendations": []
-            }
-            
+            # For MVP, we treat the architect's verdict as the final verdict.
+            reviewer_packet_parsed = response.packet is not None
+            if response.packet is not None:
+                decision = response.packet
+            else:
+                # Packet parse failed — try regex fallback for verdict line
+                # before defaulting to needs_revision.
+                fallback_verdict = None
+                verdict_match = re.search(
+                    r'(?m)^verdict:\s*["\']?(\w+)["\']?\s*$', response.content
+                )
+                if verdict_match:
+                    candidate = verdict_match.group(1).lower()
+                    if candidate in VALID_VERDICTS:
+                        fallback_verdict = candidate
+                decision = {
+                    "verdict": fallback_verdict or "needs_revision",
+                    "rationale": response.content,
+                    "concerns": [],
+                    "recommendations": [],
+                }
+
             final_verdict = decision.get("verdict", "needs_revision")
             if final_verdict not in VALID_VERDICTS:
                 final_verdict = "needs_revision"
@@ -128,16 +143,18 @@ class ReviewMission(BaseMission):
                     outputs={
                         "verdict": final_verdict,
                         "council_decision": council_decision,
+                        "reviewer_packet_parsed": reviewer_packet_parsed,
                     },
                     executed_steps=executed_steps,
                     escalation_reason="Architect review requires CEO escalation",
                 )
-            
+
             return self._make_result(
                 success=True,
                 outputs={
                     "verdict": final_verdict,
                     "council_decision": council_decision,
+                    "reviewer_packet_parsed": reviewer_packet_parsed,
                 },
                 executed_steps=executed_steps,
                 evidence={

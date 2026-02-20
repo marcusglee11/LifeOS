@@ -14,7 +14,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from runtime.orchestration.missions.base import (
     BaseMission,
@@ -408,7 +408,7 @@ class StewardMission(BaseMission):
     
     def _commit_code_changes(
         self, context: MissionContext, artifacts: List[str], message: str
-    ) -> Tuple[bool, str]:
+    ) -> Tuple[bool, Optional[str]]:
         """
         Execute real git commit for code changes.
         
@@ -425,12 +425,9 @@ class StewardMission(BaseMission):
                 cwd=context.repo_root, capture_output=True,
             )
             if diff_check.returncode == 0:
-                # Nothing staged — content identical to HEAD
-                hash_cmd = ["git", "rev-parse", "HEAD"]
-                result = subprocess.run(
-                    hash_cmd, cwd=context.repo_root, check=True, capture_output=True, text=True,
-                )
-                return (True, result.stdout.strip())
+                # Nothing staged — content identical to HEAD; no new commit made.
+                # Return None to distinguish "correctly no-op'd" from real work.
+                return (True, None)
 
             # 2. Commit
             # [HARDENING]: Use --no-verify as the mission has already passed formal ReviewMission.
