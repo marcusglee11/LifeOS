@@ -608,7 +608,13 @@ class LoopSpine:
                             context={"task_spec": task_spec, "current_step": step_name},
                         )
                     else:
-                        # Terminal failure
+                        # Terminal failure — log error for diagnostics
+                        import logging as _log
+                        _log.getLogger(__name__).error(
+                            "Mission '%s' failed: %s",
+                            step_name,
+                            getattr(result, 'error', 'unknown'),
+                        )
                         return {
                             "outcome": "BLOCKED",
                             "reason": "mission_failed",

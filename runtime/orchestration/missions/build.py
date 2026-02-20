@@ -133,6 +133,9 @@ class BuildMission(BaseMission):
                         full_path.parent.mkdir(parents=True, exist_ok=True)
                         full_path.write_text(content, encoding="utf-8")
                         applied.append(rel_path)
+                elif action is None or str(action).lower() == "none":
+                    # LLM indicated no changes needed for this file — skip silently
+                    pass
                 else:
                     errors.append(f"unknown action '{action}' for {rel_path}")
             except Exception as exc:

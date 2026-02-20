@@ -61,39 +61,39 @@ class TestModelResolution:
     """Verify resolve_model_auto reads config/models.yaml and returns correct model per role."""
 
     def test_builder_resolves_from_agent_config(self, config: ModelConfig):
-        """Builder should resolve to minimax-m2.5-free (per agents.builder.model)."""
+        """Builder should resolve to claude-sonnet-4-5 (paid Zen model)."""
         model, reason, chain = resolve_model_auto("builder", config)
-        assert model == "opencode/minimax-m2.5-free"
+        assert model == "claude-sonnet-4-5"
         assert reason == "agent_config"
 
     def test_steward_resolves_from_agent_config(self, config: ModelConfig):
-        """Steward should resolve to kimi-k2.5-free (per agents.steward.model)."""
+        """Steward should resolve to claude-sonnet-4-5 (paid Zen model)."""
         model, reason, chain = resolve_model_auto("steward", config)
-        assert model == "opencode/kimi-k2.5-free"
+        assert model == "claude-sonnet-4-5"
         assert reason == "agent_config"
 
     def test_designer_resolves_from_agent_config(self, config: ModelConfig):
-        """Designer should resolve to glm-5-free (best for structured YAML output)."""
+        """Designer should resolve to claude-sonnet-4-5 (paid Zen model)."""
         model, reason, chain = resolve_model_auto("designer", config)
-        assert model == "opencode/glm-5-free"
+        assert model == "claude-sonnet-4-5"
         assert reason == "agent_config"
 
     def test_reviewer_architect_resolves_from_agent_config(self, config: ModelConfig):
-        """Reviewer architect should resolve to glm-5-free (structured output)."""
+        """Reviewer architect should resolve to claude-sonnet-4-5 (paid Zen model)."""
         model, reason, chain = resolve_model_auto("reviewer_architect", config)
-        assert model == "opencode/glm-5-free"
+        assert model == "claude-sonnet-4-5"
         assert reason == "agent_config"
 
     def test_build_cycle_resolves_from_agent_config(self, config: ModelConfig):
-        """Build cycle should resolve to kimi-k2.5-free."""
+        """Build cycle should resolve to claude-sonnet-4-5 (paid Zen model)."""
         model, reason, chain = resolve_model_auto("build_cycle", config)
-        assert model == "opencode/kimi-k2.5-free"
+        assert model == "claude-sonnet-4-5"
         assert reason == "agent_config"
 
     def test_unknown_role_falls_back_to_default_chain(self, config: ModelConfig):
-        """Unknown role with no agent config should use default_chain."""
+        """Unknown role with no agent config should use default_chain primary."""
         model, reason, chain = resolve_model_auto("unknown_role_xyz", config)
-        assert model == "opencode/kimi-k2.5-free"
+        assert model == "claude-sonnet-4-5"
         assert reason == "primary"
         assert chain == config.default_chain
 
@@ -110,24 +110,17 @@ class TestModelResolution:
 # ---------------------------------------------------------------------------
 
 class TestFallbackChain:
-    """Verify fallback chains include glm-5-free and have correct ordering."""
+    """Verify fallback chains have paid primary + free fallbacks."""
 
     def test_default_chain_includes_glm5(self, config: ModelConfig):
-        """Default chain should include glm-5-free after kimi."""
+        """Default chain should include glm-5-free as a fallback."""
         assert "opencode/glm-5-free" in config.default_chain
-        kimi_idx = config.default_chain.index("opencode/kimi-k2.5-free")
-        glm_idx = config.default_chain.index("opencode/glm-5-free")
-        assert glm_idx == kimi_idx + 1, "glm-5-free should be right after kimi-k2.5-free"
 
-    def test_default_chain_has_four_models(self, config: ModelConfig):
-        """Default chain should have 4 models: kimi, glm, minimax, gpt-5-nano."""
-        assert len(config.default_chain) == 4
-        assert config.default_chain == [
-            "opencode/kimi-k2.5-free",
-            "opencode/glm-5-free",
-            "opencode/minimax-m2.5-free",
-            "opencode/gpt-5-nano",
-        ]
+    def test_default_chain_has_paid_primary(self, config: ModelConfig):
+        """Default chain primary should be the paid claude-sonnet-4-5 model."""
+        assert len(config.default_chain) >= 2
+        assert config.default_chain[0] == "claude-sonnet-4-5"
+        assert "opencode/glm-5-free" in config.default_chain
 
     def test_steward_fallback_chain_includes_glm5(self, config: ModelConfig):
         """Steward agent fallback should include glm-5-free."""

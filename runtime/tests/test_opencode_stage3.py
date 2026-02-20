@@ -235,7 +235,7 @@ class TestFullChainMocked:
 # Tier 2: Free-model live spine run (skipped unless RUN_LIVE_STAGE3_FREE=1)
 # ---------------------------------------------------------------------------
 
-_LIVE_TASK = "Add docstrings to sign_payload and verify_signature in runtime/sign.py"
+_LIVE_TASK = "Add docstrings to check_invariant and InvariantViolation in runtime/invariants.py"
 
 
 @pytest.mark.skipif(
@@ -258,7 +258,7 @@ def test_live_spine_free_models():
     subprocess.run(
         ["git", "checkout", "HEAD", "--",
          "artifacts/loop_state/attempt_ledger.jsonl",
-         "runtime/sign.py"],
+         "runtime/invariants.py"],
         cwd=repo_root, capture_output=True,
     )
 
@@ -286,18 +286,18 @@ def test_live_spine_free_models():
 )
 def test_live_spine_paid_models():
     """
-    Live: full spine run with paid model config (claude-sonnet-4-5 via OpenRouter).
-    Swap models.yaml temporarily for designer+builder+steward, then restore.
+    Live: full spine run using production models.yaml config (claude-sonnet-4-5 via Zen).
+
+    No model override is used — this tests the actual production config end-to-end.
+    models.yaml primary: claude-sonnet-4-5 via https://opencode.ai/zen/v1/messages
     Measures: success/failure, latency, commit evidence.
     """
     os.environ.setdefault("OPENCLAW_MODELS_PREFLIGHT_SKIP", "1")
-
-    paid_model = os.environ.get(
-        "STAGE3_PAID_MODEL",
-        "openrouter/anthropic/claude-sonnet-4-5",
-    )
+    # Clear any leftover override so models.yaml is used
+    os.environ.pop("LIFEOS_MODEL_OVERRIDE", None)
 
     from runtime.orchestration.loop.spine import LoopSpine
+    from runtime.agents.models import resolve_model_auto
 
     repo_root = Path(__file__).parent.parent.parent
 
@@ -306,32 +306,28 @@ def test_live_spine_paid_models():
     subprocess.run(
         ["git", "checkout", "HEAD", "--",
          "artifacts/loop_state/attempt_ledger.jsonl",
-         "runtime/sign.py"],
+         "runtime/invariants.py"],
         cwd=repo_root, capture_output=True,
     )
 
-    # Use LIFEOS_MODEL_OVERRIDE env var — avoids writing models.yaml which would dirty the repo
-    os.environ["LIFEOS_MODEL_OVERRIDE"] = paid_model
-    os.environ.setdefault("OPENROUTER_API_KEY", os.environ.get("OPENROUTER_API_KEY", ""))
+    # Identify which model will actually be used (from models.yaml)
+    model_label_model, _, _ = resolve_model_auto("designer")
+    model_label = f"zen/{model_label_model}"
 
-    try:
-        task_spec = {"task": _LIVE_TASK}
-        spine = LoopSpine(repo_root=repo_root)
+    task_spec = {"task": _LIVE_TASK}
+    spine = LoopSpine(repo_root=repo_root)
 
-        t0 = time.monotonic()
-        result = spine.run(task_spec=task_spec)
-        elapsed = time.monotonic() - t0
+    t0 = time.monotonic()
+    result = spine.run(task_spec=task_spec)
+    elapsed = time.monotonic() - t0
 
-        model_label = f"paid ({paid_model})"
-        _log_comparison_result(model_label, result, elapsed, repo_root)
+    _log_comparison_result(model_label, result, elapsed, repo_root)
 
-        print(f"\n[PAID MODEL] outcome={result['outcome']} elapsed={elapsed:.1f}s commit={result.get('commit_hash')}")
-        assert result["outcome"] == "PASS", (
-            f"Paid-model spine failed: {result}\n"
-            f"Check artifacts/terminal/ for TP_*.yaml"
-        )
-    finally:
-        os.environ.pop("LIFEOS_MODEL_OVERRIDE", None)
+    print(f"\n[ZEN PAID] model={model_label_model} outcome={result['outcome']} elapsed={elapsed:.1f}s commit={result.get('commit_hash')}")
+    assert result["outcome"] == "PASS", (
+        f"Paid-model spine failed: {result}\n"
+        f"Check artifacts/terminal/ for TP_*.yaml"
+    )
 
 
 # ---------------------------------------------------------------------------

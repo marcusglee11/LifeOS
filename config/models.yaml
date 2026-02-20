@@ -1,60 +1,56 @@
 # LifeOS Model Configuration
 # Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.1.5
 #
-# Updated to current OpenCode free models (2026-02-19):
-#   - kimi-k2.5-free, glm-5-free, minimax-m2.5-free, gpt-5-nano
-# Previous (2026-02-14): kimi-k2.5-free, minimax-m2.5-free, gpt-5-nano
-# To revert: replace model IDs with the previous values above.
+# Updated 2026-02-20: Switched to paid Claude models via Zen endpoint.
+# Verified: claude-sonnet-4-5 accepted by Zen with x-api-key auth.
 #
-# Stage 1.5 findings (2026-02-19):
-#   - glm-5-free: best for structured YAML output (designer, reviewer)
-#   - kimi-k2.5-free: best for agentic/interactive tasks (builder, steward, build_cycle)
+# History:
+#   - 2026-02-14: kimi-k2.5-free, minimax-m2.5-free, gpt-5-nano
+#   - 2026-02-19: kimi-k2.5-free, glm-5-free, minimax-m2.5-free, gpt-5-nano
+#     Stage 1.5: glm-5-free best for YAML; kimi-k2.5-free best for agentic
+#   - 2026-02-20: claude-sonnet-4-5 (paid, via Zen) — first full loop PASS
+#
+# To revert to free models, replace claude-sonnet-4-5 with opencode/glm-5-free
 
 model_selection:
   # Default fallback chain for roles without overrides
   default_chain:
-    - "opencode/kimi-k2.5-free"
+    - "claude-sonnet-4-5"
     - "opencode/glm-5-free"
     - "opencode/minimax-m2.5-free"
-    - "opencode/gpt-5-nano"
 
   # Role-specific model chains
   role_overrides:
     designer:
+      - "claude-sonnet-4-5"
       - "opencode/glm-5-free"
-      - "opencode/kimi-k2.5-free"
       - "opencode/minimax-m2.5-free"
-      - "opencode/gpt-5-nano"
 
     reviewer_architect:
+      - "claude-sonnet-4-5"
       - "opencode/glm-5-free"
-      - "opencode/kimi-k2.5-free"
       - "opencode/minimax-m2.5-free"
-      - "opencode/gpt-5-nano"
 
     builder:
-      - "opencode/kimi-k2.5-free"
+      - "claude-sonnet-4-5"
       - "opencode/glm-5-free"
       - "opencode/minimax-m2.5-free"
-      - "opencode/gpt-5-nano"
 
     steward:
-      - "opencode/kimi-k2.5-free"
+      - "claude-sonnet-4-5"
       - "opencode/glm-5-free"
       - "opencode/minimax-m2.5-free"
-      - "opencode/gpt-5-nano"
 
     build_cycle:
-      - "opencode/kimi-k2.5-free"
+      - "claude-sonnet-4-5"
       - "opencode/glm-5-free"
       - "opencode/minimax-m2.5-free"
-      - "opencode/gpt-5-nano"
 
 
 agents:
   steward:
     provider: zen
-    model: "opencode/kimi-k2.5-free"
+    model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "ZEN_STEWARD_KEY"
     fallback:
@@ -64,60 +60,49 @@ agents:
       - model: "opencode/minimax-m2.5-free"
         provider: "zen"
         api_key_env: "ZEN_STEWARD_KEY"
-      - model: "opencode/gpt-5-nano"
-        provider: "zen"
-        api_key_env: "ZEN_STEWARD_KEY"
 
   builder:
-    provider: opencode-openai
-    model: "opencode/minimax-m2.5-free"
+    provider: zen
+    model: "claude-sonnet-4-5"
+    endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "ZEN_BUILDER_KEY"
     fallback:
-      - model: "opencode/kimi-k2.5-free"
-        provider: "zen"
-        api_key_env: "ZEN_BUILDER_KEY"
       - model: "opencode/glm-5-free"
         provider: "zen"
         api_key_env: "ZEN_BUILDER_KEY"
-      - model: "opencode/gpt-5-nano"
+      - model: "opencode/minimax-m2.5-free"
         provider: "zen"
         api_key_env: "ZEN_BUILDER_KEY"
 
   designer:
     provider: zen
-    model: "opencode/glm-5-free"
+    model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "ZEN_DESIGNER_KEY"
     fallback:
-      - model: "opencode/kimi-k2.5-free"
+      - model: "opencode/glm-5-free"
         provider: "zen"
         api_key_env: "ZEN_DESIGNER_KEY"
       - model: "opencode/minimax-m2.5-free"
-        provider: "zen"
-        api_key_env: "ZEN_DESIGNER_KEY"
-      - model: "opencode/gpt-5-nano"
         provider: "zen"
         api_key_env: "ZEN_DESIGNER_KEY"
 
   reviewer_architect:
     provider: zen
-    model: "opencode/glm-5-free"
+    model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "ZEN_REVIEWER_KEY"
     fallback:
-      - model: "opencode/kimi-k2.5-free"
+      - model: "opencode/glm-5-free"
         provider: "zen"
         api_key_env: "ZEN_REVIEWER_KEY"
       - model: "opencode/minimax-m2.5-free"
         provider: "zen"
         api_key_env: "ZEN_REVIEWER_KEY"
-      - model: "opencode/gpt-5-nano"
-        provider: "zen"
-        api_key_env: "ZEN_REVIEWER_KEY"
 
   build_cycle:
     provider: zen
-    model: "opencode/kimi-k2.5-free"
+    model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
     api_key_env: "ZEN_BUILD_CYCLE_KEY"
     fallback:
@@ -125,9 +110,6 @@ agents:
         provider: "zen"
         api_key_env: "ZEN_BUILD_CYCLE_KEY"
       - model: "opencode/minimax-m2.5-free"
-        provider: "zen"
-        api_key_env: "ZEN_BUILD_CYCLE_KEY"
-      - model: "opencode/gpt-5-nano"
         provider: "zen"
         api_key_env: "ZEN_BUILD_CYCLE_KEY"
 

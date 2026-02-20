@@ -145,3 +145,4 @@ artifacts/validation_runs/
 # Claude Code memory directory (session-specific)
 COO/
 artifacts/comparison_results.jsonl
+artifacts/Review_Packet_*.md

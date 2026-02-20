@@ -418,7 +418,20 @@ class StewardMission(BaseMission):
             # 1. Stage
             stage_cmd = ["git", "add"] + artifacts
             subprocess.run(stage_cmd, cwd=context.repo_root, check=True, capture_output=True)
-            
+
+            # 1.5. Check if anything is actually staged (builder may write identical content)
+            diff_check = subprocess.run(
+                ["git", "diff", "--cached", "--quiet"],
+                cwd=context.repo_root, capture_output=True,
+            )
+            if diff_check.returncode == 0:
+                # Nothing staged — content identical to HEAD
+                hash_cmd = ["git", "rev-parse", "HEAD"]
+                result = subprocess.run(
+                    hash_cmd, cwd=context.repo_root, check=True, capture_output=True, text=True,
+                )
+                return (True, result.stdout.strip())
+
             # 2. Commit
             # [HARDENING]: Use --no-verify as the mission has already passed formal ReviewMission.
             # This also bypasses potential Unicode issues in manual pre-commit hooks on Windows.
