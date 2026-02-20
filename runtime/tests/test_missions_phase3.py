@@ -494,6 +494,68 @@ class TestBuildMission:
         assert "review_packet" in result.outputs
         assert "invoke_builder_llm_call" in result.executed_steps
 
+    def test_apply_build_packet_creates_file(self, tmp_path):
+        """Verify _apply_build_packet writes files to disk from LLM packet."""
+        mission = BuildMission()
+        context = MissionContext(
+            repo_root=tmp_path,
+            baseline_commit="abc123",
+            run_id="test_apply",
+            operation_executor=None,
+            journal=None,
+        )
+        packet = {
+            "files": [
+                {
+                    "path": "runtime/new_module.py",
+                    "action": "create",
+                    "content": "def hello():\n    return 'world'\n",
+                }
+            ]
+        }
+        applied, errors = mission._apply_build_packet(context, packet)
+        assert applied == ["runtime/new_module.py"]
+        assert errors == []
+        assert (tmp_path / "runtime" / "new_module.py").read_text() == "def hello():\n    return 'world'\n"
+
+    def test_apply_build_packet_blocks_path_traversal(self, tmp_path):
+        """Verify _apply_build_packet rejects path traversal."""
+        mission = BuildMission()
+        context = MissionContext(
+            repo_root=tmp_path,
+            baseline_commit="abc123",
+            run_id="test_traversal",
+            operation_executor=None,
+            journal=None,
+        )
+        packet = {
+            "files": [
+                {"path": "../etc/passwd", "action": "create", "content": "bad"},
+            ]
+        }
+        applied, errors = mission._apply_build_packet(context, packet)
+        assert applied == []
+        assert len(errors) == 1
+        assert "path traversal" in errors[0]
+
+    def test_apply_build_packet_empty_packet(self, tmp_path):
+        """Verify _apply_build_packet handles empty/missing files gracefully."""
+        mission = BuildMission()
+        context = MissionContext(
+            repo_root=tmp_path,
+            baseline_commit="abc123",
+            run_id="test_empty",
+            operation_executor=None,
+            journal=None,
+        )
+        applied, errors = mission._apply_build_packet(context, {})
+        assert applied == []
+        assert errors == []
+
+        applied, errors = mission._apply_build_packet(context, {"files": []})
+        assert applied == []
+        assert errors == []
+
 
 # =============================================================================
 # Test: Steward Mission
@@ -796,8 +858,11 @@ class TestStewardRouting:
         cmd = args[0]
         assert cmd[0] == "python_exe"
         assert "opencode_ci_runner.py" in cmd[1]
-        assert "--task-file" in cmd
-        assert "artifacts/steward_tasks/steward_task_v" in cmd[3].replace("\\", "/") # versioned
+        assert "--task" in cmd
+        # cmd[3] is the JSON task string; verify it contains the artifact path
+        import json as _json
+        task_payload = _json.loads(cmd[3])
+        assert "docs/03_runtime/test.md" in task_payload["files"]
 
         # P0: Verify safety args
         assert kwargs["cwd"] == mock_context.repo_root

@@ -118,7 +118,15 @@ def get_api_key() -> Optional[str]:
 
 
 def clear_config_cache() -> None:
-    """Clear cached config (for testing and reloading)."""
+    """
+    Clear the cached model configuration.
+
+    Resets the singleton ModelConfig instance, forcing the next call to
+    _get_cached_config() or load_model_config() to reload from disk.
+
+    Use this in tests to isolate config state between test cases, or when
+    the config file has been modified and needs to be re-read.
+    """
     global _MODEL_CONFIG
     _MODEL_CONFIG = None
 
@@ -284,22 +292,28 @@ def resolve_model_auto(
 ) -> Tuple[str, str, List[str]]:
     """
     Resolve "auto" to specific model deterministically.
-    
+
     Per v0.3 spec §5.1.5:
-    1. If role in agents: use that config
-    2. If role in role_overrides: use that chain
-    3. Otherwise: use default_chain
-    
+    1. If LIFEOS_MODEL_OVERRIDE env var is set: use that model for all roles
+    2. If role in agents: use that config
+    3. If role in role_overrides: use that chain
+    4. Otherwise: use default_chain
+
     Args:
         role: Agent role (e.g., "designer", "builder")
         config: Model configuration (loads from file if None)
-        
+
     Returns:
         Tuple of (selected_model, selection_reason, full_chain)
     """
+    # Env var override for testing without modifying models.yaml
+    override = os.environ.get("LIFEOS_MODEL_OVERRIDE")
+    if override:
+        return override, "env_override", [override]
+
     if config is None:
         config = load_model_config()
-    
+
     # Check for agent-specific config first
     if role in config.agents:
         agent = config.agents[role]

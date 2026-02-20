@@ -63,3 +63,10 @@
   - **Scope:** Finalized Emergency_Declaration_Protocol v1.0 via autonomous run `run_20260214_053357`; fixed 2 blockers (obsolete model names, timeout)
   - **Decider:** COO Runtime (autonomous execution)
   - **Evidence:** [E2E_Spine_Proof_Build_Summary_2026-02-14.md](./build_summaries/E2E_Spine_Proof_Build_Summary_2026-02-14.md), terminal artifact `TP_run_20260214_053357.yaml`, commit `195bd4d`
+
+- **2026-02-20 — Decision:** OpenCode CLI Config Complete — Use Paid Models for Production Autonomy
+  - **Why:** Infrastructure audit revealed 4 blocking bugs preventing any autonomous commits; all fixed. Free models cannot complete the loop (reviewer returns prose not YAML). Paid claude-sonnet-4-5 via OpenRouter completes the full 6-phase loop in ~61s with autonomous commit.
+  - **Scope:** OpenCode build loop is now production-capable. Required model: `openrouter/anthropic/claude-sonnet-4-5` (or better). Free models reserved for design/build roles only, never reviewer.
+  - **Key finding:** OpenCode loop (~61s, ~$0.08/task) vs Claude Code direct (~30s, ~$0.01/task). OpenCode value is governance + audit trail, not speed/cost.
+  - **Decider:** COO Runtime (autonomous execution + Claude Code sprint)
+  - **Evidence:** [OpenCode_CLI_Config_Build_Summary_2026-02-20.md](./build_summaries/OpenCode_CLI_Config_Build_Summary_2026-02-20.md), autonomous commit `f7daab46`, `artifacts/comparison_results.jsonl`

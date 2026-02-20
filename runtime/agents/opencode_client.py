@@ -710,7 +710,9 @@ class OpenCodeClient:
                     else:
                          logger.debug(f"OpenRouter REST Failed: Status {response.status_code}, Body: {response.text}")
                 except Exception as e:
+                    import traceback
                     logger.debug(f"OpenRouter REST Exception: {e}")
+                    logger.debug(f"OpenRouter REST Traceback: {traceback.format_exc()}")
                     pass
 
         # 2. SPECIAL CASE: Zen Direct REST (Minimax)
@@ -791,7 +793,9 @@ class OpenCodeClient:
                          else:
                              logger.debug(f"Zen/Gemini REST Failed: Status {response.status_code}, Body: {response.text}")
                      except Exception as e:
+                         import traceback
                          logger.debug(f"Zen/Gemini REST Exception: {e}")
+                         logger.debug(f"Zen/Gemini REST Traceback: {traceback.format_exc()}")
                          pass
 
                  else:
@@ -840,7 +844,9 @@ class OpenCodeClient:
                          else:
                              logger.debug(f"Zen REST Failed: Status {response.status_code}, Body: {response.text}")
                      except Exception as e:
+                         import traceback
                          logger.debug(f"Zen REST Exception: {e}")
+                         logger.debug(f"Zen REST Traceback: {traceback.format_exc()}")
                          pass
         
         # 2. Standard CLI Execution

@@ -231,21 +231,22 @@ class StewardMission(BaseMission):
         task_file = task_dir / f"steward_task_v{context.run_id[:8]}.json"
 
         task_data = {
-            "mission_name": mission_name,
-            "artifacts": artifacts,
-            "run_id": context.run_id,
+            "files": artifacts,
+            "action": "modify",
+            "instruction": f"Commit changes for mission {mission_name}: {', '.join(artifacts)}",
         }
 
         with open(task_file, "w") as f:
             json.dump(task_data, f, indent=2, sort_keys=True)
 
-        # Invoke OpenCode runner
+        # Invoke OpenCode runner with --task JSON string (runner expects --task, not --task-file)
         runner_script = context.repo_root / "scripts" / "opencode_ci_runner.py"
+        task_json = json.dumps(task_data)
         cmd = [
             sys.executable,
             str(runner_script),
-            "--task-file",
-            str(task_file),
+            "--task",
+            task_json,
         ]
 
         try:
@@ -271,7 +272,7 @@ class StewardMission(BaseMission):
         except subprocess.TimeoutExpired:
             evidence = {
                 "exit_code": -1,
-                "error": "OpenCode routing timed out after 300s",
+                "error": "OpenCode routing timed out after 60s",
                 "task_file": str(task_file),
             }
             return (False, evidence)
