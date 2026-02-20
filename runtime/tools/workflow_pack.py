@@ -540,7 +540,7 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
     branch_deleted = False
     if source_branch and source_branch not in {"main", "master"}:
         proc = subprocess.run(
-            ["git", "-C", str(repo), "branch", "-d", source_branch],
+            ["git", "-C", str(repo), "branch", "-D", source_branch],
             check=False,
             capture_output=True,
             text=True,
