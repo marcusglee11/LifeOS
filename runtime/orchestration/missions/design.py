@@ -8,7 +8,8 @@ HARDENED: Fail-closed output validation - no success without valid BUILD_PACKET.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
 from runtime.orchestration.missions.base import (
     BaseMission,
@@ -109,9 +110,73 @@ class DesignMission(BaseMission):
         
         # Sort errors for determinism
         errors.sort()
-        
+
         return (len(errors) == 0, errors)
-    
+
+    def _extract_fallback_packet(
+        self, content: str, task_spec: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Attempt to extract a BUILD_PACKET from raw LLM content.
+
+        Called when response.packet is None (e.g. CLI fallback path returned
+        prose instead of structured YAML). Tries three strategies:
+
+        1. YAML from code blocks (relaxed regex)
+        2. Bare ``goal:`` field extraction
+        3. If content indicates model did the work, pass through task_spec
+
+        Returns None if no valid packet can be extracted.
+        The ``_source`` key tags how the packet was obtained.
+        """
+        import yaml
+
+        if not content or not content.strip():
+            return None
+
+        # Strategy 1: YAML from code blocks
+        pattern = r"```(?:yaml|json|yml)?\s*\n(.*?)\n\s*```"
+        match = re.search(pattern, content, re.DOTALL)
+        if match:
+            try:
+                parsed = yaml.safe_load(match.group(1))
+                if isinstance(parsed, dict) and parsed.get("goal"):
+                    parsed["_source"] = "yaml_codeblock"
+                    return parsed
+            except Exception:
+                pass
+
+        # Strategy 2: Bare goal: field in content
+        goal_match = re.search(
+            r"^goal:\s*(.+)$", content, re.MULTILINE | re.IGNORECASE
+        )
+        if goal_match:
+            goal_text = goal_match.group(1).strip().strip("\"'")
+            if goal_text:
+                try:
+                    parsed = yaml.safe_load(content)
+                    if isinstance(parsed, dict) and parsed.get("goal"):
+                        parsed["_source"] = "bare_yaml"
+                        return parsed
+                except Exception:
+                    pass
+                return {"goal": goal_text, "_source": "bare_goal_field"}
+
+        # Strategy 3: Content indicates model did the work directly
+        did_work_indicators = [
+            r"\bdone\b", r"\badded\b", r"\bcreated\b", r"\bupdated\b",
+            r"\bmodified\b", r"\bimplemented\b", r"\bcompleted\b",
+        ]
+        content_lower = content.lower()
+        if any(re.search(ind, content_lower) for ind in did_work_indicators):
+            return {
+                "goal": task_spec,
+                "_source": "tool_output_passthrough",
+                "_note": "Model performed work directly instead of producing BUILD_PACKET",
+            }
+
+        return None
+
     def run(
         self,
         context: MissionContext,
@@ -125,14 +190,36 @@ class DesignMission(BaseMission):
             self.validate_inputs(inputs)
             executed_steps.append("validate_inputs")
             
-            # Step 2: Gather context (simulated for MVP)
+            # Step 2: Gather context
+            # Auto-populate context_refs from files mentioned in the task spec so the
+            # designer knows the actual function signatures and avoids hallucinating them.
+            from pathlib import Path as _Path
+            provided_refs = inputs.get("context_refs", [])
+            auto_refs: List[Dict[str, Any]] = []
+            if not provided_refs and isinstance(inputs.get("task_spec"), str):
+                provided_paths = {r.get("path") for r in provided_refs if isinstance(r, dict)}
+                file_pattern = re.compile(r'\b([\w][/\w.-]*\.py)\b')
+                for fpath in file_pattern.findall(inputs["task_spec"]):
+                    fpath = fpath.replace("\\", "/").lstrip("/")
+                    if ".." in fpath.split("/") or fpath in provided_paths:
+                        continue
+                    full = _Path(context.repo_root) / fpath
+                    if full.exists():
+                        try:
+                            auto_refs.append({
+                                "path": fpath,
+                                "current_content": full.read_text(encoding="utf-8"),
+                            })
+                        except Exception:
+                            pass
+
             context_data = {
                 "task_spec": inputs["task_spec"],
-                "context_refs": inputs.get("context_refs", []),
+                "context_refs": provided_refs + auto_refs,
                 "run_id": context.run_id,
             }
             executed_steps.append("gather_context")
-            evidence["context_refs_count"] = len(inputs.get("context_refs", []))
+            evidence["context_refs_count"] = len(context_data["context_refs"])
             
             # Step 3: Call Agent API with designer role
             from runtime.agents.api import call_agent, AgentCall
@@ -156,13 +243,26 @@ class DesignMission(BaseMission):
             # This step is ALWAYS recorded when we reach this point
             valid, validation_errors = self._validate_build_packet(response.packet)
             executed_steps.append("validate_output")
-            
+
+            # Step 4b: Fallback extraction when packet is None but content exists
+            response_packet = response.packet
+            if not valid and response.packet is None and response.content:
+                fallback_packet = self._extract_fallback_packet(
+                    response.content, inputs["task_spec"]
+                )
+                if fallback_packet:
+                    valid, validation_errors = self._validate_build_packet(fallback_packet)
+                    if valid:
+                        evidence["packet_source"] = "fallback_extraction"
+                        evidence["fallback_strategy"] = fallback_packet.get("_source", "unknown")
+                        response_packet = fallback_packet
+
             if not valid:
                 # FAIL-CLOSED: Invalid packet -> success=False
                 # Attach raw content as evidence ONLY (not as valid output)
                 evidence["draft_text"] = response.content
                 evidence["validation_errors"] = validation_errors
-                
+
                 return self._make_result(
                     success=False,
                     outputs={},  # No valid output
@@ -170,11 +270,11 @@ class DesignMission(BaseMission):
                     error=f"BUILD_PACKET validation failed: {'; '.join(validation_errors)}",
                     evidence=evidence,
                 )
-            
+
             # Valid packet - return success
             return self._make_result(
                 success=True,
-                outputs={"build_packet": response.packet},
+                outputs={"build_packet": response_packet},
                 executed_steps=executed_steps,
                 evidence=evidence,
             )

@@ -710,14 +710,19 @@ class OpenCodeClient:
                     else:
                          logger.debug(f"OpenRouter REST Failed: Status {response.status_code}, Body: {response.text}")
                 except Exception as e:
+                    import traceback
                     logger.debug(f"OpenRouter REST Exception: {e}")
+                    logger.debug(f"OpenRouter REST Traceback: {traceback.format_exc()}")
                     pass
 
-        # 2. SPECIAL CASE: Zen Direct REST (Minimax)
-        # Using self.upstream_base_url logic from verified blocks
+        # 2. SPECIAL CASE: Zen Direct REST (Minimax, Claude, and any model via Zen endpoint)
+        # Route via Zen direct REST whenever the configured endpoint is Zen.
+        # The is_zen_model heuristic only covers opencode/* / minimax / gemini names;
+        # paid Claude models (claude-sonnet-4-5, claude-opus-4-6) don't match those
+        # keywords but Zen accepts them natively with x-api-key auth.
         is_zen_config_url = self.upstream_base_url and "opencode.ai/zen" in self.upstream_base_url.lower()
-        
-        if is_zen_model and is_zen_config_url:
+
+        if is_zen_config_url and not is_openrouter_model:
              # Load Zen API Key specific
              zen_key = self._load_api_key_for_role(self.role, provider="zen")
              if zen_key:
@@ -791,7 +796,9 @@ class OpenCodeClient:
                          else:
                              logger.debug(f"Zen/Gemini REST Failed: Status {response.status_code}, Body: {response.text}")
                      except Exception as e:
+                         import traceback
                          logger.debug(f"Zen/Gemini REST Exception: {e}")
+                         logger.debug(f"Zen/Gemini REST Traceback: {traceback.format_exc()}")
                          pass
 
                  else:
@@ -840,7 +847,9 @@ class OpenCodeClient:
                          else:
                              logger.debug(f"Zen REST Failed: Status {response.status_code}, Body: {response.text}")
                      except Exception as e:
+                         import traceback
                          logger.debug(f"Zen REST Exception: {e}")
+                         logger.debug(f"Zen REST Traceback: {traceback.format_exc()}")
                          pass
         
         # 2. Standard CLI Execution

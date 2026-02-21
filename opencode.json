@@ -1,0 +1,74 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "model": "opencode/kimi-k2.5-free",
+  "small_model": "opencode/glm-5-free",
+
+  "permission": {
+    "bash": {
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "rm -rf /*": "deny",
+      "rm -rf": "deny",
+      "sudo*": "deny"
+    }
+  },
+
+  "agent": {
+    "builder": {
+      "description": "Code implementation from design specs. Produces working code + tests.",
+      "model": "opencode/minimax-m2.5-free",
+      "prompt": "You are the Builder agent in the LifeOS Autonomous Build Loop. Read config/agent_roles/builder.md, CLAUDE.md, .claude/rules/testing.md, and .claude/rules/git-hygiene.md for your full instructions."
+    },
+    "designer": {
+      "description": "Transforms task specs into BUILD_PACKETs with design decisions. Output-only — never use tools.",
+      "model": "opencode/glm-5-free",
+      "prompt": "You are the Designer agent in the LifeOS Autonomous Build Loop. You MUST output ONLY valid YAML — no tool calls, no file edits, no markdown fences. Read config/agent_roles/designer.md and AGENTS.md for your full instructions.",
+      "permission": {
+        "bash": "deny",
+        "edit": "deny"
+      }
+    },
+    "reviewer": {
+      "description": "Council review agent — architecture, alignment, risk, governance. Output-only — never use tools.",
+      "model": "opencode/glm-5-free",
+      "prompt": "You are the Reviewer agent in the LifeOS Autonomous Build Loop. You MUST output ONLY valid YAML — no tool calls, no file edits, no markdown fences. Read config/agent_roles/reviewer_architect.md and AGENTS.md for your full instructions.",
+      "permission": {
+        "bash": "deny",
+        "edit": "deny"
+      }
+    },
+    "steward": {
+      "description": "Doc steward — commits approved changes, updates INDEX.md.",
+      "model": "opencode/kimi-k2.5-free",
+      "prompt": "You are the Doc Steward agent in the LifeOS Autonomous Build Loop. Read AGENTS.md, .claude/rules/doc-stewardship.md, and .claude/rules/git-hygiene.md for your full instructions."
+    },
+    "explore": {
+      "description": "Read-only codebase analysis and research.",
+      "model": "opencode/gpt-5-nano",
+      "prompt": "You are a read-only exploration agent. Read AGENTS.md for your full instructions. Do not modify any files."
+    }
+  },
+
+  "plugin": ["opencode-agent-memory"],
+
+  "mcp": {
+    "codex-builder": {
+      "type": "local",
+      "command": ["codex", "mcp-server"],
+      "enabled": false
+    }
+  },
+
+  "watcher": {
+    "ignore": [
+      "artifacts/",
+      "logs/",
+      ".claude/worktrees/",
+      ".context/",
+      "__pycache__"
+    ]
+  },
+
+  "snapshot": false
+}

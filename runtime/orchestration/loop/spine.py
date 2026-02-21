@@ -608,11 +608,27 @@ class LoopSpine:
                             context={"task_spec": task_spec, "current_step": step_name},
                         )
                     else:
-                        # Terminal failure
+                        # Terminal failure — log error for diagnostics
+                        import logging as _log
+                        _log.getLogger(__name__).error(
+                            "Mission '%s' failed: %s",
+                            step_name,
+                            getattr(result, 'error', 'unknown'),
+                        )
+                        try:
+                            _cr = subprocess.run(
+                                ["git", "rev-parse", "HEAD"],
+                                capture_output=True, text=True, timeout=2,
+                                cwd=effective_root,
+                            )
+                            _blocked_hash = _cr.stdout.strip() if _cr.returncode == 0 else None
+                        except Exception:
+                            _blocked_hash = None
                         return {
                             "outcome": "BLOCKED",
                             "reason": "mission_failed",
                             "steps_executed": steps_executed + [step_name],
+                            "commit_hash": _blocked_hash,
                         }
 
                 steps_executed.append(step_name)
@@ -630,10 +646,20 @@ class LoopSpine:
                 )
             except Exception as e:
                 # Unexpected error - fail closed
+                try:
+                    _cr = subprocess.run(
+                        ["git", "rev-parse", "HEAD"],
+                        capture_output=True, text=True, timeout=2,
+                        cwd=effective_root,
+                    )
+                    _blocked_hash = _cr.stdout.strip() if _cr.returncode == 0 else None
+                except Exception:
+                    _blocked_hash = None
                 return {
                     "outcome": "BLOCKED",
                     "reason": f"execution_error: {type(e).__name__}",
                     "steps_executed": steps_executed + [step_name],
+                    "commit_hash": _blocked_hash,
                 }
 
         # Get final commit if steward succeeded
@@ -649,10 +675,18 @@ class LoopSpine:
         except Exception:
             commit_hash = None
 
+        # Extract diagnostics for comparison logging
+        reviewer_packet_parsed = chain_state.get("reviewer_packet_parsed")
+        _build_review_packet = chain_state.get("review_packet", {})
+        _artifacts = _build_review_packet.get("payload", {}).get("artifacts_produced", [])
+        artifacts_produced = len(_artifacts) if isinstance(_artifacts, list) else None
+
         return {
             "outcome": "PASS",
             "steps_executed": steps_executed,
             "commit_hash": commit_hash,
+            "reviewer_packet_parsed": reviewer_packet_parsed,
+            "artifacts_produced": artifacts_produced,
         }
 
     def _trigger_checkpoint(
