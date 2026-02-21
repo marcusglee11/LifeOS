@@ -1,6 +1,9 @@
 # Worktrees (agent-managed, ephemeral)
 .worktrees/
 
+# WIP from concurrent agent sessions (move back when their branches land)
+.wip-other-sessions/
+
 # Python
 __pycache__/
 *.pyc
@@ -141,3 +144,5 @@ artifacts/validation_runs/
 
 # Claude Code memory directory (session-specific)
 COO/
+artifacts/comparison_results.jsonl
+artifacts/Review_Packet_*.md

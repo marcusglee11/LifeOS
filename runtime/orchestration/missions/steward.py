@@ -14,7 +14,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from runtime.orchestration.missions.base import (
     BaseMission,
@@ -231,21 +231,22 @@ class StewardMission(BaseMission):
         task_file = task_dir / f"steward_task_v{context.run_id[:8]}.json"
 
         task_data = {
-            "mission_name": mission_name,
-            "artifacts": artifacts,
-            "run_id": context.run_id,
+            "files": artifacts,
+            "action": "modify",
+            "instruction": f"Commit changes for mission {mission_name}: {', '.join(artifacts)}",
         }
 
         with open(task_file, "w") as f:
             json.dump(task_data, f, indent=2, sort_keys=True)
 
-        # Invoke OpenCode runner
+        # Invoke OpenCode runner with --task JSON string (runner expects --task, not --task-file)
         runner_script = context.repo_root / "scripts" / "opencode_ci_runner.py"
+        task_json = json.dumps(task_data)
         cmd = [
             sys.executable,
             str(runner_script),
-            "--task-file",
-            str(task_file),
+            "--task",
+            task_json,
         ]
 
         try:
@@ -271,7 +272,7 @@ class StewardMission(BaseMission):
         except subprocess.TimeoutExpired:
             evidence = {
                 "exit_code": -1,
-                "error": "OpenCode routing timed out after 300s",
+                "error": "OpenCode routing timed out after 60s",
                 "task_file": str(task_file),
             }
             return (False, evidence)
@@ -407,7 +408,7 @@ class StewardMission(BaseMission):
     
     def _commit_code_changes(
         self, context: MissionContext, artifacts: List[str], message: str
-    ) -> Tuple[bool, str]:
+    ) -> Tuple[bool, Optional[str]]:
         """
         Execute real git commit for code changes.
         
@@ -417,7 +418,17 @@ class StewardMission(BaseMission):
             # 1. Stage
             stage_cmd = ["git", "add"] + artifacts
             subprocess.run(stage_cmd, cwd=context.repo_root, check=True, capture_output=True)
-            
+
+            # 1.5. Check if anything is actually staged (builder may write identical content)
+            diff_check = subprocess.run(
+                ["git", "diff", "--cached", "--quiet"],
+                cwd=context.repo_root, capture_output=True,
+            )
+            if diff_check.returncode == 0:
+                # Nothing staged — content identical to HEAD; no new commit made.
+                # Return None to distinguish "correctly no-op'd" from real work.
+                return (True, None)
+
             # 2. Commit
             # [HARDENING]: Use --no-verify as the mission has already passed formal ReviewMission.
             # This also bypasses potential Unicode issues in manual pre-commit hooks on Windows.

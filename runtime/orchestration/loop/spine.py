@@ -608,7 +608,13 @@ class LoopSpine:
                             context={"task_spec": task_spec, "current_step": step_name},
                         )
                     else:
-                        # Terminal failure
+                        # Terminal failure — log error for diagnostics
+                        import logging as _log
+                        _log.getLogger(__name__).error(
+                            "Mission '%s' failed: %s",
+                            step_name,
+                            getattr(result, 'error', 'unknown'),
+                        )
                         return {
                             "outcome": "BLOCKED",
                             "reason": "mission_failed",
@@ -649,10 +655,18 @@ class LoopSpine:
         except Exception:
             commit_hash = None
 
+        # Extract diagnostics for comparison logging
+        reviewer_packet_parsed = chain_state.get("reviewer_packet_parsed")
+        _build_review_packet = chain_state.get("review_packet", {})
+        _artifacts = _build_review_packet.get("payload", {}).get("artifacts_produced", [])
+        artifacts_produced = len(_artifacts) if isinstance(_artifacts, list) else None
+
         return {
             "outcome": "PASS",
             "steps_executed": steps_executed,
             "commit_hash": commit_hash,
+            "reviewer_packet_parsed": reviewer_packet_parsed,
+            "artifacts_produced": artifacts_produced,
         }
 
     def _trigger_checkpoint(
