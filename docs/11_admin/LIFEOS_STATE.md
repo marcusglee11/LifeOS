@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** W5-T02 Checkpoint/Resume E2E Proof COMPLETE — Full cycle proven (escalation → checkpoint YAML → resolve → resume → terminal with ledger continuity). Next: W6 Codemoot spike
+**Current Focus:** W7 stabilization COMPLETE. Next: W6 Codemoot spike
 **Active WIP:** None — W5-T02 closed
-**Last Updated:** 2026-02-19 (rev15)
+**Last Updated:** 2026-02-21 (rev16)
 
 ---
 
@@ -65,16 +65,18 @@
 
 ---
 
-## ⚠️ System Blockers (Top 3)
+## ⚠️ System Blockers
 
-1. **Model reliability for autonomous runs** (P1) — Free OpenCode models (minimax-m2.5, kimi-k2.5, gpt-5-nano) are slow/unreliable; may need paid tier for production autonomy.
-2. **OpenCode doc-steward delegate dependency gap** (P1) — `scripts/delegate_to_doc_steward.py` blocked by missing `PyYAML` in current env.
-3. **Auto-commit integration gap** (P1) — Spine E2E run completed work but auto-commit failed; manual commit required. Needs investigation (see E2E build summary).
+None — all prior blockers resolved:
+- ~~Model reliability~~ → Zen paid routing merged (`adab507`, 2026-02-20)
+- ~~PyYAML missing~~ → PyYAML 6.0.3 installed; steward phase works in E2E proof
+- ~~Auto-commit gap~~ → Working in recent merges (8f6287e, adab507, cb5f5d9)
 
 ---
 
 ## 🟩 Recent Wins
 
+- **2026-02-21:** Opencode Loop Stabilization 20260220 — chore: refresh runtime_status.json (closure); fix(steward): correct _commit_code_changes return type annotation; fix(opencode): implement retrospective stabilization batch — 1/1 targeted test command(s) passed. (merge commit 8f6287e)
 - **2026-02-19:** **W5-T02 Checkpoint/Resume E2E Proof COMPLETE** — 6 integration tests proving full checkpoint/resume cycle: escalation → checkpoint YAML on disk → resolution seam → resume with policy hash continuity → terminal packet with ledger anchor. Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt`
 - **2026-02-18:** Worktree Outside Repo Resolution 20260218 — chore: refresh runtime_status.json (closure); fix(worktree): resolve repo root from script location when invoked outside repo — 1/1 targeted test command(s) passed. (merge commit ba63f57)
 - **2026-02-18:** W4-T03/T04 OpenClaw Integration — feat: OpenClaw->Spine execution bridge, clean-worktree enforcement, CLI command spine run-openclaw-job — 1/1 targeted test command(s) passed. (merge commit c53bdcc)

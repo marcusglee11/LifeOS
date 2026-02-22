@@ -7,6 +7,8 @@ import hashlib
 import json
 from typing import Any
 
+from runtime.util.canonical import sha256_file as _sha256_file_canonical
+
 
 # Canonical hash algorithm - Council-approved
 HASH_ALGORITHM = "sha256"
@@ -44,15 +46,14 @@ def hash_json(obj: Any) -> str:
 def hash_file(path: str) -> str:
     """
     Compute SHA-256 hash of a file's contents.
-    
+
     Args:
         path: Path to the file.
-        
+
     Returns:
         Hex-encoded SHA-256 hash.
     """
-    with open(path, 'rb') as f:
-        return hash_bytes(f.read())
+    return _sha256_file_canonical(path)
 
 
 def verify_hash(data: bytes, expected_hash: str) -> bool:

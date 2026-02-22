@@ -29,7 +29,7 @@ from runtime.agents.api import (
     AgentCall,
     call_agent,
 )
-from runtime.agents.agent_logging import (
+from runtime.agents.logging import (
     HASH_CHAIN_GENESIS,
     AgentCallLogger,
 )

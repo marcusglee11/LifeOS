@@ -18,7 +18,6 @@ from runtime.orchestration.missions.base import (
     MissionResult,
     MissionType,
     MissionValidationError,
-    MissionEscalationRequired,
 )
 from runtime.orchestration.missions.design import DesignMission
 from runtime.orchestration.missions.build import BuildMission
@@ -28,13 +27,11 @@ from runtime.orchestration.missions.steward import StewardMission
 # Backlog Integration
 from recursive_kernel.backlog_parser import (
     parse_backlog,
-    select_eligible_item,
     select_next_task,
     mark_item_done_with_evidence,
     BacklogItem,
-    Priority as BacklogPriority,
 )
-from runtime.orchestration.task_spec import TaskSpec, TaskPriority
+from runtime.orchestration.task_spec import TaskSpec
 
 # Loop Infrastructure
 from runtime.orchestration.loop.ledger import (
@@ -46,8 +43,6 @@ from runtime.orchestration.loop.taxonomy import (
     TerminalOutcome, TerminalReason, FailureClass, LoopAction
 )
 from runtime.api.governance_api import PolicyLoader
-from runtime.orchestration.run_controller import verify_repo_clean, run_git_command
-from runtime.util.file_lock import FileLock
 
 # CEO Approval Queue
 from runtime.orchestration.ceo_queue import (

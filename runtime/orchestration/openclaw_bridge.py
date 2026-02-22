@@ -6,12 +6,13 @@ inputs and LoopSpine execution/result contracts.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
+
+from runtime.util.canonical import sha256_file as _sha256_file
 
 import yaml
 
@@ -225,12 +226,6 @@ def resolve_openclaw_job_evidence_dir(repo_root: Path, job_id: str) -> Path:
     return Path(repo_root) / OPENCLAW_EVIDENCE_ROOT / validated
 
 
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def write_openclaw_evidence_contract(

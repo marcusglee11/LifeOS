@@ -24,16 +24,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from runtime.orchestration.run_controller import verify_repo_clean, RepoDirtyError
+from runtime.orchestration.run_controller import verify_repo_clean
 from runtime.orchestration.loop.ledger import (
     AttemptLedger,
     AttemptRecord,
     LedgerHeader,
-    LedgerIntegrityError,
 )
 from runtime.orchestration.loop.taxonomy import (
-    TerminalOutcome,
-    TerminalReason,
     FailureClass,
     LoopAction,
 )
@@ -41,7 +38,6 @@ from runtime.api.governance_api import PolicyLoader, hash_json
 from runtime.orchestration.loop.lifecycle_hooks import (
     run_pre_hooks,
     run_post_hooks,
-    HookSequenceResult,
 )
 from runtime.orchestration.loop.worktree_dispatch import (
     worktree_scope,
@@ -615,10 +611,20 @@ class LoopSpine:
                             step_name,
                             getattr(result, 'error', 'unknown'),
                         )
+                        try:
+                            _cr = subprocess.run(
+                                ["git", "rev-parse", "HEAD"],
+                                capture_output=True, text=True, timeout=2,
+                                cwd=effective_root,
+                            )
+                            _blocked_hash = _cr.stdout.strip() if _cr.returncode == 0 else None
+                        except Exception:
+                            _blocked_hash = None
                         return {
                             "outcome": "BLOCKED",
                             "reason": "mission_failed",
                             "steps_executed": steps_executed + [step_name],
+                            "commit_hash": _blocked_hash,
                         }
 
                 steps_executed.append(step_name)
@@ -636,10 +642,20 @@ class LoopSpine:
                 )
             except Exception as e:
                 # Unexpected error - fail closed
+                try:
+                    _cr = subprocess.run(
+                        ["git", "rev-parse", "HEAD"],
+                        capture_output=True, text=True, timeout=2,
+                        cwd=effective_root,
+                    )
+                    _blocked_hash = _cr.stdout.strip() if _cr.returncode == 0 else None
+                except Exception:
+                    _blocked_hash = None
                 return {
                     "outcome": "BLOCKED",
                     "reason": f"execution_error: {type(e).__name__}",
                     "steps_executed": steps_executed + [step_name],
+                    "commit_hash": _blocked_hash,
                 }
 
         # Get final commit if steward succeeded

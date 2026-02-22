@@ -22,30 +22,10 @@ import httpx
 import yaml
 
 from .models import load_model_config, resolve_model_auto, ModelConfig
+from runtime.util.canonical import canonical_json
 
 # Configure logger
 logger = logging.getLogger(__name__)
-
-
-def canonical_json(obj: Any) -> bytes:
-    """
-    Produce canonical JSON for deterministic hashing.
-    
-    Per v0.3 spec §5.1.4:
-    1. Encoding: UTF-8, no BOM
-    2. Whitespace: None
-    3. Key ordering: Lexicographically sorted
-    4. Array ordering: Preserved
-    
-    [v0.3 Fail-Closed]: Rejects NaN/Infinity values.
-    """
-    return json.dumps(
-        obj,
-        separators=(",", ":"),
-        sort_keys=True,
-        ensure_ascii=False,
-        allow_nan=False,  # Fail-closed: reject NaN/Infinity
-    ).encode("utf-8")
 
 
 def compute_run_id_deterministic(

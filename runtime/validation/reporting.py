@@ -2,32 +2,18 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 from pathlib import Path
 import tempfile
 from typing import Any, Dict, Mapping
 
-
-def canonical_json(payload: Mapping[str, Any]) -> str:
-    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n"
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with open(path, "rb") as handle:
-        while True:
-            chunk = handle.read(8192)
-            if not chunk:
-                break
-            digest.update(chunk)
-    return digest.hexdigest()
+from runtime.util.canonical import canonical_json_str, sha256_file
 
 
 def write_json_atomic(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    content = canonical_json(payload)
+    content = canonical_json_str(payload) + "\n"
     fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
     tmp_path = Path(tmp_name)
     try:

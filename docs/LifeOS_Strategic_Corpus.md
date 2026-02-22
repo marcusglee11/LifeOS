@@ -3,6 +3,7 @@
 **Active Roadmap Phase:** Core / Fuel / Plumbing (See Roadmap)
 **Current Governance Mode:** Phase 2 — Operational Autonomy (Target State)
 **Purpose:** High-level strategic reasoning and catch-up context.
+**Last Refreshed:** 2026-02-22 (repo-hygiene sprint, blockers closed)
 **Authority Chain:** Constitution (Supreme) → Governance → Runtime (Mechanical)
 
 ---

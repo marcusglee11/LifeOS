@@ -55,7 +55,7 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 | W4 | T03 | ✅ DONE | 2026-02-18 | Worktree dispatch wired into Spine run path + clean-worktree enforcement |
 | W4 | T04 | ✅ DONE | 2026-02-18 | Lifecycle hooks enforced across OpenClaw->Spine path via bridged execution command |
 | W5 | T01 | ✅ DONE | 2026-02-14 | E2E proof run_20260214_053357 complete |
-| W5 | T02 | ⏸️ OPEN | — | Checkpoint/resume needs E2E environment |
+| W5 | T02 | ✅ DONE | 2026-02-19 | Checkpoint/resume E2E proof complete (6 integration tests) |
 | W5 | T03 | ✅ DONE | 2026-02-13 | Budget controller has real enforcement (W5-T04 landed) |
 | W5 | T04 | ✅ DONE | 2026-02-13 | Token plumbing fail-closed, integrated |
 | W6 | T00-T02 | ⏸️ DEFERRED | — | Codemoot spike deferred pending W7 stabilization |
@@ -63,7 +63,7 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 | W7 | T02 | ✅ DONE | 2026-02-16 | Freshness check wired into CI (warn mode) + close-build gate |
 | W7 | T03 | ✅ DONE | 2026-02-16 | All 5 protocol docs finalized (ACTIVE, no TODO markers) |
 
-**Current Focus:** W5-T02 Checkpoint/Resume E2E Proof COMPLETE. Next: W6 Codemoot spike
+**Current Focus:** W7 stabilization COMPLETE. Next: W6 Codemoot spike
 
 ## 5. Execution Work Packages
 

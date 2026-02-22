@@ -35,11 +35,9 @@ addopts = [
     "-v",
     # Archived legacy tests from pre-Phase 3 rewrite — not maintained
     "--ignore=runtime/tests/archive_legacy_r6x",
-    # 25/27 failing — requires steward_runner refactor (import/fixture issues)
+    # 25/27 failing — WSL git worktree ops too slow for CI (W0-T05)
     "--ignore=tests_recursive/test_steward_runner.py",
-    # ImportError: run_with_timeout removed from opencode_ci_runner
-    "--ignore=tests_recursive/test_e2e_smoke_timeout.py",
-    # 1/5 failing — test_hardlink_defense triggers SecurityViolation
+    # 1/5 failing — test_hardlink_defense triggers SecurityViolation on WSL
     "--ignore=runtime/tests/test_sandbox_remediation.py",
     # 1/1 failing — non-deterministic approval demo
     "--ignore=runtime/tests/test_demo_approval_determinism.py",

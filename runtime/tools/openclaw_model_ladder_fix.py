@@ -6,13 +6,14 @@ Creates backup, applies minimal fixes, generates audit capsule.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+
+from runtime.util.canonical import sha256_file
 
 
 EXECUTION_BASE = [
@@ -23,13 +24,6 @@ EXECUTION_BASE = [
 THINKING_BASE = list(EXECUTION_BASE)
 
 
-def sha256_file(path: Path) -> str:
-    """Compute SHA256 hash of a file."""
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:

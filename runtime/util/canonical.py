@@ -165,3 +165,30 @@ def verify_canonical(json_str: str, obj: Any) -> bool:
         return json_str == expected
     except (ValueError, TypeError):
         return False
+
+
+def sha256_file(path: Union[str, "Path"]) -> str:
+    """
+    Compute SHA-256 hash of a file on disk.
+
+    Reads in 8192-byte chunks to handle large files without
+    loading entire contents into memory.
+
+    Args:
+        path: Path to the file (str or Path)
+
+    Returns:
+        Hex digest string (lowercase, no prefix)
+
+    Raises:
+        FileNotFoundError: If the file does not exist
+    """
+    from pathlib import Path as _Path
+    p = _Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"sha256_file: file not found: {p}")
+    digest = hashlib.sha256()
+    with p.open("rb") as f:
+        while chunk := f.read(8192):
+            digest.update(chunk)
+    return digest.hexdigest()

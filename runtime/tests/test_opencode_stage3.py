@@ -230,6 +230,78 @@ class TestFullChainMocked:
         ).stdout
         assert "Clear the config cache" in file_at_head
 
+    def test_blocked_path_includes_commit_hash(self, git_repo):
+        """Regression: BLOCKED result must carry commit_hash when HEAD already advanced.
+
+        Scenario mirrors the E2E gap discovered in run_20260214_053357: steward made
+        a real git commit then returned success=False (doc-steward sub-phase failure).
+        The BLOCKED early-return in _run_chain_steps was discarding HEAD, so the
+        terminal packet showed commit_hash=null even though a commit existed.
+        """
+        from runtime.orchestration.loop.spine import LoopSpine
+        from runtime.orchestration.missions.base import MissionResult, MissionType
+
+        spine = LoopSpine(git_repo)
+        spine.run_id = "test-blocked-hash"
+
+        head_before = _head(git_repo)
+
+        def _make_success_class(outputs=None):
+            _out = outputs or {}
+
+            class _Mission:
+                def run(self, ctx, inputs):
+                    return MissionResult(
+                        success=True,
+                        mission_type=MissionType.BUILD,
+                        outputs=_out,
+                    )
+
+            return _Mission
+
+        class _StewardThatCommitsButFails:
+            """Advances HEAD (code commit), then returns success=False."""
+
+            def run(self, ctx, inputs):
+                target = git_repo / "runtime" / "agents" / "models.py"
+                target.write_text("# steward patched\n")
+                _git(["git", "add", "."], cwd=git_repo)
+                _git(
+                    ["git", "commit", "--no-verify", "-m", "chore(test): steward code commit"],
+                    cwd=git_repo,
+                )
+                return MissionResult(
+                    success=False,
+                    mission_type=MissionType.STEWARD,
+                    error="doc_steward_failed",
+                )
+
+        _pass_outputs = {
+            "review_packet": {"payload": {"artifacts_produced": []}},
+            "verdict": "approved",
+        }
+
+        def _mock_get_mission_class(mission_type):
+            if mission_type == MissionType.STEWARD:
+                return _StewardThatCommitsButFails
+            return _make_success_class(outputs=_pass_outputs)
+
+        with patch(
+            "runtime.orchestration.missions.get_mission_class",
+            side_effect=_mock_get_mission_class,
+        ):
+            result = spine._run_chain_steps({"task": "test blocked hash capture"})
+
+        assert result["outcome"] == "BLOCKED"
+        assert result["reason"] == "mission_failed"
+
+        head_after = _head(git_repo)
+        assert head_after != head_before, "Steward should have committed before failing"
+        assert result.get("commit_hash") is not None, (
+            "BLOCKED result must include commit_hash when HEAD advanced before failure"
+        )
+        assert result["commit_hash"] == head_after
+
 
 # ---------------------------------------------------------------------------
 # Tier 2: Free-model live spine run (skipped unless RUN_LIVE_STAGE3_FREE=1)

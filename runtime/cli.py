@@ -12,6 +12,7 @@ from runtime.orchestration.orchestrator import OrchestrationResult, ValidationOr
 from runtime.validation.core import JobSpec
 from runtime.validation.evidence import compute_manifest
 from runtime.validation.reporting import sha256_file
+from runtime.util.canonical import canonical_json_str as _canonical_json
 
 def cmd_status(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
     """Print status of repo root, config, and validation."""
@@ -74,9 +75,6 @@ def cmd_mission_list(args: argparse.Namespace) -> int:
     print(output)
     return 0
 
-
-def _canonical_json(payload: Dict[str, Any]) -> str:
-    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
 def _baseline_commit(repo_root: Path) -> str | None:

@@ -113,13 +113,21 @@ CEO (CLI Chat)
 
 **CLI Commands (v1.0)**
 
-* `coo orchestrator` – start the long-running orchestrator daemon
-* `coo chat` – CEO-facing interactive chat that writes messages to DB and reads results/STREAMs
+*Implemented:*
 * `coo status` – list missions and budgets (`--all`, `--json`)
-* `coo mission <id> [--follow]` – per-mission view, optionally follow progress (`--logs`, `--timeline`)
-* `coo logs --mission <id> [--tail N]` – show recent timeline/log events
-* `coo dlq ...` – dead-letter queue tools (`list`, `show <id>`, `replay <id>`)
-* `coo metrics --daily` – daily/monthly spend
+* `coo config validate|show` – validate or display runtime configuration
+* `coo mission list|run` – list missions or run a mission by type
+* `coo queue list|show|approve|reject` – CEO approval queue operations
+* `coo run-mission <type>` – run a mission directly
+* `coo spine run|resume|run-openclaw-job` – autonomous build loop spine
+
+*Planned:*
+* `coo orchestrator` [NOT YET IMPLEMENTED] – start the long-running orchestrator daemon
+* `coo chat` [NOT YET IMPLEMENTED] – CEO-facing interactive chat
+* `coo mission <id> [--follow]` – per-mission detail view with progress tracking
+* `coo logs --mission <id> [--tail N]` [NOT YET IMPLEMENTED] – show recent timeline/log events
+* `coo dlq ...` [NOT YET IMPLEMENTED] – dead-letter queue tools (`list`, `show <id>`, `replay <id>`)
+* `coo metrics --daily` [NOT YET IMPLEMENTED] – daily/monthly spend
 
 *Note: The CLI is just a DB client; there is no network API between CLI and orchestrator.*
 
@@ -577,11 +585,11 @@ log.critical("orchestrator_shutdown", reason="unrecoverable_error")
 ```bash
 coo status                    # Active missions + spent budgets (--all, --json)
 coo mission m_42              # Detail: state, cost, loops, messages (--logs, --timeline)
-coo logs --mission m_42 --tail 50
-coo dlq list
-coo dlq show <id>
-coo dlq replay <id>           # Single-message replay with confirmation
-coo metrics --daily           # Daily/monthly spend
+coo logs --mission m_42 --tail 50  # [NOT YET IMPLEMENTED]
+coo dlq list                  # [NOT YET IMPLEMENTED]
+coo dlq show <id>             # [NOT YET IMPLEMENTED]
+coo dlq replay <id>           # [NOT YET IMPLEMENTED] Single-message replay with confirmation
+coo metrics --daily           # [NOT YET IMPLEMENTED] Daily/monthly spend
 ```
 
 **Secret Scrubbing**: Apply to log payloads only. DB stores full message bodies for debugging. `scrub_secrets` must be covered by at least one unit test to confirm keys/tokens do not appear in logged payloads.
@@ -611,7 +619,7 @@ if pending > MAX_PENDING_PER_MISSION:
 ```
 Mission m_42 is paused due to backpressure (55 pending messages).
 It will auto-resume when pending < 30, or you can inspect via 
-`coo logs --mission m_42` and optionally cancel.
+`coo logs --mission m_42` [NOT YET IMPLEMENTED] and optionally cancel.
 ```
 
 **Docker Failure Mode**:
@@ -670,7 +678,7 @@ except DockerError as e:
 ### **Phase 4: Observability + Hardening (5-7 days)**
 - ✅ `structlog` integration with secret scrubbing
 - ✅ Timeline events for all major actions
-- ✅ CLI commands: `coo mission`, `coo logs`, `coo dlq replay` (moved to v1.0)
+- ✅ CLI commands: `coo mission` — `coo logs`, `coo dlq replay` [NOT YET IMPLEMENTED] (moved to v1.0 scope, not yet built)
 - ✅ Approval flow (CEO gate) + CONTROL messages
 - ✅ Backpressure hard pause implementation with hysteresis
 - ✅ Sandbox crash recovery

@@ -45,10 +45,14 @@ Phase 4 focused on enhancing system observability and hardening the COO agent wi
 - [tests/unit/test_cli.py](coo-agent/tests/unit/test_cli.py) - NEW
 
 **Commands Implemented:**
+- `coo mission list|run` - List missions or run a mission by type
+- `coo spine run|resume` - Run or resume autonomous build loop
+
+**Planned:**
 - `coo mission <id>` - Show mission details, budget, and recent timeline
-- `coo logs <id>` - Dump all timeline events for a mission
-- `coo dlq-replay <id>` - Replay a failed message from the dead letter queue
-- `coo resume <id>` - Resume a paused mission via CONTROL message
+- `coo logs <id>` [NOT YET IMPLEMENTED] - Dump all timeline events for a mission
+- `coo dlq-replay <id>` [NOT YET IMPLEMENTED] - Replay a failed message from the dead letter queue
+- `coo resume <id>` [NOT YET IMPLEMENTED] - Resume a paused mission via CONTROL message
 
 **Features:**
 - All commands support `--db-path` option for testing

@@ -1,4 +1,3 @@
-import hashlib
 import json
 import re
 import subprocess
@@ -6,6 +5,15 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import List, Dict, Any
+
+from runtime.util.canonical import sha256_file as _canonical_sha256_file
+
+
+def _compute_sha256(path: Path) -> str:
+    """Compute SHA-256 of file on disk (fail-closed, domain error message)."""
+    if not path.exists():
+        raise FileNotFoundError(f"evidence_capture missing file: {path.name}")
+    return _canonical_sha256_file(path)
 
 class CaptureStatus(Enum):
     OK = "OK"
@@ -28,15 +36,6 @@ class CaptureResult:
     meta_sha256: str
     meta_path: Path
     
-def _compute_sha256(path: Path) -> str:
-    """Compute SHA-256 of file on disk (fail-closed)."""
-    if not path.exists():
-        raise FileNotFoundError(f"evidence_capture missing file: {path.name}")
-    sha = hashlib.sha256()
-    with open(path, "rb") as f:
-        while chunk := f.read(8192):
-            sha.update(chunk)
-    return sha.hexdigest()
 
 def run_command_capture(
     step_name: str,
