@@ -13,7 +13,7 @@
 
 **Current Focus:** W7 stabilization COMPLETE. Next: W6 Codemoot spike
 **Active WIP:** None — W5-T02 closed
-**Last Updated:** 2026-02-21 (rev16)
+**Last Updated:** 2026-02-22 (rev17)
 
 ---
 
@@ -76,6 +76,7 @@ None — all prior blockers resolved:
 
 ## 🟩 Recent Wins
 
+- **2026-02-22:** Repo Hygiene Sprint 20260221 — chore: refresh runtime_status.json (closure); chore(dead-code): remove unused spine imports + strengthen hygiene tests; chore: bump backlog date + enable superpowers plugin in settings; chore(config): fix pytest constraint + un-ignore passing smoke tests; chore(test): tighten test_state_hygiene.py (remove unused import, assert row found) (and 6 more) — 1/1 targeted test command(s) passed. (merge commit e6ee997)
 - **2026-02-21:** Opencode Loop Stabilization 20260220 — chore: refresh runtime_status.json (closure); fix(steward): correct _commit_code_changes return type annotation; fix(opencode): implement retrospective stabilization batch — 1/1 targeted test command(s) passed. (merge commit 8f6287e)
 - **2026-02-19:** **W5-T02 Checkpoint/Resume E2E Proof COMPLETE** — 6 integration tests proving full checkpoint/resume cycle: escalation → checkpoint YAML on disk → resolution seam → resume with policy hash continuity → terminal packet with ledger anchor. Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt`
 - **2026-02-18:** Worktree Outside Repo Resolution 20260218 — chore: refresh runtime_status.json (closure); fix(worktree): resolve repo root from script location when invoked outside repo — 1/1 targeted test command(s) passed. (merge commit ba63f57)
