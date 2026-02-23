@@ -37,6 +37,19 @@ python3 scripts/workflow/closure_pack.py --no-cleanup
 
 Use when you need to keep branch/context after merge.
 
+## Git worktree constraint
+
+Run `closure_pack.py` from the **worktree directory**, not the primary repo.
+
+When `main` is already checked out in the primary worktree, the script
+detects this automatically (via `git branch --show-current` on the repo root)
+and skips the `checkout main` step. The merge proceeds against the primary
+worktree's `main` directly.
+
+If you accidentally run from the primary repo, it will refuse ("Switch to a
+feature/build branch before running close-build"). Switch to the worktree and
+retry.
+
 ## Report contract (strict)
 
 Output must use this section order:
