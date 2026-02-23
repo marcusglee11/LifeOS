@@ -472,8 +472,17 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
             "errors": [f"safety gate blocked merge: {details or 'unknown failure'}"],
         }
 
+    # Detect if repo_root already has main checked out (e.g. when running from a
+    # git worktree — checkout main would fail with "already used by worktree").
+    _head_proc = subprocess.run(
+        ["git", "-C", str(repo), "branch", "--show-current"],
+        check=False, capture_output=True, text=True,
+    )
+    _repo_already_on_main = _head_proc.stdout.strip() in {"main", "master"}
+
     steps = [
-        ("checkout main", ["git", "-C", str(repo), "checkout", "main"]),
+        *([("checkout main", ["git", "-C", str(repo), "checkout", "main"])]
+          if not _repo_already_on_main else []),
         ("pull --ff-only", ["git", "-C", str(repo), "pull", "--ff-only"]),
         ("squash merge", ["git", "-C", str(repo), "merge", "--squash", source_branch]),
         (
