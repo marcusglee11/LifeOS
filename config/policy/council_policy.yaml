@@ -58,18 +58,18 @@ seats:
       - Governance
 
 seat_role_map:
-  Chair: reviewer_architect
-  CoChair: reviewer_architect
-  L1UnifiedReviewer: reviewer_architect
-  Architect: reviewer_architect
-  Alignment: reviewer_architect
-  StructuralOperational: reviewer_architect
-  Technical: reviewer_architect
-  Testing: reviewer_architect
-  RiskAdversarial: reviewer_security
-  Simplicity: reviewer_architect
-  Determinism: reviewer_architect
-  Governance: reviewer_architect
+  Chair: council_reviewer
+  CoChair: council_reviewer
+  L1UnifiedReviewer: council_reviewer
+  Architect: council_reviewer
+  Alignment: council_reviewer
+  StructuralOperational: council_reviewer
+  Technical: council_reviewer
+  Testing: council_reviewer
+  RiskAdversarial: council_reviewer_security
+  Simplicity: council_reviewer
+  Determinism: council_reviewer
+  Governance: council_reviewer_security
 
 independence:
   must_conditions:
@@ -119,3 +119,9 @@ model_families:
   google:
     - gemini-2.0-flash
     - gemini-2.0-pro
+  glm:
+    - glm-5
+    - glm-5-free
+  kimi:
+    - kimi-k2.5
+    - kimi-k2.5-free

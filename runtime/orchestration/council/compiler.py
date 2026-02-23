@@ -119,8 +119,8 @@ def _resolve_topology(
 def _resolve_default_models() -> tuple[str, str]:
     try:
         config = load_model_config()
-        primary, _, _ = resolve_model_auto("reviewer_architect", config=config)
-        independent, _, _ = resolve_model_auto("reviewer_security", config=config)
+        primary, _, _ = resolve_model_auto("council_reviewer", config=config)
+        independent, _, _ = resolve_model_auto("council_reviewer_security", config=config)
         return primary, independent
     except Exception:
         return ("claude-sonnet-4-5", "opencode/glm-5-free")
@@ -153,7 +153,7 @@ def _assign_models(
         if seat in seat_overrides:
             assignments[seat] = str(seat_overrides[seat])
             continue
-        seat_role = seat_role_map.get(seat, "reviewer_architect")
+        seat_role = seat_role_map.get(seat, "council_reviewer")
         if seat_role in role_overrides:
             assignments[seat] = str(role_overrides[seat_role])
             continue
