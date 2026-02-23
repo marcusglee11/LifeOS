@@ -13,9 +13,11 @@ enums:
   reversibility: [easy, moderate, hard]
   uncertainty: [low, medium, high]
   touches: [governance_protocol, tier_activation, runtime_core, interfaces, prompts, tests, docs_only]
-  verdict: [Accept, "Go with Fixes", Reject]
+  verdict: [Accept, Revise, Reject]
   mode: [M0_FAST, M1_STANDARD, M2_FULL]
   topology: [MONO, HYBRID, DISTRIBUTED]
+  tier: [T0, T1, T2, T3]
+  run_type: [review, advisory]
 
 modes:
   default: M1_STANDARD
@@ -125,3 +127,50 @@ model_families:
   kimi:
     - kimi-k2.5
     - kimi-k2.5-free
+
+# v2.2.1 additions: tiers and lenses (incrementally added alongside v1.3 modes)
+
+tiers:
+  default: T1
+  T3_triggers:
+    - "touches includes governance_protocol"
+    - "touches includes tier_activation"
+    - "safety_critical == true"
+    - "blast_radius in [system, ecosystem] and reversibility == hard"
+    - "uncertainty == high and blast_radius != local"
+  T2_triggers:
+    - "touches includes runtime_core"
+    - "touches includes interfaces"
+    - "blast_radius in [module, system]"
+  T0_conditions:
+    - "aur_type in [doc, plan, other]"
+    - "touches == [docs_only] or (touches excludes runtime_core and touches excludes interfaces and touches excludes governance_protocol)"
+    - "blast_radius == local"
+    - "reversibility == easy"
+    - "safety_critical == false"
+    - "uncertainty == low"
+
+lenses:
+  catalog: [Risk, Governance, Architecture, Implementation, Strategy, Pragmatism]
+  padding_priority: [Risk, Governance, Pragmatism, Implementation, Architecture, Strategy]
+  tier_config:
+    T0:
+      min_lenses: 0
+      max_lenses: 0
+      mandatory: []
+      waivable: []
+    T1:
+      min_lenses: 0
+      max_lenses: 0
+      mandatory: []
+      waivable: []
+    T2:
+      min_lenses: 2
+      max_lenses: 3
+      mandatory: [Risk]
+      waivable: [Governance, Architecture, Implementation]
+    T3:
+      min_lenses: 3
+      max_lenses: 4
+      mandatory: [Risk, Governance]
+      waivable: [Architecture, Implementation, Strategy, Pragmatism]

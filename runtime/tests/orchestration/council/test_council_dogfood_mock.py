@@ -39,7 +39,7 @@ def _coo_dispatcher_ccp() -> dict:
     }
 
 
-def _canned_seat_output(seat: str, *, verdict: str = "Go with Fixes") -> dict:
+def _canned_seat_output(seat: str, *, verdict: str = "Revise") -> dict:
     """Schema-gate-compliant canned output for a council seat."""
     output = {
         "verdict": verdict,
@@ -90,7 +90,7 @@ def test_council_dogfood_mock_m1_coo_dispatcher():
 
     assert result.status == "complete"
     assert result.decision_payload["status"] == "COMPLETE"
-    assert result.decision_payload["verdict"] == "Go with Fixes"
+    assert result.decision_payload["verdict"] == "Revise"
     assert result.run_log["execution"]["mode"] == "M1_STANDARD"
 
     # Both seats should be present and complete.
@@ -131,7 +131,7 @@ def test_council_dogfood_mock_schema_gate_retry():
     result = fsm.run(_coo_dispatcher_ccp())
 
     assert result.status == "complete"
-    assert result.decision_payload["verdict"] == "Go with Fixes"
+    assert result.decision_payload["verdict"] == "Revise"
 
     # Chair should have used 1 retry.
     chair_out = result.run_log["seat_outputs"]["Chair"]
@@ -144,20 +144,20 @@ def test_council_dogfood_mock_schema_gate_retry():
 
 
 def test_council_dogfood_mock_mixed_verdicts():
-    """Chair says Accept, CoChair says Go with Fixes. Synthesis resolves to Go with Fixes (conservative wins)."""
+    """Chair says Accept, CoChair says Revise. Synthesis resolves to Revise (conservative wins)."""
     policy = load_council_policy()
 
     def seat_executor(seat, ccp, plan, retry_count):
         if seat == "Chair":
             return _canned_seat_output(seat, verdict="Accept")
-        return _canned_seat_output(seat, verdict="Go with Fixes")
+        return _canned_seat_output(seat, verdict="Revise")
 
     fsm = CouncilFSM(policy=policy, seat_executor=seat_executor)
     result = fsm.run(_coo_dispatcher_ccp())
 
     assert result.status == "complete"
-    # Conservative verdict wins: Go with Fixes > Accept.
-    assert result.decision_payload["verdict"] == "Go with Fixes"
+    # Conservative verdict wins: Revise > Accept.
+    assert result.decision_payload["verdict"] == "Revise"
 
     # Contradiction ledger should record the disagreement.
     ledger = result.run_log["synthesis"]["contradiction_ledger"]
@@ -165,4 +165,4 @@ def test_council_dogfood_mock_mixed_verdicts():
     # Verify both verdicts appear in the ledger.
     ledger_verdicts = {entry["verdict"] for entry in ledger}
     assert "Accept" in ledger_verdicts
-    assert "Go with Fixes" in ledger_verdicts
+    assert "Revise" in ledger_verdicts

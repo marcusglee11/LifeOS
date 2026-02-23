@@ -200,3 +200,204 @@ def validate_seat_output(
         errors=errors,
         warnings=warnings,
     )
+
+
+# ---------------------------------------------------------------------------
+# v2.2.1 Validators
+# ---------------------------------------------------------------------------
+
+_VALID_CONFIDENCES = {"low", "medium", "high"}
+_VALID_EVIDENCE_STATUSES = {"evidenced", "speculative", "mixed"}
+_VALID_VERDICTS_V2 = {"Accept", "Revise", "Reject"}
+_TIERS_WITH_LEDGER = {"T2", "T3"}
+
+
+def _make_result(errors: list[str], warnings: list[str], output: dict[str, Any]) -> SchemaGateResult:
+    rejected = len(errors) > 0
+    return SchemaGateResult(
+        valid=not rejected,
+        rejected=rejected,
+        normalized_output=output,
+        errors=errors,
+        warnings=warnings,
+    )
+
+
+def _make_blocked(errors: list[str]) -> SchemaGateResult:
+    return SchemaGateResult(
+        valid=False,
+        rejected=True,
+        normalized_output=None,
+        errors=errors,
+        warnings=[],
+    )
+
+
+def validate_lens_output(
+    raw: dict[str, Any] | str,
+    policy: "CouncilPolicy",
+    run_type: str,
+    tier: str,
+) -> SchemaGateResult:
+    """
+    Validate a lens output packet for the given run_type and tier.
+
+    Review lenses: claims[] required (each claim needs claim_id).
+    Advisory lenses: recommendations[] + evidence_status required.
+    """
+    output, parse_errors = _normalize_packet(raw)
+    if output is None:
+        return _make_blocked(parse_errors)
+
+    errors: list[str] = list(parse_errors)
+    warnings: list[str] = []
+
+    # Common required fields
+    for field_name in ("run_type", "lens_name", "confidence", "notes", "operator_view"):
+        if field_name not in output or _is_empty(output.get(field_name)):
+            errors.append(f"Missing required field: {field_name}")
+
+    confidence = str(output.get("confidence", "")).lower()
+    if confidence and confidence not in _VALID_CONFIDENCES:
+        warnings.append(f"Unexpected confidence value: '{confidence}'")
+
+    if run_type == "review":
+        # claims required, each must have claim_id
+        claims = output.get("claims")
+        if claims is None or not isinstance(claims, list):
+            errors.append("Missing required field: claims")
+        else:
+            for idx, claim in enumerate(claims):
+                if isinstance(claim, dict) and "claim_id" not in claim:
+                    errors.append(f"claims[{idx}] missing claim_id")
+        # verdict_recommendation must be valid if present
+        verdict_rec = output.get("verdict_recommendation")
+        if verdict_rec is not None and verdict_rec not in _VALID_VERDICTS_V2:
+            errors.append(
+                f"Invalid verdict_recommendation '{verdict_rec}'. "
+                f"Allowed: {sorted(_VALID_VERDICTS_V2)}"
+            )
+    elif run_type == "advisory":
+        # evidence_status required
+        if "evidence_status" not in output or _is_empty(output.get("evidence_status")):
+            errors.append("Missing required field: evidence_status")
+        else:
+            evs = str(output.get("evidence_status", "")).lower()
+            if evs not in _VALID_EVIDENCE_STATUSES:
+                errors.append(
+                    f"Invalid evidence_status '{evs}'. "
+                    f"Allowed: {sorted(_VALID_EVIDENCE_STATUSES)}"
+                )
+        # recommendations required (non-empty list)
+        recs = output.get("recommendations")
+        if not isinstance(recs, list) or len(recs) == 0:
+            errors.append("Advisory lens must include non-empty recommendations[]")
+    else:
+        errors.append(f"Unknown run_type '{run_type}'")
+
+    return _make_result(errors, warnings, output)
+
+
+def _validate_ledger_entries(ledger: list[Any], errors: list[str]) -> None:
+    for idx, entry in enumerate(ledger):
+        if not isinstance(entry, dict):
+            errors.append(f"contradiction_ledger[{idx}] must be an object")
+            continue
+        if "topic" not in entry:
+            errors.append(f"contradiction_ledger[{idx}] missing topic")
+        positions = entry.get("positions")
+        if not isinstance(positions, dict) or len(positions) < 2:
+            errors.append(
+                f"contradiction_ledger[{idx}] positions must be a dict with >=2 lenses"
+            )
+        if "resolution" not in entry:
+            errors.append(f"contradiction_ledger[{idx}] missing resolution")
+        if "status" not in entry:
+            errors.append(f"contradiction_ledger[{idx}] missing status")
+
+
+def validate_synthesis_output(
+    raw: dict[str, Any] | str,
+    policy: "CouncilPolicy",
+    tier: str,
+    run_type: str,
+) -> SchemaGateResult:
+    """
+    Validate a Chair synthesis output.
+
+    All tiers: run_type, tier, verdict, fix_plan, complexity_budget, operator_view,
+               coverage_degraded, waived_lenses.
+    Review: evidence_summary required.
+    T2/T3: contradiction_ledger required.
+    """
+    output, parse_errors = _normalize_packet(raw)
+    if output is None:
+        return _make_blocked(parse_errors)
+
+    errors: list[str] = list(parse_errors)
+    warnings: list[str] = []
+
+    for field_name in ("run_type", "tier", "verdict", "fix_plan", "complexity_budget",
+                       "operator_view", "coverage_degraded", "waived_lenses"):
+        if field_name not in output:
+            errors.append(f"Missing required field: {field_name}")
+
+    verdict = output.get("verdict")
+    if verdict is not None and verdict not in _VALID_VERDICTS_V2:
+        errors.append(
+            f"Invalid verdict '{verdict}'. Allowed: {sorted(_VALID_VERDICTS_V2)}"
+        )
+
+    if not isinstance(output.get("complexity_budget"), dict):
+        errors.append("complexity_budget must be an object")
+
+    if run_type == "review":
+        if "evidence_summary" not in output:
+            errors.append("Review synthesis missing evidence_summary")
+
+    if tier in _TIERS_WITH_LEDGER:
+        ledger = output.get("contradiction_ledger")
+        if not isinstance(ledger, list):
+            errors.append(
+                f"Tier {tier} synthesis requires contradiction_ledger (list)"
+            )
+        else:
+            _validate_ledger_entries(ledger, errors)
+
+    return _make_result(errors, warnings, output)
+
+
+def validate_challenger_output(
+    raw: dict[str, Any] | str,
+    policy: "CouncilPolicy",
+    tier: str,
+) -> SchemaGateResult:
+    """
+    Validate a Challenger output.
+
+    All tiers: weakest_claim, stress_test, material_issue, issue_class,
+               severity, required_action, notes.
+    T2/T3: ledger_completeness_ok, missing_disagreements required.
+    """
+    output, parse_errors = _normalize_packet(raw)
+    if output is None:
+        return _make_blocked(parse_errors)
+
+    errors: list[str] = list(parse_errors)
+    warnings: list[str] = []
+
+    for field_name in ("weakest_claim", "stress_test", "material_issue",
+                       "issue_class", "severity", "required_action", "notes"):
+        if field_name not in output:
+            errors.append(f"Missing required field: {field_name}")
+
+    if not isinstance(output.get("material_issue"), bool):
+        errors.append("material_issue must be a boolean")
+
+    if tier in _TIERS_WITH_LEDGER:
+        if "ledger_completeness_ok" not in output:
+            errors.append(f"Tier {tier} challenger requires ledger_completeness_ok")
+        if "missing_disagreements" not in output:
+            errors.append(f"Tier {tier} challenger requires missing_disagreements")
+
+    return _make_result(errors, warnings, output)

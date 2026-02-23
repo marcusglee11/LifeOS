@@ -278,6 +278,57 @@ class CouncilPolicy:
     def bootstrap_policy(self) -> Mapping[str, Any]:
         return self.raw.get("bootstrap", {})
 
+    # v2.2.1 tier accessors
+
+    @property
+    def tier_default(self) -> str:
+        return str(self.raw.get("tiers", {}).get("default", "T1"))
+
+    def tier_t3_triggers(self) -> tuple[str, ...]:
+        entries = self.raw.get("tiers", {}).get("T3_triggers", [])
+        return tuple(str(s) for s in entries)
+
+    def tier_t2_triggers(self) -> tuple[str, ...]:
+        entries = self.raw.get("tiers", {}).get("T2_triggers", [])
+        return tuple(str(s) for s in entries)
+
+    def tier_t0_conditions(self) -> tuple[str, ...]:
+        entries = self.raw.get("tiers", {}).get("T0_conditions", [])
+        return tuple(str(s) for s in entries)
+
+    # v2.2.1 lens accessors
+
+    def lenses_for_tier(self, tier: str) -> tuple[str, ...]:
+        """Return catalog of all available lenses for the tier."""
+        catalog = self.raw.get("lenses", {}).get("catalog", [])
+        return tuple(str(s) for s in catalog)
+
+    def mandatory_lenses_for_tier(self, tier: str) -> tuple[str, ...]:
+        config = self.raw.get("lenses", {}).get("tier_config", {}).get(tier, {})
+        return tuple(str(s) for s in config.get("mandatory", []))
+
+    def waivable_lenses_for_tier(self, tier: str) -> tuple[str, ...]:
+        config = self.raw.get("lenses", {}).get("tier_config", {}).get(tier, {})
+        return tuple(str(s) for s in config.get("waivable", []))
+
+    def min_lenses_for_tier(self, tier: str) -> int:
+        config = self.raw.get("lenses", {}).get("tier_config", {}).get(tier, {})
+        return int(config.get("min_lenses", 0))
+
+    def max_lenses_for_tier(self, tier: str) -> int:
+        config = self.raw.get("lenses", {}).get("tier_config", {}).get(tier, {})
+        return int(config.get("max_lenses", 0))
+
+    @property
+    def lens_catalog(self) -> tuple[str, ...]:
+        catalog = self.raw.get("lenses", {}).get("catalog", [])
+        return tuple(str(s) for s in catalog)
+
+    @property
+    def padding_priority(self) -> tuple[str, ...]:
+        priority = self.raw.get("lenses", {}).get("padding_priority", [])
+        return tuple(str(s) for s in priority)
+
 
 def load_council_policy(policy_path: str | Path | None = None) -> CouncilPolicy:
     """

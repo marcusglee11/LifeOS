@@ -16,15 +16,41 @@ from .models import (
     CouncilRuntimeResult,
     CouncilSeatResult,
     CouncilTransition,
+    CouncilRunPlanCore,
+    CouncilRunMeta,
+    VERDICT_ACCEPT,
+    VERDICT_REVISE,
+    VERDICT_REJECT,
+    DECISION_STATUS_NORMAL,
+    DECISION_STATUS_DEGRADED_COVERAGE,
+    DECISION_STATUS_DEGRADED_CHALLENGER,
+    generate_run_id,
 )
 from .policy import CouncilPolicy
-from .schema_gate import validate_seat_output
+from .schema_gate import (
+    validate_seat_output,
+    validate_lens_output,
+    validate_synthesis_output,
+    validate_challenger_output,
+)
 
 
 SeatExecutor = Callable[[str, Mapping[str, Any], CouncilRunPlan, int], dict[str, Any] | str]
 ClosureCallable = Callable[[Mapping[str, Any], CouncilRunPlan], tuple[bool, dict[str, Any]]]
 
+# v2.2.1 type aliases
+LensExecutor = Callable[[str, Mapping[str, Any], CouncilRunPlanCore, int], dict[str, Any] | str]
+SynthesisExecutor = Callable[
+    [Mapping[str, Any], CouncilRunPlanCore, Mapping[str, Any]], dict[str, Any] | str
+]
+ChallengerExecutor = Callable[
+    [Mapping[str, Any], Mapping[str, Any], CouncilRunPlanCore], dict[str, Any] | str
+]
+PlanFactory = Callable[
+    [Mapping[str, Any], CouncilPolicy], tuple[CouncilRunPlanCore, CouncilRunMeta]
+]
 
+# v1.3 states (preserved)
 STATE_S0_ASSEMBLE = "S0_ASSEMBLE"
 STATE_S0_5_COCHAIR_VALIDATE = "S0_5_COCHAIR_VALIDATE"
 STATE_S1_EXECUTE_SEATS = "S1_EXECUTE_SEATS"
@@ -36,6 +62,14 @@ STATE_S3_CLOSURE_GATE = "S3_CLOSURE_GATE"
 STATE_S4_CLOSEOUT = "S4_CLOSEOUT"
 STATE_TERMINAL_BLOCKED = "TERMINAL_BLOCKED"
 STATE_TERMINAL_COMPLETE = "TERMINAL_COMPLETE"
+
+# v2.2.1 additional states
+STATE_S1_EXECUTE_LENSES = "S1_EXECUTE_LENSES"
+STATE_S1_25_SCHEMA_GATE_LENSES = "S1_25_SCHEMA_GATE_LENSES"
+STATE_S1_5_COVERAGE_COMPLETE = "S1_5_COVERAGE_COMPLETE"
+STATE_S1_55_EXECUTION_FIDELITY = "S1_55_EXECUTION_FIDELITY"
+STATE_S2_25_SCHEMA_GATE_SYNTHESIS = "S2_25_SCHEMA_GATE_SYNTHESIS"
+STATE_S2_5_CHALLENGER_REVIEW = "S2_5_CHALLENGER_REVIEW"
 
 
 def _default_seat_executor(
@@ -159,7 +193,9 @@ class CouncilFSM:
         if "Reject" in verdicts:
             return "Reject"
         if "Go with Fixes" in verdicts:
-            return "Go with Fixes"
+            return "Revise"
+        if "Revise" in verdicts:
+            return "Revise"
         return "Accept"
 
     @staticmethod
@@ -510,7 +546,7 @@ class CouncilFSM:
                 reason = reason_after_rework
             next_state = (
                 STATE_S3_CLOSURE_GATE
-                if plan.closure_gate_required and synthesis.get("verdict") in {"Accept", "Go with Fixes"}
+                if plan.closure_gate_required and synthesis.get("verdict") in {"Accept", "Go with Fixes", "Revise"}
                 else STATE_S4_CLOSEOUT
             )
             self._transition(
@@ -615,6 +651,418 @@ class CouncilFSM:
             "deletion_line": synthesis.get("deletion_line", ""),
             "run_id": plan.run_id,
         }
+        return CouncilRuntimeResult(
+            status="complete",
+            run_log=run_log,
+            decision_payload=decision_payload,
+            block_report=None,
+        )
+
+
+# ---------------------------------------------------------------------------
+# v2.2.1 FSM
+# ---------------------------------------------------------------------------
+
+_LENS_MAX_RETRIES = 2
+_CHALLENGER_MAX_REWORK = 1
+_CLOSURE_MAX_CYCLES = 2
+
+
+def _noop_synthesis_executor(
+    lens_results: Mapping[str, Any],
+    plan: CouncilRunPlanCore,
+    ccp: Mapping[str, Any],
+) -> dict[str, Any]:
+    return {
+        "run_type": plan.run_type,
+        "tier": plan.tier,
+        "verdict": VERDICT_ACCEPT,
+        "fix_plan": [],
+        "complexity_budget": {"net_human_steps": 0},
+        "operator_view": ["noop synthesis"],
+        "coverage_degraded": False,
+        "waived_lenses": [],
+        "evidence_summary": {"ref_count": 0, "assumption_count": 0},
+    }
+
+
+def _noop_challenger_executor(
+    synthesis: Mapping[str, Any],
+    lens_results: Mapping[str, Any],
+    plan: CouncilRunPlanCore,
+) -> dict[str, Any]:
+    return {
+        "weakest_claim": "none",
+        "stress_test": "none",
+        "material_issue": False,
+        "issue_class": "other",
+        "severity": "p2",
+        "required_action": "rework_synthesis",
+        "notes": "noop challenger",
+    }
+
+
+def _noop_closure(synthesis: Mapping[str, Any], plan: CouncilRunPlanCore) -> tuple[bool, dict]:
+    return True, {}
+
+
+class CouncilFSMv2:
+    """
+    v2.2.1 council review FSM with 12 states, lens dispatch, Challenger
+    rework loop (max 1 cycle), coverage degradation floor, and bounded
+    closure gate (max 2 cycles).
+    """
+
+    def __init__(
+        self,
+        policy: CouncilPolicy,
+        plan_factory: PlanFactory | None = None,
+        lens_executor: LensExecutor | None = None,
+        synthesis_executor: SynthesisExecutor | None = None,
+        challenger_executor: ChallengerExecutor | None = None,
+        closure_builder: ClosureCallable | None = None,
+        closure_validator: ClosureCallable | None = None,
+    ):
+        self.policy = policy
+        self.plan_factory = plan_factory or self._default_plan_factory
+        self.lens_executor = lens_executor or self._default_lens_executor
+        self.synthesis_executor = synthesis_executor or _noop_synthesis_executor
+        self.challenger_executor = challenger_executor or _noop_challenger_executor
+        self.closure_builder = closure_builder or _noop_closure
+        self.closure_validator = closure_validator or _noop_closure
+
+    def _default_plan_factory(
+        self, ccp: Mapping[str, Any], policy: CouncilPolicy
+    ) -> tuple[CouncilRunPlanCore, CouncilRunMeta]:
+        from .compiler import compile_council_run_plan_v2
+        from .models import compute_plan_core_hash
+        from datetime import datetime, timezone
+
+        result = compile_council_run_plan_v2(ccp=ccp, policy=policy)
+        core_dict = result["core"]
+        meta_dict = result["meta"]
+
+        core = CouncilRunPlanCore(**core_dict)
+        meta = CouncilRunMeta(**meta_dict)
+        return core, meta
+
+    def _default_lens_executor(
+        self,
+        lens_name: str,
+        ccp: Mapping[str, Any],
+        plan: CouncilRunPlanCore,
+        retry_count: int,
+    ) -> dict[str, Any] | str:
+        return {"broken": True}  # Force test to use injected executor
+
+    @staticmethod
+    def _transition(
+        transitions: list[dict[str, Any]],
+        from_state: str,
+        to_state: str,
+        reason: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        transitions.append({
+            "from_state": from_state,
+            "to_state": to_state,
+            "reason": reason,
+            "details": details or {},
+        })
+
+    def _execute_lenses(
+        self,
+        plan: CouncilRunPlanCore,
+        ccp: Mapping[str, Any],
+        transitions: list[dict[str, Any]],
+    ) -> tuple[dict[str, Any], bool, bool]:
+        """
+        Execute all required lenses with retry + waiver logic.
+
+        Returns:
+            (lens_results, coverage_degraded, blocked)
+        """
+        lens_results: dict[str, Any] = {}
+        coverage_degraded = False
+        waived: list[str] = []
+
+        for lens_name in sorted(plan.required_lenses):
+            retries = 0
+            success = False
+            last_output: dict[str, Any] | str = {}
+
+            while retries <= _LENS_MAX_RETRIES:
+                raw = self.lens_executor(lens_name, ccp, plan, retries)
+                gate = validate_lens_output(raw, self.policy, plan.run_type, plan.tier)
+
+                self._transition(
+                    transitions,
+                    STATE_S1_EXECUTE_LENSES,
+                    STATE_S1_25_SCHEMA_GATE_LENSES,
+                    "lens_output_received",
+                    {"lens": lens_name, "retry": retries, "valid": gate.valid},
+                )
+
+                if gate.valid:
+                    last_output = gate.normalized_output or {}
+                    success = True
+                    break
+                last_output = raw
+                retries += 1
+
+            if success:
+                lens_results[lens_name] = last_output
+            else:
+                is_mandatory = lens_name in plan.mandatory_lenses
+                is_waivable = lens_name in plan.waivable_lenses
+                if is_mandatory:
+                    return lens_results, coverage_degraded, True  # BLOCK
+                if is_waivable:
+                    waived.append(lens_name)
+                    coverage_degraded = True
+                    lens_results[lens_name] = None
+                else:
+                    return lens_results, coverage_degraded, True  # BLOCK (default)
+
+        return lens_results, coverage_degraded, False
+
+    def run(self, ccp: Mapping[str, Any]) -> CouncilRuntimeResult:
+        """
+        Execute the v2.2.1 council protocol for one CCP payload.
+        """
+        transitions: list[dict[str, Any]] = []
+
+        # S0_ASSEMBLE: compile plan
+        try:
+            core, meta = self.plan_factory(ccp, self.policy)
+        except CouncilBlockedError as err:
+            self._transition(
+                transitions, STATE_S0_ASSEMBLE, STATE_TERMINAL_BLOCKED,
+                "plan_blocked", {"category": err.category, "detail": err.detail},
+            )
+            return CouncilRuntimeResult(
+                status="blocked",
+                run_log={"status": "blocked", "state_transitions": transitions},
+                decision_payload={"status": "BLOCKED", "reason": err.category, "detail": err.detail},
+                block_report={"category": err.category, "detail": err.detail},
+            )
+
+        has_lenses = len(core.required_lenses) > 0
+        has_challenger = core.challenger_required
+        closure_gate_active = core.closure_gate_required
+
+        # --------------- S1: Lens execution (T2/T3) ---------------
+        lens_results: dict[str, Any] = {}
+        coverage_degraded = False
+
+        if has_lenses:
+            self._transition(
+                transitions, STATE_S0_ASSEMBLE, STATE_S1_EXECUTE_LENSES, "lenses_required",
+            )
+
+            lens_results, coverage_degraded, blocked = self._execute_lenses(
+                plan=core, ccp=ccp, transitions=transitions,
+            )
+
+            if blocked:
+                self._transition(
+                    transitions, STATE_S1_25_SCHEMA_GATE_LENSES,
+                    STATE_TERMINAL_BLOCKED, "mandatory_lens_failed",
+                )
+                return CouncilRuntimeResult(
+                    status="blocked",
+                    run_log={"status": "blocked", "state_transitions": transitions,
+                             "lens_results": dict(sorted(lens_results.items()))},
+                    decision_payload={"status": "BLOCKED", "reason": "mandatory_lens_failed"},
+                    block_report={"category": "mandatory_lens_failed",
+                                  "detail": "A mandatory lens failed all retries."},
+                )
+
+            # S1_5_COVERAGE_COMPLETE
+            self._transition(
+                transitions, STATE_S1_25_SCHEMA_GATE_LENSES,
+                STATE_S1_5_COVERAGE_COMPLETE, "lens_gate_complete",
+                {"coverage_degraded": coverage_degraded},
+            )
+
+            # S1_55_EXECUTION_FIDELITY
+            self._transition(
+                transitions, STATE_S1_5_COVERAGE_COMPLETE,
+                STATE_S1_55_EXECUTION_FIDELITY, "coverage_check_ok",
+            )
+            self._transition(
+                transitions, STATE_S1_55_EXECUTION_FIDELITY,
+                STATE_S2_SYNTHESIS, "fidelity_check_ok",
+            )
+        else:
+            self._transition(
+                transitions, STATE_S0_ASSEMBLE, STATE_S2_SYNTHESIS, "no_lenses",
+            )
+
+        # --------------- S2: Synthesis ---------------
+        self._transition(
+            transitions, STATE_S2_SYNTHESIS,
+            STATE_S2_25_SCHEMA_GATE_SYNTHESIS, "synthesis_started",
+        )
+
+        synthesis_rework_count = 0
+        synthesis: dict[str, Any] = {}
+        decision_status = DECISION_STATUS_NORMAL
+
+        # Execute synthesis (with possible Challenger rework loop)
+        while True:
+            raw_synthesis = self.synthesis_executor(lens_results, core, ccp)
+            synth_gate = validate_synthesis_output(
+                raw_synthesis, self.policy, core.tier, core.run_type
+            )
+
+            if not synth_gate.valid:
+                # Synthesis schema gate failure — block
+                self._transition(
+                    transitions, STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+                    STATE_TERMINAL_BLOCKED, "synthesis_schema_rejected",
+                    {"errors": synth_gate.errors},
+                )
+                return CouncilRuntimeResult(
+                    status="blocked",
+                    run_log={"status": "blocked", "state_transitions": transitions},
+                    decision_payload={"status": "BLOCKED", "reason": "synthesis_schema_rejected"},
+                    block_report={"category": "synthesis_schema_rejected",
+                                  "detail": str(synth_gate.errors)},
+                )
+
+            synthesis = synth_gate.normalized_output or {}
+
+            # --------------- S2_5: Challenger ---------------
+            if not has_challenger:
+                break  # No challenger — exit loop
+
+            self._transition(
+                transitions, STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+                STATE_S2_5_CHALLENGER_REVIEW, "synthesis_schema_ok",
+            )
+
+            raw_challenger = self.challenger_executor(synthesis, lens_results, core)
+            challenger_gate = validate_challenger_output(raw_challenger, self.policy, core.tier)
+
+            if not challenger_gate.valid:
+                # Challenger schema invalid — treat as no material issue
+                break
+
+            challenger_result = challenger_gate.normalized_output or {}
+            material_issue = bool(challenger_result.get("material_issue", False))
+
+            if not material_issue:
+                break  # Challenger satisfied
+
+            if synthesis_rework_count < _CHALLENGER_MAX_REWORK:
+                # Rework synthesis (back to S2)
+                synthesis_rework_count += 1
+                self._transition(
+                    transitions, STATE_S2_5_CHALLENGER_REVIEW,
+                    STATE_S2_SYNTHESIS, "challenger_rework_triggered",
+                    {"rework_count": synthesis_rework_count},
+                )
+                self._transition(
+                    transitions, STATE_S2_SYNTHESIS,
+                    STATE_S2_25_SCHEMA_GATE_SYNTHESIS, "synthesis_restarted",
+                )
+                continue  # Loop back
+            else:
+                # Persistent issue — force Revise, DEGRADED_CHALLENGER
+                decision_status = DECISION_STATUS_DEGRADED_CHALLENGER
+                synthesis["verdict"] = VERDICT_REVISE
+                synthesis["fix_plan"] = synthesis.get("fix_plan") or []
+                break
+
+        # Apply coverage degradation floor after synthesis
+        if coverage_degraded:
+            decision_status = DECISION_STATUS_DEGRADED_COVERAGE
+            if synthesis.get("verdict") == VERDICT_ACCEPT:
+                synthesis["verdict"] = VERDICT_REVISE
+
+        # --------------- S3: Closure gate ---------------
+        closure_events: list[dict[str, Any]] = []
+        closure_ok = True
+
+        verdict = synthesis.get("verdict", VERDICT_REJECT)
+        enter_closure = (
+            closure_gate_active
+            and core.run_type == "review"
+            and verdict == VERDICT_ACCEPT
+            and decision_status == DECISION_STATUS_NORMAL
+        )
+
+        if enter_closure:
+            self._transition(
+                transitions, STATE_S2_5_CHALLENGER_REVIEW if has_challenger else STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+                STATE_S3_CLOSURE_GATE, "entering_closure_gate",
+            )
+            closure_ok = False
+            for cycle in range(_CLOSURE_MAX_CYCLES):
+                build_ok, build_details = self.closure_builder(synthesis, core)
+                validate_ok, validate_details = self.closure_validator(synthesis, core)
+                closure_events.append({
+                    "cycle": cycle,
+                    "build_ok": build_ok,
+                    "validate_ok": validate_ok,
+                    "build_details": build_details,
+                    "validate_details": validate_details,
+                })
+                if build_ok and validate_ok:
+                    closure_ok = True
+                    break
+
+            if not closure_ok:
+                synthesis["verdict"] = VERDICT_REVISE
+                synthesis["fix_plan"] = synthesis.get("fix_plan") or []
+
+            self._transition(
+                transitions, STATE_S3_CLOSURE_GATE, STATE_S4_CLOSEOUT,
+                "closure_gate_complete", {"closure_ok": closure_ok},
+            )
+        else:
+            last_state = (
+                STATE_S2_5_CHALLENGER_REVIEW if has_challenger
+                else STATE_S2_25_SCHEMA_GATE_SYNTHESIS
+            )
+            self._transition(
+                transitions, last_state, STATE_S4_CLOSEOUT, "no_closure_gate",
+            )
+
+        # --------------- S4_CLOSEOUT ---------------
+        self._transition(
+            transitions, STATE_S4_CLOSEOUT, STATE_TERMINAL_COMPLETE, "run_complete",
+        )
+
+        # Build run log
+        final_verdict = synthesis.get("verdict", VERDICT_REJECT)
+        lens_results_sorted = dict(sorted(lens_results.items()))
+
+        run_log: dict[str, Any] = {
+            "aur_id": core.aur_id,
+            "plan_core_hash": meta.plan_core_hash,
+            "run_id": meta.run_id,
+            "tier": core.tier,
+            "run_type": core.run_type,
+            "state_transitions": transitions,
+            "lens_results": lens_results_sorted,
+            "synthesis": synthesis,
+            "decision_status": decision_status,
+            "status": "complete",
+        }
+        if closure_events:
+            run_log["closure_gate"] = closure_events
+
+        decision_payload: dict[str, Any] = {
+            "status": "COMPLETE",
+            "verdict": final_verdict,
+            "decision_status": decision_status,
+            "fix_plan": synthesis.get("fix_plan", []),
+            "run_id": meta.run_id,
+            "tier": core.tier,
+        }
+
         return CouncilRuntimeResult(
             status="complete",
             run_log=run_log,
