@@ -268,7 +268,10 @@ def validate_lens_output(
             errors.append("Missing required field: claims")
         else:
             for idx, claim in enumerate(claims):
-                if isinstance(claim, dict) and "claim_id" not in claim:
+                if not isinstance(claim, Mapping):
+                    errors.append(f"claims[{idx}] must be an object")
+                    continue
+                if "claim_id" not in claim:
                     errors.append(f"claims[{idx}] missing claim_id")
         # verdict_recommendation must be valid if present
         verdict_rec = output.get("verdict_recommendation")

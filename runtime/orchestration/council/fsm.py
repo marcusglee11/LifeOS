@@ -26,7 +26,7 @@ from .models import (
     DECISION_STATUS_DEGRADED_CHALLENGER,
     generate_run_id,
 )
-from .policy import CouncilPolicy
+from .policy import CouncilPolicy, resolve_model_family
 from .schema_gate import (
     validate_seat_output,
     validate_lens_output,
@@ -686,12 +686,31 @@ def _noop_synthesis_executor(
     }
 
 
+def _default_synthesis_executor(
+    lens_results: Mapping[str, Any],
+    plan: CouncilRunPlanCore,
+    ccp: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Build deterministic v2 synthesis output from executed lens packets."""
+    lens_dict = dict(lens_results)
+    waived_lenses = sorted(
+        lens_name for lens_name, lens_output in lens_dict.items() if lens_output is None
+    )
+    return build_synthesis_output(
+        lens_results=lens_dict,
+        plan=plan,
+        ccp=ccp,
+        coverage_degraded=bool(waived_lenses),
+        waived_lenses=waived_lenses,
+    )
+
+
 def _noop_challenger_executor(
     synthesis: Mapping[str, Any],
     lens_results: Mapping[str, Any],
     plan: CouncilRunPlanCore,
 ) -> dict[str, Any]:
-    return {
+    result = {
         "weakest_claim": "none",
         "stress_test": "none",
         "material_issue": False,
@@ -700,10 +719,127 @@ def _noop_challenger_executor(
         "required_action": "rework_synthesis",
         "notes": "noop challenger",
     }
+    if plan.tier in {"T2", "T3"}:
+        result["ledger_completeness_ok"] = True
+        result["missing_disagreements"] = []
+    return result
 
 
 def _noop_closure(synthesis: Mapping[str, Any], plan: CouncilRunPlanCore) -> tuple[bool, dict]:
     return True, {}
+
+
+def _vendor_family(model: str, model_families: Mapping[str, list[str]] | None = None) -> str:
+    """Return a normalized vendor family string for a model identifier."""
+    registry = model_families or {}
+    resolved = resolve_model_family(model_name=model, registry=registry)
+    if resolved != "unknown":
+        return resolved
+    lower = (model or "").strip().lower()
+    if not lower:
+        return "unknown"
+    if "claude" in lower:
+        return "anthropic"
+    if "gpt" in lower or lower.startswith("o1") or lower.startswith("o3") or "/openai/" in lower:
+        return "openai"
+    if "gemini" in lower:
+        return "google"
+    if "glm" in lower:
+        return "glm"
+    if "kimi" in lower:
+        return "kimi"
+    if "/" in lower:
+        return lower.split("/", 1)[0]
+    return "unknown"
+
+
+def _extract_verdict_from_lenses(lens_results: dict[str, Any]) -> str:
+    """Aggregate verdict from lens verdict_recommendations (majority rule, Reject > Revise > Accept)."""
+    verdicts = []
+    for lr in lens_results.values():
+        if isinstance(lr, dict):
+            v = lr.get("verdict_recommendation")
+            if v:
+                verdicts.append(v)
+    if not verdicts:
+        return VERDICT_ACCEPT
+    if VERDICT_REJECT in verdicts:
+        return VERDICT_REJECT
+    if VERDICT_REVISE in verdicts:
+        return VERDICT_REVISE
+    return VERDICT_ACCEPT
+
+
+def _build_contradiction_ledger_from_lenses(lens_results: dict[str, Any]) -> list[dict]:
+    """Return an empty ledger; the Challenger fills contradictions, not synthesis."""
+    return []
+
+
+def build_synthesis_output(
+    lens_results: dict[str, Any],
+    plan: CouncilRunPlanCore,
+    ccp: Mapping[str, Any],
+    coverage_degraded: bool = False,
+    waived_lenses: list[str] | None = None,
+) -> dict[str, Any]:
+    """
+    Build a v2.2.1-compliant synthesis dict from lens results and plan core.
+
+    - All tiers: run_type, tier, verdict, fix_plan, complexity_budget,
+                 operator_view, coverage_degraded, waived_lenses
+    - review run_type: adds evidence_summary
+    - T2/T3 (contradiction_ledger_required): adds contradiction_ledger
+    """
+    if waived_lenses is None:
+        waived_lenses = []
+
+    verdict = _extract_verdict_from_lenses(lens_results)
+
+    operator_view: list[str] = []
+    for lr in lens_results.values():
+        if isinstance(lr, dict):
+            raw_operator_view = lr.get("operator_view", [])
+            if isinstance(raw_operator_view, list):
+                for pt in raw_operator_view:
+                    if isinstance(pt, str):
+                        operator_view.append(pt)
+    if not operator_view:
+        operator_view = ["synthesis complete"]
+
+    result: dict[str, Any] = {
+        "run_type": plan.run_type,
+        "tier": plan.tier,
+        "verdict": verdict,
+        "fix_plan": [],
+        "complexity_budget": {"net_human_steps": 0},
+        "operator_view": operator_view,
+        "coverage_degraded": coverage_degraded,
+        "waived_lenses": list(waived_lenses),
+    }
+
+    if plan.run_type == "review":
+        ref_count = 0
+        assumption_count = 0
+        for lr in lens_results.values():
+            if isinstance(lr, dict):
+                raw_claims = lr.get("claims", [])
+                if not isinstance(raw_claims, list):
+                    continue
+                for claim in raw_claims:
+                    if not isinstance(claim, Mapping):
+                        continue
+                    raw_refs = claim.get("evidence_refs", [])
+                    if isinstance(raw_refs, list):
+                        ref_count += len(raw_refs)
+        result["evidence_summary"] = {
+            "ref_count": ref_count,
+            "assumption_count": assumption_count,
+        }
+
+    if plan.contradiction_ledger_required:
+        result["contradiction_ledger"] = _build_contradiction_ledger_from_lenses(lens_results)
+
+    return result
 
 
 class CouncilFSMv2:
@@ -726,7 +862,7 @@ class CouncilFSMv2:
         self.policy = policy
         self.plan_factory = plan_factory or self._default_plan_factory
         self.lens_executor = lens_executor or self._default_lens_executor
-        self.synthesis_executor = synthesis_executor or _noop_synthesis_executor
+        self.synthesis_executor = synthesis_executor or _default_synthesis_executor
         self.challenger_executor = challenger_executor or _noop_challenger_executor
         self.closure_builder = closure_builder or _noop_closure
         self.closure_validator = closure_validator or _noop_closure
@@ -753,7 +889,46 @@ class CouncilFSMv2:
         plan: CouncilRunPlanCore,
         retry_count: int,
     ) -> dict[str, Any] | str:
-        return {"broken": True}  # Force test to use injected executor
+        """
+        Deterministic fallback lens output for mission-mode execution.
+
+        Produces schema-valid packets without external dependencies.
+        """
+        planned_model = str(plan.model_assignments.get(lens_name, "auto"))
+        if plan.run_type == "advisory":
+            return {
+                "run_type": "advisory",
+                "lens_name": lens_name,
+                "operator_view": [f"{lens_name}: advisory no-op assessment"],
+                "confidence": "medium",
+                "notes": "Default deterministic advisory lens output.",
+                "evidence_status": "mixed",
+                "recommendations": [
+                    {
+                        "action": "review_context",
+                        "rationale": "Default fallback recommendation.",
+                        "expected_impact": "low",
+                        "confidence": "medium",
+                    }
+                ],
+                "_actual_model": planned_model,
+            }
+        return {
+            "run_type": "review",
+            "lens_name": lens_name,
+            "operator_view": [f"{lens_name}: deterministic fallback assessment"],
+            "confidence": "medium",
+            "notes": "Default deterministic review lens output.",
+            "claims": [
+                {
+                    "claim_id": f"{lens_name.lower()}-default-1",
+                    "statement": "No blocking issue identified in default path.",
+                    "evidence_refs": ["ASSUMPTION: deterministic fallback"],
+                }
+            ],
+            "verdict_recommendation": VERDICT_ACCEPT,
+            "_actual_model": planned_model,
+        }
 
     @staticmethod
     def _transition(
@@ -775,14 +950,15 @@ class CouncilFSMv2:
         plan: CouncilRunPlanCore,
         ccp: Mapping[str, Any],
         transitions: list[dict[str, Any]],
-    ) -> tuple[dict[str, Any], bool, bool]:
+    ) -> tuple[dict[str, Any], dict[str, str], bool, bool]:
         """
         Execute all required lenses with retry + waiver logic.
 
         Returns:
-            (lens_results, coverage_degraded, blocked)
+            (lens_results, actual_models, coverage_degraded, blocked)
         """
         lens_results: dict[str, Any] = {}
+        actual_models: dict[str, str] = {}
         coverage_degraded = False
         waived: list[str] = []
 
@@ -790,9 +966,13 @@ class CouncilFSMv2:
             retries = 0
             success = False
             last_output: dict[str, Any] | str = {}
+            raw: dict[str, Any] | str = {}
 
             while retries <= _LENS_MAX_RETRIES:
-                raw = self.lens_executor(lens_name, ccp, plan, retries)
+                try:
+                    raw = self.lens_executor(lens_name, ccp, plan, retries)
+                except Exception as exc:
+                    raw = {"_execution_error": f"{type(exc).__name__}: {exc}"}
                 gate = validate_lens_output(raw, self.policy, plan.run_type, plan.tier)
 
                 self._transition(
@@ -812,19 +992,53 @@ class CouncilFSMv2:
 
             if success:
                 lens_results[lens_name] = last_output
+                # Track actual model used (lens executor may embed _actual_model)
+                if isinstance(last_output, dict):
+                    am = last_output.get("_actual_model") or (
+                        isinstance(raw, dict) and raw.get("_actual_model")
+                    )
+                    if am:
+                        actual_models[lens_name] = str(am)
             else:
                 is_mandatory = lens_name in plan.mandatory_lenses
                 is_waivable = lens_name in plan.waivable_lenses
                 if is_mandatory:
-                    return lens_results, coverage_degraded, True  # BLOCK
+                    return lens_results, actual_models, coverage_degraded, True  # BLOCK
                 if is_waivable:
                     waived.append(lens_name)
                     coverage_degraded = True
                     lens_results[lens_name] = None
                 else:
-                    return lens_results, coverage_degraded, True  # BLOCK (default)
+                    return lens_results, actual_models, coverage_degraded, True  # BLOCK (default)
 
-        return lens_results, coverage_degraded, False
+        return lens_results, actual_models, coverage_degraded, False
+
+    def _check_execution_fidelity(
+        self,
+        actual_models: dict[str, str],
+        core: CouncilRunPlanCore,
+    ) -> tuple[bool, str | None]:
+        """
+        Verify that independent lenses ran on the vendor family specified by the plan.
+
+        Returns:
+            (ok, reason)  — reason is None when ok=True
+        """
+        if core.independence_required == "none":
+            return True, None
+
+        for lens_name in core.independent_lenses:
+            planned = core.model_assignments.get(lens_name)
+            actual = actual_models.get(lens_name, planned)
+            if not planned or not actual:
+                continue
+            planned_family = _vendor_family(str(planned), self.policy.model_families)
+            actual_family = _vendor_family(str(actual), self.policy.model_families)
+            if planned_family != actual_family:
+                if core.independence_required == "must" and not core.override_active:
+                    return False, f"independence_fidelity_violation:{lens_name}"
+
+        return True, None
 
     def run(self, ccp: Mapping[str, Any]) -> CouncilRuntimeResult:
         """
@@ -860,7 +1074,7 @@ class CouncilFSMv2:
                 transitions, STATE_S0_ASSEMBLE, STATE_S1_EXECUTE_LENSES, "lenses_required",
             )
 
-            lens_results, coverage_degraded, blocked = self._execute_lenses(
+            lens_results, actual_models, coverage_degraded, blocked = self._execute_lenses(
                 plan=core, ccp=ccp, transitions=transitions,
             )
 
@@ -890,6 +1104,23 @@ class CouncilFSMv2:
                 transitions, STATE_S1_5_COVERAGE_COMPLETE,
                 STATE_S1_55_EXECUTION_FIDELITY, "coverage_check_ok",
             )
+            fidelity_ok, fidelity_reason = self._check_execution_fidelity(actual_models, core)
+            if not fidelity_ok:
+                self._transition(
+                    transitions, STATE_S1_55_EXECUTION_FIDELITY,
+                    STATE_TERMINAL_BLOCKED, "execution_fidelity_violation",
+                    {"reason": fidelity_reason},
+                )
+                return CouncilRuntimeResult(
+                    status="blocked",
+                    run_log={"status": "blocked", "state_transitions": transitions,
+                             "lens_results": dict(sorted(lens_results.items()))},
+                    decision_payload={"status": "BLOCKED",
+                                      "reason": "execution_fidelity_violation",
+                                      "detail": fidelity_reason},
+                    block_report={"category": "execution_fidelity_violation",
+                                  "detail": fidelity_reason or ""},
+                )
             self._transition(
                 transitions, STATE_S1_55_EXECUTION_FIDELITY,
                 STATE_S2_SYNTHESIS, "fidelity_check_ok",

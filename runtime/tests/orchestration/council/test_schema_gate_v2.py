@@ -90,6 +90,15 @@ def test_lens_output_review_claim_without_id():
     assert any("claim_id" in e for e in result.errors)
 
 
+def test_lens_output_review_claim_must_be_object():
+    policy = make_policy()
+    raw = make_valid_lens_review()
+    raw["claims"] = ["not-an-object"]
+    result = validate_lens_output(raw, policy, "review", "T1")
+    assert not result.valid
+    assert any("must be an object" in e for e in result.errors)
+
+
 # ---------------------------------------------------------------------------
 # Lens output: advisory
 # ---------------------------------------------------------------------------

@@ -339,6 +339,52 @@ def test_fsm_t2_with_lenses():
     assert STATE_S2_SYNTHESIS in states
 
 
+def test_fsm_default_synthesis_executor_uses_lens_recommendations():
+    core = _make_plan_core(
+        tier="T2",
+        required_lenses=("Risk",),
+        mandatory_lenses=("Risk",),
+        waivable_lenses=(),
+        challenger_required=True,
+        closure_gate_required=False,
+        contradiction_ledger_required=True,
+    )
+
+    def lens_fn(lens_name, ccp, plan, retry):
+        output = _valid_lens_output(lens_name)
+        output["verdict_recommendation"] = VERDICT_REVISE
+        return output
+
+    def challenger_fn(s, lr, p):
+        return {
+            "weakest_claim": "none",
+            "stress_test": "holds",
+            "material_issue": False,
+            "issue_class": "other",
+            "severity": "p2",
+            "required_action": "rework_synthesis",
+            "notes": "ok",
+            "ledger_completeness_ok": True,
+            "missing_disagreements": [],
+        }
+
+    fsm = _make_fsm_with_plan(
+        core,
+        lens_fn=lens_fn,
+        challenger_fn=challenger_fn,
+        synthesis_fn=None,  # use FSM default synthesis executor
+        closure_builder=lambda s, p: (True, {}),
+        closure_validator=lambda s, p: (True, {}),
+    )
+    result = fsm.run(_t2_ccp())
+
+    assert result.status == "complete"
+    assert result.decision_payload["verdict"] == VERDICT_REVISE
+    synthesis = result.run_log.get("synthesis", {})
+    assert synthesis.get("coverage_degraded") is False
+    assert isinstance(synthesis.get("contradiction_ledger"), list)
+
+
 # ---------------------------------------------------------------------------
 # Test 4: T3 full path — all 12 states traversed
 # ---------------------------------------------------------------------------

@@ -19,7 +19,7 @@ from runtime.orchestration.missions.base import (
     MissionType,
     MissionValidationError,
 )
-from runtime.orchestration.council import CouncilFSM, load_council_policy
+from runtime.orchestration.council import CouncilFSMv2, load_council_policy
 
 
 # Valid review verdicts per Council Protocol
@@ -27,6 +27,7 @@ VALID_VERDICTS = frozenset({"approved", "rejected", "needs_revision", "escalate"
 PROTOCOL_TO_MISSION_VERDICT = {
     "Accept": "approved",
     "Go with Fixes": "needs_revision",
+    "Revise": "needs_revision",
     "Reject": "rejected",
 }
 
@@ -82,6 +83,12 @@ class ReviewMission(BaseMission):
             raise MissionValidationError(
                 f"review_type must be one of {valid_review_types}, got '{review_type}'"
             )
+
+        run_type = inputs.get("run_type", "review")
+        if not isinstance(run_type, str):
+            raise MissionValidationError("run_type must be a string when provided")
+        if run_type not in {"review", "advisory"}:
+            raise MissionValidationError("run_type must be 'review' or 'advisory'")
     
     def run(
         self,
@@ -210,6 +217,7 @@ class ReviewMission(BaseMission):
         inputs: Dict[str, Any],
     ) -> Dict[str, Any]:
         review_type = str(inputs["review_type"])
+        run_type = str(inputs.get("run_type", "review"))
         subject_packet = inputs["subject_packet"]
         subject_hash = hashlib.sha256(
             json.dumps(subject_packet, sort_keys=True, default=str).encode("utf-8")
@@ -224,6 +232,7 @@ class ReviewMission(BaseMission):
             "override": inputs.get("override", {}),
             "reversibility": inputs.get("reversibility", "moderate"),
             "run_id": context.run_id,
+            "run_type": run_type,
             "safety_critical": bool(inputs.get("safety_critical", False)),
             "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "touches": inputs.get("touches", self._default_touches(review_type)),
@@ -271,7 +280,7 @@ class ReviewMission(BaseMission):
 
         policy_path = inputs.get("council_policy_path")
         policy = load_council_policy(policy_path)
-        fsm = CouncilFSM(policy=policy)
+        fsm = CouncilFSMv2(policy=policy)
         runtime_result = fsm.run(ccp)
         executed_steps.append("execute_council_fsm")
 
@@ -308,6 +317,7 @@ class ReviewMission(BaseMission):
             "protocol_verdict": protocol_verdict,
             "run_log": runtime_result.run_log,
             "synthesis": runtime_result.run_log.get("synthesis", {}),
+            "tier": runtime_result.decision_payload.get("tier"),
             "verdict": mission_verdict,
         }
 
