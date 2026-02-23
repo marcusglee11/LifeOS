@@ -146,3 +146,4 @@ artifacts/validation_runs/
 COO/
 artifacts/comparison_results.jsonl
 artifacts/Review_Packet_*.md
+artifacts/store/
