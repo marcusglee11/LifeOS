@@ -13,7 +13,7 @@ def _run(cmd: list[str], cwd: Path) -> None:
     subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
 
 
-def _write_stub_openclaw(bin_dir: Path) -> None:
+def _write_stub_openclaw(bin_dir: Path) -> Path:
     job = {
         "kind": "lifeos.job.v0.1",
         "job_type": "e2e_test",
@@ -46,6 +46,7 @@ def _write_stub_openclaw(bin_dir: Path) -> None:
         encoding="utf-8",
     )
     stub.chmod(stub.stat().st_mode | stat.S_IEXEC)
+    return stub
 
 
 def test_coo_e2e_marker_receipt_projects_canonical_capsule(tmp_path: Path) -> None:
@@ -74,10 +75,12 @@ def test_coo_e2e_marker_receipt_projects_canonical_capsule(tmp_path: Path) -> No
 
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
-    _write_stub_openclaw(bin_dir)
+    stub_openclaw = _write_stub_openclaw(bin_dir)
 
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+    # Force this test to use the hermetic stub even if the host exports OPENCLAW_BIN.
+    env["OPENCLAW_BIN"] = str(stub_openclaw)
     env["OPENCLAW_MODELS_PREFLIGHT_SKIP"] = "1"  # Skip model preflight for test
 
     proc = subprocess.run(

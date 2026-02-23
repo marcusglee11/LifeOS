@@ -6,7 +6,10 @@ Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.3 - Mission: review
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import re
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from runtime.orchestration.missions.base import (
@@ -15,12 +18,17 @@ from runtime.orchestration.missions.base import (
     MissionResult,
     MissionType,
     MissionValidationError,
-    MissionEscalationRequired,
 )
+from runtime.orchestration.council import CouncilFSM, load_council_policy
 
 
 # Valid review verdicts per Council Protocol
 VALID_VERDICTS = frozenset({"approved", "rejected", "needs_revision", "escalate"})
+PROTOCOL_TO_MISSION_VERDICT = {
+    "Accept": "approved",
+    "Go with Fixes": "needs_revision",
+    "Reject": "rejected",
+}
 
 # Review seats per architecture
 REVIEW_SEATS = ("architect", "alignment", "risk", "governance")
@@ -86,83 +94,10 @@ class ReviewMission(BaseMission):
             # Step 1: Validate inputs
             self.validate_inputs(inputs)
             executed_steps.append("validate_inputs")
-            
-            # Step 2: Call Agent API for 'reviewer_architect' seat
-            from runtime.agents.api import call_agent, AgentCall
-            
-            call = AgentCall(
-                role="reviewer_architect",
-                packet={
-                    "subject_packet": inputs["subject_packet"],
-                    "review_type": inputs["review_type"]
-                },
-                model="auto",
-            )
-            
-            response = call_agent(call, run_id=context.run_id)
-            executed_steps.append("architect_review_llm_call")
-            
-            # Step 3: Synthesize decision
-            # For MVP, we treat the architect's verdict as the final verdict.
-            reviewer_packet_parsed = response.packet is not None
-            if response.packet is not None:
-                decision = response.packet
-            else:
-                # Packet parse failed — try regex fallback for verdict line
-                # before defaulting to needs_revision.
-                fallback_verdict = None
-                verdict_match = re.search(
-                    r'(?m)^verdict:\s*["\']?(\w+)["\']?\s*$', response.content
-                )
-                if verdict_match:
-                    candidate = verdict_match.group(1).lower()
-                    if candidate in VALID_VERDICTS:
-                        fallback_verdict = candidate
-                decision = {
-                    "verdict": fallback_verdict or "needs_revision",
-                    "rationale": response.content,
-                    "concerns": [],
-                    "recommendations": [],
-                }
-
-            final_verdict = decision.get("verdict", "needs_revision")
-            if final_verdict not in VALID_VERDICTS:
-                final_verdict = "needs_revision"
-                
-            council_decision = {
-                "verdict": final_verdict,
-                "seat_outputs": {"architect": decision},
-                "synthesis": decision.get("rationale", response.content),
-            }
-            executed_steps.append("synthesize")
-            
-            # Handle escalation
-            if final_verdict == "escalate":
-                return self._make_result(
-                    success=True,
-                    outputs={
-                        "verdict": final_verdict,
-                        "council_decision": council_decision,
-                        "reviewer_packet_parsed": reviewer_packet_parsed,
-                    },
-                    executed_steps=executed_steps,
-                    escalation_reason="Architect review requires CEO escalation",
-                )
-
-            return self._make_result(
-                success=True,
-                outputs={
-                    "verdict": final_verdict,
-                    "council_decision": council_decision,
-                    "reviewer_packet_parsed": reviewer_packet_parsed,
-                },
-                executed_steps=executed_steps,
-                evidence={
-                    "call_id": response.call_id,
-                    "model_used": response.model_used,
-                    "usage": response.usage,
-                },
-            )
+            use_council_runtime = bool(inputs.get("use_council_runtime", False))
+            if use_council_runtime:
+                return self._run_council_runtime(context, inputs, executed_steps)
+            return self._run_legacy_single_seat(context, inputs, executed_steps)
             
         except MissionValidationError as e:
             return self._make_result(
@@ -176,3 +111,222 @@ class ReviewMission(BaseMission):
                 executed_steps=executed_steps,
                 error=f"Unexpected error: {e}",
             )
+
+    def _run_legacy_single_seat(
+        self,
+        context: MissionContext,
+        inputs: Dict[str, Any],
+        executed_steps: List[str],
+    ) -> MissionResult:
+        """Preserve existing single-seat behavior for compatibility."""
+        from runtime.agents.api import call_agent, AgentCall
+
+        call = AgentCall(
+            role="reviewer_architect",
+            packet={
+                "subject_packet": inputs["subject_packet"],
+                "review_type": inputs["review_type"]
+            },
+            model="auto",
+        )
+
+        response = call_agent(call, run_id=context.run_id)
+        executed_steps.append("architect_review_llm_call")
+
+        reviewer_packet_parsed = response.packet is not None
+        if response.packet is not None:
+            decision = response.packet
+        else:
+            fallback_verdict = None
+            verdict_match = re.search(
+                r'(?m)^verdict:\s*["\']?(\w+)["\']?\s*$',
+                response.content,
+            )
+            if verdict_match:
+                candidate = verdict_match.group(1).lower()
+                if candidate in VALID_VERDICTS:
+                    fallback_verdict = candidate
+            decision = {
+                "verdict": fallback_verdict or "needs_revision",
+                "rationale": response.content,
+                "concerns": [],
+                "recommendations": [],
+            }
+
+        final_verdict = decision.get("verdict", "needs_revision")
+        if final_verdict not in VALID_VERDICTS:
+            final_verdict = "needs_revision"
+
+        council_decision = {
+            "verdict": final_verdict,
+            "seat_outputs": {"architect": decision},
+            "synthesis": decision.get("rationale", response.content),
+        }
+        executed_steps.append("synthesize")
+
+        if final_verdict == "escalate":
+            return self._make_result(
+                success=True,
+                outputs={
+                    "verdict": final_verdict,
+                    "council_decision": council_decision,
+                    "reviewer_packet_parsed": reviewer_packet_parsed,
+                },
+                executed_steps=executed_steps,
+                escalation_reason="Architect review requires CEO escalation",
+                evidence={
+                    "call_id": response.call_id,
+                    "model_used": response.model_used,
+                    "usage": response.usage,
+                },
+            )
+
+        return self._make_result(
+            success=True,
+            outputs={
+                "verdict": final_verdict,
+                "council_decision": council_decision,
+                "reviewer_packet_parsed": reviewer_packet_parsed,
+            },
+            executed_steps=executed_steps,
+            evidence={
+                "call_id": response.call_id,
+                "model_used": response.model_used,
+                "usage": response.usage,
+            },
+        )
+
+    @staticmethod
+    def _default_touches(review_type: str) -> list[str]:
+        if review_type == "governance_review":
+            return ["governance_protocol"]
+        if review_type == "build_review":
+            return ["runtime_core"]
+        return ["interfaces"]
+
+    def _build_ccp(
+        self,
+        context: MissionContext,
+        inputs: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        review_type = str(inputs["review_type"])
+        subject_packet = inputs["subject_packet"]
+        subject_hash = hashlib.sha256(
+            json.dumps(subject_packet, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()
+        header = {
+            "aur_id": inputs.get("aur_id", f"{review_type}:{subject_hash[:12]}"),
+            "aur_type": inputs.get("aur_type", "code"),
+            "blast_radius": inputs.get("blast_radius", "module"),
+            "change_class": inputs.get("change_class", "amend"),
+            "closure_gate_required": bool(inputs.get("closure_gate_required", review_type == "output_review")),
+            "model_plan_v1": inputs.get("model_plan_v1", {}),
+            "override": inputs.get("override", {}),
+            "reversibility": inputs.get("reversibility", "moderate"),
+            "run_id": context.run_id,
+            "safety_critical": bool(inputs.get("safety_critical", False)),
+            "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "touches": inputs.get("touches", self._default_touches(review_type)),
+            "uncertainty": inputs.get("uncertainty", "medium"),
+        }
+
+        sections = inputs.get("sections")
+        if not isinstance(sections, dict):
+            sections = {
+                "objective": f"Run council review for {review_type}.",
+                "scope": {
+                    "review_type": review_type,
+                    "subject_fields": sorted(subject_packet.keys()),
+                },
+                "constraints": inputs.get(
+                    "constraints",
+                    ["Fail closed on schema and protocol violations."],
+                ),
+                "artifacts": inputs.get(
+                    "artifacts",
+                    [{"kind": "subject_packet", "sha256": subject_hash}],
+                ),
+            }
+
+        ccp = {
+            "header": header,
+            "review_type": review_type,
+            "sections": sections,
+            "subject_packet": subject_packet,
+        }
+
+        bootstrap = inputs.get("bootstrap")
+        if isinstance(bootstrap, dict):
+            ccp["header"]["bootstrap"] = bootstrap
+        return ccp
+
+    def _run_council_runtime(
+        self,
+        context: MissionContext,
+        inputs: Dict[str, Any],
+        executed_steps: List[str],
+    ) -> MissionResult:
+        ccp = self._build_ccp(context, inputs)
+        executed_steps.append("prepare_ccp")
+
+        policy_path = inputs.get("council_policy_path")
+        policy = load_council_policy(policy_path)
+        fsm = CouncilFSM(policy=policy)
+        runtime_result = fsm.run(ccp)
+        executed_steps.append("execute_council_fsm")
+
+        if runtime_result.status == "blocked":
+            detail = "blocked"
+            if runtime_result.block_report:
+                detail = runtime_result.block_report.get("detail", detail)
+            council_decision = {
+                "protocol_status": "BLOCKED",
+                "run_log": runtime_result.run_log,
+                "block_report": runtime_result.block_report,
+                "synthesis": {"verdict": "Reject"},
+                "verdict": "escalate",
+            }
+            return self._make_result(
+                success=True,
+                outputs={
+                    "verdict": "escalate",
+                    "council_decision": council_decision,
+                    "reviewer_packet_parsed": True,
+                },
+                executed_steps=executed_steps,
+                escalation_reason=f"Council runtime blocked: {detail}",
+                evidence={
+                    "council_runtime_status": runtime_result.status,
+                    "usage": {"total": 0},
+                },
+            )
+
+        protocol_verdict = str(runtime_result.decision_payload.get("verdict", "Reject"))
+        mission_verdict = PROTOCOL_TO_MISSION_VERDICT.get(protocol_verdict, "needs_revision")
+        council_decision = {
+            "protocol_status": runtime_result.decision_payload.get("status", "COMPLETE"),
+            "protocol_verdict": protocol_verdict,
+            "run_log": runtime_result.run_log,
+            "synthesis": runtime_result.run_log.get("synthesis", {}),
+            "verdict": mission_verdict,
+        }
+
+        escalation_reason = None
+        if mission_verdict == "escalate":
+            escalation_reason = "Council runtime requested escalation."
+
+        return self._make_result(
+            success=True,
+            outputs={
+                "verdict": mission_verdict,
+                "council_decision": council_decision,
+                "reviewer_packet_parsed": True,
+            },
+            executed_steps=executed_steps,
+            escalation_reason=escalation_reason,
+            evidence={
+                "council_runtime_status": runtime_result.status,
+                "run_id": runtime_result.decision_payload.get("run_id"),
+                "usage": {"total": 0},
+            },
+        )

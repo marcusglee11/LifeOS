@@ -57,6 +57,19 @@ MODELS_TO_TEST = [
 ]
 
 
+def _is_transient_live_infra_error(exc: AgentAPIError) -> bool:
+    message = str(exc).lower()
+    signatures = (
+        "failed to fetch models.dev",
+        "unable to connect",
+        "connection",
+        "timed out",
+        "eacces: permission denied, open",
+        "network",
+    )
+    return any(sig in message for sig in signatures)
+
+
 @pytest.fixture(autouse=True)
 def _fresh_config():
     clear_config_cache()
@@ -86,6 +99,8 @@ class TestZenModelComparison:
         try:
             response = call_agent(call, run_id="stage1.5_comparison", config=config)
         except AgentAPIError as e:
+            if _is_transient_live_infra_error(e):
+                pytest.skip(f"{model_id} live infra unavailable: {e}")
             pytest.fail(f"{model_id} failed: {e}")
 
         elapsed_ms = int((time.monotonic() - start) * 1000)

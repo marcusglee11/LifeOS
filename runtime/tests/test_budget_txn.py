@@ -1,7 +1,7 @@
 import pytest
 import sqlite3
 import threading
-import os
+from pathlib import Path
 from project_builder.database.migrations import apply_schema
 from project_builder.orchestrator.budget_txn import try_charge_budget
 
@@ -44,16 +44,11 @@ def test_budget_charge_repair_fail_limit(db_conn):
     cur = db_conn.execute("SELECT repair_budget_spent_usd FROM mission_tasks WHERE id='t1'")
     assert cur.fetchone()[0] == 0.0
 
-def test_budget_concurrent_access():
-    # Use a file DB for concurrency test
-    db_path = "test_budget_concurrency.db"
-    if os.path.exists(db_path):
-        try:
-            os.remove(db_path)
-        except OSError:
-            pass
-        
-    conn = sqlite3.connect(db_path, check_same_thread=False)
+def test_budget_concurrent_access(tmp_path: Path):
+    # Use an isolated temp DB file; avoids I/O flakiness from repo-root paths on WSL mounts.
+    db_path = tmp_path / "test_budget_concurrency.db"
+
+    conn = sqlite3.connect(str(db_path), check_same_thread=False)
     apply_schema(conn)
     conn.execute("INSERT INTO missions (id, status, description, max_cost_usd, max_loops, repair_budget_usd, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
                  ("m1", "executing", "desc", 10.0, 5, 5.0))
@@ -62,7 +57,7 @@ def test_budget_concurrent_access():
     
     def charge_worker(cost):
         try:
-            with sqlite3.connect(db_path, timeout=10.0) as c:
+            with sqlite3.connect(str(db_path), timeout=10.0) as c:
                 c.execute("PRAGMA busy_timeout = 10000")
                 try_charge_budget(c, "m1", None, cost, False)
         except sqlite3.OperationalError:
@@ -83,17 +78,11 @@ def test_budget_concurrent_access():
     for t in threads:
         t.join()
         
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(str(db_path))
     cur = conn.execute("SELECT spent_cost_usd FROM missions WHERE id='m1'")
     spent = cur.fetchone()[0]
     conn.close()
-    
-    if os.path.exists(db_path):
-        try:
-            os.remove(db_path)
-        except OSError:
-            pass
-    
+
     assert spent > 0
     assert spent <= 10.0
     assert spent % 1.0 == 0
