@@ -13,7 +13,7 @@
 
 **Current Focus:** W7 stabilization COMPLETE. Next: W6 Codemoot spike
 **Active WIP:** None — W5-T02 closed
-**Last Updated:** 2026-02-22 (rev17)
+**Last Updated:** 2026-02-23 (rev18)
 
 ---
 
@@ -76,6 +76,7 @@ None — all prior blockers resolved:
 
 ## 🟩 Recent Wins
 
+- **2026-02-23:** Council V2 A1 Fsm — chore: refresh runtime_status.json (closure); feat(council): A1 - CouncilFSMv2 with 12-state machine; feat(council): A2 - v2.2.1 schemas, models, and validators; feat(council): A3+A4 - tier routing, lens selection, independence v2.2.1 — 1/1 targeted test command(s) passed. (merge commit 5215cd3)
 - **2026-02-22:** Repo Hygiene Sprint 20260221 — chore: refresh runtime_status.json (closure); chore(dead-code): remove unused spine imports + strengthen hygiene tests; chore: bump backlog date + enable superpowers plugin in settings; chore(config): fix pytest constraint + un-ignore passing smoke tests; chore(test): tighten test_state_hygiene.py (remove unused import, assert row found) (and 6 more) — 1/1 targeted test command(s) passed. (merge commit e6ee997)
 - **2026-02-21:** Opencode Loop Stabilization 20260220 — chore: refresh runtime_status.json (closure); fix(steward): correct _commit_code_changes return type annotation; fix(opencode): implement retrospective stabilization batch — 1/1 targeted test command(s) passed. (merge commit 8f6287e)
 - **2026-02-19:** **W5-T02 Checkpoint/Resume E2E Proof COMPLETE** — 6 integration tests proving full checkpoint/resume cycle: escalation → checkpoint YAML on disk → resolution seam → resume with policy hash continuity → terminal packet with ledger anchor. Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt`
