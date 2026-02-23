@@ -192,8 +192,6 @@ class CouncilFSM:
             return "Reject"
         if "Reject" in verdicts:
             return "Reject"
-        if "Go with Fixes" in verdicts:
-            return "Revise"
         if "Revise" in verdicts:
             return "Revise"
         return "Accept"
@@ -546,7 +544,7 @@ class CouncilFSM:
                 reason = reason_after_rework
             next_state = (
                 STATE_S3_CLOSURE_GATE
-                if plan.closure_gate_required and synthesis.get("verdict") in {"Accept", "Go with Fixes", "Revise"}
+                if plan.closure_gate_required and synthesis.get("verdict") in {"Accept", "Revise"}
                 else STATE_S4_CLOSEOUT
             )
             self._transition(

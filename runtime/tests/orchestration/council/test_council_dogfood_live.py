@@ -192,7 +192,7 @@ def test_live_m2_full_coo_dispatcher():
 
     if result.status == "complete":
         assert result.decision_payload["status"] == "COMPLETE"
-        assert result.decision_payload["verdict"] in ("Accept", "Go with Fixes", "Reject")
+        assert result.decision_payload["verdict"] in ("Accept", "Revise", "Reject")
         assert result.run_log["execution"]["mode"] == "M2_FULL"
         # At least some seats should have produced output.
         completed_seats = [

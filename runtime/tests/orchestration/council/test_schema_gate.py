@@ -53,6 +53,17 @@ def test_schema_gate_rejects_invalid_verdict():
     assert any("Invalid verdict" in msg for msg in result.errors)
 
 
+def test_schema_gate_normalizes_legacy_go_with_fixes_to_revise():
+    policy = load_council_policy()
+    payload = _valid_output()
+    payload["verdict"] = "Go with Fixes"
+    result = validate_seat_output(payload, policy)
+    assert result.valid is True
+    assert result.normalized_output is not None
+    assert result.normalized_output["verdict"] == "Revise"
+    assert any("Normalized legacy verdict alias" in msg for msg in result.warnings)
+
+
 def test_schema_gate_flags_complexity_budget_without_trade_statement():
     policy = load_council_policy()
     payload = _valid_output()

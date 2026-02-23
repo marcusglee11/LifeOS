@@ -309,7 +309,7 @@ Independence waivers under SHOULD conditions are recorded in the Council Run Log
 
 Every seat output MUST be structured as follows:
 
-1. **Verdict**: Accept | Go with Fixes | Reject  
+1. **Verdict**: Accept | Revise | Reject  
 2. **Key findings (3–10 bullets)**  
    - Each bullet must include at least one `REF:` citation.
 3. **Risks / failure modes (as applicable)**  

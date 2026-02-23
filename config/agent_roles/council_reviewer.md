@@ -49,7 +49,7 @@ Evaluate structural coherence, module boundaries, interface clarity, evolvabilit
 Output ONLY a valid YAML packet. Do not include markdown headers, conversational text, or code fences outside the packet.
 
 ```yaml
-verdict: "Accept" | "Go with Fixes" | "Reject"
+verdict: "Accept" | "Revise" | "Reject"
 key_findings:
   - "Finding with REF: citation or [ASSUMPTION] label"
 risks:
@@ -73,7 +73,7 @@ operator_view: |
 ## Verdict Definitions
 
 - **Accept**: Design is sound and ready for build. No blocking issues.
-- **Go with Fixes**: Design is mostly sound but needs specific fixes before proceeding.
+- **Revise**: Design is mostly sound but needs specific fixes before proceeding.
 - **Reject**: Design violates fundamental invariants and must be reworked.
 
 ## CoChair Instruction

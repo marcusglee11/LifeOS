@@ -99,6 +99,17 @@ def test_lens_output_review_claim_must_be_object():
     assert any("must be an object" in e for e in result.errors)
 
 
+def test_lens_output_review_normalizes_legacy_go_with_fixes():
+    policy = make_policy()
+    raw = make_valid_lens_review()
+    raw["verdict_recommendation"] = "Go with Fixes"
+    result = validate_lens_output(raw, policy, "review", "T1")
+    assert result.valid
+    assert result.normalized_output is not None
+    assert result.normalized_output["verdict_recommendation"] == "Revise"
+    assert any("Normalized legacy verdict alias" in w for w in result.warnings)
+
+
 # ---------------------------------------------------------------------------
 # Lens output: advisory
 # ---------------------------------------------------------------------------
@@ -164,6 +175,17 @@ def test_synthesis_t1_no_ledger_ok():
     policy = make_policy()
     result = validate_synthesis_output(make_valid_synthesis_t1(), policy, "T1", "review")
     assert result.valid
+
+
+def test_synthesis_normalizes_legacy_go_with_fixes():
+    policy = make_policy()
+    raw = make_valid_synthesis_t1()
+    raw["verdict"] = "Go with Fixes"
+    result = validate_synthesis_output(raw, policy, "T1", "review")
+    assert result.valid
+    assert result.normalized_output is not None
+    assert result.normalized_output["verdict"] == "Revise"
+    assert any("Normalized legacy verdict alias" in w for w in result.warnings)
 
 
 # ---------------------------------------------------------------------------

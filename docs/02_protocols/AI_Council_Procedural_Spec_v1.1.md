@@ -200,7 +200,7 @@ council_run_log:
     - role: "RiskAdversarial"
       model: "<model_name>"
   date: "2026-01-06"
-  verdict: "Accept|Go with Fixes|Reject"
+  verdict: "Accept|Revise|Reject"
   key_decisions:
     - "..."
   fixes:

@@ -122,7 +122,7 @@ def test_council_dogfood_mock_schema_gate_retry():
         if seat == "Chair" and retry_count == 0:
             # Missing required sections — schema gate will reject.
             return {
-                "verdict": "Go with Fixes",
+                "verdict": "Revise",
                 "key_findings": ["Incomplete review — first pass"],
             }
         return _canned_seat_output(seat)

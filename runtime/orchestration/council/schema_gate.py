@@ -23,6 +23,10 @@ P0_ALLOWED_CATEGORIES = {
     "correctness",
 }
 
+_LEGACY_VERDICT_ALIASES = {
+    "Go with Fixes": "Revise",
+}
+
 
 @dataclass
 class SchemaGateResult:
@@ -157,6 +161,27 @@ def _validate_p0_labels(output: dict[str, Any], warnings: list[str]) -> None:
                 )
 
 
+def _normalize_legacy_verdict(
+    output: dict[str, Any],
+    field_name: str,
+    allowed_verdicts: set[str],
+    warnings: list[str],
+) -> str | None:
+    value = output.get(field_name)
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return str(value)
+    mapped = _LEGACY_VERDICT_ALIASES.get(value)
+    if mapped and mapped in allowed_verdicts:
+        output[field_name] = mapped
+        warnings.append(
+            f"Normalized legacy verdict alias '{value}' to '{mapped}' for {field_name}."
+        )
+        return mapped
+    return value
+
+
 def validate_seat_output(
     raw_output: dict[str, Any] | str,
     policy: CouncilPolicy,
@@ -181,8 +206,13 @@ def validate_seat_output(
         if section not in normalized or _is_empty(normalized.get(section)):
             errors.append(f"Missing required section: {section}")
 
-    verdict = normalized.get("verdict")
     allowed_verdicts = set(policy.enums.get("verdict", []))
+    verdict = _normalize_legacy_verdict(
+        normalized,
+        field_name="verdict",
+        allowed_verdicts=allowed_verdicts,
+        warnings=warnings,
+    )
     if verdict not in allowed_verdicts:
         errors.append(
             f"Invalid verdict '{verdict}'. Allowed values: {sorted(allowed_verdicts)}"
@@ -274,7 +304,12 @@ def validate_lens_output(
                 if "claim_id" not in claim:
                     errors.append(f"claims[{idx}] missing claim_id")
         # verdict_recommendation must be valid if present
-        verdict_rec = output.get("verdict_recommendation")
+        verdict_rec = _normalize_legacy_verdict(
+            output,
+            field_name="verdict_recommendation",
+            allowed_verdicts=_VALID_VERDICTS_V2,
+            warnings=warnings,
+        )
         if verdict_rec is not None and verdict_rec not in _VALID_VERDICTS_V2:
             errors.append(
                 f"Invalid verdict_recommendation '{verdict_rec}'. "
@@ -345,7 +380,12 @@ def validate_synthesis_output(
         if field_name not in output:
             errors.append(f"Missing required field: {field_name}")
 
-    verdict = output.get("verdict")
+    verdict = _normalize_legacy_verdict(
+        output,
+        field_name="verdict",
+        allowed_verdicts=_VALID_VERDICTS_V2,
+        warnings=warnings,
+    )
     if verdict is not None and verdict not in _VALID_VERDICTS_V2:
         errors.append(
             f"Invalid verdict '{verdict}'. Allowed: {sorted(_VALID_VERDICTS_V2)}"

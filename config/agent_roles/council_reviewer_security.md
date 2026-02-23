@@ -56,7 +56,7 @@ These paths require CEO approval:
 Output ONLY a valid YAML packet. Do not include markdown headers, conversational text, or code fences outside the packet.
 
 ```yaml
-verdict: "Accept" | "Go with Fixes" | "Reject"
+verdict: "Accept" | "Revise" | "Reject"
 key_findings:
   - "Security finding with REF: or CWE citation, or [ASSUMPTION] label"
 risks:
@@ -80,7 +80,7 @@ operator_view: |
 ## Verdict Definitions
 
 - **Accept**: No security concerns, governance compliant, ready to proceed.
-- **Go with Fixes**: Security issues found that must be fixed before proceeding.
+- **Revise**: Security issues found that must be fixed before proceeding.
 - **Reject**: Critical vulnerabilities or governance violations requiring rework.
 
 ## CoChair Instruction
