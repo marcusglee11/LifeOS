@@ -325,7 +325,8 @@ import sys
 import json
 import os
 
-LAND_SCRIPT = "/mnt/c/Users/cabra/Projects/LifeOS/.worktrees/build/receipts-phase-a/scripts/receipts_post_merge_land.py"
+from pathlib import Path as _Path
+LAND_SCRIPT = str(_Path(__file__).resolve().parents[3] / "scripts" / "receipts_post_merge_land.py")
 
 
 def test_package_exports():

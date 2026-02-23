@@ -259,7 +259,8 @@ def test_pre_merge_exports_from_package():
 
 import subprocess, sys, json, os
 
-SCRIPT = "/mnt/c/Users/cabra/Projects/LifeOS/.worktrees/build/receipts-phase-a/scripts/receipts_pre_merge_check.py"
+from pathlib import Path as _Path
+SCRIPT = str(_Path(__file__).resolve().parents[3] / "scripts" / "receipts_pre_merge_check.py")
 
 
 def test_cli_exits_1_when_no_receipt(tmp_path, sample_workspace_sha, sample_plan_core_sha256):
