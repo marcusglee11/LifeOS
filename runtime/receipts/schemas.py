@@ -267,7 +267,7 @@ LAND_RECEIPT_SCHEMA = {
     "required": [
         "receipt_id", "schema_version", "receipt_type", "created_at",
         "landed_sha", "landed_tree_oid", "land_target", "merge_method",
-        "acceptance_lineage", "emitter",
+        "acceptance_lineage", "tree_equivalence", "emitter",
     ],
     "properties": {
         "receipt_id": {"type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"},

@@ -7,9 +7,9 @@ from runtime.orchestration.council.policy import load_council_policy
 def _valid_seat_output(verify_ledger: bool = False) -> dict:
     return {
         "verdict": "Accept",
-        "key_findings": ["- Finding with no citation"],
-        "risks": ["- Minimal"],
-        "fixes": ["- Add regression test"],
+        "key_findings": ["Finding is bounded and deterministic REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L1-L20"],
+        "risks": ["Minimal operational risk REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L21-L40"],
+        "fixes": ["Add regression test REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L41-L80"],
         "confidence": "high",
         "assumptions": ["test fixture controls runtime"],
         "operator_view": "Looks safe.",

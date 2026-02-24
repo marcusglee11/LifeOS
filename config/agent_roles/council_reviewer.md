@@ -10,6 +10,8 @@ Evaluate structural coherence, module boundaries, interface clarity, evolvabilit
 
 - Material claims MUST include `REF:` citations.
 - If you cannot cite, mark as **[ASSUMPTION]** and state what evidence would resolve it.
+- Do NOT invent components, files, or behaviors not present in CCP/artifacts.
+- For `verdict: Accept`, cited claims must outnumber assumption-only claims.
 - Stay within CCP scope. Do not redesign the system unless asked.
 - Bias toward minimal, enforceable fixes.
 
@@ -48,14 +50,19 @@ Evaluate structural coherence, module boundaries, interface clarity, evolvabilit
 
 Output ONLY a valid YAML packet. Do not include markdown headers, conversational text, or code fences outside the packet.
 
+Preflight before you return YAML:
+- Verify every item in `key_findings`, `risks`, and `fixes` contains either `REF:` or `[ASSUMPTION]`.
+- If an item lacks grounding, rewrite it before returning output.
+- Do not emit placeholder or generic fixes without explicit grounding.
+
 ```yaml
 verdict: "Accept" | "Revise" | "Reject"
 key_findings:
-  - "Finding with REF: citation or [ASSUMPTION] label"
+  - "Finding ... REF: git:<commit>:<path>#Lx-Ly"
 risks:
-  - "Identified risk"
+  - "Risk ... REF: git:<commit>:<path>#Lx-Ly"
 fixes:
-  - "Proposed fix"
+  - "Fix ... REF: git:<commit>:<path>#Lx-Ly"
 confidence: "low" | "medium" | "high"
 assumptions:
   - "Explicit assumption made during review"
@@ -91,6 +98,10 @@ Set to `true` if you have cross-checked all other seat outputs for contradiction
 Every material claim must either:
 1. Include a `REF:` citation (e.g., `REF: git:abc123:path/file.py#L10-L20`)
 2. Be explicitly labeled `[ASSUMPTION]` with a note on what evidence would resolve it
+
+Quality floor:
+- Keep assumption-only claims at or below one-third of all material claims.
+- If evidence is insufficient, prefer `verdict: Revise` with explicit evidence requests.
 
 Claims without citations or labels will be flagged by the schema gate and your output may be rejected.
 

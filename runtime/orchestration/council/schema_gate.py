@@ -27,6 +27,9 @@ _LEGACY_VERDICT_ALIASES = {
     "Go with Fixes": "Revise",
 }
 
+_ASSUMPTION_TAG_RE = re.compile(r"\[ASSUMPTION[^\]]*\]", re.IGNORECASE)
+_CWE_TOKEN_RE = re.compile(r"\bCWE-\d+\b", re.IGNORECASE)
+
 
 @dataclass
 class SchemaGateResult:
@@ -71,33 +74,108 @@ def _is_empty(value: Any) -> bool:
     return False
 
 
-def _add_assumption_labels(output: dict[str, Any], warnings: list[str]) -> None:
-    for section in ("key_findings", "risks", "fixes"):
-        value = output.get(section)
-        if not isinstance(value, list):
+def _text_has_citation(text: str) -> bool:
+    return "REF:" in text or bool(_CWE_TOKEN_RE.search(text))
+
+
+def _text_has_assumption_tag(text: str) -> bool:
+    return bool(_ASSUMPTION_TAG_RE.search(text))
+
+
+def _claim_text_fields(item: Mapping[str, Any]) -> list[str]:
+    fields = ("claim", "text", "statement", "rationale", "summary")
+    values: list[str] = []
+    for field_name in fields:
+        value = item.get(field_name)
+        if isinstance(value, str) and value.strip():
+            values.append(value)
+    return values
+
+
+def _claim_has_citation(item: Any) -> bool:
+    if isinstance(item, str):
+        return _text_has_citation(item)
+    if not isinstance(item, Mapping):
+        return False
+    ref = item.get("ref")
+    if isinstance(ref, str) and _text_has_citation(ref):
+        return True
+    for key in ("refs", "evidence_refs"):
+        refs = item.get(key)
+        if not isinstance(refs, list):
             continue
-        normalized: list[Any] = []
-        for item in value:
-            if isinstance(item, str):
-                has_ref = "REF:" in item
-                has_assumption = "[ASSUMPTION]" in item
-                if not has_ref and not has_assumption:
-                    normalized.append(f"{item} [ASSUMPTION]")
-                    warnings.append(f"{section}: added ASSUMPTION label for claim without REF.")
-                else:
-                    normalized.append(item)
+        for ref_item in refs:
+            if isinstance(ref_item, str) and _text_has_citation(ref_item):
+                return True
+    return any(_text_has_citation(value) for value in _claim_text_fields(item))
+
+
+def _claim_is_assumption(item: Any) -> bool:
+    if isinstance(item, str):
+        return _text_has_assumption_tag(item)
+    if not isinstance(item, Mapping):
+        return False
+    if bool(item.get("assumption", False)):
+        return True
+    for key in ("refs", "evidence_refs"):
+        refs = item.get(key)
+        if not isinstance(refs, list):
+            continue
+        for ref_item in refs:
+            if isinstance(ref_item, str) and "ASSUMPTION:" in ref_item.upper():
+                return True
+    return any(_text_has_assumption_tag(value) for value in _claim_text_fields(item))
+
+
+def _assumption_has_resolution_hint(item: Any) -> bool:
+    if isinstance(item, Mapping):
+        for field_name in ("evidence_needed", "resolve_with", "resolution_evidence"):
+            value = item.get(field_name)
+            if isinstance(value, str) and value.strip():
+                return True
+    text = str(item).lower()
+    return "evidence" in text or "resolve" in text
+
+
+def _validate_claim_grounding(
+    output: dict[str, Any],
+    errors: list[str],
+    warnings: list[str],
+) -> tuple[int, int, int]:
+    total_claims = 0
+    cited_claims = 0
+    assumption_only_claims = 0
+
+    for section in ("key_findings", "risks", "fixes"):
+        claims = output.get(section)
+        if not isinstance(claims, list):
+            errors.append(f"{section} must be a list of claims.")
+            continue
+        for idx, item in enumerate(claims):
+            if not isinstance(item, (str, Mapping)):
+                errors.append(f"{section}[{idx}] must be a string or object claim.")
                 continue
-            if isinstance(item, dict):
-                claim_text = str(item.get("claim", item.get("text", "")))
-                has_ref = "REF:" in claim_text or bool(item.get("ref"))
-                if not has_ref:
-                    item = dict(item)
-                    item["assumption"] = True
-                    warnings.append(f"{section}: added assumption=true for claim without REF.")
-                normalized.append(item)
+
+            has_citation = _claim_has_citation(item)
+            is_assumption = _claim_is_assumption(item)
+            if not has_citation and not is_assumption:
+                errors.append(
+                    f"{section}[{idx}] missing grounding token: include REF: citation "
+                    "or [ASSUMPTION] label."
+                )
                 continue
-            normalized.append(item)
-        output[section] = normalized
+
+            total_claims += 1
+            if has_citation:
+                cited_claims += 1
+            if is_assumption and not has_citation:
+                assumption_only_claims += 1
+                if not _assumption_has_resolution_hint(item):
+                    warnings.append(
+                        f"{section}[{idx}] assumption should state resolving evidence."
+                    )
+
+    return total_claims, cited_claims, assumption_only_claims
 
 
 def _parse_net_steps(value: Any) -> int | None:
@@ -218,7 +296,42 @@ def validate_seat_output(
             f"Invalid verdict '{verdict}'. Allowed values: {sorted(allowed_verdicts)}"
         )
 
-    _add_assumption_labels(normalized, warnings)
+    if policy.schema_gate_require_explicit_claim_grounding:
+        (
+            total_claims,
+            cited_claims,
+            assumption_only_claims,
+        ) = _validate_claim_grounding(normalized, errors, warnings)
+
+        if total_claims > 0:
+            max_assumption_ratio = policy.schema_gate_max_assumption_ratio
+            assumption_ratio = assumption_only_claims / total_claims
+            if assumption_ratio > max_assumption_ratio:
+                errors.append(
+                    "Assumption-heavy output rejected: "
+                    f"{assumption_only_claims}/{total_claims} assumption-only claims "
+                    f"(ratio={assumption_ratio:.2f}) exceeds max={max_assumption_ratio:.2f}."
+                )
+
+        if verdict == "Accept" and policy.schema_gate_accept_requires_ref_balance:
+            if cited_claims == 0:
+                errors.append(
+                    "Accept verdict requires at least one REF/CWE-cited material claim."
+                )
+            if assumption_only_claims > 0 and assumption_only_claims >= cited_claims:
+                errors.append(
+                    "Accept verdict requires cited claims to outnumber assumption-only claims."
+                )
+
+        if assumption_only_claims > 0:
+            assumptions = normalized.get("assumptions")
+            if not isinstance(assumptions, list) or not any(
+                isinstance(item, str) and item.strip() for item in assumptions
+            ):
+                errors.append(
+                    "assumptions must enumerate evidence gaps when assumption-backed claims are used."
+                )
+
     _validate_complexity_budget(normalized, warnings)
     _validate_p0_labels(normalized, warnings)
 

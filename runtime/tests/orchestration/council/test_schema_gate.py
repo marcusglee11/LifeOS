@@ -7,9 +7,9 @@ from runtime.orchestration.council.schema_gate import validate_seat_output
 def _valid_output() -> dict:
     return {
         "verdict": "Accept",
-        "key_findings": ["- Deterministic behavior preserved"],
-        "risks": ["- No major risk identified"],
-        "fixes": ["- Add one integration test"],
+        "key_findings": ["Deterministic behavior preserved REF: git:abc123:runtime/core.py#L10-L20"],
+        "risks": ["No major risk identified REF: git:abc123:runtime/core.py#L21-L30"],
+        "fixes": ["Add one integration test REF: git:abc123:runtime/tests/test_core.py#L1-L20"],
         "confidence": "high",
         "assumptions": ["environment has git"],
         "operator_view": "Safe and simple.",
@@ -23,14 +23,12 @@ def _valid_output() -> dict:
     }
 
 
-def test_schema_gate_accepts_valid_output_and_labels_assumptions():
+def test_schema_gate_accepts_grounded_output():
     policy = load_council_policy()
     result = validate_seat_output(_valid_output(), policy)
     assert result.valid is True
     assert result.rejected is False
     assert result.normalized_output is not None
-    assert result.normalized_output["key_findings"][0].endswith("[ASSUMPTION]")
-    assert any("ASSUMPTION" in warning for warning in result.warnings)
 
 
 def test_schema_gate_rejects_missing_section():
@@ -95,25 +93,39 @@ def test_schema_gate_rejects_empty_string():
     assert any("empty" in msg.lower() for msg in result.errors)
 
 
-def test_schema_gate_adds_assumption_to_dict_items():
+def test_schema_gate_rejects_claim_without_ref_or_assumption():
     policy = load_council_policy()
     payload = _valid_output()
     payload["key_findings"] = [
         {"claim": "No regressions found", "priority": "P1"},
     ]
     result = validate_seat_output(payload, policy)
-    assert result.valid is True
-    finding = result.normalized_output["key_findings"][0]
-    assert isinstance(finding, dict)
-    assert finding["assumption"] is True
-    assert any("assumption=true" in msg for msg in result.warnings)
+    assert result.valid is False
+    assert any("missing grounding token" in msg for msg in result.errors)
+
+
+def test_schema_gate_rejects_assumption_heavy_accept_output():
+    policy = load_council_policy()
+    payload = _valid_output()
+    payload["key_findings"] = [
+        "Missing evidence path [ASSUMPTION] evidence needed: line refs",
+    ]
+    payload["risks"] = [
+        "Unknown runtime behavior [ASSUMPTION] evidence needed: integration traces",
+    ]
+    payload["fixes"] = [
+        "Refactor code [ASSUMPTION] evidence needed: design notes",
+    ]
+    result = validate_seat_output(payload, policy)
+    assert result.valid is False
+    assert any("Assumption-heavy output rejected" in msg for msg in result.errors)
 
 
 def test_schema_gate_warns_p0_without_blocker_category():
     policy = load_council_policy()
     payload = _valid_output()
     payload["key_findings"] = [
-        {"claim": "Style issue", "priority": "P0", "category": "style"},
+        {"claim": "Style issue REF: git:abc123:runtime/core.py#L31-L40", "priority": "P0", "category": "style"},
     ]
     result = validate_seat_output(payload, policy)
     assert result.valid is True

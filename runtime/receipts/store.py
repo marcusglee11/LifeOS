@@ -312,8 +312,14 @@ class ReceiptStore:
             if data is None:
                 continue
             lineage = data.get("acceptance_lineage", {})
-            if lineage.get("workspace_sha") == workspace_sha:
-                results.append(data)
+            if lineage.get("workspace_sha") != workspace_sha:
+                continue
+            if (
+                plan_core_sha256 is not None
+                and lineage.get("plan_core_sha256") != plan_core_sha256
+            ):
+                continue
+            results.append(data)
         return results
 
     # -------------------------------------------------------------------------
@@ -358,6 +364,22 @@ class ReceiptStore:
                         "workspace_sha": data.get("workspace_sha", ""),
                         "plan_core_sha256": data.get("plan_core_sha256", ""),
                         "path": f"receipts/blocked/{path.name}",
+                    }
+                    entries.append(entry)
+                except (json.JSONDecodeError, OSError):
+                    pass
+
+        # Scan land receipts
+        if self._land_dir.exists():
+            for path in sorted(self._land_dir.glob("*.json")):
+                try:
+                    data = json.loads(path.read_text(encoding="utf-8"))
+                    entry = {
+                        "type": "land",
+                        "receipt_id": data.get("receipt_id", path.stem),
+                        "landed_sha": data.get("landed_sha", ""),
+                        "land_target": data.get("land_target", ""),
+                        "path": f"receipts/land/{path.name}",
                     }
                     entries.append(entry)
                 except (json.JSONDecodeError, OSError):

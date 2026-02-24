@@ -44,6 +44,9 @@ def run_reconciliation(
     Returns:
         ReconciliationReport with counts and per-SHA findings.
     """
+    if mode not in {"audit", "alert", "enforce"}:
+        raise ValueError(f"Unsupported reconciliation mode: {mode!r}")
+
     store = ReceiptStore(store_root)
     findings: list[dict[str, Any]] = []
     compliant = bypasses = violations = 0
@@ -53,19 +56,26 @@ def run_reconciliation(
         if receipt is None:
             bypasses += 1
             findings.append({"landed_sha": sha, "status": "BYPASS", "detail": "No land receipt found"})
-        elif receipt.get("tree_equivalence", {}).get("match") is False:
-            violations += 1
-            findings.append({
-                "landed_sha": sha, "status": "VIOLATION",
-                "receipt_id": receipt.get("receipt_id"),
-                "detail": "tree_equivalence.match=False",
-            })
         else:
-            compliant += 1
-            findings.append({
-                "landed_sha": sha, "status": "COMPLIANT",
-                "receipt_id": receipt.get("receipt_id"),
-            })
+            tree_match = receipt.get("tree_equivalence", {}).get("match")
+            if tree_match is True:
+                compliant += 1
+                findings.append({
+                    "landed_sha": sha, "status": "COMPLIANT",
+                    "receipt_id": receipt.get("receipt_id"),
+                })
+            else:
+                violations += 1
+                if tree_match is False:
+                    detail = "tree_equivalence.match=False"
+                else:
+                    detail = "tree_equivalence.match missing or invalid"
+                findings.append({
+                    "landed_sha": sha,
+                    "status": "VIOLATION",
+                    "receipt_id": receipt.get("receipt_id"),
+                    "detail": detail,
+                })
 
     return ReconciliationReport(
         total_checked=len(landed_shas),

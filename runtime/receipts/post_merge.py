@@ -70,6 +70,17 @@ def run_post_merge_land_gate(
             error_code="ACCEPTANCE_RECEIPT_NOT_FOUND",
             detail=f"Acceptance receipt {acceptance_receipt_id!r} not found in store",
         )
+    decision_status = str((acceptance.get("decision") or {}).get("status", ""))
+    if decision_status != "ACCEPTED":
+        return PostMergeLandResult(
+            emitted=False,
+            land_receipt=None,
+            error_code="ACCEPTANCE_NOT_ACCEPTED",
+            detail=(
+                f"Acceptance receipt {acceptance_receipt_id!r} has decision "
+                f"status={decision_status!r}; expected 'ACCEPTED'"
+            ),
+        )
 
     workspace_sha = acceptance["workspace_sha"]
     workspace_tree_oid = acceptance["workspace_tree_oid"]

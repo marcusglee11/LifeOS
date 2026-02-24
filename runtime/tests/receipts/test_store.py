@@ -6,6 +6,7 @@ from runtime.receipts.store import ReceiptStore
 from runtime.receipts.receipt_emitter import (
     build_acceptance_receipt,
     build_blocked_report,
+    build_land_receipt,
     compute_decision,
 )
 from runtime.receipts.plan_core import compute_plan_core_sha256
@@ -18,6 +19,8 @@ SAMPLE_PLAN_CORE = {
 SAMPLE_WORKSPACE_SHA = "abc123def456abc123def456abc123def456abc1"
 SAMPLE_TREE_OID = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
 SAMPLE_PLAN_SHA = compute_plan_core_sha256(SAMPLE_PLAN_CORE)
+SAMPLE_ACCEPTANCE_RECEIPT_ID = "01HN2P8QVKXJZ3MRSF4T6WBYDE"
+SAMPLE_LANDED_SHA = "cafe0000cafe0000cafe0000cafe0000cafe0000"
 
 PASS_ROLLUP = {"overall_status": "PASS"}
 FAIL_ROLLUP = {"overall_status": "FAIL"}
@@ -251,3 +254,67 @@ def test_write_blocked_report_rejects_path_traversal_id(tmp_path):
 def test_query_by_id_rejects_path_traversal(tmp_path):
     store = ReceiptStore(tmp_path / "store")
     assert store.query_acceptance_by_id("../evil") is None
+
+
+def test_rebuild_index_recovers_land_receipts(tmp_path):
+    store = ReceiptStore(tmp_path / "store")
+    receipt = build_land_receipt(
+        landed_sha=SAMPLE_LANDED_SHA,
+        landed_tree_oid=SAMPLE_TREE_OID,
+        land_target="refs/heads/main",
+        merge_method="squash",
+        acceptance_receipt_id=SAMPLE_ACCEPTANCE_RECEIPT_ID,
+        workspace_sha=SAMPLE_WORKSPACE_SHA,
+        workspace_tree_oid=SAMPLE_TREE_OID,
+        plan_core_sha256=SAMPLE_PLAN_SHA,
+        agent_id="agent-1",
+        run_id="run-1",
+    )
+    store.write_land_receipt(receipt)
+
+    index_path = tmp_path / "store" / "index.jsonl"
+    index_path.unlink()
+    store.rebuild_index()
+
+    reloaded = store.query_land_receipt_by_landed_sha(SAMPLE_LANDED_SHA)
+    assert reloaded is not None
+    assert reloaded["receipt_id"] == receipt["receipt_id"]
+
+
+def test_query_land_receipts_for_workspace_filters_plan_core(tmp_path):
+    store = ReceiptStore(tmp_path / "store")
+    plan_a = "a" * 64
+    plan_b = "b" * 64
+
+    receipt_a = build_land_receipt(
+        landed_sha="1111111111111111111111111111111111111111",
+        landed_tree_oid=SAMPLE_TREE_OID,
+        land_target="refs/heads/main",
+        merge_method="squash",
+        acceptance_receipt_id=SAMPLE_ACCEPTANCE_RECEIPT_ID,
+        workspace_sha=SAMPLE_WORKSPACE_SHA,
+        workspace_tree_oid=SAMPLE_TREE_OID,
+        plan_core_sha256=plan_a,
+        agent_id="agent-a",
+        run_id="run-a",
+    )
+    receipt_b = build_land_receipt(
+        landed_sha="2222222222222222222222222222222222222222",
+        landed_tree_oid=SAMPLE_TREE_OID,
+        land_target="refs/heads/main",
+        merge_method="squash",
+        acceptance_receipt_id=SAMPLE_ACCEPTANCE_RECEIPT_ID,
+        workspace_sha=SAMPLE_WORKSPACE_SHA,
+        workspace_tree_oid=SAMPLE_TREE_OID,
+        plan_core_sha256=plan_b,
+        agent_id="agent-b",
+        run_id="run-b",
+    )
+    store.write_land_receipt(receipt_a)
+    store.write_land_receipt(receipt_b)
+
+    filtered = store.query_land_receipts_for_workspace(
+        SAMPLE_WORKSPACE_SHA, plan_core_sha256=plan_a
+    )
+    assert len(filtered) == 1
+    assert filtered[0]["acceptance_lineage"]["plan_core_sha256"] == plan_a

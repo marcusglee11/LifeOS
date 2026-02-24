@@ -26,6 +26,12 @@ def test_land_receipt_schema_has_tree_equivalence_property():
     assert "tree_equivalence" in LAND_RECEIPT_SCHEMA["properties"]
 
 
+def test_land_receipt_schema_requires_tree_equivalence():
+    from runtime.receipts.schemas import LAND_RECEIPT_SCHEMA
+    required = set(LAND_RECEIPT_SCHEMA["required"])
+    assert "tree_equivalence" in required
+
+
 def test_land_receipt_schema_acceptance_lineage_required():
     from runtime.receipts.schemas import LAND_RECEIPT_SCHEMA
     lineage = LAND_RECEIPT_SCHEMA["properties"]["acceptance_lineage"]
@@ -168,11 +174,14 @@ def test_write_land_receipt_is_append_only(tmp_store):
 
 # ── Task 4: run_post_merge_land_gate ──────────────────────────────────────
 
-def _write_acceptance_receipt_to_store(tmp_store):
+def _write_acceptance_receipt_to_store(tmp_store, decision_status: str = "ACCEPTED"):
     """Helper: seed an acceptance receipt for post-merge tests."""
     from runtime.receipts.store import ReceiptStore
     from datetime import datetime, timezone
     store = ReceiptStore(tmp_store)
+    decision = {"status": decision_status}
+    if decision_status != "ACCEPTED":
+        decision["reason_code"] = "GATE_FAIL"
     receipt = {
         "receipt_id": _SAMPLE_ACCEPTANCE_RECEIPT_ID,
         "schema_version": "2.4",
@@ -181,7 +190,7 @@ def _write_acceptance_receipt_to_store(tmp_store):
         "plan_core_sha256": _SAMPLE_PLAN_CORE_SHA256,
         "issued_at": datetime.now(timezone.utc).isoformat(),
         "policy_pack": {"policy_id": "pilot-default", "policy_version": "1.0"},
-        "decision": {"status": "ACCEPTED"},
+        "decision": decision,
         "gate_rollup": {"overall_status": "PASS"},
         "_ext": {"pipeline_id": "lifeos-receipts-pilot-b1"},
     }
@@ -244,6 +253,22 @@ def test_post_merge_gate_records_tree_mismatch(tmp_store, monkeypatch):
     # emitted=True even for mismatch — receipt is written; reconciliation flags it
     assert result.emitted is True
     assert result.land_receipt["tree_equivalence"]["match"] is False
+
+
+def test_post_merge_gate_rejects_non_accepted_receipt(tmp_store):
+    _write_acceptance_receipt_to_store(tmp_store, decision_status="REJECTED")
+    from runtime.receipts.post_merge import run_post_merge_land_gate
+    result = run_post_merge_land_gate(
+        landed_sha=_SAMPLE_LANDED_SHA,
+        land_target="refs/heads/main",
+        merge_method="squash",
+        acceptance_receipt_id=_SAMPLE_ACCEPTANCE_RECEIPT_ID,
+        store_root=tmp_store,
+        agent_id="test-agent",
+        run_id="run-1",
+    )
+    assert result.emitted is False
+    assert result.error_code == "ACCEPTANCE_NOT_ACCEPTED"
 
 
 def test_post_merge_result_is_frozen():
@@ -316,6 +341,43 @@ def test_reconciliation_mode_defaults_to_audit(tmp_store):
     from runtime.receipts.reconciliation import run_reconciliation
     report = run_reconciliation([], store_root=tmp_store)
     assert report.mode == "audit"
+
+
+def test_reconciliation_invalid_mode_rejected(tmp_store):
+    from runtime.receipts.store import ReceiptStore
+    ReceiptStore(tmp_store)
+    from runtime.receipts.reconciliation import run_reconciliation
+    with pytest.raises(ValueError, match="Unsupported reconciliation mode"):
+        run_reconciliation([], store_root=tmp_store, mode="invalid")
+
+
+def test_reconciliation_missing_tree_match_is_violation(tmp_store):
+    from runtime.receipts.store import ReceiptStore
+    from datetime import datetime, timezone
+    store = ReceiptStore(tmp_store)
+    malformed_land_receipt = {
+        "receipt_id": "01HN2P8QVKXJZ3MRSF4T6WBYDX",
+        "schema_version": "land_receipt.v2.4",
+        "receipt_type": "land",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "landed_sha": _SAMPLE_LANDED_SHA,
+        "landed_tree_oid": _SAMPLE_WORKSPACE_TREE_OID,
+        "land_target": "refs/heads/main",
+        "merge_method": "squash",
+        "acceptance_lineage": {
+            "acceptance_receipt_id": _SAMPLE_ACCEPTANCE_RECEIPT_ID,
+            "workspace_sha": _SAMPLE_WORKSPACE_SHA,
+            "workspace_tree_oid": _SAMPLE_WORKSPACE_TREE_OID,
+            "plan_core_sha256": _SAMPLE_PLAN_CORE_SHA256,
+        },
+        "emitter": {"agent_id": "a", "run_id": "r"},
+    }
+    store.write_land_receipt(malformed_land_receipt)
+    from runtime.receipts.reconciliation import run_reconciliation
+    report = run_reconciliation([_SAMPLE_LANDED_SHA], store_root=tmp_store)
+    assert report.violations == 1
+    assert report.compliant == 0
+    assert report.findings[0]["detail"] == "tree_equivalence.match missing or invalid"
 
 
 # ── Task 6: CLI + exports ─────────────────────────────────────────────────

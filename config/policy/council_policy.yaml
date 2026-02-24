@@ -88,6 +88,9 @@ independence:
 
 schema_gate:
   max_retry_cycles: 2
+  require_explicit_claim_grounding: true
+  max_assumption_ratio: 0.34
+  accept_requires_ref_balance: true
   required_sections:
     - verdict
     - key_findings

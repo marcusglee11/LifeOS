@@ -226,6 +226,30 @@ class CouncilPolicy:
         return retry_cap
 
     @property
+    def schema_gate_require_explicit_claim_grounding(self) -> bool:
+        gate = self.raw.get("schema_gate", {})
+        return bool(gate.get("require_explicit_claim_grounding", True))
+
+    @property
+    def schema_gate_max_assumption_ratio(self) -> float:
+        gate = self.raw.get("schema_gate", {})
+        raw_value = gate.get("max_assumption_ratio", 0.5)
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError):
+            return 0.5
+        if value < 0.0:
+            return 0.0
+        if value > 1.0:
+            return 1.0
+        return value
+
+    @property
+    def schema_gate_accept_requires_ref_balance(self) -> bool:
+        gate = self.raw.get("schema_gate", {})
+        return bool(gate.get("accept_requires_ref_balance", True))
+
+    @property
     def closure_retry_cap(self) -> int:
         closure = self.raw.get("closure", {})
         retry_cap = closure.get("max_prompt_closure_cycles", 2)

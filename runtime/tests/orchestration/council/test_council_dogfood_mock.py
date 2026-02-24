@@ -48,12 +48,12 @@ def _canned_seat_output(seat: str, *, verdict: str = "Revise") -> dict:
             "No dynamic agent discovery — acceptable for v1 [ASSUMPTION]",
         ],
         "risks": [
-            "Single point of failure if dispatcher process crashes",
-            "No backpressure mechanism for overloaded agents",
+            "Single point of failure if dispatcher process crashes REF: git:abc123:runtime/orchestration/dispatcher.py#L10-L22",
+            "No backpressure mechanism for overloaded agents REF: git:abc123:runtime/orchestration/dispatcher.py#L23-L38",
         ],
         "fixes": [
-            "Add health-check ping before routing to agent",
-            "Emit structured log on dispatch failure for observability",
+            "Add health-check ping before routing to agent REF: git:abc123:runtime/orchestration/dispatcher.py#L39-L52",
+            "Emit structured log on dispatch failure for observability REF: git:abc123:runtime/orchestration/dispatcher.py#L53-L70",
         ],
         "confidence": "medium",
         "assumptions": [
