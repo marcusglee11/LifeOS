@@ -19,8 +19,15 @@ esac
 # Resolve repo root
 REPO_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 
-# Run closure gate
-VERDICT=$(python3 "$REPO_ROOT/scripts/workflow/closure_gate.py" --repo-root "$REPO_ROOT" 2>/dev/null) || true
+# Extract branch name from merge command, e.g. "git merge --squash build/foo" → "build/foo"
+# Limits to known branch prefixes to avoid matching flags or other tokens.
+MERGE_BRANCH=$(echo "$COMMAND" | grep -oE '[a-zA-Z0-9_/.\-]+$' | grep -E '^(build|fix|hotfix|spike)/' || true)
+
+# Run closure gate (pass branch when detected so it can diff against main directly)
+VERDICT=$(python3 "$REPO_ROOT/scripts/workflow/closure_gate.py" \
+    --repo-root "$REPO_ROOT" \
+    ${MERGE_BRANCH:+--branch "$MERGE_BRANCH"} \
+    2>/dev/null) || true
 
 # Fail-closed: if no output, block the operation
 if [ -z "$VERDICT" ]; then

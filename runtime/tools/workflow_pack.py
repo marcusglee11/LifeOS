@@ -189,14 +189,22 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
     return routed
 
 
-def discover_changed_files(repo_root: Path) -> list[str]:
-    """Discover changed files with staged-first precedence."""
+def discover_changed_files(repo_root: Path, branch: str | None = None) -> list[str]:
+    """Discover changed files with staged-first precedence.
+
+    When *branch* is provided (e.g. when the hook fires on a merge command from
+    main context), a ``git diff main..<branch>`` probe is prepended so the gate
+    sees the branch's actual changes rather than main's recent commits.
+    """
     repo = Path(repo_root)
-    probes = [
+    probes = []
+    if branch:
+        probes.append(["git", "-C", str(repo), "diff", "--name-only", f"main..{branch}"])
+    probes.extend([
         ["git", "-C", str(repo), "diff", "--name-only", "--cached"],
         ["git", "-C", str(repo), "diff", "--name-only"],
         ["git", "-C", str(repo), "diff", "--name-only", "HEAD~1..HEAD"],
-    ]
+    ])
     for cmd in probes:
         proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
         if proc.returncode != 0:

@@ -26,9 +26,9 @@ from runtime.tools.workflow_pack import (  # noqa: E402
 )
 
 
-def run_gate(repo_root: Path) -> dict:
+def run_gate(repo_root: Path, branch: str | None = None) -> dict:
     """Execute closure gates and return structured verdict."""
-    changed_files = discover_changed_files(repo_root)
+    changed_files = discover_changed_files(repo_root, branch=branch)
 
     # Gate 1: targeted tests
     test_result = run_closure_tests(repo_root, changed_files)
@@ -73,10 +73,15 @@ def main() -> int:
         default=".",
         help="Repository root (default: current directory).",
     )
+    parser.add_argument(
+        "--branch",
+        default=None,
+        help="Build branch being merged (enables branch-diff file detection from main context).",
+    )
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
-    verdict = run_gate(repo_root)
+    verdict = run_gate(repo_root, branch=args.branch)
     print(json.dumps(verdict))
     return 0 if verdict["passed"] else 1
 
