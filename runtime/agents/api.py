@@ -391,3 +391,158 @@ def call_agent(
     except Exception as e:
         logger.error(f"Agent call failed: {e}")
         raise AgentAPIError(f"Agent call failed: {str(e)}")
+
+
+def call_agent_cli(
+    call: AgentCall,
+    run_id: str = "",
+    logger_instance: Optional["AgentCallLogger"] = None,
+    config: Optional[ModelConfig] = None,
+) -> AgentResponse:
+    """
+    Invoke an LLM via CLI agent dispatch (Codex, Gemini, Claude Code).
+
+    Same contract as call_agent() but routes through subprocess-based
+    CLI agents that have full tool use, file access, and sandbox capabilities.
+
+    Falls back to call_agent() if the role is not configured for CLI dispatch
+    or the CLI provider is not available.
+
+    Args:
+        call: AgentCall specification
+        run_id: Deterministic run ID for logging
+        logger_instance: Optional AgentCallLogger for hash chain logging
+        config: Optional ModelConfig (loads from file if None)
+
+    Returns:
+        AgentResponse with parsed content and metadata
+
+    Raises:
+        AgentTimeoutError: If CLI agent exceeds timeout
+        AgentAPIError: On dispatch failure
+    """
+    from .logging import AgentCallLogger
+    from .models import get_agent_config, get_cli_provider_config, is_cli_dispatch
+    from .cli_dispatch import (
+        CLIProvider,
+        CLIDispatchConfig,
+        CLIDispatchResult,
+        CLIDispatchError,
+        CLIProviderNotFound,
+        dispatch_cli_agent,
+    )
+
+    if config is None:
+        config = load_model_config()
+
+    # Check if this role is configured for CLI dispatch
+    if not is_cli_dispatch(call.role, config):
+        logger.info("Role %s not configured for CLI; falling back to API", call.role)
+        return call_agent(call, run_id, logger_instance, config)
+
+    agent_cfg = get_agent_config(call.role, config)
+    cli_provider_name = agent_cfg.cli_provider
+
+    # Map config string to CLIProvider enum
+    try:
+        cli_provider = CLIProvider(cli_provider_name)
+    except ValueError:
+        logger.warning(
+            "Unknown CLI provider '%s' for role %s; falling back to API",
+            cli_provider_name, call.role,
+        )
+        return call_agent(call, run_id, logger_instance, config)
+
+    # Get CLI provider config for timeout/sandbox settings
+    cli_cfg = get_cli_provider_config(cli_provider_name, config)
+    timeout = cli_cfg.timeout_seconds if cli_cfg else 600
+    sandbox = cli_cfg.sandbox if cli_cfg else True
+
+    # Resolve model
+    if call.model == "auto":
+        model, _, _ = resolve_model_auto(call.role, config)
+    else:
+        model = call.model
+
+    # Compute deterministic IDs
+    system_prompt, prompt_hash = _load_role_prompt(call.role)
+    packet_hash = f"sha256:{hashlib.sha256(canonical_json(call.packet)).hexdigest()}"
+    call_id = compute_call_id_deterministic(
+        run_id_deterministic=run_id or "no_run",
+        role=call.role,
+        prompt_hash=prompt_hash,
+        packet_hash=packet_hash,
+    )
+    call_id_audit = str(uuid.uuid4())
+
+    # Build prompt: system prompt + packet content
+    prompt = f"{system_prompt}\n\n---\n\n{yaml.safe_dump(call.packet, default_flow_style=False)}"
+
+    dispatch_config = CLIDispatchConfig(
+        provider=cli_provider,
+        timeout_seconds=timeout,
+        sandbox=sandbox,
+        model=model,
+    )
+
+    try:
+        result = dispatch_cli_agent(prompt, dispatch_config)
+    except CLIProviderNotFound:
+        logger.warning(
+            "CLI provider %s not available; falling back to API",
+            cli_provider_name,
+        )
+        return call_agent(call, run_id, logger_instance, config)
+    except CLIDispatchError as exc:
+        raise AgentAPIError(f"CLI dispatch failed: {exc}") from exc
+
+    if not result.success and not result.partial:
+        raise AgentAPIError(
+            f"CLI agent {cli_provider_name} failed (exit={result.exit_code}): "
+            + "; ".join(result.errors)
+        )
+
+    if result.partial:
+        logger.warning("CLI agent returned partial output (timeout)")
+
+    # Parse response
+    content = result.output
+    packet = _parse_response_packet(content)
+    output_packet_hash = (
+        f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}"
+        if packet else ""
+    )
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    # Log to hash chain
+    if logger_instance is None:
+        logger_instance = AgentCallLogger()
+
+    logger_instance.log_call(
+        call_id_deterministic=call_id,
+        call_id_audit=call_id_audit,
+        role=call.role,
+        model_requested=call.model,
+        model_used=model,
+        model_version=f"{cli_provider_name}/{model}",
+        input_packet_hash=packet_hash,
+        prompt_hash=prompt_hash,
+        input_tokens=0,
+        output_tokens=0,
+        latency_ms=result.latency_ms,
+        output_packet_hash=output_packet_hash,
+        status="success" if result.success else "partial",
+    )
+
+    return AgentResponse(
+        call_id=call_id,
+        call_id_audit=call_id_audit,
+        role=call.role,
+        model_used=model,
+        model_version=f"{cli_provider_name}/{model}",
+        content=content,
+        packet=packet,
+        usage={},
+        latency_ms=result.latency_ms,
+        timestamp=timestamp,
+    )
