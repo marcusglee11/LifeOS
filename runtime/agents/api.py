@@ -22,6 +22,7 @@ import httpx
 import yaml
 
 from .models import load_model_config, resolve_model_auto, ModelConfig
+from runtime.receipts.invocation_receipt import record_invocation_receipt
 from runtime.util.canonical import canonical_json
 
 # Configure logger
@@ -155,6 +156,72 @@ def _normalize_usage(usage: Any) -> dict[str, int]:
     return normalized
 
 
+def _provider_id_from_model(model_version: str, model_used: str, fallback: str = "unknown") -> str:
+    """Infer provider id from a model string like 'provider/model'."""
+    for candidate in (model_version, model_used):
+        if isinstance(candidate, str) and candidate.strip():
+            token = candidate.strip().split("/", 1)[0]
+            return token or fallback
+    return fallback
+
+
+def _receipt_token_usage(usage: dict[str, int]) -> Optional[dict[str, int]]:
+    """Map normalized usage keys to invocation receipt schema keys."""
+    if not usage:
+        return None
+
+    mapped: dict[str, int] = {}
+    input_tokens = usage.get("input_tokens")
+    output_tokens = usage.get("output_tokens")
+    total_tokens = usage.get("total_tokens")
+    if isinstance(input_tokens, int) and input_tokens >= 0:
+        mapped["prompt_tokens"] = input_tokens
+    if isinstance(output_tokens, int) and output_tokens >= 0:
+        mapped["completion_tokens"] = output_tokens
+    if isinstance(total_tokens, int) and total_tokens >= 0:
+        mapped["total_tokens"] = total_tokens
+    elif "prompt_tokens" in mapped and "completion_tokens" in mapped:
+        mapped["total_tokens"] = mapped["prompt_tokens"] + mapped["completion_tokens"]
+    return mapped or None
+
+
+def _record_agent_receipt(
+    *,
+    run_id: str,
+    provider_id: str,
+    mode: str,
+    seat_id: str,
+    start_ts: str,
+    end_ts: str,
+    exit_status: int,
+    output_content: str,
+    schema_validation: str,
+    token_usage: Optional[dict[str, int]] = None,
+    truncation: Optional[dict[str, bool]] = None,
+    error: Optional[str] = None,
+) -> None:
+    """Best-effort invocation receipt recording. Never raises."""
+    if not run_id:
+        return
+    try:
+        record_invocation_receipt(
+            run_id=run_id,
+            provider_id=provider_id,
+            mode=mode,
+            seat_id=seat_id,
+            start_ts=start_ts,
+            end_ts=end_ts,
+            exit_status=exit_status,
+            output_content=output_content,
+            schema_validation=schema_validation,
+            token_usage=token_usage,
+            truncation=truncation,
+            error=error,
+        )
+    except Exception:
+        logger.debug("Invocation receipt recording failed", exc_info=True)
+
+
 def _load_role_prompt(role: str, config_dir: str = "config/agent_roles") -> tuple[str, str]:
     """
     Load system prompt for a role.
@@ -258,7 +325,10 @@ def call_agent(
     """
     from .fixtures import is_replay_mode, get_cached_response, CachedResponse
     from .logging import AgentCallLogger
-    
+
+    invocation_start_ts = datetime.now(timezone.utc).isoformat()
+    resolved_model = call.model
+
     # Load config if not provided
     if config is None:
         config = load_model_config()
@@ -284,7 +354,7 @@ def call_agent(
                 raise AgentAPIError(
                     "TOKEN_ACCOUNTING_UNAVAILABLE: replay fixtures do not include usage"
                 )
-            return AgentResponse(
+            response = AgentResponse(
                 call_id=call_id,
                 call_id_audit=call_id_audit,
                 role=call.role,
@@ -296,6 +366,18 @@ def call_agent(
                 latency_ms=0,
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
+            _record_agent_receipt(
+                run_id=run_id,
+                provider_id="replay",
+                mode="api",
+                seat_id=call.role,
+                start_ts=invocation_start_ts,
+                end_ts=datetime.now(timezone.utc).isoformat(),
+                exit_status=0,
+                output_content=response.content,
+                schema_validation="pass" if response.packet is not None else "n/a",
+            )
+            return response
         except Exception:
             # ReplayMissError will propagate
             raise
@@ -307,6 +389,7 @@ def call_agent(
         model = call.model
         selection_reason = "explicit"
         model_chain = [model]
+    resolved_model = model
     
     # [HARDENING] Use OpenCodeClient for robust protocol and provider handling.
     # It handles both OpenRouter (OpenAI style) and Zen (Anthropic style) logic.
@@ -374,8 +457,8 @@ def call_agent(
             output_packet_hash=output_packet_hash,
             status="success",
         )
-        
-        return AgentResponse(
+
+        agent_response = AgentResponse(
             call_id=call_id,
             call_id_audit=response.call_id,
             role=call.role,
@@ -387,8 +470,33 @@ def call_agent(
             latency_ms=latency_ms,
             timestamp=timestamp,
         )
-        
+        _record_agent_receipt(
+            run_id=run_id,
+            provider_id=_provider_id_from_model(model_version, model, fallback="api"),
+            mode="api",
+            seat_id=call.role,
+            start_ts=invocation_start_ts,
+            end_ts=timestamp,
+            exit_status=0,
+            output_content=content,
+            schema_validation="pass" if packet is not None else "n/a",
+            token_usage=_receipt_token_usage(normalized_usage),
+        )
+        return agent_response
+
     except Exception as e:
+        _record_agent_receipt(
+            run_id=run_id,
+            provider_id=_provider_id_from_model("", resolved_model, fallback="api"),
+            mode="api",
+            seat_id=call.role,
+            start_ts=invocation_start_ts,
+            end_ts=datetime.now(timezone.utc).isoformat(),
+            exit_status=1,
+            output_content="",
+            schema_validation="fail",
+            error=str(e),
+        )
         logger.error(f"Agent call failed: {e}")
         raise AgentAPIError(f"Agent call failed: {str(e)}")
 
@@ -431,6 +539,8 @@ def call_agent_cli(
         CLIProviderNotFound,
         dispatch_cli_agent,
     )
+
+    invocation_start_ts = datetime.now(timezone.utc).isoformat()
 
     if config is None:
         config = load_model_config()
@@ -494,9 +604,33 @@ def call_agent_cli(
         )
         return call_agent(call, run_id, logger_instance, config)
     except CLIDispatchError as exc:
+        _record_agent_receipt(
+            run_id=run_id,
+            provider_id=cli_provider_name,
+            mode="cli",
+            seat_id=call.role,
+            start_ts=invocation_start_ts,
+            end_ts=datetime.now(timezone.utc).isoformat(),
+            exit_status=1,
+            output_content="",
+            schema_validation="fail",
+            error=f"dispatch_error: {exc}",
+        )
         raise AgentAPIError(f"CLI dispatch failed: {exc}") from exc
 
     if not result.success and not result.partial:
+        _record_agent_receipt(
+            run_id=run_id,
+            provider_id=cli_provider_name,
+            mode="cli",
+            seat_id=call.role,
+            start_ts=invocation_start_ts,
+            end_ts=datetime.now(timezone.utc).isoformat(),
+            exit_status=result.exit_code,
+            output_content=result.output,
+            schema_validation="fail",
+            error="; ".join(result.errors) if result.errors else "cli_nonzero_exit",
+        )
         raise AgentAPIError(
             f"CLI agent {cli_provider_name} failed (exit={result.exit_code}): "
             + "; ".join(result.errors)
@@ -534,7 +668,7 @@ def call_agent_cli(
         status="success" if result.success else "partial",
     )
 
-    return AgentResponse(
+    agent_response = AgentResponse(
         call_id=call_id,
         call_id_audit=call_id_audit,
         role=call.role,
@@ -546,3 +680,16 @@ def call_agent_cli(
         latency_ms=result.latency_ms,
         timestamp=timestamp,
     )
+    _record_agent_receipt(
+        run_id=run_id,
+        provider_id=cli_provider_name,
+        mode="cli",
+        seat_id=call.role,
+        start_ts=invocation_start_ts,
+        end_ts=timestamp,
+        exit_status=result.exit_code,
+        output_content=content,
+        schema_validation="pass" if packet is not None else "n/a",
+        truncation={"input_truncated": False, "output_truncated": bool(result.partial)},
+    )
+    return agent_response

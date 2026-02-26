@@ -9,6 +9,9 @@ import pytest
 from runtime.receipts.invocation_receipt import (
     InvocationReceipt,
     InvocationReceiptCollector,
+    finalize_run_receipts,
+    get_or_create_collector,
+    reset_invocation_receipt_collectors,
 )
 from runtime.receipts.validator import validate_artefact
 from runtime.util.canonical import compute_sha256
@@ -16,6 +19,13 @@ from runtime.util.canonical import compute_sha256
 
 def _ts() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+@pytest.fixture(autouse=True)
+def _reset_collectors() -> None:
+    reset_invocation_receipt_collectors()
+    yield
+    reset_invocation_receipt_collectors()
 
 
 def test_collector_records_and_finalizes(tmp_path):
@@ -56,6 +66,8 @@ def test_collector_records_and_finalizes(tmp_path):
     assert index["run_id"] == "run_test_001"
     assert index["receipt_count"] == 2
     assert len(index["receipts"]) == 2
+    assert (index_path.parent / "0001_zen.json").exists()
+    assert (index_path.parent / "0002_claude_code.json").exists()
 
 
 def test_receipt_schema_validation():
@@ -132,3 +144,31 @@ def test_seq_monotonic():
     seqs = [r.seq for r in collector.receipts]
     assert seqs == [1, 2, 3, 4, 5]
     assert all(seqs[i] < seqs[i + 1] for i in range(len(seqs) - 1))
+
+
+def test_run_level_finalize_writes_index_and_receipts(tmp_path):
+    collector = get_or_create_collector("run_finalize")
+    collector.record(
+        provider_id="openai-codex",
+        mode="api",
+        seat_id="builder",
+        start_ts=_ts(),
+        end_ts=_ts(),
+        exit_status=0,
+        output_content="ok",
+        schema_validation="pass",
+    )
+
+    index_path = finalize_run_receipts("run_finalize", tmp_path)
+    assert index_path is not None
+    assert index_path.exists()
+    assert (index_path.parent / "0001_openai-codex.json").exists()
+    assert finalize_run_receipts("run_finalize", tmp_path) is None
+
+
+def test_run_level_finalize_can_emit_empty_index(tmp_path):
+    index_path = finalize_run_receipts("run_empty", tmp_path, include_empty=True)
+    assert index_path is not None
+    index = json.loads(index_path.read_text("utf-8"))
+    assert index["run_id"] == "run_empty"
+    assert index["receipt_count"] == 0

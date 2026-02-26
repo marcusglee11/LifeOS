@@ -24,7 +24,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from runtime.orchestration.run_controller import verify_repo_clean
+from runtime.orchestration.run_controller import verify_repo_clean, check_kill_switch
 from runtime.orchestration.loop.ledger import (
     AttemptLedger,
     AttemptRecord,
@@ -43,6 +43,10 @@ from runtime.orchestration.loop.worktree_dispatch import (
     worktree_scope,
     WorktreeError,
     validate_worktree_clean,
+)
+from runtime.receipts.invocation_receipt import (
+    finalize_run_receipts,
+    get_or_create_collector,
 )
 
 
@@ -196,30 +200,64 @@ class LoopSpine:
             RepoDirtyError: If repository has uncommitted changes (fail-closed)
             SpineError: On other execution errors
         """
-        # P0: Fail-closed on dirty repo
-        verify_repo_clean(self.repo_root)
-
         # Generate run ID
         self.run_id = self._generate_run_id()
         self.state = SpineState.RUNNING
+        # Initialize collector so terminal packets can always reference an index.
+        get_or_create_collector(self.run_id)
 
         # Acquire run-lock (fail-closed on contention)
         from runtime.orchestration.loop.run_lock import (
             acquire_run_lock, release_run_lock, RunLockError,
         )
+        if check_kill_switch(self.repo_root):
+            return self._emit_blocked_terminal_result(
+                reason="kill_switch_active_pre_lock",
+                gate_results=[
+                    self._gate_result(
+                        phase="startup",
+                        name="kill_switch_pre_lock",
+                        passed=False,
+                        reason="STOP_AUTONOMY present before lock acquisition",
+                    )
+                ],
+                task_ref=task_spec.get("task_ref"),
+            )
+
         lock_handle = None
         try:
             lock_handle = acquire_run_lock(self.repo_root, self.run_id)
-        except RunLockError:
-            self.state = SpineState.TERMINAL
-            return {
-                "outcome": "BLOCKED",
-                "reason": "concurrent_run_detected",
-                "state": self.state.value,
-                "run_id": self.run_id,
-            }
+        except RunLockError as exc:
+            return self._emit_blocked_terminal_result(
+                reason="concurrent_run_detected",
+                gate_results=[
+                    self._gate_result(
+                        phase="startup",
+                        name="run_lock",
+                        passed=False,
+                        reason=str(exc),
+                    )
+                ],
+                task_ref=task_spec.get("task_ref"),
+            )
 
         try:
+            if check_kill_switch(self.repo_root):
+                return self._emit_blocked_terminal_result(
+                    reason="kill_switch_active_post_lock",
+                    gate_results=[
+                        self._gate_result(
+                            phase="startup",
+                            name="kill_switch_post_lock",
+                            passed=False,
+                            reason="STOP_AUTONOMY detected after lock acquisition",
+                        )
+                    ],
+                    task_ref=task_spec.get("task_ref"),
+                )
+
+            # P0: Fail-closed on dirty repo
+            verify_repo_clean(self.repo_root)
             return self._run_locked(task_spec, lock_handle)
         finally:
             if lock_handle is not None:
@@ -249,15 +287,16 @@ class LoopSpine:
         # Pre-run governance hooks (fail-closed)
         pre_kwargs = self._build_hook_kwargs(task_spec)
         pre_result = run_pre_hooks(pre_kwargs, hooks=self._pre_run_hooks)
+        pre_gate_results = self._hook_results_to_gate_results(pre_result)
         if not pre_result.all_passed:
             failed = [h.name for h in pre_result.failed_hooks]
-            self.state = SpineState.TERMINAL
-            return {
-                "outcome": "BLOCKED",
-                "reason": f"pre_run_hook_failed: {failed}",
-                "state": self.state.value,
-                "run_id": self.run_id,
-            }
+            return self._emit_blocked_terminal_result(
+                reason=f"pre_run_hook_failed: {failed}",
+                gate_results=pre_gate_results,
+                task_ref=task_spec.get("task_ref"),
+                start_ts=start_ts,
+                policy_hash=self.current_policy_hash,
+            )
 
         # Track phase outcomes for v2.1
         phase_outcomes: Dict[str, Any] = {}
@@ -309,26 +348,15 @@ class LoopSpine:
             except Exception:
                 pass
 
-            # Emit terminal packet with ledger chain anchor + v2.1 fields
+            receipt_index = self._finalize_receipt_index(include_empty=True)
+
+            # Emit terminal packet with ledger chain anchor + v2.1 fields.
+            # Post-run hooks depend on terminal packet presence and are included
+            # in a final re-emission below.
             outcome = result["outcome"]
             reason = result.get("reason", "pass")
             end_ts = self._get_timestamp()
             status = "SUCCESS" if outcome == "PASS" else "CLEAN_FAIL"
-
-            # Compute packet hash from all fields
-            from runtime.util.canonical import compute_sha256
-            v21_base = {
-                "run_id": self.run_id,
-                "outcome": outcome,
-                "reason": reason,
-                "steps_executed": result.get("steps_executed", []),
-                "status": status,
-                "start_ts": start_ts,
-                "end_ts": end_ts,
-                "policy_hash": self.current_policy_hash,
-                "phase_outcomes": phase_outcomes,
-            }
-            packet_hash = compute_sha256(v21_base)
 
             terminal_packet = TerminalPacket(
                 run_id=self.run_id,
@@ -346,10 +374,11 @@ class LoopSpine:
                 task_ref=task_spec.get("task_ref"),
                 policy_hash=self.current_policy_hash,
                 phase_outcomes=phase_outcomes,
+                gate_results=pre_gate_results,
+                receipt_index=receipt_index,
                 clean_fail_reason=reason if outcome != "PASS" else None,
                 repo_clean_verified=repo_clean_verified,
                 orphan_check_passed=True,
-                packet_hash=packet_hash,
             )
             terminal_file = self._emit_terminal(terminal_packet)
 
@@ -361,34 +390,21 @@ class LoopSpine:
                 "evidence_tier": task_spec.get("evidence_tier", "light"),
             }
             post_result = run_post_hooks(post_kwargs, hooks=self._post_run_hooks)
+            gate_results = pre_gate_results + self._hook_results_to_gate_results(post_result)
+            terminal_packet.gate_results = gate_results
             if not post_result.all_passed and outcome == "PASS":
                 failed = [h.name for h in post_result.failed_hooks]
                 outcome = "BLOCKED"
                 reason = f"post_run_hook_failed: {failed}"
                 end_ts = self._get_timestamp()
-                # Re-emit terminal packet with downgraded outcome
-                terminal_packet = TerminalPacket(
-                    run_id=self.run_id,
-                    timestamp=self._get_timestamp(),
-                    outcome=outcome,
-                    reason=reason,
-                    steps_executed=result.get("steps_executed", []),
-                    commit_hash=result.get("commit_hash"),
-                    ledger_chain_tip=self.ledger.get_chain_tip(),
-                    ledger_attempt_count=len(self.ledger.history),
-                    ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
-                    status="CLEAN_FAIL",
-                    start_ts=start_ts,
-                    end_ts=end_ts,
-                    task_ref=task_spec.get("task_ref"),
-                    policy_hash=self.current_policy_hash,
-                    phase_outcomes=phase_outcomes,
-                    clean_fail_reason=reason,
-                    repo_clean_verified=repo_clean_verified,
-                    orphan_check_passed=True,
-                    packet_hash=compute_sha256({**v21_base, "outcome": outcome, "reason": reason, "status": "CLEAN_FAIL", "end_ts": end_ts}),
-                )
-                self._emit_terminal(terminal_packet)
+                terminal_packet.outcome = outcome
+                terminal_packet.reason = reason
+                terminal_packet.status = "CLEAN_FAIL"
+                terminal_packet.end_ts = end_ts
+                terminal_packet.clean_fail_reason = reason
+
+            # Final terminal packet emission (includes post-run gate results).
+            self._emit_terminal(terminal_packet)
 
             self.state = SpineState.TERMINAL
 
@@ -400,13 +416,20 @@ class LoopSpine:
             }
 
         except WorktreeError as wt_exc:
-            self.state = SpineState.TERMINAL
-            return {
-                "outcome": "BLOCKED",
-                "reason": f"worktree_error: {wt_exc.code}",
-                "state": self.state.value,
-                "run_id": self.run_id,
-            }
+            return self._emit_blocked_terminal_result(
+                reason=f"worktree_error: {wt_exc.code}",
+                gate_results=[
+                    self._gate_result(
+                        phase="execution",
+                        name="worktree_dispatch",
+                        passed=False,
+                        reason=str(wt_exc),
+                    )
+                ],
+                task_ref=task_spec.get("task_ref"),
+                start_ts=start_ts,
+                policy_hash=self.current_policy_hash,
+            )
 
         except CheckpointTriggered as checkpoint_exc:
             # Checkpoint was triggered during execution
@@ -441,121 +464,187 @@ class LoopSpine:
             PolicyChangedError: If policy hash changed since checkpoint (fail-closed)
             SpineError: On other errors
         """
-        # P0: Fail-closed on dirty repo
-        verify_repo_clean(self.repo_root)
-
         # Load checkpoint
         checkpoint = self._load_checkpoint(checkpoint_id)
-
-        # Validate policy hash
-        current_hash = self._get_current_policy_hash()
-        if checkpoint.policy_hash != current_hash:
-            # Emit terminal packet for BLOCKED
-            terminal_packet = TerminalPacket(
-                run_id=checkpoint.run_id,
-                timestamp=self._get_timestamp(),
-                outcome="BLOCKED",
-                reason="POLICY_CHANGED_MID_RUN",
-                steps_executed=[],
-            )
-            self._emit_terminal(terminal_packet)
-
-            raise PolicyChangedError(
-                checkpoint_hash=checkpoint.policy_hash,
-                current_hash=current_hash,
-            )
-
-        # Check resolution status
-        is_resolved, decision = self._check_resolution(checkpoint_id)
-
-        if not is_resolved:
-            raise SpineError(f"Checkpoint {checkpoint_id} is not yet resolved")
-
-        if decision == "REJECTED":
-            # CEO rejected, terminate without execution
-            terminal_packet = TerminalPacket(
-                run_id=checkpoint.run_id,
-                timestamp=self._get_timestamp(),
-                outcome="BLOCKED",
-                reason="checkpoint_rejected",
-                steps_executed=[],
-            )
-            self._emit_terminal(terminal_packet)
-
-            return {
-                "outcome": "BLOCKED",
-                "reason": "checkpoint_rejected",
-                "state": SpineState.TERMINAL.value,
-                "run_id": checkpoint.run_id,
-            }
-
-        # Resume execution
         self.run_id = checkpoint.run_id
-        self.state = SpineState.RESUMED
-        self.current_policy_hash = checkpoint.policy_hash
-        self.was_resumed = True
+        get_or_create_collector(self.run_id)
 
-        # Hydrate ledger from prior run; initialize if missing (e.g. test scenario)
-        if not self.ledger.hydrate():
-            self.ledger.initialize(
-                LedgerHeader(
-                    policy_hash=checkpoint.policy_hash,
-                    handoff_hash=self._compute_hash(checkpoint.task_spec),
-                    run_id=checkpoint.run_id,
-                )
-            )
-
-        # Continue from checkpoint step
-        result = self._run_chain_steps(
-            task_spec=checkpoint.task_spec,
-            start_from_step=checkpoint.step_index,
+        from runtime.orchestration.loop.run_lock import (
+            acquire_run_lock, release_run_lock, RunLockError,
         )
 
-        # Write ledger record first so chain tip includes final record
-        terminal_file_path = f"artifacts/terminal/TP_{self.run_id}.yaml"
-        ledger_write_ok = True
+        if check_kill_switch(self.repo_root):
+            return self._emit_blocked_terminal_result(
+                reason="kill_switch_active_pre_lock",
+                gate_results=[
+                    self._gate_result(
+                        phase="startup",
+                        name="kill_switch_pre_lock",
+                        passed=False,
+                        reason="STOP_AUTONOMY present before lock acquisition",
+                    )
+                ],
+                task_ref=checkpoint.task_spec.get("task_ref"),
+                policy_hash=checkpoint.policy_hash,
+            )
+
+        lock_handle = None
         try:
-            self._write_ledger_record(
-                success=(result["outcome"] == "PASS"),
-                terminal_reason=result.get("reason", "pass"),
-                actions_taken=result.get("steps_executed", []),
-                terminal_packet_path=terminal_file_path,
-                checkpoint_path=str((self.checkpoint_dir / checkpoint_id).with_suffix('.yaml').relative_to(self.repo_root)),
-                commit_hash=result.get("commit_hash"),
+            lock_handle = acquire_run_lock(self.repo_root, checkpoint.run_id)
+        except RunLockError as exc:
+            return self._emit_blocked_terminal_result(
+                reason="concurrent_run_detected",
+                gate_results=[
+                    self._gate_result(
+                        phase="startup",
+                        name="run_lock",
+                        passed=False,
+                        reason=str(exc),
+                    )
+                ],
+                task_ref=checkpoint.task_spec.get("task_ref"),
+                policy_hash=checkpoint.policy_hash,
             )
-        except Exception:
-            ledger_write_ok = False
 
-        # Emit terminal packet with ledger chain anchor
-        outcome = result["outcome"]
-        reason = result.get("reason", "pass")
-        terminal_packet = TerminalPacket(
-            run_id=self.run_id,
-            timestamp=self._get_timestamp(),
-            outcome=outcome,
-            reason=reason,
-            steps_executed=result.get("steps_executed", []),
-            commit_hash=result.get("commit_hash"),
-            ledger_chain_tip=self.ledger.get_chain_tip(),
-            ledger_attempt_count=len(self.ledger.history),
-            ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
-        )
+        try:
+            if check_kill_switch(self.repo_root):
+                return self._emit_blocked_terminal_result(
+                    reason="kill_switch_active_post_lock",
+                    gate_results=[
+                        self._gate_result(
+                            phase="startup",
+                            name="kill_switch_post_lock",
+                            passed=False,
+                            reason="STOP_AUTONOMY detected after lock acquisition",
+                        )
+                    ],
+                    task_ref=checkpoint.task_spec.get("task_ref"),
+                    policy_hash=checkpoint.policy_hash,
+                )
 
-        terminal_file = self._emit_terminal(terminal_packet)
+            # P0: Fail-closed on dirty repo
+            verify_repo_clean(self.repo_root)
 
-        # Post-run governance hooks (can downgrade PASS → BLOCKED)
-        post_kwargs = {
-            "terminal_packet_path": terminal_file,
-            "ledger_write_ok": ledger_write_ok,
-            "evidence_dir": checkpoint.task_spec.get("evidence_dir"),
-            "evidence_tier": checkpoint.task_spec.get("evidence_tier", "light"),
-        }
-        post_result = run_post_hooks(post_kwargs, hooks=self._post_run_hooks)
-        if not post_result.all_passed and outcome == "PASS":
-            failed = [h.name for h in post_result.failed_hooks]
-            outcome = "BLOCKED"
-            reason = f"post_run_hook_failed: {failed}"
-            # Re-emit terminal packet with downgraded outcome
+            # Validate policy hash
+            current_hash = self._get_current_policy_hash()
+            if checkpoint.policy_hash != current_hash:
+                self._emit_blocked_terminal_result(
+                    reason="POLICY_CHANGED_MID_RUN",
+                    gate_results=[
+                        self._gate_result(
+                            phase="resume",
+                            name="checkpoint_policy_hash",
+                            passed=False,
+                            reason=(
+                                f"checkpoint={checkpoint.policy_hash} current={current_hash}"
+                            ),
+                        )
+                    ],
+                    task_ref=checkpoint.task_spec.get("task_ref"),
+                    policy_hash=current_hash,
+                )
+
+                raise PolicyChangedError(
+                    checkpoint_hash=checkpoint.policy_hash,
+                    current_hash=current_hash,
+                )
+
+            # Check resolution status
+            is_resolved, decision = self._check_resolution(checkpoint_id)
+
+            if not is_resolved:
+                raise SpineError(f"Checkpoint {checkpoint_id} is not yet resolved")
+
+            if decision == "REJECTED":
+                # CEO rejected, terminate without execution
+                return self._emit_blocked_terminal_result(
+                    reason="checkpoint_rejected",
+                    gate_results=[
+                        self._gate_result(
+                            phase="resume",
+                            name="checkpoint_resolution",
+                            passed=False,
+                            reason="resolution_decision=REJECTED",
+                        )
+                    ],
+                    task_ref=checkpoint.task_spec.get("task_ref"),
+                    policy_hash=checkpoint.policy_hash,
+                )
+
+            # Resume execution
+            self.state = SpineState.RESUMED
+            self.current_policy_hash = checkpoint.policy_hash
+            self.was_resumed = True
+
+            # Hydrate ledger from prior run; initialize if missing (e.g. test scenario)
+            if not self.ledger.hydrate():
+                self.ledger.initialize(
+                    LedgerHeader(
+                        policy_hash=checkpoint.policy_hash,
+                        handoff_hash=self._compute_hash(checkpoint.task_spec),
+                        run_id=checkpoint.run_id,
+                    )
+                )
+
+            start_ts = self._get_timestamp()
+            result = self._run_chain_steps(
+                task_spec=checkpoint.task_spec,
+                start_from_step=checkpoint.step_index,
+            )
+
+            # Track phase outcomes for v2.1
+            phase_outcomes: Dict[str, Any] = {}
+            for step in result.get("steps_executed", []):
+                phase_outcomes[step] = {"status": "pass"}
+            if result["outcome"] != "PASS":
+                all_steps = result.get("steps_executed", [])
+                if all_steps:
+                    phase_outcomes[all_steps[-1]] = {"status": "fail"}
+
+            # Write ledger record first so chain tip includes final record
+            terminal_file_path = f"artifacts/terminal/TP_{self.run_id}.yaml"
+            ledger_write_ok = True
+            try:
+                self._write_ledger_record(
+                    success=(result["outcome"] == "PASS"),
+                    terminal_reason=result.get("reason", "pass"),
+                    actions_taken=result.get("steps_executed", []),
+                    terminal_packet_path=terminal_file_path,
+                    checkpoint_path=str((self.checkpoint_dir / checkpoint_id).with_suffix('.yaml').relative_to(self.repo_root)),
+                    commit_hash=result.get("commit_hash"),
+                )
+            except Exception:
+                ledger_write_ok = False
+
+            # Check repo cleanliness for v2.1
+            repo_clean_verified = False
+            try:
+                verify_repo_clean(self.repo_root)
+                repo_clean_verified = True
+            except Exception:
+                pass
+
+            receipt_index = self._finalize_receipt_index(include_empty=True)
+
+            # Emit terminal packet with ledger chain anchor
+            outcome = result["outcome"]
+            reason = result.get("reason", "pass")
+            end_ts = self._get_timestamp()
+            status = "SUCCESS" if outcome == "PASS" else "CLEAN_FAIL"
+            resume_gate_results = [
+                self._gate_result(
+                    phase="resume",
+                    name="checkpoint_policy_hash",
+                    passed=True,
+                    reason="ok",
+                ),
+                self._gate_result(
+                    phase="resume",
+                    name="checkpoint_resolution",
+                    passed=True,
+                    reason=f"resolution_decision={decision}",
+                ),
+            ]
             terminal_packet = TerminalPacket(
                 run_id=self.run_id,
                 timestamp=self._get_timestamp(),
@@ -566,18 +655,55 @@ class LoopSpine:
                 ledger_chain_tip=self.ledger.get_chain_tip(),
                 ledger_attempt_count=len(self.ledger.history),
                 ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+                status=status,
+                start_ts=start_ts,
+                end_ts=end_ts,
+                task_ref=checkpoint.task_spec.get("task_ref"),
+                policy_hash=self.current_policy_hash,
+                phase_outcomes=phase_outcomes,
+                gate_results=resume_gate_results,
+                receipt_index=receipt_index,
+                clean_fail_reason=reason if outcome != "PASS" else None,
+                repo_clean_verified=repo_clean_verified,
+                orphan_check_passed=True,
             )
+            terminal_file = self._emit_terminal(terminal_packet)
+
+            # Post-run governance hooks (can downgrade PASS → BLOCKED)
+            post_kwargs = {
+                "terminal_packet_path": terminal_file,
+                "ledger_write_ok": ledger_write_ok,
+                "evidence_dir": checkpoint.task_spec.get("evidence_dir"),
+                "evidence_tier": checkpoint.task_spec.get("evidence_tier", "light"),
+            }
+            post_result = run_post_hooks(post_kwargs, hooks=self._post_run_hooks)
+            gate_results = resume_gate_results + self._hook_results_to_gate_results(post_result)
+            terminal_packet.gate_results = gate_results
+            if not post_result.all_passed and outcome == "PASS":
+                failed = [h.name for h in post_result.failed_hooks]
+                outcome = "BLOCKED"
+                reason = f"post_run_hook_failed: {failed}"
+                terminal_packet.outcome = outcome
+                terminal_packet.reason = reason
+                terminal_packet.status = "CLEAN_FAIL"
+                terminal_packet.end_ts = self._get_timestamp()
+                terminal_packet.clean_fail_reason = reason
+
+            # Final terminal packet emission (includes post-run gate results).
             self._emit_terminal(terminal_packet)
 
-        # Return RESUMED state to indicate this was a resumed execution
-        # (even though we've completed and could transition to TERMINAL)
-        return {
-            "outcome": outcome,
-            "state": SpineState.RESUMED.value,
-            "run_id": self.run_id,
-            "commit_hash": result.get("commit_hash"),
-            "resumed": True,
-        }
+            # Return RESUMED state to indicate this was a resumed execution
+            # (even though we've completed and could transition to TERMINAL)
+            return {
+                "outcome": outcome,
+                "state": SpineState.RESUMED.value,
+                "run_id": self.run_id,
+                "commit_hash": result.get("commit_hash"),
+                "resumed": True,
+            }
+        finally:
+            if lock_handle is not None:
+                release_run_lock(lock_handle)
 
     def _run_chain_steps(
         self,
@@ -888,6 +1014,93 @@ class LoopSpine:
         checkpoint = self._load_checkpoint(checkpoint_id)
         return (checkpoint.resolved, checkpoint.resolution_decision)
 
+    @staticmethod
+    def _gate_result(phase: str, name: str, passed: bool, reason: str) -> Dict[str, Any]:
+        """Create a normalized gate result entry for terminal packets."""
+        return {
+            "phase": phase,
+            "name": name,
+            "pass": bool(passed),
+            "reason": reason,
+        }
+
+    def _hook_results_to_gate_results(self, hook_sequence: Any) -> List[Dict[str, Any]]:
+        """Convert HookSequenceResult into terminal gate result entries."""
+        if hook_sequence is None:
+            return []
+        phase = str(getattr(hook_sequence, "phase", "unknown"))
+        results: List[Dict[str, Any]] = []
+        for hook_result in getattr(hook_sequence, "results", []):
+            results.append(
+                self._gate_result(
+                    phase=phase,
+                    name=str(getattr(hook_result, "name", "unknown")),
+                    passed=bool(getattr(hook_result, "passed", False)),
+                    reason=str(getattr(hook_result, "reason", "")),
+                )
+            )
+        return results
+
+    def _finalize_receipt_index(self, include_empty: bool = False) -> Optional[str]:
+        """Finalize invocation receipts for this run and return repo-relative index path."""
+        if not self.run_id:
+            return None
+        index_path = finalize_run_receipts(
+            run_id=self.run_id,
+            output_dir=self.repo_root,
+            include_empty=include_empty,
+        )
+        if index_path is None:
+            return None
+        try:
+            return str(index_path.relative_to(self.repo_root))
+        except ValueError:
+            return str(index_path)
+
+    def _emit_blocked_terminal_result(
+        self,
+        *,
+        reason: str,
+        gate_results: Optional[List[Dict[str, Any]]] = None,
+        steps_executed: Optional[List[str]] = None,
+        task_ref: Optional[str] = None,
+        start_ts: Optional[str] = None,
+        policy_hash: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Emit a clean-fail terminal packet and return the canonical BLOCKED result."""
+        if not self.run_id:
+            self.run_id = self._generate_run_id()
+        started = start_ts or self._get_timestamp()
+        ended = self._get_timestamp()
+        terminal_packet = TerminalPacket(
+            run_id=self.run_id,
+            timestamp=ended,
+            outcome="BLOCKED",
+            reason=reason,
+            steps_executed=steps_executed or [],
+            ledger_chain_tip=self.ledger.get_chain_tip(),
+            ledger_attempt_count=len(self.ledger.history),
+            ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+            status="CLEAN_FAIL",
+            start_ts=started,
+            end_ts=ended,
+            task_ref=task_ref,
+            policy_hash=policy_hash or self.current_policy_hash,
+            gate_results=gate_results or [],
+            receipt_index=self._finalize_receipt_index(include_empty=True),
+            clean_fail_reason=reason,
+            repo_clean_verified=False,
+            orphan_check_passed=True,
+        )
+        self._emit_terminal(terminal_packet)
+        self.state = SpineState.TERMINAL
+        return {
+            "outcome": "BLOCKED",
+            "reason": reason,
+            "state": self.state.value,
+            "run_id": self.run_id,
+        }
+
     def _emit_terminal(self, packet: TerminalPacket) -> Path:
         """
         Emit terminal packet to artifacts/terminal/.
@@ -902,8 +1115,14 @@ class LoopSpine:
 
         terminal_file = self.terminal_dir / f"TP_{packet.run_id}.yaml"
 
-        # Convert to dict and sort keys for determinism
+        # Compute packet_hash from the serialized packet representation with
+        # packet_hash blanked (stable, verifiable, and independent of field order).
         packet_dict = asdict(packet)
+        packet_dict["packet_hash"] = None
+        base_content = yaml.dump(packet_dict, sort_keys=True, default_flow_style=False)
+        packet_hash = f"sha256:{hashlib.sha256(base_content.encode('utf-8')).hexdigest()}"
+        packet.packet_hash = packet_hash
+        packet_dict["packet_hash"] = packet_hash
 
         content = yaml.dump(packet_dict, sort_keys=True, default_flow_style=False)
         atomic_write_text(terminal_file, content)
