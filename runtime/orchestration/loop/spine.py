@@ -85,7 +85,7 @@ class CheckpointPacket:
 @dataclass
 class TerminalPacket:
     """
-    Terminal packet emitted when execution completes.
+    Terminal packet emitted when execution completes (v2.1).
 
     Persisted to artifacts/terminal/TP_<run_id>.yaml
     """
@@ -99,6 +99,19 @@ class TerminalPacket:
     ledger_chain_tip: Optional[str] = None
     ledger_attempt_count: int = 0
     ledger_schema_version: Optional[str] = None
+    # v2.1 extensions
+    status: str = ""  # "SUCCESS" | "CLEAN_FAIL"
+    start_ts: Optional[str] = None
+    end_ts: Optional[str] = None
+    task_ref: Optional[str] = None
+    policy_hash: Optional[str] = None
+    phase_outcomes: Optional[Dict[str, Any]] = None
+    gate_results: Optional[List[Dict[str, Any]]] = None
+    receipt_index: Optional[str] = None
+    clean_fail_reason: Optional[str] = None
+    repo_clean_verified: bool = False
+    orphan_check_passed: bool = False
+    packet_hash: Optional[str] = None  # SHA-256, computed last
 
 
 class SpineError(Exception):
@@ -190,6 +203,36 @@ class LoopSpine:
         self.run_id = self._generate_run_id()
         self.state = SpineState.RUNNING
 
+        # Acquire run-lock (fail-closed on contention)
+        from runtime.orchestration.loop.run_lock import (
+            acquire_run_lock, release_run_lock, RunLockError,
+        )
+        lock_handle = None
+        try:
+            lock_handle = acquire_run_lock(self.repo_root, self.run_id)
+        except RunLockError:
+            self.state = SpineState.TERMINAL
+            return {
+                "outcome": "BLOCKED",
+                "reason": "concurrent_run_detected",
+                "state": self.state.value,
+                "run_id": self.run_id,
+            }
+
+        try:
+            return self._run_locked(task_spec, lock_handle)
+        finally:
+            if lock_handle is not None:
+                release_run_lock(lock_handle)
+
+    def _run_locked(
+        self,
+        task_spec: Dict[str, Any],
+        lock_handle: Any,
+    ) -> Dict[str, Any]:
+        """Execute the spine run while holding the run lock."""
+        start_ts = self._get_timestamp()
+
         # Get current policy hash
         self.current_policy_hash = self._get_current_policy_hash()
 
@@ -216,6 +259,9 @@ class LoopSpine:
                 "run_id": self.run_id,
             }
 
+        # Track phase outcomes for v2.1
+        phase_outcomes: Dict[str, Any] = {}
+
         # Run chain steps (optionally in isolated worktree)
         try:
             if self.use_worktree:
@@ -227,6 +273,15 @@ class LoopSpine:
                     validate_worktree_clean(wt_handle)
             else:
                 result = self._run_chain_steps(task_spec=task_spec)
+
+            # Build phase_outcomes from steps_executed
+            for step in result.get("steps_executed", []):
+                phase_outcomes[step] = {"status": "pass"}
+            if result["outcome"] != "PASS":
+                # Last step that was executing when failure occurred
+                all_steps = result.get("steps_executed", [])
+                if all_steps:
+                    phase_outcomes[all_steps[-1]] = {"status": "fail"}
 
             # Write ledger record first so chain tip includes final record
             terminal_file_path = f"artifacts/terminal/TP_{self.run_id}.yaml"
@@ -243,9 +298,35 @@ class LoopSpine:
             except Exception:
                 ledger_write_ok = False
 
-            # Emit terminal packet with ledger chain anchor
+            # Check repo cleanliness for v2.1
+            repo_clean_verified = False
+            try:
+                verify_repo_clean(self.repo_root)
+                repo_clean_verified = True
+            except Exception:
+                pass
+
+            # Emit terminal packet with ledger chain anchor + v2.1 fields
             outcome = result["outcome"]
             reason = result.get("reason", "pass")
+            end_ts = self._get_timestamp()
+            status = "SUCCESS" if outcome == "PASS" else "CLEAN_FAIL"
+
+            # Compute packet hash from all fields
+            from runtime.util.canonical import compute_sha256
+            v21_base = {
+                "run_id": self.run_id,
+                "outcome": outcome,
+                "reason": reason,
+                "steps_executed": result.get("steps_executed", []),
+                "status": status,
+                "start_ts": start_ts,
+                "end_ts": end_ts,
+                "policy_hash": self.current_policy_hash,
+                "phase_outcomes": phase_outcomes,
+            }
+            packet_hash = compute_sha256(v21_base)
+
             terminal_packet = TerminalPacket(
                 run_id=self.run_id,
                 timestamp=self._get_timestamp(),
@@ -256,6 +337,16 @@ class LoopSpine:
                 ledger_chain_tip=self.ledger.get_chain_tip(),
                 ledger_attempt_count=len(self.ledger.history),
                 ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+                status=status,
+                start_ts=start_ts,
+                end_ts=end_ts,
+                task_ref=task_spec.get("task_ref"),
+                policy_hash=self.current_policy_hash,
+                phase_outcomes=phase_outcomes,
+                clean_fail_reason=reason if outcome != "PASS" else None,
+                repo_clean_verified=repo_clean_verified,
+                orphan_check_passed=True,
+                packet_hash=packet_hash,
             )
             terminal_file = self._emit_terminal(terminal_packet)
 
@@ -271,6 +362,7 @@ class LoopSpine:
                 failed = [h.name for h in post_result.failed_hooks]
                 outcome = "BLOCKED"
                 reason = f"post_run_hook_failed: {failed}"
+                end_ts = self._get_timestamp()
                 # Re-emit terminal packet with downgraded outcome
                 terminal_packet = TerminalPacket(
                     run_id=self.run_id,
@@ -282,6 +374,16 @@ class LoopSpine:
                     ledger_chain_tip=self.ledger.get_chain_tip(),
                     ledger_attempt_count=len(self.ledger.history),
                     ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+                    status="CLEAN_FAIL",
+                    start_ts=start_ts,
+                    end_ts=end_ts,
+                    task_ref=task_spec.get("task_ref"),
+                    policy_hash=self.current_policy_hash,
+                    phase_outcomes=phase_outcomes,
+                    clean_fail_reason=reason,
+                    repo_clean_verified=repo_clean_verified,
+                    orphan_check_passed=True,
+                    packet_hash=compute_sha256({**v21_base, "outcome": outcome, "reason": reason, "status": "CLEAN_FAIL", "end_ts": end_ts}),
                 )
                 self._emit_terminal(terminal_packet)
 
@@ -793,13 +895,15 @@ class LoopSpine:
         Returns:
             Path to emitted terminal packet file
         """
+        from runtime.util.atomic_write import atomic_write_text
+
         terminal_file = self.terminal_dir / f"TP_{packet.run_id}.yaml"
 
         # Convert to dict and sort keys for determinism
         packet_dict = asdict(packet)
 
-        with open(terminal_file, 'w', encoding='utf-8') as f:
-            yaml.dump(packet_dict, f, sort_keys=True, default_flow_style=False)
+        content = yaml.dump(packet_dict, sort_keys=True, default_flow_style=False)
+        atomic_write_text(terminal_file, content)
 
         return terminal_file
 

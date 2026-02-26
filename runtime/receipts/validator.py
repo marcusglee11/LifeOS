@@ -11,6 +11,7 @@ from typing import Any
 from jsonschema import Draft202012Validator, FormatChecker
 
 from . import schemas as _schemas
+from . import invocation_schema as _inv_schemas
 
 
 # Map schema name -> schema dict
@@ -21,6 +22,8 @@ _SCHEMA_MAP: dict[str, dict] = {
     "gate_result": _schemas.GATE_RESULT_SCHEMA,
     "runlog_event": _schemas.RUNLOG_EVENT_SCHEMA,
     "review_summary": _schemas.REVIEW_SUMMARY_SCHEMA,
+    "invocation_receipt": _inv_schemas.INVOCATION_RECEIPT_SCHEMA,
+    "invocation_index": _inv_schemas.INVOCATION_INDEX_SCHEMA,
 }
 
 _FORMAT_CHECKER = FormatChecker()
