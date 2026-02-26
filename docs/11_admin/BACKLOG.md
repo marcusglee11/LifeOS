@@ -8,13 +8,18 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-23 (rev6)
+**Last Updated:** 2026-02-26 (rev7)
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
 
-(None — W5-T02 checkpoint/resume proof complete, next queued item is W6 Codemoot spike)
+- [ ] **Run-lock implementation** — DoD: Single-flight enforcement, stale lock detection, concurrent test + stale test pass — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
+- [ ] **Terminal packet + receipt emission** — DoD: Schema matches Evidence Contract; dry-run cycle produces valid packet + receipt index — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
+- [ ] **Council V2 shadow-mode wiring** — DoD: V2 receives payloads in parallel, verdicts logged, does not gate; legacy remains sole gate — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
+- [ ] **Shadow agent capture mechanism** — DoD: Dispatches payload, stores evidence, does not affect pipeline — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
+- [ ] **GitHub Actions feasibility report** — DoD: Investigation report at artifacts/reports/github_actions_feasibility.md — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 (investigation only)
+- [ ] **Burn-in task curation (CEO approval required)** — DoD: 5-7 tasks proposed at artifacts/reports/burn_in_task_proposal.md, CEO approved, ready for Batch 1 — Owner: antigravity — Context: Build Loop Plan v2.1 §1
 
 ### P1 (High)
 

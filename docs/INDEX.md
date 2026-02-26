@@ -1,6 +1,6 @@
-# LifeOS Strategic Corpus [P26-02-21 (rev8)]
+# LifeOS Strategic Corpus [P26-02-26 (rev9)]
 
-Last Updated: 2026-02-22
+Last Updated: 2026-02-26
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -49,7 +49,8 @@ LifeOS Constitution v2.0 (Supreme)
 | [DECISIONS.md](./11_admin/DECISIONS.md) | **Append-only** — Decision log (low volume) |
 | [INBOX.md](./11_admin/INBOX.md) | Raw capture scratchpad for triage |
 | [Plan_Supersession_Register.md](./11_admin/Plan_Supersession_Register.md) | **Control** — Canonical register of superseded and active plans |
-| [LifeOS_Master_Execution_Plan_v1.1.md](./11_admin/LifeOS_Master_Execution_Plan_v1.1.md) | **Canonical plan** — Current master execution plan (per supersession register) |
+| [LifeOS_Build_Loop_Production_Plan_v2.1.md](./11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md) | **Canonical plan** — Production readiness plan (per supersession register) |
+| [LifeOS_Master_Execution_Plan_v1.1.md](./11_admin/LifeOS_Master_Execution_Plan_v1.1.md) | (superseded by v2.1) — Historical master execution plan W0–W7 |
 | [Doc_Freshness_Gate_Spec_v1.0.md](./11_admin/Doc_Freshness_Gate_Spec_v1.0.md) | **Control** — Runtime-backed doc freshness and contradiction gate spec |
 | [AUTONOMY_STATUS.md](./11_admin/AUTONOMY_STATUS.md) | **Derived view** — Autonomy capability matrix (derived from canonical sources) |
 | [WIP_LOG.md](./11_admin/WIP_LOG.md) | **WIP tracker** — Work-in-progress log with controlled status enum |

@@ -101,6 +101,7 @@ nul
 /.athena_root
 /.context/
 /.framework/
+/.claude-octopus/
 
 # LifeOS Closures & Ephemeral
 artifacts/closures/*.zip

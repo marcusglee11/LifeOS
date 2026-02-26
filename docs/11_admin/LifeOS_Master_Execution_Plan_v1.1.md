@@ -1,7 +1,7 @@
 # LifeOS Master Execution Plan v1.1 (Superseding, Canonical)
 
-**Status:** IN PROGRESS — W0/W4/W5/W7 core stabilization complete; W5-T02 DONE, W6 pending
-**Last Updated:** 2026-02-19 (rev5)
+**Status:** COMPLETE — Superseded by LifeOS_Build_Loop_Production_Plan_v2.1.md (2026-02-26)
+**Last Updated:** 2026-02-26 (rev6)
 
 ## 0. Authority and Scope
 
@@ -58,12 +58,12 @@ Stateless agents must execute this plan exactly and report deviations as blocker
 | W5 | T02 | ✅ DONE | 2026-02-19 | Checkpoint/resume E2E proof complete (6 integration tests) |
 | W5 | T03 | ✅ DONE | 2026-02-13 | Budget controller has real enforcement (W5-T04 landed) |
 | W5 | T04 | ✅ DONE | 2026-02-13 | Token plumbing fail-closed, integrated |
-| W6 | T00-T02 | ⏸️ DEFERRED | — | Codemoot spike deferred pending W7 stabilization |
+| W6 | T00-T02 | ❌ SUPERSEDED | — | Deprecated by Build Loop Plan v2.1. Council V2 is the production reviewer path. |
 | W7 | T01 | ✅ DONE | 2026-02-16 | Ledger hash-chain hardened (commit 558c375) |
 | W7 | T02 | ✅ DONE | 2026-02-16 | Freshness check wired into CI (warn mode) + close-build gate |
 | W7 | T03 | ✅ DONE | 2026-02-16 | All 5 protocol docs finalized (ACTIVE, no TODO markers) |
 
-**Current Focus:** W7 stabilization COMPLETE. Next: W6 Codemoot spike
+**Current Focus:** PLAN COMPLETE — All W0/W4/W5/W7 tasks done. W6 Codemoot SUPERSEDED. See Build Loop Plan v2.1.
 
 ## 5. Execution Work Packages
 

@@ -21,6 +21,7 @@ REQUIRED_FILES = {
 }
 
 CANONICAL_OPTIONAL_FILES = {
+    "LifeOS_Build_Loop_Production_Plan_v2.1.md",
     "LifeOS_Master_Execution_Plan_v1.1.md",
     "Plan_Supersession_Register.md",
     "Doc_Freshness_Gate_Spec_v1.0.md",

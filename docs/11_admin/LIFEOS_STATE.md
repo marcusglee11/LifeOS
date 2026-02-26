@@ -13,7 +13,7 @@
 
 **Current Focus:** Receipts-first Phase C MERGED. Land receipts + reconciliation audit mode live.
 **Active WIP:** None — build/receipts-phase-a closed
-**Last Updated:** 2026-02-24 (rev20)
+**Last Updated:** 2026-02-26 (rev21)
 
 ---
 
@@ -28,9 +28,11 @@
 5. ~~W4-T03 Worktree dispatch governance~~ ✓ **COMPLETE** (2026-02-18, Spine clean-worktree enforcement)
 6. ~~W4-T04 Validator lifecycle hooks (OpenClaw path)~~ ✓ **COMPLETE** (2026-02-18, openclaw_bridge execute + CLI)
 7. ~~W5-T02 Checkpoint/resume E2E proof~~ ✓ **COMPLETE** (2026-02-19, 6/6 integration tests)
-8. **Next:** W6 Codemoot spike
+8. ~~W6 Codemoot spike~~ **SUPERSEDED** — Council V2 is the production reviewer path (per Build Loop Plan v2.1)
 
-**Canonical Plan Authority:** `artifacts/plans/LifeOS_Master_Execution_Plan_v1.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
+**Next:** Week 1 prerequisites — Run-lock, terminal packet emission, receipt emission, Council V2 shadow wiring (see Build Loop Plan v2.1)
+
+**Canonical Plan Authority:** `docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 
 ---
 
