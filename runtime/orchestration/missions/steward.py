@@ -26,6 +26,20 @@ from runtime.orchestration.missions.base import (
 from runtime.api.governance_api import SelfModProtector
 
 
+SYSTEM_ARTIFACT_PREFIXES = (
+    "artifacts/loop_state/",
+    "artifacts/terminal/",
+    "artifacts/checkpoints/",
+    "artifacts/steps/",
+    "artifacts/receipts/",
+    "artifacts/shadow/",
+    "artifacts/shadow_council/",
+    "artifacts/locks/",
+    "artifacts/steward_tasks/",
+    "logs/",
+)
+
+
 class StewardMission(BaseMission):
     """
     Steward mission: Commit approved changes to repository.
@@ -300,7 +314,7 @@ class StewardMission(BaseMission):
         try:
             # Check git status, filtering system artifacts
             result = subprocess.run(
-                ["git", "status", "--porcelain"],
+                ["git", "status", "--porcelain", "--untracked-files=all"],
                 cwd=context.repo_root,
                 capture_output=True,
                 text=True,
@@ -321,8 +335,11 @@ class StewardMission(BaseMission):
                 if len(parts) < 2:
                     continue
                 file_path = parts[1]  # filename is everything after the status
+                # Handle renamed/copied paths in "old -> new" format.
+                if " -> " in file_path:
+                    file_path = file_path.split(" -> ", 1)[-1].strip()
                 # Skip system artifacts
-                if not file_path.startswith(('artifacts/loop_state/', 'artifacts/terminal/', 'logs/')):
+                if not file_path.startswith(SYSTEM_ARTIFACT_PREFIXES):
                     dirty_files.append(line)
 
             if dirty_files:
