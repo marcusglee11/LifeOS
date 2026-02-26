@@ -6,6 +6,7 @@ Tests checkpoint/resume semantics, deterministic execution, and fail-closed beha
 """
 import pytest
 import json
+import hashlib
 import yaml
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
@@ -20,6 +21,7 @@ from runtime.orchestration.loop.spine import (
     PolicyChangedError,
 )
 from runtime.orchestration.run_controller import RepoDirtyError
+from runtime.orchestration.loop.run_lock import RunLockError
 
 
 @pytest.fixture
@@ -130,6 +132,54 @@ class TestSingleChainExecution:
                 packet_data = yaml.safe_load(f)
                 assert packet_data["outcome"] == "BLOCKED"
                 assert packet_data["reason"] == "max_retries_exceeded"
+
+    def test_terminal_packet_hash_and_contract_fields(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+        """Terminal packet includes gate_results/receipt_index and verifiable packet_hash."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+
+        with patch.object(spine, "_run_chain_steps") as mock_steps:
+            mock_steps.return_value = {
+                "outcome": "PASS",
+                "steps_executed": ["hydrate", "policy", "design", "build", "review", "steward"],
+                "commit_hash": "abc123",
+            }
+
+            result = spine.run(task_spec=task_spec)
+            assert result["outcome"] == "PASS"
+
+        terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
+        assert len(terminal_packets) == 1
+        packet_data = yaml.safe_load(terminal_packets[0].read_text("utf-8"))
+        assert isinstance(packet_data.get("gate_results"), list)
+        assert packet_data["receipt_index"] == f"artifacts/receipts/{packet_data['run_id']}/index.json"
+
+        receipt_index_path = clean_repo_root / packet_data["receipt_index"]
+        assert receipt_index_path.exists()
+
+        packet_hash = packet_data["packet_hash"]
+        packet_data["packet_hash"] = None
+        serialized_without_hash = yaml.dump(packet_data, sort_keys=True, default_flow_style=False)
+        expected_hash = f"sha256:{hashlib.sha256(serialized_without_hash.encode('utf-8')).hexdigest()}"
+        assert packet_hash == expected_hash
+
+    def test_concurrent_run_emits_terminal_packet(self, clean_repo_root, task_spec, mock_run_controller):
+        """Run-lock contention returns BLOCKED and emits a terminal packet."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+        with patch("runtime.orchestration.loop.run_lock.acquire_run_lock") as mock_acquire:
+            mock_acquire.side_effect = RunLockError(
+                "CONCURRENT_RUN_DETECTED",
+                "Run lock held by pid=1 run_id=other",
+            )
+            result = spine.run(task_spec=task_spec)
+
+        assert result["outcome"] == "BLOCKED"
+        assert result["reason"] == "concurrent_run_detected"
+        terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
+        assert len(terminal_packets) == 1
+        packet_data = yaml.safe_load(terminal_packets[0].read_text("utf-8"))
+        assert packet_data["reason"] == "concurrent_run_detected"
+        assert packet_data["outcome"] == "BLOCKED"
+        assert isinstance(packet_data.get("gate_results"), list)
 
 
 class TestCheckpointPause:
@@ -278,6 +328,38 @@ class TestResumeFromCheckpoint:
                 # Verify we started from step 3 (skipped 0, 1, 2)
                 call_kwargs = mock_steps.call_args[1]
                 assert call_kwargs.get("start_from_step") == 3
+
+    def test_resume_acquires_and_releases_run_lock(self, clean_repo_root, task_spec, mock_run_controller):
+        """resume() uses run lock with the checkpoint run_id and releases it."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+        checkpoint_packet = CheckpointPacket(
+            checkpoint_id="CP_lock_resume",
+            run_id="run_resume_lock",
+            timestamp="2026-02-02T12:00:00Z",
+            trigger="ESCALATION_REQUESTED",
+            step_index=2,
+            policy_hash="current_policy_hash",
+            task_spec=task_spec,
+            resolved=True,
+            resolution_decision="APPROVED",
+        )
+        spine._save_checkpoint(checkpoint_packet)
+
+        with patch.object(spine, "_run_chain_steps") as mock_steps:
+            mock_steps.return_value = {
+                "outcome": "PASS",
+                "steps_executed": ["build", "review", "steward"],
+                "commit_hash": "def456",
+            }
+            with patch.object(spine, "_get_current_policy_hash", return_value="current_policy_hash"), \
+                 patch("runtime.orchestration.loop.run_lock.acquire_run_lock") as mock_acquire, \
+                 patch("runtime.orchestration.loop.run_lock.release_run_lock") as mock_release:
+                mock_acquire.return_value = object()
+                result = spine.resume(checkpoint_id="CP_lock_resume")
+
+        assert result["outcome"] == "PASS"
+        mock_acquire.assert_called_once_with(clean_repo_root, "run_resume_lock")
+        mock_release.assert_called_once()
 
 
 class TestResumePolicyChange:
