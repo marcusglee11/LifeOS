@@ -129,6 +129,14 @@ LifeOS Constitution v2.0 (Supreme)
 
 ## 02_protocols — Protocols & Agent Communication
 
+### Batch 1 Runtime Protocols
+
+> **Note:** The 5 Batch 1 runtime modules (`run_lock`, `invocation_receipt`, `invocation_schema`, `shadow_runner`, `shadow_capture`) do not yet have dedicated protocol docs in `02_protocols/`. Their protocol definitions are captured in:
+
+| Document | Coverage |
+|----------|---------|
+| [LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md](./03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md) | **Batch 1**: run_lock, invocation_receipt, invocation_schema, shadow_runner, shadow_capture — autonomous build loop protocol definitions |
+
 ### Core Protocols
 
 | Document | Purpose |

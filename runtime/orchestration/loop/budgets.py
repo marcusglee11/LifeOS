@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 import time
 from typing import Tuple, Optional
@@ -8,6 +10,26 @@ class BudgetConfig:
     max_attempts: int = 5
     max_tokens: int = 100000
     max_wall_clock_minutes: int = 30
+    
+    def __post_init__(self) -> None:
+        """
+        Validate budget configuration parameters.
+        
+        Raises:
+            ValueError: If any parameter is non-positive
+        """
+        if self.max_attempts <= 0:
+            raise ValueError(
+                f"max_attempts must be positive, got {self.max_attempts}"
+            )
+        if self.max_tokens <= 0:
+            raise ValueError(
+                f"max_tokens must be positive, got {self.max_tokens}"
+            )
+        if self.max_wall_clock_minutes <= 0:
+            raise ValueError(
+                f"max_wall_clock_minutes must be positive, got {self.max_wall_clock_minutes}"
+            )
     
 class BudgetController:
     """

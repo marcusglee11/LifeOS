@@ -480,22 +480,38 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
             "errors": [f"safety gate blocked merge: {details or 'unknown failure'}"],
         }
 
-    # Detect if repo_root already has main checked out (e.g. when running from a
-    # git worktree — checkout main would fail with "already used by worktree").
-    _head_proc = subprocess.run(
-        ["git", "-C", str(repo), "branch", "--show-current"],
+    # Find the primary worktree — when running from a linked git worktree,
+    # checkout/merge must target the primary repo where main is checked out.
+    # Scanning git worktree list --porcelain to find the entry whose branch is main.
+    _wt_proc = subprocess.run(
+        ["git", "-C", str(repo), "worktree", "list", "--porcelain"],
         check=False, capture_output=True, text=True,
     )
-    _repo_already_on_main = _head_proc.stdout.strip() in {"main", "master"}
+    primary_repo: Path = repo
+    _candidate: Path = repo
+    for _line in _wt_proc.stdout.splitlines():
+        if _line.startswith("worktree "):
+            _candidate = Path(_line.split(" ", 1)[1].strip())
+        elif _line.startswith("branch refs/heads/"):
+            _branch_name = _line.removeprefix("branch refs/heads/").strip()
+            if _branch_name in {"main", "master"}:
+                primary_repo = _candidate
+                break
+
+    _primary_head_proc = subprocess.run(
+        ["git", "-C", str(primary_repo), "branch", "--show-current"],
+        check=False, capture_output=True, text=True,
+    )
+    _repo_already_on_main = _primary_head_proc.stdout.strip() in {"main", "master"}
 
     steps = [
-        *([("checkout main", ["git", "-C", str(repo), "checkout", "main"])]
+        *([("checkout main", ["git", "-C", str(primary_repo), "checkout", "main"])]
           if not _repo_already_on_main else []),
-        ("pull --ff-only", ["git", "-C", str(repo), "pull", "--ff-only"]),
-        ("squash merge", ["git", "-C", str(repo), "merge", "--squash", source_branch]),
+        ("pull --ff-only", ["git", "-C", str(primary_repo), "pull", "--ff-only"]),
+        ("squash merge", ["git", "-C", str(primary_repo), "merge", "--squash", source_branch]),
         (
             "commit squash merge",
-            ["git", "-C", str(repo), "commit", "-m", f"feat: Merge {source_branch} (squashed)"],
+            ["git", "-C", str(primary_repo), "commit", "-m", f"feat: Merge {source_branch} (squashed)"],
         ),
     ]
 
@@ -527,7 +543,7 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
                 continue
         errors.append(f"{label} failed: {details or f'exit code {proc.returncode}'}")
         subprocess.run(
-            ["git", "-C", str(repo), "checkout", source_branch],
+            ["git", "-C", str(primary_repo), "checkout", source_branch],
             check=False,
             capture_output=True,
             text=True,
@@ -535,7 +551,7 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
         return {"success": False, "merge_sha": None, "errors": errors}
 
     head = subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "HEAD"],
+        ["git", "-C", str(primary_repo), "rev-parse", "HEAD"],
         check=False,
         capture_output=True,
         text=True,
