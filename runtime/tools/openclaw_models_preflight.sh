@@ -76,7 +76,7 @@ open(sys.argv[2],'w',encoding='utf-8').write(text)
 PY
 
 set +e
-python3 runtime/tools/openclaw_model_policy_assert.py --models-list-file "$models_list_out" --json > "$policy_json"
+python3 runtime/tools/openclaw_model_policy_assert.py --config "$OPENCLAW_CONFIG_PATH" --models-list-file "$models_list_out" --json > "$policy_json"
 rc_policy=$?
 set -e
 

@@ -7,11 +7,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from runtime.util.canonical import sha256_file
 
@@ -33,16 +38,53 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
     """
     changes: List[str] = []
 
-    # Ensure agents.list exists
-    if "agents" not in cfg:
+    def normalize_fallbacks(current_fallbacks: Any, required_prefix: List[str]) -> List[str]:
+        if not isinstance(current_fallbacks, list):
+            current_fallbacks = []
+        existing = [str(x) for x in current_fallbacks if isinstance(x, str) and str(x).strip()]
+        filtered_existing = [
+            x
+            for x in existing
+            if ("haiku" not in x.lower()) and ("small" not in x.lower()) and (not x.lower().startswith("claude-max/"))
+        ]
+        extras = [x for x in filtered_existing if x not in required_prefix]
+        return required_prefix + extras
+
+    # Ensure agents section exists
+    if "agents" not in cfg or not isinstance(cfg.get("agents"), dict):
         cfg["agents"] = {}
         changes.append("Created agents section")
 
-    if "list" not in cfg["agents"]:
-        cfg["agents"]["list"] = []
+    agents = cfg["agents"]
+
+    # Ensure agents.defaults.model exists and follows policy.
+    defaults = agents.get("defaults")
+    if not isinstance(defaults, dict):
+        agents["defaults"] = {}
+        defaults = agents["defaults"]
+        changes.append("Created agents.defaults section")
+
+    defaults_model = defaults.get("model")
+    if not isinstance(defaults_model, dict):
+        defaults["model"] = {}
+        defaults_model = defaults["model"]
+        changes.append("Created agents.defaults.model section")
+
+    if defaults_model.get("primary") != EXECUTION_BASE[0]:
+        defaults_model["primary"] = EXECUTION_BASE[0]
+        changes.append(f"agents.defaults: set primary to {EXECUTION_BASE[0]}")
+
+    normalized_defaults_fallbacks = normalize_fallbacks(defaults_model.get("fallbacks"), EXECUTION_BASE[1:])
+    if defaults_model.get("fallbacks") != normalized_defaults_fallbacks:
+        defaults_model["fallbacks"] = normalized_defaults_fallbacks
+        changes.append("agents.defaults: normalized fallback prefix to subscription-first ladder")
+
+    # Ensure agents.list exists
+    if "list" not in agents:
+        agents["list"] = []
         changes.append("Created agents.list array")
 
-    agents_list = cfg["agents"]["list"]
+    agents_list = agents["list"]
 
     # Helper to find or create an agent
     def ensure_agent(agent_id: str, ladder_base: List[str]) -> None:
@@ -62,19 +104,10 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
                     model["primary"] = ladder_base[0]
                     changes.append(f"{agent_id}: set primary to {ladder_base[0]}")
 
-                if not isinstance(fallbacks, list):
-                    fallbacks = []
-
                 required_prefix = ladder_base[1:]
-                existing = [str(x) for x in fallbacks if isinstance(x, str) and str(x).strip()]
-                filtered_existing = [
-                    x
-                    for x in existing
-                    if ("haiku" not in x.lower()) and ("small" not in x.lower()) and (not x.lower().startswith("claude-max/"))
-                ]
-                extras = [x for x in filtered_existing if x not in required_prefix]
-                normalized_fallbacks = required_prefix + extras
-                if existing != normalized_fallbacks:
+                normalized_fallbacks = normalize_fallbacks(fallbacks, required_prefix)
+                current_fallbacks = fallbacks if isinstance(fallbacks, list) else []
+                if current_fallbacks != normalized_fallbacks:
                     model["fallbacks"] = normalized_fallbacks
                     changes.append(f"{agent_id}: normalized fallback prefix to subscription-first ladder")
 
@@ -103,7 +136,10 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Safe repair tool for OpenClaw model ladder configuration.")
-    parser.add_argument("--config", default=str(Path.home() / ".openclaw" / "openclaw.json"))
+    parser.add_argument(
+        "--config",
+        default=os.environ.get("OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")),
+    )
     parser.add_argument("--dry-run", action="store_true", help="Show what would be changed without applying")
     args = parser.parse_args()
 

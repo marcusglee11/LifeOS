@@ -66,6 +66,37 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
         )
         + "\n",
     )
+    _write_exec(
+        tools_dir / "openclaw_model_policy_assert.py",
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "import os",
+                "import sys",
+                "",
+                "print(os.environ.get('STUB_MODEL_POLICY_JSON', '{\"policy_ok\":true,\"violations\":[],\"ladders\":{}}'))",
+                "raise SystemExit(int(os.environ.get('STUB_MODEL_POLICY_RC', '0')))",
+            ]
+        )
+        + "\n",
+    )
+    _write_exec(
+        tools_dir / "openclaw_model_ladder_fix.py",
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "import os",
+                "import sys",
+                "",
+                "out = os.environ.get('STUB_MODEL_FIX_ARGS_FILE')",
+                "if out:",
+                "    with open(out, 'w', encoding='utf-8') as f:",
+                "        f.write(' '.join(sys.argv[1:]))",
+                "raise SystemExit(int(os.environ.get('STUB_MODEL_FIX_RC', '0')))",
+            ]
+        )
+        + "\n",
+    )
 
     _run(["git", "init"], repo_dir)
     _run(["git", "config", "user.email", "test@example.com"], repo_dir)
@@ -198,3 +229,58 @@ def test_start_resolves_repo_when_invoked_outside_repo(tmp_path: Path) -> None:
     assert proc.returncode == 0, proc.stderr
     gate = _gate_status(state_dir)
     assert gate["break_glass_used"] is False
+
+
+def test_models_status_parses_policy_json(tmp_path: Path) -> None:
+    repo_dir, env, _ = _prepare_repo(tmp_path)
+    env["STUB_MODEL_POLICY_RC"] = "1"
+    env["STUB_MODEL_POLICY_JSON"] = json.dumps(
+        {
+            "policy_ok": False,
+            "violations": ["main: no working model detected in configured ladder"],
+            "ladders": {
+                "main": {
+                    "actual": ["openai-codex/gpt-5.3-codex", "github-copilot/gpt-5-mini"],
+                    "required_prefix": [
+                        "openai-codex/gpt-5.3-codex",
+                        "github-copilot/gpt-5-mini",
+                        "google-gemini-cli/gemini-3-flash-preview",
+                    ],
+                    "working_count": 0,
+                    "top_rung_auth_missing": True,
+                }
+            },
+        }
+    )
+
+    proc = subprocess.run(
+        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "models", "status"],
+        cwd=repo_dir,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert "STATUS: INVALID - 1 violation(s) detected" in proc.stdout
+    assert "WARNING: Top rung (openai-codex/gpt-5.3-codex) not authenticated" in proc.stdout
+
+
+def test_models_fix_uses_openclaw_config_path(tmp_path: Path) -> None:
+    repo_dir, env, state_dir = _prepare_repo(tmp_path)
+    args_file = state_dir / "model_fix_args.txt"
+    env["STUB_MODEL_FIX_ARGS_FILE"] = str(args_file)
+
+    proc = subprocess.run(
+        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "models", "fix"],
+        cwd=repo_dir,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    args_value = args_file.read_text(encoding="utf-8")
+    assert f"--config {env['OPENCLAW_CONFIG_PATH']}" in args_value
