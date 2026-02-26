@@ -184,6 +184,13 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
             )
             continue
 
+        if _matches(file_path, ("docs/",)):
+            add(
+                "pytest -q runtime/tests/test_doc_hygiene.py "
+                "runtime/tests/test_backlog_parser.py"
+            )
+            continue
+
     if not routed:
         routed.append("pytest -q runtime/tests")
     return routed

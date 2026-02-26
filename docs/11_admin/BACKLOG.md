@@ -8,7 +8,7 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-26 (rev7)
+**Last Updated:** 2026-02-27 (rev8)
 
 ## Now (ready soon; not in WIP yet)
 
@@ -19,7 +19,7 @@
 - [ ] **Council V2 shadow-mode wiring** — DoD: V2 receives payloads in parallel, verdicts logged, does not gate; legacy remains sole gate — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
 - [ ] **Shadow agent capture mechanism** — DoD: Dispatches payload, stores evidence, does not affect pipeline — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
 - [ ] **GitHub Actions feasibility report** — DoD: Investigation report at artifacts/reports/github_actions_feasibility.md — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 (investigation only)
-- [ ] **Burn-in task curation (CEO approval required)** — DoD: 5-7 tasks proposed at artifacts/reports/burn_in_task_proposal.md, CEO approved, ready for Batch 1 — Owner: antigravity — Context: Build Loop Plan v2.1 §1
+- [x] **Burn-in task curation (CEO approval required)** — DoD: 5-7 tasks proposed at artifacts/reports/burn_in_task_proposal.md, CEO approved, ready for Batch 1 — Owner: antigravity — Context: Build Loop Plan v2.1 §1 — **Done: 2026-02-27** — Batch 1 completed; report at `docs/11_admin/Batch1_BurnIn_Report.md` (`78473e3`)
 
 ### P1 (High)
 

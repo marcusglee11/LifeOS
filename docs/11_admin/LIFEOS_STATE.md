@@ -13,7 +13,7 @@
 
 **Current Focus:** Receipts-first Phase C MERGED. Land receipts + reconciliation audit mode live.
 **Active WIP:** None — build/receipts-phase-a closed
-**Last Updated:** 2026-02-26 (rev21)
+**Last Updated:** 2026-02-27 (rev22)
 
 ---
 
@@ -78,6 +78,7 @@ None — all prior blockers resolved:
 
 ## 🟩 Recent Wins
 
+- **2026-02-27:** Batch 1 Burn-In COMPLETE (`78473e3`) — 6 spine runs; 40 new tests (2147 total, 0 regressions); `BudgetConfig.__post_init__` validation; `workflow_pack.py` worktree fix; 7 key findings documented for Batch 2 procedure improvement. Report: `docs/11_admin/Batch1_BurnIn_Report.md`
 - **2026-02-23:** Council V2 Wave2 Integration — chore: refresh runtime_status.json (closure); fix: review-agent hardening pass — FSMv2 mission-safe + schema tightening; feat: Wave 2 — FSM wiring, A6 synthesis, A8 fidelity, A9 advisory, review.py; feat: A7 Challenger review with rework loop; test: A5 lens dispatch TDD tests (red phase) — 1/1 targeted test command(s) passed. (merge commit 38d5b28)
 - **2026-02-23:** Council V2 A1 Fsm — chore: refresh runtime_status.json (closure); feat(council): A1 - CouncilFSMv2 with 12-state machine; feat(council): A2 - v2.2.1 schemas, models, and validators; feat(council): A3+A4 - tier routing, lens selection, independence v2.2.1 — 1/1 targeted test command(s) passed. (merge commit 5215cd3)
 - **2026-02-22:** Repo Hygiene Sprint 20260221 — chore: refresh runtime_status.json (closure); chore(dead-code): remove unused spine imports + strengthen hygiene tests; chore: bump backlog date + enable superpowers plugin in settings; chore(config): fix pytest constraint + un-ignore passing smoke tests; chore(test): tighten test_state_hygiene.py (remove unused import, assert row found) (and 6 more) — 1/1 targeted test command(s) passed. (merge commit e6ee997)

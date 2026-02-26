@@ -78,8 +78,25 @@ def test_route_targeted_tests_routes_openclaw_policy_bundle() -> None:
 
 
 def test_route_targeted_tests_fallback() -> None:
-    commands = route_targeted_tests(["docs/11_admin/BACKLOG.md"])
+    # Unknown file → falls back to full suite
+    commands = route_targeted_tests(["some/unknown/module.py"])
     assert commands == ["pytest -q runtime/tests"]
+
+
+def test_route_targeted_tests_docs_admin() -> None:
+    # docs/11_admin changes route to targeted doc tests, not full suite
+    commands = route_targeted_tests(["docs/11_admin/BACKLOG.md"])
+    assert commands == [
+        "pytest -q runtime/tests/test_doc_hygiene.py runtime/tests/test_backlog_parser.py"
+    ]
+
+
+def test_route_targeted_tests_docs_general() -> None:
+    # Any docs/ change routes to targeted doc tests
+    commands = route_targeted_tests(["docs/02_protocols/some_spec.md"])
+    assert commands == [
+        "pytest -q runtime/tests/test_doc_hygiene.py runtime/tests/test_backlog_parser.py"
+    ]
 
 
 def test_run_closure_tests_passes_on_zero_returncode(monkeypatch) -> None:
