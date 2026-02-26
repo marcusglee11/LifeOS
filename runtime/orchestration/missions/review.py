@@ -96,16 +96,22 @@ class ReviewMission(BaseMission):
         inputs: Dict[str, Any],
     ) -> MissionResult:
         executed_steps: List[str] = []
-        
+
         try:
             # Step 1: Validate inputs
             self.validate_inputs(inputs)
             executed_steps.append("validate_inputs")
             use_council_runtime = bool(inputs.get("use_council_runtime", False))
             if use_council_runtime:
-                return self._run_council_runtime(context, inputs, executed_steps)
-            return self._run_legacy_single_seat(context, inputs, executed_steps)
-            
+                result = self._run_council_runtime(context, inputs, executed_steps)
+            else:
+                result = self._run_legacy_single_seat(context, inputs, executed_steps)
+
+            # Shadow council V2 (non-gating, fire-and-forget)
+            self._run_shadow_council(context, inputs)
+
+            return result
+
         except MissionValidationError as e:
             return self._make_result(
                 success=False,
@@ -118,6 +124,20 @@ class ReviewMission(BaseMission):
                 executed_steps=executed_steps,
                 error=f"Unexpected error: {e}",
             )
+
+    def _run_shadow_council(
+        self,
+        context: MissionContext,
+        inputs: Dict[str, Any],
+    ) -> None:
+        """Fire shadow council V2. Strictly non-gating — never raises."""
+        try:
+            from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
+            runner = ShadowCouncilRunner(context.repo_root)
+            ccp = self._build_ccp(context, inputs)
+            runner.run_shadow(run_id=context.run_id, ccp=ccp)
+        except Exception:
+            pass  # Shadow is strictly non-gating
 
     def _run_legacy_single_seat(
         self,

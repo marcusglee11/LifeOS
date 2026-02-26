@@ -298,6 +298,9 @@ class LoopSpine:
             except Exception:
                 ledger_write_ok = False
 
+            # Shadow agent capture (non-gating, non-fatal)
+            self._capture_shadow_agent(task_spec)
+
             # Check repo cleanliness for v2.1
             repo_clean_verified = False
             try:
@@ -993,6 +996,18 @@ class LoopSpine:
         """
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         return f"run_{timestamp}"
+
+    def _capture_shadow_agent(self, task_spec: Dict[str, Any]) -> None:
+        """Fire shadow agent capture. Non-gating, non-fatal."""
+        try:
+            from runtime.agents.shadow_capture import capture_shadow_agent
+            capture_shadow_agent(
+                run_id=self.run_id,
+                task_payload=task_spec,
+                repo_root=self.repo_root,
+            )
+        except Exception:
+            pass  # Shadow is strictly non-gating
 
     def _get_timestamp(self) -> str:
         """
