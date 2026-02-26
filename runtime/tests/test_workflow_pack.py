@@ -99,6 +99,29 @@ def test_route_targeted_tests_docs_general() -> None:
     ]
 
 
+def test_route_targeted_tests_spine() -> None:
+    # spine.py routes to loop spine + shadow runner tests
+    commands = route_targeted_tests(["runtime/orchestration/loop/spine.py"])
+    assert commands == [
+        "pytest -q runtime/tests/test_loop_spine.py "
+        "runtime/tests/orchestration/council/test_shadow_runner.py"
+    ]
+
+
+def test_route_targeted_tests_pyproject() -> None:
+    # pyproject.toml routes to config/hygiene tests
+    commands = route_targeted_tests(["pyproject.toml"])
+    assert commands == [
+        "pytest -q runtime/tests/test_known_failures_gate.py runtime/tests/test_state_hygiene.py"
+    ]
+
+
+def test_route_targeted_tests_artifacts_status() -> None:
+    # Regenerated status artifacts route to workflow_pack tests
+    commands = route_targeted_tests(["artifacts/status/runtime_status.json"])
+    assert commands == ["pytest -q runtime/tests/test_workflow_pack.py"]
+
+
 def test_run_closure_tests_passes_on_zero_returncode(monkeypatch) -> None:
     def fake_run(*args, **kwargs):
         return subprocess.CompletedProcess(args=args[0], returncode=0, stdout="ok", stderr="")

@@ -664,3 +664,75 @@ class TestTerminalPacketLedgerAnchor:
             assert packet_data["ledger_chain_tip"] == ledger.get_chain_tip()
             assert packet_data["ledger_attempt_count"] == len(ledger.history)
             assert packet_data["ledger_schema_version"] == ledger.header.get("schema_version")
+
+
+class TestShadowCouncilWiring:
+    """Tests that ShadowCouncilRunner is called from the review phase of _run_chain_steps."""
+
+    def _make_mock_mission(self, outputs=None):
+        """Return a mock mission that produces given outputs."""
+        m = MagicMock()
+        result = MagicMock()
+        result.success = True
+        result.outputs = outputs or {}
+        m.return_value.run.return_value = result
+        return m
+
+    def test_shadow_runner_called_after_review(self, clean_repo_root, task_spec):
+        """Shadow runner is invoked once, after the review step, never raising."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+        spine.run_id = "run_shadow_wiring_test"
+
+        review_outputs = {"reviewer_packet_parsed": {"verdict": "accept"}}
+        mock_mission = self._make_mock_mission(outputs=review_outputs)
+
+        shadow_calls = []
+
+        def fake_run_shadow(run_id, ccp, **_kw):
+            shadow_calls.append({"run_id": run_id, "ccp": ccp})
+            return {"status": "shadow_ok"}
+
+        with patch(
+            "runtime.orchestration.missions.get_mission_class",
+            return_value=mock_mission,
+        ), patch(
+            "runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow",
+            side_effect=fake_run_shadow,
+        ), patch(
+            "subprocess.run",
+            return_value=MagicMock(returncode=0, stdout="deadbeef"),
+        ):
+            spine._run_chain_steps(task_spec)
+
+        assert len(shadow_calls) == 1, "run_shadow must be called exactly once"
+        assert shadow_calls[0]["run_id"] == "run_shadow_wiring_test"
+        assert "sections" in shadow_calls[0]["ccp"]
+
+    def test_shadow_runner_not_called_if_review_not_reached(self, clean_repo_root, task_spec):
+        """If review step errors out, shadow is still not called for that failure path."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+        spine.run_id = "run_shadow_no_review"
+
+        # Make every mission blow up (simulates build failure)
+        def boom_mission(*_a, **_kw):
+            raise RuntimeError("mission exploded")
+
+        bad_mission = MagicMock()
+        bad_mission.return_value.run.side_effect = RuntimeError("mission exploded")
+
+        shadow_calls = []
+
+        with patch(
+            "runtime.orchestration.missions.get_mission_class",
+            return_value=bad_mission,
+        ), patch(
+            "runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow",
+            side_effect=lambda **kw: shadow_calls.append(kw),
+        ), patch(
+            "subprocess.run",
+            return_value=MagicMock(returncode=0, stdout="deadbeef"),
+        ):
+            result = spine._run_chain_steps(task_spec)
+
+        assert result["outcome"] == "BLOCKED"
+        assert len(shadow_calls) == 0

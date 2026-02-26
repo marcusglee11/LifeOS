@@ -48,6 +48,7 @@ from runtime.receipts.invocation_receipt import (
     finalize_run_receipts,
     get_or_create_collector,
 )
+from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
 
 
 class SpineState(Enum):
@@ -859,6 +860,24 @@ class LoopSpine:
                         }
 
                 steps_executed.append(step_name)
+
+                # Shadow Council V2 — runs after review, never gates
+                if step_name == "review":
+                    try:
+                        _ccp = {
+                            "run_id": self.run_id,
+                            "sections": {
+                                "review_packet": chain_state.get("review_packet", {}),
+                                "reviewer_output": chain_state.get("reviewer_packet_parsed"),
+                            },
+                            "task": task_spec.get("task", ""),
+                        }
+                        ShadowCouncilRunner(self.repo_root).run_shadow(
+                            run_id=self.run_id,
+                            ccp=_ccp,
+                        )
+                    except Exception:
+                        pass  # run_shadow never raises; outer guard is defense-in-depth
 
             except MissionEscalationRequired as e:
                 # Escalation raised - trigger checkpoint

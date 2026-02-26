@@ -191,6 +191,37 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
             )
             continue
 
+        if _matches(
+            file_path,
+            (
+                "runtime/orchestration/loop/spine.py",
+                "runtime/tests/test_loop_spine.py",
+                "runtime/orchestration/loop/",
+                "runtime/orchestration/council/shadow_runner.py",
+                "runtime/tests/orchestration/council/test_shadow_runner.py",
+            ),
+        ):
+            add(
+                "pytest -q runtime/tests/test_loop_spine.py "
+                "runtime/tests/orchestration/council/test_shadow_runner.py"
+            )
+            continue
+
+        if _matches(
+            file_path,
+            (
+                "pyproject.toml",
+                "pytest.ini",
+            ),
+        ):
+            add("pytest -q runtime/tests/test_known_failures_gate.py runtime/tests/test_state_hygiene.py")
+            continue
+
+        if _matches(file_path, ("artifacts/status/",)):
+            # Regenerated artifacts — no targeted tests required; doc stewardship handles freshness
+            add("pytest -q runtime/tests/test_workflow_pack.py")
+            continue
+
     if not routed:
         routed.append("pytest -q runtime/tests")
     return routed
