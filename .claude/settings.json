@@ -62,6 +62,19 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__codex-builder__codex",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/codex-post-run.py",
+            "timeout": 10000,
+            "statusMessage": "Surfacing Codex working-tree changes..."
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
