@@ -13,6 +13,24 @@ Delegate a task to Codex via the `codex-builder` MCP server. Claude gathers cont
 - You want a second model's independent attempt at something
 - Invocation: `/codex <brief task description>` with optional constraints in the message
 
+## Skill Chain
+
+`/codex` fits into a larger delegation pipeline. Use adjacent skills as needed:
+
+| Stage | Skill | When |
+|-------|-------|------|
+| Pre-codex | `/handoff-pack to_codex` | Complex tasks — builds the full structured context block (Scope, Acceptance Criteria, Patterns, Do NOT) before calling Codex |
+| Post-codex | `/review-build` | Codex produced a branch or commit range — use review-build for a full tiered review instead of the inline Step 4 |
+| Post-review | `/review-fix` | Review findings exist — review-fix applies the obvious/patterned ones quickly with minimal tokens |
+| Continuation | `/handoff` | Codex's output becomes the next sprint for Antigravity or another session |
+| Merge | `/close-build` | Codex's branch is reviewed and ready — close-build gates apply identically to Codex output |
+
+Full pipeline:
+
+```
+/handoff-pack to_codex  ->  /codex  ->  /review-build  ->  /review-fix  ->  /close-build
+```
+
 ## Step 1 — Gather Repo Context
 
 Read before constructing the prompt:
@@ -37,11 +55,13 @@ Constraints: <any constraints the user specified, or omit this line>
 Repo context:
 - Branch: <current branch>
 - Recent commits: <3-5 git log one-liners>
-- Current focus: <LIFEOS_STATE.md "Current Focus" line>
+- Current focus: <LIFEOS_STATE.md Current Focus line>
 - Relevant files: <list with one-line purpose each>
 ```
 
-Parse constraints from the user's message — anything after `--constraints`, in quotes, or phrased as "don't", "avoid", "must", "only". If none, omit the Constraints line entirely.
+Parse constraints from the user's message — anything after `--constraints`, in quotes, or phrased as don't, avoid, must, only. If none, omit the Constraints line entirely.
+
+For complex tasks, run `/handoff-pack to_codex` first — it produces a richer block including Scope, Acceptance Criteria, and Do NOT constraints. Paste that output as the enriched prompt.
 
 ## Step 3 — Call Codex via MCP
 
@@ -63,13 +83,19 @@ The tool returns `{threadId, content}`. Save the `threadId` if you need to conti
 
 ## Step 4 — Review the Result
 
-Apply the tiered review-build protocol to whatever Codex produced:
+Apply the tiered review-build protocol to whatever Codex produced.
+
+**For simple in-session changes** (Codex edited files, no separate branch):
 
 | Finding | Action |
 |---------|--------|
 | Obvious/patterned issue | Fix in-place, commit with `fix: review finding — <summary>` |
 | Judgment call | Propose 2-3 options, wait for user decision |
 | Architectural concern | Report only, escalate |
+
+**For branch-level output** (Codex committed to a branch): invoke `/review-build` with the branch name or commit SHA — it handles the full tiered review and applies obvious fixes in-place.
+
+**If review findings were already produced**: invoke `/review-fix` to apply the obvious/patterned ones quickly with minimal tokens.
 
 Run tests after any in-place fixes:
 
@@ -84,8 +110,8 @@ Output in this exact order:
 ```
 Delegated Task: <brief>
 Codex Output: <summary of what Codex produced — files changed, tests run, etc.>
-Review Findings: <tiered list, or "none">
-Fixes Applied: <what Claude fixed in-place, or "none">
-Test Results: <N passed, M failed — or "not run">
-What Remains: <open items or "none">
+Review Findings: <tiered list, or none>
+Fixes Applied: <what Claude fixed in-place, or none>
+Test Results: <N passed, M failed — or not run>
+What Remains: <open items or none>
 ```
