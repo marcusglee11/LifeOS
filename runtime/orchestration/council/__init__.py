@@ -14,6 +14,8 @@ from .models import (
     CouncilTransition,
 )
 from .policy import CouncilPolicy, evaluate_expression, load_council_policy, resolve_model_family
+from .convergence import ConvergenceResult, compute_convergence
+from .multi_provider import build_multi_provider_executor
 from .schema_gate import (
     SchemaGateResult,
     validate_challenger_output,
@@ -40,6 +42,9 @@ __all__ = [
     "evaluate_expression",
     "load_council_policy",
     "resolve_model_family",
+    "ConvergenceResult",
+    "compute_convergence",
+    "build_multi_provider_executor",
     "validate_challenger_output",
     "validate_lens_output",
     "validate_seat_output",

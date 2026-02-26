@@ -132,6 +132,16 @@ def clear_config_cache() -> None:
 
 
 @dataclass
+class CLIProviderConfig:
+    """Configuration for a CLI agent provider (codex, gemini, claude_code)."""
+    binary: str
+    default_model: str = ""
+    timeout_seconds: int = 600
+    sandbox: bool = True
+    enabled: bool = False
+
+
+@dataclass
 class AgentConfig:
     """Configuration for a specific agent."""
     provider: str
@@ -139,16 +149,19 @@ class AgentConfig:
     endpoint: str
     api_key_env: str
     fallback: List[Dict[str, str]] = field(default_factory=list)
+    dispatch_mode: str = "api"  # "api" (REST) or "cli" (subprocess)
+    cli_provider: str = ""  # e.g. "codex", "gemini", "claude_code"
 
 
 @dataclass
 class ModelConfig:
     """Model configuration per v0.3 spec §5.1.5."""
-    
+
     default_chain: List[str] = field(default_factory=list)
     role_overrides: Dict[str, List[str]] = field(default_factory=dict)
     agents: Dict[str, AgentConfig] = field(default_factory=dict)
-    
+    cli_providers: Dict[str, CLIProviderConfig] = field(default_factory=dict)
+
     # Default settings
     base_url: str = "https://opencode.ai/zen/v1/messages"
     timeout_seconds: int = 120
@@ -230,12 +243,27 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
             endpoint=cfg.get("endpoint", "https://opencode.ai/zen/v1/messages"),
             api_key_env=cfg.get("api_key_env", "ZEN_API_KEY"),
             fallback=cfg.get("fallback", []),
+            dispatch_mode=cfg.get("dispatch_mode", "api"),
+            cli_provider=cfg.get("cli_provider", ""),
         )
-    
+
+    # Load CLI provider configs
+    cli_data = data.get("cli_providers", {})
+    cli_providers: Dict[str, CLIProviderConfig] = {}
+    for name, cfg in cli_data.items():
+        cli_providers[name] = CLIProviderConfig(
+            binary=cfg.get("binary", name),
+            default_model=cfg.get("default_model", ""),
+            timeout_seconds=cfg.get("timeout_seconds", 600),
+            sandbox=cfg.get("sandbox", True),
+            enabled=cfg.get("enabled", False),
+        )
+
     return ModelConfig(
         default_chain=model_selection.get("default_chain", []),
         role_overrides=model_selection.get("role_overrides", {}),
         agents=agents,
+        cli_providers=cli_providers,
         base_url=zen_config.get("base_url", "https://opencode.ai/zen/v1/messages"),
         timeout_seconds=zen_config.get("timeout_seconds", 120),
         max_retry_attempts=retry.get("max_attempts", 3),
@@ -332,6 +360,40 @@ def resolve_model_auto(
     
     # Ultimate fallback
     raise ValueError(f"No model configuration found for role: {role}. Check config/models.yaml.")
+
+
+def get_cli_provider_config(
+    provider_name: str,
+    config: Optional[ModelConfig] = None,
+) -> Optional[CLIProviderConfig]:
+    """
+    Get CLI provider configuration by name.
+
+    Args:
+        provider_name: CLI provider name (e.g., "codex", "gemini", "claude_code")
+        config: Model configuration (loads from file if None)
+
+    Returns:
+        CLIProviderConfig or None if provider not configured
+    """
+    if config is None:
+        config = load_model_config()
+    return config.cli_providers.get(provider_name)
+
+
+def is_cli_dispatch(role: str, config: Optional[ModelConfig] = None) -> bool:
+    """
+    Check if a role should use CLI dispatch instead of REST API.
+
+    Args:
+        role: Agent role
+        config: Model configuration
+
+    Returns:
+        True if the agent is configured for CLI dispatch
+    """
+    agent = get_agent_config(role, config)
+    return agent.dispatch_mode == "cli"
 
 
 def get_model_chain(role: str, config: Optional[ModelConfig] = None) -> List[str]:

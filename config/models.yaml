@@ -149,6 +149,30 @@ agents:
         provider: "zen"
         api_key_env: "ZEN_REVIEWER_KEY"
 
+# CLI Agent Providers (heavyweight agent dispatch)
+# These spawn full CLI agents with tool use, file access, and sandbox.
+# Used for build missions, design reviews, security audits — tasks that
+# benefit from agents that can inspect the codebase directly.
+cli_providers:
+  codex:
+    binary: "codex"
+    default_model: ""
+    timeout_seconds: 600
+    sandbox: true
+    enabled: false
+  gemini:
+    binary: "gemini"
+    default_model: ""
+    timeout_seconds: 600
+    sandbox: true
+    enabled: false
+  claude_code:
+    binary: "claude"
+    default_model: ""
+    timeout_seconds: 600
+    sandbox: true
+    enabled: false
+
 # Zen configuration (Primary)
 zen:
   base_url: "https://opencode.ai/zen/v1/messages"

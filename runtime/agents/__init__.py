@@ -17,6 +17,7 @@ from .api import (
     AgentTimeoutError,
     AgentResponseInvalid,
     call_agent,
+    call_agent_cli,
 )
 
 # Logging (hash chain)
@@ -38,9 +39,31 @@ from .fixtures import (
 # Model resolution
 from .models import (
     ModelConfig,
+    CLIProviderConfig,
     load_model_config,
     resolve_model_auto,
     get_model_chain,
+    get_cli_provider_config,
+    is_cli_dispatch,
+)
+
+# Health monitoring
+from .health import (
+    ProviderStatus,
+    HealthReport,
+    LatencyTracker,
+    check_all_providers,
+)
+
+# CLI dispatch
+from .cli_dispatch import (
+    CLIProvider,
+    CLIDispatchConfig,
+    CLIDispatchResult,
+    CLIDispatchError,
+    CLIProviderNotFound,
+    CLIDispatchTimeout,
+    dispatch_cli_agent,
 )
 
 # OpenCode client
@@ -65,6 +88,7 @@ __all__ = [
     "AgentTimeoutError",
     "AgentResponseInvalid",
     "call_agent",
+    "call_agent_cli",
     # logging.py
     "HASH_CHAIN_GENESIS",
     "AgentCallLogEntry",
@@ -77,9 +101,25 @@ __all__ = [
     "get_cached_response",
     # models.py
     "ModelConfig",
+    "CLIProviderConfig",
     "load_model_config",
     "resolve_model_auto",
     "get_model_chain",
+    "get_cli_provider_config",
+    "is_cli_dispatch",
+    # health.py
+    "ProviderStatus",
+    "HealthReport",
+    "LatencyTracker",
+    "check_all_providers",
+    # cli_dispatch.py
+    "CLIProvider",
+    "CLIDispatchConfig",
+    "CLIDispatchResult",
+    "CLIDispatchError",
+    "CLIProviderNotFound",
+    "CLIDispatchTimeout",
+    "dispatch_cli_agent",
     # opencode_client.py
     "OpenCodeClient",
     "LLMCall",
