@@ -220,7 +220,7 @@ def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]],
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Assert OpenClaw model policy for COO UX preflight.")
-    parser.add_argument("--config", default=str(Path.home() / ".openclaw" / "openclaw.json"))
+    parser.add_argument("--config", default=os.environ.get("OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")))
     parser.add_argument("--models-list-file", default="")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()

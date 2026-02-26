@@ -80,9 +80,9 @@ def _assert_slack(cfg: Dict[str, Any]) -> Dict[str, Any]:
     if slack.get("enabled") is not False:
         raise AssertionError("channels.slack.enabled must be false at P1.2")
 
-    mode = str(slack.get("mode") or "")
-    if mode and mode != "http":
-        raise AssertionError('channels.slack.mode must be "http" when set')
+    mode = str(slack.get("mode") or "").strip().lower()
+    if mode and mode not in {"http", "socket"}:
+        raise AssertionError('channels.slack.mode must be "http" or "socket" when set')
     if mode == "http":
         webhook_path = str(slack.get("webhookPath") or "")
         if webhook_path != "/slack/events":

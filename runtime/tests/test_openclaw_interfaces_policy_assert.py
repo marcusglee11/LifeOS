@@ -75,3 +75,10 @@ def test_interfaces_policy_rejects_slack_secret_presence():
         assert "must not be set" in str(exc)
     else:
         raise AssertionError("expected slack secret assertion")
+
+
+def test_interfaces_policy_allows_disabled_slack_socket_mode():
+    cfg = _cfg()
+    cfg["channels"]["slack"]["mode"] = "socket"
+    result = assert_interfaces_policy(cfg)
+    assert result["slack"]["mode"] == "socket"

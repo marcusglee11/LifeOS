@@ -687,7 +687,7 @@ case "$cmd" in
       rm -f "$status_tmp"
       echo "MODELS_STATUS_END"
       echo "MODEL_POLICY_ASSERT_BEGIN"
-      python3 runtime/tools/openclaw_model_policy_assert.py --json || true
+      python3 runtime/tools/openclaw_model_policy_assert.py --config "$OPENCLAW_CONFIG_PATH" --json || true
       echo "MODEL_POLICY_ASSERT_END"
       echo "HINT=Run 'openclaw models status --probe' for deeper provider diagnostics."
     )
@@ -701,12 +701,17 @@ case "$cmd" in
         print_header
         (
           cd "$BUILD_REPO"
-          python3 runtime/tools/openclaw_model_policy_assert.py --json | python3 - <<'PY'
+          policy_tmp="$(mktemp)"
+          if ! python3 runtime/tools/openclaw_model_policy_assert.py --config "$OPENCLAW_CONFIG_PATH" --json >"$policy_tmp"; then
+            true
+          fi
+          python3 - "$policy_tmp" <<'PY'
 import json
 import sys
+from pathlib import Path
 
 try:
-    result = json.loads(sys.stdin.read())
+    result = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     policy_ok = result.get("policy_ok", False)
     violations = result.get("violations", [])
     ladders = result.get("ladders", {})
@@ -722,7 +727,7 @@ try:
     for agent_id in ("main", "quick", "think"):
         ladder = ladders.get(agent_id, {})
         actual = ladder.get("actual", [])
-        expected = ladder.get("expected", [])
+        expected = ladder.get("required_prefix", [])
         working_count = ladder.get("working_count", 0)
         top_rung_auth_missing = ladder.get("top_rung_auth_missing", False)
 
@@ -754,6 +759,9 @@ except Exception as e:
     print(f"ERROR: Could not parse policy status: {e}", file=sys.stderr)
     sys.exit(1)
 PY
+          rc="$?"
+          rm -f "$policy_tmp"
+          exit "$rc"
         )
         ;;
       fix)
@@ -761,7 +769,7 @@ PY
         print_header
         (
           cd "$BUILD_REPO"
-          python3 runtime/tools/openclaw_model_ladder_fix.py
+          python3 runtime/tools/openclaw_model_ladder_fix.py --config "$OPENCLAW_CONFIG_PATH"
         )
         ;;
       *)
