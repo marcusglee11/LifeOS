@@ -1,0 +1,396 @@
+{
+  "status": "complete",
+  "run_log": {
+    "aur_id": "AUR-BATCH1-REMEDIATION-001",
+    "plan_core_hash": "pending",
+    "run_id": "council_7a6ae4c5f85341e892237f7620c79c3c",
+    "tier": "T2",
+    "run_type": "review",
+    "state_transitions": [
+      {
+        "from_state": "S0_ASSEMBLE",
+        "to_state": "S1_EXECUTE_LENSES",
+        "reason": "lenses_required",
+        "details": {}
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Architecture",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Governance",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Risk",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_25_SCHEMA_GATE_LENSES",
+        "to_state": "S1_5_COVERAGE_COMPLETE",
+        "reason": "lens_gate_complete",
+        "details": {
+          "coverage_degraded": false
+        }
+      },
+      {
+        "from_state": "S1_5_COVERAGE_COMPLETE",
+        "to_state": "S1_55_EXECUTION_FIDELITY",
+        "reason": "coverage_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S1_55_EXECUTION_FIDELITY",
+        "to_state": "S2_SYNTHESIS",
+        "reason": "fidelity_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_SYNTHESIS",
+        "to_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "reason": "synthesis_started",
+        "details": {}
+      },
+      {
+        "from_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "to_state": "S2_5_CHALLENGER_REVIEW",
+        "reason": "synthesis_schema_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_5_CHALLENGER_REVIEW",
+        "to_state": "S4_CLOSEOUT",
+        "reason": "no_closure_gate",
+        "details": {}
+      },
+      {
+        "from_state": "S4_CLOSEOUT",
+        "to_state": "TERMINAL_COMPLETE",
+        "reason": "run_complete",
+        "details": {}
+      }
+    ],
+    "lens_results": {
+      "Architecture": {
+        "run_type": "review",
+        "lens_name": "Architecture",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "Remediation plan is structurally sound and ready for Batch 2 execution. The plan systematically addresses the three failure modes from Batch 1 (doc task drift, steward diff overflow, challenger non-determinism) while preserving fail-closed behavior and the repo-clean invariant. Two minor gaps exist: steward diff splitting criteria should be made explicit in implementation, and ledger atomicity on write failure should be specified. These are refinement items, not blockers. Execute Batch 2 burn-in with the five-cycle no-manual-intervention target."
+        ],
+        "claims": [
+          {
+            "claim_id": "architecture-01",
+            "statement": "Remediation plan addresses all three Batch 1 manual fallback root causes: doc task drift, steward diff overflow, and challenger non-determinism. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-02",
+            "statement": "Architecture maintains fail-closed behavior: task spec linting operates pre-flight before any execution, steward preflight gates oversized diffs at entry, challenger deterministic fixture validates deficient artifact detection. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-03",
+            "statement": "Attempt ledger automation requirement explicitly preserves repo-clean invariant by tracking attempt metadata without creating durable artifacts. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "architecture-04",
+            "statement": "State/plan consistency cleanup aligns LIFEOS_STATE with production plan v2.1, ensuring operational truth matches documented intent. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "architecture-05",
+            "statement": "Blast radius remains module-level; remediation touches runtime_core and interfaces only, avoiding governance path modifications. REF: AUR-BATCH1-REMEDIATION-001:header",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:header"
+            ]
+          },
+          {
+            "claim_id": "architecture-06",
+            "statement": "Reversibility is moderate\u2014changes are amendment-class and can be reverted via standard rollback if remediation introduces regressions. REF: AUR-BATCH1-REMEDIATION-001:header",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:header"
+            ]
+          },
+          {
+            "claim_id": "architecture-07",
+            "statement": "Steward preflight split logic may introduce complexity if split decisions are non-deterministic; requires explicit splitting algorithm. [ASSUMPTION] Evidence needed: concrete splitting criteria in production plan",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "architecture-08",
+            "statement": "Attempt ledger continuity automation must guarantee atomicity\u2014if ledger write fails mid-attempt, system must fail-closed rather than continue silently. [ASSUMPTION] Evidence needed: error handling specification for ledger writes",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "architecture-09",
+            "statement": "Add explicit steward diff split criteria (e.g., per-file line budget, alphabetical ordering) to production plan to prevent hidden non-determinism. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-10",
+            "statement": "Specify ledger atomicity contract in automation design: any write failure triggers attempt abort with error propagation. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Accept",
+        "_actual_model": "opencode/minimax-m2.5"
+      },
+      "Governance": {
+        "run_type": "review",
+        "lens_name": "Governance",
+        "confidence": "high",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "Governance compliance verified. Batch 1 remediation plan introduces no security regressions, touches no protected paths, and preserves fail-closed behavior. The three automated mitigations (task-spec linting, steward preflight, attempt ledger tracking) directly address the documented failure modes without expanding attack surface. Plan is ready for execution under Batch 2 burn-in criteria."
+        ],
+        "claims": [
+          {
+            "claim_id": "governance-01",
+            "statement": "Batch 1 remediation addresses operational reliability gaps without introducing security regressions. The 2 manual fallback cases (doc rewrite drift, steward diff overflow) are deterministic failure modes with concrete automated mitigations. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-02",
+            "statement": "Task-spec contract linting at pre-flight stage prevents malformed scope/envelope/doc mutation requests from entering execution, aligning with fail-closed constraint. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-03",
+            "statement": "Steward diff preflight + split logic enforces the 300-line cap programmatically, eliminating the overflow condition that triggered manual fallback. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-04",
+            "statement": "Attempt ledger continuity automation preserves repo-clean invariant by tracking ephemeral artifact directories without modifying durable proof paths. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-05",
+            "statement": "No protected governance paths are touched; all remediation targets runtime_core and interfaces per touches field. REF: AUR-BATCH1-REMEDIATION-001:touches",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:touches"
+            ]
+          },
+          {
+            "claim_id": "governance-06",
+            "statement": "Deterministic challenger validation must reliably trigger rework path at least once per burn-in cycle. If challenger fixture becomes predictable (overfitting), Batch 2 may pass autonomously without testing actual rework logic. This is an operational effectiveness risk, not security. [ASSUMPTION]: Assumes challenger fixture includes sufficient variance in artifact deficiency patterns.",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "governance-07",
+            "statement": "Task-spec linting schema must comprehensively validate all mutation types. Incomplete schema could allow malformed requests to bypass lint gate. [ASSUMPTION]: Assumes linting rules cover all documented task-spec mutation patterns from Batch 1 failure modes.",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "governance-08",
+            "statement": "N/A - No security vulnerabilities identified requiring remediation. Plan addresses operational reliability only.",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Accept",
+        "_actual_model": "opencode/glm-5"
+      },
+      "Risk": {
+        "run_type": "review",
+        "lens_name": "Risk",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "Remediation plan identifies correct failure modes from Batch 1 but lacks implementation specificity required for execution. The three gaps are: (1) task spec linting rules not detailed, (2) attempt ledger automation mechanism unspecified, (3) deterministic challenger validation criteria undefined. Additionally, doc task rewrite drift\u2014the first manual fallback cause\u2014is mentioned in scope but not addressed in remediation targets. The steward preflight target is present but split logic implementation is not described. Recommend revision to add concrete implementation details for each gap before Batch 2 burn-in execution."
+        ],
+        "claims": [
+          {
+            "claim_id": "risk-01",
+            "statement": "Remediation plan targets all three Batch 1 failure modes: deterministic challenger, task spec linting, steward preflight split logic. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-02",
+            "statement": "Plan references attempt ledger automation but implementation details are absent in provided packet artifacts. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "risk-03",
+            "statement": "Steward diff cap (300 lines) is explicitly stated in production plan; Batch 1 overflow (340 lines) confirms gate exists but preflight logic missing. REF: docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md",
+            "evidence_refs": [
+              "REF:docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md"
+            ]
+          },
+          {
+            "claim_id": "risk-04",
+            "statement": "Challenge non-determinism identified as 3rd fallback cause; deterministic fixture requirement is testable via rerun verification. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-05",
+            "statement": "State document (LIFEOS_STATE.md) shows Batch 1 completion tracking; plan consolidation appears present but not explicitly validated in packet. REF: docs/11_admin/LIFEOS_STATE.md",
+            "evidence_refs": [
+              "REF:docs/11_admin/LIFEOS_STATE.md"
+            ]
+          },
+          {
+            "claim_id": "risk-06",
+            "statement": "Task spec linting scope unclear: packet mentions 'pre-run task spec lint blocks malformed scope/envelope/doc mutation requests' but artifact evidence does not show implementation requirements. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-07",
+            "statement": "Attempt ledger continuity automation not detailed; 'automated without breaking repo-clean invariant' requires explicit mechanism description. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "risk-08",
+            "statement": "Deterministic challenger validation method not specified: no acceptance criteria for verifying 'triggers rework path at least once'. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-09",
+            "statement": "No evidence of steward preflight split logic implementation in provided artifacts; only target state described, not mechanism. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "risk-10",
+            "statement": "Doc task rewrite drift fix (INDEX.md targeted append) not addressed in remediation targets despite being 1st manual fallback cause. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-11",
+            "statement": "Add explicit task spec linting rules to plan with concrete validation logic for scope/envelope boundaries and doc mutation boundaries. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "risk-12",
+            "statement": "Detail attempt ledger automation mechanism showing how continuity is maintained without orphan artifacts. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-13",
+            "statement": "Define deterministic challenger acceptance criteria: fixture composition, rerun determinism check, rework path trigger verification. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-14",
+            "statement": "Specify steward preflight split logic: diff size calculation, chunking algorithm, validation gate before steward invocation. REF: docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md",
+            "evidence_refs": [
+              "REF:docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md"
+            ]
+          },
+          {
+            "claim_id": "risk-15",
+            "statement": "Address doc task rewrite drift: add task specification validation for targeted append vs full rewrite distinction. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/kimi-k2.5"
+      }
+    },
+    "synthesis": {
+      "run_type": "review",
+      "tier": "T2",
+      "verdict": "Revise",
+      "fix_plan": [],
+      "complexity_budget": {
+        "net_human_steps": 0
+      },
+      "operator_view": [
+        "Remediation plan is structurally sound and ready for Batch 2 execution. The plan systematically addresses the three failure modes from Batch 1 (doc task drift, steward diff overflow, challenger non-determinism) while preserving fail-closed behavior and the repo-clean invariant. Two minor gaps exist: steward diff splitting criteria should be made explicit in implementation, and ledger atomicity on write failure should be specified. These are refinement items, not blockers. Execute Batch 2 burn-in with the five-cycle no-manual-intervention target.",
+        "Governance compliance verified. Batch 1 remediation plan introduces no security regressions, touches no protected paths, and preserves fail-closed behavior. The three automated mitigations (task-spec linting, steward preflight, attempt ledger tracking) directly address the documented failure modes without expanding attack surface. Plan is ready for execution under Batch 2 burn-in criteria.",
+        "Remediation plan identifies correct failure modes from Batch 1 but lacks implementation specificity required for execution. The three gaps are: (1) task spec linting rules not detailed, (2) attempt ledger automation mechanism unspecified, (3) deterministic challenger validation criteria undefined. Additionally, doc task rewrite drift\u2014the first manual fallback cause\u2014is mentioned in scope but not addressed in remediation targets. The steward preflight target is present but split logic implementation is not described. Recommend revision to add concrete implementation details for each gap before Batch 2 burn-in execution."
+      ],
+      "coverage_degraded": false,
+      "waived_lenses": [],
+      "evidence_summary": {
+        "ref_count": 33,
+        "assumption_count": 0
+      },
+      "contradiction_ledger": []
+    },
+    "decision_status": "NORMAL",
+    "status": "complete"
+  },
+  "decision_payload": {
+    "status": "COMPLETE",
+    "verdict": "Revise",
+    "decision_status": "NORMAL",
+    "fix_plan": [],
+    "run_id": "council_7a6ae4c5f85341e892237f7620c79c3c",
+    "tier": "T2"
+  },
+  "block_report": null
+}

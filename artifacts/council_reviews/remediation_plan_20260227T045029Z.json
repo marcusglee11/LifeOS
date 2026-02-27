@@ -1,0 +1,466 @@
+{
+  "status": "complete",
+  "run_log": {
+    "aur_id": "AUR-BATCH1-REMEDIATION-001",
+    "plan_core_hash": "pending",
+    "run_id": "council_1633f5c9255e4d21be81d897117f18d7",
+    "tier": "T2",
+    "run_type": "review",
+    "state_transitions": [
+      {
+        "from_state": "S0_ASSEMBLE",
+        "to_state": "S1_EXECUTE_LENSES",
+        "reason": "lenses_required",
+        "details": {}
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Architecture",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Governance",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Risk",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_25_SCHEMA_GATE_LENSES",
+        "to_state": "S1_5_COVERAGE_COMPLETE",
+        "reason": "lens_gate_complete",
+        "details": {
+          "coverage_degraded": false
+        }
+      },
+      {
+        "from_state": "S1_5_COVERAGE_COMPLETE",
+        "to_state": "S1_55_EXECUTION_FIDELITY",
+        "reason": "coverage_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S1_55_EXECUTION_FIDELITY",
+        "to_state": "S2_SYNTHESIS",
+        "reason": "fidelity_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_SYNTHESIS",
+        "to_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "reason": "synthesis_started",
+        "details": {}
+      },
+      {
+        "from_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "to_state": "S2_5_CHALLENGER_REVIEW",
+        "reason": "synthesis_schema_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_5_CHALLENGER_REVIEW",
+        "to_state": "S4_CLOSEOUT",
+        "reason": "no_closure_gate",
+        "details": {}
+      },
+      {
+        "from_state": "S4_CLOSEOUT",
+        "to_state": "TERMINAL_COMPLETE",
+        "reason": "run_complete",
+        "details": {}
+      }
+    ],
+    "lens_results": {
+      "Architecture": {
+        "run_type": "review",
+        "lens_name": "Architecture",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "The Batch 1 remediation plan establishes sound fail-closed contracts for Batch 2 execution. The primary blockers to proceeding are: (1) doc rewrite drift detection mechanism is underspecified - task_spec_lint.py must have explicit logic to distinguish append-only from whole-file rewrites, not just declare the boundary; (2) CLEAN_FAIL recovery runbook is still planned but required for attempt_ledger_commit.py to be operational; (3) SPLIT_FAIL hard-stop has no bypass for legitimate single-hunk overflows. Recommend revising to specify the doc mutation detection approach before accepting for execution. The challenger deterministic validation and diff preflight split logic are well-specified and ready for implementation."
+        ],
+        "claims": [
+          {
+            "claim_id": "architecture-01",
+            "statement": "The implementation contract is well-specified at mechanism level with clear fail-closed behavior for task_spec_lint.py, diff_preflight.py, and attempt_ledger_commit.py. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-02",
+            "statement": "Doc mutation mode boundary is explicitly defined (append_only vs targeted_patch) with DOC_MUTATION_MODE_MISMATCH as fail-closed trigger. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-03",
+            "statement": "Recursive split guard correctly hard-fails (SPLIT_FAIL) when any child chunk exceeds 300 lines rather than recursive best-effort. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-04",
+            "statement": "Partial-rollback contract explicitly addresses stage-before-commit failure with unstaging and temp artifact cleanup. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-05",
+            "statement": "Contract versioning requirement ensures runtime version mismatch is fail-closed and blocks burn-in cycle start. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-06",
+            "statement": "[ASSUMPTION] task_spec_lint.py implementation must exist to verify the doc rewrite drift guard is actually enforceable - the spec says it should reject whole-file rewrites for append_only but does not specify the detection mechanism (anchor validation? hash comparison? line-count delta?)",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "architecture-07",
+            "statement": "[ASSUMPTION] challenger_fixture_gate.py must have deterministic criteria for what constitutes a 'material issue' - the spec says it blocks approval when known-bad fixture is accepted without defect signal, but the fixture's expected defects must be explicitly enumerated",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "architecture-08",
+            "statement": "Doc rewrite drift guard implementation detail is underspecified - task_spec_lint.py must distinguish between legitimate append-only mutations and whole-file rewrites, but the detection mechanism (anchor presence, line-delta threshold, hash comparison) is not specified. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-09",
+            "statement": "The challenger known-bad fixture trigger requirement (>=1 time) could mask partial failure if the challenger misses other defect types - only one specific fixture is tested. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-10",
+            "statement": "SPLIT_FAIL on single hunk >300 lines could block legitimate large refactors - the plan does not specify a bypass or chunking strategy for single massive hunks. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-11",
+            "statement": "CLEAN_FAIL recovery runbook is marked planned but is a hard dependency for the attempt_ledger_commit.py contract - manual handoff cannot occur if recovery procedures are undefined. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "architecture-12",
+            "statement": "Specify doc rewrite drift detection mechanism in task_spec_lint.py: define anchor-based validation (declared anchors must exist post-mutation), line-count delta threshold, or hash comparison approach. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-13",
+            "statement": "Clarify challenger_fixture_gate.py material issue criteria: enumerate known-bad fixture's specific defect signatures that challenger must detect. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-14",
+            "statement": "Add SPLIT_FAIL bypass specification for single-hunk >300 lines: either reject the task pre-flight or allow explicit hunk-splitting directives in task spec. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-15",
+            "statement": "Prioritize CLEAN_FAIL_Recovery_Runbook.md completion as blocking dependency for attempt_ledger_commit.py contract activation. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/minimax-m2.5"
+      },
+      "Governance": {
+        "run_type": "review",
+        "lens_name": "Governance",
+        "confidence": "high",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "The Batch 1 remediation plan is governance-compliant and ready for execution. All three Batch 1 failure modes are addressed through deterministic contracts: doc mutation mode mismatch detection blocks rewrite drift, diff preflight with recursive split guard prevents cap overflow, and challenger fixture gate ensures deterministic validation. Protected governance paths remain untouched. The attempt ledger continuity automation preserves repo-clean/no-orphans invariants with atomic writes and CLEAN_FAIL recovery. Acceptance criteria are concrete and testable: 5/5 cycles with 0 manual interventions, challenger rework trigger >=1, no diff-cap blocks, no doc drift events, invariants preserved per cycle."
+        ],
+        "claims": [
+          {
+            "claim_id": "governance-01",
+            "statement": "Task spec lint with required fields (allowed_paths, api_shape, doc_mutation_mode, max_expected_diff_lines) provides fail-closed pre-flight validation. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-02",
+            "statement": "Path canonicalization + traversal/symlink escape guard in task_spec_lint.py addresses CWE-22 path traversal risk at entry point. REF: AUR-BATCH1-REMEDIATION-001:artifacts#task_spec_lint.py (planned)",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts#task_spec_lint.py"
+            ]
+          },
+          {
+            "claim_id": "governance-03",
+            "statement": "Doc mutation mode mismatch detection (append_only vs targeted_patch) prevents doc rewrite drift - the primary Batch 1 failure mode. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-04",
+            "statement": "Deterministic challenger fixture gate ensures known-bad artifacts trigger rework path - addressing Batch 1 challenger non-determinism. REF: AUR-BATCH1-REMEDIATION-001:artifacts#challenger_fixture_gate.py (planned)",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts#challenger_fixture_gate.py"
+            ]
+          },
+          {
+            "claim_id": "governance-05",
+            "statement": "Steward diff preflight with 300-line cap and auto-split orchestration prevents the Batch 1 diff overflow failure (340 > 300). REF: AUR-BATCH1-REMEDIATION-001:artifacts#diff_preflight.py (planned)",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts#diff_preflight.py"
+            ]
+          },
+          {
+            "claim_id": "governance-06",
+            "statement": "Recursive split guard with SPLIT_FAIL hard stop prevents unbounded chunk recursion - deterministic fail-closed behavior. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-07",
+            "statement": "Atomic ledger write with fsync + atomic rename + partial rollback preserves repo-clean invariant. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-08",
+            "statement": "CLEAN_FAIL recovery runbook provides manual fallback for automation failure - no orphan state left behind. REF: AUR-BATCH1-REMEDIATION-001:artifacts#CLEAN_FAIL_Recovery_Runbook.md (planned)",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts#CLEAN_FAIL_Recovery_Runbook.md"
+            ]
+          },
+          {
+            "claim_id": "governance-09",
+            "statement": "Contract versioning mechanism ensures runtime compatibility - version mismatch triggers fail-closed. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-10",
+            "statement": "No modifications to protected governance paths (docs/00_foundations/*, docs/01_governance/*). REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-11",
+            "statement": "Split chunk file path validation not explicitly verified - could receive tampered paths during chunking [ASSUMPTION: assumes file path list is immutable from diff computation phase]",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          },
+          {
+            "claim_id": "governance-12",
+            "statement": "Consider adding file path integrity check in diff_preflight.py after chunking to verify each chunk's file paths still match original diff targets [ASSUMPTION: may be redundant if diff computation is atomic]",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Accept",
+        "_actual_model": "opencode/glm-5"
+      },
+      "Risk": {
+        "run_type": "review",
+        "lens_name": "Risk",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "The remediation plan addresses the three Batch 1 failure modes with explicit fail-closed contracts. Key gaps requiring clarification: (1) no-orphans invariant verification mechanism, (2) auto-split sub-task execution model, (3) SPLIT_FAIL mid-orchestration rollback, (4) doc mutation mode validation logic path. Before Batch 2 execution, these ambiguities should be resolved to ensure deterministic burn-in results. The core architecture is sound but needs tighter specification on edge cases."
+        ],
+        "claims": [
+          {
+            "claim_id": "risk-01",
+            "statement": "Mechanism-level contract explicitly requires task_spec_lint.py with path canonicalization + traversal guards before run start - this directly addresses Batch 1 doc rewrite drift. REF: AUR-BATCH1-REMEDIATION-001:scope#mechanism-level",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#mechanism-level"
+            ]
+          },
+          {
+            "claim_id": "risk-02",
+            "statement": "Diff preflight with SPLIT_FAIL hard stop addresses Batch 1 steward diff cap overflow (340 > 300). Recursive guard prevents unsplit oversized changes from reaching steward. REF: AUR-BATCH1-REMEDIATION-001:scope#steward-diff-preflight",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#steward-diff-preflight"
+            ]
+          },
+          {
+            "claim_id": "risk-03",
+            "statement": "Contract versioning requirement (contract_version constant in each module + receipt inclusion) provides explicit traceability for burn-in audit. REF: AUR-BATCH1-REMEDIATION-001:scope#contract-versioning",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#contract-versioning"
+            ]
+          },
+          {
+            "claim_id": "risk-04",
+            "statement": "Atomic ledger write semantics (temp file + fsync + atomic rename) with CLEAN_FAIL hard gate preserves repo-clean invariant. Partial rollback contract covers stage-but-no-commit failure. REF: AUR-BATCH1-REMEDIATION-001:scope#attempt-ledger-continuity",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#attempt-ledger-continuity"
+            ]
+          },
+          {
+            "claim_id": "risk-05",
+            "statement": "Deterministic chunking rule sorts by (file_path, hunk_start_line, hunk_length) with cumulative budget <=300 ensures reproducible split output. REF: AUR-BATCH1-REMEDIATION-001:scope#deterministic-chunking-rule",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#deterministic-chunking-rule"
+            ]
+          },
+          {
+            "claim_id": "risk-06",
+            "statement": "[ASSUMPTION] The 'ordered sub-tasks' output from diff_preflight.py auto-split lacks explicit execution semantics - unclear if they execute in parallel, sequentially, or require additional orchestration layer.",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "risk-07",
+            "statement": "Recovery runbook references 'no-orphans invariant' but artifact list shows no explicit no-orphans validator in planned contracts - verification mechanism unclear. REF: AUR-BATCH1-REMEDIATION-001:constraints#any-suggested-automation-must-keep-repo-clean-and-no-orphans-invariants",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints#any-suggested-automation-must-keep-repo-clean-and-no-orphans-invariants"
+            ]
+          },
+          {
+            "claim_id": "risk-08",
+            "statement": "DOC_MUTATION_MODE_MISMATCH fail-closed requires runtime validation of actual file state vs. declared intent - artifact evidence shows guard location but not validation logic implementation path. REF: AUR-BATCH1-REMEDIATION-001:scope#doc-rewrite-drift-guard",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#doc-rewrite-drift-guard"
+            ]
+          },
+          {
+            "claim_id": "risk-09",
+            "statement": "SPLIT_FAIL hard stop creates orphaned sub-task state if cycle aborts mid-split; partial rollback contract doesn't explicitly address this failure mode. REF: AUR-BATCH1-REMEDIATION-001:scope#partial-rollback-contract",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#partial-rollback-contract"
+            ]
+          },
+          {
+            "claim_id": "risk-10",
+            "statement": "Deterministic challenger fixture design requires known-bad artifact to always trigger rework path - but acceptance criteria states '>=1 time' across 5 cycles, which may not require every cycle to pass. REF: AUR-BATCH1-REMEDIATION-001:scope#acceptance-criteria",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#acceptance-criteria"
+            ]
+          },
+          {
+            "claim_id": "risk-11",
+            "statement": "[ASSUMPTION] No explicit validation in planned contracts that file_path sorting in deterministic chunking uses consistent locale/collation - could introduce platform-specific non-determinism.",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "risk-12",
+            "statement": "Add explicit no-orphans validator module to planned contracts OR clarify how repo-clean check implicitly validates no-orphans. REF: AUR-BATCH1-REMEDIATION-001:constraints#any-suggested-automation-must-keep-repo-clean-and-no-orphans-invariants",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints#any-suggested-automation-must-keep-repo-clean-and-no-orphans-invariants"
+            ]
+          },
+          {
+            "claim_id": "risk-13",
+            "statement": "Clarify auto-split sub-task execution model: parallel, sequential, or dependent. Specify how parent task tracks child completion. REF: AUR-BATCH1-REMEDIATION-001:artifacts#projected-diff-size-guard-with-auto-split-orchestration",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts#projected-diff-size-guard-with-auto-split-orchestration"
+            ]
+          },
+          {
+            "claim_id": "risk-14",
+            "statement": "Extend partial-rollback contract to address SPLIT_FAIL mid-orchestration state (orphaned sub-tasks). REF: AUR-BATCH1-REMEDIATION-001:scope#partial-rollback-contract",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#partial-rollback-contract"
+            ]
+          },
+          {
+            "claim_id": "risk-15",
+            "statement": "Document validation logic path for DOC_MUTATION_MODE_MISMATCH - how does task_spec_lint.py compare declared intent vs. actual file state at pre-flight? REF: AUR-BATCH1-REMEDIATION-001:scope#doc-rewrite-drift-guard",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#doc-rewrite-drift-guard"
+            ]
+          },
+          {
+            "claim_id": "risk-16",
+            "statement": "Clarify whether challenger fixture must trigger rework in EVERY cycle or >=1 time across all 5 cycles. Current criteria ambiguity could cause false negatives. REF: AUR-BATCH1-REMEDIATION-001:scope#acceptance-criteria",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope#acceptance-criteria"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/kimi-k2.5"
+      }
+    },
+    "synthesis": {
+      "run_type": "review",
+      "tier": "T2",
+      "verdict": "Revise",
+      "fix_plan": [],
+      "complexity_budget": {
+        "net_human_steps": 0
+      },
+      "operator_view": [
+        "The Batch 1 remediation plan establishes sound fail-closed contracts for Batch 2 execution. The primary blockers to proceeding are: (1) doc rewrite drift detection mechanism is underspecified - task_spec_lint.py must have explicit logic to distinguish append-only from whole-file rewrites, not just declare the boundary; (2) CLEAN_FAIL recovery runbook is still planned but required for attempt_ledger_commit.py to be operational; (3) SPLIT_FAIL hard-stop has no bypass for legitimate single-hunk overflows. Recommend revising to specify the doc mutation detection approach before accepting for execution. The challenger deterministic validation and diff preflight split logic are well-specified and ready for implementation.",
+        "The Batch 1 remediation plan is governance-compliant and ready for execution. All three Batch 1 failure modes are addressed through deterministic contracts: doc mutation mode mismatch detection blocks rewrite drift, diff preflight with recursive split guard prevents cap overflow, and challenger fixture gate ensures deterministic validation. Protected governance paths remain untouched. The attempt ledger continuity automation preserves repo-clean/no-orphans invariants with atomic writes and CLEAN_FAIL recovery. Acceptance criteria are concrete and testable: 5/5 cycles with 0 manual interventions, challenger rework trigger >=1, no diff-cap blocks, no doc drift events, invariants preserved per cycle.",
+        "The remediation plan addresses the three Batch 1 failure modes with explicit fail-closed contracts. Key gaps requiring clarification: (1) no-orphans invariant verification mechanism, (2) auto-split sub-task execution model, (3) SPLIT_FAIL mid-orchestration rollback, (4) doc mutation mode validation logic path. Before Batch 2 execution, these ambiguities should be resolved to ensure deterministic burn-in results. The core architecture is sound but needs tighter specification on edge cases."
+      ],
+      "coverage_degraded": false,
+      "waived_lenses": [],
+      "evidence_summary": {
+        "ref_count": 43,
+        "assumption_count": 0
+      },
+      "contradiction_ledger": []
+    },
+    "decision_status": "NORMAL",
+    "status": "complete"
+  },
+  "decision_payload": {
+    "status": "COMPLETE",
+    "verdict": "Revise",
+    "decision_status": "NORMAL",
+    "fix_plan": [],
+    "run_id": "council_1633f5c9255e4d21be81d897117f18d7",
+    "tier": "T2"
+  },
+  "block_report": null
+}

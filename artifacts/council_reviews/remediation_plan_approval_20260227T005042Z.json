@@ -1,0 +1,46 @@
+{
+  "verdict": "BLOCK",
+  "review_packet_id": "",
+  "subject_hash": "sha256:29a6e0c328a0e91bfde92bcac30701089a7e3e2be42592a4442be59addd4f2f2",
+  "rationale": "Strict approval blocked.",
+  "conditions": [],
+  "blocking_issues": [
+    {
+      "id": "council_status",
+      "detail": "Council status is 'blocked' (expected 'complete')."
+    },
+    {
+      "id": "protocol_verdict",
+      "detail": "Protocol verdict is 'None', expected 'Accept'."
+    },
+    {
+      "id": "decision_status",
+      "detail": "Decision status is 'None', expected 'NORMAL'."
+    },
+    {
+      "id": "model_diversity",
+      "detail": "Observed 0 distinct lens models: []"
+    }
+  ],
+  "votes": {
+    "council_status": "blocked",
+    "protocol_verdict": null,
+    "decision_status": null,
+    "tier": null
+  },
+  "models": {
+    "selected": [
+      "opencode/glm-5",
+      "opencode/kimi-k2.5",
+      "opencode/minimax-m2.5"
+    ],
+    "planned_assignments": {
+      "Architecture": "opencode/minimax-m2.5",
+      "Chair": "opencode/kimi-k2.5",
+      "Challenger": "opencode/kimi-k2.5",
+      "Governance": "opencode/glm-5",
+      "Risk": "opencode/kimi-k2.5"
+    }
+  },
+  "result_path": "/mnt/c/Users/cabra/Projects/LifeOS/.worktrees/build/coo-dispatch/artifacts/council_reviews/remediation_plan_20260227T005042Z.json"
+}

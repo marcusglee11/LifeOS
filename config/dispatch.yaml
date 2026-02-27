@@ -1,0 +1,45 @@
+# config/dispatch.yaml
+# Dispatch Engine configuration — Phase 1
+schema_version: "dispatch_config.v1"
+
+# Artifact directories (relative to repo root)
+dispatch:
+  inbox: "artifacts/dispatch/inbox"
+  active: "artifacts/dispatch/active"
+  completed: "artifacts/dispatch/completed"
+
+# Canonical manifest (v2.1 § Storage Policy)
+manifest:
+  path: "artifacts/manifests/run_log.jsonl"
+
+# Provider health state
+health:
+  path: "artifacts/health/provider_state.json"
+
+# Phase 1: Single-flight only
+concurrency:
+  phase: 1
+  max_concurrent: 1
+  note: "Parallel execution deferred to Phase 3 (requires 5+ successful single-flight cycles)"
+
+# Configured providers
+# Phase 2: enable health monitoring and set available: true for CLI providers
+providers:
+  codex:
+    available: false
+    cost_tier: "free"
+  gemini:
+    available: false
+    cost_tier: "free"
+  claude:
+    available: true
+    cost_tier: "medium"
+  zen:
+    available: false
+    cost_tier: "free"
+
+# Default constraints applied when order omits them
+defaults:
+  max_duration_seconds: 3600
+  worktree: false
+  provider: "auto"

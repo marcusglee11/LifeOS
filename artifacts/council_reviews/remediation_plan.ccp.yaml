@@ -1,0 +1,183 @@
+header:
+  aur_id: "AUR-BATCH1-REMEDIATION-001"
+  aur_type: "plan"
+  change_class: "amend"
+  blast_radius: "module"
+  reversibility: "moderate"
+  uncertainty: "medium"
+  touches:
+    - "runtime_core"
+    - "interfaces"
+  safety_critical: false
+  run_type: "review"
+  model_plan_v1:
+    primary: "opencode/kimi-k2.5"
+    independent: "opencode/glm-5"
+    seat_overrides:
+      Architecture: "opencode/minimax-m2.5"
+
+sections:
+  objective: |
+    Review and approve the Batch 1 burn-in remediation plan for Batch 2 readiness.
+    Scope includes deterministic challenger validation, task-spec contract linting,
+    steward diff preflight + split logic, attempt ledger continuity automation,
+    and state/plan consistency cleanup.
+    Reviewer execution note: no external tools are available in this review path.
+    Evaluate only the provided packet sections and artifact evidence below.
+  scope: |
+    Subject is the remediation plan derived from:
+    - docs/11_admin/Batch1_BurnIn_Report.md
+    - docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md
+    - docs/11_admin/LIFEOS_STATE.md
+    Burn-in facts:
+    - Batch 1 ran 6 spine runs: 4 autonomous pass, 2 manual fallback, 0 regressions.
+    - Manual fallback causes:
+      1) Doc task rewrite drift (builder rewrote INDEX.md instead of targeted append).
+      2) Steward diff budget overflow (340 lines > 300 line steward cap).
+      3) Challenger non-deterministic miss on intentionally deficient artifact.
+    - Regression baseline remained green (2147 tests in report context).
+    - Ephemeral artifact directories are gitignored by protocol; durable proof is code/tests/docs commits.
+    Remediation target state for Batch 2:
+    - No manual intervention during the 5-cycle burn-in.
+    - Deterministic challenger fixture must trigger rework path at least once.
+    - Pre-run task spec lint blocks malformed scope/envelope/doc mutation requests.
+    - Steward preflight prevents oversized diffs from reaching steward gate unsplit.
+    - Attempt ledger continuity is automated without breaking repo-clean invariant.
+    Mechanism-level implementation contract (decision-complete):
+    - Task spec lint:
+      - Required fields: allowed_paths, api_shape, doc_mutation_mode, max_expected_diff_lines.
+      - Fail-closed before run start when fields are missing or inconsistent with touched paths.
+      - For doc tasks, doc_mutation_mode=append_only or targeted_patch must be explicit.
+      - Canonicalize + normalize allowed_paths; reject path traversal, symlink escape, and out-of-repo targets.
+      - Doc rewrite drift guard is implemented inside task_spec_lint.py as explicit intent validator.
+      - Path validation implementation:
+        - Canonicalize each candidate via pathlib.Path(...).resolve(strict=False).
+        - Enforce `os.path.commonpath([repo_root, candidate]) == repo_root`.
+        - Reject symlink escape by validating realpath(commonpath) against repo_root realpath.
+        - Reject unresolved traversal segments (`..`) after normalization and any Windows drive-prefix mismatch.
+      - Mutation-mode boundary:
+        - append_only: only additive tail/section appends at declared anchors; no existing-line edits allowed.
+        - targeted_patch: in-place edits/replacements allowed only for explicit file+range selectors.
+        - Any mismatch between task intent and mutation mode triggers DOC_MUTATION_MODE_MISMATCH (fail-closed).
+      - DOC_MUTATION_MODE_MISMATCH detection:
+        - Source of intent is explicit task envelope fields, never inferred from free-form text.
+        - Validate produced unified diff against intent:
+          - append_only permits only `+` lines after declared anchor regions and forbids `-` lines.
+          - targeted_patch permits `+/-` only within declared selector ranges.
+        - Any out-of-range hunk or line deletion under append_only is fail-closed.
+    - Doc rewrite drift guard:
+      - Add explicit validator that rejects whole-file doc rewrites when task intent is append-only.
+      - Enforce INDEX/protocol doc mutations through targeted patch mode in burn-in tasks.
+      - Guard location is task_spec_lint.py (not a separate optional module) to keep pre-flight fail-closed.
+    - Deterministic challenger validation:
+      - Include fixed known-bad fixture in every batch.
+      - Pass condition: challenger flags material issue and rework path triggers at least once.
+      - Fail condition: known-bad fixture receives approved/Accept without defect signal.
+      - Known-bad fixture contract:
+        - Fixture ID is stable and versioned (`challenger_fixture_v1_known_bad`).
+        - Fixture contains at least one critical schema violation and one policy violation marker.
+        - Material issue threshold = severity >= HIGH OR >=2 MEDIUM findings in challenger output.
+    - Steward diff preflight + split:
+      - Compute projected diff size before steward.
+      - If diff > 300 lines, auto-split into ordered sub-tasks below cap.
+      - Block steward invocation when split plan is missing for oversized diffs.
+      - Recursive split guard: if any child chunk still exceeds cap, hard-fail with SPLIT_FAIL (no steward call).
+      - Split order must be deterministic (stable file path ordering + stable hunk ordering).
+      - Deterministic chunking rule:
+        - Sort by ASCII byte-order `(file_path ASC, hunk_start_line ASC, hunk_length ASC)`; locale-independent.
+        - Build chunks by cumulative changed-line budget <=300 with stable carry-over.
+        - If a single hunk >300 changed lines, emit SPLIT_FAIL immediately (no recursive best-effort).
+      - Sub-task execution model:
+        - Execute split child tasks sequentially in deterministic order.
+        - Parent task tracks child completion IDs in ledger; parent closes only when all children close.
+        - Parallel split execution is forbidden in Batch 2 burn-in.
+    - Attempt ledger continuity automation:
+      - On ledger mutation, auto-stage + commit with deterministic message before next cycle.
+      - Keep repo-clean check as hard gate; if auto-commit fails, return CLEAN_FAIL.
+      - Use atomic write semantics for ledger update and commit metadata handoff.
+      - Atomic contract: write temp file + fsync + atomic rename; abort cycle if rename/commit fails.
+      - CLEAN_FAIL recovery runbook required: rollback/retry steps that preserve repo-clean/no-orphans invariants.
+      - Partial-rollback contract:
+        - If failure occurs after stage but before commit, unstage staged ledger files and delete temp artifacts.
+        - Re-check repo-clean + no-orphans before returning CLEAN_FAIL.
+        - If cleanup itself fails, emit CLEAN_FAIL with RECOVERY_INCOMPLETE reason for manual runbook handoff.
+        - On SPLIT_FAIL mid-orchestration: mark all unstarted child tasks cancelled, archive started-child state, and clear split queue metadata before CLEAN_FAIL.
+      - No-orphans verification:
+        - Run explicit process-group orphan scan at cycle closeout.
+        - Any lingering child process from split/steward/challenger paths triggers CLEAN_FAIL(NO_ORPHANS_FAIL).
+    - Contract versioning:
+      - Each planned contract module must emit a `contract_version` constant and include it in receipts.
+      - Version mismatch at runtime is fail-closed and blocks burn-in cycle start.
+      - Batch-2 preflight must assert runbook artifact exists and is readable before cycle start.
+    Acceptance criteria (Batch 2 go/no-go):
+    - 5/5 cycles executed, manual interventions = 0.
+    - Challenger fixture rework trigger observed >=1 time across the 5-cycle batch (minimum one mandatory trigger).
+    - No steward diff-cap blocks from unsplit oversized changes.
+    - No doc rewrite drift events for append-only doc tasks.
+    - Repo-clean and no-orphans invariants preserved for every cycle.
+    Review goal: strict acceptance for execution readiness under these criteria.
+  constraints:
+    - "No modifications to governance protected paths."
+    - "Recommendations must preserve fail-closed behavior."
+    - "Any suggested automation must keep repo-clean and no-orphans invariants."
+    - "Approval requires concrete, testable acceptance criteria."
+    - "Do not emit tool-call requests; tool execution is unavailable in this review context."
+    - "Cite packet evidence using REF: AUR-BATCH1-REMEDIATION-001:<section> where applicable."
+    - "Assessment must judge the implementation contract above, not only high-level intent."
+  artifacts:
+    - id: "docs/11_admin/Batch1_BurnIn_Report.md"
+      type: "report"
+      description: "Batch 1 outcomes and key failure modes."
+      evidence_excerpt: "4/6 autonomous, 2/6 manual fallback; steward diff cap miss; challenger non-determinism observed."
+    - id: "docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md"
+      type: "plan"
+      description: "Canonical production readiness authority and criteria."
+      evidence_excerpt: "Batch 2 requires top fixes applied and no-manual-intervention target preserved."
+    - id: "docs/11_admin/LIFEOS_STATE.md"
+      type: "state"
+      description: "Current operational state and next-step alignment."
+      evidence_excerpt: "State tracks Batch 1 completion and next focus alignment."
+    - id: "runtime/orchestration/loop/task_spec_lint.py (planned)"
+      type: "planned_contract"
+      description: "Fail-closed task spec lint with required fields and doc mutation guards."
+      evidence_excerpt: "Enforces allowed_paths/api_shape/doc_mutation_mode/max_expected_diff_lines before run start."
+    - id: "runtime/orchestration/loop/task_spec_lint.py::validate_allowed_paths (planned)"
+      type: "planned_contract"
+      description: "Path canonicalization + traversal/symlink escape guard for allowed_paths."
+      evidence_excerpt: "Rejects ../, out-of-repo absolute paths, and symlink escapes before execution."
+    - id: "runtime/orchestration/council/challenger_fixture_gate.py (planned)"
+      type: "planned_contract"
+      description: "Deterministic known-bad fixture validation for challenger rework trigger."
+      evidence_excerpt: "Blocks approval when known-bad fixture is accepted without material issue."
+    - id: "runtime/orchestration/steward/diff_preflight.py (planned)"
+      type: "planned_contract"
+      description: "Projected diff-size guard with auto-split orchestration."
+      evidence_excerpt: "Enforces 300-line cap via split plan before steward invocation."
+    - id: "runtime/orchestration/steward/diff_preflight.py::recursive_split_guard (planned)"
+      type: "planned_contract"
+      description: "Deterministic recursive split handling with SPLIT_FAIL hard stop."
+      evidence_excerpt: "Any child chunk >300 lines triggers SPLIT_FAIL and blocks steward invocation."
+    - id: "runtime/orchestration/steward/split_execution_tracker.py (planned)"
+      type: "planned_contract"
+      description: "Sequential child-task execution and parent-child completion tracking."
+      evidence_excerpt: "Persists ordered child IDs and enforces sequential completion before parent close."
+    - id: "runtime/orchestration/loop/attempt_ledger_commit.py (planned)"
+      type: "planned_contract"
+      description: "Atomic ledger continuity + auto-commit integration with repo-clean gate."
+      evidence_excerpt: "Auto-stage/commit on ledger mutation; CLEAN_FAIL on automation failure."
+    - id: "runtime/orchestration/loop/no_orphans_check.py (planned)"
+      type: "planned_contract"
+      description: "Explicit no-orphans process-group closeout validator."
+      evidence_excerpt: "Fails cycle when any spawned child process remains after closeout."
+    - id: "docs/11_admin/CLEAN_FAIL_Recovery_Runbook.md (planned)"
+      type: "planned_contract"
+      description: "Manual recovery path for ledger/steward automation failure."
+      evidence_excerpt: "Defines rollback/retry sequence while preserving repo-clean and no-orphans invariants."
+    - id: "runtime/orchestration/loop/task_spec_lint.py::validate_doc_mutation_mode (planned)"
+      type: "planned_contract"
+      description: "Deterministic diff-vs-intent validation for append_only and targeted_patch modes."
+      evidence_excerpt: "Compares unified diff hunks to declared selectors/anchors; fail-closed on mismatch."
+    - id: "runtime/orchestration/council/challenger_fixture_gate.py::known_bad_thresholds (planned)"
+      type: "planned_contract"
+      description: "Stable known-bad fixture identity and materiality threshold enforcement."
+      evidence_excerpt: "Requires fixture ID/version and severity threshold check before PASS."

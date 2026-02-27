@@ -1,0 +1,38 @@
+{
+  "verdict": "BLOCK",
+  "review_packet_id": "council_a83ed549e7e1433e919533f9297b13d1",
+  "subject_hash": "sha256:6879cde536043d7a9396af9c0a13b50aa0138de2ed31482d1ea19a3e1a62549c",
+  "rationale": "Strict approval blocked.",
+  "conditions": [],
+  "blocking_issues": [
+    {
+      "id": "protocol_verdict",
+      "detail": "Protocol verdict is 'Revise', expected 'Accept'."
+    },
+    {
+      "id": "model_diversity",
+      "detail": "Observed 1 distinct lens models: ['ZEN:MiniMax-M2.5']"
+    }
+  ],
+  "votes": {
+    "council_status": "complete",
+    "protocol_verdict": "Revise",
+    "decision_status": "NORMAL",
+    "tier": "T2"
+  },
+  "models": {
+    "selected": [
+      "opencode/glm-5",
+      "opencode/kimi-k2.5",
+      "opencode/minimax-m2.5"
+    ],
+    "planned_assignments": {
+      "Architecture": "opencode/minimax-m2.5",
+      "Chair": "opencode/kimi-k2.5",
+      "Challenger": "opencode/kimi-k2.5",
+      "Governance": "opencode/glm-5",
+      "Risk": "opencode/kimi-k2.5"
+    }
+  },
+  "result_path": "/mnt/c/Users/cabra/Projects/LifeOS/.worktrees/build/coo-dispatch/artifacts/council_reviews/remediation_plan_20260227T074026Z.json"
+}

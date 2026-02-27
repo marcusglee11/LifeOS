@@ -125,7 +125,11 @@ def build_multi_provider_executor(
                     else:
                         config.agents.pop(role, None)
 
-                return _response_to_dict(response, lens_name)
+                raw = _response_to_dict(response, lens_name)
+                run_type = getattr(plan_core, "run_type", "review")
+                if isinstance(raw, dict) and "claims" not in raw and "verdict" in raw:
+                    raw = _normalize_v1_to_v2_lens(raw, lens_name, run_type)
+                return raw
 
             logger.warning(
                 "CLI provider %s not available for lens %s; using API",
@@ -135,15 +139,86 @@ def build_multi_provider_executor(
         # Standard API dispatch (default path)
         logger.info("Lens %s → API dispatch (role=%s, model=%s)", lens_name, role, model)
         response = call_agent(call, config=config)
-        return _response_to_dict(response, lens_name)
+        raw = _response_to_dict(response, lens_name)
+        # Normalize v1 seat format → v2 lens format if the model returned the old schema.
+        # Some models ignore the updated prompt and produce verdict/key_findings/risks/fixes
+        # instead of the required run_type/lens_name/notes/claims schema.
+        run_type = getattr(plan_core, "run_type", "review")
+        if isinstance(raw, dict) and "claims" not in raw and "verdict" in raw:
+            raw = _normalize_v1_to_v2_lens(raw, lens_name, run_type)
+        return raw
 
     return executor
+
+
+def _normalize_v1_to_v2_lens(
+    output: dict[str, Any], lens_name: str, run_type: str
+) -> dict[str, Any]:
+    """Convert v1 seat output (verdict/key_findings/risks/fixes) to v2 lens format.
+
+    Called when a model ignores the updated prompt and returns the old schema.
+    Preserves all substantive content; translates structure to satisfy validate_lens_output.
+    """
+    claims: list[dict[str, Any]] = []
+    for section, category in [
+        ("key_findings", "finding"),
+        ("risks", "risk"),
+        ("fixes", "fix"),
+    ]:
+        items = output.get(section) or []
+        if not isinstance(items, list):
+            continue
+        for idx, item in enumerate(items):
+            statement = str(item)
+            evidence_refs: list[str] = []
+            if "REF:" in statement:
+                # Extract inline REF: tokens
+                for part in statement.split("REF:")[1:]:
+                    token = part.split()[0] if part.split() else ""
+                    if token:
+                        evidence_refs.append(f"REF:{token}")
+            claims.append({
+                "claim_id": f"{category[0].upper()}{idx + 1}",
+                "statement": statement,
+                "evidence_refs": evidence_refs,
+                "category": category,
+            })
+
+    op_view = output.get("operator_view", "")
+    notes_text: str
+    if isinstance(op_view, str):
+        notes_text = op_view[:200].strip() or f"{lens_name} review complete."
+    elif isinstance(op_view, list) and op_view:
+        notes_text = str(op_view[0])[:200]
+    else:
+        notes_text = f"{lens_name} review complete."
+
+    normalized: dict[str, Any] = {
+        "run_type": run_type,
+        "lens_name": lens_name,
+        "verdict_recommendation": output.get("verdict", ""),
+        "confidence": output.get("confidence", "medium"),
+        "notes": notes_text,
+        "operator_view": op_view or notes_text,
+        "claims": claims,
+    }
+    # Preserve non-conflicting extra fields (complexity_budget, assumptions, etc.)
+    skip = {"verdict", "key_findings", "risks", "fixes", "run_type", "lens_name",
+            "claims", "notes", "confidence", "operator_view", "verdict_recommendation"}
+    for k, v in output.items():
+        if k not in skip:
+            normalized[k] = v
+    return normalized
 
 
 def _response_to_dict(response: AgentResponse, lens_name: str) -> dict[str, Any]:
     """Convert AgentResponse to dict suitable for schema gate validation."""
     if response.packet:
-        return response.packet
+        # Preserve actual execution metadata even when provider returned a structured packet.
+        packet = dict(response.packet)
+        packet.setdefault("model_used", response.model_used)
+        packet.setdefault("model_version", response.model_version)
+        return packet
 
     # If no structured packet, wrap raw content
     return {

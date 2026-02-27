@@ -1,0 +1,29 @@
+{
+  "verdict": "GO",
+  "review_packet_id": "council_8e6b0f2afa36499faae61ed5e44d9eb6",
+  "subject_hash": "sha256:825cbc26e1d97a78b42c0d9a7c811989be9ea4f40c8c40cef740bbbbfc6e4f6f",
+  "rationale": "Strict approval satisfied.",
+  "conditions": [],
+  "blocking_issues": [],
+  "votes": {
+    "council_status": "complete",
+    "protocol_verdict": "Accept",
+    "decision_status": "NORMAL",
+    "tier": "T2"
+  },
+  "models": {
+    "selected": [
+      "opencode/glm-5",
+      "opencode/kimi-k2.5",
+      "opencode/minimax-m2.5"
+    ],
+    "planned_assignments": {
+      "Architecture": "opencode/minimax-m2.5",
+      "Chair": "opencode/kimi-k2.5",
+      "Challenger": "opencode/kimi-k2.5",
+      "Governance": "opencode/glm-5",
+      "Risk": "opencode/kimi-k2.5"
+    }
+  },
+  "result_path": "/mnt/c/Users/cabra/Projects/LifeOS/.worktrees/build/coo-dispatch/artifacts/council_reviews/remediation_plan_20260227T000845Z.json"
+}

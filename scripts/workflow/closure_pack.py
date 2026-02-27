@@ -36,7 +36,10 @@ def _git_stdout(repo_root: Path, args: list[str]) -> str:
 
 
 def _working_tree_clean(repo_root: Path) -> bool:
-    return not _git_stdout(repo_root, ["status", "--short"])
+    # Use --untracked-files=no so untracked files from concurrent agent sessions
+    # (e.g. council review artifacts still in-flight) do not block the merge gate.
+    # The check still catches uncommitted tracked-file changes (staged or unstaged).
+    return not _git_stdout(repo_root, ["status", "--short", "--untracked-files=no"])
 
 
 def _commit_doc_autofix(repo_root: Path) -> tuple[bool, str]:

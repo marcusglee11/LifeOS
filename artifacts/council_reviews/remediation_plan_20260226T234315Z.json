@@ -1,0 +1,277 @@
+{
+  "status": "complete",
+  "run_log": {
+    "aur_id": "AUR-BATCH1-REMEDIATION-001",
+    "plan_core_hash": "pending",
+    "run_id": "council_fe83e2d3f8f74d8b914ef8f44893afa8",
+    "tier": "T2",
+    "run_type": "review",
+    "state_transitions": [
+      {
+        "from_state": "S0_ASSEMBLE",
+        "to_state": "S1_EXECUTE_LENSES",
+        "reason": "lenses_required",
+        "details": {}
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Architecture",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Governance",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Risk",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_25_SCHEMA_GATE_LENSES",
+        "to_state": "S1_5_COVERAGE_COMPLETE",
+        "reason": "lens_gate_complete",
+        "details": {
+          "coverage_degraded": false
+        }
+      },
+      {
+        "from_state": "S1_5_COVERAGE_COMPLETE",
+        "to_state": "S1_55_EXECUTION_FIDELITY",
+        "reason": "coverage_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S1_55_EXECUTION_FIDELITY",
+        "to_state": "S2_SYNTHESIS",
+        "reason": "fidelity_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_SYNTHESIS",
+        "to_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "reason": "synthesis_started",
+        "details": {}
+      },
+      {
+        "from_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "to_state": "S2_5_CHALLENGER_REVIEW",
+        "reason": "synthesis_schema_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_5_CHALLENGER_REVIEW",
+        "to_state": "S4_CLOSEOUT",
+        "reason": "no_closure_gate",
+        "details": {}
+      },
+      {
+        "from_state": "S4_CLOSEOUT",
+        "to_state": "TERMINAL_COMPLETE",
+        "reason": "run_complete",
+        "details": {}
+      }
+    ],
+    "lens_results": {
+      "Architecture": {
+        "run_type": "review",
+        "lens_name": "Architecture",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "No operator summary returned."
+        ],
+        "claims": [
+          {
+            "claim_id": "architecture-01",
+            "statement": "I need to examine the referenced artifacts to perform this architecture review. Let me retrieve the key documents.\n[TOOL_CALL]\n{tool => \"read_doc\", args => {\n  --doc_id \"docs/11_admin/Batch1_BurnIn_Report.md\"\n}}\n[/TOOL_CALL]\n[TOOL_CALL]\n{tool => \"read_doc\", args => {\n  --doc_id \"docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md\"\n}}\n[/TOOL_CALL]\n[TOOL_CALL]\n{tool => \"read_doc\", args => {\n  --doc_id \"docs/11_admin/LIFEOS_STATE.md\"\n}}\n[/TOOL_CALL]",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/minimax-m2.5"
+      },
+      "Governance": {
+        "run_type": "review",
+        "lens_name": "Governance",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "Governance lens review completes with ACCEPT verdict. The remediation plan meets all stated constraints: no protected governance paths are touched, fail-closed behavior is required, and repo-clean/no-orphans invariants are preserved. The plan scope (deterministic challenger validation, task-spec contract linting, steward diff preflight, attempt ledger automation, state/plan consistency) represents appropriate module-level remediation with moderate reversibility. \n\nKey action items for execution: (1) ensure acceptance criteria are concrete and testable before implementation begins, (2) verify input validation on all automated linting/validation paths, (3) implement atomic operations for ledger continuity. No escalation required - plan is ready for execution approval."
+        ],
+        "claims": [
+          {
+            "claim_id": "governance-01",
+            "statement": "Plan scope is appropriately bounded to module-level blast radius with moderate reversibility. REF: AUR-BATCH1-REMEDIATION-001:header",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:header"
+            ]
+          },
+          {
+            "claim_id": "governance-02",
+            "statement": "No governance protected paths (docs/00_foundations/, docs/01_governance/, config/governance/protected_artefacts.json) are in scope for modification. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-03",
+            "statement": "Fail-closed behavior requirement is explicitly stated as a constraint, which aligns with defense-in-depth principles. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-04",
+            "statement": "Repo-clean and no-orphans invariants are explicitly required for any automation, preventing technical debt accumulation. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-05",
+            "statement": "Acceptance criteria requirement (concrete, testable) provides verifiable governance gates. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-06",
+            "statement": "Change class is 'amend' with safety_critical=false, indicating incremental improvement rather than fundamental redesign. REF: AUR-BATCH1-REMEDIATION-001:header",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:header"
+            ]
+          },
+          {
+            "claim_id": "governance-07",
+            "statement": "Deterministic challenger validation scope and failure modes not detailed - implementation must ensure adversarial test coverage. [ASSUMPTION] Verification requires seeing actual challenger implementation",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "governance-08",
+            "statement": "Task-spec contract linting automation must validate all input paths to prevent malicious spec injection. [ASSUMPTION] Cannot verify input sanitization without artifact inspection",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "governance-09",
+            "statement": "Attempt ledger continuity automation requires atomic operations to prevent state inconsistency. [ASSUMPTION] Atomicity guarantees not specified in plan overview",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "governance-10",
+            "statement": "Steward diff preflight must handle large diffs without memory exhaustion (DoS vector). [ASSUMPTION] Performance bounds not detailed",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "governance-11",
+            "statement": "For deterministic challenger validation: ensure adversarial test cases are included in acceptance criteria. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-12",
+            "statement": "For task-spec contract linting: require input sanitization as part of linting rules. [ASSUMPTION] Implementation detail to verify during execution",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "governance-13",
+            "statement": "For attempt ledger continuity: require transactional/atomic operations with rollback capability. [ASSUMPTION] Implementation standard to enforce",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "governance-14",
+            "statement": "For steward diff preflight: add chunked processing for large diffs with configurable size limits. [ASSUMPTION] Performance requirement to include",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Accept",
+        "_actual_model": "opencode/glm-5"
+      },
+      "Risk": {
+        "run_type": "review",
+        "lens_name": "Risk",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "No operator summary returned."
+        ],
+        "claims": [
+          {
+            "claim_id": "risk-01",
+            "statement": "I need to examine the referenced artifacts to evaluate the remediation plan. Let me start by exploring the document structure and reading the key files.\n[TOOL_CALL]\n{tool => \"filesystem_list_allowed_directories\", args => {\n\n}}\n[/TOOL_CALL]\n[TOOL_CALL]\n{tool => \"filesystem_list_directory\", args => {\n  --path \"docs/11_admin\"\n}}\n[/TOOL_CALL]",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/kimi-k2.5"
+      }
+    },
+    "synthesis": {
+      "run_type": "review",
+      "tier": "T2",
+      "verdict": "Revise",
+      "fix_plan": [],
+      "complexity_budget": {
+        "net_human_steps": 0
+      },
+      "operator_view": [
+        "No operator summary returned.",
+        "Governance lens review completes with ACCEPT verdict. The remediation plan meets all stated constraints: no protected governance paths are touched, fail-closed behavior is required, and repo-clean/no-orphans invariants are preserved. The plan scope (deterministic challenger validation, task-spec contract linting, steward diff preflight, attempt ledger automation, state/plan consistency) represents appropriate module-level remediation with moderate reversibility. \n\nKey action items for execution: (1) ensure acceptance criteria are concrete and testable before implementation begins, (2) verify input validation on all automated linting/validation paths, (3) implement atomic operations for ledger continuity. No escalation required - plan is ready for execution approval.",
+        "No operator summary returned."
+      ],
+      "coverage_degraded": false,
+      "waived_lenses": [],
+      "evidence_summary": {
+        "ref_count": 16,
+        "assumption_count": 0
+      },
+      "contradiction_ledger": []
+    },
+    "decision_status": "NORMAL",
+    "status": "complete"
+  },
+  "decision_payload": {
+    "status": "COMPLETE",
+    "verdict": "Revise",
+    "decision_status": "NORMAL",
+    "fix_plan": [],
+    "run_id": "council_fe83e2d3f8f74d8b914ef8f44893afa8",
+    "tier": "T2"
+  },
+  "block_report": null
+}

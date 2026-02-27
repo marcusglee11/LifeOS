@@ -1,0 +1,47 @@
+{
+  "verdict": "BLOCK",
+  "review_packet_id": "",
+  "subject_hash": "sha256:129ac0349ed581ff3e26f5382817d03399ab697c0ab3664bde77c12e8b73da58",
+  "rationale": "Strict approval blocked; see blocking_issues.",
+  "conditions": [],
+  "blocking_issues": [
+    {
+      "id": "council_status",
+      "detail": "Council status is 'blocked' (expected 'complete')."
+    },
+    {
+      "id": "protocol_verdict",
+      "detail": "Protocol verdict is 'None' and strict gate requires 'Accept'."
+    },
+    {
+      "id": "decision_status",
+      "detail": "Decision status is 'None' and strict gate requires 'NORMAL'."
+    },
+    {
+      "id": "model_diversity",
+      "detail": "Observed 0 distinct lens models ([]); strict gate requires >= 3."
+    }
+  ],
+  "votes": {
+    "council_status": "blocked",
+    "protocol_verdict": null,
+    "decision_status": null,
+    "tier": null
+  },
+  "models": {
+    "selected": [
+      "opencode/glm-5",
+      "opencode/kimi-k2.5",
+      "opencode/minimax-m2.5"
+    ],
+    "planned_assignments": {
+      "Architecture": "opencode/minimax-m2.5",
+      "Chair": "opencode/kimi-k2.5",
+      "Challenger": "opencode/kimi-k2.5",
+      "Governance": "opencode/glm-5",
+      "Risk": "opencode/kimi-k2.5"
+    },
+    "actual_lens_models": []
+  },
+  "result_path": "/mnt/c/Users/cabra/Projects/LifeOS/.worktrees/build/coo-dispatch/artifacts/council_reviews/remediation_plan_20260226T231648Z.json"
+}

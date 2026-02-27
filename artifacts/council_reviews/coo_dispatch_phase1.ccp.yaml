@@ -1,0 +1,51 @@
+header:
+  aur_id: "AUR-COO-DISPATCH-P1-001"
+  aur_type: "code"
+  change_class: "new"
+  blast_radius: "module"
+  reversibility: "moderate"
+  uncertainty: "medium"
+  touches:
+    - "interfaces"
+    - "runtime_core"
+  safety_critical: false
+  run_type: "review"
+  model_plan_v1:
+    primary: "openrouter/moonshotai/kimi-k2.5"
+    independent: "openrouter/z-ai/glm-5"
+    seat_overrides:
+      Chair: "openrouter/minimax/minimax-m2.5"
+
+sections:
+  objective: |
+    Review the Phase 1 COO Dispatch Engine implementation. Introduces a new stable
+    contract: ExecutionOrder (YAML schema `execution_order.v1`) between any order
+    source and the Dispatch Engine. New lifecycle engine: inbox → active → completed
+    with non-bypassable gates and canonical manifest append.
+    Modules: order.py (schema+validation), engine.py (lifecycle), manifest.py
+    (run_log.jsonl append), provider_pool.py (health-aware routing stub),
+    ports.py (SupervisorPort/CuratorPort protocols), CLI commands (dispatch submit/status).
+  scope: |
+    New package: runtime/orchestration/dispatch/ (6 files, ~600 LOC)
+    Modified: runtime/cli.py (dispatch submit + status commands)
+    New config: config/dispatch.yaml
+    New tests: runtime/tests/orchestration/dispatch/ + test_cli_dispatch_engine.py
+    Commit range: main..build/coo-dispatch (tip: 32150e5)
+  constraints:
+    - "Non-bypassable gates (repo_clean_verified + orphan_check_passed) MUST always run in finally block regardless of step outcomes"
+    - "Global single-flight lock (acquire_run_lock) MUST be acquired before LoopSpine execution"
+    - "Manifest MUST append to artifacts/manifests/run_log.jsonl per v2.1 Storage Policy — not a new file"
+    - "All inbox/active/completed transitions MUST use .tmp-then-rename atomic pattern"
+    - "execute_async() MUST raise NotImplementedError in Phase 1"
+    - "order_id MUST validate against [a-zA-Z0-9_-]{1,128} regex to prevent path traversal"
+    - "DispatchEngine MUST delegate ALL agent invocations to LoopSpine — no direct LLM calls"
+  artifacts:
+    - id: "runtime/orchestration/dispatch/"
+      type: "new_package"
+      description: "ExecutionOrder contract + DispatchEngine lifecycle + ProviderPool + RunManifest + Protocol interfaces"
+    - id: "runtime/cli.py"
+      type: "modified"
+      description: "lifeos dispatch submit <order.yaml> and lifeos dispatch status commands"
+    - id: "config/dispatch.yaml"
+      type: "new_config"
+      description: "Phase 1 engine configuration"

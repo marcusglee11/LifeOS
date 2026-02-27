@@ -8,6 +8,7 @@ from typing import Any, Dict
 
 from runtime.config import detect_repo_root, load_config
 from runtime.orchestration.ceo_queue import CEOQueue
+from runtime.orchestration.dispatch.engine import DispatchEngine
 from runtime.orchestration.orchestrator import OrchestrationResult, ValidationOrchestrator
 from runtime.validation.core import JobSpec
 from runtime.validation.evidence import compute_manifest
@@ -752,6 +753,67 @@ def cmd_queue_reject(args: argparse.Namespace, repo_root: Path) -> int:
     return 0
 
 
+def cmd_dispatch_submit(args: argparse.Namespace, repo_root: Path) -> int:
+    """
+    Submit an ExecutionOrder YAML to the Dispatch Engine and execute it.
+
+    Validates the order, moves through inbox → active → completed lifecycle,
+    runs non-bypassable gates, and appends to the canonical run_log manifest.
+    """
+    from runtime.orchestration.dispatch.order import OrderValidationError
+
+    order_path = Path(args.order_file)
+    if not order_path.exists():
+        print(f"Error: Order file not found: {order_path}", file=sys.stderr)
+        return 1
+
+    engine = DispatchEngine(repo_root=repo_root)
+    engine.recover_crashed_runs()
+
+    try:
+        result = engine.execute_from_path(order_path)
+    except OrderValidationError as exc:
+        print(f"Error: Invalid order: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        print(f"Error: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        import dataclasses
+        print(json.dumps(dataclasses.asdict(result), indent=2, sort_keys=True))
+    else:
+        print(f"order_id:             {result.order_id}")
+        print(f"run_id:               {result.run_id or 'N/A'}")
+        print(f"outcome:              {result.outcome}")
+        print(f"reason:               {result.reason}")
+        print(f"repo_clean_verified:  {result.repo_clean_verified}")
+        print(f"orphan_check_passed:  {result.orphan_check_passed}")
+        if result.terminal_packet_path:
+            print(f"terminal_packet:      {result.terminal_packet_path}")
+
+    return 0 if result.outcome == "SUCCESS" else 1
+
+
+def cmd_dispatch_status(args: argparse.Namespace, repo_root: Path) -> int:
+    """Show Dispatch Engine inbox/active/completed counts."""
+    engine = DispatchEngine(repo_root=repo_root)
+    status = engine.status()
+
+    if args.json:
+        print(json.dumps(status, indent=2, sort_keys=True))
+    else:
+        print(f"pending:    {status['pending_orders']}")
+        print(f"active:     {status['active_orders']}")
+        print(f"completed:  {status['completed_orders']}")
+        if status["pending"]:
+            print(f"pending orders:  {', '.join(status['pending'])}")
+        if status["active"]:
+            print(f"active orders:   {', '.join(status['active'])}")
+
+    return 0
+
+
 def cmd_spine_run(args: argparse.Namespace, repo_root: Path) -> int:
     """
     Run Loop Spine with a task specification.
@@ -978,6 +1040,23 @@ def main() -> int:
     p_run.add_argument("--mission-type", type=str, help="Mission type override (default: steward)")
     p_run.add_argument("--json", action="store_true", help="Output results as JSON")
 
+    # dispatch group (Phase 1 COO Dispatch Engine)
+    p_dispatch = subparsers.add_parser("dispatch", help="COO Dispatch Engine commands")
+    dispatch_subs = p_dispatch.add_subparsers(dest="dispatch_cmd", required=True)
+
+    # dispatch submit
+    p_dispatch_submit = dispatch_subs.add_parser(
+        "submit", help="Submit and execute an ExecutionOrder YAML"
+    )
+    p_dispatch_submit.add_argument("order_file", help="Path to ExecutionOrder YAML file")
+    p_dispatch_submit.add_argument("--json", action="store_true", help="Output result as JSON")
+
+    # dispatch status
+    p_dispatch_status = dispatch_subs.add_parser(
+        "status", help="Show dispatch engine inbox/active/completed counts"
+    )
+    p_dispatch_status.add_argument("--json", action="store_true", help="Output as JSON")
+
     # spine group (Phase 4A0)
     p_spine = subparsers.add_parser("spine", help="Loop Spine (A1 Chain Controller) commands")
     spine_subs = p_spine.add_subparsers(dest="spine_cmd", required=True)
@@ -1045,6 +1124,12 @@ def main() -> int:
 
         if args.subcommand == "run-mission":
             return cmd_run_mission(args, repo_root)
+
+        if args.subcommand == "dispatch":
+            if args.dispatch_cmd == "submit":
+                return cmd_dispatch_submit(args, repo_root)
+            elif args.dispatch_cmd == "status":
+                return cmd_dispatch_status(args, repo_root)
 
         if args.subcommand == "spine":
             if args.spine_cmd == "run":

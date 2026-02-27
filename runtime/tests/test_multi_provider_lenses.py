@@ -92,7 +92,10 @@ class TestBuildMultiProviderExecutor:
         result = executor("Architecture", {"task": "review"}, plan, 0)
 
         mock_call.assert_called_once()
-        assert result == {"verdict": "Accept"}
+        # v1 packet {"verdict": "Accept"} is normalized to v2 schema by _normalize_v1_to_v2_lens
+        assert result["verdict_recommendation"] == "Accept"
+        assert result["model_used"] == "claude-sonnet-4-5"
+        assert result["model_version"] == "claude-sonnet-4-5"
 
     @patch("runtime.orchestration.council.multi_provider.call_agent_cli")
     def test_override_routes_to_cli(self, mock_cli_call):
@@ -112,7 +115,10 @@ class TestBuildMultiProviderExecutor:
         result = executor("Architecture", {"task": "review"}, plan, 0)
 
         mock_cli_call.assert_called_once()
-        assert result == {"verdict": "Accept"}
+        # v1 packet {"verdict": "Accept"} is normalized to v2 schema by _normalize_v1_to_v2_lens
+        assert result["verdict_recommendation"] == "Accept"
+        assert result["model_used"] == "gpt-5.3-codex"
+        assert result["model_version"] == "codex/gpt-5.3-codex"
 
     @patch("runtime.orchestration.council.multi_provider.call_agent")
     def test_disabled_cli_falls_back_to_api(self, mock_call):
@@ -218,7 +224,11 @@ class TestResponseToDict:
             model_used="claude", model_version="claude",
             content="raw text", packet={"verdict": "Accept"},
         )
-        assert _response_to_dict(response, "Architecture") == {"verdict": "Accept"}
+        assert _response_to_dict(response, "Architecture") == {
+            "verdict": "Accept",
+            "model_used": "claude",
+            "model_version": "claude",
+        }
 
     def test_without_packet(self):
         response = AgentResponse(

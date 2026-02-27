@@ -1,0 +1,361 @@
+{
+  "status": "complete",
+  "run_log": {
+    "aur_id": "AUR-BATCH1-REMEDIATION-001",
+    "plan_core_hash": "pending",
+    "run_id": "council_3c75abaf5e8e4b87ae9d038ff2c90ba4",
+    "tier": "T2",
+    "run_type": "review",
+    "state_transitions": [
+      {
+        "from_state": "S0_ASSEMBLE",
+        "to_state": "S1_EXECUTE_LENSES",
+        "reason": "lenses_required",
+        "details": {}
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Architecture",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Governance",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Risk",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_25_SCHEMA_GATE_LENSES",
+        "to_state": "S1_5_COVERAGE_COMPLETE",
+        "reason": "lens_gate_complete",
+        "details": {
+          "coverage_degraded": false
+        }
+      },
+      {
+        "from_state": "S1_5_COVERAGE_COMPLETE",
+        "to_state": "S1_55_EXECUTION_FIDELITY",
+        "reason": "coverage_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S1_55_EXECUTION_FIDELITY",
+        "to_state": "S2_SYNTHESIS",
+        "reason": "fidelity_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_SYNTHESIS",
+        "to_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "reason": "synthesis_started",
+        "details": {}
+      },
+      {
+        "from_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "to_state": "S2_5_CHALLENGER_REVIEW",
+        "reason": "synthesis_schema_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_5_CHALLENGER_REVIEW",
+        "to_state": "S4_CLOSEOUT",
+        "reason": "no_closure_gate",
+        "details": {}
+      },
+      {
+        "from_state": "S4_CLOSEOUT",
+        "to_state": "TERMINAL_COMPLETE",
+        "reason": "run_complete",
+        "details": {}
+      }
+    ],
+    "lens_results": {
+      "Architecture": {
+        "run_type": "review",
+        "lens_name": "Architecture",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "No operator summary returned."
+        ],
+        "claims": [
+          {
+            "claim_id": "architecture-01",
+            "statement": "I'll begin by examining the referenced artifacts to understand the current state, the Batch 1 failures, and the proposed remediation plan.\n<tool_code>\nopenai_thinking\n<param name=\"text\">I need to review the Batch 1 burn-in remediation plan. Let me first access the three key documents to understand:\n1. What happened in Batch 1 (BurnIn_Report)\n2. What the production readiness criteria are (Production_Plan)\n3. Current operational state (LIFEOS_STATE)\n\nI'll examine these in parallel to understand the full context before evaluating the architecture of the proposed fixes.</param>\n</tool_code>\n<tool_code>\nread_file\n<param name=\"file_path\">/Users/a/vela/vela-workspace/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/docs/11_admin/Batch1_BurnIn_Report.md</param>\n</tool_code>\n<tool_code>\nread_file\n<param name=\"file_path\">/Users/a/vela/vela-workspace/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md</param>\n</tool_code>\n<tool_code>\nread_file\n<param name=\"file_path\">/Users/a/vela/vela-workspace/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/vela-prod-16922-1162-0-8db3c3c4-bf6c-4dbd-bd8a-4f4d80e0d8e8-x/docs/11_admin/LIFEOS_STATE.md</param>\n</tool_code>",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/minimax-m2.5"
+      },
+      "Governance": {
+        "run_type": "review",
+        "lens_name": "Governance",
+        "confidence": "low",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "Security review cannot proceed. The CCP provides metadata about the remediation plan but the actual artifact contents (Batch1_BurnIn_Report.md, LifeOS_Build_Loop_Production_Plan_v2.1.md, LIFEOS_STATE.md) are not included in the review request. Per security protocol, I must mark this as Revise and request the source documents be provided for security validation. Cannot verify fail-closed behavior, input validation, or invariant preservation without seeing the actual plan contents."
+        ],
+        "claims": [
+          {
+            "claim_id": "governance-01",
+            "statement": "Unable to perform security review: source artifacts (docs/11_admin/Batch1_BurnIn_Report.md, docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md, docs/11_admin/LIFEOS_STATE.md) not provided in review request. REF: CWE-119 (lack of input to validate)",
+            "evidence_refs": [
+              "REF:CWE-119"
+            ]
+          },
+          {
+            "claim_id": "governance-02",
+            "statement": "Cannot verify fail-closed behavior preservation without reviewing the proposed changes in the remediation plan. REF: [ASSUMPTION] - assuming plan maintains fail-closed behavior",
+            "evidence_refs": [
+              "REF:[ASSUMPTION]"
+            ]
+          },
+          {
+            "claim_id": "governance-03",
+            "statement": "Cannot verify repo-clean/no-orphans invariant compliance without seeing automation proposals. REF: [ASSUMPTION] - assuming automation scripts are well-formed",
+            "evidence_refs": [
+              "REF:[ASSUMPTION]"
+            ]
+          },
+          {
+            "claim_id": "governance-04",
+            "statement": "Cannot validate input sanitization in any task-spec contract linting logic without seeing implementation details. REF: [ASSUMPTION] - assuming linting includes proper validation",
+            "evidence_refs": [
+              "REF:[ASSUMPTION]"
+            ]
+          },
+          {
+            "claim_id": "governance-05",
+            "statement": "Cannot verify deterministic challenger validation logic is not susceptible to injection attacks without code review. REF: [ASSUMPTION] - assuming challenger validation is safe",
+            "evidence_refs": [
+              "REF:[ASSUMPTION]"
+            ]
+          },
+          {
+            "claim_id": "governance-06",
+            "statement": "Provide full content of docs/11_admin/Batch1_BurnIn_Report.md for review of failure modes analysis",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          },
+          {
+            "claim_id": "governance-07",
+            "statement": "Provide full content of docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md for review of production readiness criteria",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          },
+          {
+            "claim_id": "governance-08",
+            "statement": "Provide full content of docs/11_admin/LIFEOS_STATE.md for current state validation",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          },
+          {
+            "claim_id": "governance-09",
+            "statement": "Include proposed automation scripts/code for steward diff preflight + split logic",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          },
+          {
+            "claim_id": "governance-10",
+            "statement": "Include task-spec contract linting rules/specifications",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/glm-5"
+      },
+      "Risk": {
+        "run_type": "review",
+        "lens_name": "Risk",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "Batch 2 readiness remediation plan is structurally sound with five clear tracks addressing known Batch1 failures. The plan preserves governance invariants and fail-closed behavior per stated constraints. Before execution approval, five items need resolution: (1) explicit testable acceptance criteria for each track, (2) verification that automation maintains module boundaries, (3) enumerated state consistency rules, (4) confirmation governance paths are excluded from split logic, and (5) explicit rollback procedures. These are not blocking issues but require evidence of compliance before proceeding to build."
+        ],
+        "claims": [
+          {
+            "claim_id": "risk-01",
+            "statement": "Remediation scope is well-defined across five remediation tracks: deterministic challenger validation, task-spec contract linting, steward diff preflight + split logic, attempt ledger continuity automation, and state/plan consistency cleanup. REF: AUR-BATCH1-REMEDIATION-001:objective",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:objective"
+            ]
+          },
+          {
+            "claim_id": "risk-02",
+            "statement": "Constraints explicitly preserve governance-protected paths, fail-closed behavior, and repo-clean/no-orphans invariants. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "risk-03",
+            "statement": "Production readiness criteria document (LifeOS_Build_Loop_Production_Plan_v2.1.md) provides authoritative acceptance criteria framework. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "risk-04",
+            "statement": "Batch1 failure modes documented in BurnIn report provide empirical basis for remediation prioritization. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "risk-05",
+            "statement": "State document (LIFEOS_STATE.md) provides current operational baseline for consistency verification. REF: AUR-BATCH1-REMEDIATION-001:artifacts",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts"
+            ]
+          },
+          {
+            "claim_id": "risk-06",
+            "statement": "Change class is 'amend' with moderate reversibility, indicating incremental rather than wholesale changes. REF: AUR-BATCH1-REMEDIATION-001:header",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:header"
+            ]
+          },
+          {
+            "claim_id": "risk-07",
+            "statement": "Model plan uses independent challenger (glm-5) with primary (kimi-k2.5) and seat override for Architecture (minimax-m2.5), providing adequate review diversity. REF: AUR-BATCH1-REMEDIATION-001:header",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:header"
+            ]
+          },
+          {
+            "claim_id": "risk-08",
+            "statement": "Acceptance criteria may not be sufficiently concrete/testable for all five remediation tracks. The constraint 'Approval requires concrete, testable acceptance criteria' is stated but evidence of these criteria in artifacts is not verified in this review. [ASSUMPTION] Evidence: Need to verify each remediation track has explicit testable success conditions in the production plan",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "risk-09",
+            "statement": "Attempt ledger continuity automation may introduce new coupling between runtime_core and interfaces modules. The blast_radius is 'module' but automation could create cross-module dependencies. [ASSUMPTION] Evidence: Need to verify automation design maintains module boundaries",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "risk-10",
+            "statement": "State/plan consistency cleanup scope is ambiguous - unclear if it covers all state drift scenarios or only known failure modes from Batch1. [ASSUMPTION] Evidence: Need explicit enumeration of state consistency rules to be enforced",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "risk-11",
+            "statement": "Steward diff preflight + split logic - split logic could violate 'no modifications to governance protected paths' if governance validation is in the split path. [ASSUMPTION] Evidence: Need to verify split logic architecture does not touch governance paths",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "risk-12",
+            "statement": "Medium uncertainty rating suggests execution risk exists; no explicit risk mitigation or rollback plan detailed in scope. [ASSUMPTION] Evidence: Need explicit rollback procedures for each remediation track",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "risk-13",
+            "statement": "Add explicit testable acceptance criteria for each of the five remediation tracks, mapped to specific success/failure conditions. REF: AUR-BATCH1-REMEDIATION-001:constraints#'Approval requires concrete, testable acceptance criteria'",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints#'Approval"
+            ]
+          },
+          {
+            "claim_id": "risk-14",
+            "statement": "Verify attempt ledger continuity automation maintains module boundaries between runtime_core and interfaces; document any new cross-module contracts. [ASSUMPTION]",
+            "evidence_refs": [
+              "ASSUMPTION"
+            ]
+          },
+          {
+            "claim_id": "risk-15",
+            "statement": "Enumerate specific state consistency rules to be enforced in cleanup, referencing known Batch1 drift scenarios from BurnIn report. REF: AUR-BATCH1-REMEDIATION-001:artifacts#docs/11_admin/Batch1_BurnIn_Report.md",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts#docs/11_admin/Batch1_BurnIn_Report.md"
+            ]
+          },
+          {
+            "claim_id": "risk-16",
+            "statement": "Confirm steward diff split logic does not traverse or modify governance-protected paths; document any path exclusions. REF: AUR-BATCH1-REMEDIATION-001:constraints#'No modifications to governance protected paths'",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints#'No"
+            ]
+          },
+          {
+            "claim_id": "risk-17",
+            "statement": "Add explicit rollback procedures for each remediation track to address medium uncertainty. REF: AUR-BATCH1-REMEDIATION-001:header#uncertainty",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:header#uncertainty"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/kimi-k2.5"
+      }
+    },
+    "synthesis": {
+      "run_type": "review",
+      "tier": "T2",
+      "verdict": "Revise",
+      "fix_plan": [],
+      "complexity_budget": {
+        "net_human_steps": 0
+      },
+      "operator_view": [
+        "No operator summary returned.",
+        "Security review cannot proceed. The CCP provides metadata about the remediation plan but the actual artifact contents (Batch1_BurnIn_Report.md, LifeOS_Build_Loop_Production_Plan_v2.1.md, LIFEOS_STATE.md) are not included in the review request. Per security protocol, I must mark this as Revise and request the source documents be provided for security validation. Cannot verify fail-closed behavior, input validation, or invariant preservation without seeing the actual plan contents.",
+        "Batch 2 readiness remediation plan is structurally sound with five clear tracks addressing known Batch1 failures. The plan preserves governance invariants and fail-closed behavior per stated constraints. Before execution approval, five items need resolution: (1) explicit testable acceptance criteria for each track, (2) verification that automation maintains module boundaries, (3) enumerated state consistency rules, (4) confirmation governance paths are excluded from split logic, and (5) explicit rollback procedures. These are not blocking issues but require evidence of compliance before proceeding to build."
+      ],
+      "coverage_degraded": false,
+      "waived_lenses": [],
+      "evidence_summary": {
+        "ref_count": 28,
+        "assumption_count": 0
+      },
+      "contradiction_ledger": []
+    },
+    "decision_status": "NORMAL",
+    "status": "complete"
+  },
+  "decision_payload": {
+    "status": "COMPLETE",
+    "verdict": "Revise",
+    "decision_status": "NORMAL",
+    "fix_plan": [],
+    "run_id": "council_3c75abaf5e8e4b87ae9d038ff2c90ba4",
+    "tier": "T2"
+  },
+  "block_report": null
+}

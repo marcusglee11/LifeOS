@@ -1,0 +1,417 @@
+{
+  "status": "complete",
+  "run_log": {
+    "aur_id": "AUR-BATCH1-REMEDIATION-001",
+    "plan_core_hash": "pending",
+    "run_id": "council_f318e31778dd40d9b8032347544bd317",
+    "tier": "T2",
+    "run_type": "review",
+    "state_transitions": [
+      {
+        "from_state": "S0_ASSEMBLE",
+        "to_state": "S1_EXECUTE_LENSES",
+        "reason": "lenses_required",
+        "details": {}
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Architecture",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Governance",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_EXECUTE_LENSES",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_output_received",
+        "details": {
+          "lens": "Risk",
+          "retry": 0,
+          "valid": true
+        }
+      },
+      {
+        "from_state": "S1_25_SCHEMA_GATE_LENSES",
+        "to_state": "S1_5_COVERAGE_COMPLETE",
+        "reason": "lens_gate_complete",
+        "details": {
+          "coverage_degraded": false
+        }
+      },
+      {
+        "from_state": "S1_5_COVERAGE_COMPLETE",
+        "to_state": "S1_55_EXECUTION_FIDELITY",
+        "reason": "coverage_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S1_55_EXECUTION_FIDELITY",
+        "to_state": "S2_SYNTHESIS",
+        "reason": "fidelity_check_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_SYNTHESIS",
+        "to_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "reason": "synthesis_started",
+        "details": {}
+      },
+      {
+        "from_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "to_state": "S2_5_CHALLENGER_REVIEW",
+        "reason": "synthesis_schema_ok",
+        "details": {}
+      },
+      {
+        "from_state": "S2_5_CHALLENGER_REVIEW",
+        "to_state": "S4_CLOSEOUT",
+        "reason": "no_closure_gate",
+        "details": {}
+      },
+      {
+        "from_state": "S4_CLOSEOUT",
+        "to_state": "TERMINAL_COMPLETE",
+        "reason": "run_complete",
+        "details": {}
+      }
+    ],
+    "lens_results": {
+      "Architecture": {
+        "run_type": "review",
+        "lens_name": "Architecture",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "The remediation plan identifies the correct failure modes but lacks concrete interface specifications for implementation. Three new surfaces (task-spec lint, steward preflight, ledger continuity) are proposed to address Batch 1's doc drift, diff overflow, and challenger non-determinism. Before execution, the plan needs: (1) explicit schema for task-spec mutation contracts, (2) steward preflight split algorithm specification, (3) deterministic challenger seed requirement, and (4) atomic ledger/git operation contracts. Without these, the plan is directionally correct but operationally under-specified."
+        ],
+        "claims": [
+          {
+            "claim_id": "architecture-01",
+            "statement": "Remediation plan addresses deterministic challenger, task-spec linting, steward preflight, and attempt ledger continuity - all targeting identified Batch 1 failure modes. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-02",
+            "statement": "Steward diff overflow (340 > 300 lines) indicates missing preflight split logic at architecture boundary - a clear interface gap between task executor and steward gate. REF: AUR-BATCH1-REMEDIATION-001:artifacts[0]",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts[0]"
+            ]
+          },
+          {
+            "claim_id": "architecture-03",
+            "statement": "Challenger non-determinism on deficient artifact violates the fail-closed behavior constraint - challenger should deterministically fail on known-bad fixtures. REF: AUR-BATCH1-REMEDIATION-001:artifacts[0]",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts[0]"
+            ]
+          },
+          {
+            "claim_id": "architecture-04",
+            "statement": "Doc task rewrite drift (full INDEX.md rewrite vs. targeted append) suggests task-spec contract lacks explicit mutation boundaries - interface contract incomplete. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-05",
+            "statement": "Attempt ledger continuity automation must preserve repo-clean invariant - requires explicit interface between ledger state and git operations. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "architecture-06",
+            "statement": "State/plan consistency cleanup is mentioned but no explicit contract defined between docs/11_admin/LIFEOS_STATE.md and production plan - potential hidden coupling. REF: AUR-BATCH1-REMEDIATION-001:artifacts[2]",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts[2]"
+            ]
+          },
+          {
+            "claim_id": "architecture-07",
+            "statement": "Task-spec linting solution is not detailed - risk of implementing a check that doesn't capture the full mutation boundary contract needed to prevent doc rewrite drift. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-08",
+            "statement": "Steward preflight split logic is described but no interface contract specified for how large diffs get split before reaching steward gate - could introduce new failure modes. REF: AUR-BATCH1-REMEDIATION-001:artifacts[1]",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts[1]"
+            ]
+          },
+          {
+            "claim_id": "architecture-09",
+            "statement": "Attempt ledger automation lacks explicit specification of what 'continuity' means - ambiguity here could break the no-orphans invariant. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "architecture-10",
+            "statement": "Deterministic challenger validation approach is not specified - risk of adding complexity without solving the root non-determinism. REF: AUR-BATCH1-REMEDIATION-001:artifacts[0]",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts[0]"
+            ]
+          },
+          {
+            "claim_id": "architecture-11",
+            "statement": "No migration or backward compatibility story for changed interfaces (task-spec, steward preflight, ledger) - could break existing working paths. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "architecture-12",
+            "statement": "Define explicit task-spec contract schema that specifies: (1) mutation type (append vs. rewrite), (2) target file scope, (3) forbidden operations. Implement lint rule against this schema. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "architecture-13",
+            "statement": "Specify steward preflight interface contract: input = proposed diff size, output = {pass | split_required | reject}. Include split algorithm as part of the plan. REF: AUR-BATCH1-REMEDIATION-001:artifacts[1]",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts[1]"
+            ]
+          },
+          {
+            "claim_id": "architecture-14",
+            "statement": "Define deterministic challenger validation as: given identical fixture + prompt, challenger must produce identical output. Add seed/seeded-random requirement to challenger interface contract. REF: AUR-BATCH1-REMEDIATION-001:artifacts[0]",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:artifacts[0]"
+            ]
+          },
+          {
+            "claim_id": "architecture-15",
+            "statement": "Specify attempt ledger continuity as: (1) ledger state atomically updated on attempt start, (2) ledger state marked complete on success, (3) failure triggers recovery path, (4) no git operations leave orphans. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "architecture-16",
+            "statement": "Add explicit interface versioning for task-spec lint, steward preflight, and ledger modules. Document migration path for Batch 2 to Batch 3. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/minimax-m2.5"
+      },
+      "Governance": {
+        "run_type": "review",
+        "lens_name": "Governance",
+        "confidence": "medium",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "The remediation plan is governance-compliant and security-positive. It addresses Batch 1 failure modes through pre-execution validation gates (task spec linting, steward preflight, deterministic challenger) rather than runtime fixes. This fail-closed approach prevents malformed inputs from reaching core systems. No modifications to protected governance paths are proposed. The plan maintains repo-clean invariant and no-orphans guarantees through explicit constraint enforcement. Ready for execution readiness approval under stated criteria."
+        ],
+        "claims": [
+          {
+            "claim_id": "governance-01",
+            "statement": "Remediation plan addresses documented Batch 1 failure modes through pre-execution validation, which is a security-positive pattern. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-02",
+            "statement": "Task spec linting provides fail-closed validation before task execution, preventing malformed requests from reaching runtime. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-03",
+            "statement": "Steward preflight check enforces diff budget (300-line cap) at pre-submission stage, preventing resource exhaustion at steward gate. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-04",
+            "statement": "Attempt ledger continuity automation with repo-clean invariant preserves durability guarantees. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-05",
+            "statement": "Deterministic challenger validation ensures reproducible defect detection. REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "governance-06",
+            "statement": "No governance protected paths are modified in this plan. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-07",
+            "statement": "Fail-closed behavior preserved through pre-flight validation gates. REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "governance-08",
+            "statement": "Task spec lint implementation details are not visible in this packet; validate that linting logic itself cannot be bypassed or exploited. [ASSUMPTION: Linting is implemented as strict validation with no escape hatches]",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          },
+          {
+            "claim_id": "governance-09",
+            "statement": "Steward preflight split logic must handle edge cases where diff size is close to cap boundary. [ASSUMPTION: Boundary condition handling is deterministic]",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          },
+          {
+            "claim_id": "governance-10",
+            "statement": "Attempt ledger automation must handle race conditions in concurrent execution scenarios. [ASSUMPTION: Ledger operations are atomic]",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          },
+          {
+            "claim_id": "governance-11",
+            "statement": "None required for acceptance; plan addresses security-positive patterns with fail-closed validation gates.",
+            "evidence_refs": [
+              "ASSUMPTION: missing explicit reference"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Accept",
+        "_actual_model": "opencode/glm-5"
+      },
+      "Risk": {
+        "run_type": "review",
+        "lens_name": "Risk",
+        "confidence": "low",
+        "notes": "Normalized lens output.",
+        "operator_view": [
+          "The review cannot proceed to acceptance because the remediation plan artifact itself is not present in the packet. The CCP references reports (Batch1_BurnIn_Report) and criteria (Production_Plan_v2.1) but the actual fix plan detailing how deterministic challenger, task-spec linting, steward preflight, ledger automation, and state cleanup will be implemented is missing. Request inclusion of the remediation plan with explicit testable acceptance criteria for each remediation area before re-submission for T2 review."
+        ],
+        "claims": [
+          {
+            "claim_id": "risk-01",
+            "statement": "The CCP header references artifacts (Batch1_BurnIn_Report.md, LifeOS_Build_Loop_Production_Plan_v2.1.md, LIFEOS_STATE.md) that are not included in the packet for review, limiting ability to verify concrete acceptance criteria REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "risk-02",
+            "statement": "No explicit remediation plan artifact is provided in the sections.artifacts array - only reports and state documents are listed, not a plan addressing the 5 remediation areas REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-03",
+            "statement": "Target criteria (deterministic challenger, task-spec lint, steward preflight, ledger automation) are stated but implementation approach is not visible for review REF: AUR-BATCH1-REMEDIATION-001:objective",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:objective"
+            ]
+          },
+          {
+            "claim_id": "risk-04",
+            "statement": "Without the remediation plan artifact, cannot verify that deterministic challenger validation has concrete, testable acceptance criteria as required by constraints REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "risk-05",
+            "statement": "Cannot confirm steward diff preflight + split logic implementation is bounded and deterministic without seeing the plan REF: AUR-BATCH1-REMEDIATION-001:scope",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:scope"
+            ]
+          },
+          {
+            "claim_id": "risk-06",
+            "statement": "Attempt ledger continuity automation must preserve repo-clean and no-orphans invariants - this dependency is not verifiable from available evidence REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "risk-07",
+            "statement": "Include the remediation plan artifact (e.g., docs/11_admin/Batch1_Remediation_Plan.md) in sections.artifacts so concrete fixes can be evaluated REF: AUR-BATCH1-REMEDIATION-001:sections",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:sections"
+            ]
+          },
+          {
+            "claim_id": "risk-08",
+            "statement": "Provide explicit testable acceptance criteria for each of the 5 remediation areas: deterministic challenger, task-spec lint, steward preflight, ledger automation, state/plan cleanup REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          },
+          {
+            "claim_id": "risk-09",
+            "statement": "Verify fail-closed behavior is preserved for each proposed automation component REF: AUR-BATCH1-REMEDIATION-001:constraints",
+            "evidence_refs": [
+              "REF:AUR-BATCH1-REMEDIATION-001:constraints"
+            ]
+          }
+        ],
+        "verdict_recommendation": "Revise",
+        "_actual_model": "opencode/kimi-k2.5"
+      }
+    },
+    "synthesis": {
+      "run_type": "review",
+      "tier": "T2",
+      "verdict": "Revise",
+      "fix_plan": [],
+      "complexity_budget": {
+        "net_human_steps": 0
+      },
+      "operator_view": [
+        "The remediation plan identifies the correct failure modes but lacks concrete interface specifications for implementation. Three new surfaces (task-spec lint, steward preflight, ledger continuity) are proposed to address Batch 1's doc drift, diff overflow, and challenger non-determinism. Before execution, the plan needs: (1) explicit schema for task-spec mutation contracts, (2) steward preflight split algorithm specification, (3) deterministic challenger seed requirement, and (4) atomic ledger/git operation contracts. Without these, the plan is directionally correct but operationally under-specified.",
+        "The remediation plan is governance-compliant and security-positive. It addresses Batch 1 failure modes through pre-execution validation gates (task spec linting, steward preflight, deterministic challenger) rather than runtime fixes. This fail-closed approach prevents malformed inputs from reaching core systems. No modifications to protected governance paths are proposed. The plan maintains repo-clean invariant and no-orphans guarantees through explicit constraint enforcement. Ready for execution readiness approval under stated criteria.",
+        "The review cannot proceed to acceptance because the remediation plan artifact itself is not present in the packet. The CCP references reports (Batch1_BurnIn_Report) and criteria (Production_Plan_v2.1) but the actual fix plan detailing how deterministic challenger, task-spec linting, steward preflight, ledger automation, and state cleanup will be implemented is missing. Request inclusion of the remediation plan with explicit testable acceptance criteria for each remediation area before re-submission for T2 review."
+      ],
+      "coverage_degraded": false,
+      "waived_lenses": [],
+      "evidence_summary": {
+        "ref_count": 36,
+        "assumption_count": 0
+      },
+      "contradiction_ledger": []
+    },
+    "decision_status": "NORMAL",
+    "status": "complete"
+  },
+  "decision_payload": {
+    "status": "COMPLETE",
+    "verdict": "Revise",
+    "decision_status": "NORMAL",
+    "fix_plan": [],
+    "run_id": "council_f318e31778dd40d9b8032347544bd317",
+    "tier": "T2"
+  },
+  "block_report": null
+}
