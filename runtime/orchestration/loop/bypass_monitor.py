@@ -121,6 +121,14 @@ def check_bypass_utilization(
                 rate=0.0,
                 reason="ledger_corrupt",
             )
+        if not isinstance(entry, dict):
+            return BypassStatus(
+                level="alert",
+                bypass_count=0,
+                total_count=0,
+                rate=0.0,
+                reason="ledger_corrupt",
+            )
         # Skip header entries (they have "type": "header")
         if entry.get("type") == "header":
             continue

@@ -149,9 +149,12 @@ goal: test
     return 0
 
 
-def test_validate_designer_output_valid() -> None:
-    """Pytest-compatible: valid designer output passes validation."""
-    content = """\
+class TestValidateDesignerOutput:
+    """Pytest tests for Designer output validation."""
+
+    def test_validate_designer_output_valid(self) -> None:
+        """Pytest-compatible: valid designer output passes validation."""
+        content = """\
 goal: Test
 design_type: implementation_plan
 summary: Summary
@@ -166,15 +169,14 @@ verification:
 dependencies:
   - sys
 """
-    is_valid, errors = validate_designer_output(content)
-    assert is_valid, f"Valid output rejected: {errors}"
+        is_valid, errors = validate_designer_output(content)
+        assert is_valid, f"Valid output rejected: {errors}"
 
-
-def test_validate_designer_output_rejects_markdown_fences() -> None:
-    """Pytest-compatible: markdown fences in output fail validation."""
-    content = "```yaml\ngoal: test\n```\n"
-    is_valid, _ = validate_designer_output(content)
-    assert not is_valid
+    def test_validate_designer_output_rejects_markdown_fences(self) -> None:
+        """Pytest-compatible: markdown fences in output fail validation."""
+        content = "```yaml\ngoal: test\n```\n"
+        is_valid, _ = validate_designer_output(content)
+        assert not is_valid
 
 
 if __name__ == "__main__":

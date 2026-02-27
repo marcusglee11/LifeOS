@@ -6,6 +6,7 @@ Tests the classify_test_failure() function:
 - TEST_FLAKE detection when test passed previously
 - TEST_FAILURE for standard failures
 """
+from __future__ import annotations
 
 import pytest
 

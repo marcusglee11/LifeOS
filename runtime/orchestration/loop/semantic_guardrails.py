@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 import yaml
 
 
@@ -76,6 +76,36 @@ _OPTIONAL_KEYS_WITH_DEFAULTS: dict[str, Any] = {
 }
 
 
+def _require_int(value: Any, key: str) -> int:
+    """Require a strict int (bool is rejected)."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise SemanticGuardrailsConfigError(
+            f"Invalid value in guardrails config: key {key!r} must be int, "
+            f"got {type(value).__name__}"
+        )
+    return value
+
+
+def _require_bool(value: Any, key: str) -> bool:
+    """Require a strict bool."""
+    if not isinstance(value, bool):
+        raise SemanticGuardrailsConfigError(
+            f"Invalid value in guardrails config: key {key!r} must be bool, "
+            f"got {type(value).__name__}"
+        )
+    return value
+
+
+def _require_float(value: Any, key: str) -> float:
+    """Require a numeric value (int/float, bool rejected) and coerce to float."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise SemanticGuardrailsConfigError(
+            f"Invalid value in guardrails config: key {key!r} must be float-compatible, "
+            f"got {type(value).__name__}"
+        )
+    return float(value)
+
+
 def load_guardrails_config(config_path: Path) -> GuardrailsConfig:
     """
     Load semantic guardrails config from YAML.
@@ -119,21 +149,42 @@ def load_guardrails_config(config_path: Path) -> GuardrailsConfig:
 
     try:
         return GuardrailsConfig(
-            min_line_change_for_semantic_review=int(raw["min_line_change_for_semantic_review"]),
-            max_symbol_renames_per_cycle=int(raw["max_symbol_renames_per_cycle"]),
-            require_test_for_new_functions=bool(raw["require_test_for_new_functions"]),
-            require_test_for_deleted_functions=bool(raw["require_test_for_deleted_functions"]),
-            docstring_required_for_public_api=bool(raw["docstring_required_for_public_api"]),
-            min_extensions_for_cross_concern=int(
-                raw.get("min_extensions_for_cross_concern",
-                        _OPTIONAL_KEYS_WITH_DEFAULTS["min_extensions_for_cross_concern"])
+            min_line_change_for_semantic_review=_require_int(
+                raw["min_line_change_for_semantic_review"],
+                "min_line_change_for_semantic_review",
             ),
-            min_test_ratio_for_production_change=float(
-                raw.get("min_test_ratio_for_production_change",
-                        _OPTIONAL_KEYS_WITH_DEFAULTS["min_test_ratio_for_production_change"])
+            max_symbol_renames_per_cycle=_require_int(
+                raw["max_symbol_renames_per_cycle"],
+                "max_symbol_renames_per_cycle",
+            ),
+            require_test_for_new_functions=_require_bool(
+                raw["require_test_for_new_functions"],
+                "require_test_for_new_functions",
+            ),
+            require_test_for_deleted_functions=_require_bool(
+                raw["require_test_for_deleted_functions"],
+                "require_test_for_deleted_functions",
+            ),
+            docstring_required_for_public_api=_require_bool(
+                raw["docstring_required_for_public_api"],
+                "docstring_required_for_public_api",
+            ),
+            min_extensions_for_cross_concern=_require_int(
+                raw.get(
+                    "min_extensions_for_cross_concern",
+                    _OPTIONAL_KEYS_WITH_DEFAULTS["min_extensions_for_cross_concern"],
+                ),
+                "min_extensions_for_cross_concern",
+            ),
+            min_test_ratio_for_production_change=_require_float(
+                raw.get(
+                    "min_test_ratio_for_production_change",
+                    _OPTIONAL_KEYS_WITH_DEFAULTS["min_test_ratio_for_production_change"],
+                ),
+                "min_test_ratio_for_production_change",
             ),
         )
-    except (ValueError, TypeError) as e:
+    except ValueError as e:
         raise SemanticGuardrailsConfigError(
             f"Invalid value in guardrails config: {e}"
         ) from e

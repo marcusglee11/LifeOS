@@ -131,6 +131,32 @@ class TestLoadGuardrailsConfig:
         assert config.min_extensions_for_cross_concern == 2
         assert config.min_test_ratio_for_production_change == pytest.approx(0.2)
 
+    def test_string_bool_values_are_rejected(self, tmp_path: Path) -> None:
+        """Quoted boolean-like strings are rejected (strict bool required)."""
+        bad_types = tmp_path / "bad_types.yaml"
+        bad_types.write_text(textwrap.dedent("""\
+            min_line_change_for_semantic_review: 5
+            max_symbol_renames_per_cycle: 10
+            require_test_for_new_functions: "false"
+            require_test_for_deleted_functions: true
+            docstring_required_for_public_api: false
+        """))
+        with pytest.raises(SemanticGuardrailsConfigError, match="must be bool"):
+            load_guardrails_config(bad_types)
+
+    def test_bool_for_integer_field_is_rejected(self, tmp_path: Path) -> None:
+        """Boolean values are rejected for integer fields."""
+        bad_types = tmp_path / "bool_for_int.yaml"
+        bad_types.write_text(textwrap.dedent("""\
+            min_line_change_for_semantic_review: true
+            max_symbol_renames_per_cycle: 10
+            require_test_for_new_functions: true
+            require_test_for_deleted_functions: true
+            docstring_required_for_public_api: false
+        """))
+        with pytest.raises(SemanticGuardrailsConfigError, match="must be int"):
+            load_guardrails_config(bad_types)
+
 
 # ---------------------------------------------------------------------------
 # check_diff heuristic tests

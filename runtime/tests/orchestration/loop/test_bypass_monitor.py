@@ -200,6 +200,14 @@ class TestCheckBypassUtilization:
         assert result.level == "alert"
         assert result.reason == "ledger_corrupt"
 
+    def test_non_object_json_line_returns_alert(self, tmp_path: Path) -> None:
+        """Valid JSON that is not an object still fails closed as corrupt ledger."""
+        ledger = tmp_path / "attempt_ledger.jsonl"
+        ledger.write_text('{"type":"header"}\n123\n')
+        result = check_bypass_utilization(ledger)
+        assert result.level == "alert"
+        assert result.reason == "ledger_corrupt"
+
     def test_invalid_window_size_raises(self, tmp_path: Path) -> None:
         """Non-positive window_size raises ValueError."""
         ledger = tmp_path / "ledger.jsonl"

@@ -9,6 +9,8 @@ Enforces:
 
 Fail-closed: any unexpected file or directory is an error.
 """
+from __future__ import annotations
+
 import re
 from pathlib import Path
 
