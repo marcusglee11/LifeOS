@@ -345,14 +345,22 @@ class LoopSpine:
             # (Finding B1-F3: ledger must be committed between runs; this makes it automatic.)
             if ledger_write_ok:
                 try:
-                    subprocess.run(
+                    import subprocess as _sp
+                    import logging as _log
+                    _add = _sp.run(
                         ["git", "add", str(self.ledger_path)],
                         cwd=self.repo_root, capture_output=True, timeout=10,
                     )
-                    subprocess.run(
+                    _commit = _sp.run(
                         ["git", "commit", "-m", f"chore(ledger): auto-commit attempt ledger [{self.run_id}]"],
                         cwd=self.repo_root, capture_output=True, timeout=15,
                     )
+                    if _add.returncode != 0 and _commit.returncode != 0:
+                        _log.getLogger(__name__).warning(
+                            "Ledger auto-commit failed (add=%s, commit=%s); "
+                            "next run may fail repo-clean check",
+                            _add.returncode, _commit.returncode,
+                        )
                 except Exception:
                     pass  # Non-fatal; repo-clean check will flag it if needed
 
@@ -631,6 +639,29 @@ class LoopSpine:
                 )
             except Exception:
                 ledger_write_ok = False
+
+            # Auto-commit attempt ledger so next run's repo-clean pre-check passes.
+            # Mirror of run() path fix (T1-B: resume path had identical gap).
+            if ledger_write_ok:
+                try:
+                    import subprocess as _sp
+                    import logging as _log
+                    _add = _sp.run(
+                        ["git", "add", str(self.ledger_path)],
+                        cwd=self.repo_root, capture_output=True, timeout=10,
+                    )
+                    _commit = _sp.run(
+                        ["git", "commit", "-m", f"chore(ledger): auto-commit attempt ledger [{self.run_id}]"],
+                        cwd=self.repo_root, capture_output=True, timeout=15,
+                    )
+                    if _add.returncode != 0 and _commit.returncode != 0:
+                        _log.getLogger(__name__).warning(
+                            "Ledger auto-commit failed (add=%s, commit=%s); "
+                            "next run may fail repo-clean check",
+                            _add.returncode, _commit.returncode,
+                        )
+                except Exception:
+                    pass  # Non-fatal; repo-clean check will flag it if needed
 
             # Check repo cleanliness for v2.1
             repo_clean_verified = False

@@ -813,3 +813,41 @@ class TestBatch2Fixes:
 
         assert "docs/**" in allowed, f"docs/** missing from defaults: {allowed}"
         assert "config/**" in allowed, f"config/** missing from defaults: {allowed}"
+
+    def test_ledger_autocommit_calls_git_commit(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+        """B2-F3: After successful ledger write, spine calls git commit on the ledger file.
+
+        Regression guard: the auto-commit block uses a local `import subprocess as _sp`
+        so this test patches `subprocess.run` at module level to verify the calls reach git.
+        """
+        spine = LoopSpine(repo_root=clean_repo_root)
+
+        git_commit_calls = []
+
+        def capture_subprocess(cmd, **kwargs):
+            if isinstance(cmd, (list, tuple)) and len(cmd) >= 2 and cmd[0] == "git":
+                git_commit_calls.append(cmd)
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = b"ok"
+            return mock_result
+
+        with patch.object(spine, "_run_chain_steps") as mock_steps, \
+             patch("subprocess.run", side_effect=capture_subprocess):
+            mock_steps.return_value = {
+                "outcome": "PASS",
+                "steps_executed": ["hydrate", "policy", "design", "build", "review", "steward"],
+                "commit_hash": "deadbeef",
+            }
+            spine.run(task_spec=task_spec)
+
+        commit_calls = [c for c in git_commit_calls if "commit" in c]
+        assert commit_calls, (
+            "Expected at least one 'git commit' call for ledger auto-commit, "
+            f"got git calls: {git_commit_calls}"
+        )
+        # The commit message must reference the run_id
+        commit_msg_call = next((c for c in commit_calls if any("chore(ledger)" in str(a) for a in c)), None)
+        assert commit_msg_call is not None, (
+            f"Expected 'chore(ledger)' in commit message, git commit calls: {commit_calls}"
+        )
