@@ -856,7 +856,7 @@ class LoopSpine:
                         "review_packet": review_packet,
                         "approval": {"verdict": verdict},  # Wrap string verdict in dict
                         "council_decision": council_decision,
-                        "max_diff_lines": task_spec.get("constraints", {}).get("max_diff_lines", 300),
+                        "max_diff_lines": task_spec.get("constraints", {}).get("max_diff_lines", 500),
                     }
                 else:
                     # Fallback for unknown steps

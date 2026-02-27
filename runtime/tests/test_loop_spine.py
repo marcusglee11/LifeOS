@@ -742,7 +742,7 @@ class TestBatch2Fixes:
     """Regression tests for the three Batch 1 procedure fixes (B2-F2, B2-F3, B2-F5)."""
 
     def test_steward_inputs_include_max_diff_lines_default(self, clean_repo_root, task_spec):
-        """B2-F5: Spine threads max_diff_lines=300 default into steward inputs."""
+        """B2-F5: Spine threads max_diff_lines=500 default into steward inputs (≥400 for Batch-1 Run-6 safety)."""
         spine = LoopSpine(repo_root=clean_repo_root)
         spine.run_id = "run_fix5_default"
 
@@ -768,7 +768,8 @@ class TestBatch2Fixes:
         steward_inputs = [i for i in all_inputs_seen if "approval" in i and "review_packet" in i]
         assert steward_inputs, "Steward inputs not captured"
         assert "max_diff_lines" in steward_inputs[0], f"max_diff_lines missing: {steward_inputs[0]}"
-        assert steward_inputs[0]["max_diff_lines"] == 300
+        assert steward_inputs[0]["max_diff_lines"] == 500
+        assert steward_inputs[0]["max_diff_lines"] >= 400, "default must cover Batch-1 Run-6 high-water mark (340 lines)"
 
     def test_steward_inputs_max_diff_lines_from_task_spec(self, clean_repo_root, task_spec):
         """B2-F5: Task spec constraints.max_diff_lines overrides default 300."""
