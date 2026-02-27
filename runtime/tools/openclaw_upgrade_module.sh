@@ -25,7 +25,8 @@ Commands:
   report    Emit status JSON and write it to artifacts/status (or --out path).
 
 Notes:
-  - Fail-closed on registry lookup failure (exit code 2).
+  - Retries transient registry failures, then falls back to cached dist-tags if available.
+  - Fail-closed when both live registry and cache are unavailable (exit code 2).
   - This module never executes upgrades; it only reports/proposes.
 EOF
 }
@@ -82,6 +83,7 @@ import os
 import json
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -122,6 +124,98 @@ def _first_nonempty_line(*texts: str) -> str:
             if candidate:
                 return candidate
     return ""
+
+
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    raw = os.environ.get(name, str(default))
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return max(default, minimum)
+    return max(value, minimum)
+
+
+def _env_float(name: str, default: float, minimum: float = 0.0) -> float:
+    raw = os.environ.get(name, str(default))
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return max(default, minimum)
+    return max(value, minimum)
+
+
+def _normalize_dist_tags(raw: Any) -> dict[str, str] | None:
+    if not isinstance(raw, dict):
+        return None
+    tags = {str(k): str(v) for k, v in raw.items() if str(v).strip()}
+    return tags or None
+
+
+def _load_cached_dist_tags(cache_path: str) -> tuple[dict[str, str] | None, str]:
+    path = Path(cache_path)
+    if not path.exists():
+        return None, "cache_missing"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        return None, f"cache_read_error:{type(exc).__name__}"
+    payload = _safe_json(text)
+    if not isinstance(payload, dict):
+        return None, "cache_invalid_json"
+    tags = _normalize_dist_tags(payload.get("registry_dist_tags"))
+    if not tags:
+        return None, "cache_tags_missing"
+    return tags, ""
+
+
+def _registry_dist_tags(
+    *,
+    timeout_s: int,
+    retries: int,
+    retry_delay_s: float,
+    cache_path: str,
+) -> tuple[dict[str, str] | None, dict[str, Any]]:
+    errors: list[str] = []
+    for attempt in range(1, retries + 1):
+        rc_tags, out_tags, err_tags = _run(
+            ["npm", "view", "openclaw", "dist-tags", "--json"],
+            timeout_s=timeout_s,
+        )
+        parsed_tags = _safe_json(out_tags)
+        tags = _normalize_dist_tags(parsed_tags)
+        if rc_tags == 0 and tags:
+            return tags, {
+                "ok": True,
+                "error": "",
+                "attempts": attempt,
+                "source": "live",
+            }
+
+        err_line = _first_nonempty_line(err_tags, out_tags) or f"npm_rc_{rc_tags}"
+        if rc_tags == 0 and not tags:
+            err_line = "dist_tags_unparsed_or_empty"
+        errors.append(err_line)
+        if attempt < retries and retry_delay_s > 0:
+            time.sleep(retry_delay_s)
+
+    cached_tags, cache_error = _load_cached_dist_tags(cache_path)
+    if cached_tags:
+        fallback_error = errors[-1] if errors else "registry_lookup_failed"
+        return cached_tags, {
+            "ok": True,
+            "error": "",
+            "attempts": retries,
+            "source": "cache",
+            "warning": f"using_cached_dist_tags_after_live_failure:{fallback_error}",
+        }
+
+    return None, {
+        "ok": False,
+        "error": errors[-1] if errors else "registry_lookup_failed",
+        "attempts": retries,
+        "source": "none",
+        "cache_error": cache_error,
+    }
 
 
 def _parse_version(value: str | None) -> tuple[list[int], int]:
@@ -191,6 +285,9 @@ def _coo_health() -> dict[str, Any]:
     if "STATUS: VALID" in upper_text:
         health_pass = True
         reason = "valid"
+    elif "STATUS: OK" in upper_text:
+        health_pass = True
+        reason = "ok"
     elif "STATUS: INVALID" in upper_text:
         health_pass = False
         reason = "invalid"
@@ -220,7 +317,9 @@ def main() -> int:
         return 2
 
     command, requested_channel, out_path_raw = sys.argv[1], sys.argv[2], sys.argv[3]
-    npm_timeout_s = int(os.environ.get("OPENCLAW_UPGRADE_NPM_TIMEOUT_SEC", "45"))
+    npm_timeout_s = _env_int("OPENCLAW_UPGRADE_NPM_TIMEOUT_SEC", 45, minimum=1)
+    npm_retries = _env_int("OPENCLAW_UPGRADE_NPM_RETRIES", 3, minimum=1)
+    npm_retry_delay_s = _env_float("OPENCLAW_UPGRADE_NPM_RETRY_DELAY_SEC", 1.0, minimum=0.0)
     if requested_channel not in {"stable", "beta", "dev"}:
         print(
             json.dumps(
@@ -243,6 +342,7 @@ def main() -> int:
         "installed_version": None,
         "registry_latest": None,
         "registry_dist_tags": {},
+        "registry_source": "none",
         "registry_check": {"ok": False, "error": ""},
         "version_comparison": "unknown",
         "update_available": None,
@@ -268,26 +368,28 @@ def main() -> int:
         if detected:
             payload["detected_channel"] = detected
 
-    # Registry check is mandatory for deterministic update proposals.
-    rc_tags, out_tags, err_tags = _run(
-        ["npm", "view", "openclaw", "dist-tags", "--json"],
+    # Registry check retries transient failures and falls back to cached tags.
+    tags, registry_check = _registry_dist_tags(
         timeout_s=npm_timeout_s,
+        retries=npm_retries,
+        retry_delay_s=npm_retry_delay_s,
+        cache_path=out_path_raw,
     )
-    parsed_tags = _safe_json(out_tags)
-    if rc_tags == 0 and isinstance(parsed_tags, dict):
-        tags = {str(k): str(v) for k, v in parsed_tags.items() if str(v).strip()}
+    payload["registry_check"] = registry_check
+    payload["registry_source"] = str(registry_check.get("source", "none"))
+    if tags:
         payload["registry_dist_tags"] = tags
         tag_map = {"stable": "latest", "beta": "beta", "dev": "dev"}
         target_key = tag_map[requested_channel]
         target_value = tags.get(target_key)
         if not target_value:
-            payload["registry_check"] = {"ok": False, "error": f"dist_tag_missing:{target_key}"}
+            payload["registry_check"] = {
+                **payload["registry_check"],
+                "ok": False,
+                "error": f"dist_tag_missing:{target_key}",
+            }
         else:
             payload["registry_latest"] = target_value
-            payload["registry_check"] = {"ok": True, "error": ""}
-    else:
-        err_line = _first_nonempty_line(err_tags, out_tags) or f"npm_rc_{rc_tags}"
-        payload["registry_check"] = {"ok": False, "error": err_line}
 
     payload["version_comparison"] = _compare_versions(payload.get("installed_version"), payload.get("registry_latest"))
     comparison = payload["version_comparison"]

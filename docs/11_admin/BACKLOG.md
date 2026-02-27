@@ -20,7 +20,7 @@
 - [x] **Shadow agent capture mechanism** — DoD: Dispatches payload, stores evidence, does not affect pipeline — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite — **Done: 2026-02-26** — `runtime/agents/shadow_capture.py` (185L), wired to spine, 5 tests (`test_shadow_capture.py`)
 - [x] **GitHub Actions feasibility report** — DoD: Investigation report at artifacts/reports/github_actions_feasibility.md — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 (investigation only) — **Done: 2026-02-27** — 10 sections, 8 workflows, 5 blockers (B3 RESOLVED), 10 recommendations (`87f548c5`)
 - [x] **Burn-in task curation (CEO approval required)** — DoD: 5-7 tasks proposed at artifacts/reports/burn_in_task_proposal.md, CEO approved, ready for Batch 1 — Owner: antigravity — Context: Build Loop Plan v2.1 §1 — **Done: 2026-02-27** — Batch 1 completed; report at `docs/11_admin/Batch1_BurnIn_Report.md` (`78473e3`)
-- [ ] **Batch 2 burn-in** — DoD: 5 cycles post top-3 fixes; Batch 2 summary report with delta from Batch 1; Council V2 promotion criteria evaluated — Owner: antigravity — Context: Build Loop Plan v2.1 §2 — Preceded by: apply F5 (steward budget), F2 (default allowed_paths), F3 (attempt ledger auto-commit)
+- [x] **Batch 2 burn-in** — DoD: 5 cycles post top-3 fixes; Batch 2 summary report with delta from Batch 1; Council V2 promotion criteria evaluated — Owner: antigravity — Context: Build Loop Plan v2.1 §2 — Preceded by: apply F5 (steward budget), F2 (default allowed_paths), F3 (attempt ledger auto-commit)
 
 ### P1 (High)
 

@@ -13,7 +13,7 @@
 
 **Current Focus:** Batch 2 prep — top-3 Batch-1 fixes, Batch 2 task curation, 5-cycle run.
 **Active WIP:** build/batch2-prep
-**Last Updated:** 2026-02-27 (rev23)
+**Last Updated:** 2026-02-27 (rev24)
 
 ---
 
@@ -78,6 +78,7 @@ None — all prior blockers resolved:
 
 ## 🟩 Recent Wins
 
+- **2026-02-27:** Batch2 Burn In — chore: refresh runtime_status.json (closure); fix(steward): add burn-in reports and tech debt inventory to admin allowlist; chore: refresh runtime_status.json (closure); chore(burn-in): stage TECH_DEBT_INVENTORY.md from concurrent audit session; docs(burn-in): Batch 2 closure report + Council V2 evaluation (and 6 more) — 1/1 targeted test command(s) passed. (merge commit 1a5db9f)
 - **2026-02-27:** Batch 1 Burn-In COMPLETE (`78473e3`) — 6 spine runs; 40 new tests (2147 total, 0 regressions); `BudgetConfig.__post_init__` validation; `workflow_pack.py` worktree fix; 7 key findings documented for Batch 2 procedure improvement. Report: `docs/11_admin/Batch1_BurnIn_Report.md`
 - **2026-02-23:** Council V2 Wave2 Integration — chore: refresh runtime_status.json (closure); fix: review-agent hardening pass — FSMv2 mission-safe + schema tightening; feat: Wave 2 — FSM wiring, A6 synthesis, A8 fidelity, A9 advisory, review.py; feat: A7 Challenger review with rework loop; test: A5 lens dispatch TDD tests (red phase) — 1/1 targeted test command(s) passed. (merge commit 38d5b28)
 - **2026-02-23:** Council V2 A1 Fsm — chore: refresh runtime_status.json (closure); feat(council): A1 - CouncilFSMv2 with 12-state machine; feat(council): A2 - v2.2.1 schemas, models, and validators; feat(council): A3+A4 - tier routing, lens selection, independence v2.2.1 — 1/1 targeted test command(s) passed. (merge commit 5215cd3)

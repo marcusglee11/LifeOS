@@ -22,6 +22,7 @@ def _run_module(
     npm_script: str,
     coo_script: str,
     args: list[str],
+    extra_env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
@@ -31,6 +32,8 @@ def _run_module(
 
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+    if extra_env:
+        env.update(extra_env)
     return subprocess.run(
         [str(SCRIPT), *args],
         cwd=SCRIPT.parents[2],
@@ -78,6 +81,7 @@ exit 1
     assert res.returncode == 0
     payload = json.loads(res.stdout)
     assert payload["registry_latest"] == "2026.2.25"
+    assert payload["registry_source"] == "live"
     assert payload["installed_version"] == "2026.2.23"
     assert payload["version_comparison"] == "behind"
     assert payload["update_available"] is True
@@ -107,7 +111,7 @@ exit 0
 """,
         coo_script="""#!/usr/bin/env bash
 if [ "$1" = "models" ] && [ "$2" = "status" ]; then
-  echo "STATUS: VALID - all checks passed"
+  echo "STATUS: OK - all ladders satisfy policy"
   exit 0
 fi
 exit 1
@@ -122,9 +126,95 @@ exit 1
     assert payload["update_available"] is False
     assert payload["needs_action"] is False
     assert payload["health_gate"]["pass"] is True
+    assert payload["health_gate"]["reason"] == "ok"
+
+
+def test_registry_retry_succeeds_after_transient_failure(tmp_path: Path) -> None:
+    res = _run_module(
+        tmp_path,
+        openclaw_script="""#!/usr/bin/env bash
+if [ "$1" = "--version" ]; then
+  echo "2026.2.24"
+  exit 0
+fi
+exit 1
+""",
+        npm_script="""#!/usr/bin/env bash
+STATE_FILE="$(dirname "$0")/.npm_calls"
+COUNT=0
+if [ -f "$STATE_FILE" ]; then
+  COUNT="$(cat "$STATE_FILE")"
+fi
+COUNT="$((COUNT + 1))"
+echo "$COUNT" > "$STATE_FILE"
+if [ "$COUNT" -lt 2 ]; then
+  echo "fetch failed" >&2
+  exit 1
+fi
+echo '{"latest":"2026.2.25","beta":"2026.2.25-beta.1"}'
+exit 0
+""",
+        coo_script="""#!/usr/bin/env bash
+echo "STATUS: OK - all ladders satisfy policy"
+exit 0
+""",
+        args=["check"],
+        extra_env={
+            "OPENCLAW_UPGRADE_NPM_RETRIES": "2",
+            "OPENCLAW_UPGRADE_NPM_RETRY_DELAY_SEC": "0",
+        },
+    )
+
+    assert res.returncode == 0
+    payload = json.loads(res.stdout)
+    assert payload["registry_check"]["ok"] is True
+    assert payload["registry_check"]["attempts"] == 2
+    assert payload["registry_source"] == "live"
+    assert payload["registry_latest"] == "2026.2.25"
+
+
+def test_registry_cache_fallback_used_after_live_failures(tmp_path: Path) -> None:
+    out_path = tmp_path / "status" / "openclaw_upgrade_status.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(
+        json.dumps({"registry_dist_tags": {"latest": "2026.2.25"}}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    res = _run_module(
+        tmp_path,
+        openclaw_script="""#!/usr/bin/env bash
+if [ "$1" = "--version" ]; then
+  echo "2026.2.24"
+  exit 0
+fi
+exit 1
+""",
+        npm_script="""#!/usr/bin/env bash
+echo "fetch failed" >&2
+exit 1
+""",
+        coo_script="""#!/usr/bin/env bash
+echo "STATUS: OK - all ladders satisfy policy"
+exit 0
+""",
+        args=["check", "--out", str(out_path)],
+        extra_env={
+            "OPENCLAW_UPGRADE_NPM_RETRIES": "2",
+            "OPENCLAW_UPGRADE_NPM_RETRY_DELAY_SEC": "0",
+        },
+    )
+
+    assert res.returncode == 0
+    payload = json.loads(res.stdout)
+    assert payload["registry_check"]["ok"] is True
+    assert payload["registry_source"] == "cache"
+    assert payload["registry_latest"] == "2026.2.25"
+    assert "warning" in payload["registry_check"]
 
 
 def test_registry_failure_fails_closed_with_json_payload(tmp_path: Path) -> None:
+    out_path = tmp_path / "status" / "empty_cache.json"
     res = _run_module(
         tmp_path,
         openclaw_script="""#!/usr/bin/env bash
@@ -142,11 +232,16 @@ exit 1
 echo "STATUS: VALID - all checks passed"
 exit 0
 """,
-        args=["check"],
+        args=["check", "--out", str(out_path)],
+        extra_env={
+            "OPENCLAW_UPGRADE_NPM_RETRIES": "2",
+            "OPENCLAW_UPGRADE_NPM_RETRY_DELAY_SEC": "0",
+        },
     )
 
     assert res.returncode == 2
     payload = json.loads(res.stdout)
     assert payload["registry_check"]["ok"] is False
     assert payload["registry_check"]["error"]
+    assert payload["registry_source"] == "none"
     assert payload["update_available"] is None
