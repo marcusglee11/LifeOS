@@ -37,6 +37,7 @@ If you need to switch to a different model or provider, follow these steps:
 ================================================================================
 """
 
+import atexit
 import json
 import logging
 import os
@@ -371,6 +372,10 @@ class OpenCodeClient:
         with open(os.path.join(config_subdir, "opencode.json"), "w") as f:
             json.dump(config_data, f, indent=2)
 
+        # Safety net: clean up temp dir on interpreter shutdown (covers crashes/OOM,
+        # but not SIGKILL which nothing can handle)
+        atexit.register(self._cleanup_config)
+
         return temp_dir
 
     def _cleanup_config(self) -> None:
@@ -623,7 +628,7 @@ class OpenCodeClient:
             if or_key:
                 if or_key != self.api_key:
                     env["OPENROUTER_API_KEY"] = or_key
-                    key_status = f"SWAPPED to OpenRouter Key ({or_key[:10]}...)"
+                    key_status = "SWAPPED to OpenRouter Key (***masked***)"
                 else:
                      key_status = "Primary is already OpenRouter Key"
             else:
@@ -708,7 +713,7 @@ class OpenCodeClient:
                         
                         return llm_response
                     else:
-                         logger.debug(f"OpenRouter REST Failed: Status {response.status_code}, Body: {response.text}")
+                         logger.debug(f"OpenRouter REST Failed: Status {response.status_code}, Body: {response.text[:200]}...")
                 except Exception as e:
                     import traceback
                     logger.debug(f"OpenRouter REST Exception: {e}")
@@ -794,7 +799,7 @@ class OpenCodeClient:
                                  self._log_call(request, llm_response)
                              return llm_response
                          else:
-                             logger.debug(f"Zen/Gemini REST Failed: Status {response.status_code}, Body: {response.text}")
+                             logger.debug(f"Zen/Gemini REST Failed: Status {response.status_code}, Body: {response.text[:200]}...")
                      except Exception as e:
                          import traceback
                          logger.debug(f"Zen/Gemini REST Exception: {e}")
@@ -845,7 +850,7 @@ class OpenCodeClient:
                              
                              return llm_response
                          else:
-                             logger.debug(f"Zen REST Failed: Status {response.status_code}, Body: {response.text}")
+                             logger.debug(f"Zen REST Failed: Status {response.status_code}, Body: {response.text[:200]}...")
                      except Exception as e:
                          import traceback
                          logger.debug(f"Zen REST Exception: {e}")

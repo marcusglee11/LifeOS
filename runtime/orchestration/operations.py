@@ -20,6 +20,8 @@ from typing import Any, Optional, List, Dict, TYPE_CHECKING
 if TYPE_CHECKING:
     from .mission_journal import MissionJournal
 
+from runtime.errors import EnvelopeViolation
+
 
 class CompensationType(Enum):
     """[v0.3 — P0.2] Validated compensation type enum. Per spec §5.2."""
@@ -46,11 +48,6 @@ COMPENSATION_COMMAND_WHITELIST = [
 
 class OperationError(Exception):
     """Base exception for operation errors."""
-    pass
-
-
-class EnvelopeViolation(OperationError):
-    """Operation exceeded its envelope constraints."""
     pass
 
 

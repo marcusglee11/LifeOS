@@ -1,7 +1,7 @@
 # Tech Debt Inventory
 
 **Created:** 2026-02-27
-**Source:** 3-Pass Audit (build/batch2-burn-in)
+**Source:** 3-Pass Audit (build/audit-3pass)
 **Status:** Living document — update trigger conditions as items are resolved.
 
 This inventory documents known structural debt with explicit **trigger conditions** for when each item becomes urgent. The goal is to track without over-engineering — fix things when they become obstacles, not before.

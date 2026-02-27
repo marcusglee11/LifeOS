@@ -22,6 +22,7 @@ import httpx
 import yaml
 
 from .models import load_model_config, resolve_model_auto, ModelConfig
+from runtime.errors import EnvelopeViolation
 from runtime.receipts.invocation_receipt import record_invocation_receipt
 from runtime.util.canonical import canonical_json
 
@@ -109,11 +110,6 @@ class AgentResponse:
 
 class AgentAPIError(Exception):
     """Base exception for Agent API errors."""
-    pass
-
-
-class EnvelopeViolation(AgentAPIError):
-    """Role or operation not permitted."""
     pass
 
 

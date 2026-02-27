@@ -14,7 +14,6 @@ Public API:
     v0.2:
     - MissionSynthesisRequest (structured synthesis input)
     - synthesize_mission (synthesis entrypoint)
-    - synthesize_mission (synthesis entrypoint)
     - validate_mission_definition_v0_2 (explicit validation entrypoint)
 """
 from runtime.api import TIER3_MISSION_REGISTRY_VERSION
@@ -38,8 +37,6 @@ from runtime.mission.registry import MissionRegistry
 
 # v0.2 synthesis API
 from runtime.mission.synthesis import (
-    MissionSynthesisRequest,
-    synthesize_mission,
     MissionSynthesisRequest,
     synthesize_mission,
     validate_mission_definition_v0_2,
@@ -70,8 +67,6 @@ __all__ = [
     "canonical_json",
     "state_hash",
     # v0.2 Synthesis API
-    "MissionSynthesisRequest",
-    "synthesize_mission",
     "MissionSynthesisRequest",
     "synthesize_mission",
     "validate_mission_definition_v0_2",

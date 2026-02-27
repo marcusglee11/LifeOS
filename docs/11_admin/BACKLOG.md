@@ -37,6 +37,8 @@
 
 ## Next (valuable, but not imminent)
 
+- [ ] **Tech Debt Audit Follow-up** — DoD: Address items in `docs/11_admin/TECH_DEBT_INVENTORY.md` as their trigger conditions are met — Context: Inventory created 2026-02-27 during 3-pass audit; 5 resolved items, 8 tracked items with explicit triggers — Priority: P2
+
 - [ ] **Strategic refresh of lifeos-master-operating-manual to v2.2** — Scope: Strategic rewrite and alignment with current runtime state — Deliverable: Diff-based update reflecting consolidation, alignment, and automation changes — Owner: antigravity — Context: Out-of-band for admin consolidation initiative; deferred
 - [ ] **Configure GCP Employee instance** — Context: Hardened OpenClaw config, dedicated accounts, Tailscale
 - [ ] **Revenue Track: LinkedIn daily posts** — Context: COO drafts, CEO reviews. Seed: "What autonomous AI agents actually cost to run"

@@ -14,6 +14,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from runtime.errors import EnvelopeViolation
+
 
 @dataclass
 class ValidationResult:
@@ -21,13 +23,6 @@ class ValidationResult:
     allowed: bool
     reason: str
     evidence: Dict[str, Any] = field(default_factory=dict)
-
-
-class EnvelopeViolation(Exception):
-    """Envelope constraint violated."""
-    def __init__(self, result: ValidationResult):
-        self.result = result
-        super().__init__(result.reason)
 
 
 class EnvelopeEnforcer:
