@@ -1,0 +1,40 @@
+name: OpenClaw Upgrade Weekly Check
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  weekly-upgrade-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate weekly OpenClaw upgrade report
+        run: |
+          chmod +x runtime/tools/openclaw_upgrade_module.sh
+          runtime/tools/openclaw_upgrade_module.sh report \
+            --channel stable \
+            --out artifacts/status/openclaw_upgrade_status.json
+          cat artifacts/status/openclaw_upgrade_status.json
+
+      - name: Upload upgrade status artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openclaw-upgrade-status
+          path: artifacts/status/openclaw_upgrade_status.json
