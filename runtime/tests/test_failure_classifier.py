@@ -208,3 +208,115 @@ class TestFailureClassification:
 
         failure_class = classify_test_failure(current, [previous])
         assert failure_class == FailureClass.TEST_TIMEOUT  # Not TEST_FLAKE
+
+
+class TestTimeoutEdgeCases:
+    """
+    B2-T04: Timeout-specific edge cases for the failure classifier.
+
+    Exercises boundary conditions:
+    - Near-boundary timing (just at/below TIMEOUT duration)
+    - Multiple sequential timeouts
+    - Timeout with no failed_tests list
+    - Timeout with empty failed_tests set
+    - Timeout without evidence field
+    - Consecutive timeout detection across multiple runs
+    """
+
+    def test_timeout_status_regardless_of_duration(self):
+        """Any result with status==TIMEOUT is classified as TEST_TIMEOUT."""
+        result = PytestResult(
+            status="TIMEOUT",
+            exit_code=-15,
+            stdout="",
+            stderr="",
+            duration=0.001,  # Near-zero duration — edge case for "just started" timeout
+            evidence={"timeout_triggered": True},
+        )
+        assert classify_test_failure(result) == FailureClass.TEST_TIMEOUT
+
+    def test_timeout_with_no_failed_tests_is_still_timeout(self):
+        """TIMEOUT with no failed_tests field → still TEST_TIMEOUT."""
+        result = PytestResult(
+            status="TIMEOUT",
+            exit_code=-15,
+            stdout="",
+            stderr="",
+            duration=300.0,
+            evidence={},
+            failed_tests=None,
+        )
+        assert classify_test_failure(result) == FailureClass.TEST_TIMEOUT
+
+    def test_timeout_with_empty_failed_tests_set_is_still_timeout(self):
+        """TIMEOUT with empty failed_tests set → still TEST_TIMEOUT."""
+        result = PytestResult(
+            status="TIMEOUT",
+            exit_code=-15,
+            stdout="",
+            stderr="",
+            duration=300.0,
+            evidence={},
+            failed_tests=set(),
+        )
+        assert classify_test_failure(result) == FailureClass.TEST_TIMEOUT
+
+    def test_timeout_status_without_evidence_field(self):
+        """TIMEOUT classification does not require evidence dict."""
+        result = PytestResult(
+            status="TIMEOUT",
+            exit_code=-15,
+            stdout="",
+            stderr="",
+            duration=300.0,
+            evidence={},
+        )
+        assert classify_test_failure(result) == FailureClass.TEST_TIMEOUT
+
+    def test_second_consecutive_timeout_is_still_test_timeout(self):
+        """When previous run was also a TIMEOUT, current TIMEOUT stays TEST_TIMEOUT."""
+        previous = PytestResult(
+            status="TIMEOUT",
+            exit_code=-15,
+            stdout="",
+            stderr="",
+            duration=300.0,
+            evidence={"timeout_triggered": True},
+            passed_tests=set(),
+            failed_tests={"test_slow"},
+        )
+        current = PytestResult(
+            status="TIMEOUT",
+            exit_code=-15,
+            stdout="",
+            stderr="",
+            duration=300.0,
+            evidence={"timeout_triggered": True},
+            failed_tests={"test_slow"},
+        )
+        assert classify_test_failure(current, [previous]) == FailureClass.TEST_TIMEOUT
+
+    def test_timeout_after_pass_does_not_become_flake(self):
+        """Even if test passed in prior run, TIMEOUT takes precedence over flake."""
+        previous = PytestResult(
+            status="PASS",
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration=10.0,
+            evidence={},
+            passed_tests={"test_integration_heavy"},
+            failed_tests=set(),
+        )
+        current = PytestResult(
+            status="TIMEOUT",
+            exit_code=-15,
+            stdout="",
+            stderr="",
+            duration=300.0,
+            evidence={"timeout_triggered": True},
+            failed_tests={"test_integration_heavy"},
+        )
+        result = classify_test_failure(current, [previous])
+        assert result == FailureClass.TEST_TIMEOUT
+        assert result != FailureClass.TEST_FLAKE

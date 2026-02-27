@@ -29,6 +29,11 @@ CANONICAL_OPTIONAL_FILES = {
     "WIP_LOG.md",
     "lifeos-master-operating-manual-v2.1.md",
     "README.md",
+    # Burn-in closure reports (produced by build/batch*-burn-in branches)
+    "Batch1_BurnIn_Report.md",
+    "Batch2_BurnIn_Report.md",
+    # Tech debt inventory (living doc produced by audit passes)
+    "TECH_DEBT_INVENTORY.md",
 }
 
 ALLOWED_ROOT_FILES = REQUIRED_FILES | CANONICAL_OPTIONAL_FILES

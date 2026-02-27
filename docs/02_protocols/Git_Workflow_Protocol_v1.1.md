@@ -216,3 +216,35 @@ A repo is compliant with this protocol if:
 - archives produce receipts
 - destructive ops are gated and evidenced
 - `artifacts/active_branches.json` is accurate and deterministically ordered
+
+---
+
+## 13. Operational Notes (Batch 2 Burn-In — 2026-02-27)
+
+The following operational findings were documented during the Batch 2 burn-in
+(post top-3 Batch-1 fixes). They inform future sprint and burn-in procedures.
+
+### 13.1 Attempt Ledger Must Be Committed Between Spine Runs
+
+The ledger file at `artifacts/loop_state/attempt_ledger.jsonl` is written by
+every spine run. The next run's `verify_repo_clean()` check fails if the ledger
+is uncommitted. The F3 fix (applied in `build/batch2-prep`) auto-commits the
+ledger between sequential runs. Procedure consequence: always verify the ledger
+is committed before starting a new run; the auto-commit gate now enforces this.
+
+### 13.2 Steward Diff Budget Is Configurable via `constraints.max_diff_lines`
+
+The steward phase enforces a maximum diff size before accepting a commit. The
+default was raised from 300 to 500 lines as F5 fix. Task curators can further
+adjust via the `constraints.max_diff_lines` field in the task spec JSON.
+Use case: large refactors or test-only expansions that legitimately exceed the
+default. Do not raise above 1000 without Council approval.
+
+### 13.3 Doc Tasks Must Specify "APPEND-ONLY" Constraint Explicitly
+
+Builder LLMs tend to rewrite entire files when given doc-update tasks, even
+when intent is to add a small section (Batch 1 Finding 4). Task specs for
+protocol doc amendments must include the explicit constraint:
+`"APPEND-ONLY — do not rewrite or reorder existing content"`. This was
+validated in Batch 2 B2-T03; the manual implementation here demonstrates the
+correct append-only pattern for future builder reference.

@@ -1,0 +1,36 @@
+# Semantic Guardrails Policy Configuration
+#
+# Defines thresholds for classifying code changes as meaningful vs. trivial.
+# Used by runtime/orchestration/loop/semantic_guardrails.py.
+#
+# schema_version: 1.0
+schema_version: "1.0"
+
+# Minimum number of net lines changed to consider a diff semantically meaningful.
+# Changes with fewer lines are likely cosmetic (whitespace, comments, minor renames).
+min_line_change_for_semantic_review: 5
+
+# Maximum number of symbol renames allowed per cycle without triggering
+# a semantic review flag. High rename counts signal refactoring not addressed
+# by the build task and may indicate scope creep.
+max_symbol_renames_per_cycle: 10
+
+# Whether new public functions/methods must have at least one corresponding
+# test added in the same commit. Enforces TDD discipline.
+require_test_for_new_functions: true
+
+# Whether deleted public functions/methods require a test removal or
+# a deliberate exclusion comment. Prevents silent dead-test accumulation.
+require_test_for_deleted_functions: true
+
+# Whether public API functions must have docstrings.
+# Disabled by default — enforced per-module via linting rules.
+docstring_required_for_public_api: false
+
+# File diversity: minimum number of distinct file extensions changed
+# before the diff is classified as "cross-concern". Purely informational.
+min_extensions_for_cross_concern: 2
+
+# Test ratio: minimum ratio of (test lines changed / total lines changed)
+# for a diff that modifies production code. Below this, flag for review.
+min_test_ratio_for_production_change: 0.2
