@@ -341,6 +341,21 @@ class LoopSpine:
             # Shadow agent capture (non-gating, non-fatal)
             self._capture_shadow_agent(task_spec)
 
+            # Auto-commit attempt ledger so next run's repo-clean pre-check passes.
+            # (Finding B1-F3: ledger must be committed between runs; this makes it automatic.)
+            if ledger_write_ok:
+                try:
+                    subprocess.run(
+                        ["git", "add", str(self.ledger_path)],
+                        cwd=self.repo_root, capture_output=True, timeout=10,
+                    )
+                    subprocess.run(
+                        ["git", "commit", "-m", f"chore(ledger): auto-commit attempt ledger [{self.run_id}]"],
+                        cwd=self.repo_root, capture_output=True, timeout=15,
+                    )
+                except Exception:
+                    pass  # Non-fatal; repo-clean check will flag it if needed
+
             # Check repo cleanliness for v2.1
             repo_clean_verified = False
             try:
@@ -810,6 +825,7 @@ class LoopSpine:
                         "review_packet": review_packet,
                         "approval": {"verdict": verdict},  # Wrap string verdict in dict
                         "council_decision": council_decision,
+                        "max_diff_lines": task_spec.get("constraints", {}).get("max_diff_lines", 300),
                     }
                 else:
                     # Fallback for unknown steps
@@ -1208,7 +1224,7 @@ class LoopSpine:
             "policy_hash": self.current_policy_hash,
             "scope_paths": constraints.get("scope", []),
             "repo_root": self.repo_root,
-            "allowed_paths": constraints.get("allowed_paths", ["runtime/**", "tests/**", "artifacts/**"]),
+            "allowed_paths": constraints.get("allowed_paths", ["runtime/**", "tests/**", "artifacts/**", "docs/**", "config/**"]),
             "denied_paths": constraints.get("denied_paths", []),
         }
 

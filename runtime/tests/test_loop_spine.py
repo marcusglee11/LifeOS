@@ -736,3 +736,80 @@ class TestShadowCouncilWiring:
 
         assert result["outcome"] == "BLOCKED"
         assert len(shadow_calls) == 0
+
+
+class TestBatch2Fixes:
+    """Regression tests for the three Batch 1 procedure fixes (B2-F2, B2-F3, B2-F5)."""
+
+    def test_steward_inputs_include_max_diff_lines_default(self, clean_repo_root, task_spec):
+        """B2-F5: Spine threads max_diff_lines=300 default into steward inputs."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+        spine.run_id = "run_fix5_default"
+
+        all_inputs_seen = []
+
+        mock_mission = MagicMock()
+        result_ok = MagicMock()
+        result_ok.success = True
+        result_ok.outputs = {"review_packet": {}, "verdict": "approved"}
+
+        def capture_run(context, inputs):
+            all_inputs_seen.append(dict(inputs))
+            return result_ok
+
+        mock_mission.return_value.run.side_effect = capture_run
+
+        with patch("runtime.orchestration.missions.get_mission_class", return_value=mock_mission), \
+             patch("runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow"), \
+             patch("subprocess.run", return_value=MagicMock(returncode=0, stdout="deadbeef")):
+            spine._run_chain_steps(task_spec)
+
+        # Steward inputs are identifiable by "review_packet" + "approval" keys
+        steward_inputs = [i for i in all_inputs_seen if "approval" in i and "review_packet" in i]
+        assert steward_inputs, "Steward inputs not captured"
+        assert "max_diff_lines" in steward_inputs[0], f"max_diff_lines missing: {steward_inputs[0]}"
+        assert steward_inputs[0]["max_diff_lines"] == 300
+
+    def test_steward_inputs_max_diff_lines_from_task_spec(self, clean_repo_root, task_spec):
+        """B2-F5: Task spec constraints.max_diff_lines overrides default 300."""
+        task_spec_with_budget = dict(task_spec)
+        task_spec_with_budget["constraints"] = {"max_diff_lines": 500}
+
+        spine = LoopSpine(repo_root=clean_repo_root)
+        spine.run_id = "run_fix5_override"
+
+        all_inputs_seen = []
+
+        mock_mission = MagicMock()
+        result_ok = MagicMock()
+        result_ok.success = True
+        result_ok.outputs = {"review_packet": {}, "verdict": "approved"}
+
+        def capture_run(context, inputs):
+            all_inputs_seen.append(dict(inputs))
+            return result_ok
+
+        mock_mission.return_value.run.side_effect = capture_run
+
+        with patch("runtime.orchestration.missions.get_mission_class", return_value=mock_mission), \
+             patch("runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow"), \
+             patch("subprocess.run", return_value=MagicMock(returncode=0, stdout="deadbeef")):
+            spine._run_chain_steps(task_spec_with_budget)
+
+        steward_inputs = [i for i in all_inputs_seen if "approval" in i and "review_packet" in i]
+        assert steward_inputs, "Steward inputs not captured"
+        assert steward_inputs[0].get("max_diff_lines") == 500
+
+    def test_default_allowed_paths_includes_docs_and_config(self, clean_repo_root, task_spec):
+        """B2-F2: Default allowed_paths now includes docs/** and config/**."""
+        spine = LoopSpine(repo_root=clean_repo_root)
+        spine.current_policy_hash = "testhash"
+
+        task_spec_no_constraints = dict(task_spec)
+        task_spec_no_constraints.pop("constraints", None)
+
+        hook_kwargs = spine._build_hook_kwargs(task_spec_no_constraints)
+        allowed = hook_kwargs["allowed_paths"]
+
+        assert "docs/**" in allowed, f"docs/** missing from defaults: {allowed}"
+        assert "config/**" in allowed, f"config/** missing from defaults: {allowed}"

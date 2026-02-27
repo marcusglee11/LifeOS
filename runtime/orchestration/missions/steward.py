@@ -656,8 +656,9 @@ class StewardMission(BaseMission):
 
             # Step 2.5: Validate diff size for code changes before commit
             if classified_paths["code"]:
+                max_diff = int(inputs.get("max_diff_lines", 300))
                 ok, total_delta, detail = self._validate_diff_size(
-                    context, classified_paths["code"]
+                    context, classified_paths["code"], max_lines=max_diff
                 )
                 executed_steps.append("validate_diff_size")
                 evidence["diff_size"] = {"total_delta": total_delta, "detail": detail}

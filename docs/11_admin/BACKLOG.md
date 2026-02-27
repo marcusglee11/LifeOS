@@ -8,18 +8,19 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-27 (rev8)
+**Last Updated:** 2026-02-27 (rev9)
 
 ## Now (ready soon; not in WIP yet)
 
 ### P0 (Critical)
 
-- [ ] **Run-lock implementation** — DoD: Single-flight enforcement, stale lock detection, concurrent test + stale test pass — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
-- [ ] **Terminal packet + receipt emission** — DoD: Schema matches Evidence Contract; dry-run cycle produces valid packet + receipt index — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
-- [ ] **Council V2 shadow-mode wiring** — DoD: V2 receives payloads in parallel, verdicts logged, does not gate; legacy remains sole gate — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
-- [ ] **Shadow agent capture mechanism** — DoD: Dispatches payload, stores evidence, does not affect pipeline — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite
-- [ ] **GitHub Actions feasibility report** — DoD: Investigation report at artifacts/reports/github_actions_feasibility.md — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 (investigation only)
+- [x] **Run-lock implementation** — DoD: Single-flight enforcement, stale lock detection, concurrent test + stale test pass — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite — **Done: 2026-02-26** — `runtime/orchestration/loop/run_lock.py` (142L), wired to spine, 8 tests (`test_run_lock.py`)
+- [x] **Terminal packet + receipt emission** — DoD: Schema matches Evidence Contract; dry-run cycle produces valid packet + receipt index — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite — **Done: 2026-02-26** — `runtime/receipts/invocation_receipt.py` (189L), wired to spine, 12 tests (`test_invocation_receipt.py`, `test_invocation_schema.py`)
+- [x] **Council V2 shadow-mode wiring** — DoD: V2 receives payloads in parallel, verdicts logged, does not gate; legacy remains sole gate — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite — **Done: 2026-02-27** — `ShadowCouncilRunner` imported + called in `spine._run_chain_steps` after review phase (`7e36284e`); 2 wiring tests added
+- [x] **Shadow agent capture mechanism** — DoD: Dispatches payload, stores evidence, does not affect pipeline — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 prerequisite — **Done: 2026-02-26** — `runtime/agents/shadow_capture.py` (185L), wired to spine, 5 tests (`test_shadow_capture.py`)
+- [x] **GitHub Actions feasibility report** — DoD: Investigation report at artifacts/reports/github_actions_feasibility.md — Owner: antigravity — Context: Build Loop Plan v2.1 Week 1 (investigation only) — **Done: 2026-02-27** — 10 sections, 8 workflows, 5 blockers (B3 RESOLVED), 10 recommendations (`87f548c5`)
 - [x] **Burn-in task curation (CEO approval required)** — DoD: 5-7 tasks proposed at artifacts/reports/burn_in_task_proposal.md, CEO approved, ready for Batch 1 — Owner: antigravity — Context: Build Loop Plan v2.1 §1 — **Done: 2026-02-27** — Batch 1 completed; report at `docs/11_admin/Batch1_BurnIn_Report.md` (`78473e3`)
+- [ ] **Batch 2 burn-in** — DoD: 5 cycles post top-3 fixes; Batch 2 summary report with delta from Batch 1; Council V2 promotion criteria evaluated — Owner: antigravity — Context: Build Loop Plan v2.1 §2 — Preceded by: apply F5 (steward budget), F2 (default allowed_paths), F3 (attempt ledger auto-commit)
 
 ### P1 (High)
 

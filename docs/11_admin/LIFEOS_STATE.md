@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Receipts-first Phase C MERGED. Land receipts + reconciliation audit mode live.
-**Active WIP:** None — build/receipts-phase-a closed
-**Last Updated:** 2026-02-27 (rev22)
+**Current Focus:** Batch 2 prep — top-3 Batch-1 fixes, Batch 2 task curation, 5-cycle run.
+**Active WIP:** build/batch2-prep
+**Last Updated:** 2026-02-27 (rev23)
 
 ---
 
