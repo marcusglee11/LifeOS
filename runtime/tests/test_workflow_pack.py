@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from runtime.tools.workflow_pack import (
     build_active_work_payload,
     check_doc_stewardship,
     cleanup_after_merge,
+    merge_to_main,
     read_active_work,
     run_closure_tests,
     route_targeted_tests,
@@ -193,6 +195,102 @@ def test_cleanup_after_merge_clears_context(tmp_path: Path, monkeypatch) -> None
     assert result["branch_deleted"] is True
     assert result["context_cleared"] is True
     assert not context_path.exists()
+
+
+def test_cleanup_after_merge_removes_worktree_before_branch(tmp_path: Path, monkeypatch) -> None:
+    primary = tmp_path / "primary"
+    repo = tmp_path / ".worktrees" / "feature"
+    primary.mkdir(parents=True, exist_ok=True)
+    repo.mkdir(parents=True, exist_ok=True)
+    commands: list[list[str]] = []
+
+    worktree_list = (
+        f"worktree {primary}\n"
+        "branch refs/heads/main\n\n"
+        f"worktree {repo}\n"
+        "branch refs/heads/build/feature\n"
+    )
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        commands.append(cmd)
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+
+    result = cleanup_after_merge(repo, "build/feature", clear_context=False)
+
+    worktree_remove_idx = next(
+        i for i, c in enumerate(commands) if "worktree" in c and "remove" in c and "--force" in c
+    )
+    branch_delete_idx = next(i for i, c in enumerate(commands) if c[-2:] == ["-d", "build/feature"])
+    branch_delete_cmd = commands[branch_delete_idx]
+    assert worktree_remove_idx < branch_delete_idx
+    assert branch_delete_cmd[2] == str(primary)
+    assert result["worktree_removed"] is True
+    assert result["branch_deleted"] is True
+
+
+def test_cleanup_after_merge_skips_remove_when_branch_maps_to_primary(tmp_path: Path, monkeypatch) -> None:
+    repo = tmp_path
+    commands: list[list[str]] = []
+
+    worktree_list = (
+        f"worktree {repo}\n"
+        "branch refs/heads/main\n"
+        "branch refs/heads/build/feature\n"
+    )
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        commands.append(cmd)
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+
+    result = cleanup_after_merge(repo, "build/feature", clear_context=False)
+
+    assert result["worktree_removed"] is False
+    assert result["branch_deleted"] is True
+    assert not any(c[-3:] == ["worktree", "remove", "--force"] for c in commands)
+
+
+def test_merge_to_main_includes_primary_repo(monkeypatch, tmp_path: Path) -> None:
+    repo = tmp_path
+    primary = repo / "primary"
+    primary.mkdir(parents=True, exist_ok=True)
+
+    worktree_list = f"worktree {primary}\nbranch refs/heads/main\n"
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        if cmd[-2:] == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
+        if cmd[-1:] == ["HEAD"] and "rev-parse" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="abc123\n", stderr="")
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = merge_to_main(repo, "build/feature")
+
+    assert result["success"] is True
+    assert result["primary_repo"] == str(primary)
+
+
+def test_merge_to_main_empty_branch_returns_primary_none() -> None:
+    from runtime.tools.workflow_pack import merge_to_main
+
+    result = merge_to_main(Path("."), "")
+    assert result["success"] is False
+    assert result["primary_repo"] is None
 
 
 # --- Tests for STATE/BACKLOG update functions ---

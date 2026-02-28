@@ -15,7 +15,7 @@ import sys
 
 PROJECT_DIR = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
 STATE_FILE = os.path.join(PROJECT_DIR, "docs", "11_admin", "LIFEOS_STATE.md")
-MAX_CONTEXT_CHARS = 600
+MAX_CONTEXT_CHARS = 900
 
 
 def run_git(args: list[str], timeout: int = 3) -> str:
@@ -70,6 +70,37 @@ def state_context() -> str:
     return " | ".join(fields)
 
 
+def isolation_warning() -> str:
+    """Warn when in primary worktree with a mismatched Active WIP branch."""
+    branch = run_git(["rev-parse", "--abbrev-ref", "HEAD"]) or ""
+    if branch in {"main", "master", "", "unknown", "HEAD"}:
+        return ""
+
+    common_dir = run_git(["rev-parse", "--git-common-dir"])
+    if common_dir != ".git":
+        return ""
+
+    try:
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception:
+        return ""
+
+    match = re.search(r"\*\*Active WIP:\*\*\s*(.+)", content)
+    if not match:
+        return ""
+
+    active_wip = match.group(1).strip()
+    if active_wip and active_wip != branch:
+        return (
+            f"⚠️ ISOLATION: primary worktree on '{branch}' but "
+            f"LIFEOS_STATE Active WIP='{active_wip}'. "
+            "Use /new-build (python3 scripts/workflow/start_build.py <topic>) "
+            "or recover existing work with python3 scripts/workflow/start_build.py --recover-primary."
+        )
+    return ""
+
+
 def main() -> int:
     parts = []
 
@@ -80,6 +111,10 @@ def main() -> int:
     state = state_context()
     if state:
         parts.append(state)
+
+    warning = isolation_warning()
+    if warning:
+        parts.insert(0, warning)
 
     if not parts:
         # Nothing to inject

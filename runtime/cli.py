@@ -842,7 +842,7 @@ def cmd_spine_run(args: argparse.Namespace, repo_root: Path) -> int:
             return 1
 
     # Create spine instance
-    spine = LoopSpine(repo_root=repo_root)
+    spine = LoopSpine(repo_root=repo_root, use_worktree=bool(args.worktree))
 
     try:
         # Run chain
@@ -1065,6 +1065,12 @@ def main() -> int:
     p_spine_run = spine_subs.add_parser("run", help="Run a new chain execution")
     p_spine_run.add_argument("task_spec", help="Path to task spec JSON file or inline JSON string")
     p_spine_run.add_argument("--run-id", help="Optional run ID (generated if not provided)")
+    p_spine_run.add_argument(
+        "--worktree",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Run in isolated git worktree (default: enabled). Use --no-worktree to disable.",
+    )
     p_spine_run.add_argument("--json", action="store_true", help="Output results as JSON")
 
     # spine resume

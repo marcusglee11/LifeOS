@@ -10,6 +10,7 @@ Enforces the Git Workflow Protocol v1.0:
 
 Usage:
     python scripts/git_workflow.py branch create build/<topic>
+    python scripts/git_workflow.py branch create-worktree build/<topic>
     python scripts/git_workflow.py branch list
     python scripts/git_workflow.py review prepare
     python scripts/git_workflow.py merge
@@ -33,6 +34,7 @@ BRANCH_PATTERNS = {
 }
 
 PROTECTED_BRANCHES = ["main", "master"]
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def run_git(args: list[str], check: bool = True) -> Tuple[int, str, str]:
@@ -41,38 +43,90 @@ def run_git(args: list[str], check: bool = True) -> Tuple[int, str, str]:
         ["git"] + args,
         capture_output=True,
         text=True,
-        cwd=Path(__file__).parent.parent
+        cwd=REPO_ROOT
     )
     if check and result.returncode != 0:
         print(f"❌ Git error: {result.stderr}", file=sys.stderr)
     return result.returncode, result.stdout.strip(), result.stderr.strip()
 
 
-def get_current_branch() -> str:
+def run_git_in(path: Path, args: list[str]) -> Tuple[int, str, str]:
+    """Run git command in an explicit repository path."""
+    result = subprocess.run(
+        ["git", "-C", str(path)] + args,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode, result.stdout.strip(), result.stderr.strip()
+
+
+def get_current_branch(repo_root: Optional[Path] = None) -> str:
     """Get current branch name."""
-    _, branch, _ = run_git(["branch", "--show-current"], check=False)
+    if repo_root is None:
+        _, branch, _ = run_git(["branch", "--show-current"], check=False)
+    else:
+        _, branch, _ = run_git_in(repo_root, ["branch", "--show-current"])
     return branch or "(detached)"
 
 
-def get_active_branches_file() -> Path:
+def get_active_branches_file(repo_root: Optional[Path] = None) -> Path:
     """Get path to active branches tracking file."""
-    repo_root = Path(__file__).parent.parent
-    return repo_root / "artifacts" / "active_branches.json"
+    resolved_root = repo_root or REPO_ROOT
+    return resolved_root / "artifacts" / "active_branches.json"
 
 
-def load_active_branches() -> dict:
+def load_active_branches(repo_root: Optional[Path] = None) -> dict:
     """Load active branches tracking."""
-    path = get_active_branches_file()
+    path = get_active_branches_file(repo_root)
     if path.exists():
         return json.loads(path.read_text())
     return {"branches": [], "created": datetime.now().isoformat()}
 
 
-def save_active_branches(data: dict):
+def save_active_branches(data: dict, repo_root: Optional[Path] = None):
     """Save active branches tracking."""
-    path = get_active_branches_file()
+    path = get_active_branches_file(repo_root)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2))
+
+
+def _resolve_primary_repo() -> Optional[Path]:
+    """Find the primary worktree (prefer main/master checkout, fallback to git-common-dir=.git)."""
+    code, output, _ = run_git_in(REPO_ROOT, ["worktree", "list", "--porcelain"])
+    if code != 0:
+        return None
+
+    candidates: list[Path] = []
+    candidate: Optional[Path] = None
+    for line in output.splitlines():
+        if line.startswith("worktree "):
+            candidate = Path(line.split(" ", 1)[1].strip())
+            candidates.append(candidate)
+        elif line.startswith("branch refs/heads/"):
+            branch = line.removeprefix("branch refs/heads/").strip()
+            if branch in {"main", "master"} and candidate is not None:
+                return candidate
+
+    # Fallback: primary worktree is where git-common-dir resolves to ".git".
+    for path in candidates:
+        c, common_dir, _ = run_git_in(path, ["rev-parse", "--git-common-dir"])
+        if c == 0 and common_dir.strip() == ".git":
+            return path
+
+    # Final fallback: current script root if it is primary.
+    c, common_dir, _ = run_git_in(REPO_ROOT, ["rev-parse", "--git-common-dir"])
+    if c == 0 and common_dir.strip() == ".git":
+        return REPO_ROOT
+    return None
+
+
+def _derive_worktree_short_name(name: str) -> str:
+    """Strip prefix, sanitize to [a-z0-9-], truncate at 30 chars."""
+    short = name.split("/", 1)[1] if "/" in name else name
+    short = re.sub(r"[^a-z0-9-]", "-", short.lower())
+    short = re.sub(r"-+", "-", short).strip("-")
+    short = short[:30].rstrip("-")
+    return short or "worktree"
 
 
 def validate_branch_name(name: str) -> Optional[str]:
@@ -130,6 +184,58 @@ def cmd_branch_create(name: str) -> int:
     
     print(f"✅ Created and switched to branch: {name}")
     print(f"📝 Tracked in: artifacts/active_branches.json")
+    return 0
+
+
+def cmd_branch_create_worktree(name: str) -> int:
+    """Create a feature branch in an isolated worktree (primary-repo-aware)."""
+    error = validate_branch_name(name)
+    if error:
+        print(f"❌ {error}")
+        return 1
+
+    primary = _resolve_primary_repo()
+    if primary is None:
+        print("❌ Cannot resolve primary worktree (main/master branch not found).")
+        return 1
+
+    if REPO_ROOT != primary:
+        print(f"ℹ️  Invoked from:  {REPO_ROOT}")
+        print(f"ℹ️  Primary repo:  {primary}")
+
+    short = _derive_worktree_short_name(name)
+    wt_path = primary / ".worktrees" / short
+    if wt_path.exists():
+        print(f"❌ Worktree path already exists: {wt_path}")
+        print("   To recover:  git worktree prune")
+        print(f"           or:  git worktree remove --force {wt_path}")
+        return 1
+
+    print("📥 Pulling latest main...")
+    run_git_in(primary, ["pull", "--ff-only"])
+
+    code, _, stderr = run_git_in(
+        primary,
+        ["worktree", "add", "-b", name, str(wt_path), "main"],
+    )
+    if code != 0:
+        print(f"❌ git worktree add failed: {stderr}")
+        return 1
+
+    data = load_active_branches(primary)
+    data["branches"].append(
+        {
+            "name": name,
+            "created": datetime.now().isoformat(),
+            "status": "active",
+            "base": "main",
+            "worktree_path": str(wt_path),
+        }
+    )
+    save_active_branches(data, primary)
+
+    print(f"✓ Worktree ready at: {wt_path}")
+    print(f"  Run: cd {wt_path}")
     return 0
 
 
@@ -277,7 +383,7 @@ def cmd_status() -> int:
     # Check if on protected branch
     if current in PROTECTED_BRANCHES:
         print(f"⚠️  On protected branch. Create a feature branch to work:")
-        print(f"   python scripts/git_workflow.py branch create build/<topic>")
+        print("   python scripts/git_workflow.py branch create-worktree build/<topic>")
     
     # Check for uncommitted changes
     code, status, _ = run_git(["status", "--porcelain"])
@@ -412,6 +518,12 @@ def main():
     
     create_parser = branch_sub.add_parser("create", help="Create new branch")
     create_parser.add_argument("name", help="Branch name (e.g., build/my-feature)")
+
+    create_wt_parser = branch_sub.add_parser(
+        "create-worktree",
+        help="Create branch in isolated worktree",
+    )
+    create_wt_parser.add_argument("name", help="Branch name (e.g., build/my-feature)")
     
     branch_sub.add_parser("list", help="List active branches")
     
@@ -434,10 +546,12 @@ def main():
     if args.command == "branch":
         if args.branch_cmd == "create":
             return cmd_branch_create(args.name)
+        elif args.branch_cmd == "create-worktree":
+            return cmd_branch_create_worktree(args.name)
         elif args.branch_cmd == "list":
             return cmd_branch_list()
         else:
-            print("Usage: git_workflow.py branch [create|list]")
+            print("Usage: git_workflow.py branch [create|create-worktree|list]")
             return 1
     elif args.command == "review":
         return cmd_review_prepare()

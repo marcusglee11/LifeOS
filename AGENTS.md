@@ -35,6 +35,13 @@ Model fallback chains are defined in `config/models.yaml`. If a primary model is
 
 6. **Clean Repo on Exit**: `git status` must be clean. Stage, gitignore, or remove untracked files.
 
+7. **Worktree-First Builds**: Start build/fix/hotfix/spike work with
+   `python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]`
+   and work inside the printed `.worktrees/<name>` path. For closure, use
+   `python3 scripts/workflow/close_build.py` from the linked worktree. If scoped
+   work was started in primary by mistake, run
+   `python3 scripts/workflow/start_build.py --recover-primary`.
+
 ---
 
 ## Doc Steward Directives

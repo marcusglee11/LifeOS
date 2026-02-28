@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 from runtime.config import detect_repo_root, load_config, verify_containment
 from runtime.cli import main
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 @pytest.fixture
 def temp_repo(tmp_path):
@@ -206,6 +206,49 @@ class TestCLI:
                     assert main() == 2
                     captured = capsys.readouterr()
                     assert "Checkpoint: CP_run_cli_2_3" in captured.out
+
+    def test_cli_spine_run_defaults_worktree_true(self, temp_repo, tmp_path):
+        task_path = tmp_path / "task.json"
+        task_path.write_text('{"task_ref":"T-001"}', encoding="utf-8")
+
+        with patch("runtime.cli.detect_repo_root", return_value=temp_repo):
+            with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls:
+                mock_spine = MagicMock()
+                mock_spine.run.return_value = {
+                    "run_id": "run_1",
+                    "state": "DONE",
+                    "outcome": "PASS",
+                    "commit_hash": "abc123",
+                }
+                mock_spine_cls.return_value = mock_spine
+
+                with patch("sys.argv", ["runtime", "spine", "run", str(task_path)]):
+                    assert main() == 0
+
+        assert mock_spine_cls.call_args.kwargs.get("use_worktree") is True
+
+    def test_cli_spine_run_no_worktree_override(self, temp_repo, tmp_path):
+        task_path = tmp_path / "task.json"
+        task_path.write_text('{"task_ref":"T-002"}', encoding="utf-8")
+
+        with patch("runtime.cli.detect_repo_root", return_value=temp_repo):
+            with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls:
+                mock_spine = MagicMock()
+                mock_spine.run.return_value = {
+                    "run_id": "run_2",
+                    "state": "DONE",
+                    "outcome": "PASS",
+                    "commit_hash": "def456",
+                }
+                mock_spine_cls.return_value = mock_spine
+
+                with patch(
+                    "sys.argv",
+                    ["runtime", "spine", "run", str(task_path), "--no-worktree"],
+                ):
+                    assert main() == 0
+
+        assert mock_spine_cls.call_args.kwargs.get("use_worktree") is False
 
 
 class TestCLIMission:

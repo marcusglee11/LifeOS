@@ -10,7 +10,7 @@ Merge to main and clean up. Closure gates run automatically via the PreToolUse h
 ## Default behavior
 
 ```bash
-python3 scripts/workflow/closure_pack.py
+python3 scripts/workflow/close_build.py
 ```
 
 This runs:
@@ -32,23 +32,26 @@ Use to check gate status without merge/cleanup. Returns JSON verdict.
 ## No cleanup mode
 
 ```bash
-python3 scripts/workflow/closure_pack.py --no-cleanup
+python3 scripts/workflow/close_build.py --no-cleanup
 ```
 
 Use when you need to keep branch/context after merge.
 
 ## Git worktree constraint
 
-Run `closure_pack.py` from the **worktree directory**, not the primary repo.
+Run `close_build.py` (and underlying `closure_pack.py`) from the **worktree directory**, not the primary repo.
 
 When `main` is already checked out in the primary worktree, the script
 detects this automatically (via `git branch --show-current` on the repo root)
 and skips the `checkout main` step. The merge proceeds against the primary
 worktree's `main` directly.
 
-If you accidentally run from the primary repo, it will refuse ("Switch to a
-feature/build branch before running close-build"). Switch to the worktree and
-retry.
+If you accidentally run from the primary repo on a scoped branch, it hard-blocks
+with `ISOLATION_REQUIRED`. Recover in one command:
+
+```bash
+python3 scripts/workflow/start_build.py --recover-primary
+```
 
 ## Report contract (strict)
 

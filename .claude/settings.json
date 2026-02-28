@@ -73,6 +73,17 @@
             "statusMessage": "Surfacing Codex working-tree changes..."
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/new-build-worktree-guard.py",
+            "timeout": 5000,
+            "statusMessage": "Checking build isolation..."
+          }
+        ]
       }
     ],
     "SessionStart": [

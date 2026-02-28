@@ -41,5 +41,5 @@ providers:
 # Default constraints applied when order omits them
 defaults:
   max_duration_seconds: 3600
-  worktree: false
+  worktree: true
   provider: "auto"

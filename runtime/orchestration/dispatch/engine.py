@@ -12,6 +12,8 @@ Phase 1 constraints:
 """
 from __future__ import annotations
 
+import subprocess
+
 import yaml
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -217,13 +219,56 @@ class DispatchEngine:
 
             from runtime.orchestration.loop.spine import LoopSpine
 
-            spine = LoopSpine(repo_root=self.repo_root)
-            spine_result = spine.run(task_spec)
+            attempted_auto_remediation = False
+            requested_worktree = bool(order.constraints.worktree)
+            spine_outcome = "UNKNOWN"
+            spine_reason = ""
+            spine_result: Dict[str, Any] = {}
+            first_isolation_reason: Optional[str] = None
 
-            run_id = spine_result.get("run_id")
-            terminal_packet_path = spine_result.get("terminal_packet_path")
-            spine_outcome = spine_result.get("outcome", "UNKNOWN")
-            spine_reason = str(spine_result.get("reason", ""))
+            use_worktree = requested_worktree
+            if (not requested_worktree) and _isolation_required(self.repo_root):
+                attempted_auto_remediation = True
+                first_isolation_reason = (
+                    "ISOLATION_REQUIRED: scoped branch in primary worktree; "
+                    "retrying automatically in isolated worktree"
+                )
+                use_worktree = True
+            while True:
+                spine = LoopSpine(
+                    repo_root=self.repo_root,
+                    use_worktree=use_worktree,
+                )
+                spine_result = spine.run(task_spec)
+
+                run_id = spine_result.get("run_id")
+                terminal_packet_path = spine_result.get("terminal_packet_path")
+                spine_outcome = spine_result.get("outcome", "UNKNOWN")
+                spine_reason = str(spine_result.get("reason", ""))
+
+                is_isolation_required = "ISOLATION_REQUIRED" in spine_reason
+                if spine_outcome in ("PASS",):
+                    break
+
+                if (not use_worktree) and is_isolation_required and (not attempted_auto_remediation):
+                    # Automatic recovery path: rerun once in isolated worktree.
+                    attempted_auto_remediation = True
+                    first_isolation_reason = spine_reason or spine_outcome
+                    use_worktree = True
+                    continue
+
+                break
+
+            if attempted_auto_remediation and spine_outcome in ("PASS",):
+                spine_reason = (
+                    (spine_reason or "spine_completed")
+                    + " [auto-remediated:isolation]"
+                )
+            elif attempted_auto_remediation:
+                spine_reason = (
+                    "ISOLATION_AUTO_REMEDIATION_FAILED: "
+                    + (spine_reason or first_isolation_reason or spine_outcome or "unknown")
+                )
 
             if spine_outcome in ("PASS",):
                 outcome = "SUCCESS"
@@ -334,6 +379,30 @@ def _check_repo_clean(repo_root: Path) -> bool:
 
         verify_repo_clean(repo_root)
         return True
+    except Exception:
+        return False
+
+
+def _isolation_required(repo_root: Path) -> bool:
+    """Return True when scoped work is running in primary and needs a worktree."""
+    try:
+        branch_proc = subprocess.run(
+            ["git", "-C", str(repo_root), "branch", "--show-current"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        branch = branch_proc.stdout.strip()
+        if not branch.startswith(("build/", "fix/", "hotfix/", "spike/")):
+            return False
+
+        common_proc = subprocess.run(
+            ["git", "-C", str(repo_root), "rev-parse", "--git-common-dir"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        return common_proc.stdout.strip() == ".git"
     except Exception:
         return False
 

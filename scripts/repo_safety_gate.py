@@ -41,6 +41,8 @@ SYNC_BRANCHES = [
     "origin/temp-restore-branch",
 ]
 
+ISOLATION_BRANCH_PREFIXES = ("build/", "fix/", "hotfix/", "spike/")
+
 
 def run_git(args: list[str]) -> tuple[int, str]:
     """Run git command and return (exit_code, output)."""
@@ -109,8 +111,36 @@ def check_uncommitted_on_other_branches() -> list[str]:
     return issues
 
 
+def check_isolation_requirement(operation: str) -> list[str]:
+    """Hard-block scoped branch operations in the primary working tree."""
+    if operation not in {"merge", "cleanup", "preflight"}:
+        return []
+
+    _, branch = run_git(["branch", "--show-current"])
+    branch = branch.strip()
+    if not branch or not branch.startswith(ISOLATION_BRANCH_PREFIXES):
+        return []
+
+    _, common_dir = run_git(["rev-parse", "--git-common-dir"])
+    if common_dir.strip() != ".git":
+        return []
+
+    kind = branch.split("/", 1)[0]
+    return [
+        (
+            "ISOLATION_REQUIRED: scoped branch "
+            f"'{branch}' is running in the primary working tree. "
+            "Recover this branch into its linked worktree: "
+            "python3 scripts/workflow/start_build.py --recover-primary "
+            f"(or start fresh: python3 scripts/workflow/start_build.py <topic> --kind {kind})"
+        )
+    ]
+
+
 def should_block_issue(operation: str, issue: str) -> bool:
     """Operation-aware blocking policy."""
+    if issue.startswith("ISOLATION_REQUIRED:"):
+        return True
     # Merge operations are expected to run from feature branches with commits
     # not yet in main; treat this as informational, not blocking.
     if operation == "merge" and issue.startswith("UNCOMMITTED WORK:"):
@@ -177,6 +207,17 @@ def main():
         blocking_issues.extend([i for i in issues if should_block_issue(args.operation, i)])
     else:
         print("✅ Working tree: Clean")
+
+    # Hard-block primary-tree execution for scoped branches.
+    issues = check_isolation_requirement(args.operation)
+    if issues:
+        print("\n🚫 ISOLATION CHECK:")
+        for issue in issues:
+            print(f"   • {issue}")
+        all_issues.extend(issues)
+        blocking_issues.extend([i for i in issues if should_block_issue(args.operation, i)])
+    else:
+        print("✅ Isolation: compliant")
     
     # Check branch divergence
     issues = check_branch_divergence()

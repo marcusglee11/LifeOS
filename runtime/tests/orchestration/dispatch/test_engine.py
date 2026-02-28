@@ -189,6 +189,82 @@ def test_execute_records_terminal_packet_path(tmp_path):
     assert result.terminal_packet_path == PASS_SPINE_RESULT["terminal_packet_path"]
 
 
+def test_execute_passes_worktree_constraint_to_spine(tmp_path):
+    engine = _make_engine(tmp_path)
+    raw = dict(MINIMAL_ORDER_RAW)
+    raw["constraints"] = {"worktree": True}
+
+    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls:
+        mock_spine = MagicMock()
+        mock_spine.run.return_value = PASS_SPINE_RESULT
+        mock_spine_cls.return_value = mock_spine
+
+        order = parse_order(raw)
+        engine.execute(order)
+
+    assert mock_spine_cls.call_args.kwargs.get("use_worktree") is True
+
+
+def test_execute_auto_remediates_isolation_required_once(tmp_path):
+    engine = _make_engine(tmp_path)
+    raw = dict(MINIMAL_ORDER_RAW)
+    raw["constraints"] = {"worktree": False}
+
+    first = {
+        "run_id": "run_iso_1",
+        "outcome": "BLOCKED",
+        "reason": "ISOLATION_REQUIRED: primary worktree on build/foo",
+        "state": "BLOCKED",
+        "terminal_packet_path": "artifacts/terminal/TP_run_iso_1.yaml",
+    }
+    second = {
+        "run_id": "run_iso_2",
+        "outcome": "PASS",
+        "reason": "chain_complete",
+        "state": "DONE",
+        "terminal_packet_path": "artifacts/terminal/TP_run_iso_2.yaml",
+    }
+
+    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls:
+        mock_one = MagicMock()
+        mock_one.run.return_value = first
+        mock_two = MagicMock()
+        mock_two.run.return_value = second
+        mock_spine_cls.side_effect = [mock_one, mock_two]
+
+        order = parse_order(raw)
+        result = engine.execute(order)
+
+    assert result.outcome == "SUCCESS"
+    assert "auto-remediated:isolation" in result.reason
+    assert mock_spine_cls.call_count == 2
+    first_kwargs = mock_spine_cls.call_args_list[0].kwargs
+    second_kwargs = mock_spine_cls.call_args_list[1].kwargs
+    assert first_kwargs.get("use_worktree") is False
+    assert second_kwargs.get("use_worktree") is True
+
+
+def test_execute_preemptively_flips_to_worktree_on_isolation_required(tmp_path):
+    engine = _make_engine(tmp_path)
+    raw = dict(MINIMAL_ORDER_RAW)
+    raw["constraints"] = {"worktree": False}
+
+    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls, patch(
+        "runtime.orchestration.dispatch.engine._isolation_required", return_value=True
+    ):
+        mock_spine = MagicMock()
+        mock_spine.run.return_value = PASS_SPINE_RESULT
+        mock_spine_cls.return_value = mock_spine
+
+        order = parse_order(raw)
+        result = engine.execute(order)
+
+    assert result.outcome == "SUCCESS"
+    assert "auto-remediated:isolation" in result.reason
+    assert mock_spine_cls.call_count == 1
+    assert mock_spine_cls.call_args.kwargs.get("use_worktree") is True
+
+
 # ── Non-bypassable gates ──────────────────────────────────────────────────────
 
 

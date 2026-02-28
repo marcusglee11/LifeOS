@@ -248,3 +248,53 @@ protocol doc amendments must include the explicit constraint:
 `"APPEND-ONLY — do not rewrite or reorder existing content"`. This was
 validated in Batch 2 B2-T03; the manual implementation here demonstrates the
 correct append-only pattern for future builder reference.
+
+---
+
+## 14. Worktree-First Build Protocol
+
+### 14.1 Default Rule
+
+All new builds default to isolated git worktrees. Applies to `build/`, `fix/`,
+`hotfix/`, and `spike/` branches.
+
+### 14.2 Start Command
+
+Use:
+
+- `python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]`
+- `cd .worktrees/<short-name>`
+
+The command resolves the primary repo automatically (safe to invoke from linked
+worktrees), derives branch names from topic+kind, and creates linked worktrees
+deterministically (`[a-z0-9-]`, truncated to 30 chars).
+
+### 14.3 Close Command
+
+Run `/close-build` (or `python3 scripts/workflow/close_build.py`) from the
+linked worktree. On successful merge, cleanup removes the linked worktree and
+deletes the source branch.
+
+### 14.4 Exception Path
+
+Primary-tree builds are hard-blocked for `build|fix|hotfix|spike` close/merge
+operations unless explicit break-glass is used. Normal autonomous flows must
+auto-remediate by retrying in an isolated worktree.
+
+Exception path (human-only) is allowed only when:
+
+- a single active build is confirmed, and
+- `git status --porcelain=v1` is empty.
+
+When using this exception, document the rationale in the first commit message.
+
+### 14.5 Recovery Path (Wrong-Tree WIP)
+
+If scoped work was started in the primary tree by mistake, do not hand-migrate
+with manual stash/checkout/worktree commands. Use:
+
+- `python3 scripts/workflow/start_build.py --recover-primary`
+
+Recovery stashes tracked+untracked changes, switches primary back to
+`main/master`, ensures a linked worktree exists for the current scoped branch,
+and reapplies the stash in that linked worktree.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -40,6 +41,14 @@ def _working_tree_clean(repo_root: Path) -> bool:
     # (e.g. council review artifacts still in-flight) do not block the merge gate.
     # The check still catches uncommitted tracked-file changes (staged or unstaged).
     return not _git_stdout(repo_root, ["status", "--short", "--untracked-files=no"])
+
+
+def _is_primary_worktree(repo_root: Path) -> bool:
+    return _git_stdout(repo_root, ["rev-parse", "--git-common-dir"]).strip() == ".git"
+
+
+def _branch_requires_isolation(branch: str) -> bool:
+    return branch.startswith(("build/", "fix/", "hotfix/", "spike/"))
 
 
 def _commit_doc_autofix(repo_root: Path) -> tuple[bool, str]:
@@ -168,6 +177,26 @@ def main() -> int:
         )
         return 1
 
+    if _branch_requires_isolation(branch) and _is_primary_worktree(repo_root):
+        what_remains.append(
+            f"ISOLATION_REQUIRED: close-build for '{branch}' must run from the linked worktree, not primary."
+        )
+        what_remains.append(
+            "Recover this branch in-place: python3 scripts/workflow/start_build.py --recover-primary"
+        )
+        what_remains.append(
+            "Or create a fresh isolated branch: python3 scripts/workflow/start_build.py <topic> --kind "
+            f"{branch.split('/', 1)[0]}"
+        )
+        _print_report(
+            branch=branch,
+            commits=commits,
+            test_results=test_results,
+            what_done=what_done,
+            what_remains=what_remains,
+        )
+        return 1
+
     if not _working_tree_clean(repo_root):
         what_remains.append("Working tree must be clean before close-build.")
         _print_report(
@@ -197,34 +226,6 @@ def main() -> int:
         )
         return 1
     what_done.append("Closure targeted tests passed.")
-
-    # Regenerate runtime status artifact so freshness check stays current
-    status_gen = Path(repo_root) / "scripts" / "generate_runtime_status.py"
-    if status_gen.exists():
-        status_proc = subprocess.run(
-            [sys.executable, str(status_gen)],
-            check=False,
-            cwd=str(repo_root),
-            capture_output=True,
-            text=True,
-        )
-        if status_proc.returncode == 0:
-            # Commit regenerated artifact to avoid dirty-tree merge blocker
-            status_file = "artifacts/status/runtime_status.json"
-            subprocess.run(
-                ["git", "-C", str(repo_root), "add", status_file],
-                check=False, capture_output=True, text=True,
-            )
-            has_staged = _git_stdout(repo_root, ["diff", "--cached", "--name-only"])
-            if has_staged:
-                subprocess.run(
-                    ["git", "-C", str(repo_root), "commit", "-m",
-                     "chore: refresh runtime_status.json (closure)"],
-                    check=False, capture_output=True, text=True,
-                )
-            what_done.append("Regenerated and committed runtime_status.json for freshness compliance.")
-        else:
-            what_remains.append(f"Runtime status generation failed: {status_proc.stderr.strip()}")
 
     doc_check = check_doc_stewardship(repo_root, changed_files, auto_fix=True)
     if not doc_check["passed"]:
@@ -287,6 +288,49 @@ def main() -> int:
         return 1
     what_done.append(f"Merged to main (squash): {merge['merge_sha']}.")
 
+    primary_repo_str = merge.get("primary_repo")
+    if primary_repo_str:
+        primary_repo = Path(primary_repo_str)
+        status_gen = primary_repo / "scripts" / "generate_runtime_status.py"
+        if status_gen.exists():
+            status_proc = subprocess.run(
+                [sys.executable, str(status_gen)],
+                check=False,
+                cwd=str(primary_repo),
+                capture_output=True,
+                text=True,
+            )
+            if status_proc.returncode == 0:
+                subprocess.run(
+                    ["git", "-C", str(primary_repo), "add", "artifacts/status/runtime_status.json"],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                has_staged = _git_stdout(primary_repo, ["diff", "--cached", "--name-only"])
+                if has_staged:
+                    commit_env = os.environ.copy()
+                    commit_env["LIFEOS_MAIN_COMMIT_ALLOWED"] = "1"
+                    subprocess.run(
+                        [
+                            "git",
+                            "-C",
+                            str(primary_repo),
+                            "commit",
+                            "-m",
+                            "chore: refresh runtime_status.json (post-merge)",
+                        ],
+                        check=False,
+                        capture_output=True,
+                        text=True,
+                        env=commit_env,
+                    )
+                what_done.append(
+                    "Regenerated and committed runtime_status.json for freshness compliance."
+                )
+            else:
+                what_remains.append(f"Runtime status generation failed: {status_proc.stderr.strip()}")
+
     # Update STATE and BACKLOG
     if not args.no_state_update:
         state_update = update_state_and_backlog(
@@ -320,6 +364,8 @@ def main() -> int:
             what_done.append(f"Branch not deleted: {branch}.")
         if cleanup["context_cleared"]:
             what_done.append("Cleared .context/active_work.yaml.")
+        if cleanup.get("worktree_removed"):
+            what_done.append("Removed linked worktree.")
         for err in cleanup["errors"]:
             what_remains.append(err)
 

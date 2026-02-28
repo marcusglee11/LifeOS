@@ -11,7 +11,7 @@ import sys
 from datetime import datetime
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Iterable, Optional, Sequence
 
 from runtime.util.atomic_write import atomic_write_text
 
@@ -492,11 +492,17 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
     """Merge a feature branch into main using squash merge."""
     source_branch = branch.strip()
     if not source_branch:
-        return {"success": False, "merge_sha": None, "errors": ["source branch is empty"]}
+        return {
+            "success": False,
+            "merge_sha": None,
+            "primary_repo": None,
+            "errors": ["source branch is empty"],
+        }
     if source_branch in {"main", "master"}:
         return {
             "success": False,
             "merge_sha": None,
+            "primary_repo": None,
             "errors": [f"cannot merge protected branch '{source_branch}'"],
         }
 
@@ -515,6 +521,7 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
         return {
             "success": False,
             "merge_sha": None,
+            "primary_repo": None,
             "errors": [f"safety gate blocked merge: {details or 'unknown failure'}"],
         }
 
@@ -586,7 +593,12 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
             capture_output=True,
             text=True,
         )
-        return {"success": False, "merge_sha": None, "errors": errors}
+        return {
+            "success": False,
+            "merge_sha": None,
+            "primary_repo": None,
+            "errors": errors,
+        }
 
     head = subprocess.run(
         ["git", "-C", str(primary_repo), "rev-parse", "HEAD"],
@@ -597,9 +609,19 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
     merge_sha = head.stdout.strip() if head.returncode == 0 else None
     if not merge_sha:
         errors.append("failed to resolve merge commit SHA")
-        return {"success": False, "merge_sha": None, "errors": errors}
+        return {
+            "success": False,
+            "merge_sha": None,
+            "primary_repo": None,
+            "errors": errors,
+        }
 
-    return {"success": True, "merge_sha": merge_sha, "errors": []}
+    return {
+        "success": True,
+        "merge_sha": merge_sha,
+        "primary_repo": str(primary_repo),
+        "errors": [],
+    }
 
 
 def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True) -> dict:
@@ -608,10 +630,48 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
     source_branch = branch.strip()
 
     errors: list[str] = []
+
+    _wt_proc = subprocess.run(
+        ["git", "-C", str(repo), "worktree", "list", "--porcelain"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    primary_repo: Optional[Path] = None
+    linked_wt_path: Optional[Path] = None
+    candidate: Optional[Path] = None
+    for line in _wt_proc.stdout.splitlines():
+        if line.startswith("worktree "):
+            candidate = Path(line.split(" ", 1)[1].strip())
+        elif line.startswith("branch refs/heads/") and candidate is not None:
+            wt_branch = line.removeprefix("branch refs/heads/").strip()
+            if wt_branch in {"main", "master"} and primary_repo is None:
+                primary_repo = candidate
+            elif wt_branch == source_branch and linked_wt_path is None:
+                linked_wt_path = candidate
+
+    worktree_removed = False
+    if linked_wt_path is not None and linked_wt_path != primary_repo:
+        git_cwd = str(primary_repo) if primary_repo is not None else str(repo)
+        rm_proc = subprocess.run(
+            ["git", "-C", git_cwd, "worktree", "remove", "--force", str(linked_wt_path)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if rm_proc.returncode == 0:
+            worktree_removed = True
+        else:
+            details = (rm_proc.stderr or "").strip() or (rm_proc.stdout or "").strip()
+            errors.append(
+                f"failed to remove worktree at {linked_wt_path}: {details or f'exit code {rm_proc.returncode}'}"
+            )
+
+    branch_delete_repo = primary_repo if primary_repo is not None else repo
     branch_deleted = False
     if source_branch and source_branch not in {"main", "master"}:
         proc = subprocess.run(
-            ["git", "-C", str(repo), "branch", "-d", source_branch],
+            ["git", "-C", str(branch_delete_repo), "branch", "-d", source_branch],
             check=False,
             capture_output=True,
             text=True,
@@ -637,6 +697,7 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
     return {
         "branch_deleted": branch_deleted,
         "context_cleared": context_cleared,
+        "worktree_removed": worktree_removed,
         "errors": errors,
     }
 

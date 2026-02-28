@@ -47,6 +47,10 @@ Claude Code skills specific to LifeOS concurrent development workflows.
 
 **Purpose:** Finalize a passing branch in one step (tests, conditional doc stewardship, merge, cleanup).
 
+### new-build
+
+**Purpose:** Create a new isolated worktree from a topic-first command (`start_build.py`).
+
 ## Commands
 
 - `/review-build`
@@ -54,12 +58,15 @@ Claude Code skills specific to LifeOS concurrent development workflows.
 - `/review-fix`
 - `/handoff-pack`
 - `/close-build`
+- `/new-build`
 
 ## Workflow Utilities
 
 - `scripts/workflow/test_router.sh` - Map changed files to targeted test commands.
 - `scripts/workflow/active_work.py` - Maintain compact context artifact at `.context/active_work.yaml` (ignored by git).
 - `scripts/workflow/closure_pack.py` - Run the final close lifecycle with strict report output.
+- `scripts/workflow/start_build.py` - Canonical low-friction worktree start and primary-branch recovery command (`--recover-primary`).
+- `scripts/workflow/close_build.py` - Canonical close wrapper around closure_pack.
 
 ## Installation
 

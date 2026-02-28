@@ -103,7 +103,7 @@ python -m doc_steward.cli dap-validate .
 3. **Small batches** - Make incremental changes, verify each step
 4. **Tests matter** - Run tests before and after. If tests break, fix before moving on
 5. **Match code style** - Follow conventions in the existing codebase
-6. **Use worktrees when concurrent builds are active** - If another branch has uncommitted WIP in the shared working tree, use a git worktree for isolation. Shared working tree + concurrent untracked files = cross-contamination that blocks close-build gates and causes Article XIX false positives.
+6. **Always start builds in a worktree** - Use `/new-build <topic>` (runs `python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]`) to atomically create branch + isolated worktree. `build` is default; fixes use `--kind fix`. If work already started on a scoped branch in primary, recover it with `python3 scripts/workflow/start_build.py --recover-primary`. `/close-build` maps to `python3 scripts/workflow/close_build.py` and must be run from linked worktrees. Shared working tree + concurrent agents = Article XIX blocks, merge conflicts, and stash pop failures.
 
 ### TODO & Documentation Discipline
 
