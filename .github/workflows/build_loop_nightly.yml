@@ -1,0 +1,244 @@
+name: Build Loop Nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 02:00 UTC daily (1 PM AEDT)
+  workflow_dispatch:
+    inputs:
+      task_spec:
+        description: 'Path to ExecutionOrder YAML (optional; resolver runs if blank)'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Skip spine execution (validate setup only)'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: build-loop
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  build-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+      OPENCLAW_MODELS_PREFLIGHT_SKIP: '1'
+
+    steps:
+      # ── Setup ──────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.LIFEOS_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ripgrep
+          pip install -q -r requirements-dev.txt
+
+      - name: Configure git identity
+        run: |
+          git config user.name "LifeOS Build Loop"
+          git config user.email "build-loop@lifeos.local"
+          git config core.autocrlf false
+
+      # ── Secret validation ──────────────────────────────────
+      - name: Validate secrets
+        id: secrets
+        env:
+          HAS_API_KEY: ${{ secrets.OPENROUTER_API_KEY != '' }}
+        run: |
+          echo "has_api_key=$HAS_API_KEY" >> "$GITHUB_OUTPUT"
+          if [ "$HAS_API_KEY" != "true" ]; then
+            echo "::warning::OPENROUTER_API_KEY not configured — spine execution will be skipped"
+          fi
+
+      # ── Pre-flight checks ─────────────────────────────────
+      - name: Pre-flight test suite
+        run: pytest runtime/tests -q
+
+      - name: Pre-flight repo clean
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Repository is not clean before build loop"
+            git status --short
+            exit 1
+          fi
+
+      # ── Resolve task ───────────────────────────────────────
+      - name: Resolve task spec
+        id: resolve
+        env:
+          TASK_SPEC: ${{ inputs.task_spec }}
+        run: |
+          if [ -n "$TASK_SPEC" ]; then
+            cp "$TASK_SPEC" /tmp/nightly_order.yaml
+            echo "source=manual" >> "$GITHUB_OUTPUT"
+          else
+            python scripts/ci/resolve_nightly_task.py --output /tmp/nightly_order.yaml
+            echo "source=resolver" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f /tmp/nightly_order.yaml ]; then
+            echo "has_task=true" >> "$GITHUB_OUTPUT"
+            echo "task_ref=$(python -c "import yaml; print(yaml.safe_load(open('/tmp/nightly_order.yaml'))['task_ref'])")" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_task=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No tasks available in inbox or queue"
+          fi
+
+      # ── Execute ────────────────────────────────────────────
+      - name: Execute build loop
+        id: dispatch
+        if: steps.resolve.outputs.has_task == 'true' && steps.secrets.outputs.has_api_key == 'true' && inputs.dry_run != 'true'
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          set +e
+          python -m runtime.cli dispatch submit /tmp/nightly_order.yaml --json > /tmp/dispatch_result.json 2>/tmp/dispatch_stderr.log
+          EXIT_CODE=$?
+          set -e
+
+          cat /tmp/dispatch_result.json
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "outcome=SUCCESS" >> "$GITHUB_OUTPUT"
+          else
+            echo "outcome=FAILED" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Extract outcome for issue labeling
+          OUTCOME=$(python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('outcome','UNKNOWN'))" 2>/dev/null || echo "UNKNOWN")
+          REASON=$(python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('reason',''))" 2>/dev/null || echo "")
+          echo "dispatch_outcome=$OUTCOME" >> "$GITHUB_OUTPUT"
+          echo "dispatch_reason=$REASON" >> "$GITHUB_OUTPUT"
+
+      - name: Dry run notice
+        if: inputs.dry_run == 'true'
+        run: |
+          echo "::notice::Dry run mode — spine execution skipped"
+          echo "Task spec resolved successfully. Setup validated."
+          if [ -f /tmp/nightly_order.yaml ]; then
+            echo "--- Resolved order ---"
+            cat /tmp/nightly_order.yaml
+          fi
+
+      # ── Post-flight ────────────────────────────────────────
+      - name: Post-flight test suite
+        if: steps.dispatch.outputs.outcome == 'SUCCESS'
+        run: pytest runtime/tests -q
+
+      - name: Commit run artifacts
+        if: steps.dispatch.outputs.outcome == 'SUCCESS' || steps.dispatch.outputs.outcome == 'FAILED'
+        run: |
+          # Stage manifest if changed
+          git diff --quiet artifacts/manifests/run_log.jsonl || git add artifacts/manifests/run_log.jsonl
+
+          # Stage queue file if resolver consumed an entry (3A: persist queue pop)
+          if [ -f artifacts/dispatch/nightly_queue.yaml ]; then
+            git diff --quiet artifacts/dispatch/nightly_queue.yaml || git add artifacts/dispatch/nightly_queue.yaml
+          fi
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(ci): append build loop manifest — $(date -u +%Y-%m-%d)
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          Outcome: ${{ steps.dispatch.outputs.dispatch_outcome }}
+
+          Co-Authored-By: LifeOS Build Loop <build-loop@lifeos.local>"
+            git push
+          fi
+
+      # ── Artifacts ──────────────────────────────────────────
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-loop-${{ github.run_id }}
+          retention-days: 90
+          if-no-files-found: ignore
+          path: |
+            artifacts/packets/terminal/
+            artifacts/dispatch/completed/
+            artifacts/manifests/run_log.jsonl
+            /tmp/dispatch_result.json
+            /tmp/dispatch_stderr.log
+            /tmp/nightly_order.yaml
+
+      # ── Report ─────────────────────────────────────────────
+      - name: Create summary issue
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const hasTask = '${{ steps.resolve.outputs.has_task }}' === 'true';
+            const hasKey = '${{ steps.secrets.outputs.has_api_key }}' === 'true';
+            const dryRun = '${{ inputs.dry_run }}' === 'true';
+            const outcome = '${{ steps.dispatch.outputs.dispatch_outcome }}' || 'N/A';
+            const reason = '${{ steps.dispatch.outputs.dispatch_reason }}' || '';
+            const taskRef = '${{ steps.resolve.outputs.task_ref }}' || 'none';
+            const source = '${{ steps.resolve.outputs.source }}' || 'resolver';
+            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+
+            let statusEmoji = '⚪';
+            if (!hasTask) statusEmoji = '📭';
+            else if (dryRun) statusEmoji = '🧪';
+            else if (!hasKey) statusEmoji = '🔑';
+            else if (outcome === 'SUCCESS') statusEmoji = '✅';
+            else if (reason.includes('CHECKPOINT')) statusEmoji = '⏸️';
+            else statusEmoji = '❌';
+
+            let statusLine = '';
+            if (!hasTask) statusLine = 'No tasks available';
+            else if (dryRun) statusLine = 'Dry run — setup validated';
+            else if (!hasKey) statusLine = 'Skipped — OPENROUTER_API_KEY not configured';
+            else statusLine = `${outcome}${reason ? ': ' + reason : ''}`;
+
+            const labels = ['automation', 'build-loop', 'nightly-run'];
+            if (reason.includes('CHECKPOINT')) labels.push('needs-ceo-decision');
+
+            const date = new Date().toISOString().split('T')[0];
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `${statusEmoji} Build Loop ${date} — ${hasTask ? taskRef : 'idle'}`,
+              body: `## Build Loop Nightly Run
+
+            **Date:** ${new Date().toISOString()}
+            **Task:** ${taskRef} (source: ${source})
+            **Status:** ${statusLine}
+
+            ### Configuration
+            | Key | Value |
+            |-----|-------|
+            | API key configured | ${hasKey} |
+            | Dry run | ${dryRun} |
+            | Task resolved | ${hasTask} |
+            | Dispatch outcome | ${outcome} |
+
+            ${reason ? `### Reason\n\`\`\`\n${reason}\n\`\`\`\n` : ''}
+
+            ### Artifacts
+            [View workflow run →](${runUrl})
+
+            ---
+            *Generated by LifeOS Build Loop*`,
+              labels: labels
+            });

@@ -5,6 +5,10 @@ on:
     - cron: '0 3 * * *'  # 3 AM UTC daily (2 PM AEDT)
   workflow_dispatch:  # Allow manual trigger
 
+concurrency:
+  group: nightly-test-suite
+  cancel-in-progress: false
+
 jobs:
   full-test:
     name: Complete Test Suite

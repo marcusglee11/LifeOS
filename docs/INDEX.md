@@ -155,6 +155,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Test_Protocol_v2.0.md](./02_protocols/Test_Protocol_v2.0.md) | **WIP** — Test categories, coverage, and flake policy |
 | [EOL_Policy_v1.0.md](./02_protocols/EOL_Policy_v1.0.md) | **Canonical** — LF line endings, config compliance, clean invariant enforcement |
 | [Filesystem_Error_Boundary_Protocol_v1.0.md](./02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md) | **Draft** — Fail-closed filesystem error boundaries, exception taxonomy |
+| [GitHub_Actions_Secrets_Setup.md](./02_protocols/GitHub_Actions_Secrets_Setup.md) | PAT creation, secrets config, and rotation for CI workflows |
 
 ### Council Protocols
 

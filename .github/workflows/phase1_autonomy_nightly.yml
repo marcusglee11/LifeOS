@@ -1,10 +1,15 @@
 name: Phase 1 Autonomy - Nightly Doc Hygiene
 
 on:
-  schedule:
-    # Run at 8 PM UTC every day (7 AM AEDT next morning)
-    - cron: '0 20 * * *'
+  # schedule disabled — doc hygiene is subsumed by the build loop steward phase.
+  # Kept for reference; re-enable only if the build loop is decommissioned.
+  # schedule:
+  #   - cron: '0 20 * * *'
   workflow_dispatch:  # Allow manual trigger for testing
+
+concurrency:
+  group: nightly-doc-hygiene
+  cancel-in-progress: false
 
 permissions:
   contents: write  # Needed to commit changes

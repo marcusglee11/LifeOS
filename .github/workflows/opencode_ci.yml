@@ -3,6 +3,10 @@ name: OpenCode CI Integration
 on:
   workflow_dispatch:
 
+concurrency:
+  group: opencode-ci
+  cancel-in-progress: false
+
 jobs:
   validate-agent-commit:
     runs-on: ubuntu-latest

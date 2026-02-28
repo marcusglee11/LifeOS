@@ -14,6 +14,10 @@ on:
       - 'runtime/tests/test_tool_*.py'
   workflow_dispatch:
 
+concurrency:
+  group: tool-invoke-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-linux:
     name: Tool Invoke Tests (Linux)

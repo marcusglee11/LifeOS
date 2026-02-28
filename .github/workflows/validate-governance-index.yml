@@ -7,6 +7,10 @@ on:
       - 'tools/validate_governance_index.py'
       - '.github/workflows/validate-governance-index.yml'
 
+concurrency:
+  group: validate-governance-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     name: Validate Artefact Index
