@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Batch 2 prep — top-3 Batch-1 fixes, Batch 2 task curation, 5-cycle run.
-**Active WIP:** build/batch2-prep
-**Last Updated:** 2026-02-27 (rev24)
+**Current Focus:** Worktree-first isolation enforcement landed; Batch 2 prep continues.
+**Active WIP:** main (clean)
+**Last Updated:** 2026-02-28 (rev25)
 
 ---
 
@@ -78,6 +78,7 @@ None — all prior blockers resolved:
 
 ## 🟩 Recent Wins
 
+- **2026-02-28:** Worktree-First Build Architecture — mandatory isolation for build/fix/hotfix/spike branches; `start_build.py` with topic-first CLI + `--recover-primary`; `close_build.py` with isolation hard-block; DispatchEngine auto-remediation loop; safety gate isolation check; 97 targeted tests. Review fix: missing `import subprocess` in dispatch/engine.py. (merge commit df4bb54)
 - **2026-02-27:** Batch2 Burn In — chore: refresh runtime_status.json (closure); fix(steward): add burn-in reports and tech debt inventory to admin allowlist; chore: refresh runtime_status.json (closure); chore(burn-in): stage TECH_DEBT_INVENTORY.md from concurrent audit session; docs(burn-in): Batch 2 closure report + Council V2 evaluation (and 6 more) — 1/1 targeted test command(s) passed. (merge commit 1a5db9f)
 - **2026-02-27:** Batch 1 Burn-In COMPLETE (`78473e3`) — 6 spine runs; 40 new tests (2147 total, 0 regressions); `BudgetConfig.__post_init__` validation; `workflow_pack.py` worktree fix; 7 key findings documented for Batch 2 procedure improvement. Report: `docs/11_admin/Batch1_BurnIn_Report.md`
 - **2026-02-23:** Council V2 Wave2 Integration — chore: refresh runtime_status.json (closure); fix: review-agent hardening pass — FSMv2 mission-safe + schema tightening; feat: Wave 2 — FSM wiring, A6 synthesis, A8 fidelity, A9 advisory, review.py; feat: A7 Challenger review with rework loop; test: A5 lens dispatch TDD tests (red phase) — 1/1 targeted test command(s) passed. (merge commit 38d5b28)
