@@ -15,7 +15,7 @@ class TestRequirements:
     """Verify requirements constraints match installed runtime versions."""
 
     def test_pytest_constraint_allows_installed_version(self):
-        req_text = (REPO_ROOT / "requirements.txt").read_text(encoding="utf-8")
+        req_text = (REPO_ROOT / "requirements-dev.txt").read_text(encoding="utf-8")
 
         pytest_line = None
         for line in req_text.splitlines():
@@ -23,7 +23,7 @@ class TestRequirements:
                 pytest_line = line
                 break
 
-        assert pytest_line is not None, "No pytest constraint line found in requirements.txt"
+        assert pytest_line is not None, "No pytest constraint line found in requirements-dev.txt"
 
         installed = pytest.__version__
         major = int(installed.split(".")[0])

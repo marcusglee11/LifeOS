@@ -97,18 +97,17 @@ jobs:
       - name: Run doc link validator
         if: github.event_name == 'pull_request'
         run: pytest tests_doc/test_links.py -v
-        continue-on-error: true  # Report but don't block initially
 
       - name: DAP validation
         run: python -m doc_steward.cli dap-validate .
         env:
           PYTHONPATH: ${{ github.workspace }}
 
-      - name: Doc freshness check (warn until 2026-02-26, then block)
+      - name: Doc freshness check (blocking since 2026-02-28)
         run: python -m doc_steward.cli freshness-check .
         env:
           PYTHONPATH: ${{ github.workspace }}
-          LIFEOS_DOC_FRESHNESS_MODE: warn
+          LIFEOS_DOC_FRESHNESS_MODE: block
 
   validate:
     name: Validate Artefact Index
@@ -132,7 +131,6 @@ jobs:
           else
             echo "Validator not found, skipping"
           fi
-        continue-on-error: true
 
       - name: Run Canon Spine validator
         run: |
