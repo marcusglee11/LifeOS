@@ -3,5 +3,17 @@
   "description": "LifeOS-specific workflow skills for multi-agent development, build reviews, and inter-agent handoffs",
   "version": "1.3.0",
   "author": "LifeOS Team",
-  "keywords": ["git", "merge", "workflow", "concurrent", "sprints", "review", "review-fix", "handoff", "handoff-pack", "close-build", "multi-agent"]
+  "keywords": [
+    "git",
+    "merge",
+    "workflow",
+    "concurrent",
+    "sprints",
+    "review",
+    "review-fix",
+    "handoff",
+    "handoff-pack",
+    "close-build",
+    "multi-agent"
+  ]
 }

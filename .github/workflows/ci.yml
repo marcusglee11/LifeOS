@@ -74,7 +74,6 @@ jobs:
       
       - name: Run Biome linter
         run: npx @biomejs/biome check .
-        continue-on-error: true  # Don't fail build on lint warnings initially
 
   docs:
     name: Documentation Validation

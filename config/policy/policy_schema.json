@@ -25,12 +25,7 @@
     },
     "policy_metadata": {
       "type": "object",
-      "required": [
-        "version",
-        "effective_date",
-        "author",
-        "description"
-      ],
+      "required": ["version", "effective_date", "author", "description"],
       "properties": {
         "version": {
           "type": "string"
@@ -49,27 +44,17 @@
     },
     "posture": {
       "type": "object",
-      "required": [
-        "mode"
-      ],
+      "required": ["mode"],
       "properties": {
         "mode": {
           "type": "string",
-          "enum": [
-            "SHADOW",
-            "DUAL",
-            "PRIMARY",
-            "ONLY"
-          ]
+          "enum": ["SHADOW", "DUAL", "PRIMARY", "ONLY"]
         },
         "allow_posture_loosen": {
           "type": "boolean"
         },
         "approval_ref": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       },
       "additionalProperties": false
@@ -77,11 +62,7 @@
     "variables": {
       "type": "object",
       "additionalProperties": {
-        "type": [
-          "string",
-          "number",
-          "boolean"
-        ]
+        "type": ["string", "number", "boolean"]
       }
     },
     "failure_classes": {
@@ -162,11 +143,7 @@
   "definitions": {
     "tool_rule": {
       "type": "object",
-      "required": [
-        "rule_id",
-        "decision",
-        "match"
-      ],
+      "required": ["rule_id", "decision", "match"],
       "properties": {
         "rule_id": {
           "type": "string",
@@ -174,12 +151,7 @@
         },
         "decision": {
           "type": "string",
-          "enum": [
-            "ALLOW",
-            "DENY",
-            "ESCALATE",
-            "WAIVER"
-          ],
+          "enum": ["ALLOW", "DENY", "ESCALATE", "WAIVER"],
           "description": "Tool decisions only: ALLOW, DENY, ESCALATE, WAIVER"
         },
         "priority": {
@@ -216,10 +188,7 @@
         },
         "path_scope": {
           "type": "string",
-          "enum": [
-            "WORKSPACE",
-            "SANDBOX"
-          ],
+          "enum": ["WORKSPACE", "SANDBOX"],
           "description": "Required for filesystem ALLOW rules; enforced at runtime"
         },
         "on_match": {
@@ -246,23 +215,16 @@
                     "const": "filesystem"
                   }
                 },
-                "required": [
-                  "tool"
-                ]
+                "required": ["tool"]
               },
               "decision": {
                 "const": "ALLOW"
               }
             },
-            "required": [
-              "match",
-              "decision"
-            ]
+            "required": ["match", "decision"]
           },
           "then": {
-            "required": [
-              "path_scope"
-            ],
+            "required": ["path_scope"],
             "errorMessage": "filesystem ALLOW rules must declare path_scope"
           }
         }
@@ -270,11 +232,7 @@
     },
     "loop_rule": {
       "type": "object",
-      "required": [
-        "rule_id",
-        "decision",
-        "match"
-      ],
+      "required": ["rule_id", "decision", "match"],
       "properties": {
         "rule_id": {
           "type": "string",
@@ -282,12 +240,7 @@
         },
         "decision": {
           "type": "string",
-          "enum": [
-            "RETRY",
-            "TERMINATE",
-            "ESCALATE",
-            "WAIVER"
-          ],
+          "enum": ["RETRY", "TERMINATE", "ESCALATE", "WAIVER"],
           "description": "Loop decisions only: RETRY, TERMINATE, ESCALATE, WAIVER"
         },
         "priority": {

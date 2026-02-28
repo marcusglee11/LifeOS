@@ -4,36 +4,41 @@
  * Reads config/governance/protected_artefacts.json at runtime.
  * Fail-open on any error (missing file, parse failure, etc.).
  */
-"use strict";
-
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 function main() {
   let input;
   try {
-    input = JSON.parse(require("fs").readFileSync("/dev/stdin", "utf8"));
+    input = JSON.parse(fs.readFileSync("/dev/stdin", "utf8"));
   } catch {
     process.exit(0); // fail-open: can't parse stdin
   }
 
-  const filePath = (input.tool_input && input.tool_input.file_path) || "";
+  const filePath = input.tool_input?.file_path || "";
   if (!filePath) {
     process.exit(0); // no file_path means nothing to guard
   }
 
   // Normalize: resolve absolute, then make relative to project dir
   const absTarget = path.resolve(PROJECT_DIR, filePath);
-  const relativePath = path.relative(PROJECT_DIR, absTarget).replace(/\\/g, "/");
+  const relativePath = path
+    .relative(PROJECT_DIR, absTarget)
+    .replace(/\\/g, "/");
 
   // Load protected paths
   let config;
   try {
     const raw = fs.readFileSync(
-      path.join(PROJECT_DIR, "config", "governance", "protected_artefacts.json"),
-      "utf8"
+      path.join(
+        PROJECT_DIR,
+        "config",
+        "governance",
+        "protected_artefacts.json",
+      ),
+      "utf8",
     );
     config = JSON.parse(raw);
   } catch {
@@ -46,13 +51,11 @@ function main() {
   for (const pp of protectedPaths) {
     const normalized = pp.replace(/\\/g, "/");
     if (
-      relativePath === normalized ||                          // exact match
-      relativePath.startsWith(normalized + "/")               // directory child (boundary-safe)
+      relativePath === normalized || // exact match
+      relativePath.startsWith(`${normalized}/`) // directory child (boundary-safe)
     ) {
       process.stderr.write(
-        `BLOCKED: "${relativePath}" is governance-protected.\n` +
-        `Protected by: ${lockedBy}\n` +
-        `To modify, you need explicit Council approval. Ask the user first.\n`
+        `BLOCKED: "${relativePath}" is governance-protected.\nProtected by: ${lockedBy}\nTo modify, you need explicit Council approval. Ask the user first.\n`,
       );
       process.exit(2);
     }

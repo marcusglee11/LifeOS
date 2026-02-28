@@ -1,8 +1,10 @@
 {
   "name": "lifeos-workflow-marketplace",
   "description": "LifeOS workflow skills marketplace",
-  "plugins": [{
-    "name": "lifeos-workflow",
-    "source": "./"
-  }]
+  "plugins": [
+    {
+      "name": "lifeos-workflow",
+      "source": "./"
+    }
+  ]
 }
