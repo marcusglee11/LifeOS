@@ -189,6 +189,16 @@ elif rg -q 'Summary:\s*0 critical\s*·\s*0 warn' "$SECURITY_FILE"; then
 elif rg -q 'Summary:\s*0 critical\s*·\s*1 warn' "$SECURITY_FILE" && rg -q 'gateway\.probe_failed' "$SECURITY_FILE"; then
   SECURITY_AUDIT_CLEAN="true"
   WARNINGS=1
+elif rg -q 'Summary:\s*0 critical\s*·\s*1 warn' "$SECURITY_FILE" && rg -q 'security\.trust_model\.multi_user_heuristic' "$SECURITY_FILE"; then
+  # Accept this heuristic warning only when explicit multi-user posture and
+  # interface policy checks already pass. Any critical findings (or other warns)
+  # remain hard-fail.
+  if [ "${CMD_RC[multiuser_posture_assert]:-1}" -eq 0 ] && [ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ]; then
+    SECURITY_AUDIT_CLEAN="true"
+    WARNINGS=1
+  else
+    add_blocking_reason "security_audit_summary_not_clean"
+  fi
 else
   add_blocking_reason "security_audit_summary_not_clean"
 fi
