@@ -11,6 +11,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from runtime.api.governance_api import is_path_protected, normalize_rel_path
 from runtime.orchestration.missions.base import (
     BaseMission,
     MissionContext,
@@ -102,17 +103,34 @@ class BuildMission(BaseMission):
             if not isinstance(entry, dict):
                 continue
 
-            rel_path = entry.get("path", "")
+            raw_path = entry.get("path", "")
             action = entry.get("action", "modify")
             content = entry.get("content", "")
 
-            if not rel_path:
+            if not raw_path:
                 continue
 
-            # Normalize and validate path (no escapes, no absolute)
-            rel_path = rel_path.replace("\\", "/").lstrip("/")
-            if ".." in rel_path.split("/"):
-                errors.append(f"BLOCKED: path traversal in {rel_path}")
+            if not isinstance(raw_path, str):
+                errors.append(
+                    f"BLOCKED: invalid path type {type(raw_path).__name__}"
+                )
+                continue
+
+            ok, rel_path, normalize_error = normalize_rel_path(raw_path)
+            if not ok:
+                if "PATH_TRAVERSAL_DENIED" in normalize_error:
+                    errors.append(f"BLOCKED: path traversal in {raw_path}")
+                else:
+                    errors.append(
+                        f"BLOCKED: invalid path '{raw_path}': {normalize_error}"
+                    )
+                continue
+
+            protected, protection_reason = is_path_protected(rel_path)
+            if protected:
+                errors.append(
+                    f"BLOCKED: protected path '{rel_path}': {protection_reason}"
+                )
                 continue
 
             full_path = Path(context.repo_root) / rel_path
@@ -185,7 +203,7 @@ class BuildMission(BaseMission):
             build_packet = inputs["build_packet"]
 
             # Step 2: Invoke builder via Agent API
-            from runtime.agents.api import call_agent, AgentCall
+            from runtime.agents.api import call_agent_cli, AgentCall
 
             # Read actual file contents so the builder can generate correct diffs.
             # Without this, the LLM guesses file structure and produces inapplicable patches.
@@ -219,7 +237,7 @@ class BuildMission(BaseMission):
                 model="auto",
             )
 
-            response = call_agent(call, run_id=context.run_id)
+            response = call_agent_cli(call, run_id=context.run_id)
             executed_steps.append("invoke_builder_llm_call")
 
             # Step 2.5: Apply LLM packet to disk if available

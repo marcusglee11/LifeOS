@@ -30,7 +30,7 @@ from runtime.governance.self_mod_protection import (
 from runtime.governance.envelope_enforcer import EnvelopeEnforcer
 
 # Re-export protected paths for orchestration governance gates
-from runtime.governance.protected_paths import is_path_protected
+from runtime.governance.protected_paths import is_path_protected, normalize_rel_path
 
 __all__ = [
     "GovernanceAPI",
@@ -48,6 +48,7 @@ __all__ = [
     "HASH_ALGORITHM",
     "EnvelopeEnforcer",
     "is_path_protected",
+    "normalize_rel_path",
 ]
 
 

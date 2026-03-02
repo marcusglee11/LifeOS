@@ -300,7 +300,16 @@ class ReviewMission(BaseMission):
 
         policy_path = inputs.get("council_policy_path")
         policy = load_council_policy(policy_path)
-        fsm = CouncilFSMv2(policy=policy)
+        from runtime.agents.models import load_model_config as _load_model_config
+        _review_config = _load_model_config()
+        _lens_executor = None
+        if _review_config.council_provider_overrides:
+            from runtime.orchestration.council.multi_provider import build_multi_provider_executor
+            _lens_executor = build_multi_provider_executor(
+                config=_review_config,
+                provider_overrides=_review_config.council_provider_overrides,
+            )
+        fsm = CouncilFSMv2(policy=policy, lens_executor=_lens_executor)
         runtime_result = fsm.run(ccp)
         executed_steps.append("execute_council_fsm")
 

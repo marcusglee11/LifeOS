@@ -59,6 +59,9 @@ model_selection:
 
 agents:
   steward:
+    dispatch_mode: cli
+    cli_provider: gemini
+    cli_fallback: claude_code
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -72,6 +75,9 @@ agents:
         api_key_env: "ZEN_STEWARD_KEY"
 
   builder:
+    dispatch_mode: cli
+    cli_provider: codex
+    cli_fallback: claude_code
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -85,6 +91,9 @@ agents:
         api_key_env: "ZEN_BUILDER_KEY"
 
   designer:
+    dispatch_mode: cli
+    cli_provider: claude_code
+    cli_fallback: gemini
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -111,6 +120,9 @@ agents:
         api_key_env: "ZEN_REVIEWER_KEY"
 
   build_cycle:
+    dispatch_mode: cli
+    cli_provider: claude_code
+    cli_fallback: codex
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -158,20 +170,30 @@ cli_providers:
     binary: "codex"
     default_model: ""
     timeout_seconds: 600
-    sandbox: true
-    enabled: false
+    sandbox: false    # false = --full-auto for unattended operation
+    enabled: true
   gemini:
     binary: "gemini"
     default_model: ""
     timeout_seconds: 600
     sandbox: true
-    enabled: false
+    enabled: true
   claude_code:
     binary: "claude"
     default_model: ""
     timeout_seconds: 600
     sandbox: true
-    enabled: false
+    enabled: true
+
+council:
+  topology: HYBRID
+  provider_overrides:
+    Architecture: claude_code
+    Risk: gemini
+    Governance: codex
+    Implementation: gemini
+    Strategy: claude_code
+    Pragmatism: codex
 
 # Zen configuration (Primary)
 zen:

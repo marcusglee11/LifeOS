@@ -38,7 +38,7 @@ def compute_run_id_deterministic(
 ) -> str:
     """
     Compute deterministic run identifier.
-    
+
     Per v0.3 spec §5.1.3:
     run_id_deterministic = sha256(
         canonical_json(mission_spec) +
@@ -63,7 +63,7 @@ def compute_call_id_deterministic(
 ) -> str:
     """
     Compute deterministic call identifier.
-    
+
     Per v0.3 spec §5.1.3:
     call_id_deterministic = sha256(
         run_id_deterministic +
@@ -83,7 +83,7 @@ def compute_call_id_deterministic(
 @dataclass
 class AgentCall:
     """Request to invoke an LLM. Per v0.3 spec §5.1."""
-    
+
     role: str
     packet: dict
     model: str = "auto"
@@ -95,7 +95,7 @@ class AgentCall:
 @dataclass
 class AgentResponse:
     """Response from an LLM call. Per v0.3 spec §5.1."""
-    
+
     call_id: str                 # Deterministic ID
     call_id_audit: str           # UUID for audit (metadata only)
     role: str
@@ -221,25 +221,25 @@ def _record_agent_receipt(
 def _load_role_prompt(role: str, config_dir: str = "config/agent_roles") -> tuple[str, str]:
     """
     Load system prompt for a role.
-    
+
     Args:
         role: Agent role name
         config_dir: Directory containing role prompt files
-        
+
     Returns:
         Tuple of (prompt_content, prompt_hash)
-        
+
     Raises:
         EnvelopeViolation: If role prompt file doesn't exist
     """
     prompt_path = Path(config_dir) / f"{role}.md"
-    
+
     if not prompt_path.exists():
         raise EnvelopeViolation(f"Role prompt not found: {prompt_path}")
-    
+
     content = prompt_path.read_text(encoding="utf-8")
     prompt_hash = f"sha256:{hashlib.sha256(content.encode('utf-8')).hexdigest()}"
-    
+
     # Log warning if governance baseline is missing (per plan: don't fail)
     baseline_path = Path("config/governance_baseline.yaml")
     if not baseline_path.exists():
@@ -248,21 +248,21 @@ def _load_role_prompt(role: str, config_dir: str = "config/agent_roles") -> tupl
             "Role prompt hash verification skipped.",
             UserWarning,
         )
-    
+
     return content, prompt_hash
 
 
 def _parse_response_packet(content: str) -> Optional[dict]:
     """
     Attempt to parse response content as YAML packet.
-    
+
     Robust parsing:
     1. Try parsing full content.
     2. Try extracting from ```yaml ... ``` or ```json ... ``` blocks.
     3. Returns None if parsing fails.
     """
     import re
-    
+
     # 1. Try full content
     try:
         packet = yaml.safe_load(content)
@@ -270,7 +270,7 @@ def _parse_response_packet(content: str) -> Optional[dict]:
             return packet
     except Exception:
         pass
-        
+
     # 2. Try extracting from code blocks
     # regex for ```[language]\n[content]\n```
     pattern = r"```(?:yaml|json)?\s*\n(.*?)\n\s*```"
@@ -283,7 +283,7 @@ def _parse_response_packet(content: str) -> Optional[dict]:
                 return packet
         except Exception:
             pass
-            
+
     return None
 
 
@@ -295,7 +295,7 @@ def call_agent(
 ) -> AgentResponse:
     """
     Invoke an LLM via OpenRouter with role-specific system prompt.
-    
+
     Per v0.3 spec §5.1:
     1. Check replay mode — return cached response if available
     2. Load role prompt in and compute hashes
@@ -304,16 +304,16 @@ def call_agent(
     5. Parse response
     6. Log to hash chain
     7. Return AgentResponse
-    
+
     Args:
         call: AgentCall specification
         run_id: Deterministic run ID for logging (empty string if not in a run)
         logger_instance: Optional AgentCallLogger for hash chain logging
         config: Optional ModelConfig (loads from file if None)
-        
+
     Returns:
         AgentResponse with parsed content and metadata
-        
+
     Raises:
         AgentTimeoutError: If call exceeds timeout after retries
         EnvelopeViolation: If role not permitted or prompt missing
@@ -328,11 +328,11 @@ def call_agent(
     # Load config if not provided
     if config is None:
         config = load_model_config()
-    
+
     # Load role prompt and compute hashes
     system_prompt, prompt_hash = _load_role_prompt(call.role)
     packet_hash = f"sha256:{hashlib.sha256(canonical_json(call.packet)).hexdigest()}"
-    
+
     # Compute deterministic call ID
     call_id = compute_call_id_deterministic(
         run_id_deterministic=run_id or "no_run",
@@ -341,7 +341,7 @@ def call_agent(
         packet_hash=packet_hash,
     )
     call_id_audit = str(uuid.uuid4())
-    
+
     # Check replay mode first
     if is_replay_mode():
         try:
@@ -377,7 +377,7 @@ def call_agent(
         except Exception:
             # ReplayMissError will propagate
             raise
-    
+
     # Resolve model
     if call.model == "auto":
         model, selection_reason, model_chain = resolve_model_auto(call.role, config)
@@ -386,24 +386,24 @@ def call_agent(
         selection_reason = "explicit"
         model_chain = [model]
     resolved_model = model
-    
+
     # [HARDENING] Use OpenCodeClient for robust protocol and provider handling.
     # It handles both OpenRouter (OpenAI style) and Zen (Anthropic style) logic.
     from .opencode_client import OpenCodeClient, LLMCall
-    
+
     # Build client with role for key selection
     client = OpenCodeClient(
         role=call.role,
         timeout=config.timeout_seconds,
         log_calls=True, # Enable local logs for debugging
     )
-    
+
     try:
         start_time = time.monotonic()
-        
+
         # Prepare request
-        # Note: OpenCodeClient expects the full prompt (system + user) internally 
-        # but LLMCall has a system_prompt field. 
+        # Note: OpenCodeClient expects the full prompt (system + user) internally
+        # but LLMCall has a system_prompt field.
         prompt = yaml.safe_dump(call.packet, default_flow_style=False)
         llm_request = LLMCall(
             prompt=prompt,
@@ -411,33 +411,33 @@ def call_agent(
             system_prompt=system_prompt,
             role=call.role
         )
-        
+
         # Execute call via client (handles retry and fallback internally)
         response = client.call(llm_request)
         normalized_usage = _normalize_usage(getattr(response, "usage", {}))
         if call.require_usage and not normalized_usage:
             raise AgentAPIError("TOKEN_ACCOUNTING_UNAVAILABLE: upstream usage missing")
-        
+
         latency_ms = int((time.monotonic() - start_time) * 1000)
-        
+
         # Parse response
         content = response.content
         model_version = response.model_used
-        
+
         # Parse response as packet if possible
         packet = _parse_response_packet(content)
         output_packet_hash = (
             f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}"
             if packet else ""
         )
-        
+
         timestamp = datetime.now(timezone.utc).isoformat()
-        
+
         # Log to hash chain if logger provided
         if logger_instance is None:
             from .logging import AgentCallLogger
             logger_instance = AgentCallLogger()
-        
+
         logger_instance.log_call(
             call_id_deterministic=call_id,
             call_id_audit=response.call_id,
@@ -497,6 +497,49 @@ def call_agent(
         raise AgentAPIError(f"Agent call failed: {str(e)}")
 
 
+def _try_cli_dispatch(
+    prompt: str,
+    cli_provider_name: str,
+    config: "ModelConfig",
+) -> Optional["CLIDispatchResult"]:
+    """Try dispatching to a single CLI provider. Returns CLIDispatchResult or None."""
+    from .models import get_cli_provider_config
+    from .cli_dispatch import (
+        CLIProvider, CLIDispatchConfig, CLIDispatchError, CLIProviderNotFound, dispatch_cli_agent,
+    )
+
+    cli_cfg = get_cli_provider_config(cli_provider_name, config)
+    if not cli_cfg or not cli_cfg.enabled:
+        logger.info("CLI provider %s not available or disabled", cli_provider_name)
+        return None
+
+    try:
+        cli_provider = CLIProvider(cli_provider_name)
+    except ValueError:
+        logger.warning("Unknown CLI provider enum value: %s", cli_provider_name)
+        return None
+
+    dispatch_config = CLIDispatchConfig(
+        provider=cli_provider,
+        timeout_seconds=cli_cfg.timeout_seconds,
+        sandbox=cli_cfg.sandbox,
+        model="",  # CLI tools use their own default SOTA
+    )
+
+    try:
+        result = dispatch_cli_agent(prompt, dispatch_config, binary_override=cli_cfg.binary)
+        if result.success or result.partial:
+            return result
+        logger.warning("CLI provider %s returned exit=%d; trying next", cli_provider_name, result.exit_code)
+        return None
+    except CLIProviderNotFound:
+        logger.warning("CLI binary for %s not found on PATH", cli_provider_name)
+        return None
+    except CLIDispatchError as exc:
+        logger.warning("CLI dispatch error for %s: %s", cli_provider_name, exc)
+        return None
+
+
 def call_agent_cli(
     call: AgentCall,
     run_id: str = "",
@@ -509,8 +552,8 @@ def call_agent_cli(
     Same contract as call_agent() but routes through subprocess-based
     CLI agents that have full tool use, file access, and sandbox capabilities.
 
-    Falls back to call_agent() if the role is not configured for CLI dispatch
-    or the CLI provider is not available.
+    Falls back to call_agent() if the role is not configured for CLI dispatch,
+    the primary CLI provider is not available, or all CLI providers fail.
 
     Args:
         call: AgentCall specification
@@ -520,172 +563,93 @@ def call_agent_cli(
 
     Returns:
         AgentResponse with parsed content and metadata
-
-    Raises:
-        AgentTimeoutError: If CLI agent exceeds timeout
-        AgentAPIError: On dispatch failure
     """
     from .logging import AgentCallLogger
-    from .models import get_agent_config, get_cli_provider_config, is_cli_dispatch
-    from .cli_dispatch import (
-        CLIProvider,
-        CLIDispatchConfig,
-        CLIDispatchResult,
-        CLIDispatchError,
-        CLIProviderNotFound,
-        dispatch_cli_agent,
-    )
+    from .models import get_agent_config, is_cli_dispatch
 
     invocation_start_ts = datetime.now(timezone.utc).isoformat()
 
     if config is None:
         config = load_model_config()
 
-    # Check if this role is configured for CLI dispatch
     if not is_cli_dispatch(call.role, config):
         logger.info("Role %s not configured for CLI; falling back to API", call.role)
         return call_agent(call, run_id, logger_instance, config)
 
-    agent_cfg = get_agent_config(call.role, config)
-    cli_provider_name = agent_cfg.cli_provider
-
-    # Map config string to CLIProvider enum
-    try:
-        cli_provider = CLIProvider(cli_provider_name)
-    except ValueError:
-        logger.warning(
-            "Unknown CLI provider '%s' for role %s; falling back to API",
-            cli_provider_name, call.role,
+    # CLI providers do not currently expose token usage in a canonical schema.
+    # Preserve call_agent() semantics by using the API path when usage is required.
+    if call.require_usage:
+        logger.info(
+            "Role %s requested require_usage; falling back to API for token accounting",
+            call.role,
         )
         return call_agent(call, run_id, logger_instance, config)
 
-    # Get CLI provider config for timeout/sandbox settings
-    cli_cfg = get_cli_provider_config(cli_provider_name, config)
-    timeout = cli_cfg.timeout_seconds if cli_cfg else 600
-    sandbox = cli_cfg.sandbox if cli_cfg else True
-
-    # Resolve model
-    if call.model == "auto":
-        model, _, _ = resolve_model_auto(call.role, config)
-    else:
-        model = call.model
+    agent_cfg = get_agent_config(call.role, config)
+    cli_provider_name = agent_cfg.cli_provider
 
     # Compute deterministic IDs
     system_prompt, prompt_hash = _load_role_prompt(call.role)
     packet_hash = f"sha256:{hashlib.sha256(canonical_json(call.packet)).hexdigest()}"
     call_id = compute_call_id_deterministic(
         run_id_deterministic=run_id or "no_run",
-        role=call.role,
-        prompt_hash=prompt_hash,
-        packet_hash=packet_hash,
+        role=call.role, prompt_hash=prompt_hash, packet_hash=packet_hash,
     )
     call_id_audit = str(uuid.uuid4())
-
-    # Build prompt: system prompt + packet content
     prompt = f"{system_prompt}\n\n---\n\n{yaml.safe_dump(call.packet, default_flow_style=False)}"
 
-    dispatch_config = CLIDispatchConfig(
-        provider=cli_provider,
-        timeout_seconds=timeout,
-        sandbox=sandbox,
-        model=model,
-    )
+    # Try primary CLI provider
+    result = _try_cli_dispatch(prompt, cli_provider_name, config)
+    used_provider = cli_provider_name
 
-    try:
-        result = dispatch_cli_agent(prompt, dispatch_config)
-    except CLIProviderNotFound:
-        logger.warning(
-            "CLI provider %s not available; falling back to API",
-            cli_provider_name,
-        )
+    # Try secondary CLI fallback if primary failed
+    if result is None and agent_cfg.cli_fallback:
+        logger.info("Primary CLI %s failed; trying fallback %s", cli_provider_name, agent_cfg.cli_fallback)
+        result = _try_cli_dispatch(prompt, agent_cfg.cli_fallback, config)
+        used_provider = agent_cfg.cli_fallback
+
+    # All CLI providers failed → fall back to API
+    if result is None:
+        logger.warning("All CLI providers failed for %s; falling back to API", call.role)
         return call_agent(call, run_id, logger_instance, config)
-    except CLIDispatchError as exc:
-        _record_agent_receipt(
-            run_id=run_id,
-            provider_id=cli_provider_name,
-            mode="cli",
-            seat_id=call.role,
-            start_ts=invocation_start_ts,
-            end_ts=datetime.now(timezone.utc).isoformat(),
-            exit_status=1,
-            output_content="",
-            schema_validation="fail",
-            error=f"dispatch_error: {exc}",
-        )
-        raise AgentAPIError(f"CLI dispatch failed: {exc}") from exc
-
-    if not result.success and not result.partial:
-        _record_agent_receipt(
-            run_id=run_id,
-            provider_id=cli_provider_name,
-            mode="cli",
-            seat_id=call.role,
-            start_ts=invocation_start_ts,
-            end_ts=datetime.now(timezone.utc).isoformat(),
-            exit_status=result.exit_code,
-            output_content=result.output,
-            schema_validation="fail",
-            error="; ".join(result.errors) if result.errors else "cli_nonzero_exit",
-        )
-        raise AgentAPIError(
-            f"CLI agent {cli_provider_name} failed (exit={result.exit_code}): "
-            + "; ".join(result.errors)
-        )
 
     if result.partial:
-        logger.warning("CLI agent returned partial output (timeout)")
+        logger.warning("CLI agent %s returned partial output (timeout)", used_provider)
 
-    # Parse response
     content = result.output
     packet = _parse_response_packet(content)
     output_packet_hash = (
-        f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}"
-        if packet else ""
+        f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}" if packet else ""
     )
     timestamp = datetime.now(timezone.utc).isoformat()
 
-    # Log to hash chain
+    # Provenance: CLI tools use their own default SOTA
+    model_used = f"{used_provider}/default"
+    model_version = f"{used_provider}/default"
+
     if logger_instance is None:
         logger_instance = AgentCallLogger()
 
     logger_instance.log_call(
-        call_id_deterministic=call_id,
-        call_id_audit=call_id_audit,
-        role=call.role,
-        model_requested=call.model,
-        model_used=model,
-        model_version=f"{cli_provider_name}/{model}",
-        input_packet_hash=packet_hash,
-        prompt_hash=prompt_hash,
-        input_tokens=0,
-        output_tokens=0,
-        latency_ms=result.latency_ms,
+        call_id_deterministic=call_id, call_id_audit=call_id_audit,
+        role=call.role, model_requested=call.model,
+        model_used=model_used, model_version=model_version,
+        input_packet_hash=packet_hash, prompt_hash=prompt_hash,
+        input_tokens=0, output_tokens=0, latency_ms=result.latency_ms,
         output_packet_hash=output_packet_hash,
         status="success" if result.success else "partial",
     )
 
     agent_response = AgentResponse(
-        call_id=call_id,
-        call_id_audit=call_id_audit,
-        role=call.role,
-        model_used=model,
-        model_version=f"{cli_provider_name}/{model}",
-        content=content,
-        packet=packet,
-        usage={},
-        latency_ms=result.latency_ms,
-        timestamp=timestamp,
+        call_id=call_id, call_id_audit=call_id_audit, role=call.role,
+        model_used=model_used, model_version=model_version,
+        content=content, packet=packet, usage={},
+        latency_ms=result.latency_ms, timestamp=timestamp,
     )
     _record_agent_receipt(
-        run_id=run_id,
-        provider_id=cli_provider_name,
-        mode="cli",
-        seat_id=call.role,
-        start_ts=invocation_start_ts,
-        end_ts=timestamp,
-        exit_status=result.exit_code,
-        output_content=content,
-        schema_validation="pass" if packet is not None else "n/a",
+        run_id=run_id, provider_id=used_provider, mode="cli", seat_id=call.role,
+        start_ts=invocation_start_ts, end_ts=timestamp, exit_status=result.exit_code,
+        output_content=content, schema_validation="pass" if packet is not None else "n/a",
         truncation={"input_truncated": False, "output_truncated": bool(result.partial)},
     )
     return agent_response

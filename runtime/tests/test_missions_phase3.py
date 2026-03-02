@@ -312,7 +312,7 @@ class TestDesignMission:
         assert "validate_output" in result.executed_steps  # HARDENING: validate_output step present
         assert result.evidence.get("stubbed") is False  # Real LLM call
 
-    @patch("runtime.agents.api.call_agent")
+    @patch("runtime.agents.api.call_agent_cli")
     def test_run_fails_when_packet_missing(self, mock_call_agent, mock_context: MissionContext):
         """HARDENING: Verify design mission fails closed when response.packet is None."""
         mock_response = MagicMock()
@@ -333,7 +333,7 @@ class TestDesignMission:
         assert "build_packet" not in result.outputs  # No valid output
         assert result.evidence.get("draft_text") == "Some raw content"  # Raw content as evidence
 
-    @patch("runtime.agents.api.call_agent")
+    @patch("runtime.agents.api.call_agent_cli")
     def test_run_fails_when_packet_invalid(self, mock_call_agent, mock_context: MissionContext):
         """HARDENING: Verify design mission fails closed when packet missing required key."""
         mock_response = MagicMock()
@@ -537,6 +537,32 @@ class TestBuildMission:
         assert applied == []
         assert len(errors) == 1
         assert "path traversal" in errors[0]
+
+    def test_apply_build_packet_blocks_protected_path(self, tmp_path):
+        """Verify _apply_build_packet rejects governance-protected paths."""
+        mission = BuildMission()
+        context = MissionContext(
+            repo_root=tmp_path,
+            baseline_commit="abc123",
+            run_id="test_protected_path",
+            operation_executor=None,
+            journal=None,
+        )
+        packet = {
+            "files": [
+                {
+                    "path": "docs/00_foundations/constitution.md",
+                    "action": "create",
+                    "content": "forbidden",
+                },
+            ]
+        }
+        applied, errors = mission._apply_build_packet(context, packet)
+        assert applied == []
+        assert len(errors) == 1
+        assert "protected path" in errors[0]
+        assert "docs/00_foundations/constitution.md" in errors[0]
+        assert not (tmp_path / "docs" / "00_foundations" / "constitution.md").exists()
 
     def test_apply_build_packet_empty_packet(self, tmp_path):
         """Verify _apply_build_packet handles empty/missing files gracefully."""

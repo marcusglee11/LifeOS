@@ -85,9 +85,9 @@ _PROVIDER_BINARIES: dict[CLIProvider, str] = {
 }
 
 
-def _resolve_binary(provider: CLIProvider) -> str:
+def _resolve_binary(provider: CLIProvider, binary_override: str = "") -> str:
     """Resolve CLI binary path, raising CLIProviderNotFound if absent."""
-    binary = _PROVIDER_BINARIES.get(provider)
+    binary = binary_override or _PROVIDER_BINARIES.get(provider)
     if binary is None:
         raise CLIProviderNotFound(f"Unknown provider: {provider}")
     path = shutil.which(binary)
@@ -142,6 +142,7 @@ def dispatch_cli_agent(
     config: CLIDispatchConfig,
     cwd: Optional[str] = None,
     env: Optional[dict[str, str]] = None,
+    binary_override: str = "",
 ) -> CLIDispatchResult:
     """
     Dispatch a prompt to a CLI-based LLM agent.
@@ -154,6 +155,7 @@ def dispatch_cli_agent(
         config: CLIDispatchConfig with provider, timeout, model, etc.
         cwd: Working directory for the subprocess (default: current dir).
         env: Optional environment variables to pass to subprocess.
+        binary_override: Optional binary name to use instead of the default.
 
     Returns:
         CLIDispatchResult with output, exit code, latency, etc.
@@ -162,7 +164,7 @@ def dispatch_cli_agent(
         CLIProviderNotFound: If the CLI binary is not on PATH.
         CLIDispatchError: On unexpected subprocess errors.
     """
-    binary = _resolve_binary(config.provider)
+    binary = _resolve_binary(config.provider, binary_override)
     cmd = _build_command(binary, config.provider, prompt, config)
 
     logger.info(

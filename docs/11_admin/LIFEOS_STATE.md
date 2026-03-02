@@ -11,7 +11,7 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Worktree-first isolation enforcement landed; Batch 2 prep continues.
+**Current Focus:** CLI-first dispatch activation + self-hosted runner validation
 **Active WIP:** main (clean)
 **Last Updated:** 2026-02-28 (rev25)
 
@@ -30,7 +30,7 @@
 7. ~~W5-T02 Checkpoint/resume E2E proof~~ ✓ **COMPLETE** (2026-02-19, 6/6 integration tests)
 8. ~~W6 Codemoot spike~~ **SUPERSEDED** — Council V2 is the production reviewer path (per Build Loop Plan v2.1)
 
-**Next:** Week 1 prerequisites — Run-lock, terminal packet emission, receipt emission, Council V2 shadow wiring (see Build Loop Plan v2.1)
+**Next:** 3 consecutive overnight runs via self-hosted GH Actions cron
 
 **Canonical Plan Authority:** `docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 

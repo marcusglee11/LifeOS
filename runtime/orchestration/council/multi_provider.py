@@ -16,6 +16,7 @@ Architecture:
 
 from __future__ import annotations
 
+import copy
 import logging
 from typing import Any, Callable, Mapping, Optional
 
@@ -104,7 +105,7 @@ def build_multi_provider_executor(
                     "Lens %s → CLI provider %s (override)",
                     lens_name, cli_provider_name,
                 )
-                # Temporarily set the agent config for CLI dispatch
+                # Inject into a shallow copy to avoid mutating shared config
                 temp_agent = AgentConfig(
                     provider="cli",
                     model=model,
@@ -113,17 +114,10 @@ def build_multi_provider_executor(
                     dispatch_mode="cli",
                     cli_provider=cli_provider_name,
                 )
-                # Inject into config for this call
-                original = config.agents.get(role)
-                config.agents[role] = temp_agent
-                try:
-                    response = call_agent_cli(call, config=config)
-                finally:
-                    # Restore original config
-                    if original:
-                        config.agents[role] = original
-                    else:
-                        config.agents.pop(role, None)
+                config_copy = copy.copy(config)
+                config_copy.agents = dict(config.agents)
+                config_copy.agents[role] = temp_agent
+                response = call_agent_cli(call, config=config_copy)
 
                 raw = _response_to_dict(response, lens_name)
                 run_type = getattr(plan_core, "run_type", "review")

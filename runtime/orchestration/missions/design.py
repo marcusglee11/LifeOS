@@ -222,15 +222,15 @@ class DesignMission(BaseMission):
             evidence["context_refs_count"] = len(context_data["context_refs"])
             
             # Step 3: Call Agent API with designer role
-            from runtime.agents.api import call_agent, AgentCall
-            
+            from runtime.agents.api import call_agent_cli, AgentCall
+
             call = AgentCall(
                 role="designer",
                 packet=context_data,
                 model="auto",
             )
-            
-            response = call_agent(call, run_id=context.run_id)
+
+            response = call_agent_cli(call, run_id=context.run_id)
             executed_steps.append("design_llm_call")
             
             # Capture LLM evidence

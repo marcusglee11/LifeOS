@@ -1,0 +1,24 @@
+# Nightly build loop task queue
+# Tasks consumed FIFO by resolve_nightly_task.py
+# Format: top-level YAML list (pop_queue_entry expects isinstance(data, list))
+
+- task_ref: "QUEUE-001"
+  title: "Failure Classifier test coverage"
+  priority: P1
+  description: "Add comprehensive unit tests for the failure classifier module. Cover all ErrorCategory enum values, edge cases in classify_error(), and integration with the retry logic."
+  added: "2026-03-01"
+  tags: [testing, failure-classifier]
+
+- task_ref: "QUEUE-002"
+  title: "Taxonomy Enum/YAML drift guard"
+  priority: P1
+  description: "Add a CI test that detects drift between Python enum definitions and their YAML counterparts. Specifically guard against MissionType enum vs mission registry YAML keys."
+  added: "2026-03-01"
+  tags: [testing, governance, ci]
+
+- task_ref: "QUEUE-003"
+  title: "Semantic Guardrails config validation test"
+  priority: P2
+  description: "Add tests that validate the semantic guardrails configuration file schema. Ensure all required fields are present and values are within expected ranges."
+  added: "2026-03-01"
+  tags: [testing, governance]

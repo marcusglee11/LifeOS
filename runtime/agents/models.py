@@ -151,6 +151,7 @@ class AgentConfig:
     fallback: List[Dict[str, str]] = field(default_factory=list)
     dispatch_mode: str = "api"  # "api" (REST) or "cli" (subprocess)
     cli_provider: str = ""  # e.g. "codex", "gemini", "claude_code"
+    cli_fallback: str = ""  # secondary CLI provider name for fallback
 
 
 @dataclass
@@ -161,6 +162,7 @@ class ModelConfig:
     role_overrides: Dict[str, List[str]] = field(default_factory=dict)
     agents: Dict[str, AgentConfig] = field(default_factory=dict)
     cli_providers: Dict[str, CLIProviderConfig] = field(default_factory=dict)
+    council_provider_overrides: Dict[str, str] = field(default_factory=dict)
 
     # Default settings
     base_url: str = "https://opencode.ai/zen/v1/messages"
@@ -202,7 +204,7 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
                 candidates.append(git_root / "config" / "models.yaml")
         except Exception:
             pass
-        
+
         # Fallback: use module location to find repo root (for tests in temp dirs)
         module_root = Path(__file__).parent.parent.parent  # models.py -> agents -> runtime -> repo_root
         candidates.append(module_root / "config" / "models.yaml")
@@ -228,11 +230,11 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
 
     if not data:
         raise ValueError(f"Config file is empty or invalid: {path}")
-    
+
     model_selection = data.get("model_selection", {})
     zen_config = data.get("zen", {})
     retry = zen_config.get("retry", {})
-    
+
     # Load per-agent configs
     agents_data = data.get("agents", {})
     agents: Dict[str, AgentConfig] = {}
@@ -245,6 +247,7 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
             fallback=cfg.get("fallback", []),
             dispatch_mode=cfg.get("dispatch_mode", "api"),
             cli_provider=cfg.get("cli_provider", ""),
+            cli_fallback=cfg.get("cli_fallback", ""),
         )
 
     # Load CLI provider configs
@@ -259,11 +262,16 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
             enabled=cfg.get("enabled", False),
         )
 
+    # Load council config
+    council_cfg = data.get("council", {})
+    council_overrides = council_cfg.get("provider_overrides", {})
+
     return ModelConfig(
         default_chain=model_selection.get("default_chain", []),
         role_overrides=model_selection.get("role_overrides", {}),
         agents=agents,
         cli_providers=cli_providers,
+        council_provider_overrides=council_overrides,
         base_url=zen_config.get("base_url", "https://opencode.ai/zen/v1/messages"),
         timeout_seconds=zen_config.get("timeout_seconds", 120),
         max_retry_attempts=retry.get("max_attempts", 3),
@@ -302,11 +310,11 @@ def get_agent_config(role: str, config: Optional[ModelConfig] = None) -> AgentCo
 def get_api_key_for_role(role: str, config: Optional[ModelConfig] = None) -> Optional[str]:
     """
     Get the API key for a specific agent role.
-    
+
     Args:
         role: Agent role
         config: Model configuration
-        
+
     Returns:
         API key string or None if not found
     """
@@ -347,17 +355,17 @@ def resolve_model_auto(
         agent = config.agents[role]
         chain = [agent.model] + [f.get("model", "") for f in agent.fallback if f.get("model")]
         return agent.model, "agent_config", chain
-    
+
     # Check for role-specific override (legacy)
     if role in config.role_overrides:
         chain = config.role_overrides[role]
         if chain:
             return chain[0], "role_override", chain
-    
+
     # Fall back to default chain
     if config.default_chain:
         return config.default_chain[0], "primary", config.default_chain
-    
+
     # Ultimate fallback
     raise ValueError(f"No model configuration found for role: {role}. Check config/models.yaml.")
 
@@ -399,11 +407,11 @@ def is_cli_dispatch(role: str, config: Optional[ModelConfig] = None) -> bool:
 def get_model_chain(role: str, config: Optional[ModelConfig] = None) -> List[str]:
     """
     Get the full model fallback chain for a role.
-    
+
     Args:
         role: Agent role
         config: Model configuration
-        
+
     Returns:
         List of models in priority order
     """

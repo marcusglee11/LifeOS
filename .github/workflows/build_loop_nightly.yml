@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   build-loop:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 45
 
     env:
@@ -47,8 +47,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ripgrep
           pip install -q -r requirements-dev.txt
 
       - name: Configure git identity
@@ -57,16 +55,20 @@ jobs:
           git config user.email "build-loop@lifeos.local"
           git config core.autocrlf false
 
-      # ── Secret validation ──────────────────────────────────
-      - name: Validate secrets
-        id: secrets
-        env:
-          HAS_API_KEY: ${{ secrets.OPENROUTER_API_KEY != '' }}
+      # ── CLI tool validation ────────────────────────────────
+      - name: Validate CLI tools
+        id: cli_check
         run: |
-          echo "has_api_key=$HAS_API_KEY" >> "$GITHUB_OUTPUT"
-          if [ "$HAS_API_KEY" != "true" ]; then
-            echo "::warning::OPENROUTER_API_KEY not configured — spine execution will be skipped"
+          missing=()
+          which claude && echo "claude: OK" || missing+=(claude)
+          which codex  && echo "codex: OK"  || missing+=(codex)
+          which gemini && echo "gemini: OK" || missing+=(gemini)
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Required CLI tools missing: ${missing[*]}"
+            echo "has_cli=false" >> "$GITHUB_OUTPUT"
+            exit 1
           fi
+          echo "has_cli=true" >> "$GITHUB_OUTPUT"
 
       # ── Pre-flight checks ─────────────────────────────────
       - name: Pre-flight test suite
@@ -103,11 +105,23 @@ jobs:
           fi
 
       # ── Execute ────────────────────────────────────────────
+      - name: Source environment
+        run: |
+          if [ -f .env ]; then
+            while IFS= read -r line || [ -n "$line" ]; do
+              # Skip comments and blank lines
+              [[ "$line" =~ ^[[:space:]]*# ]] && continue
+              [[ -z "${line// }" ]] && continue
+              echo "$line" >> "$GITHUB_ENV"
+            done < .env
+            echo "Loaded .env into GITHUB_ENV"
+          else
+            echo "::warning::No .env file found — API keys must be in environment"
+          fi
+
       - name: Execute build loop
         id: dispatch
-        if: steps.resolve.outputs.has_task == 'true' && steps.secrets.outputs.has_api_key == 'true' && inputs.dry_run != 'true'
-        env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        if: steps.resolve.outputs.has_task == 'true' && inputs.dry_run != 'true'
         run: |
           set +e
           python -m runtime.cli dispatch submit /tmp/nightly_order.yaml --json > /tmp/dispatch_result.json 2>/tmp/dispatch_stderr.log
@@ -189,7 +203,6 @@ jobs:
         with:
           script: |
             const hasTask = '${{ steps.resolve.outputs.has_task }}' === 'true';
-            const hasKey = '${{ steps.secrets.outputs.has_api_key }}' === 'true';
             const dryRun = '${{ inputs.dry_run }}' === 'true';
             const outcome = '${{ steps.dispatch.outputs.dispatch_outcome }}' || 'N/A';
             const reason = '${{ steps.dispatch.outputs.dispatch_reason }}' || '';
@@ -200,7 +213,6 @@ jobs:
             let statusEmoji = '⚪';
             if (!hasTask) statusEmoji = '📭';
             else if (dryRun) statusEmoji = '🧪';
-            else if (!hasKey) statusEmoji = '🔑';
             else if (outcome === 'SUCCESS') statusEmoji = '✅';
             else if (reason.includes('CHECKPOINT')) statusEmoji = '⏸️';
             else statusEmoji = '❌';
@@ -208,7 +220,6 @@ jobs:
             let statusLine = '';
             if (!hasTask) statusLine = 'No tasks available';
             else if (dryRun) statusLine = 'Dry run — setup validated';
-            else if (!hasKey) statusLine = 'Skipped — OPENROUTER_API_KEY not configured';
             else statusLine = `${outcome}${reason ? ': ' + reason : ''}`;
 
             const labels = ['automation', 'build-loop', 'nightly-run'];
@@ -228,7 +239,6 @@ jobs:
             ### Configuration
             | Key | Value |
             |-----|-------|
-            | API key configured | ${hasKey} |
             | Dry run | ${dryRun} |
             | Task resolved | ${hasTask} |
             | Dispatch outcome | ${outcome} |

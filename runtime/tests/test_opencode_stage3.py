@@ -110,7 +110,7 @@ class TestBuildWritesFiles:
         mock_response = _make_agent_response("builder", "Done", build_packet)
         mission = BuildMission()
 
-        with patch("runtime.agents.api.call_agent", return_value=mock_response):
+        with patch("runtime.agents.api.call_agent_cli", return_value=mock_response):
             result = mission.run(ctx, {
                 "build_packet": {"goal": "Add helper utility"},
                 "approval": {"verdict": "approved"},
@@ -142,7 +142,7 @@ class TestBuildWritesFiles:
         mock_response = _make_agent_response("builder", "Done", build_packet)
         mission = BuildMission()
 
-        with patch("runtime.agents.api.call_agent", return_value=mock_response):
+        with patch("runtime.agents.api.call_agent_cli", return_value=mock_response):
             result = mission.run(ctx, {
                 "build_packet": {"goal": "Add docstring to clear_config_cache"},
                 "approval": {"verdict": "approved"},
@@ -180,7 +180,7 @@ class TestFullChainMocked:
         builder_response = _make_agent_response("builder", "Done", builder_packet)
 
         build_mission = BuildMission()
-        with patch("runtime.agents.api.call_agent", return_value=builder_response):
+        with patch("runtime.agents.api.call_agent_cli", return_value=builder_response):
             build_result = build_mission.run(ctx, {
                 "build_packet": {"goal": "Add docstring to clear_config_cache"},
                 "approval": {"verdict": "approved"},

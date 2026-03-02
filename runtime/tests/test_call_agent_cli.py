@@ -114,6 +114,33 @@ class TestCallAgentCLIRouting:
 
         mock_call_agent.assert_called_once()
 
+    @patch("runtime.agents.api.call_agent")
+    @patch("runtime.agents.cli_dispatch.dispatch_cli_agent")
+    def test_require_usage_forces_api_path(self, mock_dispatch, mock_call_agent):
+        """CLI path should defer to API when token usage accounting is required."""
+        mock_call_agent.return_value = AgentResponse(
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="api usage response",
+            packet=None,
+            usage={"input_tokens": 5, "output_tokens": 3, "total_tokens": 8},
+        )
+        config = _make_cli_config()
+        call = AgentCall(
+            role="council_reviewer",
+            packet={"task": "review"},
+            require_usage=True,
+        )
+
+        result = call_agent_cli(call, config=config)
+
+        mock_call_agent.assert_called_once()
+        mock_dispatch.assert_not_called()
+        assert result.usage["total_tokens"] == 8
+
 
 class TestCallAgentCLIDispatch:
     """Test successful CLI dispatch and AgentResponse wrapping."""
@@ -134,8 +161,8 @@ class TestCallAgentCLIDispatch:
 
         assert isinstance(result, AgentResponse)
         assert result.role == "council_reviewer"
-        assert result.model_used == "gpt-5.3-codex"
-        assert "codex/" in result.model_version
+        assert result.model_used == "codex/default"
+        assert result.model_version == "codex/default"
         assert result.latency_ms == 5000
         assert "ACCEPT" in result.content
         assert result.call_id.startswith("sha256:")
@@ -160,24 +187,62 @@ class TestCallAgentCLIDispatch:
         assert isinstance(result, AgentResponse)
         assert "partial analysis" in result.content
 
+    @patch("runtime.agents.api.call_agent")
     @patch("runtime.agents.cli_dispatch.dispatch_cli_agent")
     @patch("runtime.agents.api._load_role_prompt", return_value=("system prompt", "sha256:abc"))
-    def test_complete_failure_raises(self, mock_prompt, mock_dispatch):
-        """Non-zero exit with no partial output should raise."""
+    def test_complete_failure_falls_back_to_api(self, mock_prompt, mock_dispatch, mock_call_agent):
+        """Non-zero exit with no partial should fall back to API (not raise)."""
         mock_dispatch.return_value = CLIDispatchResult(
-            output="",
-            exit_code=1,
-            latency_ms=100,
-            provider=CLIProvider.CODEX,
-            model="gpt-5.3-codex",
-            partial=False,
-            errors=["Model not available"],
+            output="", exit_code=1, latency_ms=100,
+            provider=CLIProvider.CODEX, model="",
+            partial=False, errors=["Model not available"],
+        )
+        mock_call_agent.return_value = AgentResponse(
+            call_id="test", call_id_audit="test", role="council_reviewer",
+            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
+            content="api fallback", packet=None,
         )
         config = _make_cli_config()
         call = AgentCall(role="council_reviewer", packet={"task": "review"})
+        result = call_agent_cli(call, config=config)
 
-        with pytest.raises(AgentAPIError, match="CLI agent codex failed"):
-            call_agent_cli(call, config=config)
+        mock_call_agent.assert_called_once()
+        assert result.content == "api fallback"
+
+    @patch("runtime.agents.api.call_agent")
+    @patch("runtime.agents.cli_dispatch.dispatch_cli_agent")
+    @patch("runtime.agents.api._load_role_prompt", return_value=("system prompt", "sha256:abc"))
+    def test_secondary_cli_fallback(self, mock_prompt, mock_dispatch, mock_call_agent):
+        """When primary CLI fails, secondary CLI (cli_fallback) is tried."""
+        from runtime.agents.models import ModelConfig, AgentConfig, CLIProviderConfig
+        # First call (primary codex) → non-zero exit; second call (gemini) → success
+        mock_dispatch.side_effect = [
+            CLIDispatchResult(output="", exit_code=1, latency_ms=50,
+                              provider=CLIProvider.CODEX, model="", partial=False, errors=["fail"]),
+            CLIDispatchResult(output="gemini output", exit_code=0, latency_ms=2000,
+                              provider=CLIProvider.GEMINI, model="", partial=False),
+        ]
+        config = ModelConfig(
+            default_chain=["claude-sonnet-4-5"],
+            agents={
+                "council_reviewer": AgentConfig(
+                    provider="zen", model="claude-sonnet-4-5",
+                    endpoint="https://example.com", api_key_env="TEST_KEY",
+                    dispatch_mode="cli", cli_provider="codex", cli_fallback="gemini",
+                ),
+            },
+            cli_providers={
+                "codex": CLIProviderConfig(binary="codex", enabled=True, timeout_seconds=600, sandbox=True),
+                "gemini": CLIProviderConfig(binary="gemini", enabled=True, timeout_seconds=600, sandbox=True),
+            },
+        )
+        call = AgentCall(role="council_reviewer", packet={"task": "review"})
+        result = call_agent_cli(call, config=config)
+
+        assert mock_dispatch.call_count == 2
+        assert result.model_used == "gemini/default"
+        assert "gemini output" in result.content
+        mock_call_agent.assert_not_called()
 
 
 class TestCallAgentCLIFallback:

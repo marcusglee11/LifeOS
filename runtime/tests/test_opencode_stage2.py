@@ -116,7 +116,7 @@ class TestDesignMissionFallbackIntegration:
         prose = "```yaml\ngoal: Add a docstring to clear_config_cache\n```"
         mock_response = _make_response(content=prose, packet=None)
 
-        with patch("runtime.agents.api.call_agent", return_value=mock_response):
+        with patch("runtime.agents.api.call_agent_cli", return_value=mock_response):
             result = mission.run(ctx, {"task_spec": "Add docstring"})
 
         assert result.success is True

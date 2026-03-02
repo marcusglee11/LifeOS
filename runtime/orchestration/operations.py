@@ -331,8 +331,8 @@ class OperationExecutor:
         Wires to runtime.agents.api.call_agent() for actual LLM invocation.
         Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.1
         """
-        from runtime.agents.api import call_agent, AgentCall
-        
+        from runtime.agents.api import call_agent_cli, AgentCall
+
         # Extract params from operation
         role = operation.params.get("role")
         packet = operation.params.get("packet", {})
@@ -357,7 +357,7 @@ class OperationExecutor:
         )
         
         # Execute call
-        response = call_agent(call, run_id=ctx.run_id)
+        response = call_agent_cli(call, run_id=ctx.run_id)
         
         return {
             "call_id": response.call_id,
