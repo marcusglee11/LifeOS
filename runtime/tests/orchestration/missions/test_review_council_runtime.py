@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 from runtime.orchestration.council.models import CouncilRuntimeResult
 from runtime.orchestration.missions.base import MissionContext
@@ -150,6 +153,10 @@ def test_review_mission_allows_advisory_run_type(MockFSM, mock_load_policy, tmp_
     assert header.get("run_type") == "advisory"
 
 
+@pytest.mark.skipif(
+    not all(shutil.which(t) for t in ("claude", "codex", "gemini")),
+    reason="All 3 CLI tools required for delegated council dispatch",
+)
 def test_review_mission_real_v2_runtime_path_smoke(tmp_path: Path):
     mission = ReviewMission()
     result = mission.run(_context(tmp_path), _inputs())
@@ -159,3 +166,12 @@ def test_review_mission_real_v2_runtime_path_smoke(tmp_path: Path):
     assert result.outputs["verdict"] in {"approved", "needs_revision", "rejected", "escalate"}
     council_decision = result.outputs.get("council_decision", {})
     assert council_decision.get("tier") in {"T0", "T1", "T2", "T3"}
+
+
+def test_review_mission_config_loaded_once_per_instance():
+    """ReviewMission loads ModelConfig in __init__, not per run() call."""
+    m = ReviewMission()
+    assert hasattr(m, "_model_config")
+    assert m._model_config is not None
+    m2 = ReviewMission()
+    assert m._model_config is not m2._model_config  # separate instances, not shared

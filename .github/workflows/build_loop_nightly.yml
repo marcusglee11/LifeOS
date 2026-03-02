@@ -60,14 +60,31 @@ jobs:
         id: cli_check
         run: |
           missing=()
-          which claude && echo "claude: OK" || missing+=(claude)
-          which codex  && echo "codex: OK"  || missing+=(codex)
-          which gemini && echo "gemini: OK" || missing+=(gemini)
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Required CLI tools missing: ${missing[*]}"
+          present=()
+
+          for tool in claude codex gemini; do
+            if command -v "$tool" > /dev/null 2>&1; then
+              echo "${tool}: OK"
+              present+=("$tool")
+            else
+              echo "::warning::CLI tool not found: ${tool}"
+              missing+=("$tool")
+            fi
+          done
+
+          if [ ${#present[@]} -eq 0 ]; then
+            echo "::error::No CLI tools available. At least one of (claude, codex, gemini) is required."
             echo "has_cli=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            MISSING_LIST=$(IFS=,; echo "${missing[*]}")
+            echo "CLI_DEGRADED=1" >> "$GITHUB_ENV"
+            echo "CLI_MISSING=${MISSING_LIST}" >> "$GITHUB_ENV"
+            echo "::warning::Degraded CLI mode — missing tools: ${MISSING_LIST}"
+          fi
+
           echo "has_cli=true" >> "$GITHUB_OUTPUT"
 
       # ── Pre-flight checks ─────────────────────────────────

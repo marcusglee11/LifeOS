@@ -123,6 +123,14 @@ class AgentResponseInvalid(AgentAPIError):
     pass
 
 
+class DelegatedDispatchError(AgentAPIError):
+    """
+    Raised when a role configured as delegated dispatch is called directly.
+    These roles must be routed via provider_overrides through the lens executor.
+    """
+    pass
+
+
 def _normalize_usage(usage: Any) -> dict[str, int]:
     """Normalize provider usage payload into canonical token fields."""
     if not isinstance(usage, dict):
@@ -328,6 +336,15 @@ def call_agent(
     # Load config if not provided
     if config is None:
         config = load_model_config()
+
+    # Delegated dispatch guard — delegated roles must go via lens executor
+    from .models import get_agent_config as _get_agent_config
+    if _get_agent_config(call.role, config).dispatch_mode == "delegated":
+        raise DelegatedDispatchError(
+            f"Role '{call.role}' is configured for delegated dispatch — "
+            "routing must be provided via council.provider_overrides. "
+            "Direct dispatch via call_agent() is not permitted for this role."
+        )
 
     # Load role prompt and compute hashes
     system_prompt, prompt_hash = _load_role_prompt(call.role)
@@ -571,6 +588,14 @@ def call_agent_cli(
 
     if config is None:
         config = load_model_config()
+
+    # Delegated dispatch guard — delegated roles must go via lens executor
+    if get_agent_config(call.role, config).dispatch_mode == "delegated":
+        raise DelegatedDispatchError(
+            f"Role '{call.role}' is configured for delegated dispatch — "
+            "routing must be provided via council.provider_overrides. "
+            "Direct dispatch via call_agent_cli() is not permitted for this role."
+        )
 
     if not is_cli_dispatch(call.role, config):
         logger.info("Role %s not configured for CLI; falling back to API", call.role)

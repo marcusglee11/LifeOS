@@ -240,3 +240,50 @@ class TestResponseToDict:
         assert result["lens_name"] == "Architecture"
         assert result["content"] == "raw analysis text"
         assert result["model_used"] == "claude"
+
+
+class TestDelegatedRoleWithOverride:
+    """Test that delegated roles route correctly via multi_provider synthetic config."""
+
+    @patch("runtime.orchestration.council.multi_provider.call_agent_cli")
+    def test_delegated_role_with_override_routes_via_synthetic_config(self, mock_cli):
+        """Delegated roles: multi_provider injects synthetic dispatch_mode='cli' — no DelegatedDispatchError raised."""
+        mock_cli.return_value = AgentResponse(
+            call_id="test", call_id_audit="test", role="council_reviewer",
+            model_used="claude_code/default", model_version="claude_code/default",
+            content="architecture review complete", packet={"verdict": "Accept"},
+        )
+        # Config has council_reviewer.dispatch_mode="delegated", but override routes it via CLI
+        config = ModelConfig(
+            default_chain=["claude-sonnet-4-5"],
+            agents={
+                "council_reviewer": AgentConfig(
+                    provider="zen", model="claude-sonnet-4-5",
+                    endpoint="https://example.com", api_key_env="TEST_KEY",
+                    dispatch_mode="delegated",
+                ),
+            },
+            cli_providers={
+                "claude_code": CLIProviderConfig(
+                    binary="claude", default_model="",
+                    timeout_seconds=600, sandbox=True, enabled=True,
+                ),
+            },
+        )
+        executor = build_multi_provider_executor(
+            config=config,
+            provider_overrides={"Architecture": "claude_code"},
+        )
+        plan = _make_plan_core(lenses=("Architecture",), lens_role_map={"Architecture": "council_reviewer"})
+
+        # Should NOT raise DelegatedDispatchError — synthetic config overrides dispatch_mode to "cli"
+        result = executor("Architecture", {"task": "review"}, plan, 0)
+
+        mock_cli.assert_called_once()
+        # Verify synthetic config was used (dispatch_mode="cli" in the call)
+        call_args = mock_cli.call_args
+        config_arg = call_args.kwargs.get("config")
+        if config_arg is None and len(call_args.args) > 1:
+            config_arg = call_args.args[1]
+        if config_arg is not None:
+            assert config_arg.agents["council_reviewer"].dispatch_mode == "cli"

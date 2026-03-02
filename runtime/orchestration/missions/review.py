@@ -38,22 +38,27 @@ REVIEW_SEATS = ("architect", "alignment", "risk", "governance")
 class ReviewMission(BaseMission):
     """
     Review mission: Run council review on a packet.
-    
+
     Inputs:
         - subject_packet (dict): The packet to review
         - review_type (str): Type of review (build_review, output_review)
-        
+
     Outputs:
         - verdict (str): Review verdict
         - council_decision (dict): Full council decision with seat outputs
-        
+
     Steps:
         1. prepare_ccp: Transform packet to Council Context Pack
         2. run_seats: Run each review seat (stubbed for MVP)
         3. synthesize: Synthesize seat outputs into decision
         4. validate_decision: Validate output against schema
     """
-    
+
+    def __init__(self) -> None:
+        super().__init__()
+        from runtime.agents.models import load_model_config
+        self._model_config = load_model_config()
+
     @property
     def mission_type(self) -> MissionType:
         return MissionType.REVIEW
@@ -300,14 +305,12 @@ class ReviewMission(BaseMission):
 
         policy_path = inputs.get("council_policy_path")
         policy = load_council_policy(policy_path)
-        from runtime.agents.models import load_model_config as _load_model_config
-        _review_config = _load_model_config()
         _lens_executor = None
-        if _review_config.council_provider_overrides:
+        if self._model_config.council_provider_overrides:
             from runtime.orchestration.council.multi_provider import build_multi_provider_executor
             _lens_executor = build_multi_provider_executor(
-                config=_review_config,
-                provider_overrides=_review_config.council_provider_overrides,
+                config=self._model_config,
+                provider_overrides=self._model_config.council_provider_overrides,
             )
         fsm = CouncilFSMv2(policy=policy, lens_executor=_lens_executor)
         runtime_result = fsm.run(ccp)

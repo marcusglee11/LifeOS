@@ -136,6 +136,7 @@ agents:
         api_key_env: "ZEN_BUILD_CYCLE_KEY"
 
   council_reviewer:
+    dispatch_mode: delegated   # Routed exclusively via council.provider_overrides
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -149,6 +150,7 @@ agents:
         api_key_env: "ZEN_REVIEWER_KEY"
 
   council_reviewer_security:
+    dispatch_mode: delegated   # Routed exclusively via council.provider_overrides
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"

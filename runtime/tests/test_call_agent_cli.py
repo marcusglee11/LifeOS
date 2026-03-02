@@ -10,7 +10,8 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from runtime.agents.api import call_agent_cli, AgentCall, AgentResponse, AgentAPIError
+
+from runtime.agents.api import call_agent, call_agent_cli, AgentCall, AgentResponse, AgentAPIError, DelegatedDispatchError
 from runtime.agents.cli_dispatch import (
     CLIProvider,
     CLIDispatchConfig,
@@ -287,3 +288,41 @@ class TestCallAgentCLIHashChain:
         assert entry.role == "council_reviewer"
         assert entry.status == "success"
         assert entry.latency_ms == 1000
+
+
+def _make_delegated_config() -> ModelConfig:
+    """Build a ModelConfig with dispatch_mode='delegated' for council_reviewer."""
+    return ModelConfig(
+        default_chain=["claude-sonnet-4-5"],
+        agents={
+            "council_reviewer": AgentConfig(
+                provider="zen",
+                model="claude-sonnet-4-5",
+                endpoint="https://example.com",
+                api_key_env="TEST_KEY",
+                dispatch_mode="delegated",
+            ),
+        },
+    )
+
+
+class TestDelegatedDispatchError:
+    """Test that delegated roles raise DelegatedDispatchError when called directly."""
+
+    def test_delegated_dispatch_error_is_agent_api_error(self):
+        """Delegated dispatch failures should preserve AgentAPIError contract."""
+        assert issubclass(DelegatedDispatchError, AgentAPIError)
+
+    def test_delegated_dispatch_direct_call_agent_raises(self):
+        """call_agent() with delegated role raises DelegatedDispatchError."""
+        config = _make_delegated_config()
+        call = AgentCall(role="council_reviewer", packet={})
+        with pytest.raises(DelegatedDispatchError, match="delegated dispatch"):
+            call_agent(call, config=config)
+
+    def test_delegated_dispatch_direct_call_agent_cli_raises(self):
+        """call_agent_cli() with delegated role raises DelegatedDispatchError."""
+        config = _make_delegated_config()
+        call = AgentCall(role="council_reviewer", packet={})
+        with pytest.raises(DelegatedDispatchError, match="delegated dispatch"):
+            call_agent_cli(call, config=config)

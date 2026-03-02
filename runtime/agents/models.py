@@ -149,7 +149,7 @@ class AgentConfig:
     endpoint: str
     api_key_env: str
     fallback: List[Dict[str, str]] = field(default_factory=list)
-    dispatch_mode: str = "api"  # "api" (REST) or "cli" (subprocess)
+    dispatch_mode: str = "api"  # "api" (REST) | "cli" (subprocess) | "delegated" (lens executor authority)
     cli_provider: str = ""  # e.g. "codex", "gemini", "claude_code"
     cli_fallback: str = ""  # secondary CLI provider name for fallback
 
