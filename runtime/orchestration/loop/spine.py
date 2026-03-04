@@ -49,6 +49,7 @@ from runtime.receipts.invocation_receipt import (
     get_or_create_collector,
 )
 from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
+from runtime.orchestration.loop.bypass_monitor import check_bypass_utilization
 
 
 class SpineState(Enum):
@@ -117,6 +118,7 @@ class TerminalPacket:
     repo_clean_verified: bool = False
     orphan_check_passed: bool = False
     packet_hash: Optional[str] = None  # SHA-256, computed last
+    bypass_utilization: Optional[Dict[str, Any]] = None  # BypassStatus as dict; None if monitor failed
 
 
 class SpineError(Exception):
@@ -372,6 +374,22 @@ class LoopSpine:
             except Exception:
                 pass
 
+            # Bypass utilization check (Trusted Builder P1 — non-fatal, observational)
+            _bypass_status = None
+            try:
+                _bypass_status = check_bypass_utilization(self.ledger_path)
+                if _bypass_status.level != "ok":
+                    import logging as _log
+                    _log.getLogger(__name__).warning(
+                        "BYPASS_%s: %d/%d attempts in bypass window (rate=%.2f)",
+                        _bypass_status.level.upper(),
+                        _bypass_status.bypass_count,
+                        _bypass_status.total_count,
+                        _bypass_status.rate,
+                    )
+            except Exception:
+                pass  # Non-fatal — must not block execution
+
             receipt_index = self._finalize_receipt_index(include_empty=True)
 
             # Emit terminal packet with ledger chain anchor + v2.1 fields.
@@ -403,6 +421,7 @@ class LoopSpine:
                 clean_fail_reason=reason if outcome != "PASS" else None,
                 repo_clean_verified=repo_clean_verified,
                 orphan_check_passed=True,
+                bypass_utilization=vars(_bypass_status) if _bypass_status else None,
             )
             terminal_file = self._emit_terminal(terminal_packet)
 
@@ -671,6 +690,22 @@ class LoopSpine:
             except Exception:
                 pass
 
+            # Bypass utilization check (Trusted Builder P1 — non-fatal, observational)
+            _bypass_status = None
+            try:
+                _bypass_status = check_bypass_utilization(self.ledger_path)
+                if _bypass_status.level != "ok":
+                    import logging as _log
+                    _log.getLogger(__name__).warning(
+                        "BYPASS_%s: %d/%d attempts in bypass window (rate=%.2f)",
+                        _bypass_status.level.upper(),
+                        _bypass_status.bypass_count,
+                        _bypass_status.total_count,
+                        _bypass_status.rate,
+                    )
+            except Exception:
+                pass  # Non-fatal — must not block execution
+
             receipt_index = self._finalize_receipt_index(include_empty=True)
 
             # Emit terminal packet with ledger chain anchor
@@ -713,6 +748,7 @@ class LoopSpine:
                 clean_fail_reason=reason if outcome != "PASS" else None,
                 repo_clean_verified=repo_clean_verified,
                 orphan_check_passed=True,
+                bypass_utilization=vars(_bypass_status) if _bypass_status else None,
             )
             terminal_file = self._emit_terminal(terminal_packet)
 
