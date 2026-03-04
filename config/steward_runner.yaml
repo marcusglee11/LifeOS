@@ -7,7 +7,7 @@
 
 tests:
   # Command to run tests. Uses -q for reduced output noise per D3.
-  command: ["python", "-m", "pytest", "-q", "-c", "pytest.ini"]
+  command: ["python3", "-m", "pytest", "-q", "-c", "pytest.ini"]
   # Test directories to include (P0-1: appended to command argv)
   paths:
     - "runtime/tests"
@@ -17,13 +17,13 @@ tests:
 validators:
   # Ordered list of validator commands (E3: stop on first failure)
   commands:
-    - ["python", "tools/validate_governance_index.py", "--repo-root", "."]
-    - ["python", "-m", "doc_steward.cli", "dap-validate", "docs/"]
-    - ["python", "-m", "doc_steward.cli", "index-check", "docs/", "docs/INDEX.md"]
+    - ["python3", "tools/validate_governance_index.py", "--repo-root", "."]
+    - ["python3", "-m", "doc_steward.cli", "dap-validate", "docs/"]
+    - ["python3", "-m", "doc_steward.cli", "index-check", "docs/", "docs/INDEX.md"]
 
 corpus:
   # Corpus generation command (F1)
-  command: ["python", "docs/scripts/generate_corpus.py"]
+  command: ["python3", "docs/scripts/generate_corpus.py"]
   # Expected outputs to verify after corpus step (F2)
   outputs_expected:
     - "docs/LifeOS_Universal_Corpus.md"
