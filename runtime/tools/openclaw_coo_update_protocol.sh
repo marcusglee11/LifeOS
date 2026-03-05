@@ -7,6 +7,8 @@ cd "$REPO_ROOT"
 OPENCLAW_BIN="${OPENCLAW_BIN:-}"
 BRANCH_PREFIX="${OPENCLAW_UPDATE_BRANCH_PREFIX:-build/openclaw-update-}"
 ACTIVE_WORK_FILE="${OPENCLAW_ACTIVE_WORK_FILE:-.context/active_work.yaml}"
+OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
+PROMOTION_ATTESTATION_TTL_SEC="${OPENCLAW_PROMOTION_ATTESTATION_TTL_SEC:-600}"
 
 resolve_openclaw_bin() {
   if [ -n "$OPENCLAW_BIN" ] && [ -x "$OPENCLAW_BIN" ]; then
@@ -52,6 +54,10 @@ Usage:
   runtime/tools/openclaw_coo_update_protocol.sh preclose
   runtime/tools/openclaw_coo_update_protocol.sh postmerge
   runtime/tools/openclaw_coo_update_protocol.sh all-preclose [--base-ref <ref>] [--force]
+  runtime/tools/openclaw_coo_update_protocol.sh promotion-seq-allocate --instance <id>
+  runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>
+  runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir> [--base-ref <ref>] [--force]
+  runtime/tools/openclaw_coo_update_protocol.sh promotion-record --packet-dir <dir>
 
 Commands:
   preflight          Mandatory baseline: state, git status, runtime tests.
@@ -61,6 +67,10 @@ Commands:
   preclose           Runs closure gate (must pass before merge/push).
   postmerge          Post-merge verification on main.
   all-preclose       Runs preflight -> concurrency -> operational -> escalation -> preclose.
+  promotion-seq-allocate  Allocates monotonic promotion sequence ticket (COO issuer only).
+  promotion-verify   Verifies packet structure, sequence and trust checks (read-only).
+  promotion-run      Only supported mutating promotion entrypoint with preclose attestation.
+  promotion-record   Writes non-authoritative promotion evidence mirror.
 EOF
 }
 
@@ -208,6 +218,94 @@ run_postmerge() {
   echo "PASS postmerge_verification_ok=true"
 }
 
+_ensure_packet_dir() {
+  local packet_dir="$1"
+  if [ -z "$packet_dir" ]; then
+    echo "ERROR: --packet-dir is required." >&2
+    return 2
+  fi
+  if [ ! -d "$packet_dir" ]; then
+    echo "ERROR: packet dir not found: $packet_dir" >&2
+    return 2
+  fi
+}
+
+run_promotion_seq_allocate() {
+  local instance_id="$1"
+  if [ -z "$instance_id" ]; then
+    echo "ERROR: --instance is required for promotion-seq-allocate." >&2
+    return 2
+  fi
+  python3 runtime/tools/openclaw_promotion_state.py seq-allocate --instance "$instance_id"
+}
+
+run_promotion_verify() {
+  local packet_dir="$1"
+  _ensure_packet_dir "$packet_dir"
+  python3 runtime/tools/openclaw_promotion_state.py verify --packet-dir "$packet_dir"
+}
+
+run_promotion_apply_internal() {
+  local packet_dir="$1"
+  local attestation_path="$2"
+  if [ "${OPENCLAW_ORCHESTRATED_MODE:-0}" != "1" ]; then
+    echo "FAIL promotion_apply_requires_orchestration=true reason=orchestrated_mode_missing" >&2
+    return 1
+  fi
+  if [ ! -f "$attestation_path" ]; then
+    echo "FAIL promotion_apply_requires_orchestration=true reason=attestation_missing" >&2
+    return 1
+  fi
+  python3 runtime/tools/openclaw_promotion_state.py apply --packet-dir "$packet_dir" --attestation "$attestation_path"
+}
+
+run_promotion_run() {
+  local packet_dir="$1"
+  _ensure_packet_dir "$packet_dir"
+
+  run_preflight
+  run_concurrency_check
+  run_operational_check
+  run_escalation_check "$base_ref" "$force"
+  run_preclose
+
+  local attest_dir attestation_path
+  attest_dir="$OPENCLAW_STATE_DIR/runtime/parity/attestations"
+  mkdir -p "$attest_dir"
+  attestation_path="$attest_dir/preclose_attestation_$(date -u +%Y%m%dT%H%M%SZ).json"
+  python3 - <<'PY' "$attestation_path" "$PROMOTION_ATTESTATION_TTL_SEC" "$base_ref"
+import json
+import os
+import sys
+import time
+from pathlib import Path
+
+out = Path(sys.argv[1])
+ttl_sec = int(sys.argv[2])
+base_ref = str(sys.argv[3])
+issued = int(time.time())
+payload = {
+    "attestation_type": "preclose",
+    "issued_unix": issued,
+    "expires_unix": issued + ttl_sec,
+    "base_ref": base_ref,
+    "head_sha": os.popen("git rev-parse HEAD").read().strip(),
+    "generated_by": "openclaw_coo_update_protocol.sh",
+}
+out.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\\n", encoding="utf-8")
+PY
+
+  export OPENCLAW_ORCHESTRATED_MODE=1
+  run_promotion_apply_internal "$packet_dir" "$attestation_path"
+  python3 runtime/tools/openclaw_promotion_state.py record --packet-dir "$packet_dir" --attestation "$attestation_path"
+}
+
+run_promotion_record() {
+  local packet_dir="$1"
+  _ensure_packet_dir "$packet_dir"
+  python3 runtime/tools/openclaw_promotion_state.py record --packet-dir "$packet_dir"
+}
+
 cmd="${1:-}"
 if [ -z "$cmd" ]; then
   usage
@@ -217,6 +315,8 @@ shift || true
 
 base_ref_override=""
 force="0"
+packet_dir=""
+instance_id=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --base-ref)
@@ -230,6 +330,22 @@ while [ "$#" -gt 0 ]; do
     --force)
       force="1"
       shift
+      ;;
+    --packet-dir)
+      if [ "$#" -lt 2 ]; then
+        echo "ERROR: --packet-dir requires a value." >&2
+        exit 2
+      fi
+      packet_dir="$2"
+      shift 2
+      ;;
+    --instance)
+      if [ "$#" -lt 2 ]; then
+        echo "ERROR: --instance requires a value." >&2
+        exit 2
+      fi
+      instance_id="$2"
+      shift 2
       ;;
     *)
       echo "ERROR: Unknown option: $1" >&2
@@ -269,6 +385,22 @@ case "$cmd" in
     run_operational_check
     run_escalation_check "$base_ref" "$force"
     run_preclose
+    ;;
+  promotion-seq-allocate)
+    run_promotion_seq_allocate "$instance_id"
+    ;;
+  promotion-verify)
+    run_promotion_verify "$packet_dir"
+    ;;
+  promotion-run)
+    run_promotion_run "$packet_dir"
+    ;;
+  promotion-record)
+    run_promotion_record "$packet_dir"
+    ;;
+  promotion-apply)
+    echo "ERROR: promotion-apply is internal-only. Use promotion-run." >&2
+    exit 2
     ;;
   *)
     echo "ERROR: Unknown command: $cmd" >&2

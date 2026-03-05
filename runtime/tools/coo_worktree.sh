@@ -20,6 +20,7 @@ OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
 OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_STATE_DIR/openclaw.json}"
 OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
 OPENCLAW_BIN="${OPENCLAW_BIN:-}"
+OPENCLAW_POLICY_PHASE="${OPENCLAW_POLICY_PHASE:-burnin}"
 
 print_header() {
   local profile_label="(default)"
@@ -32,6 +33,7 @@ print_header() {
   echo "OPENCLAW_PROFILE=$profile_label"
   echo "OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
   echo "OPENCLAW_CONFIG_PATH=$OPENCLAW_CONFIG_PATH"
+  echo "OPENCLAW_POLICY_PHASE=$OPENCLAW_POLICY_PHASE"
   if [ -n "$OPENCLAW_BIN" ]; then
     echo "OPENCLAW_BIN=$OPENCLAW_BIN"
   fi
@@ -44,6 +46,7 @@ ensure_openclaw_surface() {
   resolve_openclaw_bin
   export OPENCLAW_BIN
   export OPENCLAW_GATEWAY_PORT
+  export OPENCLAW_POLICY_PHASE
 }
 
 resolve_openclaw_bin() {
@@ -197,27 +200,14 @@ PY
 
 classify_breakglass_gate_reasons() {
   local gate_status_path="$1"
-  python3 - <<'PY' "$gate_status_path"
+  local catalog_path="${OPENCLAW_GATE_REASON_CATALOG_PATH:-$BUILD_REPO/config/openclaw/gate_reason_catalog.json}"
+  python3 - <<'PY' "$gate_status_path" "$catalog_path"
 import json
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-drift_allowed = {
-    "policy_assert_failed",
-    "model_ladder_policy_failed",
-    "multiuser_posture_failed",
-    "interfaces_policy_failed",
-    "cron_delivery_guard_failed",
-}
-hard_exact = {
-    "sandbox_mode_not_non_main",
-    "sandbox_elevated_enabled",
-    "gateway_probe_failed",
-    "receipt_generation_failed",
-    "leak_scan_failed",
-}
-hard_prefixes = ("security_audit_",)
+catalog_path = Path(sys.argv[2])
 
 if not path.exists():
     print("can_bypass=false")
@@ -238,6 +228,27 @@ if not isinstance(reasons, list):
     reasons = []
 reasons = [str(r).strip() for r in reasons if str(r).strip()]
 
+if not catalog_path.exists():
+    print("can_bypass=false")
+    print("hard_reasons=gate_reason_catalog_failed")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
+try:
+    catalog_payload = json.loads(catalog_path.read_text(encoding="utf-8"))
+except Exception:
+    print("can_bypass=false")
+    print("hard_reasons=gate_reason_catalog_failed")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
+catalog = catalog_payload.get("reasons")
+if not isinstance(catalog, dict):
+    print("can_bypass=false")
+    print("hard_reasons=gate_reason_catalog_failed")
+    print("bypass_reasons=")
+    raise SystemExit(0)
+
 if not reasons:
     print("can_bypass=false")
     print("hard_reasons=startup_failure_without_gate_reasons")
@@ -247,17 +258,18 @@ if not reasons:
 bypass = []
 hard = []
 for reason in reasons:
-    if reason in drift_allowed:
+    meta = catalog.get(reason)
+    if not isinstance(meta, dict):
+        hard.append("gate_reason_unknown")
+        continue
+    if bool(meta.get("drift_bypassable", False)):
         bypass.append(reason)
-        continue
-    if reason in hard_exact or any(reason.startswith(prefix) for prefix in hard_prefixes):
+    else:
         hard.append(reason)
-        continue
-    hard.append(reason)
 
 can_bypass = bool(bypass) and not hard
 print(f"can_bypass={'true' if can_bypass else 'false'}")
-print("hard_reasons=" + ",".join(hard))
+print("hard_reasons=" + ",".join(sorted(set(hard))))
 print("bypass_reasons=" + ",".join(bypass))
 PY
 }

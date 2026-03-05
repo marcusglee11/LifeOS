@@ -34,12 +34,33 @@ def test_assert_policy_passes_for_expected_ladders():
     assert result['owners'] == ['owner-1']
     assert result['defaults_thinking'] == 'low'
     assert result['required_subscription_fallbacks'] == ['github-copilot/gpt-5-mini', 'google-gemini-cli/gemini-3-flash-preview']
-    assert result['memory']['enabled'] is False
-    assert result['memory']['provider'] == 'local'
-    assert result['memory']['fallback'] == 'none'
+    assert result['policy_phase'] == 'burnin'
+    assert result['memory']['policy_phase'] == 'burnin'
+    assert result['memory']['canonical_backend'] in {'missing', 'local'}
+    assert result['memory']['legacy_memory_search']['provider'] == 'local'
 
 def test_non_owner_cannot_model_or_think_switch():
     cfg = _cfg()
     assert command_authorized(cfg, 'owner-1', '/model openai-codex/gpt-5.3-codex')
     assert not command_authorized(cfg, 'outsider', '/model openai-codex/gpt-5.3-codex')
     assert not command_authorized(cfg, 'outsider', '/think high')
+
+
+def test_qmd_phase_requires_qmd_backend():
+    cfg = _cfg()
+    cfg['agents']['defaults']['workspace'] = str(Path.home() / '.openclaw' / 'workspace')
+    cfg['memory'] = {'backend': 'qmd'}
+    result = assert_policy(cfg, policy_phase='qmd')
+    assert result['memory']['canonical_backend'] == 'qmd'
+
+
+def test_qmd_phase_rejects_non_qmd_backend():
+    cfg = _cfg()
+    cfg['agents']['defaults']['workspace'] = str(Path.home() / '.openclaw' / 'workspace')
+    cfg['memory'] = {'backend': 'local'}
+    try:
+        assert_policy(cfg, policy_phase='qmd')
+    except AssertionError as exc:
+        assert 'memory.backend must be qmd' in str(exc)
+    else:
+        raise AssertionError('expected qmd backend assertion')

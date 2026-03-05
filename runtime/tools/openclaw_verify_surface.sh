@@ -7,10 +7,15 @@ TS_UTC="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT_DIR="$STATE_DIR/verify/$TS_UTC"
 VERIFY_CMD_TIMEOUT_SEC="${OPENCLAW_VERIFY_CMD_TIMEOUT_SEC:-35}"
 CRON_DELIVERY_GUARD_TIMEOUT_SEC="${OPENCLAW_CRON_DELIVERY_GUARD_TIMEOUT_SEC:-40}"
+HOST_CRON_PARITY_GUARD_TIMEOUT_SEC="${OPENCLAW_HOST_CRON_PARITY_GUARD_TIMEOUT_SEC:-25}"
 SECURITY_FALLBACK_TIMEOUT_SEC="${OPENCLAW_SECURITY_FALLBACK_TIMEOUT_SEC:-20}"
 RECEIPT_CMD_TIMEOUT_SEC="${OPENCLAW_RECEIPT_CMD_TIMEOUT_SEC:-1}"
 GATEWAY_PROBE_RETRIES="${OPENCLAW_GATEWAY_PROBE_RETRIES:-3}"
 GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
+HOST_CRON_PARITY_GUARD_REQUIRED="${OPENCLAW_HOST_CRON_PARITY_GUARD_REQUIRED:-1}"
+POLICY_PHASE="${OPENCLAW_POLICY_PHASE:-burnin}"
+INSTANCE_PROFILE_PATH="${OPENCLAW_INSTANCE_PROFILE_PATH:-config/openclaw/instance_profiles/coo.json}"
+GATE_REASON_CATALOG_PATH="${OPENCLAW_GATE_REASON_CATALOG_PATH:-config/openclaw/gate_reason_catalog.json}"
 KNOWN_UV_IFADDR='uv_interface_addresses returned Unknown system error 1'
 GATE_STATUS_PATH="${OPENCLAW_GATE_STATUS_PATH:-$STATE_DIR/runtime/gates/gate_status.json}"
 
@@ -110,6 +115,7 @@ else
 fi
 
 to_file_with_timeout "$CRON_DELIVERY_GUARD_TIMEOUT_SEC" cron_delivery_guard python3 runtime/tools/openclaw_cron_delivery_guard.py --json
+to_file_with_timeout "$HOST_CRON_PARITY_GUARD_TIMEOUT_SEC" host_cron_parity_guard python3 runtime/tools/openclaw_host_cron_parity_guard.py --instance-profile "$INSTANCE_PROFILE_PATH" --json
 to_file models_status_probe coo openclaw -- models status
 to_file sandbox_explain_json coo openclaw -- sandbox explain --json
 for attempt in $(seq 1 "$GATEWAY_PROBE_RETRIES"); do
@@ -128,7 +134,7 @@ if [ "$GATEWAY_PROBE_PASS" != "true" ]; then
     WARNINGS=1
   fi
 fi
-to_file policy_assert python3 runtime/tools/openclaw_policy_assert.py --config "$CFG_PATH" --json
+to_file policy_assert python3 runtime/tools/openclaw_policy_assert.py --config "$CFG_PATH" --policy-phase "$POLICY_PHASE" --json
 to_file model_ladder_policy_assert python3 runtime/tools/openclaw_model_policy_assert.py --config "$CFG_PATH" --json
 to_file multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --config "$CFG_PATH" --json
 to_file interfaces_policy_assert python3 runtime/tools/openclaw_interfaces_policy_assert.py --config "$CFG_PATH" --json
@@ -210,6 +216,13 @@ if [ "$GATEWAY_PROBE_PASS" != "true" ] && [ "${CMD_RC[security_audit_deep]:-1}" 
 fi
 
 if [ "${CMD_RC[cron_delivery_guard]:-1}" -ne 0 ]; then add_blocking_reason "cron_delivery_guard_failed"; fi
+if [ "${CMD_RC[host_cron_parity_guard]:-1}" -ne 0 ]; then
+  if [ "$HOST_CRON_PARITY_GUARD_REQUIRED" = "1" ]; then
+    add_blocking_reason "host_cron_parity_guard_failed"
+  else
+    WARNINGS=1
+  fi
+fi
 if [ "${CMD_RC[sandbox_explain_json]:-1}" -ne 0 ]; then add_blocking_reason "sandbox_explain_failed"; fi
 if [ "$GATEWAY_PROBE_PASS" != "true" ]; then add_blocking_reason "gateway_probe_failed"; fi
 if [ "${CMD_RC[policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "policy_assert_failed"; fi
@@ -270,6 +283,8 @@ fi
   echo "security_audit_deep_exit=${CMD_RC[security_audit_deep]:-1}"
   echo "security_audit_fallback_exit=${CMD_RC[security_audit_fallback]:-NA}"
   echo "cron_delivery_guard_exit=${CMD_RC[cron_delivery_guard]:-1}"
+  echo "host_cron_parity_guard_exit=${CMD_RC[host_cron_parity_guard]:-1}"
+  echo "host_cron_parity_guard_required=$HOST_CRON_PARITY_GUARD_REQUIRED"
   echo "models_status_probe_exit=${CMD_RC[models_status_probe]:-1}"
   echo "auth_health_exit=${CMD_RC[auth_health]:-1}"
   echo "auth_health_state=$AUTH_HEALTH_STATE"
@@ -279,6 +294,7 @@ fi
   echo "gateway_probe_pass=$GATEWAY_PROBE_PASS"
   echo "gateway_probe_retries=$GATEWAY_PROBE_RETRIES"
   echo "policy_assert_exit=${CMD_RC[policy_assert]:-1}"
+  echo "policy_phase=$POLICY_PHASE"
   echo "model_ladder_policy_assert_exit=${CMD_RC[model_ladder_policy_assert]:-1}"
   echo "multiuser_posture_assert_exit=${CMD_RC[multiuser_posture_assert]:-1}"
   echo "interfaces_policy_assert_exit=${CMD_RC[interfaces_policy_assert]:-1}"
@@ -293,14 +309,51 @@ fi
 } > "$OUT_DIR/summary.txt"
 
 reasons_file="$OUT_DIR/blocking_reasons.txt"
+catalog_json="$(python3 runtime/tools/openclaw_gate_reason_catalog.py --catalog "$GATE_REASON_CATALOG_PATH" --reasons "${BLOCKING_REASONS[@]}" --json 2>/dev/null || true)"
+catalog_eval="$(python3 - <<'PY' "$catalog_json"
+import json
+import sys
+
+raw = str(sys.argv[1] or "").strip()
+if not raw:
+    print("catalog_ok=false")
+    print("unknown_count=0")
+    raise SystemExit(0)
+
+try:
+    obj = json.loads(raw)
+except Exception:
+    print("catalog_ok=false")
+    print("unknown_count=0")
+    raise SystemExit(0)
+
+catalog_ok = bool(obj.get("catalog_ok"))
+unknown = obj.get("unknown") or []
+if not isinstance(unknown, list):
+    unknown = []
+
+print(f"catalog_ok={'true' if catalog_ok else 'false'}")
+print(f"unknown_count={len([u for u in unknown if str(u).strip()])}")
+PY
+)"
+catalog_ok="$(printf '%s\n' "$catalog_eval" | sed -n 's/^catalog_ok=//p' | tail -n 1)"
+unknown_count="$(printf '%s\n' "$catalog_eval" | sed -n 's/^unknown_count=//p' | tail -n 1)"
+if [ "$catalog_ok" != "true" ]; then
+  add_blocking_reason "gate_reason_catalog_failed"
+fi
+if [ "${unknown_count:-0}" -gt 0 ]; then
+  add_blocking_reason "gate_reason_unknown"
+fi
+
 if [ "${#BLOCKING_REASONS[@]}" -gt 0 ]; then
-  printf '%s\n' "${BLOCKING_REASONS[@]}" > "$reasons_file"
+  printf '%s\n' "${BLOCKING_REASONS[@]}" | awk '!seen[$0]++' > "$reasons_file"
 else
   : > "$reasons_file"
 fi
 
 export CHECK_SECURITY_AUDIT_CLEAN="$SECURITY_AUDIT_CLEAN"
 export CHECK_CRON_DELIVERY_GUARD="$([ "${CMD_RC[cron_delivery_guard]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_HOST_CRON_PARITY_GUARD="$([ "${CMD_RC[host_cron_parity_guard]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_MODELS_STATUS_PROBE="$([ "${CMD_RC[models_status_probe]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_SANDBOX_EXPLAIN="$([ "${CMD_RC[sandbox_explain_json]:-1}" -eq 0 ] && rg -q '"mode":\s*"non-main"' "$OUT_DIR/sandbox_explain_json.txt" && ! rg -q '"elevated":\s*\{[^}]*"enabled":\s*true' "$OUT_DIR/sandbox_explain_json.txt" && echo true || echo false)"
 export CHECK_GATEWAY_PROBE="$GATEWAY_PROBE_PASS"
@@ -342,6 +395,7 @@ def first_line(path: Path) -> str:
 checks: List[Dict[str, Any]] = [
     {"name": "security_audit_clean", "pass": env_bool("CHECK_SECURITY_AUDIT_CLEAN"), "mode": security_audit_mode, "detail": first_line(out_dir / "security_audit_deep.txt")},
     {"name": "cron_delivery_guard", "pass": env_bool("CHECK_CRON_DELIVERY_GUARD"), "mode": "required", "detail": first_line(out_dir / "cron_delivery_guard.txt")},
+    {"name": "host_cron_parity_guard", "pass": env_bool("CHECK_HOST_CRON_PARITY_GUARD"), "mode": "required", "detail": first_line(out_dir / "host_cron_parity_guard.txt")},
     {"name": "models_status_probe", "pass": env_bool("CHECK_MODELS_STATUS_PROBE"), "mode": "required", "detail": first_line(out_dir / "models_status_probe.txt")},
     {"name": "sandbox_explain", "pass": env_bool("CHECK_SANDBOX_EXPLAIN"), "mode": "required", "detail": first_line(out_dir / "sandbox_explain_json.txt")},
     {"name": "gateway_probe", "pass": env_bool("CHECK_GATEWAY_PROBE"), "mode": "required", "detail": first_line(out_dir / "gateway_probe_json.txt")},

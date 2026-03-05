@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "reasons": {
+    "policy_assert_failed": {
+      "severity": "drift",
+      "drift_bypassable": true,
+      "owner_system": "policy"
+    },
+    "model_ladder_policy_failed": {
+      "severity": "drift",
+      "drift_bypassable": true,
+      "owner_system": "models"
+    },
+    "multiuser_posture_failed": {
+      "severity": "drift",
+      "drift_bypassable": true,
+      "owner_system": "posture"
+    },
+    "interfaces_policy_failed": {
+      "severity": "drift",
+      "drift_bypassable": true,
+      "owner_system": "interfaces"
+    },
+    "cron_delivery_guard_failed": {
+      "severity": "drift",
+      "drift_bypassable": true,
+      "owner_system": "cron"
+    },
+    "sandbox_mode_not_non_main": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "sandbox"
+    },
+    "sandbox_elevated_enabled": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "sandbox"
+    },
+    "gateway_probe_failed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "gateway"
+    },
+    "receipt_generation_failed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "receipts"
+    },
+    "leak_scan_failed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "leak_scan"
+    },
+    "security_audit_deep_failed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "security"
+    },
+    "security_audit_fallback_failed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "security"
+    },
+    "security_audit_output_missing": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "security"
+    },
+    "security_audit_summary_not_clean": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "security"
+    },
+    "host_cron_parity_guard_failed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "parity_cron"
+    },
+    "promotion_replay_detected": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "promotion"
+    },
+    "promotion_downgrade_detected": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "promotion"
+    },
+    "bootstrap_token_invalid": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "bootstrap"
+    },
+    "bootstrap_token_expired": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "bootstrap"
+    },
+    "bootstrap_clock_regressed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "bootstrap"
+    },
+    "parity_apply_rollback_failed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "parity_apply"
+    },
+    "gate_reason_unknown": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "gate_catalog"
+    },
+    "gate_reason_catalog_failed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "gate_catalog"
+    }
+  }
+}

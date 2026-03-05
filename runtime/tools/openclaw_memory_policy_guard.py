@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 ALLOWED_CLASSIFICATIONS = {"PUBLIC", "INTERNAL", "CONFIDENTIAL"}
 RETENTION_RE = re.compile(r"^(?:\d+(?:d|w|m|y)|permanent)$", re.IGNORECASE)
@@ -23,7 +24,14 @@ TOKEN_PATTERNS = [
     re.compile(r"\bghp_[A-Za-z0-9]{20,}\b"),
     re.compile(r"\bAIza[0-9A-Za-z_-]{20,}\b"),
 ]
+PII_PATTERNS = [
+    re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"),
+    re.compile(r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"),
+    re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
+]
 LONG_BLOB_RE = re.compile(r"[A-Za-z0-9+/_=-]{80,}")
+
+DEFAULT_CURATED_GLOBS = ["**/*.md", "**/*.txt", "**/*.json", "**/*.yaml", "**/*.yml"]
 
 
 @dataclass
@@ -44,6 +52,56 @@ class Violation:
         }
 
 
+@dataclass
+class RootSpec:
+    roots: List[Path]
+    include_globs: List[str]
+    source_path: str
+
+
+def _expand_root(raw: str, workspace: Path) -> Path:
+    expanded = str(raw)
+    expanded = expanded.replace("${OPENCLAW_WORKSPACE}", str(workspace))
+    expanded = expanded.replace("${HOME}", str(Path.home()))
+    path = Path(os.path.expandvars(os.path.expanduser(expanded)))
+    if not path.is_absolute():
+        path = (workspace / path).resolve()
+    return path.resolve()
+
+
+
+def load_roots_file(path: Path, workspace: Path) -> RootSpec:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise ValueError(f"roots_file_invalid:{type(exc).__name__}") from exc
+
+    if not isinstance(payload, dict):
+        raise ValueError("roots_file_not_object")
+
+    roots_raw = payload.get("roots")
+    if not isinstance(roots_raw, list) or not roots_raw:
+        raise ValueError("roots_file_missing_roots")
+
+    include_globs_raw = payload.get("include_globs", DEFAULT_CURATED_GLOBS)
+    if not isinstance(include_globs_raw, list) or not include_globs_raw:
+        include_globs = list(DEFAULT_CURATED_GLOBS)
+    else:
+        include_globs = [str(p).strip() for p in include_globs_raw if str(p).strip()]
+        if not include_globs:
+            include_globs = list(DEFAULT_CURATED_GLOBS)
+
+    resolved_roots: List[Path] = []
+    for raw in roots_raw:
+        candidate = _expand_root(str(raw), workspace)
+        if not candidate.exists() or not candidate.is_dir():
+            raise ValueError(f"root_missing_or_not_dir:{candidate}")
+        resolved_roots.append(candidate)
+
+    return RootSpec(roots=resolved_roots, include_globs=include_globs, source_path=str(path))
+
+
+
 def redact_line(line: str) -> str:
     out = line.rstrip("\n")
     out = re.sub(r"Authorization\s*:\s*Bearer\s+\S+", "Authorization: Bearer [REDACTED]", out, flags=re.IGNORECASE)
@@ -51,9 +109,13 @@ def redact_line(line: str) -> str:
     out = re.sub(r"\bxox[baprs]-[A-Za-z0-9-]{8,}\b", "xox?- [REDACTED]", out)
     out = re.sub(r"\bghp_[A-Za-z0-9]{20,}\b", "ghp_[REDACTED]", out)
     out = re.sub(r"\bAIza[0-9A-Za-z_-]{20,}\b", "AIza[REDACTED]", out)
+    out = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", "[REDACTED_EMAIL]", out)
+    out = re.sub(r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b", "[REDACTED_PHONE]", out)
+    out = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[REDACTED_SSN]", out)
     out = LONG_BLOB_RE.sub("[REDACTED_LONG_BLOB]", out)
     out = re.sub(r"\b(apiKey|botToken|signingSecret)\b\s*[:=]\s*\S+", r"\1=[REDACTED]", out, flags=re.IGNORECASE)
     return out
+
 
 
 def parse_front_matter(lines: List[str]) -> Tuple[Optional[Dict[str, str]], int]:
@@ -75,6 +137,7 @@ def parse_front_matter(lines: List[str]) -> Tuple[Optional[Dict[str, str]], int]
     return None, 0
 
 
+
 def iter_memory_files(workspace: Path) -> Iterable[Path]:
     memory_md = workspace / "MEMORY.md"
     if memory_md.exists():
@@ -86,108 +149,219 @@ def iter_memory_files(workspace: Path) -> Iterable[Path]:
                 yield path
 
 
+
+def iter_curated_files(root_spec: RootSpec) -> Iterable[Path]:
+    seen: set[Path] = set()
+    for root in root_spec.roots:
+        for pattern in root_spec.include_globs:
+            for path in sorted(root.glob(pattern)):
+                if not path.is_file():
+                    continue
+                resolved = path.resolve()
+                if resolved in seen:
+                    continue
+                if not str(resolved).startswith(str(root) + os.sep) and resolved != root:
+                    continue
+                seen.add(resolved)
+                yield resolved
+
+
+
 def detect_secret_like(text: str, line: str) -> bool:
     return any(p.search(text) for p in KEYWORD_PATTERNS + TOKEN_PATTERNS) or bool(LONG_BLOB_RE.search(line))
 
 
-def scan_workspace(workspace: Path) -> Dict[str, object]:
+
+def detect_pii(text: str) -> bool:
+    return any(p.search(text) for p in PII_PATTERNS)
+
+
+
+def _display_path(path: Path, workspace: Path) -> str:
+    try:
+        return str(path.relative_to(workspace))
+    except Exception:
+        return str(path)
+
+
+
+def _scan_file(
+    *,
+    path: Path,
+    workspace: Path,
+    violations: List[Violation],
+    enforce_front_matter: bool,
+    fail_on_pii: bool,
+    memory_entry_counter: List[int],
+) -> None:
+    rel = _display_path(path, workspace)
+    content = path.read_text(encoding="utf-8", errors="replace")
+    lines = content.splitlines()
+
+    for i, line in enumerate(lines, start=1):
+        if detect_secret_like(line, line):
+            violations.append(
+                Violation(
+                    file=rel,
+                    line=i,
+                    rule="SECRET_PATTERN_BLOCKED",
+                    message="Secret-like content detected; memory indexing is blocked.",
+                    snippet=redact_line(line),
+                )
+            )
+        if fail_on_pii and detect_pii(line):
+            violations.append(
+                Violation(
+                    file=rel,
+                    line=i,
+                    rule="PII_PATTERN_BLOCKED",
+                    message="PII-like content detected; upload/indexing is blocked.",
+                    snippet=redact_line(line),
+                )
+            )
+
+    if not enforce_front_matter:
+        return
+
+    if rel.startswith("memory/"):
+        memory_entry_counter[0] += 1
+        fm, _ = parse_front_matter(lines)
+        if fm is None:
+            violations.append(
+                Violation(
+                    file=rel,
+                    line=1,
+                    rule="MISSING_FRONT_MATTER",
+                    message="Memory entry must start with YAML front matter.",
+                    snippet=redact_line(lines[0] if lines else ""),
+                )
+            )
+            return
+
+        classification = (fm.get("classification") or "").strip().upper()
+        if not classification:
+            violations.append(
+                Violation(
+                    file=rel,
+                    line=1,
+                    rule="MISSING_CLASSIFICATION",
+                    message="classification is required in front matter.",
+                    snippet="classification: [MISSING]",
+                )
+            )
+        elif classification == "SECRET":
+            violations.append(
+                Violation(
+                    file=rel,
+                    line=1,
+                    rule="CLASSIFICATION_SECRET_DISALLOWED",
+                    message="classification SECRET is disallowed for memory storage.",
+                    snippet="classification: SECRET",
+                )
+            )
+        elif classification not in ALLOWED_CLASSIFICATIONS:
+            violations.append(
+                Violation(
+                    file=rel,
+                    line=1,
+                    rule="INVALID_CLASSIFICATION",
+                    message=f"classification must be one of {sorted(ALLOWED_CLASSIFICATIONS)}.",
+                    snippet=f"classification: {classification}",
+                )
+            )
+
+        retention = (fm.get("retention") or "").strip()
+        if not retention:
+            violations.append(
+                Violation(
+                    file=rel,
+                    line=1,
+                    rule="MISSING_RETENTION",
+                    message="retention is required in front matter.",
+                    snippet="retention: [MISSING]",
+                )
+            )
+        elif not RETENTION_RE.match(retention):
+            violations.append(
+                Violation(
+                    file=rel,
+                    line=1,
+                    rule="INVALID_RETENTION",
+                    message='retention must match ^\\d+(d|w|m|y)$ or "permanent".',
+                    snippet=f"retention: {retention}",
+                )
+            )
+
+
+
+def scan_workspace(
+    workspace: Path,
+    *,
+    mode: str = "raw",
+    roots_file: str = "",
+    fail_on_pii: bool = False,
+) -> Dict[str, object]:
     violations: List[Violation] = []
     scanned_files = 0
-    memory_entry_files = 0
+    memory_entry_files = [0]
+    roots_used: List[str] = []
 
-    for path in iter_memory_files(workspace):
+    selected_mode = (mode or "raw").strip().lower()
+    if selected_mode not in {"raw", "curated"}:
+        selected_mode = "raw"
+
+    paths: Iterable[Path]
+    enforce_front_matter = selected_mode == "raw"
+    if selected_mode == "curated":
+        if not roots_file:
+            violations.append(
+                Violation(
+                    file="<roots>",
+                    line=1,
+                    rule="CURATED_ROOTS_FILE_REQUIRED",
+                    message="--roots-file is required for curated mode.",
+                    snippet="roots_file=[MISSING]",
+                )
+            )
+            paths = []
+        else:
+            try:
+                root_spec = load_roots_file(Path(roots_file).expanduser(), workspace)
+                roots_used = [str(p) for p in root_spec.roots]
+                paths = list(iter_curated_files(root_spec))
+            except ValueError as exc:
+                violations.append(
+                    Violation(
+                        file=str(roots_file),
+                        line=1,
+                        rule="CURATED_ROOTS_POLICY_INVALID",
+                        message="Invalid curated roots policy.",
+                        snippet=redact_line(str(exc)),
+                    )
+                )
+                paths = []
+    else:
+        paths = list(iter_memory_files(workspace))
+
+    for path in paths:
         scanned_files += 1
-        rel = str(path.relative_to(workspace))
-        content = path.read_text(encoding="utf-8", errors="replace")
-        lines = content.splitlines()
-
-        # Secret/token-like detection applies to all memory files, including MEMORY.md.
-        for i, line in enumerate(lines, start=1):
-            if detect_secret_like(line, line):
-                violations.append(
-                    Violation(
-                        file=rel,
-                        line=i,
-                        rule="SECRET_PATTERN_BLOCKED",
-                        message="Secret-like content detected; memory indexing is blocked.",
-                        snippet=redact_line(line),
-                    )
-                )
-
-        # Enforce metadata schema for memory entry files only.
-        if rel.startswith("memory/"):
-            memory_entry_files += 1
-            fm, _ = parse_front_matter(lines)
-            if fm is None:
-                violations.append(
-                    Violation(
-                        file=rel,
-                        line=1,
-                        rule="MISSING_FRONT_MATTER",
-                        message="Memory entry must start with YAML front matter.",
-                        snippet=redact_line(lines[0] if lines else ""),
-                    )
-                )
-                continue
-
-            classification = (fm.get("classification") or "").strip().upper()
-            if not classification:
-                violations.append(
-                    Violation(
-                        file=rel,
-                        line=1,
-                        rule="MISSING_CLASSIFICATION",
-                        message="classification is required in front matter.",
-                        snippet="classification: [MISSING]",
-                    )
-                )
-            elif classification == "SECRET":
-                violations.append(
-                    Violation(
-                        file=rel,
-                        line=1,
-                        rule="CLASSIFICATION_SECRET_DISALLOWED",
-                        message="classification SECRET is disallowed for memory storage.",
-                        snippet="classification: SECRET",
-                    )
-                )
-            elif classification not in ALLOWED_CLASSIFICATIONS:
-                violations.append(
-                    Violation(
-                        file=rel,
-                        line=1,
-                        rule="INVALID_CLASSIFICATION",
-                        message=f"classification must be one of {sorted(ALLOWED_CLASSIFICATIONS)}.",
-                        snippet=f"classification: {classification}",
-                    )
-                )
-
-            retention = (fm.get("retention") or "").strip()
-            if not retention:
-                violations.append(
-                    Violation(
-                        file=rel,
-                        line=1,
-                        rule="MISSING_RETENTION",
-                        message="retention is required in front matter.",
-                        snippet="retention: [MISSING]",
-                    )
-                )
-            elif not RETENTION_RE.match(retention):
-                violations.append(
-                    Violation(
-                        file=rel,
-                        line=1,
-                        rule="INVALID_RETENTION",
-                        message='retention must match ^\\d+(d|w|m|y)$ or "permanent".',
-                        snippet=f"retention: {retention}",
-                    )
-                )
+        _scan_file(
+            path=path,
+            workspace=workspace,
+            violations=violations,
+            enforce_front_matter=enforce_front_matter,
+            fail_on_pii=fail_on_pii,
+            memory_entry_counter=memory_entry_files,
+        )
 
     summary = {
         "workspace": str(workspace),
+        "mode": selected_mode,
+        "roots_file": roots_file,
+        "roots_used": roots_used,
+        "fail_on_pii": bool(fail_on_pii),
         "scanned_files": scanned_files,
-        "memory_entry_files": memory_entry_files,
+        "memory_entry_files": memory_entry_files[0],
         "violations_count": len(violations),
         "policy_ok": len(violations) == 0,
         "violations": [v.to_dict() for v in violations],
@@ -195,15 +369,24 @@ def scan_workspace(workspace: Path) -> Dict[str, object]:
     return summary
 
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="OpenClaw memory policy guard.")
     parser.add_argument("--workspace", default=str(Path.home() / ".openclaw" / "workspace"))
+    parser.add_argument("--mode", choices=("raw", "curated"), default="raw")
+    parser.add_argument("--roots-file", default="", help="JSON file with curated roots policy.")
+    parser.add_argument("--fail-on-pii", action="store_true", help="Fail closed on PII-like patterns.")
     parser.add_argument("--json-summary", action="store_true", help="Print JSON summary only.")
     parser.add_argument("--summary-out", help="Write JSON summary to this path.")
     args = parser.parse_args()
 
     workspace = Path(args.workspace).expanduser()
-    summary = scan_workspace(workspace)
+    summary = scan_workspace(
+        workspace,
+        mode=args.mode,
+        roots_file=args.roots_file,
+        fail_on_pii=bool(args.fail_on_pii),
+    )
 
     if args.summary_out:
         out = Path(args.summary_out)
@@ -215,6 +398,7 @@ def main() -> int:
     else:
         print(
             f"memory_policy_ok={'true' if summary['policy_ok'] else 'false'} "
+            f"mode={summary['mode']} "
             f"scanned_files={summary['scanned_files']} "
             f"memory_entry_files={summary['memory_entry_files']} "
             f"violations={summary['violations_count']}"

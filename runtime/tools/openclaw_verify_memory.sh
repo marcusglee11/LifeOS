@@ -9,6 +9,7 @@ SEARCH_TIMEOUT_SEC="${OPENCLAW_VERIFY_MEMORY_SEARCH_TIMEOUT_SEC:-20}"
 GUARD_TIMEOUT_SEC="${OPENCLAW_VERIFY_MEMORY_GUARD_TIMEOUT_SEC:-15}"
 SEED_QUERY="${OPENCLAW_VERIFY_MEMORY_QUERY:-lobster-memory-seed-001}"
 AGENT_ID="${OPENCLAW_VERIFY_MEMORY_AGENT:-main}"
+POLICY_PHASE="${OPENCLAW_POLICY_PHASE:-burnin}"
 
 mkdir -p "$OUT_DIR"
 
@@ -19,7 +20,7 @@ guard_summary="$OUT_DIR/memory_policy_guard_summary.json"
 summary_out="$OUT_DIR/summary.txt"
 
 set +e
-timeout "$GUARD_TIMEOUT_SEC" python3 runtime/tools/openclaw_memory_policy_guard.py --json-summary --summary-out "$guard_summary" > "$guard_out" 2>&1
+timeout "$GUARD_TIMEOUT_SEC" python3 runtime/tools/openclaw_memory_policy_guard.py --mode raw --json-summary --summary-out "$guard_summary" > "$guard_out" 2>&1
 rc_guard=$?
 timeout "$STATUS_TIMEOUT_SEC" coo openclaw -- memory status --deep --agent "$AGENT_ID" > "$status_out" 2>&1
 rc_status=$?
@@ -27,19 +28,29 @@ timeout "$SEARCH_TIMEOUT_SEC" coo openclaw -- memory search "$SEED_QUERY" --agen
 rc_search=$?
 set -e
 
+backend="$(rg -o 'Backend:\s*[^[:space:]]+' "$status_out" | head -n1 | awk '{print $2}')"
 provider="$(rg -o 'Provider:\s*[^[:space:]]+' "$status_out" | head -n1 | awk '{print $2}')"
 requested="$(rg -o 'requested:\s*[^)]+' "$status_out" | head -n1 | awk -F': ' '{print $2}')"
 hits="$(rg -c '(^|[[:space:]])[^[:space:]]+:[0-9]+-[0-9]+' "$search_out" || true)"
 
-fallback="unknown"
+config_backend="unknown"
+expected_backend="local"
+if [ "$POLICY_PHASE" = "qmd" ]; then
+  expected_backend="qmd"
+fi
+
 if [ -f "${OPENCLAW_CONFIG_PATH:-$STATE_DIR/openclaw.json}" ]; then
-  fallback="$(python3 - <<'PY'
+  config_backend="$(python3 - <<'PY'
 import json, os
 from pathlib import Path
 p = Path(os.environ.get("OPENCLAW_CONFIG_PATH", str(Path.home()/".openclaw"/"openclaw.json")))
 try:
     cfg = json.loads(p.read_text(encoding="utf-8"))
-    print((((cfg.get("agents") or {}).get("defaults") or {}).get("memorySearch") or {}).get("fallback") or "unknown")
+    mem = cfg.get("memory") or {}
+    if isinstance(mem, dict):
+        print(str(mem.get("backend") or "unknown"))
+    else:
+        print("unknown")
 except Exception:
     print("unknown")
 PY
@@ -53,10 +64,10 @@ fi
 if [ "$rc_guard" -ne 0 ]; then
   pass=0
 fi
-if [ "${provider:-}" != "local" ] && [ "${requested:-}" != "local" ]; then
+if [ "${config_backend:-unknown}" != "$expected_backend" ]; then
   pass=0
 fi
-if [ "$fallback" != "none" ]; then
+if [ "${backend:-}" != "$expected_backend" ] && [ "${provider:-}" != "$expected_backend" ] && [ "${requested:-}" != "$expected_backend" ]; then
   pass=0
 fi
 if [ "${hits:-0}" -lt 1 ]; then
@@ -71,9 +82,12 @@ fi
   echo "guard_exit=$rc_guard"
   echo "status_exit=$rc_status"
   echo "search_exit=$rc_search"
+  echo "policy_phase=$POLICY_PHASE"
+  echo "expected_backend=$expected_backend"
+  echo "config_backend=$config_backend"
+  echo "backend=${backend:-unknown}"
   echo "provider=${provider:-unknown}"
   echo "requested=${requested:-unknown}"
-  echo "fallback=$fallback"
   echo "hits=$hits"
   echo "guard_out=$guard_out"
   echo "guard_summary=$guard_summary"
@@ -82,9 +96,9 @@ fi
 } > "$summary_out"
 
 if [ "$pass" -eq 1 ]; then
-  echo "PASS memory_policy_ok=true provider=local fallback=none guard_summary=$guard_summary status_out=$status_out search_out=$search_out summary=$summary_out"
+  echo "PASS memory_policy_ok=true policy_phase=$POLICY_PHASE backend=$expected_backend guard_summary=$guard_summary status_out=$status_out search_out=$search_out summary=$summary_out"
   exit 0
 fi
 
-echo "FAIL memory_policy_ok=false provider=${provider:-unknown} fallback=$fallback guard_summary=$guard_summary status_out=$status_out search_out=$search_out summary=$summary_out" >&2
+echo "FAIL memory_policy_ok=false policy_phase=$POLICY_PHASE expected_backend=$expected_backend config_backend=$config_backend provider=${provider:-unknown} backend=${backend:-unknown} guard_summary=$guard_summary status_out=$status_out search_out=$search_out summary=$summary_out" >&2
 exit 1

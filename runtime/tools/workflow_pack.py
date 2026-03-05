@@ -180,15 +180,36 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
                 "runtime/tools/openclaw_models_preflight.sh",
                 "runtime/tools/openclaw_model_policy_assert.py",
                 "runtime/tools/openclaw_policy_assert.py",
+                "runtime/tools/openclaw_verify_memory.sh",
+                "runtime/tools/openclaw_memory_policy_guard.py",
+                "runtime/tools/openclaw_host_cron_parity_guard.py",
+                "runtime/tools/openclaw_gate_reason_catalog.py",
+                "runtime/tools/openclaw_promotion_state.py",
+                "runtime/tools/openclaw_coo_update_protocol.sh",
+                "runtime/tools/coo_worktree.sh",
                 "runtime/tests/test_openclaw_model_policy_assert.py",
                 "runtime/tests/test_openclaw_policy_assert.py",
                 "runtime/tests/test_openclaw_memory_policy_assert.py",
+                "runtime/tests/test_openclaw_memory_policy_guard.py",
+                "runtime/tests/test_openclaw_memory_policy_guard_curated.py",
+                "runtime/tests/test_openclaw_gate_reason_catalog.py",
+                "runtime/tests/test_openclaw_host_cron_parity_guard.py",
+                "runtime/tests/test_coo_worktree_breakglass.py",
+                "runtime/tests/test_openclaw_promotion_state.py",
+                "runtime/tests/test_openclaw_coo_update_protocol_promotion.py",
             ),
         ):
             add(
                 "pytest -q runtime/tests/test_openclaw_model_policy_assert.py "
                 "runtime/tests/test_openclaw_policy_assert.py "
-                "runtime/tests/test_openclaw_memory_policy_assert.py"
+                "runtime/tests/test_openclaw_memory_policy_assert.py "
+                "runtime/tests/test_openclaw_memory_policy_guard.py "
+                "runtime/tests/test_openclaw_memory_policy_guard_curated.py "
+                "runtime/tests/test_openclaw_gate_reason_catalog.py "
+                "runtime/tests/test_openclaw_host_cron_parity_guard.py "
+                "runtime/tests/test_coo_worktree_breakglass.py "
+                "runtime/tests/test_openclaw_promotion_state.py "
+                "runtime/tests/test_openclaw_coo_update_protocol_promotion.py"
             )
             continue
 

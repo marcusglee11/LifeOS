@@ -33,10 +33,11 @@ def test_memory_policy_accepts_local_no_fallback_and_memory_source_only():
     cfg = _base_cfg()
     cfg["agents"]["defaults"]["workspace"] = str(Path.home() / ".openclaw" / "workspace")
     result = assert_policy(cfg)
-    assert result["memory"]["enabled"] is False
-    assert result["memory"]["provider"] == "local"
-    assert result["memory"]["fallback"] == "none"
-    assert result["memory"]["sources"] == ["memory"]
+    assert result["memory"]["policy_phase"] == "burnin"
+    assert result["memory"]["canonical_backend"] in {"missing", "local"}
+    assert result["memory"]["legacy_memory_search"]["provider"] == "local"
+    assert result["memory"]["legacy_memory_search"]["fallback"] == "none"
+    assert result["memory"]["legacy_memory_search"]["sources"] == ["memory"]
 
 
 def test_memory_policy_rejects_non_local_provider():
@@ -84,3 +85,31 @@ def test_memory_policy_rejects_workspace_outside_openclaw_home():
         assert "workspace must be under ~/.openclaw" in str(exc)
     else:
         raise AssertionError("expected workspace boundary assertion")
+
+
+def test_burnin_with_explicit_local_backend_passes():
+    cfg = _base_cfg()
+    cfg["agents"]["defaults"]["workspace"] = str(Path.home() / ".openclaw" / "workspace")
+    cfg["memory"] = {"backend": "local"}
+    result = assert_policy(cfg, policy_phase="burnin")
+    assert result["memory"]["canonical_backend"] == "local"
+    assert result["memory"]["legacy_memory_search"] == {}
+
+
+def test_qmd_phase_requires_qmd_backend():
+    cfg = _base_cfg()
+    cfg["agents"]["defaults"]["workspace"] = str(Path.home() / ".openclaw" / "workspace")
+    cfg["memory"] = {"backend": "qmd"}
+    result = assert_policy(cfg, policy_phase="qmd")
+    assert result["memory"]["canonical_backend"] == "qmd"
+
+
+def test_qmd_phase_rejects_missing_backend():
+    cfg = _base_cfg()
+    cfg["agents"]["defaults"]["workspace"] = str(Path.home() / ".openclaw" / "workspace")
+    try:
+        assert_policy(cfg, policy_phase="qmd")
+    except AssertionError as exc:
+        assert "memory.backend must be qmd" in str(exc)
+    else:
+        raise AssertionError("expected qmd backend assertion")

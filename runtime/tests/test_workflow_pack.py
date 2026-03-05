@@ -67,7 +67,14 @@ def test_route_targeted_tests_routes_openclaw_model_preflight() -> None:
     assert commands == [
         "pytest -q runtime/tests/test_openclaw_model_policy_assert.py "
         "runtime/tests/test_openclaw_policy_assert.py "
-        "runtime/tests/test_openclaw_memory_policy_assert.py"
+        "runtime/tests/test_openclaw_memory_policy_assert.py "
+        "runtime/tests/test_openclaw_memory_policy_guard.py "
+        "runtime/tests/test_openclaw_memory_policy_guard_curated.py "
+        "runtime/tests/test_openclaw_gate_reason_catalog.py "
+        "runtime/tests/test_openclaw_host_cron_parity_guard.py "
+        "runtime/tests/test_coo_worktree_breakglass.py "
+        "runtime/tests/test_openclaw_promotion_state.py "
+        "runtime/tests/test_openclaw_coo_update_protocol_promotion.py"
     ]
 
 
@@ -76,7 +83,14 @@ def test_route_targeted_tests_routes_openclaw_policy_bundle() -> None:
     assert commands == [
         "pytest -q runtime/tests/test_openclaw_model_policy_assert.py "
         "runtime/tests/test_openclaw_policy_assert.py "
-        "runtime/tests/test_openclaw_memory_policy_assert.py"
+        "runtime/tests/test_openclaw_memory_policy_assert.py "
+        "runtime/tests/test_openclaw_memory_policy_guard.py "
+        "runtime/tests/test_openclaw_memory_policy_guard_curated.py "
+        "runtime/tests/test_openclaw_gate_reason_catalog.py "
+        "runtime/tests/test_openclaw_host_cron_parity_guard.py "
+        "runtime/tests/test_coo_worktree_breakglass.py "
+        "runtime/tests/test_openclaw_promotion_state.py "
+        "runtime/tests/test_openclaw_coo_update_protocol_promotion.py"
     ]
 
 

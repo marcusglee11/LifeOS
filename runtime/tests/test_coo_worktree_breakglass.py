@@ -22,6 +22,8 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
     repo_dir.mkdir()
     tools_dir = repo_dir / "runtime" / "tools"
     tools_dir.mkdir(parents=True)
+    catalog_dir = repo_dir / "config" / "openclaw"
+    catalog_dir.mkdir(parents=True)
 
     source_repo = Path(__file__).resolve().parents[2]
     coo_src = source_repo / "runtime" / "tools" / "coo_worktree.sh"
@@ -96,6 +98,26 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
             ]
         )
         + "\n",
+    )
+    (catalog_dir / "gate_reason_catalog.json").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "reasons": {
+                    "policy_assert_failed": {"severity": "drift", "drift_bypassable": True},
+                    "model_ladder_policy_failed": {"severity": "drift", "drift_bypassable": True},
+                    "multiuser_posture_failed": {"severity": "drift", "drift_bypassable": True},
+                    "interfaces_policy_failed": {"severity": "drift", "drift_bypassable": True},
+                    "cron_delivery_guard_failed": {"severity": "drift", "drift_bypassable": True},
+                    "leak_scan_failed": {"severity": "hard", "drift_bypassable": False},
+                    "gate_reason_unknown": {"severity": "hard", "drift_bypassable": False},
+                    "gate_reason_catalog_failed": {"severity": "hard", "drift_bypassable": False},
+                },
+            },
+            ensure_ascii=True,
+        )
+        + "\n",
+        encoding="utf-8",
     )
 
     _run(["git", "init"], repo_dir)

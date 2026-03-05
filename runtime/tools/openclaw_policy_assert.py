@@ -14,8 +14,10 @@ SUBSCRIPTION_FALLBACKS = [
     "google-gemini-cli/gemini-3-flash-preview",
 ]
 OWNER_ONLY_COMMANDS = {"/model", "/models", "/think"}
-MEMORY_PROVIDER = "local"
-MEMORY_FALLBACK = "none"
+MEMORY_BACKEND_BURNIN = "local"
+MEMORY_BACKEND_QMD = "qmd"
+LEGACY_MEMORY_PROVIDER = "local"
+LEGACY_MEMORY_FALLBACK = "none"
 DISALLOWED_FALLBACK_RE = re.compile(r"(haiku|small)", re.IGNORECASE)
 QUARANTINED_PROVIDER_RE = re.compile(r"^claude-max/", re.IGNORECASE)
 
@@ -74,17 +76,7 @@ def command_authorized(cfg: Dict[str, Any], sender: str, command: str) -> bool:
     return sender in owners
 
 
-def _assert_memory_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
-    defaults = ((cfg.get("agents") or {}).get("defaults") or {})
-    workspace_raw = str(defaults.get("workspace") or "")
-    if not workspace_raw:
-        raise AssertionError("agents.defaults.workspace must be set")
-
-    workspace = os.path.abspath(os.path.expanduser(workspace_raw))
-    openclaw_home = os.path.abspath(os.path.expanduser("~/.openclaw"))
-    if not (workspace == openclaw_home or workspace.startswith(openclaw_home + os.sep)):
-        raise AssertionError(f"agents.defaults.workspace must be under ~/.openclaw, got {workspace_raw}")
-
+def _assert_legacy_memory_search(defaults: Dict[str, Any]) -> Dict[str, Any]:
     memory = defaults.get("memorySearch")
     if not isinstance(memory, dict):
         raise AssertionError("agents.defaults.memorySearch must be configured")
@@ -93,10 +85,10 @@ def _assert_memory_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
     provider = str(memory.get("provider") or "")
     fallback = str(memory.get("fallback") or "")
-    if provider != MEMORY_PROVIDER:
-        raise AssertionError(f"agents.defaults.memorySearch.provider must be {MEMORY_PROVIDER}, got {provider}")
-    if fallback != MEMORY_FALLBACK:
-        raise AssertionError(f"agents.defaults.memorySearch.fallback must be {MEMORY_FALLBACK}, got {fallback}")
+    if provider != LEGACY_MEMORY_PROVIDER:
+        raise AssertionError(f"agents.defaults.memorySearch.provider must be {LEGACY_MEMORY_PROVIDER}, got {provider}")
+    if fallback != LEGACY_MEMORY_FALLBACK:
+        raise AssertionError(f"agents.defaults.memorySearch.fallback must be {LEGACY_MEMORY_FALLBACK}, got {fallback}")
 
     sources = memory.get("sources")
     if not isinstance(sources, list):
@@ -109,14 +101,52 @@ def _assert_memory_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "enabled": False,
-        "workspace": workspace_raw,
         "provider": provider,
         "fallback": fallback,
         "sources": normalized_sources,
     }
 
 
-def assert_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
+def _assert_memory_policy(cfg: Dict[str, Any], policy_phase: str) -> Dict[str, Any]:
+    defaults = ((cfg.get("agents") or {}).get("defaults") or {})
+    workspace_raw = str(defaults.get("workspace") or "")
+    if not workspace_raw:
+        raise AssertionError("agents.defaults.workspace must be set")
+
+    workspace = os.path.abspath(os.path.expanduser(workspace_raw))
+    openclaw_home = os.path.abspath(os.path.expanduser("~/.openclaw"))
+    if not (workspace == openclaw_home or workspace.startswith(openclaw_home + os.sep)):
+        raise AssertionError(f"agents.defaults.workspace must be under ~/.openclaw, got {workspace_raw}")
+
+    top_memory = cfg.get("memory")
+    top_backend = ""
+    if isinstance(top_memory, dict):
+        top_backend = str(top_memory.get("backend") or "").strip().lower()
+
+    if policy_phase == "qmd":
+        if top_backend != MEMORY_BACKEND_QMD:
+            raise AssertionError(f"memory.backend must be {MEMORY_BACKEND_QMD} in qmd phase, got {top_backend or 'missing'}")
+    else:
+        # Burn-in accepts explicit canonical backend=local or legacy-only configs
+        # that still rely on memorySearch fields during migration.
+        if top_backend and top_backend != MEMORY_BACKEND_BURNIN:
+            raise AssertionError(
+                f"memory.backend must be {MEMORY_BACKEND_BURNIN} in burnin phase when configured, got {top_backend}"
+            )
+
+    legacy = {}
+    if policy_phase == "burnin" and not top_backend:
+        legacy = _assert_legacy_memory_search(defaults)
+
+    return {
+        "workspace": workspace_raw,
+        "policy_phase": policy_phase,
+        "canonical_backend": top_backend or "missing",
+        "legacy_memory_search": legacy,
+    }
+
+
+def assert_policy(cfg: Dict[str, Any], policy_phase: str = "burnin") -> Dict[str, Any]:
     defaults = ((cfg.get("agents") or {}).get("defaults") or {})
     defaults_think = str(defaults.get("thinkingDefault") or "unknown")
     if defaults_think not in {"low", "off"}:
@@ -138,12 +168,13 @@ def assert_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
     if command_authorized(cfg, "__non_owner__", "/think high"):
         raise AssertionError("non-owner must be rejected for /think")
 
-    memory = _assert_memory_policy(cfg)
+    memory = _assert_memory_policy(cfg, policy_phase=policy_phase)
     return {
         "primary_model": PRIMARY_MODEL,
         "required_subscription_fallbacks": SUBSCRIPTION_FALLBACKS,
         "owners": owners,
         "defaults_thinking": defaults_think,
+        "policy_phase": policy_phase,
         "memory": memory,
     }
 
@@ -151,12 +182,13 @@ def assert_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Assert OpenClaw subscription-first policy invariants.")
     parser.add_argument("--config", default=str(Path.home() / ".openclaw" / "openclaw.json"))
+    parser.add_argument("--policy-phase", choices=("burnin", "qmd"), default="burnin")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
     try:
         cfg = json.loads(Path(args.config).read_text(encoding="utf-8"))
-        result = assert_policy(cfg)
+        result = assert_policy(cfg, policy_phase=args.policy_phase)
     except (FileNotFoundError, json.JSONDecodeError, AssertionError, KeyError, ValueError, TypeError) as e:
         error_result = {
             "policy_ok": False,

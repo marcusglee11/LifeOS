@@ -140,7 +140,7 @@ run_capture coo_path which coo
 run_capture coo_symlink bash -lc 'ls -l "$(which coo)"'
 run_capture openclaw_version openclaw --version
 run_capture security_audit_deep coo openclaw -- security audit --deep
-run_capture memory_policy_guard_summary python3 runtime/tools/openclaw_memory_policy_guard.py --json-summary
+run_capture memory_policy_guard_summary python3 runtime/tools/openclaw_memory_policy_guard.py --mode raw --json-summary
 run_capture multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --json
 run_capture memory_status_main coo openclaw -- memory status --agent main
 run_capture channels_status_json coo openclaw -- channels status --json

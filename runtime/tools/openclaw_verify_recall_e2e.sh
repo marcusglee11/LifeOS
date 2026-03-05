@@ -21,7 +21,7 @@ contract_out="$OUT_DIR/contract_response.json"
 summary_out="$OUT_DIR/summary.txt"
 
 set +e
-timeout "$GUARD_TIMEOUT_SEC" python3 runtime/tools/openclaw_memory_policy_guard.py --json-summary --summary-out "$guard_summary" > "$guard_out" 2>&1
+timeout "$GUARD_TIMEOUT_SEC" python3 runtime/tools/openclaw_memory_policy_guard.py --mode raw --json-summary --summary-out "$guard_summary" > "$guard_out" 2>&1
 rc_guard=$?
 timeout "$SEARCH_TIMEOUT_SEC" coo openclaw -- memory search "lobster-memory-seed-001" --agent main > "$search_out" 2>&1
 rc_search=$?

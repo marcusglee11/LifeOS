@@ -17,7 +17,7 @@ guard_out="$OUT_DIR/guard_output.txt"
 index_out="$OUT_DIR/memory_index_verbose.txt"
 
 set +e
-python3 runtime/tools/openclaw_memory_policy_guard.py --json-summary --summary-out "$guard_summary" > "$guard_out" 2>&1
+python3 runtime/tools/openclaw_memory_policy_guard.py --mode raw --json-summary --summary-out "$guard_summary" > "$guard_out" 2>&1
 rc_guard=$?
 set -e
 if [ "$rc_guard" -ne 0 ]; then
