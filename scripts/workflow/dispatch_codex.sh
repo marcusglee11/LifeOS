@@ -45,13 +45,22 @@ TASK="$2"
 # Step 1: Create isolated worktree via start_build.py
 # ------------------------------------------------------------------
 echo ">> [dispatch_codex] Creating worktree for topic: $TOPIC"
-WORKTREE_OUTPUT="$(python3 "$SCRIPT_DIR/start_build.py" "$TOPIC" 2>&1)"
+WORKTREE_OUTPUT="$(python3 "$SCRIPT_DIR/start_build.py" "$TOPIC" 2>&1)" || true
 echo "$WORKTREE_OUTPUT"
 
 # ------------------------------------------------------------------
 # Step 2: Extract worktree path from start_build.py output
 # ------------------------------------------------------------------
 WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep -oP 'Worktree ready at:\s*\K.+' | head -1)"
+
+# Handle "already exists" case — extract path from error message
+if [[ -z "$WORKTREE_PATH" ]]; then
+    WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep -oP 'Worktree path already exists:\s*\K.+' | head -1)"
+    if [[ -n "$WORKTREE_PATH" ]]; then
+        echo ">> [dispatch_codex] Worktree already exists — reusing: $WORKTREE_PATH"
+    fi
+fi
+
 if [[ -z "$WORKTREE_PATH" ]]; then
     echo "" >&2
     echo "ERROR: Could not determine worktree path from start_build.py output." >&2
@@ -86,4 +95,4 @@ echo ""
 # ------------------------------------------------------------------
 # Step 4: Dispatch to Codex in the isolated worktree
 # ------------------------------------------------------------------
-exec codex exec --sandbox workspace-write --quiet -C "$WORKTREE_PATH" "$TASK"
+exec codex exec --sandbox workspace-write -C "$WORKTREE_PATH" "$TASK"
