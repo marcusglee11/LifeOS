@@ -1,0 +1,26 @@
+schema_version: "order_template.v1"
+template_name: "content"
+description: "Content creation task — 3-phase chain, no worktree required"
+steps:
+  - name: "draft"
+    role: "builder"
+    provider: "auto"
+    mode: "blocking"
+  - name: "review"
+    role: "council_reviewer"
+    provider: "auto"
+    mode: "blocking"
+  - name: "finalize"
+    role: "builder"
+    provider: "auto"
+    mode: "blocking"
+constraints:
+  worktree: false
+  max_duration_seconds: 3600
+  governance_policy: null
+shadow:
+  enabled: false
+  provider: "codex"
+  receives: "full_task_payload"
+supervision:
+  per_cycle_check: false

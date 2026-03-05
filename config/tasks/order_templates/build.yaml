@@ -1,0 +1,38 @@
+schema_version: "order_template.v1"
+template_name: "build"
+description: "Standard build task — 6-phase chain with worktree isolation"
+steps:
+  - name: "implementation"
+    role: "builder"
+    provider: "auto"
+    mode: "blocking"
+  - name: "test"
+    role: "builder"
+    provider: "auto"
+    mode: "blocking"
+  - name: "review"
+    role: "council_reviewer"
+    provider: "auto"
+    mode: "blocking"
+  - name: "fix"
+    role: "builder"
+    provider: "auto"
+    mode: "blocking"
+  - name: "final_test"
+    role: "builder"
+    provider: "auto"
+    mode: "blocking"
+  - name: "close"
+    role: "builder"
+    provider: "auto"
+    mode: "blocking"
+constraints:
+  worktree: true
+  max_duration_seconds: 7200
+  governance_policy: null
+shadow:
+  enabled: false
+  provider: "codex"
+  receives: "full_task_payload"
+supervision:
+  per_cycle_check: false
