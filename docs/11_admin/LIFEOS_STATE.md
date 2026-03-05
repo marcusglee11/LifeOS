@@ -11,28 +11,27 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** CLI-first dispatch activation + self-hosted runner validation
-**Active WIP:** main (clean)
-**Last Updated:** 2026-02-28 (rev25)
+**Current Focus:** COO Bootstrap Step 5 (burn-in preparation) — Steps 1-4 merged
+**Active WIP:** build/coo-brain (Step 2 — COO system prompt, testing by Codex)
+**Last Updated:** 2026-03-06 (rev26)
 
 ---
 
-## 🟥 IMMEDIATE NEXT STEP (The "One Thing")
+## COO Bootstrap Campaign (Steps 1-6)
 
-**W7 Stabilization Batch (post-E2E proof):**
+1. ✓ Step 1A: Structured backlog (`backlog.py`, `config/tasks/backlog.yaml`) — merged 23cd2143
+2. ✓ Step 1B: Delegation envelope (`config/governance/delegation_envelope.yaml`) — merged eb75f2e8
+3. ⏳ Step 2: COO Brain — system prompt, memory seed, brief — `build/coo-brain` (testing by Codex)
+4. ✓ Step 3D: Context builder + parser (`runtime/orchestration/coo/context.py`, `parser.py`) — merged cf7740f1
+5. ✓ Step 3E: Templates (`config/tasks/order_templates/`, `templates.py`) — merged 5a7425b3
+6. ✓ Step 3F: CLI commands (`runtime/orchestration/coo/commands.py`, `cli.py` extended) — merged 1d6d208c
+7. ✓ Step 4G: Post-execution state updater hooks — merged 72548d7e
+8. ☐ Step 5: Burn-in (proxy COO validates, CEO observes)
+9. ☐ Step 6: Live COO (first real OpenClaw invocation)
 
-1. ~~E2E Loop Test: Real task through full pipeline~~ ✓ **COMPLETE** (2026-02-14, run_20260214_053357)
-2. ~~W7-T01 Ledger hash-chain hardening~~ ✓ **COMPLETE** (2026-02-16, commit 558c375)
-3. ~~W7-T02 Doc freshness CI enforcement~~ ✓ **COMPLETE** (2026-02-16, CI + close-build wired)
-4. ~~W7-T03 Protocol doc finalization (5/5 docs)~~ ✓ **COMPLETE** (2026-02-16, all ACTIVE)
-5. ~~W4-T03 Worktree dispatch governance~~ ✓ **COMPLETE** (2026-02-18, Spine clean-worktree enforcement)
-6. ~~W4-T04 Validator lifecycle hooks (OpenClaw path)~~ ✓ **COMPLETE** (2026-02-18, openclaw_bridge execute + CLI)
-7. ~~W5-T02 Checkpoint/resume E2E proof~~ ✓ **COMPLETE** (2026-02-19, 6/6 integration tests)
-8. ~~W6 Codemoot spike~~ **SUPERSEDED** — Council V2 is the production reviewer path (per Build Loop Plan v2.1)
+**Next:** Merge Step 2 (coo-brain) → begin Step 5 burn-in
 
-**Next:** 3 consecutive overnight runs via self-hosted GH Actions cron
-
-**Canonical Plan Authority:** `docs/11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
+**Canonical Plan Authority:** `artifacts/plans/2026-03-05-coo-bootstrap-plan.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 
 ---
 
@@ -40,12 +39,17 @@
 
 | Status | Workstream | Owner | Deliverable |
 |--------|------------|-------|-------------|
+| **ACTIVE** | **COO Bootstrap (Steps 1-6)** | Antigravity | Full COO delegation pipeline — 7/9 steps merged |
+| **IN TEST** | **COO Brain (Step 2)** | Codex | System prompt, memory seed, brief — `build/coo-brain` |
+| **MERGED** | **COO Jarda Parity v5** | Antigravity | OpenClaw verification tooling + workflow pack (8045e9c5) |
+| **MERGED** | **CLI-First Dispatch** | Antigravity | Dispatch engine CLI surface (0938bf0f) |
+| **MERGED** | **Sprint 1 Stop-the-Bleeding** | Antigravity | Dead code cleanup, root junk, CI hardening (f8e590fe) |
+| **MERGED** | **GitHub Actions Build Loop** | Antigravity | CI automation (0875e5db) |
 | **CLOSED** | **Trusted Builder Mode v1.1** | Antigravity | `Council_Ruling_Trusted_Builder_Mode_v1.1.md` (RATIFIED) |
 | **CLOSED** | **Policy Engine Authoritative Gating** | Antigravity | `Closure_Record_Policy_Engine_FixPass_v1.0.md` |
-
 | **CLOSED** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
 | **WAITING** | OpenCode Deletion Logic | Council | Review Ruling |
-| **CLOSED** | **Sprint S1 Phase B (B1–B3)** | Antigravity | Refined Evidence + Boundaries (ACCEPTED + committed) |
+| **CLOSED** | **Sprint S1 Phase B (B1-B3)** | Antigravity | Refined Evidence + Boundaries (ACCEPTED + committed) |
 | **MERGED** | **Phase 4 (4A0-4D) Full Stack** | Antigravity | CEO Queue, Loop Spine, Test Executor, Code Autonomy - All in main (commit 9f4ee41) |
 
 ---
@@ -64,6 +68,9 @@
   - **Phase 4B (Backlog Selection):** MERGED - Task selection integration + closure evidence v1.3
   - **Phase 4C (OpenCode Test Execution):** MERGED - Pytest runner with P0-2 hardening
   - **Phase 4D (Code Autonomy Hardening):** MERGED - Protected paths, syntax validation, bypass seam closure
+- **Phase 5 (COO Bootstrap):** IN PROGRESS (2026-03-05 → present)
+  - Steps 1A-1B (backlog + delegation) + 3D-3F (context/templates/CLI) + 4G (state updater) merged
+  - Step 2 (COO Brain) in test; Steps 5-6 (burn-in + live) pending
 
 ---
 
@@ -73,11 +80,27 @@ None — all prior blockers resolved:
 - ~~Model reliability~~ → Zen paid routing merged (`adab507`, 2026-02-20)
 - ~~PyYAML missing~~ → PyYAML 6.0.3 installed; steward phase works in E2E proof
 - ~~Auto-commit gap~~ → Working in recent merges (8f6287e, adab507, cb5f5d9)
+- Step 2 (coo-brain) pending Codex test pass — not a blocker, normal pipeline
 
 ---
 
 ## 🟩 Recent Wins
 
+- **2026-03-06:** COO Jarda Parity v5 — OpenClaw verification tooling + workflow pack improvements (merge commit 8045e9c5)
+- **2026-03-05:** COO 3F CLI — `lifeos coo {propose,approve,status,report,direct}` commands (merge commit 1d6d208c)
+- **2026-03-05:** COO 3D Context/Parser — context builder + proposal parser with retry/escalation (merge commit cf7740f1)
+- **2026-03-05:** COO 3E Templates — order templates for build/content/hygiene task types (merge commit 5a7425b3)
+- **2026-03-05:** COO 4G State Updater — post-execution backlog + state update hooks (merge commit 72548d7e)
+- **2026-03-05:** Dispatch Codex Fixes — dispatch engine hardening (merge commit 62d74ecc)
+- **2026-03-05:** COO 1B Delegation Envelope — autonomy level config (merge commit eb75f2e8)
+- **2026-03-05:** COO 1A Structured Backlog — TaskEntry schema + seed data (merge commit 23cd2143)
+- **2026-03-05:** COO Bootstrap Review — council-reviewed plan (Codex + Gemini) (merge commit 212bff24)
+- **2026-03-04:** Bypass Monitor Wiring — spine bypass monitoring integration (merge commit f953093c)
+- **2026-03-04:** Fix Steward Runner — steward config fix (merge commit a1f67490)
+- **2026-03-03:** Sprint Deferments D1-D3 — review deferments batch (merge commit 84f0f608)
+- **2026-03-03:** CLI-First Dispatch — dispatch engine CLI surface (merge commit 0938bf0f)
+- **2026-03-02:** Sprint 1 Stop-the-Bleeding — dead code cleanup, root junk, CI hardening (merge commit f8e590fe)
+- **2026-03-01:** GitHub Actions Build Loop — CI automation (merge commit 0875e5db)
 - **2026-02-28:** Worktree-First Build Architecture — mandatory isolation for build/fix/hotfix/spike branches; `start_build.py` with topic-first CLI + `--recover-primary`; `close_build.py` with isolation hard-block; DispatchEngine auto-remediation loop; safety gate isolation check; 97 targeted tests. Review fix: missing `import subprocess` in dispatch/engine.py. (merge commit df4bb54)
 - **2026-02-27:** Batch2 Burn In — chore: refresh runtime_status.json (closure); fix(steward): add burn-in reports and tech debt inventory to admin allowlist; chore: refresh runtime_status.json (closure); chore(burn-in): stage TECH_DEBT_INVENTORY.md from concurrent audit session; docs(burn-in): Batch 2 closure report + Council V2 evaluation (and 6 more) — 1/1 targeted test command(s) passed. (merge commit 1a5db9f)
 - **2026-02-27:** Batch 1 Burn-In COMPLETE (`78473e3`) — 6 spine runs; 40 new tests (2147 total, 0 regressions); `BudgetConfig.__post_init__` validation; `workflow_pack.py` worktree fix; 7 key findings documented for Batch 2 procedure improvement. Report: `docs/11_admin/Batch1_BurnIn_Report.md`
