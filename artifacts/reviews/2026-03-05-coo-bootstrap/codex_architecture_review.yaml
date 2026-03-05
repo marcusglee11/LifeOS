@@ -1,0 +1,55 @@
+verdict_recommendation: APPROVE_WITH_CONDITIONS
+summary: "The plan is architecturally aligned with existing ExecutionOrder/Dispatch primitives and appropriately reuses core infrastructure, but several control-flow and enforcement seams are underspecified and would otherwise make COO autonomy mostly advisory."
+claims:
+  - id: A1
+    category: data_flow
+    severity: blocker
+    description: "The runtime owner of inbox draining/execution is undefined, so the proposed propose->approve->dispatch->execute flow is incomplete."
+    evidence: "Plan Step 4 expects 'propose -> approve -> dispatch -> spine executes' and Step 3F writes orders to inbox (artifacts/plans/2026-03-05-coo-bootstrap-plan.md:221-305), but current CLI only exposes 'dispatch submit' and 'dispatch status' (runtime/cli.py:1043-1058,1134-1138). DispatchEngine has poll_inbox() but no runner loop wired (runtime/orchestration/dispatch/engine.py:130-133)."
+    recommendation: "Define and implement a canonical dispatch runner (for example run-once/daemon) that drains inbox via DispatchEngine and make COO approve call that contract explicitly."
+
+  - id: A2
+    category: interface
+    severity: major
+    description: "OpenClaw invocation is claimed via CLIDispatch, but the provider contract currently has no OpenClaw provider."
+    evidence: "Plan reuse table says COO is invoked as OpenClaw via cli_dispatch (artifacts/plans/2026-03-05-coo-bootstrap-plan.md:254), but CLIProvider supports only codex/gemini/claude_code (runtime/agents/cli_dispatch.py:28-33) and config models defines only those cli_providers (config/models.yaml:170-188)."
+    recommendation: "Either add a first-class openclaw CLI provider (enum, command builder, models.yaml entry, tests) or revise the plan to use the existing OpenClaw bridge path explicitly."
+
+  - id: A3
+    category: failure_mode
+    severity: major
+    description: "The 5-level autonomy/trust model is specified but not mechanically enforceable in the current architecture."
+    evidence: "Levels L0-L4 and trust promotion rules are documented in the plan (artifacts/plans/2026-03-05-coo-bootstrap-plan.md:44-67), but dispatch/order/cli currently contain no delegation-envelope gate. Existing promotion checks in ports are tied to Council V2 criteria, not COO trust levels (runtime/orchestration/dispatch/ports.py:42-49)."
+    recommendation: "Add an explicit autonomy gate before order emission/execution that reads delegation_envelope.yaml, maps actions to escalation types, writes audit artifacts, and is covered by fail-closed tests."
+
+  - id: A4
+    category: architecture
+    severity: major
+    description: "Backlog state risks fragmentation across multiple partially overlapping task sources without a migration contract."
+    evidence: "Plan introduces config/tasks/backlog.yaml and deprecates docs BACKLOG/LIFEOS_STATE flows (artifacts/plans/2026-03-05-coo-bootstrap-plan.md:75-90,164-173), while existing runtime already uses config/backlog.yaml in run-mission (runtime/cli.py:595), markdown parsing from docs/11_admin/BACKLOG.md (recursive_kernel/backlog_parser.py:1-7,140-200), and a separate nightly_queue.yaml (artifacts/dispatch/nightly_queue.yaml:1-24)."
+    recommendation: "Define one canonical task schema plus adapters (or explicit one-time migration) and deprecation checkpoints so old and new selectors cannot diverge silently."
+
+  - id: A5
+    category: over_engineering
+    severity: minor
+    description: "Campaign/objective tracking could bloat the first increment if implemented before core COO loop reliability is proven."
+    evidence: "The plan identifies campaign tracking as needed (artifacts/plans/2026-03-05-coo-bootstrap-plan.md:26,31,77) and also defers tracker artifacts to Step 5+ (artifacts/plans/2026-03-05-coo-bootstrap-plan.md:235-241)."
+    recommendation: "Keep campaign artifacts deferred until propose/approve/state-update loop is stable with measurable reliability in burn-in."
+
+  - id: A6
+    category: architecture
+    severity: observation
+    description: "ExecutionOrder reuse is a strong architectural choice that minimizes integration risk and avoids creating a parallel orchestration contract."
+    evidence: "Plan explicitly reuses DispatchEngine + ExecutionOrder v1 (artifacts/plans/2026-03-05-coo-bootstrap-plan.md:249-255). Existing order schema is already strict and validated (runtime/orchestration/dispatch/order.py:16-162)."
+    recommendation: "Preserve a single order contract by round-tripping COO-generated YAML through parse_order/load_order in tests instead of introducing alternate order schemas."
+
+complexity_budget:
+  new_files_count: 18
+  new_files_justified: false
+  rationale: "The full list spans foundation, prompting, templates, state, and campaign artifacts. A smaller Phase-1 slice (backlog core + CLI glue + enforcement gate + tests) should ship first; remaining files should be gated behind burn-in evidence."
+
+conditions:
+  - "Specify the dispatch execution contract end-to-end (inbox producer, inbox consumer, execution trigger) and implement it before COO approve is considered complete."
+  - "Make autonomy/delegation enforcement mechanical (not prompt-only): envelope parser, action->escalation mapping, fail-closed gate, and tests."
+  - "Resolve OpenClaw runtime integration path (new CLI provider or explicit bridge path) and align plan text with actual invocation architecture."
+  - "Establish a single canonical backlog source with migration/deprecation rules across BACKLOG.md, config/backlog.yaml, and nightly_queue.yaml."
