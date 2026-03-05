@@ -151,8 +151,12 @@ artifacts/validation_runs/
 /TOOLS.md
 /USER.md
 
-# Claude Code memory directory (session-specific)
-COO/
+# Claude Code memory directory (session-specific) — anchored to root only
+/COO/
 artifacts/comparison_results.jsonl
 artifacts/Review_Packet_*.md
 artifacts/store/
+
+# Stale runtime artifacts (WSL/Windows filesystem side-effects)
+/nul
+/test_budget_concurrency.db

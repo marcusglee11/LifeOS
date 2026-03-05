@@ -222,6 +222,41 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
             add("pytest -q runtime/tests/test_workflow_pack.py")
             continue
 
+        if _matches(
+            file_path,
+            (
+                "runtime/orchestration/coo/",
+                "runtime/tests/orchestration/coo/",
+            ),
+        ):
+            add("pytest -q runtime/tests/orchestration/coo/")
+            continue
+
+        if _matches(file_path, ("config/tasks/",)):
+            # Structured backlog config — validate via backlog tests
+            add("pytest -q runtime/tests/orchestration/coo/test_backlog.py")
+            continue
+
+        if _matches(file_path, ("config/governance/",)):
+            # Governance config (YAML only) — doc hygiene is sufficient
+            add("pytest -q runtime/tests/test_doc_hygiene.py")
+            continue
+
+        if _matches(
+            file_path,
+            (
+                "artifacts/plans/",
+                "artifacts/reviews/",
+                "artifacts/handoffs/",
+                "artifacts/coo/",
+                "artifacts/evidence/",
+                "artifacts/content/",
+            ),
+        ):
+            # Pure artifact files — no code impact; workflow_pack smoke is sufficient
+            add("pytest -q runtime/tests/test_workflow_pack.py")
+            continue
+
     if not routed:
         routed.append("pytest -q runtime/tests")
     return routed

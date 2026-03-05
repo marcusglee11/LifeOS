@@ -124,6 +124,47 @@ def test_route_targeted_tests_artifacts_status() -> None:
     assert commands == ["pytest -q runtime/tests/test_workflow_pack.py"]
 
 
+def test_route_targeted_tests_coo_module() -> None:
+    commands = route_targeted_tests(["runtime/orchestration/coo/backlog.py"])
+    assert commands == ["pytest -q runtime/tests/orchestration/coo/"]
+
+
+def test_route_targeted_tests_coo_tests() -> None:
+    commands = route_targeted_tests(["runtime/tests/orchestration/coo/test_backlog.py"])
+    assert commands == ["pytest -q runtime/tests/orchestration/coo/"]
+
+
+def test_route_targeted_tests_config_tasks() -> None:
+    commands = route_targeted_tests(["config/tasks/backlog.yaml"])
+    assert commands == ["pytest -q runtime/tests/orchestration/coo/test_backlog.py"]
+
+
+def test_route_targeted_tests_config_governance() -> None:
+    commands = route_targeted_tests(["config/governance/delegation_envelope.yaml"])
+    assert commands == ["pytest -q runtime/tests/test_doc_hygiene.py"]
+
+
+def test_route_targeted_tests_artifacts_plans() -> None:
+    commands = route_targeted_tests(["artifacts/plans/2026-03-05-coo-bootstrap-plan.md"])
+    assert commands == ["pytest -q runtime/tests/test_workflow_pack.py"]
+
+
+def test_route_targeted_tests_artifacts_handoffs() -> None:
+    commands = route_targeted_tests(["artifacts/handoffs/some-handoff.md"])
+    assert commands == ["pytest -q runtime/tests/test_workflow_pack.py"]
+
+
+def test_route_targeted_tests_coo_and_config_deduplicates() -> None:
+    # Mixed coo + config/tasks change should not repeat the coo suite
+    commands = route_targeted_tests([
+        "runtime/orchestration/coo/backlog.py",
+        "config/tasks/backlog.yaml",
+    ])
+    assert "pytest -q runtime/tests/orchestration/coo/" in commands
+    assert "pytest -q runtime/tests/orchestration/coo/test_backlog.py" in commands
+    assert len(commands) == 2  # no duplicates
+
+
 def test_run_closure_tests_passes_on_zero_returncode(monkeypatch) -> None:
     def fake_run(*args, **kwargs):
         return subprocess.CompletedProcess(args=args[0], returncode=0, stdout="ok", stderr="")

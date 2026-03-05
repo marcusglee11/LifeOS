@@ -130,3 +130,4 @@ python3 scripts/workflow/active_work.py show
 - **Vague next steps** — "finish up" means nothing; be specific
 - **Missing branch/commit info** — the receiving agent needs coordinates, not just descriptions
 - **Re-explaining the codebase** — the receiving agent has CLAUDE.md and can explore
+- **Conditional timing** — never write "begin only after X merges/completes." The receiving agent blocks until X is done, burning context or failing silently. Instead: provide a direct file path or commit SHA that works NOW. If the resource truly isn't available yet, say "read from `<absolute_path>` in the worktree — available immediately" or defer the handoff until it is.

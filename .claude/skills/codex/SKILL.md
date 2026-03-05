@@ -31,6 +31,28 @@ Full pipeline:
 /handoff-pack to_codex  ->  /codex  ->  /review-build  ->  /review-fix  ->  /close-build
 ```
 
+## Pre-flight — Worktree Isolation (Hard Gate)
+
+Before delegating any task that writes files, Codex **must** run in an isolated worktree. The primary repo is shared state — Codex running there causes Article XIX blocks, merge conflicts, and stash pop failures.
+
+**Use the wrapper script (preferred):**
+```bash
+scripts/workflow/dispatch_codex.sh <topic> "<task prompt>"
+```
+This atomically creates the worktree via `start_build.py` and hard-gates the `cwd` so it can never point at the primary repo root.
+
+**If calling Codex MCP directly:** create the worktree first, then set `cwd` to the worktree path — never to the primary repo root.
+```bash
+python3 scripts/workflow/start_build.py <topic>
+# → prints "Worktree ready at: <path>" — use that path as cwd
+```
+
+**Failure mode:** If `dispatch_codex.sh` exits with code 2/3/4, do NOT fall back to running Codex in the primary repo. Fix the worktree creation failure first, then retry.
+
+**Read-only tasks:** worktree isolation not required (no writes). Set `sandbox: "read-only"` instead.
+
+---
+
 ## Step 1 — Gather Repo Context
 
 Read before constructing the prompt:
@@ -70,7 +92,7 @@ Use the `codex` MCP tool from the `codex-builder` server with these parameters:
 ```json
 {
   "prompt": "<enriched prompt from Step 2>",
-  "cwd": "<absolute path to repo root>",
+  "cwd": "<absolute path to worktree — NOT primary repo root>",
   "sandbox": "workspace-write"
 }
 ```

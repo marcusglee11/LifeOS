@@ -1,0 +1,265 @@
+schema_version: "backlog.v1"
+tasks:
+  - id: "T-001"
+    title: "COO Bootstrap: Structured backlog (Step 1A)"
+    description: "Build runtime/orchestration/coo/backlog.py + config/tasks/backlog.yaml + tests"
+    dod: "backlog.py with TaskEntry + load/save/filter/mark; backlog.yaml seeded; tests pass"
+    priority: "P0"
+    risk: "low"
+    scope_paths:
+      - "runtime/orchestration/coo/"
+      - "config/tasks/"
+    status: "in_progress"
+    requires_approval: false
+    owner: "claude-code"
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "coo-bootstrap"
+      - "foundation"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-002"
+    title: "COO Bootstrap: Delegation envelope config (Step 1B)"
+    description: "Create config/governance/delegation_envelope.yaml with L0/L3/L4 autonomy levels"
+    dod: "Valid YAML; fail_closed true; all required keys present"
+    priority: "P0"
+    risk: "low"
+    scope_paths:
+      - "config/governance/"
+    status: "in_progress"
+    requires_approval: false
+    owner: "claude-code"
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "coo-bootstrap"
+      - "governance"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-003"
+    title: "COO Bootstrap: Hygiene sprint (Step 1C)"
+    description: "Delete nul, test_budget_concurrency.db from repo root; prune stale worktrees; update .gitignore"
+    dod: "Files deleted; .gitignore updated; git worktree list shows no prunable entries; tests pass"
+    priority: "P1"
+    risk: "low"
+    scope_paths:
+      - ".gitignore"
+    status: "pending"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "hygiene"
+    tags:
+      - "coo-bootstrap"
+      - "hygiene"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-004"
+    title: "COO Bootstrap: COO Brain surgical seed (Step 2)"
+    description: "Draft config/agent_roles/coo.md system prompt + memory seed + brief template. Interactive with CEO."
+    dod: "CEO-approved coo.md; artifacts/coo/memory_seed.md; artifacts/coo/brief.md"
+    priority: "P0"
+    risk: "med"
+    scope_paths:
+      - "config/agent_roles/"
+      - "artifacts/coo/"
+    status: "in_progress"
+    requires_approval: true
+    owner: "claude-code"
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "coo-bootstrap"
+      - "brain"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-005"
+    title: "COO Bootstrap: Context builder + parser (Step 3D)"
+    description: "runtime/orchestration/coo/context.py + parser.py — build_propose_context, parse_proposal_response"
+    dod: "context.py and parser.py with full tests; proposal YAML schema matches coo.md output format"
+    priority: "P1"
+    risk: "low"
+    scope_paths:
+      - "runtime/orchestration/coo/"
+    status: "pending"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "coo-bootstrap"
+      - "wiring"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-006"
+    title: "COO Bootstrap: Order templates (Step 3E)"
+    description: "config/tasks/order_templates/build.yaml + content.yaml + hygiene.yaml + templates.py"
+    dod: "Templates loadable; instantiate_order produces valid ExecutionOrder"
+    priority: "P1"
+    risk: "low"
+    scope_paths:
+      - "config/tasks/order_templates/"
+      - "runtime/orchestration/coo/"
+    status: "pending"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "coo-bootstrap"
+      - "wiring"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-007"
+    title: "COO Bootstrap: CLI commands (Step 3F)"
+    description: "runtime/orchestration/coo/commands.py + lifeos coo propose/approve/status/report/direct"
+    dod: "lifeos coo propose produces valid proposal YAML; lifeos coo approve T-001 writes ExecutionOrder to inbox"
+    priority: "P1"
+    risk: "low"
+    scope_paths:
+      - "runtime/orchestration/coo/"
+      - "runtime/cli.py"
+    status: "pending"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "coo-bootstrap"
+      - "cli"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-008"
+    title: "COO Bootstrap: Post-execution state updater (Step 4G)"
+    description: "Wire structured backlog update into workflow_pack.py + closure_pack.py after merge"
+    dod: "close_build auto-updates config/tasks/backlog.yaml after successful merge"
+    priority: "P1"
+    risk: "med"
+    scope_paths:
+      - "runtime/tools/workflow_pack.py"
+      - "scripts/workflow/closure_pack.py"
+    status: "pending"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "coo-bootstrap"
+      - "integration"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-009"
+    title: "Bypass Monitoring (Trusted Builder P1)"
+    description: "Alerting on high bypass utilization. Deferred from Trusted Builder v1.1 Ratification."
+    dod: "Alerting on high bypass utilization — implementation + tests"
+    priority: "P1"
+    risk: "med"
+    scope_paths:
+      - "runtime/"
+    status: "pending"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "trusted-builder"
+      - "deferred"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-010"
+    title: "Semantic Guardrails (Trusted Builder P1)"
+    description: "Heuristics for meaningful changes. Deferred from Trusted Builder v1.1 Ratification."
+    dod: "Heuristics for meaningful changes — implementation + tests"
+    priority: "P1"
+    risk: "med"
+    scope_paths:
+      - "runtime/"
+    status: "pending"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "trusted-builder"
+      - "deferred"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-011"
+    title: "Fix test_steward_runner.py (25/27 failing)"
+    description: "Tests pass or are properly restructured. Import/fixture issues, not code bugs."
+    dod: "All steward runner tests pass (or properly skipped with documented reason)"
+    priority: "P1"
+    risk: "med"
+    scope_paths:
+      - "runtime/tests/"
+    status: "pending"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "build"
+    tags:
+      - "test-debt"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-012"
+    title: "Revenue Track: LinkedIn daily posts"
+    description: "COO drafts, CEO reviews. Seed topic: 'What autonomous AI agents actually cost to run'"
+    dod: "5 LinkedIn posts drafted and CEO-reviewed; artifacts/content/linkedin_drafts/batch_001.md"
+    priority: "P1"
+    risk: "low"
+    scope_paths:
+      - "artifacts/content/"
+    status: "pending"
+    requires_approval: true
+    owner: ""
+    evidence: ""
+    task_type: "content"
+    tags:
+      - "revenue"
+      - "content"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
+
+  - id: "T-013"
+    title: "Revenue Track: B5 Governance Guide"
+    description: "19,500 lines of real code + 1,440 tests backing the content. Scope TBD (book/series/whitepaper)."
+    dod: "Chapter structure outline CEO-reviewed; scope decision made; artifacts/content/b5_governance_guide_outline.md"
+    priority: "P1"
+    risk: "low"
+    scope_paths:
+      - "artifacts/content/"
+    status: "pending"
+    requires_approval: true
+    owner: ""
+    evidence: ""
+    task_type: "content"
+    tags:
+      - "revenue"
+      - "content"
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+    completed_at: null
