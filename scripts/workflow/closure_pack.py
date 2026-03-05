@@ -21,6 +21,7 @@ from runtime.tools.workflow_pack import (  # noqa: E402
     merge_to_main,
     run_closure_tests,
     update_state_and_backlog,
+    update_structured_backlog,
 )
 
 
@@ -351,6 +352,20 @@ def main() -> int:
                 what_done.append("Updated BACKLOG.md timestamp (no matching items).")
         for err in state_update["errors"]:
             what_remains.append(f"State update warning: {err}")
+
+        # Update structured backlog (COO task registry)
+        structured_update = update_structured_backlog(
+            repo_root,
+            merge_sha=merge["merge_sha"],
+            skip_on_error=True,
+        )
+        if structured_update["updated"]:
+            what_done.append(
+                f"Marked {len(structured_update['tasks_completed'])} task(s) complete in backlog.yaml: "
+                f"{', '.join(structured_update['tasks_completed'])}"
+            )
+        for err in structured_update["errors"]:
+            what_remains.append(f"Structured backlog warning: {err}")
     else:
         what_done.append("State update skipped by --no-state-update.")
 

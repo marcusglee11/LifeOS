@@ -14,6 +14,7 @@ from runtime.tools.workflow_pack import (
     read_active_work,
     run_closure_tests,
     route_targeted_tests,
+    update_structured_backlog,
     write_active_work,
 )
 
@@ -674,3 +675,169 @@ def test_update_graceful_on_missing_files(tmp_path: Path) -> None:
     assert result["backlog_updated"] is False
     assert len(result["errors"]) > 0
     assert any("not found" in err.lower() for err in result["errors"])
+
+
+def _write_minimal_structured_backlog(tmp_path: Path, status: str = "in_progress") -> Path:
+    backlog_path = tmp_path / "config" / "tasks" / "backlog.yaml"
+    backlog_path.parent.mkdir(parents=True, exist_ok=True)
+    backlog_path.write_text(
+        f"""schema_version: "backlog.v1"
+tasks:
+  - id: "T-001"
+    title: "Test task"
+    description: ""
+    dod: ""
+    priority: "P1"
+    risk: "low"
+    scope_paths: []
+    status: "{status}"
+    requires_approval: false
+    owner: ""
+    evidence: ""
+    task_type: "build"
+    tags: []
+    objective_ref: "bootstrap"
+    created_at: "2026-03-05T00:00:00Z"
+""",
+        encoding="utf-8",
+    )
+    return backlog_path
+
+
+def _write_completed_order(tmp_path: Path, name: str, content: str) -> None:
+    completed_dir = tmp_path / "artifacts" / "dispatch" / "completed"
+    completed_dir.mkdir(parents=True, exist_ok=True)
+    (completed_dir / name).write_text(content, encoding="utf-8")
+
+
+def test_update_structured_backlog_no_completed_dir_returns_not_updated(tmp_path: Path) -> None:
+    _write_minimal_structured_backlog(tmp_path, status="in_progress")
+
+    result = update_structured_backlog(
+        repo_root=tmp_path,
+        merge_sha="abc123",
+        skip_on_error=True,
+    )
+
+    assert result["updated"] is False
+    assert result["tasks_completed"] == []
+
+
+def test_update_structured_backlog_no_matching_task_ref(tmp_path: Path) -> None:
+    _write_minimal_structured_backlog(tmp_path, status="pending")
+    _write_completed_order(
+        tmp_path,
+        "order-success.yaml",
+        """schema_version: "execution_order.v1"
+order_id: "ORD-T-999-20260305120000"
+task_ref: "T-999"
+created_at: "2026-03-05T12:00:00Z"
+outcome: "SUCCESS"
+steps:
+  - name: "implementation"
+    role: "builder"
+""",
+    )
+
+    result = update_structured_backlog(
+        repo_root=tmp_path,
+        merge_sha="abc123",
+        skip_on_error=True,
+    )
+
+    assert result["updated"] is False
+    assert result["tasks_completed"] == []
+
+
+def test_update_structured_backlog_marks_matching_task(tmp_path: Path) -> None:
+    from runtime.orchestration.coo.backlog import load_backlog
+
+    backlog_path = _write_minimal_structured_backlog(tmp_path, status="in_progress")
+    _write_completed_order(
+        tmp_path,
+        "order-success.yaml",
+        """schema_version: "execution_order.v1"
+order_id: "ORD-T-001-20260305120000"
+task_ref: "T-001"
+created_at: "2026-03-05T12:00:00Z"
+outcome: "SUCCESS"
+steps:
+  - name: "implementation"
+    role: "builder"
+""",
+    )
+
+    result = update_structured_backlog(
+        repo_root=tmp_path,
+        merge_sha="abc123",
+        skip_on_error=True,
+    )
+
+    assert result["updated"] is True
+    assert result["tasks_completed"] == ["T-001"]
+
+    tasks = load_backlog(backlog_path)
+    assert next(task for task in tasks if task.id == "T-001").status == "completed"
+
+
+def test_update_structured_backlog_failed_outcome_not_marked_complete(tmp_path: Path) -> None:
+    _write_minimal_structured_backlog(tmp_path, status="in_progress")
+    _write_completed_order(
+        tmp_path,
+        "order-failed.yaml",
+        """schema_version: "execution_order.v1"
+order_id: "ORD-T-001-20260305130000"
+task_ref: "T-001"
+created_at: "2026-03-05T13:00:00Z"
+outcome: "FAILED"
+steps:
+  - name: "implementation"
+    role: "builder"
+""",
+    )
+
+    result = update_structured_backlog(
+        repo_root=tmp_path,
+        merge_sha="abc123",
+        skip_on_error=True,
+    )
+
+    assert result["updated"] is False
+    assert result["tasks_completed"] == []
+
+
+def test_update_structured_backlog_missing_outcome_skipped_with_warning(tmp_path: Path) -> None:
+    _write_minimal_structured_backlog(tmp_path, status="in_progress")
+    _write_completed_order(
+        tmp_path,
+        "order-missing-outcome.yaml",
+        """schema_version: "execution_order.v1"
+order_id: "ORD-T-001-20260305120000"
+task_ref: "T-001"
+created_at: "2026-03-05T12:00:00Z"
+steps:
+  - name: "implementation"
+    role: "builder"
+""",
+    )
+
+    result = update_structured_backlog(
+        repo_root=tmp_path,
+        merge_sha="abc123",
+        skip_on_error=True,
+    )
+
+    assert result["updated"] is False
+    assert result["errors"]
+    assert any("outcome" in err.lower() for err in result["errors"])
+
+
+def test_update_structured_backlog_missing_backlog_returns_error(tmp_path: Path) -> None:
+    result = update_structured_backlog(
+        repo_root=tmp_path,
+        merge_sha="abc123",
+        skip_on_error=True,
+    )
+
+    assert result["updated"] is False
+    assert any("backlog.yaml not found" in err for err in result["errors"])

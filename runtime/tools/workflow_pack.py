@@ -13,6 +13,14 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Iterable, Optional, Sequence
 
+import yaml
+
+from runtime.orchestration.coo.backlog import (
+    BacklogValidationError,
+    load_backlog,
+    mark_completed,
+    save_backlog,
+)
 from runtime.util.atomic_write import atomic_write_text
 
 # Import for BACKLOG parsing (will handle import error gracefully)
@@ -1103,5 +1111,125 @@ def update_state_and_backlog(
         "state_updated": state_updated,
         "backlog_updated": backlog_updated,
         "items_marked": items_marked,
+        "errors": errors,
+    }
+
+
+def update_structured_backlog(
+    repo_root: Path,
+    merge_sha: str,
+    skip_on_error: bool = True,
+) -> dict:
+    """
+    Mark completed tasks in config/tasks/backlog.yaml based on recently
+    completed ExecutionOrders in artifacts/dispatch/completed/.
+
+    Scans completed orders for task_ref values, then marks matching backlog
+    tasks as completed if they are currently in_progress or pending.
+
+    Returns:
+        dict with keys:
+            - updated (bool): at least one task was marked completed
+            - tasks_completed (list[str]): task IDs that were marked
+            - errors (list[str]): any warnings/errors (non-fatal if skip_on_error)
+    """
+    repo_root = Path(repo_root)
+    errors: list[str] = []
+    tasks_completed: list[str] = []
+
+    backlog_path = repo_root / "config" / "tasks" / "backlog.yaml"
+    if not backlog_path.exists():
+        return {
+            "updated": False,
+            "tasks_completed": [],
+            "errors": ["backlog.yaml not found"],
+        }
+
+    try:
+        tasks = load_backlog(backlog_path)
+    except BacklogValidationError as exc:
+        return {
+            "updated": False,
+            "tasks_completed": [],
+            "errors": [f"invalid backlog.yaml: {exc}"],
+        }
+    except Exception as exc:  # pragma: no cover - defensive guard
+        msg = f"failed to load backlog.yaml: {exc}"
+        if skip_on_error:
+            return {"updated": False, "tasks_completed": [], "errors": [msg]}
+        raise
+
+    completed_dir = repo_root / "artifacts" / "dispatch" / "completed"
+    if not completed_dir.exists():
+        return {"updated": False, "tasks_completed": [], "errors": errors}
+
+    task_refs: set[str] = set()
+    try:
+        order_files = sorted(completed_dir.glob("*.yaml"))
+    except Exception as exc:  # pragma: no cover - defensive guard
+        msg = f"failed to scan completed orders: {exc}"
+        if skip_on_error:
+            errors.append(msg)
+            return {"updated": False, "tasks_completed": [], "errors": errors}
+        raise
+
+    for order_path in order_files:
+        try:
+            order = yaml.safe_load(order_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            msg = f"failed to read completed order '{order_path.name}': {exc}"
+            if skip_on_error:
+                errors.append(msg)
+                continue
+            raise
+
+        if not isinstance(order, dict):
+            msg = f"completed order '{order_path.name}' must be a YAML mapping"
+            if skip_on_error:
+                errors.append(msg)
+                continue
+            raise ValueError(msg)
+
+        outcome = order.get("outcome")
+        if outcome is None:
+            errors.append(f"completed order '{order_path.name}' missing outcome; skipped")
+            continue
+
+        if str(outcome).strip().upper() != "SUCCESS":
+            continue
+
+        task_ref = str(order.get("task_ref", "")).strip()
+        if task_ref:
+            task_refs.add(task_ref)
+
+    for task_ref in sorted(task_refs):
+        try:
+            task = next((entry for entry in tasks if entry.id == task_ref), None)
+            if task is None:
+                continue
+            if task.status not in ("pending", "in_progress"):
+                continue
+            tasks = mark_completed(tasks, task_ref, evidence=f"merge:{merge_sha}")
+            tasks_completed.append(task_ref)
+        except Exception as exc:
+            msg = f"failed to mark task '{task_ref}' complete: {exc}"
+            if skip_on_error:
+                errors.append(msg)
+                continue
+            raise
+
+    if tasks_completed:
+        try:
+            save_backlog(backlog_path, tasks)
+        except Exception as exc:
+            msg = f"failed to save backlog.yaml: {exc}"
+            if skip_on_error:
+                errors.append(msg)
+            else:
+                raise
+
+    return {
+        "updated": bool(tasks_completed),
+        "tasks_completed": tasks_completed,
         "errors": errors,
     }
