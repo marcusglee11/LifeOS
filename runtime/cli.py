@@ -1057,6 +1057,31 @@ def main() -> int:
     )
     p_dispatch_status.add_argument("--json", action="store_true", help="Output as JSON")
 
+    # coo group
+    p_coo = subparsers.add_parser("coo", help="COO orchestration commands")
+    coo_subs = p_coo.add_subparsers(dest="coo_cmd", required=True)
+
+    p_coo_status = coo_subs.add_parser("status", help="Show structured backlog status")
+    p_coo_status.add_argument("--json", action="store_true", help="Output status as JSON")
+
+    p_coo_propose = coo_subs.add_parser("propose", help="Print COO proposal context")
+    p_coo_propose.add_argument("--json", action="store_true", help="Output context as JSON")
+
+    p_coo_approve = coo_subs.add_parser(
+        "approve", help="Approve tasks and write ExecutionOrders to dispatch inbox"
+    )
+    p_coo_approve.add_argument(
+        "task_ids", nargs="+", help="Task IDs to approve (e.g. T-003 T-005)"
+    )
+    p_coo_approve.add_argument("--json", action="store_true", help="Output result as JSON")
+
+    coo_subs.add_parser("report", help="Print COO report context as JSON")
+
+    p_coo_direct = coo_subs.add_parser(
+        "direct", help="Send a CEO directive to the approval queue"
+    )
+    p_coo_direct.add_argument("intent", help="Directive text")
+
     # spine group (Phase 4A0)
     p_spine = subparsers.add_parser("spine", help="Loop Spine (A1 Chain Controller) commands")
     spine_subs = p_spine.add_subparsers(dest="spine_cmd", required=True)
@@ -1136,6 +1161,20 @@ def main() -> int:
                 return cmd_dispatch_submit(args, repo_root)
             elif args.dispatch_cmd == "status":
                 return cmd_dispatch_status(args, repo_root)
+
+        if args.subcommand == "coo":
+            from runtime.orchestration.coo import commands as coo_commands
+
+            if args.coo_cmd == "status":
+                return coo_commands.cmd_coo_status(args, repo_root)
+            elif args.coo_cmd == "propose":
+                return coo_commands.cmd_coo_propose(args, repo_root)
+            elif args.coo_cmd == "approve":
+                return coo_commands.cmd_coo_approve(args, repo_root)
+            elif args.coo_cmd == "report":
+                return coo_commands.cmd_coo_report(args, repo_root)
+            elif args.coo_cmd == "direct":
+                return coo_commands.cmd_coo_direct(args, repo_root)
 
         if args.subcommand == "spine":
             if args.spine_cmd == "run":
