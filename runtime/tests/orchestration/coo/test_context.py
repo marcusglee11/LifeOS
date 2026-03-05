@@ -1,0 +1,167 @@
+"""Tests for COO context builders."""
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from pathlib import Path
+
+import pytest
+import yaml
+
+from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION
+from runtime.orchestration.coo.context import (
+    build_propose_context,
+    build_report_context,
+    build_status_context,
+)
+
+import subprocess as _subprocess
+
+
+def _find_repo_root() -> Path:
+    result = _subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=str(Path(__file__).parent),
+    )
+    if result.returncode == 0:
+        return Path(result.stdout.strip())
+    return Path(__file__).resolve().parents[4]
+
+
+REPO_ROOT = _find_repo_root()
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _task(task_id: str, priority: str, status: str) -> dict:
+    return {
+        "id": task_id,
+        "title": f"Task {task_id}",
+        "description": "desc",
+        "dod": "done",
+        "priority": priority,
+        "risk": "low",
+        "scope_paths": ["runtime/"],
+        "status": status,
+        "requires_approval": False,
+        "owner": "codex",
+        "evidence": "",
+        "task_type": "build",
+        "tags": [],
+        "objective_ref": "bootstrap",
+        "created_at": _now_iso(),
+        "completed_at": None,
+    }
+
+
+def _write_backlog(repo_root: Path, tasks: list[dict]) -> Path:
+    backlog_path = repo_root / "config" / "tasks" / "backlog.yaml"
+    backlog_path.parent.mkdir(parents=True, exist_ok=True)
+    backlog_path.write_text(
+        yaml.dump(
+            {"schema_version": BACKLOG_SCHEMA_VERSION, "tasks": tasks},
+            default_flow_style=False,
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    return backlog_path
+
+
+def _write_delegation(repo_root: Path, payload: dict | None = None) -> Path:
+    delegation_path = repo_root / "config" / "governance" / "delegation_envelope.yaml"
+    delegation_path.parent.mkdir(parents=True, exist_ok=True)
+    delegation_path.write_text(
+        yaml.dump(payload or {"schema_version": "delegation_envelope.v1"}),
+        encoding="utf-8",
+    )
+    return delegation_path
+
+
+def test_build_propose_context_returns_actionable_tasks(tmp_path: Path) -> None:
+    tasks = [
+        _task("T-001", "P2", "pending"),
+        _task("T-002", "P0", "in_progress"),
+        _task("T-003", "P1", "completed"),
+    ]
+    backlog_path = _write_backlog(tmp_path, tasks)
+    delegation = {"schema_version": "delegation_envelope.v1", "trust_tier": "burn-in"}
+    _write_delegation(tmp_path, delegation)
+    brief_path = tmp_path / "artifacts" / "coo" / "brief.md"
+    brief_path.parent.mkdir(parents=True, exist_ok=True)
+    brief_path.write_text("COO brief content", encoding="utf-8")
+
+    context = build_propose_context(tmp_path)
+
+    assert context["backlog_path"] == str(backlog_path)
+    assert [task["id"] for task in context["actionable_tasks"]] == ["T-002", "T-001"]
+    assert context["delegation_envelope"] == delegation
+    assert context["brief"] == "COO brief content"
+    datetime.fromisoformat(context["generated_at"])
+
+
+def test_build_propose_context_missing_backlog_raises(tmp_path: Path) -> None:
+    _write_delegation(tmp_path)
+
+    with pytest.raises(FileNotFoundError):
+        build_propose_context(tmp_path)
+
+
+def test_build_propose_context_missing_delegation_raises(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+
+    with pytest.raises(FileNotFoundError):
+        build_propose_context(tmp_path)
+
+
+def test_build_propose_context_missing_brief_returns_empty_string(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+
+    context = build_propose_context(tmp_path)
+
+    assert context["brief"] == ""
+
+
+def test_build_status_context_counts(tmp_path: Path) -> None:
+    tasks = [
+        _task("T-001", "P0", "pending"),
+        _task("T-002", "P1", "completed"),
+        _task("T-003", "P2", "in_progress"),
+        _task("T-004", "P3", "blocked"),
+    ]
+    _write_backlog(tmp_path, tasks)
+
+    context = build_status_context(tmp_path)
+
+    assert context["total_tasks"] == 4
+    assert context["by_status"] == {
+        "pending": 1,
+        "in_progress": 1,
+        "completed": 1,
+        "blocked": 1,
+    }
+    assert context["by_priority"] == {"P0": 1, "P1": 0, "P2": 1, "P3": 0}
+    assert context["actionable_count"] == 2
+    datetime.fromisoformat(context["generated_at"])
+
+
+def test_build_report_context_returns_all_tasks(tmp_path: Path) -> None:
+    tasks = [
+        _task("T-001", "P0", "pending"),
+        _task("T-002", "P1", "completed"),
+    ]
+    _write_backlog(tmp_path, tasks)
+    delegation = {"schema_version": "delegation_envelope.v1", "active_levels": ["L0", "L3"]}
+    _write_delegation(tmp_path, delegation)
+
+    context = build_report_context(tmp_path)
+
+    assert len(context["all_tasks"]) == 2
+    assert {task["id"] for task in context["all_tasks"]} == {"T-001", "T-002"}
+    assert context["delegation_envelope"] == delegation
+    datetime.fromisoformat(context["generated_at"])
