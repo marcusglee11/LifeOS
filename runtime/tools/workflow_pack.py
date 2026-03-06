@@ -695,6 +695,13 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
 
     errors: list[str] = []
 
+    # Eagerly import before worktree removal destroys CWD.
+    _gw = None
+    try:
+        from scripts import git_workflow as _gw
+    except Exception:
+        pass
+
     _wt_proc = subprocess.run(
         ["git", "-C", str(repo), "worktree", "list", "--porcelain"],
         check=False,
@@ -749,17 +756,16 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
                 f"failed to delete local branch '{source_branch}': {details or f'exit code {proc.returncode}'}"
             )
 
-        try:
-            from scripts import git_workflow as gw
-
-            registry_result = gw.close_active_branch_records(
-                source_branch,
-                repo_root=branch_delete_repo,
-                worktree_path=str(linked_wt_path) if linked_wt_path is not None else None,
-            )
-            registry_records_closed = int(registry_result.get("updated", 0))
-        except Exception as exc:
-            errors.append(f"failed to update active_branches.json: {exc}")
+        if _gw is not None:
+            try:
+                registry_result = _gw.close_active_branch_records(
+                    source_branch,
+                    repo_root=branch_delete_repo,
+                    worktree_path=str(linked_wt_path) if linked_wt_path is not None else None,
+                )
+                registry_records_closed = int(registry_result.get("updated", 0))
+            except Exception as exc:
+                errors.append(f"failed to update active_branches.json: {exc}")
 
     context_path = repo / ACTIVE_WORK_RELATIVE_PATH
     context_cleared = False
