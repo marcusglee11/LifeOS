@@ -36,6 +36,12 @@
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/close-build-gate.sh",
             "timeout": 300,
             "statusMessage": "Running close-build enforcement gates..."
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/new-build-worktree-guard.py",
+            "timeout": 5000,
+            "statusMessage": "Checking build isolation..."
           }
         ]
       },
@@ -47,6 +53,12 @@
             "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protected-path-guard.js",
             "timeout": 5000,
             "statusMessage": "Checking governance protection..."
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/build-entry-guard.py",
+            "timeout": 5000,
+            "statusMessage": "Checking build context..."
           }
         ]
       },
@@ -58,6 +70,12 @@
             "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protected-path-guard.js",
             "timeout": 5000,
             "statusMessage": "Checking governance protection..."
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/build-entry-guard.py",
+            "timeout": 5000,
+            "statusMessage": "Checking build context..."
           }
         ]
       }
@@ -71,17 +89,6 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/codex-post-run.py",
             "timeout": 10000,
             "statusMessage": "Surfacing Codex working-tree changes..."
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/new-build-worktree-guard.py",
-            "timeout": 5000,
-            "statusMessage": "Checking build isolation..."
           }
         ]
       }

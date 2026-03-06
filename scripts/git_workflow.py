@@ -499,6 +499,35 @@ def cmd_emergency(operation: str, reason: str) -> int:
         f.write(json.dumps(entry) + "\n")
     
     print(f"📝 Logged to: {log_file}")
+    
+    if operation == "start-build-bypass":
+        try:
+            from datetime import timedelta
+            git_common_result = subprocess.run(
+                ["git", "rev-parse", "--git-common-dir"],
+                capture_output=True, text=True, check=False,
+            )
+            if git_common_result.returncode == 0:
+                git_common = Path(__file__).parent.parent / git_common_result.stdout.strip()
+                if git_common_result.stdout.strip().startswith("/"):
+                    git_common = Path(git_common_result.stdout.strip())
+                current_branch = get_current_branch() or "unknown"
+                slug = current_branch.replace("/", "__")
+                bypass_dir = git_common / "lifeos" / "bypass"
+                bypass_dir.mkdir(parents=True, exist_ok=True)
+                bypass_token = {
+                    "operation": operation,
+                    "branch": current_branch,
+                    "reason": reason,
+                    "created_at_utc": datetime.now().isoformat(),
+                    "expires_at_utc": (datetime.now() + timedelta(hours=4)).isoformat(),
+                }
+                token_path = bypass_dir / f"{slug}.json"
+                token_path.write_text(json.dumps(bypass_token, indent=2))
+                print(f"🔓 Bypass token written (4h): {token_path}")
+        except Exception as exc:
+            print(f"⚠️  Could not write bypass token: {exc}")
+
     print("⚠️  Proceeding with override. CEO review required.")
     
     return 0

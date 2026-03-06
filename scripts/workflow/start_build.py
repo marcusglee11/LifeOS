@@ -347,6 +347,14 @@ def recover_primary_branch(branch: Optional[str] = None) -> dict:
             }
 
     _upsert_active_branch_record(primary, target_branch, linked)
+    _write_build_record(
+        primary_repo=primary,
+        branch=target_branch,
+        kind=target_branch.split("/")[0] if "/" in target_branch else "build",
+        topic=target_branch.split("/", 1)[1] if "/" in target_branch else target_branch,
+        worktree_path=str(linked),
+        entrypoint="recover_primary",
+    )
     return {
         "ok": True,
         "error": None,
@@ -356,6 +364,45 @@ def recover_primary_branch(branch: Optional[str] = None) -> dict:
         "worktree_created": worktree_created,
         "primary_repo": str(primary),
     }
+
+
+def _write_build_record(
+    primary_repo: Path,
+    branch: str,
+    kind: str,
+    topic: str,
+    worktree_path: str,
+    entrypoint: str,
+) -> None:
+    """Write a local build record to the git common dir (not tracked by repo)."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(primary_repo), "rev-parse", "--git-common-dir"],
+            capture_output=True, text=True, check=False,
+        )
+        if result.returncode != 0:
+            return
+        git_common = Path(result.stdout.strip())
+        if not git_common.is_absolute():
+            git_common = primary_repo / git_common
+        record_dir = git_common / "lifeos" / "builds"
+        record_dir.mkdir(parents=True, exist_ok=True)
+        slug = branch.replace("/", "__")
+        record_path = record_dir / f"{slug}.json"
+        record = {
+            "version": 1,
+            "branch": branch,
+            "kind": kind,
+            "topic": topic,
+            "entrypoint": entrypoint,
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "primary_repo": str(primary_repo),
+            "worktree_path": worktree_path,
+            "status": "active",
+        }
+        record_path.write_text(json.dumps(record, indent=2, sort_keys=True))
+    except Exception:
+        pass  # best-effort; never block the build
 
 
 def _should_auto_recover_existing_primary_branch(branch: str) -> bool:
@@ -495,6 +542,21 @@ def main() -> int:
             )
             stdout = proc.stdout or ""
             worktree_path = recovered.get("worktree_path")
+
+    if proc.returncode == 0 and worktree_path:
+        primary = _resolve_primary_repo()
+        if primary:
+            m = _PREFIX_RE.match(branch)
+            wt_kind = m.group(1) if m else kind
+            wt_topic = m.group(2) if m else branch
+            _write_build_record(
+                primary_repo=primary,
+                branch=branch,
+                kind=wt_kind,
+                topic=wt_topic,
+                worktree_path=worktree_path,
+                entrypoint="start_build",
+            )
 
     if args.json:
         payload = {

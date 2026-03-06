@@ -17,6 +17,13 @@ if [ -f "$SCRIPT_DIR/pre-commit" ]; then
     echo "✅ Installed: pre-commit"
 fi
 
+# Install pre-push hook
+if [ -f "$SCRIPT_DIR/pre-push" ]; then
+    cp "$SCRIPT_DIR/pre-push" "$HOOKS_DIR/pre-push"
+    chmod +x "$HOOKS_DIR/pre-push"
+    echo "✅ Installed: pre-push"
+fi
+
 echo ""
 echo "🎉 Done! Git workflow hooks are now active."
 echo ""

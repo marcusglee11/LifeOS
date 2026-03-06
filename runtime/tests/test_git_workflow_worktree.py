@@ -29,10 +29,13 @@ def _run_guard(module, payload: dict) -> dict:
         module.sys.stdin = stdin
         module.sys.stdout = stdout
         module.main()
+    except SystemExit:
+        pass
     finally:
         module.sys.stdin = old_stdin
         module.sys.stdout = old_stdout
-    return json.loads(stdout.getvalue())
+    out = stdout.getvalue().strip()
+    return json.loads(out) if out else {}
 
 
 class TestBranchNameHelpers:
@@ -145,57 +148,39 @@ def test_resolve_primary_repo_falls_back_to_git_common_dir(tmp_path, monkeypatch
 
 
 def test_guard_fast_path_non_bash(monkeypatch) -> None:
+    """Tool without a 'command' field (e.g. Write) is always allowed."""
     module = _load_new_build_guard()
-    monkeypatch.setattr(module, "run_git", lambda args: "")
-
-    result = _run_guard(module, {"tool_name": "Write", "tool_input": {"command": "git checkout -b build/x"}})
-    assert result["systemMessage"] == ""
+    result = _run_guard(module, {"tool_name": "Write", "tool_input": {"file_path": "runtime/foo.py"}})
+    assert result.get("decision") == "allow"
 
 
 def test_guard_fast_path_no_branch_creation(monkeypatch) -> None:
+    """Plain git commands that don't create scoped branches are allowed."""
     module = _load_new_build_guard()
-    monkeypatch.setattr(module, "run_git", lambda args: "")
-
     result = _run_guard(module, {"tool_name": "Bash", "tool_input": {"command": "git status"}})
-    assert result["systemMessage"] == ""
+    assert result.get("decision") == "allow"
 
 
 def test_guard_warns_when_untracked(monkeypatch) -> None:
+    """Direct scoped branch creation via checkout -b is blocked with start_build.py guidance."""
     module = _load_new_build_guard()
-
-    def fake_run_git(args: list[str]) -> str:
-        if args == ["rev-parse", "--git-common-dir"]:
-            return ".git"
-        if args == ["status", "--porcelain", "-uall"]:
-            return "?? test_designer_output.py\n?? openclaw_upgrade_cache.json\n"
-        return ""
-
-    monkeypatch.setattr(module, "run_git", fake_run_git)
-
     result = _run_guard(
         module,
         {"tool_name": "Bash", "tool_input": {"command": "git checkout -b build/foo"}},
     )
-    assert "WORKTREE RECOMMENDED" in result["systemMessage"]
+    assert result.get("decision") == "block"
+    assert "start_build.py" in result.get("reason", "")
 
 
 def test_guard_silent_when_clean(monkeypatch) -> None:
+    """Direct scoped branch creation via switch -c is also blocked."""
     module = _load_new_build_guard()
-
-    def fake_run_git(args: list[str]) -> str:
-        if args == ["rev-parse", "--git-common-dir"]:
-            return ".git"
-        if args == ["status", "--porcelain", "-uall"]:
-            return ""
-        return ""
-
-    monkeypatch.setattr(module, "run_git", fake_run_git)
-
     result = _run_guard(
         module,
-        {"tool_name": "Bash", "tool_input": {"command": "git switch -c build/foo"}},
+        {"tool_name": "Bash", "tool_input": {"command": "git switch -c fix/bar"}},
     )
-    assert result["systemMessage"] == ""
+    assert result.get("decision") == "block"
+    assert "start_build.py" in result.get("reason", "")
 
 
 def test_closure_pack_regen_after_merge(monkeypatch, tmp_path: Path) -> None:

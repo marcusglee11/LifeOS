@@ -37,6 +37,21 @@ for branch in "${PROTECTED_BRANCHES[@]}"; do
     fi
 done
 
+# Gate: qualifying staged changes require managed build context
+if [ "$LIFEOS_MAIN_COMMIT_ALLOWED" != "1" ]; then
+    STAGED_FILES=$(git diff --cached --name-only 2>/dev/null)
+    if [ -n "$STAGED_FILES" ]; then
+        GATE_OUTPUT=$(python3 "$(git rev-parse --show-toplevel)/scripts/workflow/build_entry_gate.py" \
+            --staged-files $STAGED_FILES 2>&1)
+        GATE_EXIT=$?
+        if [ $GATE_EXIT -eq 1 ]; then
+            echo "❌ Build entry gate blocked commit."
+            echo "$GATE_OUTPUT"
+            exit 1
+        fi
+    fi
+fi
+
 # Validate branch naming convention
 VALID_PREFIXES=("build/" "fix/" "hotfix/" "spike/")
 IS_VALID=false

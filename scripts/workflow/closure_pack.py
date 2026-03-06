@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
@@ -23,6 +25,30 @@ from runtime.tools.workflow_pack import (  # noqa: E402
     update_state_and_backlog,
     update_structured_backlog,
 )
+
+
+def _close_build_record(repo_root: Path, branch: str) -> None:
+    """Mark the local build record as closed after successful merge."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo_root), "rev-parse", "--git-common-dir"],
+            capture_output=True, text=True, check=False,
+        )
+        if result.returncode != 0:
+            return
+        git_common = Path(result.stdout.strip())
+        if not git_common.is_absolute():
+            git_common = repo_root / git_common
+        slug = branch.replace("/", "__")
+        record_path = git_common / "lifeos" / "builds" / f"{slug}.json"
+        if not record_path.exists():
+            return
+        record = json.loads(record_path.read_text())
+        record["status"] = "closed"
+        record["closed_at_utc"] = datetime.now(timezone.utc).isoformat()
+        record_path.write_text(json.dumps(record, indent=2, sort_keys=True))
+    except Exception:
+        pass
 
 
 def _git_stdout(repo_root: Path, args: list[str]) -> str:
@@ -288,6 +314,7 @@ def main() -> int:
         )
         return 1
     what_done.append(f"Merged to main (squash): {merge['merge_sha']}.")
+    _close_build_record(repo_root, branch)
 
     primary_repo_str = merge.get("primary_repo")
     if primary_repo_str:

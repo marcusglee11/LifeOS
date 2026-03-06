@@ -27,4 +27,13 @@ do
     done
 done
 
+# Gate: qualifying work must be in a managed build context
+GATE_OUTPUT=$(python3 "$(git rev-parse --show-toplevel)/scripts/workflow/build_entry_gate.py" 2>&1)
+GATE_EXIT=$?
+if [ $GATE_EXIT -eq 1 ]; then
+    echo "❌ Build entry gate blocked push."
+    echo "$GATE_OUTPUT"
+    exit 1
+fi
+
 exit 0
