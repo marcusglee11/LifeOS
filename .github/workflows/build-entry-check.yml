@@ -1,0 +1,53 @@
+name: Build Entry Check
+
+# Phase 1: warning-only (continue-on-error: true).
+# Phase 2: promote to required status check by removing continue-on-error.
+
+on:
+  push:
+    paths:
+      - 'runtime/**'
+      - 'scripts/**'
+      - 'config/**'
+      - 'schemas/**'
+      - 'tests/**'
+      - '.github/workflows/**'
+      - 'pyproject.toml'
+      - 'pytest.ini'
+      - 'requirements*.txt'
+  pull_request:
+    paths:
+      - 'runtime/**'
+      - 'scripts/**'
+      - 'config/**'
+      - 'schemas/**'
+      - 'tests/**'
+      - '.github/workflows/**'
+      - 'pyproject.toml'
+      - 'pytest.ini'
+      - 'requirements*.txt'
+
+jobs:
+  branch-check:
+    name: Build Entry Gate (warn)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check branch naming convention
+        run: |
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          echo "Branch: $BRANCH"
+
+          if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]]; then
+            echo "::warning::Qualifying file changes proposed directly on '$BRANCH'. All qualifying implementation work should use build/, fix/, hotfix/, or spike/ branches via start_build.py."
+            exit 1
+          fi
+
+          if ! echo "$BRANCH" | grep -qE "^(build|fix|hotfix|spike)/"; then
+            echo "::warning::Branch '$BRANCH' does not follow managed build naming convention (expected build/, fix/, hotfix/, or spike/). Use: python3 scripts/workflow/start_build.py <topic>"
+            exit 1
+          fi
+
+          echo "Branch naming OK: $BRANCH"
