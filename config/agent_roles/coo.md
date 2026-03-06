@@ -27,9 +27,10 @@ Do this without asking permission.
 
 1. `config/tasks/backlog.yaml` - current task queue.
 2. `config/governance/delegation_envelope.yaml` - authority envelope when available.
-3. `artifacts/dispatch/inbox/` - pending orders.
-4. `artifacts/dispatch/completed/` - recent outcomes.
-5. `docs/11_admin/LIFEOS_STATE.md` - broader project context.
+3. `artifacts/coo/memory_seed_content.md` - project history, objectives, campaign state, agent patterns.
+4. `artifacts/dispatch/inbox/` - pending orders.
+5. `artifacts/dispatch/completed/` - recent outcomes.
+6. `docs/11_admin/LIFEOS_STATE.md` - broader project context.
 
 If `delegation_envelope.yaml` is missing or unclear, fail closed and escalate unknown actions (L4).
 

@@ -9,17 +9,17 @@ tasks:
     scope_paths:
       - "runtime/orchestration/coo/"
       - "config/tasks/"
-    status: "in_progress"
+    status: "completed"
     requires_approval: false
     owner: "claude-code"
-    evidence: ""
+    evidence: "merged 23cd2143"
     task_type: "build"
     tags:
       - "coo-bootstrap"
       - "foundation"
     objective_ref: "bootstrap"
     created_at: "2026-03-05T00:00:00Z"
-    completed_at: null
+    completed_at: "2026-03-05T00:00:00Z"
 
   - id: "T-002"
     title: "COO Bootstrap: Delegation envelope config (Step 1B)"
@@ -29,17 +29,17 @@ tasks:
     risk: "low"
     scope_paths:
       - "config/governance/"
-    status: "in_progress"
+    status: "completed"
     requires_approval: false
     owner: "claude-code"
-    evidence: ""
+    evidence: "merged eb75f2e8"
     task_type: "build"
     tags:
       - "coo-bootstrap"
       - "governance"
     objective_ref: "bootstrap"
     created_at: "2026-03-05T00:00:00Z"
-    completed_at: null
+    completed_at: "2026-03-05T00:00:00Z"
 
   - id: "T-003"
     title: "COO Bootstrap: Hygiene sprint (Step 1C)"
@@ -90,17 +90,17 @@ tasks:
     risk: "low"
     scope_paths:
       - "runtime/orchestration/coo/"
-    status: "pending"
+    status: "completed"
     requires_approval: false
-    owner: ""
-    evidence: ""
+    owner: "claude-code"
+    evidence: "merged cf7740f1"
     task_type: "build"
     tags:
       - "coo-bootstrap"
       - "wiring"
     objective_ref: "bootstrap"
     created_at: "2026-03-05T00:00:00Z"
-    completed_at: null
+    completed_at: "2026-03-05T00:00:00Z"
 
   - id: "T-006"
     title: "COO Bootstrap: Order templates (Step 3E)"
@@ -111,17 +111,17 @@ tasks:
     scope_paths:
       - "config/tasks/order_templates/"
       - "runtime/orchestration/coo/"
-    status: "pending"
+    status: "completed"
     requires_approval: false
-    owner: ""
-    evidence: ""
+    owner: "claude-code"
+    evidence: "merged 5a7425b3"
     task_type: "build"
     tags:
       - "coo-bootstrap"
       - "wiring"
     objective_ref: "bootstrap"
     created_at: "2026-03-05T00:00:00Z"
-    completed_at: null
+    completed_at: "2026-03-05T00:00:00Z"
 
   - id: "T-007"
     title: "COO Bootstrap: CLI commands (Step 3F)"
@@ -132,17 +132,17 @@ tasks:
     scope_paths:
       - "runtime/orchestration/coo/"
       - "runtime/cli.py"
-    status: "pending"
+    status: "completed"
     requires_approval: false
-    owner: ""
-    evidence: ""
+    owner: "claude-code"
+    evidence: "merged 1d6d208c"
     task_type: "build"
     tags:
       - "coo-bootstrap"
       - "cli"
     objective_ref: "bootstrap"
     created_at: "2026-03-05T00:00:00Z"
-    completed_at: null
+    completed_at: "2026-03-05T00:00:00Z"
 
   - id: "T-008"
     title: "COO Bootstrap: Post-execution state updater (Step 4G)"
@@ -153,17 +153,17 @@ tasks:
     scope_paths:
       - "runtime/tools/workflow_pack.py"
       - "scripts/workflow/closure_pack.py"
-    status: "pending"
+    status: "completed"
     requires_approval: false
-    owner: ""
-    evidence: ""
+    owner: "claude-code"
+    evidence: "merged 72548d7e"
     task_type: "build"
     tags:
       - "coo-bootstrap"
       - "integration"
     objective_ref: "bootstrap"
     created_at: "2026-03-05T00:00:00Z"
-    completed_at: null
+    completed_at: "2026-03-05T00:00:00Z"
 
   - id: "T-009"
     title: "Bypass Monitoring (Trusted Builder P1)"

@@ -4,40 +4,38 @@ This file defines parseable output contracts for COO dispatch artifacts.
 
 ## 1) TaskProposal (`task_proposal.v1`)
 
+Parsed by `runtime/orchestration/coo/parser.py:parse_proposal_response()`.
+Each proposal recommends an action on an existing backlog task.
+
 ```yaml
 schema_version: task_proposal.v1
 generated_at: "2026-03-06T00:00:00Z"
 mode: propose
 objective_ref: "OBJ-001"
 proposals:
-  - id: "COO-TASK-001"
-    title: "Implement dispatch parser"
-    description: "Add parser for COO YAML output"
-    dod: "Parser handles TaskProposal + ExecutionOrder"
-    priority: "P1"
-    risk: "med"
-    scope_paths:
-      - "runtime/orchestration/coo/"
-    status: "pending"
-    requires_approval: true
-    owner: "coo"
-    evidence: ""
-    task_type: "build"
-    tags:
-      - "dispatch"
-      - "parser"
-    objective_ref: "OBJ-001"
-    created_at: "2026-03-06T00:00:00Z"
-    completed_at: null
-    provider: "codex"
-    provider_rationale: "Bounded implementation with tests"
+  - task_id: "T-001"
+    rationale: "Highest priority, all dependencies met, low risk"
+    proposed_action: "dispatch"
+    urgency_override: null
+    suggested_owner: "codex"
+  - task_id: "T-009"
+    rationale: "Blocked by missing provider health data; defer until monitoring is in place"
+    proposed_action: "defer"
+    urgency_override: null
+    suggested_owner: ""
+  - task_id: "T-004"
+    rationale: "Scope ambiguity — CEO must clarify deliverable format before dispatch"
+    proposed_action: "escalate"
+    urgency_override: "P0"
+    suggested_owner: ""
 notes: "All proposals are L3 during burn-in"
 ```
 
 Rules:
-- `id` should match `[A-Za-z0-9_\-]{1,64}`.
-- Task fields mirror `TaskEntry` in `runtime/orchestration/coo/backlog.py`.
-- `provider` advisory values: `codex`, `gemini`, `claude_code`, `auto`.
+- `task_id` must reference an existing task in `config/tasks/backlog.yaml`.
+- `proposed_action` must be one of: `dispatch`, `defer`, `escalate`.
+- `urgency_override` is optional; if set, must be `P0`, `P1`, `P2`, or `P3`.
+- `suggested_owner` is advisory; values: `codex`, `gemini`, `claude_code`, or empty string.
 
 ## 2) NothingToPropose (`nothing_to_propose.v1`)
 
