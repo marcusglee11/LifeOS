@@ -22,11 +22,11 @@ real COO (OpenClaw instance with structured memory).
 | 2026-02-28 | Worktree-First Build Architecture | start_build.py, close_build.py |
 | 2026-03-01 | GitHub Actions Build Loop | CI automation |
 | 2026-03-05 | COO Bootstrap campaign launched | Steps 1A-4G built in one day |
-| 2026-03-06 | COO Bootstrap 7/9 steps merged | Step 2 in review, Steps 5-6 pending |
+| 2026-03-06 | COO Bootstrap 8/9 steps merged | Step 2 merged (51ef1466 + eedb0fa0), Steps 5-6 pending |
 
 ## Active Objectives
 
-- **OBJ-BOOTSTRAP**: Stand up operational COO — 7/9 infrastructure steps merged, Step 2 (brain) in review, Steps 5 (burn-in) and 6 (live) pending.
+- **OBJ-BOOTSTRAP**: Stand up operational COO — 8/9 infrastructure steps merged, Step 5 (burn-in) and 6 (live) pending.
 - **OBJ-REVENUE**: First external content — LinkedIn posts + B5 Governance Guide. Not started; depends on COO operational.
 - **OBJ-TECH-DEBT**: P1 backlog items — Bypass Monitoring, Semantic Guardrails, test_steward_runner fixes. Deferred to COO management.
 
@@ -39,7 +39,7 @@ Status: IN_PROGRESS (Step 5 preparation)
 
 1. [DONE] Step 1A: Structured backlog — merged 23cd2143
 2. [DONE] Step 1B: Delegation envelope — merged eb75f2e8
-3. [REVIEW] Step 2: COO Brain — build/coo-brain (review fixes applied)
+3. [DONE] Step 2: COO Brain — merged 51ef1466 + review fixes eedb0fa0
 4. [DONE] Step 3D: Context/parser — merged cf7740f1
 5. [DONE] Step 3E: Templates — merged 5a7425b3
 6. [DONE] Step 3F: CLI commands — merged 1d6d208c

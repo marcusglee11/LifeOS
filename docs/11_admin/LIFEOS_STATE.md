@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** COO Bootstrap Step 5 (burn-in preparation) — Steps 1-4 merged
-**Active WIP:** build/coo-brain (Step 2 — COO system prompt, testing by Codex)
-**Last Updated:** 2026-03-06 (rev26)
+**Current Focus:** COO Bootstrap Step 5 (burn-in) — all infrastructure steps merged
+**Active WIP:** main (clean)
+**Last Updated:** 2026-03-06 (rev27)
 
 ---
 
@@ -21,7 +21,7 @@
 
 1. ✓ Step 1A: Structured backlog (`backlog.py`, `config/tasks/backlog.yaml`) — merged 23cd2143
 2. ✓ Step 1B: Delegation envelope (`config/governance/delegation_envelope.yaml`) — merged eb75f2e8
-3. ⏳ Step 2: COO Brain — system prompt, memory seed, brief — `build/coo-brain` (testing by Codex)
+3. ✓ Step 2: COO Brain — system prompt, memory seed, brief — merged 51ef1466 + review fixes eedb0fa0
 4. ✓ Step 3D: Context builder + parser (`runtime/orchestration/coo/context.py`, `parser.py`) — merged cf7740f1
 5. ✓ Step 3E: Templates (`config/tasks/order_templates/`, `templates.py`) — merged 5a7425b3
 6. ✓ Step 3F: CLI commands (`runtime/orchestration/coo/commands.py`, `cli.py` extended) — merged 1d6d208c
@@ -29,7 +29,7 @@
 8. ☐ Step 5: Burn-in (proxy COO validates, CEO observes)
 9. ☐ Step 6: Live COO (first real OpenClaw invocation)
 
-**Next:** Merge Step 2 (coo-brain) → begin Step 5 burn-in
+**Next:** Begin Step 5 burn-in — proxy COO validates reasoning patterns, CEO observes
 
 **Canonical Plan Authority:** `artifacts/plans/2026-03-05-coo-bootstrap-plan.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
 
@@ -39,8 +39,8 @@
 
 | Status | Workstream | Owner | Deliverable |
 |--------|------------|-------|-------------|
-| **ACTIVE** | **COO Bootstrap (Steps 1-6)** | Antigravity | Full COO delegation pipeline — 7/9 steps merged |
-| **IN TEST** | **COO Brain (Step 2)** | Codex | System prompt, memory seed, brief — `build/coo-brain` |
+| **ACTIVE** | **COO Bootstrap (Steps 1-6)** | Antigravity | Full COO delegation pipeline — 8/9 steps merged, Step 5 burn-in next |
+| **MERGED** | **COO Brain (Step 2)** | Codex + Claude Code | System prompt, memory seed, brief — merged 51ef1466 + eedb0fa0 |
 | **MERGED** | **COO Jarda Parity v5** | Antigravity | OpenClaw verification tooling + workflow pack (8045e9c5) |
 | **MERGED** | **CLI-First Dispatch** | Antigravity | Dispatch engine CLI surface (0938bf0f) |
 | **MERGED** | **Sprint 1 Stop-the-Bleeding** | Antigravity | Dead code cleanup, root junk, CI hardening (f8e590fe) |
