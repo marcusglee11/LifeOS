@@ -242,6 +242,9 @@ def test_cleanup_after_merge_clears_context(tmp_path: Path, monkeypatch) -> None
     context_path = tmp_path / ".context" / "active_work.yaml"
     context_path.parent.mkdir(parents=True, exist_ok=True)
     context_path.write_text("{}", encoding="utf-8")
+    registry_path = tmp_path / "artifacts" / "active_branches.json"
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    registry_path.write_text(json.dumps({"branches": []}), encoding="utf-8")
 
     def fake_run(*args, **kwargs):
         return subprocess.CompletedProcess(args=args[0], returncode=0, stdout="", stderr="")
@@ -250,6 +253,7 @@ def test_cleanup_after_merge_clears_context(tmp_path: Path, monkeypatch) -> None
     result = cleanup_after_merge(tmp_path, "build/feature", clear_context=True)
     assert result["branch_deleted"] is True
     assert result["context_cleared"] is True
+    assert result["registry_records_closed"] == 0
     assert not context_path.exists()
 
 
@@ -281,7 +285,7 @@ def test_cleanup_after_merge_removes_worktree_before_branch(tmp_path: Path, monk
     worktree_remove_idx = next(
         i for i, c in enumerate(commands) if "worktree" in c and "remove" in c and "--force" in c
     )
-    branch_delete_idx = next(i for i, c in enumerate(commands) if c[-2:] == ["-d", "build/feature"])
+    branch_delete_idx = next(i for i, c in enumerate(commands) if c[-2:] == ["-D", "build/feature"])
     branch_delete_cmd = commands[branch_delete_idx]
     assert worktree_remove_idx < branch_delete_idx
     assert branch_delete_cmd[2] == str(primary)
@@ -313,6 +317,70 @@ def test_cleanup_after_merge_skips_remove_when_branch_maps_to_primary(tmp_path: 
     assert result["worktree_removed"] is False
     assert result["branch_deleted"] is True
     assert not any(c[-3:] == ["worktree", "remove", "--force"] for c in commands)
+
+
+def test_cleanup_after_merge_updates_active_branches_registry(tmp_path: Path, monkeypatch) -> None:
+    registry_path = tmp_path / "artifacts" / "active_branches.json"
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    registry_path.write_text(
+        json.dumps(
+            {
+                "branches": [
+                    {"name": "build/feature", "status": "active", "worktree_path": "/tmp/wt-a"},
+                    {"name": "build/feature", "status": "active", "worktree_path": "/tmp/wt-b"},
+                ],
+                "last_updated": "2026-01-01T00:00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(
+                args=cmd,
+                returncode=0,
+                stdout=f"worktree {tmp_path}\nbranch refs/heads/main\n",
+                stderr="",
+            )
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+
+    result = cleanup_after_merge(tmp_path, "build/feature", clear_context=False)
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    closed = [row for row in registry["branches"] if row["name"] == "build/feature"]
+
+    assert result["registry_records_closed"] == 2
+    assert all(row["status"] == "closed" for row in closed)
+    assert all("closed_at" in row for row in closed)
+    assert registry["last_updated"] != "2026-01-01T00:00:00"
+
+
+def test_cleanup_after_merge_skips_registry_when_branch_not_in_file(tmp_path: Path, monkeypatch) -> None:
+    registry_path = tmp_path / "artifacts" / "active_branches.json"
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    registry_path.write_text(json.dumps({"branches": []}), encoding="utf-8")
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(
+                args=cmd,
+                returncode=0,
+                stdout=f"worktree {tmp_path}\nbranch refs/heads/main\n",
+                stderr="",
+            )
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+
+    result = cleanup_after_merge(tmp_path, "build/missing", clear_context=False)
+
+    assert result["branch_deleted"] is True
+    assert result["registry_records_closed"] == 0
+    assert result["errors"] == []
 
 
 def test_merge_to_main_includes_primary_repo(monkeypatch, tmp_path: Path) -> None:

@@ -16,6 +16,7 @@ import sys
 PROJECT_DIR = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
 STATE_FILE = os.path.join(PROJECT_DIR, "docs", "11_admin", "LIFEOS_STATE.md")
 MAX_CONTEXT_CHARS = 900
+WORKTREE_WARNING_THRESHOLD = 8
 
 
 def run_git(args: list[str], timeout: int = 3) -> str:
@@ -101,8 +102,35 @@ def isolation_warning() -> str:
     return ""
 
 
+def worktree_audit() -> str:
+    """Prune stale worktree registrations and warn on high linked-worktree count."""
+    dry_run = run_git(["worktree", "prune", "--dry-run"])
+    pruned = False
+    if dry_run:
+        run_git(["worktree", "prune"])
+        pruned = True
+
+    worktree_listing = run_git(["worktree", "list", "--porcelain"])
+    count = sum(1 for line in worktree_listing.splitlines() if line.startswith("worktree "))
+    if not pruned and count <= WORKTREE_WARNING_THRESHOLD:
+        return ""
+
+    parts = []
+    if pruned:
+        parts.append("Worktree audit pruned stale registrations.")
+    if count > WORKTREE_WARNING_THRESHOLD:
+        parts.append(
+            f"Worktree audit: {count} linked worktrees registered; review for stale entries."
+        )
+    return " ".join(parts)
+
+
 def main() -> int:
     parts = []
+
+    audit = worktree_audit()
+    if audit:
+        parts.append(audit)
 
     git = git_context()
     if git:

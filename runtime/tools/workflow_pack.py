@@ -733,9 +733,10 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
 
     branch_delete_repo = primary_repo if primary_repo is not None else repo
     branch_deleted = False
+    registry_records_closed = 0
     if source_branch and source_branch not in {"main", "master"}:
         proc = subprocess.run(
-            ["git", "-C", str(branch_delete_repo), "branch", "-d", source_branch],
+            ["git", "-C", str(branch_delete_repo), "branch", "-D", source_branch],
             check=False,
             capture_output=True,
             text=True,
@@ -747,6 +748,18 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
             errors.append(
                 f"failed to delete local branch '{source_branch}': {details or f'exit code {proc.returncode}'}"
             )
+
+        try:
+            from scripts import git_workflow as gw
+
+            registry_result = gw.close_active_branch_records(
+                source_branch,
+                repo_root=branch_delete_repo,
+                worktree_path=str(linked_wt_path) if linked_wt_path is not None else None,
+            )
+            registry_records_closed = int(registry_result.get("updated", 0))
+        except Exception as exc:
+            errors.append(f"failed to update active_branches.json: {exc}")
 
     context_path = repo / ACTIVE_WORK_RELATIVE_PATH
     context_cleared = False
@@ -762,6 +775,7 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
         "branch_deleted": branch_deleted,
         "context_cleared": context_cleared,
         "worktree_removed": worktree_removed,
+        "registry_records_closed": registry_records_closed,
         "errors": errors,
     }
 

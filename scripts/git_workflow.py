@@ -90,6 +90,38 @@ def save_active_branches(data: dict, repo_root: Optional[Path] = None):
     path.write_text(json.dumps(data, indent=2))
 
 
+def _mark_registry_updated(data: dict) -> None:
+    """Refresh top-level registry timestamp."""
+    data["last_updated"] = datetime.now().isoformat()
+
+
+def close_active_branch_records(
+    branch: str,
+    repo_root: Optional[Path] = None,
+    *,
+    closed_at: Optional[str] = None,
+    worktree_path: Optional[str] = None,
+) -> dict:
+    """Close all active rows for a branch and clear stale worktree metadata."""
+    data = load_active_branches(repo_root)
+    timestamp = closed_at or datetime.now().isoformat()
+    updated = 0
+
+    for item in data.get("branches", []):
+        if item.get("name") != branch or item.get("status") != "active":
+            continue
+        item["status"] = "closed"
+        item["closed_at"] = timestamp
+        if worktree_path is None or item.get("worktree_path") == worktree_path:
+            item["worktree_path"] = None
+        updated += 1
+
+    if updated:
+        _mark_registry_updated(data)
+        save_active_branches(data, repo_root)
+    return {"updated": updated, "path": str(get_active_branches_file(repo_root))}
+
+
 def _resolve_primary_repo() -> Optional[Path]:
     """Find the primary worktree (prefer main/master checkout, fallback to git-common-dir=.git)."""
     code, output, _ = run_git_in(REPO_ROOT, ["worktree", "list", "--porcelain"])

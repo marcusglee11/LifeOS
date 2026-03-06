@@ -35,6 +35,7 @@ from scripts.packaging.validate_return_packet_preflight import (
     check_rppv_009,
     check_waiver_skip,
     run_preflight,
+    check_rppv_014,
 )
 
 
@@ -318,6 +319,52 @@ class TestIdempotence:
                 result2 = run_preflight(repo_root, packet_dir, stage_dir, None)
         
         assert result2.skipped is False
+
+
+class TestCheckRPPV014Cleanup:
+    def test_removes_worktree_on_success(self, temp_dirs):
+        packet_dir = temp_dirs["packet_dir"]
+        repo_root = temp_dirs["repo_root"]
+        (packet_dir / "07_git_diff.patch").write_text("diff --git a/a b/a\n+ok\n")
+
+        calls = []
+
+        def fake_run(cmd, **kwargs):
+            calls.append(cmd)
+            if cmd[:4] == ["git", "worktree", "add", "--detach"]:
+                return MagicMock(returncode=0, stderr=b"")
+            if cmd[:3] == ["git", "apply", "--check"]:
+                return MagicMock(returncode=0, stderr=b"")
+            return MagicMock(returncode=0, stderr=b"")
+
+        with patch("scripts.packaging.validate_return_packet_preflight.subprocess.run", side_effect=fake_run):
+            result = check_rppv_014(packet_dir, repo_root)
+
+        assert result.status == "PASS"
+        assert any(cmd[:4] == ["git", "worktree", "remove", "--force"] for cmd in calls)
+        assert any(cmd[:3] == ["git", "worktree", "prune"] for cmd in calls)
+
+    def test_removes_worktree_on_failure(self, temp_dirs):
+        packet_dir = temp_dirs["packet_dir"]
+        repo_root = temp_dirs["repo_root"]
+        (packet_dir / "07_git_diff.patch").write_text("diff --git a/a b/a\n+bad\n")
+
+        calls = []
+
+        def fake_run(cmd, **kwargs):
+            calls.append(cmd)
+            if cmd[:4] == ["git", "worktree", "add", "--detach"]:
+                return MagicMock(returncode=0, stderr=b"")
+            if cmd[:3] == ["git", "apply", "--check"]:
+                return MagicMock(returncode=1, stderr=b"patch failed")
+            return MagicMock(returncode=0, stderr=b"")
+
+        with patch("scripts.packaging.validate_return_packet_preflight.subprocess.run", side_effect=fake_run):
+            result = check_rppv_014(packet_dir, repo_root)
+
+        assert result.status == "FAIL"
+        assert any(cmd[:4] == ["git", "worktree", "remove", "--force"] for cmd in calls)
+        assert any(cmd[:3] == ["git", "worktree", "prune"] for cmd in calls)
 
 
 # ============================================================================

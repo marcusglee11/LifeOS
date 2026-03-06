@@ -184,13 +184,22 @@ def _upsert_active_branch_record(primary_repo: Path, branch: str, worktree_path:
         return
 
     data = gw.load_active_branches(primary_repo)
-    for item in data.get("branches", []):
-        if item.get("name") == branch:
-            item["status"] = "active"
+    matches = [item for item in data.get("branches", []) if item.get("name") == branch]
+    if matches:
+        primary_item = max(matches, key=lambda item: str(item.get("created", "")))
+        for item in matches:
             item["base"] = item.get("base") or "main"
-            item["worktree_path"] = str(worktree_path)
-            gw.save_active_branches(data, primary_repo)
-            return
+            if item is primary_item:
+                item["status"] = "active"
+                item["worktree_path"] = str(worktree_path)
+                item.pop("closed_at", None)
+            elif item.get("status") == "active":
+                item["status"] = "closed"
+                item["worktree_path"] = None
+                item["closed_at"] = datetime.now().isoformat()
+        gw._mark_registry_updated(data)
+        gw.save_active_branches(data, primary_repo)
+        return
 
     data.setdefault("branches", []).append(
         {
@@ -201,6 +210,7 @@ def _upsert_active_branch_record(primary_repo: Path, branch: str, worktree_path:
             "worktree_path": str(worktree_path),
         }
     )
+    gw._mark_registry_updated(data)
     gw.save_active_branches(data, primary_repo)
 
 

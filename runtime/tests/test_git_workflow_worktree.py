@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import scripts.git_workflow as gw
+from scripts.workflow import start_build
 from scripts.workflow import closure_pack as cp
 
 
@@ -115,6 +116,47 @@ def test_create_worktree_auto_resolves_to_primary(tmp_path, monkeypatch, capsys)
     assert "Primary repo" in output
     assert saved["repo_root"] == primary
     assert saved["data"]["branches"][0]["worktree_path"].startswith(str(primary / ".worktrees"))
+
+
+def test_upsert_active_branch_record_closes_duplicate_active_rows(tmp_path, monkeypatch) -> None:
+    primary = tmp_path / "primary"
+    primary.mkdir(parents=True)
+    saved: dict = {}
+    data = {
+        "branches": [
+            {
+                "name": "build/auto-resolve",
+                "created": "2026-03-06T10:00:00",
+                "status": "active",
+                "worktree_path": "/tmp/old-a",
+            },
+            {
+                "name": "build/auto-resolve",
+                "created": "2026-03-06T11:00:00",
+                "status": "active",
+                "worktree_path": "/tmp/old-b",
+            },
+        ]
+    }
+
+    def fake_save_active(payload: dict, repo_root: Path | None = None):
+        saved["data"] = payload
+        saved["repo_root"] = repo_root
+
+    monkeypatch.setattr(gw, "load_active_branches", lambda repo_root=None: data)
+    monkeypatch.setattr(gw, "save_active_branches", fake_save_active)
+
+    start_build._upsert_active_branch_record(primary, "build/auto-resolve", primary / ".worktrees" / "auto")
+
+    rows = saved["data"]["branches"]
+    active_rows = [row for row in rows if row["status"] == "active"]
+    closed_rows = [row for row in rows if row["status"] == "closed"]
+    assert saved["repo_root"] == primary
+    assert len(active_rows) == 1
+    assert len(closed_rows) == 1
+    assert active_rows[0]["worktree_path"].endswith(".worktrees/auto")
+    assert closed_rows[0]["worktree_path"] is None
+    assert "closed_at" in closed_rows[0]
 
 
 def test_resolve_primary_repo_falls_back_to_git_common_dir(tmp_path, monkeypatch) -> None:

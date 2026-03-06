@@ -856,43 +856,53 @@ def check_rppv_014(packet_dir: Path, repo_root: Path) -> CheckResult:
                 check=True,
                 capture_output=True
             )
-            
-            try:
-                # Run git apply --check in worktree
-                # Patch path is absolute, so it works.
-                result = subprocess.run(
-                    ["git", "apply", "--check", str(patch_path.resolve())],
-                    cwd=worktree_dir,
-                    capture_output=True,
-                    timeout=30
-                )
-                
-                if result.returncode != 0:
-                    stderr = result.stderr.decode("utf-8", errors="replace")[:200]
-                    return CheckResult(
-                        id="RPPV-014",
-                        category="Replay",
-                        status="FAIL",
-                        message=f"git apply --check failed in clean worktree: {stderr}"
-                    )
-            finally:
-                # Cleanup worktree
-                # Need to use 'git worktree remove' AND process cleanup?
-                # tempfile handles dir, but git might complain if not removed from its list.
-                pass
-                
-        # Outside tempfile context, dir is gone. Prune git worktrees?
-        subprocess.run(["git", "worktree", "prune"], cwd=repo_root, check=False, capture_output=True)
 
+            # Run git apply --check in worktree
+            # Patch path is absolute, so it works.
+            result = subprocess.run(
+                ["git", "apply", "--check", str(patch_path.resolve())],
+                cwd=worktree_dir,
+                capture_output=True,
+                timeout=30
+            )
+
+            if result.returncode != 0:
+                stderr = result.stderr.decode("utf-8", errors="replace")[:200]
+                return CheckResult(
+                    id="RPPV-014",
+                    category="Replay",
+                    status="FAIL",
+                    message=f"git apply --check failed in clean worktree: {stderr}"
+                )
     except Exception as e:
-        # Cleanup
-        subprocess.run(["git", "worktree", "prune"], cwd=repo_root, check=False, capture_output=True)
         return CheckResult(
             id="RPPV-014",
             category="Replay",
             status="FAIL",
             message=f"Error running git apply in worktree: {e}"
         )
+    finally:
+        if worktree_dir is not None:
+            try:
+                subprocess.run(
+                    ["git", "worktree", "remove", "--force", str(worktree_dir)],
+                    cwd=repo_root,
+                    check=False,
+                    capture_output=True,
+                    timeout=10,
+                )
+            except Exception:
+                pass
+        try:
+            subprocess.run(
+                ["git", "worktree", "prune"],
+                cwd=repo_root,
+                check=False,
+                capture_output=True,
+                timeout=10,
+            )
+        except Exception:
+            pass
     
     return CheckResult(
         id="RPPV-014",
