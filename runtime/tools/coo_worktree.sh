@@ -21,6 +21,8 @@ OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_STATE_DIR/openclaw.json}
 OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
 OPENCLAW_BIN="${OPENCLAW_BIN:-}"
 OPENCLAW_POLICY_PHASE="${OPENCLAW_POLICY_PHASE:-burnin}"
+LIFEOS_DISTILL_ENABLE="${LIFEOS_DISTILL_ENABLE:-0}"
+LIFEOS_DISTILL_MODE="${LIFEOS_DISTILL_MODE:-shadow}"
 
 print_header() {
   local profile_label="(default)"
@@ -47,6 +49,8 @@ ensure_openclaw_surface() {
   export OPENCLAW_BIN
   export OPENCLAW_GATEWAY_PORT
   export OPENCLAW_POLICY_PHASE
+  export LIFEOS_DISTILL_ENABLE
+  export LIFEOS_DISTILL_MODE
 }
 
 resolve_openclaw_bin() {
@@ -81,6 +85,93 @@ run_openclaw() {
     return
   fi
   "$OPENCLAW_BIN" "$@"
+}
+
+distill_enabled() {
+  [ "${LIFEOS_DISTILL_ENABLE}" = "1" ]
+}
+
+distill_mode_effective() {
+  case "${LIFEOS_DISTILL_MODE}" in
+    off|shadow|active) printf '%s\n' "${LIFEOS_DISTILL_MODE}" ;;
+    *) printf 'shadow\n' ;;
+  esac
+}
+
+run_openclaw_maybe_distilled() {
+  local wrapper_command="$1"
+  local traffic_class="$2"
+  local template_id="$3"
+  local source_path="$4"
+  shift 4
+
+  local mode enabled_flag
+  mode="$(distill_mode_effective)"
+  if distill_enabled; then
+    enabled_flag="--enabled"
+  else
+    enabled_flag=""
+  fi
+
+  if ! distill_enabled; then
+    run_openclaw "$@"
+    return $?
+  fi
+
+  local raw_tmp result_tmp
+  raw_tmp="$(mktemp)"
+  result_tmp="$(mktemp)"
+  local raw_rc
+  if run_openclaw "$@" >"$raw_tmp" 2>&1; then
+    raw_rc=0
+  else
+    raw_rc=$?
+  fi
+
+  if ! python3 runtime/tools/openclaw_distill_lane.py process \
+    --payload-file "$raw_tmp" \
+    --source-path "$source_path" \
+    --source-executable "openclaw" \
+    --argv-json "$(python3 - "$@" <<'PY'
+import json
+import sys
+print(json.dumps(["openclaw", *sys.argv[1:]]))
+PY
+)" \
+    --wrapper-command "$wrapper_command" \
+    --traffic-class "$traffic_class" \
+    --source-command "$*" \
+    --template-id "$template_id" \
+    --mode "$mode" \
+    ${enabled_flag:+$enabled_flag} \
+    --state-dir "$OPENCLAW_STATE_DIR" \
+    --openclaw-bin "$OPENCLAW_BIN" \
+    --openclaw-profile "$OPENCLAW_PROFILE" >"$result_tmp"; then
+    redact_sensitive_stream <"$raw_tmp"
+    rm -f "$raw_tmp" "$result_tmp"
+    return "$raw_rc"
+  fi
+
+  if python3 - "$result_tmp" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+text = payload.get("rendered_text") or ""
+if payload.get("replacement_allowed") is True and text.strip():
+    print(text)
+    raise SystemExit(0)
+raise SystemExit(1)
+PY
+  then
+    rm -f "$raw_tmp" "$result_tmp"
+    return "$raw_rc"
+  fi
+
+  redact_sensitive_stream <"$raw_tmp"
+  rm -f "$raw_tmp" "$result_tmp"
+  return "$raw_rc"
 }
 
 resolve_gateway_token_from_config() {
@@ -355,24 +446,24 @@ safe_redact_file_head() {
 }
 
 redact_sensitive_stream() {
-  python3 - <<'PY'
+  python3 -c '
 import re
 import sys
 
 text = sys.stdin.read()
-text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[REDACTED_EMAIL]', text)
-text = re.sub(r'Authorization\s*:\s*Bearer\s+\S+', 'Authorization: Bearer [REDACTED]', text, flags=re.I)
-text = re.sub(r'\bxapp-[A-Za-z0-9-]{6,}\b', 'xapp-[REDACTED]', text)
-text = re.sub(r'\bxox[aboprs]-[A-Za-z0-9-]{6,}\b', 'xox?-[REDACTED]', text)
-text = re.sub(r'\bsk-or-v1[a-zA-Z0-9._-]{6,}\b', 'sk-or-v1[REDACTED]', text)
-text = re.sub(r'\bsk-[A-Za-z0-9_-]{8,}\b', 'sk-[REDACTED]', text)
-text = re.sub(r'\bsk-ant-[A-Za-z0-9_-]{8,}\b', 'sk-ant-[REDACTED]', text)
-text = re.sub(r'\bgh[opurs]_[A-Za-z0-9]{12,}\b', 'gh*_[REDACTED]', text)
-text = re.sub(r'\bAIza[0-9A-Za-z_-]{10,}\b', 'AIza[REDACTED]', text)
-text = re.sub(r'\bya29\.[0-9A-Za-z._-]{12,}\b', 'ya29.[REDACTED]', text)
-text = re.sub(r'[A-Za-z0-9+/_=-]{80,}', '[REDACTED_LONG]', text)
+text = re.sub(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", "[REDACTED_EMAIL]", text)
+text = re.sub(r"Authorization\s*:\s*Bearer\s+\S+", "Authorization: Bearer [REDACTED]", text, flags=re.I)
+text = re.sub(r"\bxapp-[A-Za-z0-9-]{6,}\b", "xapp-[REDACTED]", text)
+text = re.sub(r"\bxox[aboprs]-[A-Za-z0-9-]{6,}\b", "xox?-[REDACTED]", text)
+text = re.sub(r"\bsk-or-v1[a-zA-Z0-9._-]{6,}\b", "sk-or-v1[REDACTED]", text)
+text = re.sub(r"\bsk-[A-Za-z0-9_-]{8,}\b", "sk-[REDACTED]", text)
+text = re.sub(r"\bsk-ant-[A-Za-z0-9_-]{8,}\b", "sk-ant-[REDACTED]", text)
+text = re.sub(r"\bgh[opurs]_[A-Za-z0-9]{12,}\b", "gh*_[REDACTED]", text)
+text = re.sub(r"\bAIza[0-9A-Za-z_-]{10,}\b", "AIza[REDACTED]", text)
+text = re.sub(r"\bya29\.[0-9A-Za-z._-]{12,}\b", "ya29.[REDACTED]", text)
+text = re.sub(r"[A-Za-z0-9+/_=-]{80,}", "[REDACTED_LONG]", text)
 sys.stdout.write(text)
-PY
+'
 }
 
 write_hashes() {
@@ -2123,7 +2214,13 @@ EOF
     shift || true
     print_header
     enter_training_dir
-    run_openclaw "$@"
+    if [ "$#" -ge 2 ] && [ "$1" = "models" ] && [ "$2" = "status" ]; then
+      run_openclaw_maybe_distilled "coo openclaw -- models status" "repo_scans" "actionable_faults" "" "$@"
+    elif [ "$#" -ge 3 ] && [ "$1" = "status" ] && [ "$2" = "--all" ] && [ "$3" = "--usage" ]; then
+      run_openclaw_maybe_distilled "coo openclaw -- status --all --usage" "repo_scans" "actionable_faults" "" "$@"
+    else
+      run_openclaw "$@"
+    fi
     ;;
   *)
     usage
