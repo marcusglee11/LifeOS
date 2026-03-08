@@ -8,7 +8,7 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-02-27 (rev9)
+**Last Updated:** 2026-03-08 (rev10)
 
 ## Now (ready soon; not in WIP yet)
 
@@ -47,6 +47,16 @@
 - [ ] **Mission Type Extensions** — Why Next: Add new mission types based on backlog needs
 - [ ] **Gate 6: Agent-Agnostic Gate Runner** — DoD: Refactor claude-specific gates into `coo gate run-all`; wire into `coo land` — Owner: antigravity — Context: Doc stewardship status report identifies Claude-specific gates as non-portable
 - [x] **Tech Debt: Rehabilitate Legacy Git Workflow Tests** — Context: Quarantined to archive_legacy_r6x due to missing run_cmd mock. Rehabilitate or remove.
+
+### COO Step 6 Known Gaps (carried forward 2026-03-08)
+
+- [ ] **COO Sandboxing Decision** — DoD: Council ruling on OS-level containment strategy — Owner: Council — Context: COO currently runs with full filesystem + exec access (`sandboxed: false`); autonomy boundary is delegation envelope + fail-closed reasoning only. Requires architectural decision before L1/L2 autonomy promotion — Priority: P2
+- [ ] **COO schema drift guard** — DoD: `output_schema` in `context.py` and `artifacts/coo/schemas.md` stay in sync; add CI check or single source-of-truth — Owner: Substrate — Context: Step 6 gap #3; `build_propose_context()` embeds schema inline, divergence from `schemas.md` is silent — Priority: P2
+- [ ] **`cmd_coo_direct()` live Stage A parity** — DoD: Escalation and ambiguous parity cases pass live COO replay (not just mock tests) — Owner: Substrate — Context: Step 6 gap #4; only mocked tests exist; Stage A escalation/ambiguous cases were SKIPPED — Priority: P2
+- [ ] **COO retry/backoff in `invoke_coo_reasoning()`** — DoD: Gateway timeouts trigger exponential backoff (max 2 retries) before raising `InvocationError` — Owner: Substrate — Context: Step 6 gap #5; current adapter is single-shot; gateway restarts cause cascading failures — Priority: P3
+- [ ] **COO cron/event trigger** — DoD: `lifeos coo propose` runs on a schedule or backlog-change event without manual invocation — Owner: Wiring — Context: Step 6 gap #6; currently manual-pull only — Priority: P2
+- [ ] **`coo.md` output schema section** — DoD: `config/agent_roles/coo.md` includes inline output schema matching `context.py`; `schemas.md` cross-referenced — Owner: Docs — Context: Step 6 gap #7; schema lives only in `schemas.md` + `context.py`, not in the role definition the COO reads — Priority: P2
+- [ ] **`_normalize_proposal_indentation()` field coverage** — DoD: Either generalize the normalizer or add a regression test that fails when new COO sub-keys appear at column 0 — Owner: Substrate — Context: Step 6 gap #2; currently hard-codes 4 field names; new sub-keys silently ignored — Priority: P3
 
 ## Later (not actionable / unclear / exploratory)
 

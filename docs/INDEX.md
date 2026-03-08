@@ -56,6 +56,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [WIP_LOG.md](./11_admin/WIP_LOG.md) | **WIP tracker** — Work-in-progress log with controlled status enum |
 | [lifeos-master-operating-manual-v2.1.md](./11_admin/lifeos-master-operating-manual-v2.1.md) | **Strategic context** — Master Operating Manual v2.1 |
 | [TECH_DEBT_INVENTORY.md](./11_admin/TECH_DEBT_INVENTORY.md) | **Tech debt tracker** — Structural debt items with explicit trigger conditions |
+| [build_summaries/COO_Step6_LiveWiring_Build_Summary_2026-03-08.md](./11_admin/build_summaries/COO_Step6_LiveWiring_Build_Summary_2026-03-08.md) | COO Step 6 build summary — live wiring, shadow validation, gaps, workflow |
 
 ### Subdirectories
 
