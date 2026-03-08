@@ -7,6 +7,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -17,9 +18,15 @@ from runtime.orchestration.coo.context import (
     build_report_context,
     build_status_context,
 )
+from runtime.orchestration.coo.invoke import InvocationError, invoke_coo_reasoning
+from runtime.orchestration.coo.parser import ParseError, parse_proposal_response
 from runtime.orchestration.coo.templates import instantiate_order, load_template
 from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.util.atomic_write import atomic_write_text
+
+
+NTP_SCHEMA_VERSION = "nothing_to_propose.v1"
+ESCALATION_SCHEMA_VERSION = "escalation_packet.v1"
 
 
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
@@ -65,17 +72,88 @@ def cmd_coo_status(args: argparse.Namespace, repo_root: Path) -> int:
     return 0
 
 
+def _parse_ntp(raw_output: str) -> dict[str, Any]:
+    """Parse a nothing_to_propose.v1 YAML block. Raises ParseError if invalid."""
+    try:
+        raw = yaml.safe_load(raw_output.strip())
+    except yaml.YAMLError as exc:
+        raise ParseError(f"NTP output is not valid YAML: {exc}") from exc
+    if not isinstance(raw, dict):
+        raise ParseError("NTP output must be a YAML mapping")
+    schema_version = str(raw.get("schema_version", "")).strip()
+    if schema_version != NTP_SCHEMA_VERSION:
+        raise ParseError(
+            f"Unsupported schema_version: {schema_version!r}. "
+            f"Expected {NTP_SCHEMA_VERSION!r}"
+        )
+    if not str(raw.get("reason", "")).strip():
+        raise ParseError("NTP output missing required 'reason' field")
+    return raw
+
+
+def _parse_escalation_packet(raw_output: str) -> dict[str, Any]:
+    """Parse an escalation_packet.v1 YAML block. Raises ParseError if invalid."""
+    try:
+        raw = yaml.safe_load(raw_output.strip())
+    except yaml.YAMLError as exc:
+        raise ParseError(f"Escalation packet is not valid YAML: {exc}") from exc
+    if not isinstance(raw, dict):
+        raise ParseError("Escalation packet must be a YAML mapping")
+    schema_version = str(raw.get("schema_version", "")).strip()
+    if schema_version != ESCALATION_SCHEMA_VERSION:
+        raise ParseError(
+            f"Unsupported schema_version: {schema_version!r}. "
+            f"Expected {ESCALATION_SCHEMA_VERSION!r}"
+        )
+    if not str(raw.get("type", "")).strip():
+        raise ParseError("Escalation packet missing required 'type' field")
+    if not isinstance(raw.get("options"), list) or not raw["options"]:
+        raise ParseError("Escalation packet 'options' must be a non-empty list")
+    return raw
+
+
 def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
-    """Print proposal context payload for COO invocation."""
+    """Invoke live COO and emit task proposal or NothingToPropose response."""
     try:
         context = build_propose_context(repo_root)
     except Exception as exc:
         _print_error(f"Error: {type(exc).__name__}: {exc}")
         return 1
 
-    print(json.dumps(context, indent=2, sort_keys=True))
-    print("# COO invocation: not yet wired (Step 5)")
-    return 0
+    try:
+        raw_output = invoke_coo_reasoning(context, mode="propose", repo_root=repo_root)
+    except InvocationError as exc:
+        _print_error(f"Error: COO invocation failed: {exc}")
+        return 1
+
+    # Try parsing as task_proposal.v1 first
+    try:
+        parse_proposal_response(raw_output)
+        kind = "task_proposal"
+        if getattr(args, "json", False):
+            try:
+                payload_dict = yaml.safe_load(raw_output.strip())
+            except yaml.YAMLError:
+                payload_dict = {"raw": raw_output}
+            print(json.dumps({"kind": kind, "payload": payload_dict}, indent=2))
+        else:
+            print(raw_output.strip())
+        return 0
+    except ParseError:
+        pass
+
+    # Fall back to nothing_to_propose.v1
+    try:
+        ntp_dict = _parse_ntp(raw_output)
+        kind = "nothing_to_propose"
+        if getattr(args, "json", False):
+            print(json.dumps({"kind": kind, "payload": ntp_dict}, indent=2))
+        else:
+            print(raw_output.strip())
+        return 0
+    except ParseError as exc:
+        _print_error(f"Error: COO output failed validation: {exc}")
+        return 1
 
 
 def cmd_coo_approve(args: argparse.Namespace, repo_root: Path) -> int:
@@ -178,13 +256,41 @@ def cmd_coo_report(args: argparse.Namespace, repo_root: Path) -> int:
 
 
 def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
-    """Queue a COO directive as a CEO escalation entry."""
+    """Invoke live COO with direct intent and queue resulting EscalationPacket."""
+    context: dict[str, Any] = {
+        "intent": args.intent,
+        "source": "coo_direct",
+    }
+
+    try:
+        raw_output = invoke_coo_reasoning(context, mode="direct", repo_root=repo_root)
+    except InvocationError as exc:
+        _print_error(f"Error: COO invocation failed: {exc}")
+        return 1
+
+    try:
+        packet = _parse_escalation_packet(raw_output)
+    except ParseError as exc:
+        _print_error(f"Error: COO output failed validation: {exc}")
+        return 1
+
+    packet_type_str = str(packet.get("type", "")).strip()
+    try:
+        escalation_type = EscalationType(packet_type_str)
+    except ValueError:
+        _print_error(
+            f"Error: Unknown escalation type {packet_type_str!r} from COO output"
+        )
+        return 1
+
+    run_id = str(packet.get("run_id", f"coo-direct-{uuid.uuid4().hex[:8]}"))
+
     try:
         queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
         entry = EscalationEntry(
-            type=EscalationType.AMBIGUOUS_TASK,
-            context={"summary": args.intent, "source": "coo_direct"},
-            run_id=f"coo-direct-{uuid.uuid4().hex[:8]}",
+            type=escalation_type,
+            context=packet.get("context", {"summary": args.intent, "source": "coo_direct"}),
+            run_id=run_id,
         )
         escalation_id = queue.add_escalation(entry)
         print(f"queued: {escalation_id}")

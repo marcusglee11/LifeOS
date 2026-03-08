@@ -46,6 +46,47 @@ def _read_optional_brief(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+_PROPOSE_OUTPUT_SCHEMA_EXAMPLE = """\
+schema_version: task_proposal.v1
+proposals:
+  - task_id: T-001
+    rationale: "Highest priority with all deps met."
+    proposed_action: dispatch
+    urgency_override: null
+    suggested_owner: codex
+  - task_id: T-002
+    rationale: "Next priority; defer until T-001 complete."
+    proposed_action: defer
+    urgency_override: null
+    suggested_owner: ""
+"""
+
+_NTP_OUTPUT_SCHEMA_EXAMPLE = """\
+schema_version: nothing_to_propose.v1
+reason: "No pending actionable tasks after policy checks."
+recommended_follow_up: "Wait for blocked tasks to unblock."
+"""
+
+_PROPOSE_OUTPUT_SCHEMA = {
+    "description": (
+        "Required output format for propose mode. "
+        "Output MUST be valid YAML with exactly this structure. "
+        "Each item in 'proposals' MUST be indented by 2 spaces under the '-' marker. "
+        "Do NOT use a 'task:' key. "
+        "Do NOT use markdown code fences."
+    ),
+    "task_proposal_example": _PROPOSE_OUTPUT_SCHEMA_EXAMPLE,
+    "nothing_to_propose_example": _NTP_OUTPUT_SCHEMA_EXAMPLE,
+    "rules": {
+        "schema_version": "must be exactly 'task_proposal.v1' or 'nothing_to_propose.v1'",
+        "proposed_action": "must be one of: dispatch, defer, escalate",
+        "urgency_override": "null or one of: P0, P1, P2, P3",
+        "suggested_owner": "codex, claude_code, gemini, or empty string",
+        "indentation": "sub-keys of each proposals list item must be indented 4 spaces (2 for '-' + 2 for content)",
+    },
+}
+
+
 def build_propose_context(repo_root: Path) -> dict[str, Any]:
     backlog_path = repo_root / _BACKLOG_RELATIVE_PATH
     delegation_path = repo_root / _DELEGATION_RELATIVE_PATH
@@ -61,6 +102,7 @@ def build_propose_context(repo_root: Path) -> dict[str, Any]:
         "backlog_path": str(backlog_path),
         "brief": _read_optional_brief(brief_path),
         "generated_at": _now_iso(),
+        "output_schema": _PROPOSE_OUTPUT_SCHEMA,
     }
 
 

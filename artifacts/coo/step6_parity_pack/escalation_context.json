@@ -1,0 +1,90 @@
+{
+  "mode": "direct",
+  "intent": "Update docs/01_governance/COO_Operating_Contract_v1.0.md to add L1 dispatch",
+  "governance_metadata": {
+    "target_path": "docs/01_governance/COO_Operating_Contract_v1.0.md",
+    "is_protected_path": true,
+    "delegation_level_required": "L4",
+    "action_category": "governance_surface_touch",
+    "protected_paths_source": "config/governance/delegation_envelope.yaml"
+  },
+  "delegation_envelope": {
+    "schema_version": "delegation_envelope.v1",
+    "trust_tier": "burn-in",
+    "description": "COO autonomy delegation envelope \u2014 burn-in phase (weeks 1-2). Default: everything not explicitly L0 goes to L3. No exceptions.\n",
+    "active_levels": [
+      "L0",
+      "L3",
+      "L4"
+    ],
+    "deferred_levels": {
+      "L1": {
+        "label": "act-then-notify",
+        "activation_phase": "early-trust",
+        "note": "Deferred until Weeks 3-4. Requires N successful L3 cycles with zero unhandled failures before activation.\n"
+      },
+      "L2": {
+        "label": "auto-execute-after-timeout",
+        "activation_phase": "established",
+        "note": "Deferred until Month 2+."
+      }
+    },
+    "autonomy": {
+      "L0": {
+        "label": "full-autonomy",
+        "pattern": "Act, report in next status",
+        "actions": [
+          "update_tracking_state",
+          "record_agent_patterns",
+          "read_operations",
+          "update_artifacts_coo_brief",
+          "update_artifacts_coo_decisions",
+          "update_artifacts_coo_memory"
+        ]
+      },
+      "L3": {
+        "label": "propose-and-wait",
+        "pattern": "Propose, wait for explicit CEO approval before acting",
+        "actions": [
+          "dispatch_any_build",
+          "create_task",
+          "modify_backlog",
+          "reprioritize",
+          "sub_objective_decomposition",
+          "new_work_branch",
+          "provider_change",
+          "cross_tier_promotion",
+          "modify_objectives"
+        ]
+      },
+      "L4": {
+        "label": "escalate",
+        "pattern": "Flag decision, provide 2-3 options, wait for CEO",
+        "actions": [
+          "modify_protected_paths",
+          "strategy_change",
+          "external_commitment",
+          "budget_above_threshold",
+          "ambiguous_scope",
+          "governance_change",
+          "unknown_action_category"
+        ]
+      }
+    },
+    "protected_paths": [
+      "docs/00_foundations/",
+      "docs/01_governance/",
+      "config/governance/protected_artefacts.json"
+    ],
+    "thresholds": {
+      "budget_escalation_usd": 0,
+      "budget_note": "All cost-incurring decisions require L4 escalation during burn-in"
+    },
+    "escalation": {
+      "queue_path": "artifacts/dispatch/ceo_queue/",
+      "fail_closed": true,
+      "fail_closed_note": "If action category is not found in this envelope, default to L4 (escalate). Never guess. Fail closed is non-negotiable.\n"
+    }
+  },
+  "brief": "# COO Brief Template (Cron + Self-Orientation)\n\n## Cron Template\n\nExample:\n\n```bash\nopenclaw cron add \\\n  --cron \"*/20 8-20 * * *\" \\\n  --tz \"Australia/Sydney\" \\\n  --announce \\\n  --message \"COO heartbeat: orient, summarize status, and propose next dispatch action if needed.\"\n```\n\n## Session Orientation Protocol\n\nRun in order at session start:\n\n1. Read `SOUL.md` and `USER.md`.\n2. Read daily logs: `memory/YYYY-MM-DD.md` (today + yesterday).\n3. Read root memory: `MEMORY.md` (main session).\n4. Query authoritative structured memory:\n   `python3 /home/cabra/.openclaw/workspace/COO/memory/coo-memory.py query --namespace lifeos/dispatch`\n5. Review repository operational state:\n   - `config/tasks/backlog.yaml`\n   - `artifacts/dispatch/inbox/`\n   - `artifacts/dispatch/completed/`\n   - `docs/11_admin/LIFEOS_STATE.md`\n6. Use QMD or workspace recall search for supporting context when needed.\n\nFail-closed rule:\n- If autonomy classification is unknown, escalate (L4).\n\n## Brief Output Shape\n\nOutput status in `status_report.v1` format defined in `artifacts/coo/schemas.md`.\n\nMinimum required sections:\n- current health summary\n- backlog/dispatch metrics\n- pending escalations\n- recommended next action\n"
+}

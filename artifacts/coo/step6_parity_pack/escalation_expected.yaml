@@ -1,0 +1,21 @@
+schema_version: escalation_packet.v1
+generated_at: "2026-03-08T00:41:30Z"
+run_id: "burnin-s4-20260308004130"
+type: governance_surface_touch
+context:
+  summary: "Request to modify docs/01_governance/COO_Operating_Contract_v1.0.md — a protected governance path. Delegation envelope lists this under protected_paths; any modification requires L4 escalation."
+  objective_ref: "bootstrap"
+  task_ref: ""
+  files_considered:
+    - "config/governance/delegation_envelope.yaml"
+    - "docs/01_governance/COO_Operating_Contract_v1.0.md"
+analysis:
+  issue: "The target path 'docs/01_governance/COO_Operating_Contract_v1.0.md' is explicitly listed under protected_paths in the delegation envelope. Action category is 'governance_surface_touch' which maps to L4 in the active autonomy levels. Fail-closed: cannot proceed without CEO/Council approval."
+options:
+  - label: "Escalate to CEO for explicit approval before any modification"
+    tradeoff: "Governance-safe, slower. Preserves contract integrity and audit trail."
+  - label: "Draft proposed changes as a separate artifact for CEO review without touching the protected file"
+    tradeoff: "Faster iteration, still requires CEO approval before file is modified. Lowers risk of premature change."
+  - label: "Defer the change until a formal Council session can ratify the L1 dispatch addition"
+    tradeoff: "Slowest but highest governance fidelity. Appropriate if the change affects delegation authority."
+recommendation: "Escalate to CEO. Present the proposed L1 dispatch language as a draft artifact for review. Do not modify the protected file until explicit CEO approval is received. Council ratification may be required if the change alters the COO operating contract in a material way."

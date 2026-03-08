@@ -5,17 +5,62 @@ import argparse
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 import yaml
 
 from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION
 from runtime.orchestration.coo.commands import (
     cmd_coo_approve,
+    cmd_coo_direct,
     cmd_coo_propose,
     cmd_coo_report,
     cmd_coo_status,
 )
+from runtime.orchestration.coo.invoke import InvocationError
 from runtime.orchestration.dispatch.order import parse_order
+
+
+_VALID_PROPOSAL_YAML = """\
+schema_version: task_proposal.v1
+generated_at: "2026-03-08T00:00:00Z"
+mode: propose
+objective_ref: bootstrap
+proposals:
+  - task_id: T-101
+    rationale: P1 priority, highest actionable.
+    proposed_action: dispatch
+    urgency_override: null
+    suggested_owner: codex
+"""
+
+_VALID_NTP_YAML = """\
+schema_version: nothing_to_propose.v1
+generated_at: "2026-03-08T00:00:00Z"
+mode: propose
+objective_ref: bootstrap
+reason: No pending actionable tasks.
+recommended_follow_up: Wait for completions.
+"""
+
+_VALID_ESCALATION_YAML = """\
+schema_version: escalation_packet.v1
+generated_at: "2026-03-08T00:00:00Z"
+run_id: burnin-test-001
+type: governance_surface_touch
+context:
+  summary: Protected path modification requested.
+  objective_ref: bootstrap
+  task_ref: ""
+analysis:
+  issue: Path is protected.
+options:
+  - label: Escalate to CEO
+    tradeoff: Governance-safe.
+  - label: Defer
+    tradeoff: Slower.
+recommendation: Escalate to CEO.
+"""
 
 
 def _task(
@@ -133,24 +178,127 @@ def test_coo_status_json_output(tmp_path: Path, capsys) -> None:
     assert payload["actionable_count"] == 1
 
 
-def test_coo_propose_prints_context(tmp_path: Path, capsys) -> None:
-    _write_backlog(
-        tmp_path,
-        [
-            _task("T-101", status="pending", priority="P1"),
-            _task("T-102", status="completed", priority="P0"),
-        ],
-    )
+def test_coo_propose_success(tmp_path: Path, capsys) -> None:
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
     _write_delegation(tmp_path)
 
-    rc = cmd_coo_propose(argparse.Namespace(json=True), tmp_path)
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_PROPOSAL_YAML,
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
 
     assert rc == 0
-    out = capsys.readouterr().out.strip().splitlines()
-    assert out[-1] == "# COO invocation: not yet wired (Step 5)"
-    payload = json.loads("\n".join(out[:-1]))
-    assert payload["actionable_tasks"][0]["id"] == "T-101"
-    assert payload["delegation_envelope"]["schema_version"] == "delegation_envelope.v1"
+    out = capsys.readouterr().out
+    assert "schema_version: task_proposal.v1" in out
+    assert "# COO invocation: not yet wired" not in out
+
+
+def test_coo_propose_json_output(tmp_path: Path, capsys) -> None:
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_PROPOSAL_YAML,
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=True), tmp_path)
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["kind"] == "task_proposal"
+    assert "payload" in payload
+
+
+def test_coo_propose_parse_error(tmp_path: Path, capsys) -> None:
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value="this is not valid yaml: ::::",
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "Error" in err
+
+
+def test_coo_propose_invocation_error(tmp_path: Path, capsys) -> None:
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        side_effect=InvocationError("gateway unreachable"),
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "gateway unreachable" in err
+
+
+def test_coo_propose_ntp(tmp_path: Path, capsys) -> None:
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_NTP_YAML,
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "nothing_to_propose" in out
+
+
+def test_coo_propose_ntp_json(tmp_path: Path, capsys) -> None:
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_NTP_YAML,
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=True), tmp_path)
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["kind"] == "nothing_to_propose"
+    assert payload["payload"]["reason"] == "No pending actionable tasks."
+
+
+def test_coo_direct_success(tmp_path: Path, capsys) -> None:
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_ESCALATION_YAML,
+    ):
+        rc = cmd_coo_direct(
+            argparse.Namespace(intent="update protected governance doc"),
+            tmp_path,
+        )
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert out.startswith("queued:")
+
+
+def test_coo_direct_invocation_error(tmp_path: Path, capsys) -> None:
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        side_effect=InvocationError("timeout"),
+    ):
+        rc = cmd_coo_direct(
+            argparse.Namespace(intent="do something"),
+            tmp_path,
+        )
+
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "timeout" in err
 
 
 def test_coo_approve_writes_order_to_inbox(tmp_path: Path, capsys) -> None:

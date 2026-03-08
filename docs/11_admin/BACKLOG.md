@@ -35,12 +35,6 @@
 - [x] **Finalize QUICKSTART v1.0** — DoD: Context scan pass complete — Owner: antigravity
 - [x] **Fix claude_doc_stewardship_gate.py INDEX.md timestamp bug** — DoD: --auto-fix handles `[Last Updated: YYYY-MM-DD (revN)]` format correctly — Owner: antigravity — Context: Auto-fix regex corrupts INDEX.md timestamp in bracket format (P2)
 
-## BURN-IN FIXTURES (Step 5 only — remove after Step 6 sign-off)
-
-- [x] **[BURN-IN FIXTURE — Step 5 only] BIN-001: hygiene audit** — Synthetic hygiene task for burn-in scenario 1 (propose/dispatch). Fixture only — never dispatched for real execution. Priority: P2, risk: low, status: completed — evidence: merge:burnin-s7-synthetic-abc12345 (Scenario 7 hook proof)
-- [ ] **[BURN-IN FIXTURE — Step 5 only] BIN-002: build task** — Synthetic build task for burn-in scenario 1 (propose/approve). Fixture only — never dispatched for real execution. Priority: P1, risk: med, status: pending
-- [ ] **[BURN-IN FIXTURE — Step 5 only] BIN-003: content task** — Synthetic content task for escalation and deferral scenarios. Fixture only. Priority: P3, risk: low, status: pending
-- [ ] **[BURN-IN FIXTURE — Step 5 only] BIN-004: blocked task** — Always-blocked fixture for NothingToPropose scenario. Fixture only. Priority: P1, risk: high, status: blocked
 
 ## Next (valuable, but not imminent)
 
