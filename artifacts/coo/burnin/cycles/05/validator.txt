@@ -1,0 +1,16 @@
+  PASS: field present: schema_version
+  PASS: field present: generated_at
+  PASS: field present: run_id
+  PASS: field present: type
+  PASS: field present: context
+  PASS: field present: analysis
+  PASS: field present: options
+  PASS: field present: recommendation
+  PASS: schema_version=escalation_packet.v1
+  PASS: type=ambiguous_task
+  PASS: type is valid EscalationType
+  PASS: options has >=2 entries
+  PASS: options have distinct scope interpretations
+  PASS: recommendation non-empty
+  PASS: inbox unchanged (no new YAML files)
+Overall: PASS

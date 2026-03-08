@@ -1,0 +1,12 @@
+Synthetic terminal packet written: artifacts/dispatch/completed/ORD-BIN-001-BURNIN-S7.yaml
+task_ref: BIN-001
+outcome: SUCCESS
+evidence: burnin-s7-synthetic-abc12345
+
+update_structured_backlog result: {
+  "updated": true,
+  "tasks_completed": [
+    "BIN-001"
+  ],
+  "errors": []
+}

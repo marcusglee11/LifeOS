@@ -1,0 +1,17 @@
+{
+  "actionable_count": 9,
+  "by_priority": {
+    "P0": 0,
+    "P1": 7,
+    "P2": 1,
+    "P3": 1
+  },
+  "by_status": {
+    "blocked": 1,
+    "completed": 7,
+    "in_progress": 0,
+    "pending": 9
+  },
+  "generated_at": "2026-03-08T00:35:54.843458+00:00",
+  "total_tasks": 17
+}

@@ -1,0 +1,285 @@
+{
+  "actionable_tasks": [
+    {
+      "completed_at": null,
+      "created_at": "2026-03-05T00:00:00Z",
+      "description": "Delete nul, test_budget_concurrency.db from repo root; prune stale worktrees; update .gitignore",
+      "dod": "Files deleted; .gitignore updated; git worktree list shows no prunable entries; tests pass",
+      "evidence": "",
+      "id": "T-003",
+      "objective_ref": "bootstrap",
+      "owner": "",
+      "priority": "P1",
+      "requires_approval": false,
+      "risk": "low",
+      "scope_paths": [
+        ".gitignore"
+      ],
+      "status": "pending",
+      "tags": [
+        "coo-bootstrap",
+        "hygiene"
+      ],
+      "task_type": "hygiene",
+      "title": "COO Bootstrap: Hygiene sprint (Step 1C)"
+    },
+    {
+      "completed_at": null,
+      "created_at": "2026-03-05T00:00:00Z",
+      "description": "Alerting on high bypass utilization. Deferred from Trusted Builder v1.1 Ratification.",
+      "dod": "Alerting on high bypass utilization \u2014 implementation + tests",
+      "evidence": "",
+      "id": "T-009",
+      "objective_ref": "bootstrap",
+      "owner": "",
+      "priority": "P1",
+      "requires_approval": false,
+      "risk": "med",
+      "scope_paths": [
+        "runtime/"
+      ],
+      "status": "pending",
+      "tags": [
+        "trusted-builder",
+        "deferred"
+      ],
+      "task_type": "build",
+      "title": "Bypass Monitoring (Trusted Builder P1)"
+    },
+    {
+      "completed_at": null,
+      "created_at": "2026-03-05T00:00:00Z",
+      "description": "Heuristics for meaningful changes. Deferred from Trusted Builder v1.1 Ratification.",
+      "dod": "Heuristics for meaningful changes \u2014 implementation + tests",
+      "evidence": "",
+      "id": "T-010",
+      "objective_ref": "bootstrap",
+      "owner": "",
+      "priority": "P1",
+      "requires_approval": false,
+      "risk": "med",
+      "scope_paths": [
+        "runtime/"
+      ],
+      "status": "pending",
+      "tags": [
+        "trusted-builder",
+        "deferred"
+      ],
+      "task_type": "build",
+      "title": "Semantic Guardrails (Trusted Builder P1)"
+    },
+    {
+      "completed_at": null,
+      "created_at": "2026-03-05T00:00:00Z",
+      "description": "Tests pass or are properly restructured. Import/fixture issues, not code bugs.",
+      "dod": "All steward runner tests pass (or properly skipped with documented reason)",
+      "evidence": "",
+      "id": "T-011",
+      "objective_ref": "bootstrap",
+      "owner": "",
+      "priority": "P1",
+      "requires_approval": false,
+      "risk": "med",
+      "scope_paths": [
+        "runtime/tests/"
+      ],
+      "status": "pending",
+      "tags": [
+        "test-debt"
+      ],
+      "task_type": "build",
+      "title": "Fix test_steward_runner.py (25/27 failing)"
+    },
+    {
+      "completed_at": null,
+      "created_at": "2026-03-05T00:00:00Z",
+      "description": "COO drafts, CEO reviews. Seed topic: 'What autonomous AI agents actually cost to run'",
+      "dod": "5 LinkedIn posts drafted and CEO-reviewed; artifacts/content/linkedin_drafts/batch_001.md",
+      "evidence": "",
+      "id": "T-012",
+      "objective_ref": "bootstrap",
+      "owner": "",
+      "priority": "P1",
+      "requires_approval": true,
+      "risk": "low",
+      "scope_paths": [
+        "artifacts/content/"
+      ],
+      "status": "pending",
+      "tags": [
+        "revenue",
+        "content"
+      ],
+      "task_type": "content",
+      "title": "Revenue Track: LinkedIn daily posts"
+    },
+    {
+      "completed_at": null,
+      "created_at": "2026-03-05T00:00:00Z",
+      "description": "19,500 lines of real code + 1,440 tests backing the content. Scope TBD (book/series/whitepaper).",
+      "dod": "Chapter structure outline CEO-reviewed; scope decision made; artifacts/content/b5_governance_guide_outline.md",
+      "evidence": "",
+      "id": "T-013",
+      "objective_ref": "bootstrap",
+      "owner": "",
+      "priority": "P1",
+      "requires_approval": true,
+      "risk": "low",
+      "scope_paths": [
+        "artifacts/content/"
+      ],
+      "status": "pending",
+      "tags": [
+        "revenue",
+        "content"
+      ],
+      "task_type": "content",
+      "title": "Revenue Track: B5 Governance Guide"
+    },
+    {
+      "completed_at": null,
+      "created_at": "2026-03-08",
+      "description": "Synthetic build task for burn-in scenario 1 (propose/approve).",
+      "dod": "Fixture only \u2014 never dispatched for real execution.",
+      "evidence": "",
+      "id": "BIN-002",
+      "objective_ref": "bootstrap",
+      "owner": "proxy-coo",
+      "priority": "P1",
+      "requires_approval": true,
+      "risk": "med",
+      "scope_paths": [
+        "runtime/orchestration/coo/"
+      ],
+      "status": "pending",
+      "tags": [
+        "burnin-fixture"
+      ],
+      "task_type": "build",
+      "title": "Burn-in fixture: build task"
+    },
+    {
+      "completed_at": null,
+      "created_at": "2026-03-08",
+      "description": "Synthetic hygiene task for burn-in scenario 1 (propose/dispatch).",
+      "dod": "Fixture only \u2014 never dispatched for real execution.",
+      "evidence": "",
+      "id": "BIN-001",
+      "objective_ref": "bootstrap",
+      "owner": "proxy-coo",
+      "priority": "P2",
+      "requires_approval": true,
+      "risk": "low",
+      "scope_paths": [],
+      "status": "pending",
+      "tags": [
+        "burnin-fixture"
+      ],
+      "task_type": "hygiene",
+      "title": "Burn-in fixture: hygiene audit"
+    },
+    {
+      "completed_at": null,
+      "created_at": "2026-03-08",
+      "description": "Synthetic content task for escalation and deferral scenarios.",
+      "dod": "Fixture only.",
+      "evidence": "",
+      "id": "BIN-003",
+      "objective_ref": "bootstrap",
+      "owner": "proxy-coo",
+      "priority": "P3",
+      "requires_approval": true,
+      "risk": "low",
+      "scope_paths": [],
+      "status": "pending",
+      "tags": [
+        "burnin-fixture"
+      ],
+      "task_type": "content",
+      "title": "Burn-in fixture: content task"
+    }
+  ],
+  "backlog_path": "/mnt/c/Users/cabra/Projects/LifeOS/.worktrees/coo-step5-burnin/config/tasks/backlog.yaml",
+  "brief": "# COO Brief Template (Cron + Self-Orientation)\n\n## Cron Template\n\nExample:\n\n```bash\nopenclaw cron add \\\n  --cron \"*/20 8-20 * * *\" \\\n  --tz \"Australia/Sydney\" \\\n  --announce \\\n  --message \"COO heartbeat: orient, summarize status, and propose next dispatch action if needed.\"\n```\n\n## Session Orientation Protocol\n\nRun in order at session start:\n\n1. Read `SOUL.md` and `USER.md`.\n2. Read daily logs: `memory/YYYY-MM-DD.md` (today + yesterday).\n3. Read root memory: `MEMORY.md` (main session).\n4. Query authoritative structured memory:\n   `python3 /home/cabra/.openclaw/workspace/COO/memory/coo-memory.py query --namespace lifeos/dispatch`\n5. Review repository operational state:\n   - `config/tasks/backlog.yaml`\n   - `artifacts/dispatch/inbox/`\n   - `artifacts/dispatch/completed/`\n   - `docs/11_admin/LIFEOS_STATE.md`\n6. Use QMD or workspace recall search for supporting context when needed.\n\nFail-closed rule:\n- If autonomy classification is unknown, escalate (L4).\n\n## Brief Output Shape\n\nOutput status in `status_report.v1` format defined in `artifacts/coo/schemas.md`.\n\nMinimum required sections:\n- current health summary\n- backlog/dispatch metrics\n- pending escalations\n- recommended next action\n",
+  "delegation_envelope": {
+    "active_levels": [
+      "L0",
+      "L3",
+      "L4"
+    ],
+    "autonomy": {
+      "L0": {
+        "actions": [
+          "update_tracking_state",
+          "record_agent_patterns",
+          "read_operations",
+          "update_artifacts_coo_brief",
+          "update_artifacts_coo_decisions",
+          "update_artifacts_coo_memory"
+        ],
+        "label": "full-autonomy",
+        "pattern": "Act, report in next status"
+      },
+      "L3": {
+        "actions": [
+          "dispatch_any_build",
+          "create_task",
+          "modify_backlog",
+          "reprioritize",
+          "sub_objective_decomposition",
+          "new_work_branch",
+          "provider_change",
+          "cross_tier_promotion",
+          "modify_objectives"
+        ],
+        "label": "propose-and-wait",
+        "pattern": "Propose, wait for explicit CEO approval before acting"
+      },
+      "L4": {
+        "actions": [
+          "modify_protected_paths",
+          "strategy_change",
+          "external_commitment",
+          "budget_above_threshold",
+          "ambiguous_scope",
+          "governance_change",
+          "unknown_action_category"
+        ],
+        "label": "escalate",
+        "pattern": "Flag decision, provide 2-3 options, wait for CEO"
+      }
+    },
+    "deferred_levels": {
+      "L1": {
+        "activation_phase": "early-trust",
+        "label": "act-then-notify",
+        "note": "Deferred until Weeks 3-4. Requires N successful L3 cycles with zero unhandled failures before activation.\n"
+      },
+      "L2": {
+        "activation_phase": "established",
+        "label": "auto-execute-after-timeout",
+        "note": "Deferred until Month 2+."
+      }
+    },
+    "description": "COO autonomy delegation envelope \u2014 burn-in phase (weeks 1-2). Default: everything not explicitly L0 goes to L3. No exceptions.\n",
+    "escalation": {
+      "fail_closed": true,
+      "fail_closed_note": "If action category is not found in this envelope, default to L4 (escalate). Never guess. Fail closed is non-negotiable.\n",
+      "queue_path": "artifacts/dispatch/ceo_queue/"
+    },
+    "protected_paths": [
+      "docs/00_foundations/",
+      "docs/01_governance/",
+      "config/governance/protected_artefacts.json"
+    ],
+    "schema_version": "delegation_envelope.v1",
+    "thresholds": {
+      "budget_escalation_usd": 0,
+      "budget_note": "All cost-incurring decisions require L4 escalation during burn-in"
+    },
+    "trust_tier": "burn-in"
+  },
+  "generated_at": "2026-03-08T00:36:05.680654+00:00"
+}
+# COO invocation: not yet wired (Step 5)

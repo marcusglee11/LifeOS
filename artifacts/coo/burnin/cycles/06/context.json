@@ -1,0 +1,172 @@
+{
+  "mode": "propose",
+  "scenario": "NTP-fixture-only",
+  "note": "Fixture-scoped NTP context. All BIN tasks are in_progress or blocked. No pending BIN tasks to propose.",
+  "actionable_tasks": [],
+  "in_progress_tasks": [
+    {
+      "id": "BIN-001",
+      "title": "Burn-in fixture: hygiene audit",
+      "description": "Synthetic hygiene task for burn-in scenario 1 (propose/dispatch).",
+      "dod": "Fixture only \u2014 never dispatched for real execution.",
+      "priority": "P2",
+      "risk": "low",
+      "scope_paths": [],
+      "status": "in_progress",
+      "requires_approval": true,
+      "owner": "proxy-coo",
+      "evidence": "",
+      "task_type": "hygiene",
+      "tags": [
+        "burnin-fixture"
+      ],
+      "objective_ref": "bootstrap",
+      "created_at": "2026-03-08",
+      "completed_at": null
+    },
+    {
+      "id": "BIN-002",
+      "title": "Burn-in fixture: build task",
+      "description": "Synthetic build task for burn-in scenario 1 (propose/approve).",
+      "dod": "Fixture only \u2014 never dispatched for real execution.",
+      "priority": "P1",
+      "risk": "med",
+      "scope_paths": [
+        "runtime/orchestration/coo/"
+      ],
+      "status": "in_progress",
+      "requires_approval": true,
+      "owner": "proxy-coo",
+      "evidence": "",
+      "task_type": "build",
+      "tags": [
+        "burnin-fixture"
+      ],
+      "objective_ref": "bootstrap",
+      "created_at": "2026-03-08",
+      "completed_at": null
+    },
+    {
+      "id": "BIN-003",
+      "title": "Burn-in fixture: content task",
+      "description": "Synthetic content task for escalation and deferral scenarios.",
+      "dod": "Fixture only.",
+      "priority": "P3",
+      "risk": "low",
+      "scope_paths": [],
+      "status": "in_progress",
+      "requires_approval": true,
+      "owner": "proxy-coo",
+      "evidence": "",
+      "task_type": "content",
+      "tags": [
+        "burnin-fixture"
+      ],
+      "objective_ref": "bootstrap",
+      "created_at": "2026-03-08",
+      "completed_at": null
+    }
+  ],
+  "blocked_tasks": [
+    {
+      "id": "BIN-004",
+      "title": "Burn-in fixture: blocked task",
+      "description": "Always-blocked fixture for NothingToPropose scenario.",
+      "dod": "Fixture only.",
+      "priority": "P1",
+      "risk": "high",
+      "scope_paths": [],
+      "status": "blocked",
+      "requires_approval": true,
+      "owner": "proxy-coo",
+      "evidence": "",
+      "task_type": "build",
+      "tags": [
+        "burnin-fixture"
+      ],
+      "objective_ref": "bootstrap",
+      "created_at": "2026-03-08",
+      "completed_at": null
+    }
+  ],
+  "delegation_envelope": {
+    "schema_version": "delegation_envelope.v1",
+    "trust_tier": "burn-in",
+    "description": "COO autonomy delegation envelope \u2014 burn-in phase (weeks 1-2). Default: everything not explicitly L0 goes to L3. No exceptions.\n",
+    "active_levels": [
+      "L0",
+      "L3",
+      "L4"
+    ],
+    "deferred_levels": {
+      "L1": {
+        "label": "act-then-notify",
+        "activation_phase": "early-trust",
+        "note": "Deferred until Weeks 3-4. Requires N successful L3 cycles with zero unhandled failures before activation.\n"
+      },
+      "L2": {
+        "label": "auto-execute-after-timeout",
+        "activation_phase": "established",
+        "note": "Deferred until Month 2+."
+      }
+    },
+    "autonomy": {
+      "L0": {
+        "label": "full-autonomy",
+        "pattern": "Act, report in next status",
+        "actions": [
+          "update_tracking_state",
+          "record_agent_patterns",
+          "read_operations",
+          "update_artifacts_coo_brief",
+          "update_artifacts_coo_decisions",
+          "update_artifacts_coo_memory"
+        ]
+      },
+      "L3": {
+        "label": "propose-and-wait",
+        "pattern": "Propose, wait for explicit CEO approval before acting",
+        "actions": [
+          "dispatch_any_build",
+          "create_task",
+          "modify_backlog",
+          "reprioritize",
+          "sub_objective_decomposition",
+          "new_work_branch",
+          "provider_change",
+          "cross_tier_promotion",
+          "modify_objectives"
+        ]
+      },
+      "L4": {
+        "label": "escalate",
+        "pattern": "Flag decision, provide 2-3 options, wait for CEO",
+        "actions": [
+          "modify_protected_paths",
+          "strategy_change",
+          "external_commitment",
+          "budget_above_threshold",
+          "ambiguous_scope",
+          "governance_change",
+          "unknown_action_category"
+        ]
+      }
+    },
+    "protected_paths": [
+      "docs/00_foundations/",
+      "docs/01_governance/",
+      "config/governance/protected_artefacts.json"
+    ],
+    "thresholds": {
+      "budget_escalation_usd": 0,
+      "budget_note": "All cost-incurring decisions require L4 escalation during burn-in"
+    },
+    "escalation": {
+      "queue_path": "artifacts/dispatch/ceo_queue/",
+      "fail_closed": true,
+      "fail_closed_note": "If action category is not found in this envelope, default to L4 (escalate). Never guess. Fail closed is non-negotiable.\n"
+    }
+  },
+  "backlog_path": "artifacts/coo/burnin/fixtures/backlog_ntp.yaml",
+  "generated_at": "2026-03-08T00:47:05.557367+00:00"
+}

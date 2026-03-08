@@ -1,0 +1,20 @@
+schema_version: escalation_packet.v1
+generated_at: "2026-03-08T00:42:00Z"
+run_id: "burnin-s5-20260308004200"
+type: ambiguous_task
+context:
+  summary: "Directive 'improve the system' is underspecified. Cannot determine action class, scope, risk level, or deliverable without CEO clarification. Delegation envelope maps ambiguous scope to L4 escalation."
+  objective_ref: "bootstrap"
+  task_ref: ""
+  files_considered:
+    - "config/governance/delegation_envelope.yaml"
+analysis:
+  issue: "The intent 'improve the system' is underspecified: no scope boundary, no deliverable definition, no risk assessment possible, and no priority anchor. The delegation envelope explicitly lists 'ambiguous_scope' as an L4 action. Fail-closed: cannot decompose or dispatch without more information."
+options:
+  - label: "Interpret as hygiene scope: run a hygiene audit on the codebase (dead code, test debt, doc freshness)"
+    tradeoff: "Low-risk and concrete, but may not match CEO intent. Could miss more important improvement targets."
+  - label: "Interpret as feature/build scope: identify the highest-priority pending backlog item and propose it for dispatch"
+    tradeoff: "Aligns with existing backlog prioritisation, but 'improve' may refer to something not currently in the backlog."
+  - label: "Interpret as content/strategic scope: produce a strategic analysis or documentation update"
+    tradeoff: "Matches revenue track objectives, but diverges from near-term bootstrap campaign priorities."
+recommendation: "Escalate to CEO for scope clarification. Request a concrete deliverable, affected subsystem, or acceptance criterion before decomposing or dispatching any task. Return to L3 propose flow once intent is scoped."

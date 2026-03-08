@@ -1,0 +1,10 @@
+  PASS: BIN-001 found in backlog.yaml
+  PASS: BIN-001 status=completed
+  PASS: BIN-001 completed_at populated
+  PASS: BIN-001 evidence contains synthetic SHA
+  PASS: BACKLOG.md marks BIN-001 completed [x]
+  PASS: BACKLOG.md has synthetic SHA evidence
+Overall: PASS (NON-GATING)
+
+BIN-001 details: status=completed, completed_at=2026-03-08T00:47:47.515605+00:00
+  evidence: merge:burnin-s7-synthetic-abc12345

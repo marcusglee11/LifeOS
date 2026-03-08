@@ -1,0 +1,11 @@
+  PASS: field present: schema_version
+  PASS: field present: generated_at
+  PASS: field present: mode
+  PASS: field present: objective_ref
+  PASS: field present: reason
+  PASS: field present: recommended_follow_up
+  PASS: schema_version=nothing_to_propose.v1
+  PASS: reason non-empty
+  PASS: recommended_follow_up non-empty
+  PASS: inbox unchanged
+Overall: PASS (NON-GATING)

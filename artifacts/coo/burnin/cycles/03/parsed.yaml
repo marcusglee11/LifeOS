@@ -1,0 +1,32 @@
+schema_version: execution_order.v1
+order_id: ORD-BIN-001-20260308004107
+task_ref: BIN-001
+created_at: '2026-03-08T00:41:07.417014+00:00'
+steps:
+- name: audit
+  role: builder
+  provider: auto
+  mode: blocking
+- name: fix
+  role: builder
+  provider: auto
+  mode: blocking
+- name: verify
+  role: builder
+  provider: auto
+  mode: blocking
+- name: close
+  role: builder
+  provider: auto
+  mode: blocking
+constraints:
+  governance_policy: null
+  worktree: true
+  max_duration_seconds: 1800
+  scope_paths: []
+shadow:
+  enabled: false
+  provider: codex
+  receives: full_task_payload
+supervision:
+  per_cycle_check: false

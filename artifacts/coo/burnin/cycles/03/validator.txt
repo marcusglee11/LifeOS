@@ -1,0 +1,7 @@
+  PASS: schema_version=execution_order.v1
+  PASS: order_id regex match
+  PASS: task_ref=BIN-001
+  PASS: constraints.worktree=true
+  PASS: steps non-empty
+  PASS: steps match hygiene template (audit,fix,verify,close)
+Overall: PASS

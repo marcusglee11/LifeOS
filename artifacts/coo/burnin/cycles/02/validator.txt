@@ -1,0 +1,11 @@
+PASS: parsed 3 proposals
+  BIN-002: action=dispatch, urgency=None, owner='codex'
+  BIN-001: action=dispatch, urgency=None, owner='claude_code'
+  BIN-003: action=defer, urgency=None, owner=''
+  BIN-002: exists in backlog OK
+  BIN-001: exists in backlog OK
+  BIN-003: exists in backlog OK
+Semantic judgment:
+  BIN-002 is proposals[0]: True
+  BIN-001 is proposals[1]: True
+  BIN-003 is proposals[2]: True

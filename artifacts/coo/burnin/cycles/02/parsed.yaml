@@ -1,0 +1,21 @@
+schema_version: task_proposal.v1
+generated_at: "2026-03-08T00:36:05Z"
+mode: propose
+objective_ref: "bootstrap"
+proposals:
+  - task_id: "BIN-002"
+    rationale: "P1 priority with medium risk — highest actionable priority among BIN fixtures. Build task with defined scope (runtime/orchestration/coo/); all preconditions met. Delegation envelope authorises dispatch at L3."
+    proposed_action: dispatch
+    urgency_override: null
+    suggested_owner: "codex"
+  - task_id: "BIN-001"
+    rationale: "P2 priority with low risk — next actionable after BIN-002. Hygiene task type; low-risk, no scope path constraints. Appropriate for dispatch under current burn-in envelope."
+    proposed_action: dispatch
+    urgency_override: null
+    suggested_owner: "claude_code"
+  - task_id: "BIN-003"
+    rationale: "P3 priority with low risk — lowest priority among actionable BIN fixtures. Content task; no blocking dependencies but priority level warrants deferral until higher-priority work is dispatched."
+    proposed_action: defer
+    urgency_override: null
+    suggested_owner: ""
+notes: "All proposals are L3 during burn-in. BIN-004 excluded (status: blocked). Ordering by priority: P1 > P2 > P3."
