@@ -8,7 +8,7 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-03-08 (rev10)
+**Last Updated:** 2026-03-09 (rev11)
 
 ## Now (ready soon; not in WIP yet)
 
@@ -25,6 +25,7 @@
 ### P1 (High)
 
 - [x] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
+- [ ] **OpenClaw distill lane operational rollout** — DoD: Session-scoped shadow rollout completed with 12-run / 2-session clean window, CEO-approved shadow success receipt recorded, `models status` active promotion gated by fresh preflight + forced-failure drill + CEO approval, runbook/state updated — Owner: Substrate + COO + CEO — Context: Distill lane is merged on `main` but not yet an active operating practice; milestone 1 keeps raw path authoritative and `status --all --usage` shadow-only — Priority: P1
 - [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Semantic Guardrails (Trusted Builder P1)** — DoD: Heuristics for meaningful changes — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **Fix test_steward_runner.py (25/27 failing)** — DoD: Tests pass or are properly restructured — Owner: antigravity — Context: Import/fixture issues, not code bugs; currently skipped on WSL (build/doc-refresh-and-test-debt)

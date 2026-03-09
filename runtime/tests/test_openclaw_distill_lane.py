@@ -16,11 +16,33 @@ def _write_health_receipt(tmp_path: Path, *, fingerprint: str, effective_mode: s
                 "compatibility_fingerprint": fingerprint,
                 "last_successful_preflight_fingerprint": fingerprint,
                 "preflight_ok": True,
+                "last_preflight_ts_utc": lane._utc_now(),  # noqa: SLF001
             }
         ),
         encoding="utf-8",
     )
     return path
+
+
+def _write_active_gate_receipts(tmp_path: Path, *, fingerprint: str) -> None:
+    lane.shadow_success_receipt_path_for_state(tmp_path).write_text(
+        json.dumps(
+            {
+                "compatibility_fingerprint": fingerprint,
+                "ceo_approved": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    lane.forced_failure_receipt_path_for_state(tmp_path).write_text(
+        json.dumps(
+            {
+                "compatibility_fingerprint": fingerprint,
+                "drill_passed": True,
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 def test_classify_denies_protected_path_before_allow(tmp_path: Path) -> None:
@@ -186,6 +208,28 @@ def test_resolve_effective_mode_corrupt_health_receipt_forces_shadow(tmp_path: P
     assert cause == lane.HEALTH_EVENT_CAUSE_HEALTH_INVALID
 
 
+def test_health_path_uses_health_state_filename_and_reads_legacy_receipt(tmp_path: Path) -> None:
+    assert lane.health_path_for_state(tmp_path).name == "health_state.json"
+    legacy_path = lane.legacy_health_path_for_state(tmp_path)
+    legacy_path.parent.mkdir(parents=True, exist_ok=True)
+    legacy_path.write_text(
+        json.dumps(
+            {
+                "effective_mode": "shadow",
+                "compatibility_fingerprint": "legacy-fingerprint",
+                "last_successful_preflight_fingerprint": "legacy-fingerprint",
+                "preflight_ok": True,
+                "last_preflight_ts_utc": lane._utc_now(),  # noqa: SLF001
+            }
+        ),
+        encoding="utf-8",
+    )
+    receipt, valid = lane._read_health_receipt(tmp_path)  # noqa: SLF001
+    assert valid is True
+    assert receipt is not None
+    assert receipt["compatibility_fingerprint"] == "legacy-fingerprint"
+
+
 def test_process_payload_active_without_health_receipt_bypasses_raw(monkeypatch, tmp_path: Path) -> None:
     payload_path = tmp_path / "payload.txt"
     payload_path.write_text("x" * 9000, encoding="utf-8")
@@ -246,6 +290,7 @@ def test_process_payload_active_with_current_health_receipt_allows_replacement(m
     }
     fingerprint, _payload = lane.build_compatibility_fingerprint(context)
     _write_health_receipt(tmp_path, fingerprint=fingerprint)
+    _write_active_gate_receipts(tmp_path, fingerprint=fingerprint)
     monkeypatch.setattr(lane, "build_runtime_context", lambda **_: context)
     monkeypatch.setattr(
         lane,
@@ -295,6 +340,100 @@ def test_process_payload_active_with_current_health_receipt_allows_replacement(m
     assert result["effective_mode"] == "active"
     assert result["replacement_allowed"] is True
     assert result["status"] == "ok"
+
+
+def test_process_payload_active_requires_shadow_receipt_and_forced_failure_drill(monkeypatch, tmp_path: Path) -> None:
+    payload = "x" * 9000
+    payload_path = tmp_path / "payload.txt"
+    payload_path.write_text(payload, encoding="utf-8")
+    context = {
+        "openclaw_version": "v1",
+        "channel_if_known": "stable",
+        "cheap_lane_id": "quick",
+        "cheap_model_target": "github-copilot/gpt-5-mini",
+        "wrapper_schema_version": lane.WRAPPER_SCHEMA_VERSION,
+    }
+    fingerprint, _payload = lane.build_compatibility_fingerprint(context)
+    _write_health_receipt(tmp_path, fingerprint=fingerprint)
+    monkeypatch.setattr(lane, "build_runtime_context", lambda **_: context)
+    args = lane.build_parser().parse_args(
+        [
+            "process",
+            "--enabled",
+            "--payload-file",
+            str(payload_path),
+            "--source-executable",
+            "openclaw",
+            "--argv-json",
+            json.dumps(["openclaw", "models", "status"]),
+            "--wrapper-command",
+            "coo openclaw -- models status",
+            "--traffic-class",
+            "repo_scans",
+            "--source-command",
+            "openclaw models status",
+            "--template-id",
+            "actionable_faults",
+            "--mode",
+            "active",
+            "--state-dir",
+            str(tmp_path),
+            "--openclaw-bin",
+            "openclaw",
+        ]
+    )
+    result = lane.process_payload(args)
+    assert result["effective_mode"] == "shadow"
+    assert result["bypass_reason"] == "health_state_invalid"
+
+
+def test_process_payload_active_requires_fresh_preflight(monkeypatch, tmp_path: Path) -> None:
+    payload = "x" * 9000
+    payload_path = tmp_path / "payload.txt"
+    payload_path.write_text(payload, encoding="utf-8")
+    context = {
+        "openclaw_version": "v1",
+        "channel_if_known": "stable",
+        "cheap_lane_id": "quick",
+        "cheap_model_target": "github-copilot/gpt-5-mini",
+        "wrapper_schema_version": lane.WRAPPER_SCHEMA_VERSION,
+    }
+    fingerprint, _payload = lane.build_compatibility_fingerprint(context)
+    health_path = _write_health_receipt(tmp_path, fingerprint=fingerprint)
+    stale_receipt = json.loads(health_path.read_text(encoding="utf-8"))
+    stale_receipt["last_preflight_ts_utc"] = "2000-01-01T00:00:00Z"
+    health_path.write_text(json.dumps(stale_receipt), encoding="utf-8")
+    _write_active_gate_receipts(tmp_path, fingerprint=fingerprint)
+    monkeypatch.setattr(lane, "build_runtime_context", lambda **_: context)
+    args = lane.build_parser().parse_args(
+        [
+            "process",
+            "--enabled",
+            "--payload-file",
+            str(payload_path),
+            "--source-executable",
+            "openclaw",
+            "--argv-json",
+            json.dumps(["openclaw", "models", "status"]),
+            "--wrapper-command",
+            "coo openclaw -- models status",
+            "--traffic-class",
+            "repo_scans",
+            "--source-command",
+            "openclaw models status",
+            "--template-id",
+            "actionable_faults",
+            "--mode",
+            "active",
+            "--state-dir",
+            str(tmp_path),
+            "--openclaw-bin",
+            "openclaw",
+        ]
+    )
+    result = lane.process_payload(args)
+    assert result["effective_mode"] == "shadow"
+    assert result["bypass_reason"] == "health_state_invalid"
 
 
 def test_run_health_preflight_writes_health_receipt(monkeypatch, tmp_path: Path) -> None:
@@ -397,6 +536,7 @@ def test_process_payload_emits_mode_transition_audit(monkeypatch, tmp_path: Path
     }
     fingerprint, _payload = lane.build_compatibility_fingerprint(context)
     _write_health_receipt(tmp_path, fingerprint=fingerprint, effective_mode="shadow")
+    _write_active_gate_receipts(tmp_path, fingerprint=fingerprint)
     monkeypatch.setattr(lane, "build_runtime_context", lambda **_: context)
     monkeypatch.setattr(
         lane,

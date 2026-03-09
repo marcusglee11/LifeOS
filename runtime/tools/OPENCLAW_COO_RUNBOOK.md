@@ -5,6 +5,121 @@
 - OpenClaw operations: `coo openclaw -- <args>`
 - Shell/process operations: `coo run -- <command>`
 
+## Distill Lane Operations (Milestone 1)
+
+Distill lane is optional and default-off. Raw COO behavior remains authoritative.
+
+Session-scoped enablement only:
+
+```bash
+export LIFEOS_DISTILL_ENABLE=1
+export LIFEOS_DISTILL_MODE=shadow
+```
+
+Do not enable through persistent shell profiles, tmux startup, service env, or system-wide env in milestone 1.
+
+Preflight:
+
+```bash
+python3 runtime/tools/openclaw_distill_lane.py preflight --state-dir "$OPENCLAW_STATE_DIR" --mode shadow
+```
+
+Audit and health-state paths:
+
+- `$OPENCLAW_STATE_DIR/runtime/gates/distill/audit.jsonl`
+- `$OPENCLAW_STATE_DIR/runtime/gates/distill/health_state.json`
+- `$OPENCLAW_STATE_DIR/runtime/gates/distill/payloads/`
+
+Milestone-1 scope:
+
+- Shadow only:
+  - `coo openclaw -- models status`
+  - `coo openclaw -- status --all --usage`
+- Active allowed only for:
+  - `coo openclaw -- models status`
+
+Requested `LIFEOS_DISTILL_MODE=active` does not override stale or invalid health/preflight state and does not override post-drift shadow suppression.
+
+Shadow observation window:
+
+- 12 successful shadow invocations total
+- at least 6 `coo openclaw -- models status`
+- at least 6 `coo openclaw -- status --all --usage`
+- across at least 2 separate operator sessions
+
+A successful shadow invocation is one in-scope seam command where:
+
+- effective behavior remains shadow or raw-bypass only
+- operator output remains usable
+- a per-attempt audit record is written
+- no blocker reason is recorded
+
+Shadow-completion blockers:
+
+- `health_state_invalid`
+- `distill_lane_unavailable`
+- `schema_failure`
+- `distill_call_failed`
+- any timeout event
+- any auth/provider failure event
+- any health-state corruption event
+- any unintended active replacement on `status --all --usage`
+- any unexpected raw bypass on `models status`
+
+Blocker-bearing runs do not count toward the observation window. Timeout/auth/provider failures are blockers and prevent shadow completion until a clean observation window is re-established.
+
+Shadow receipt and promotion:
+
+- substrate/maintainer prepares the shadow success receipt from audit and health-state evidence
+- CEO approves the shadow success receipt
+- only then may `models status` be considered for active promotion
+
+Forced-failure drill before active:
+
+1. Disable the lane or invalidate health state
+2. Confirm `coo openclaw -- models status` continues on the raw path
+3. Restore valid shadow/active candidate state
+
+Active candidate session:
+
+```bash
+export LIFEOS_DISTILL_ENABLE=1
+export LIFEOS_DISTILL_MODE=active
+```
+
+Active promotion requires:
+
+- fresh preflight under the current fingerprint
+- CEO-approved shadow success receipt under the current fingerprint
+- successful forced-failure drill
+- explicit CEO re-promotion after any fingerprint drift
+
+Rollback:
+
+```bash
+unset LIFEOS_DISTILL_ENABLE LIFEOS_DISTILL_MODE
+```
+
+or:
+
+```bash
+export LIFEOS_DISTILL_ENABLE=0
+```
+
+Upgrade or fingerprint drift handling:
+
+1. Run `openclaw --version`
+2. Verify current fingerprint inputs:
+   - observed OpenClaw version
+   - observed channel if available
+   - configured cheap lane id
+   - configured cheap model target
+   - wrapper schema version
+3. Rerun distill preflight
+4. Rerun at least 2 shadow checks on `coo openclaw -- models status`
+5. Confirm audit and health-state updated cleanly
+6. Require full CEO re-approval path before restoring active
+
 ## COO Update Protocol (Ringed Enforcement)
 
 Use the protocol runner for enforceable OpenClaw COO update flow:

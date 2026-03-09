@@ -207,6 +207,25 @@ def _write_active_health_receipt(state_dir: Path, env: dict[str, str]) -> None:
                 "compatibility_fingerprint": fingerprint,
                 "last_successful_preflight_fingerprint": fingerprint,
                 "preflight_ok": True,
+                "last_preflight_ts_utc": lane._utc_now(),  # noqa: SLF001
+            }
+        ),
+        encoding="utf-8",
+    )
+    lane.shadow_success_receipt_path_for_state(state_dir).write_text(
+        json.dumps(
+            {
+                "compatibility_fingerprint": fingerprint,
+                "ceo_approved": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    lane.forced_failure_receipt_path_for_state(state_dir).write_text(
+        json.dumps(
+            {
+                "compatibility_fingerprint": fingerprint,
+                "drill_passed": True,
             }
         ),
         encoding="utf-8",

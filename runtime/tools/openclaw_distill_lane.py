@@ -54,7 +54,10 @@ UNKNOWN_SENTINEL = "unknown"
 HEALTH_EVENT_CAUSE_HEALTHY = "healthy_requested_mode"
 HEALTH_EVENT_CAUSE_REQUESTED_OFF = "requested_off"
 HEALTH_EVENT_CAUSE_HEALTH_INVALID = "health_state_invalid"
-HEALTH_FILENAME = "health.json"
+HEALTH_FILENAME = "health_state.json"
+LEGACY_HEALTH_FILENAME = "health.json"
+SHADOW_SUCCESS_RECEIPT_FILENAME = "shadow_success_receipt.json"
+FORCED_FAILURE_RECEIPT_FILENAME = "forced_failure_receipt.json"
 PAYLOAD_DIRNAME = "payloads"
 AUDIT_FILENAME = "audit.jsonl"
 SEEN_HASHES_FILENAME = "seen_raw_hashes.json"
@@ -317,8 +320,22 @@ def health_path_for_state(state_dir: Path) -> Path:
     return audit_root_for_state(state_dir) / HEALTH_FILENAME
 
 
+def legacy_health_path_for_state(state_dir: Path) -> Path:
+    return audit_root_for_state(state_dir) / LEGACY_HEALTH_FILENAME
+
+
+def shadow_success_receipt_path_for_state(state_dir: Path) -> Path:
+    return audit_root_for_state(state_dir) / SHADOW_SUCCESS_RECEIPT_FILENAME
+
+
+def forced_failure_receipt_path_for_state(state_dir: Path) -> Path:
+    return audit_root_for_state(state_dir) / FORCED_FAILURE_RECEIPT_FILENAME
+
+
 def _read_health_receipt(state_dir: Path) -> tuple[dict[str, Any] | None, bool]:
     health_path = health_path_for_state(state_dir)
+    if not health_path.exists():
+        health_path = legacy_health_path_for_state(state_dir)
     if not health_path.exists():
         return None, False
     try:
@@ -336,6 +353,44 @@ def _emit_audit_event(state_dir: Path, payload: dict[str, Any]) -> None:
 
 def _write_health_receipt(state_dir: Path, payload: dict[str, Any]) -> None:
     _write_json(health_path_for_state(state_dir), payload)
+
+
+def _read_gate_receipt(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    payload = _load_json(path, None)
+    return payload if isinstance(payload, dict) else None
+
+
+def _parse_utc_ts(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    normalized = value.strip()
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _preflight_is_fresh(health_receipt: dict[str, Any]) -> bool:
+    last_preflight = _parse_utc_ts(health_receipt.get("last_preflight_ts_utc"))
+    if last_preflight is None:
+        return False
+    age_s = (datetime.now(timezone.utc) - last_preflight).total_seconds()
+    return age_s <= HEALTH_CHECK_CADENCE_S
+
+
+def _receipt_matches_fingerprint(receipt: dict[str, Any] | None, *, fingerprint: str, approval_field: str) -> bool:
+    if not isinstance(receipt, dict):
+        return False
+    if receipt.get(approval_field) is not True:
+        return False
+    return receipt.get("compatibility_fingerprint") == fingerprint
 
 
 def preflight_quick_lane(*, openclaw_bin: str, profile: str, env: dict[str, str]) -> dict[str, Any]:
@@ -531,6 +586,23 @@ def resolve_effective_mode(*, requested_mode: str, state_dir: Path, runtime_cont
         return "shadow", HEALTH_EVENT_CAUSE_HEALTH_INVALID, health_receipt
     if health_receipt.get("preflight_ok") is not True:
         return "shadow", HEALTH_EVENT_CAUSE_HEALTH_INVALID, health_receipt
+    if requested_mode == "active":
+        if not _preflight_is_fresh(health_receipt):
+            return "shadow", HEALTH_EVENT_CAUSE_HEALTH_INVALID, health_receipt
+        shadow_success_receipt = _read_gate_receipt(shadow_success_receipt_path_for_state(state_dir))
+        if not _receipt_matches_fingerprint(
+            shadow_success_receipt,
+            fingerprint=fingerprint,
+            approval_field="ceo_approved",
+        ):
+            return "shadow", HEALTH_EVENT_CAUSE_HEALTH_INVALID, health_receipt
+        forced_failure_receipt = _read_gate_receipt(forced_failure_receipt_path_for_state(state_dir))
+        if not _receipt_matches_fingerprint(
+            forced_failure_receipt,
+            fingerprint=fingerprint,
+            approval_field="drill_passed",
+        ):
+            return "shadow", HEALTH_EVENT_CAUSE_HEALTH_INVALID, health_receipt
     return requested_mode, HEALTH_EVENT_CAUSE_HEALTHY, health_receipt
 
 
