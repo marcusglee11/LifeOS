@@ -267,3 +267,157 @@ tasks:
   objective_ref: bootstrap
   created_at: '2026-03-05T00:00:00Z'
   completed_at: null
+- id: T-014
+  title: COO Sandboxing Decision
+  description: Council decision on whether OpenClaw COO invocations should run in
+    a sandboxed environment. Determines security posture for live COO execution.
+  dod: Council ruling recorded in docs/01_governance/; sandboxing approach defined
+    or explicitly deferred with rationale
+  priority: P2
+  risk: med
+  scope_paths:
+  - docs/01_governance/
+  status: pending
+  requires_approval: true
+  owner: Council
+  evidence: ''
+  task_type: build
+  tags:
+  - coo-step6
+  - tech-debt
+  - governance
+  objective_ref: coo-gaps
+  created_at: '2026-03-09T00:00:00Z'
+  completed_at: null
+- id: T-015
+  title: COO schema drift guard
+  description: Add guard to detect drift between context.py output_schema and schemas.md.
+    Prevents silent schema divergence between COO prompts and documented contracts.
+  dod: Guard implemented in context.py or test; CI catches drift; artifacts/coo/schemas.md
+    up to date
+  priority: P2
+  risk: low
+  scope_paths:
+  - runtime/orchestration/coo/context.py
+  - artifacts/coo/schemas.md
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - coo-step6
+  - tech-debt
+  objective_ref: coo-gaps
+  created_at: '2026-03-09T00:00:00Z'
+  completed_at: null
+- id: T-016
+  title: cmd_coo_direct() live Stage A parity
+  description: cmd_coo_direct() currently uses stub/placeholder logic. Bring it to
+    Stage A parity with cmd_coo_propose() — live COO invocation, escalation_packet
+    output, CEO inbox delivery.
+  dod: cmd_coo_direct() invokes live COO; produces escalation_packet.v1; queued to
+    CEO inbox; tests in runtime/tests/orchestration/coo/ pass
+  priority: P2
+  risk: med
+  scope_paths:
+  - artifacts/coo/step6_parity_pack/
+  - runtime/tests/orchestration/coo/
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - coo-step6
+  - tech-debt
+  objective_ref: coo-gaps
+  created_at: '2026-03-09T00:00:00Z'
+  completed_at: null
+- id: T-017
+  title: COO retry/backoff in invoke_coo_reasoning()
+  description: invoke_coo_reasoning() has no retry logic. Gateway transient failures
+    cause hard errors. Add exponential backoff with configurable max retries.
+  dod: retry/backoff implemented; unit tests cover retry path; no regression on happy
+    path
+  priority: P3
+  risk: low
+  scope_paths:
+  - runtime/orchestration/coo/invoke.py
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - coo-step6
+  - tech-debt
+  objective_ref: coo-gaps
+  created_at: '2026-03-09T00:00:00Z'
+  completed_at: null
+- id: T-018
+  title: COO cron/event trigger
+  description: Set up OpenClaw cron heartbeat so COO orients and proposes autonomously
+    every 20 min during business hours (8-20 AEST). Command documented in artifacts/coo/brief.md.
+  dod: openclaw cron add executed; openclaw cron list confirms entry; COO fires on
+    schedule; T-018 marked complete
+  priority: P2
+  risk: low
+  scope_paths:
+  - config/
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - coo-step6
+  - tech-debt
+  - wiring
+  objective_ref: coo-gaps
+  created_at: '2026-03-09T00:00:00Z'
+  completed_at: null
+- id: T-019
+  title: coo.md output schema section
+  description: Add explicit output schema section to config/agent_roles/coo.md documenting
+    task_proposal.v1 and escalation_packet.v1 YAML structure. COO currently infers
+    schema from inline example in context.py.
+  dod: coo.md has dedicated Output Schema section; schemas match context.py injection;
+    no functional change to invocation
+  priority: P2
+  risk: low
+  scope_paths:
+  - config/agent_roles/coo.md
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - coo-step6
+  - tech-debt
+  - docs
+  objective_ref: coo-gaps
+  created_at: '2026-03-09T00:00:00Z'
+  completed_at: null
+- id: T-020
+  title: _normalize_proposal_indentation() field coverage
+  description: _normalize_proposal_indentation() in invoke.py only fixes known mis-indented
+    sub-keys. Add coverage for all task_proposal.v1 fields to prevent silent parse
+    failures on new gpt-5.3-codex quirks.
+  dod: normalizer covers all schema fields; unit tests enumerate field cases; no regression
+  priority: P3
+  risk: low
+  scope_paths:
+  - runtime/orchestration/coo/invoke.py
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - coo-step6
+  - tech-debt
+  objective_ref: coo-gaps
+  created_at: '2026-03-09T00:00:00Z'
+  completed_at: null

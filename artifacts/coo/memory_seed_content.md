@@ -23,19 +23,22 @@ real COO (OpenClaw instance with structured memory).
 | 2026-03-01 | GitHub Actions Build Loop | CI automation |
 | 2026-03-05 | COO Bootstrap campaign launched | Steps 1A-4G built in one day |
 | 2026-03-06 | COO Bootstrap 8/9 steps merged | Step 2 merged (51ef1466 + eedb0fa0), Steps 5-6 pending |
+| 2026-03-08 | COO Bootstrap Steps 5+6 complete | merge commits 4483fdf0, 770fc5f0 |
+| 2026-03-08 | Live OpenClaw COO operational | lifeos coo propose → gpt-5.3-codex; Stage A+B PASS |
 
 ## Active Objectives
 
-- **OBJ-BOOTSTRAP**: Stand up operational COO — 8/9 infrastructure steps merged, Step 5 (burn-in) and 6 (live) pending.
-- **OBJ-REVENUE**: First external content — LinkedIn posts + B5 Governance Guide. Not started; depends on COO operational.
-- **OBJ-TECH-DEBT**: P1 backlog items — Bypass Monitoring, Semantic Guardrails, test_steward_runner fixes. Deferred to COO management.
+- **OBJ-BOOTSTRAP**: COMPLETE (2026-03-08) — all 9 steps merged; live COO operational.
+- **OBJ-REVENUE**: First external content — LinkedIn posts (T-012) + B5 Governance Guide (T-013). Ready to start; COO can propose.
+- **OBJ-TECH-DEBT**: P1 backlog items — Bypass Monitoring (T-009), Semantic Guardrails (T-010), test_steward_runner fixes (T-011). Active queue.
+- **OBJ-COO-GAPS**: 7 Step 6 known gaps (T-014..T-020) — sandboxing, schema drift, parity, retry, cron, schema doc, normalizer.
 
 ## Current Campaign State
 
 ```
 Campaign: COO-BOOTSTRAP
 Objective: OBJ-BOOTSTRAP
-Status: IN_PROGRESS (Step 5 preparation)
+Status: COMPLETE (2026-03-08)
 
 1. [DONE] Step 1A: Structured backlog — merged 23cd2143
 2. [DONE] Step 1B: Delegation envelope — merged eb75f2e8
@@ -44,8 +47,8 @@ Status: IN_PROGRESS (Step 5 preparation)
 5. [DONE] Step 3E: Templates — merged 5a7425b3
 6. [DONE] Step 3F: CLI commands — merged 1d6d208c
 7. [DONE] Step 4G: State updater — merged 72548d7e
-8. [PENDING] Step 5: Burn-in
-9. [PENDING] Step 6: Live COO
+8. [DONE] Step 5: Burn-in — merged 4483fdf0
+9. [DONE] Step 6: Live COO — merged 770fc5f0
 ```
 
 ## Agent Performance Patterns
