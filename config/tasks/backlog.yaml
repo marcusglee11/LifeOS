@@ -365,10 +365,11 @@ tasks:
   risk: low
   scope_paths:
   - config/
-  status: pending
+  status: completed
   requires_approval: false
-  owner: ''
-  evidence: ''
+  owner: claude-code
+  evidence: 'cron id 2b0a20f3-982b-45e4-940b-3f371be56f04; name coo-heartbeat; schedule
+    */20 8-20 * * * @ Australia/Sydney; 2026-03-09'
   task_type: build
   tags:
   - coo-step6
@@ -376,7 +377,7 @@ tasks:
   - wiring
   objective_ref: coo-gaps
   created_at: '2026-03-09T00:00:00Z'
-  completed_at: null
+  completed_at: '2026-03-09T00:00:00Z'
 - id: T-019
   title: coo.md output schema section
   description: Add explicit output schema section to config/agent_roles/coo.md documenting
