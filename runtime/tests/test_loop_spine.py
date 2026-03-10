@@ -22,6 +22,7 @@ from runtime.orchestration.loop.spine import (
 )
 from runtime.orchestration.run_controller import RepoDirtyError
 from runtime.orchestration.loop.run_lock import RunLockError
+from runtime.orchestration.workflow_runtime import build_task_context, build_workflow_instance
 
 
 @pytest.fixture
@@ -249,6 +250,45 @@ class TestCheckpointPause:
             reloaded = yaml.safe_load(content)
             assert list(reloaded.keys())[0] == "checkpoint_id"  # First key alphabetically
 
+    def test_typed_review_checkpoint_propagates_to_spine_handler(self, clean_repo_root, mock_run_controller, mock_policy_hash):
+        spine = LoopSpine(repo_root=clean_repo_root)
+        instance = build_workflow_instance(
+            workflow_id="spec_creation.v1",
+            task_ref="T-123",
+            order_id="ORD-T-123-20260310000000",
+            task_context=build_task_context(None, objective="Write a spec"),
+        )
+        instance.current_step_id = "architect_review"
+        instance.next_step_id = "revise_spec"
+        instance.artifact_refs["design_spec.v1"] = {
+            "artifact_id": "wf:ORD-T-123-20260310000000:design_spec.v1:draft_spec",
+            "artifact_type": "design_spec.v1",
+            "schema_version": "design_spec.v1",
+            "producer_role": "designer",
+            "workflow_instance_id": instance.instance_id,
+            "created_at": "2026-03-10T00:00:00Z",
+            "payload": {"body": "draft"},
+            "sha256": "abc123",
+        }
+
+        review_result = MagicMock()
+        review_result.success = True
+        review_result.outputs = {"verdict": "escalate", "rationale": "needs CEO"}
+
+        mission = MagicMock()
+        mission.run.return_value = review_result
+
+        with patch("runtime.orchestration.missions.get_mission_class", return_value=lambda: mission), patch(
+            "runtime.orchestration.loop.spine.ShadowCouncilRunner"
+        ) as mock_shadow:
+            mock_shadow.return_value.run_shadow.return_value = None
+            result = spine.run(task_spec={"workflow_instance": instance.to_dict()})
+
+        assert result["state"] == SpineState.CHECKPOINT.value
+        assert result["checkpoint_id"] is not None
+        checkpoint_packets = list((clean_repo_root / "artifacts" / "checkpoints").glob("CP_*.yaml"))
+        assert len(checkpoint_packets) == 1
+
 
 class TestResumeFromCheckpoint:
     """Test: Resume from checkpoint deterministically (Scenario 3)"""
@@ -413,6 +453,50 @@ class TestResumePolicyChange:
                 terminal_data = yaml.safe_load(f)
                 assert terminal_data["outcome"] == "BLOCKED"
                 assert "POLICY_CHANGED_MID_RUN" in terminal_data["reason"]
+
+    def test_hydrate_workflow_instance_voids_running_invocations_on_resume(self, clean_repo_root):
+        spine = LoopSpine(repo_root=clean_repo_root)
+        instance = build_workflow_instance(
+            workflow_id="spec_creation.v1",
+            task_ref="T-123",
+            order_id="ORD-T-123-20260310000000",
+            task_context=build_task_context(None, objective="Write a spec"),
+        )
+        instance.state = "CHECKPOINTED"
+        instance.invocation_records["invocation-1"] = {
+            "invocation_key": "invocation-1",
+            "workflow_instance_ref": instance.instance_id,
+            "workflow_def_hash": instance.workflow_def_hash,
+            "step_id": "architect_review",
+            "attempt_index": 0,
+            "instance_state_hash_before": instance.instance_state_hash,
+            "executor_identity": "reviewer_architect",
+            "lease_status": "RUNNING",
+            "started_at": "2026-03-10T00:00:00Z",
+            "completed_at": None,
+            "result_ref": None,
+            "result_status": None,
+            "error_code": None,
+        }
+
+        hydrated = spine._hydrate_workflow_instance(
+            {
+                "workflow_instance": instance.to_dict(),
+                "ceo_resolution": {
+                    "workflow_instance_ref": instance.instance_id,
+                    "expected_prior_state": "CHECKPOINTED",
+                    "expected_workflow_def_hash": instance.workflow_def_hash,
+                    "resolution_action": "RESUME_CURRENT_STEP",
+                    "actor": "ceo",
+                    "issued_at": "2026-03-10T00:10:00Z",
+                    "note": "resume",
+                },
+            },
+            start_from_step=0,
+        )
+
+        assert hydrated.state == "READY"
+        assert hydrated.invocation_records["invocation-1"]["lease_status"] == "VOID"
 
 
 class TestDirtyRepoFailClosed:

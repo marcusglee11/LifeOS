@@ -29,6 +29,12 @@ class StepSpec:
     provider: str = "auto"
     mode: str = "blocking"
     lens_providers: Dict[str, str] = field(default_factory=dict)
+    step_id: Optional[str] = None
+    step_kind: Optional[str] = None
+    mission_type: Optional[str] = None
+    consumes: List[str] = field(default_factory=list)
+    produces: Optional[str] = None
+    mutation_class: Optional[str] = None
 
 
 @dataclass
@@ -60,6 +66,11 @@ class ExecutionOrder:
     task_ref: str
     created_at: str
     steps: List[StepSpec]
+    workflow_id: Optional[str] = None
+    workflow_version: Optional[str] = None
+    review_policy_id: Optional[str] = None
+    mutation_policy_id: Optional[str] = None
+    task_context: Optional[Dict[str, Any]] = None
     constraints: ConstraintsSpec = field(default_factory=ConstraintsSpec)
     shadow: ShadowSpec = field(default_factory=ShadowSpec)
     supervision: SupervisionSpec = field(default_factory=SupervisionSpec)
@@ -125,6 +136,12 @@ def parse_order(raw: Dict[str, Any]) -> ExecutionOrder:
                 provider=str(s.get("provider", "auto")),
                 mode=str(s.get("mode", "blocking")),
                 lens_providers=dict(s.get("lens_providers") or {}),
+                step_id=str(s.get("step_id")).strip() if s.get("step_id") is not None else None,
+                step_kind=str(s.get("step_kind")).strip() if s.get("step_kind") is not None else None,
+                mission_type=str(s.get("mission_type")).strip() if s.get("mission_type") is not None else None,
+                consumes=[str(item) for item in list(s.get("consumes") or [])],
+                produces=str(s.get("produces")).strip() if s.get("produces") is not None else None,
+                mutation_class=str(s.get("mutation_class")).strip() if s.get("mutation_class") is not None else None,
             )
         )
 
@@ -156,6 +173,11 @@ def parse_order(raw: Dict[str, Any]) -> ExecutionOrder:
         task_ref=task_ref,
         created_at=created_at,
         steps=steps,
+        workflow_id=str(raw.get("workflow_id")).strip() if raw.get("workflow_id") is not None else None,
+        workflow_version=str(raw.get("workflow_version")).strip() if raw.get("workflow_version") is not None else None,
+        review_policy_id=str(raw.get("review_policy_id")).strip() if raw.get("review_policy_id") is not None else None,
+        mutation_policy_id=str(raw.get("mutation_policy_id")).strip() if raw.get("mutation_policy_id") is not None else None,
+        task_context=dict(raw.get("task_context") or {}) or None,
         constraints=constraints,
         shadow=shadow,
         supervision=supervision,

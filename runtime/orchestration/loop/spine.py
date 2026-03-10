@@ -50,6 +50,21 @@ from runtime.receipts.invocation_receipt import (
 )
 from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
 from runtime.orchestration.loop.bypass_monitor import check_bypass_utilization
+from runtime.orchestration.workflow_runtime import (
+    REVIEW_DECISION_SCHEMA_VERSION,
+    TERMINAL_WORKFLOW_STATES,
+    WorkflowArtifact,
+    WorkflowInstance,
+    WorkflowRuntimeError,
+    get_step,
+    get_workflow_definition,
+    materialize_packaged_spec,
+    next_step_id,
+    record_invocation_finish,
+    record_invocation_start,
+    translate_task_spec_to_workflow_instance,
+    validate_resolution_packet,
+)
 
 
 class SpineState(Enum):
@@ -805,217 +820,345 @@ class LoopSpine:
         Returns:
             Result dict with outcome, steps_executed, commit_hash
         """
-        from runtime.orchestration.missions.base import MissionContext, MissionType, MissionEscalationRequired
+        return self._run_typed_workflow(
+            task_spec=task_spec,
+            start_from_step=start_from_step,
+            execution_root=execution_root,
+        )
+
+    def _hydrate_workflow_instance(self, task_spec: Dict[str, Any], start_from_step: int) -> WorkflowInstance:
+        raw_instance = task_spec.get("workflow_instance")
+        if isinstance(raw_instance, dict):
+            instance = WorkflowInstance(**raw_instance)
+        else:
+            instance = translate_task_spec_to_workflow_instance(task_spec, run_id=self.run_id or "run")
+        definition = get_workflow_definition(instance.workflow_id)
+        resolution_packet = task_spec.get("ceo_resolution")
+        if instance.state == "CHECKPOINTED" or resolution_packet is not None:
+            for invocation_key, record in list(instance.invocation_records.items()):
+                if str(record.get("lease_status", "")) == "RUNNING":
+                    record["lease_status"] = "VOID"
+                    instance.invocation_records[invocation_key] = record
+        if resolution_packet is not None:
+            resolution = validate_resolution_packet(resolution_packet, instance)
+            if resolution.resolution_action == "RESUME_CURRENT_STEP":
+                instance.state = "READY"
+            elif resolution.resolution_action == "FORCE_REJECT":
+                instance.state = "REJECTED"
+                instance.next_step_id = None
+            elif resolution.resolution_action == "ABORT_WORKFLOW":
+                instance.state = "ABORTED"
+                instance.next_step_id = None
+        if start_from_step > 0 and start_from_step < len(definition.steps):
+            instance.current_step_id = definition.steps[start_from_step].step_id
+            instance.next_step_id = next_step_id(definition, instance.current_step_id)
+        return instance
+
+    def _build_design_inputs(self, instance: WorkflowInstance) -> Dict[str, Any]:
+        task_context = instance.task_context.get("payload", {})
+        objective = str(task_context.get("objective", "")).strip()
+        acceptance = [str(item) for item in list(task_context.get("acceptance_criteria") or []) if str(item).strip()]
+        findings = []
+        review_artifact = instance.artifact_refs.get(REVIEW_DECISION_SCHEMA_VERSION)
+        if review_artifact:
+            for finding in list(review_artifact.get("payload", {}).get("findings") or []):
+                summary = str(finding.get("summary", "")).strip()
+                if summary:
+                    findings.append(summary)
+        task_lines = [objective]
+        if acceptance:
+            task_lines.append("Acceptance Criteria:")
+            task_lines.extend(f"- {item}" for item in acceptance)
+        if findings:
+            task_lines.append("Review Findings:")
+            task_lines.extend(f"- {item}" for item in findings)
+        return {
+            "task_spec": "\n".join(line for line in task_lines if line),
+            "context_refs": [],
+        }
+
+    def _normalize_review_decision(
+        self,
+        *,
+        instance: WorkflowInstance,
+        step_id: str,
+        reviewer_role: str,
+        subject_artifact: Dict[str, Any],
+        review_result: Any,
+    ) -> WorkflowArtifact:
+        outputs = getattr(review_result, "outputs", {}) or {}
+        verdict = str(outputs.get("verdict", "approved"))
+        findings = list(outputs.get("findings") or [])
+        if not findings and verdict != "approved":
+            findings = [
+                {
+                    "finding_id": f"{step_id}-1",
+                    "finding_code": verdict.upper(),
+                    "severity": "p1" if verdict == "needs_revision" else "p0",
+                    "blocking": verdict == "rejected",
+                    "target_ref": subject_artifact.get("artifact_id"),
+                    "disposition": "must_fix" if verdict == "needs_revision" else ("escalate" if verdict == "escalate" else "info"),
+                    "recommended_next_action": "revise_spec" if verdict == "needs_revision" else verdict,
+                    "summary": str(outputs.get("council_decision", {}).get("synthesis") or outputs.get("rationale") or verdict),
+                }
+            ]
+        payload = {
+            "subject_artifact_ref": subject_artifact.get("artifact_id"),
+            "subject_artifact_type": subject_artifact.get("artifact_type"),
+            "review_policy_id": "spec_review.v1" if instance.workflow_id == "spec_creation.v1" else "legacy_build_review.v1",
+            "reviewer_role": reviewer_role,
+            "verdict": verdict,
+            "findings": findings,
+            "revision_count": instance.revision_count,
+            "max_revision_attempts": get_workflow_definition(instance.workflow_id).max_revision_attempts,
+            "escalation_required": verdict == "escalate",
+            "rationale": str(outputs.get("council_decision", {}).get("synthesis") or outputs.get("rationale") or ""),
+            "concerns": list(outputs.get("concerns") or []),
+            "recommendations": list(outputs.get("recommendations") or []),
+        }
+        return WorkflowArtifact(
+            artifact_id=f"{instance.instance_id}:{REVIEW_DECISION_SCHEMA_VERSION}:{step_id}",
+            artifact_type=REVIEW_DECISION_SCHEMA_VERSION,
+            schema_version=REVIEW_DECISION_SCHEMA_VERSION,
+            producer_role=reviewer_role,
+            workflow_instance_id=instance.instance_id,
+            created_at=self._get_timestamp(),
+            payload=payload,
+            sha256=hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest(),
+        )
+
+    def _commit_step_success(
+        self,
+        *,
+        instance: WorkflowInstance,
+        definition,
+        step,
+        produced_artifact: Optional[WorkflowArtifact],
+    ) -> None:
+        if produced_artifact is not None:
+            instance.artifact_refs[produced_artifact.artifact_type] = produced_artifact.to_dict()
+        instance.last_completed_step_id = step.step_id
+        instance.current_step_id = next_step_id(definition, step.step_id)
+        instance.next_step_id = next_step_id(definition, instance.current_step_id) if instance.current_step_id else None
+        instance.state = "READY" if instance.current_step_id else "COMPLETED"
+
+    def _apply_review_transition(self, *, instance: WorkflowInstance, definition, step, decision: WorkflowArtifact, task_spec: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        payload = decision.payload
+        verdict = str(payload.get("verdict", "needs_revision"))
+        instance.artifact_refs[decision.artifact_type] = decision.to_dict()
+        instance.review_history.append(decision.to_dict())
+        instance.last_completed_step_id = step.step_id
+        if verdict == "approved":
+            instance.current_step_id = "package_spec" if instance.workflow_id == "spec_creation.v1" else next_step_id(definition, step.step_id)
+            instance.next_step_id = next_step_id(definition, instance.current_step_id) if instance.current_step_id else None
+            instance.state = "READY" if instance.current_step_id else "COMPLETED"
+            return None
+        if verdict == "needs_revision":
+            if instance.revision_count >= definition.max_revision_attempts:
+                instance.state = "CHECKPOINTED"
+                task_spec["workflow_instance"] = instance.to_dict()
+                self._trigger_checkpoint(
+                    trigger="ESCALATION_REQUESTED",
+                    step_index=[idx for idx, item in enumerate(definition.steps) if item.step_id == step.step_id][0],
+                    context={"task_spec": task_spec, "current_step": step.step_id},
+                )
+            instance.revision_count += 1
+            instance.current_step_id = "revise_spec" if instance.workflow_id == "spec_creation.v1" else "design"
+            instance.next_step_id = next_step_id(definition, instance.current_step_id)
+            instance.state = "READY"
+            return None
+        if verdict == "rejected":
+            instance.state = "REJECTED"
+            return {"outcome": "BLOCKED", "reason": "review_rejected"}
+        if verdict == "escalate":
+            instance.state = "CHECKPOINTED"
+            instance.checkpoint_ref = f"checkpoint:{self.run_id}:{step.step_id}"
+            task_spec["workflow_instance"] = instance.to_dict()
+            self._trigger_checkpoint(
+                trigger="ESCALATION_REQUESTED",
+                step_index=[idx for idx, item in enumerate(definition.steps) if item.step_id == step.step_id][0],
+                context={"task_spec": task_spec, "current_step": step.step_id},
+            )
+        instance.state = "BLOCKED"
+        return {"outcome": "BLOCKED", "reason": f"unsupported_verdict:{verdict}"}
+
+    def _run_typed_workflow(
+        self,
+        task_spec: Dict[str, Any],
+        start_from_step: int = 0,
+        execution_root: Optional[Path] = None,
+    ) -> Dict[str, Any]:
+        from runtime.orchestration.missions.base import MissionContext, MissionEscalationRequired
         from runtime.orchestration.missions import get_mission_class
         import subprocess
-        import uuid
 
-        # Define chain steps
-        chain_steps = [
-            ("hydrate", None),  # Metadata step, no mission
-            ("policy", None),   # Metadata step, no mission
-            ("design", MissionType.DESIGN),
-            ("build", MissionType.BUILD),
-            ("review", MissionType.REVIEW),
-            ("steward", MissionType.STEWARD),
-        ]
-
+        instance = self._hydrate_workflow_instance(task_spec, start_from_step)
+        definition = get_workflow_definition(instance.workflow_id)
         effective_root = execution_root or self.repo_root
-
-        steps_executed = []
-        chain_state = {}  # Accumulate outputs from each mission
-
-        # Get baseline commit
+        steps_executed: List[str] = []
         try:
             cmd_result = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
                 capture_output=True,
                 text=True,
                 timeout=2,
-                cwd=effective_root
+                cwd=effective_root,
             )
             baseline_commit = cmd_result.stdout.strip() if cmd_result.returncode == 0 else "unknown"
         except Exception:
             baseline_commit = "unknown"
 
-        # Execute chain from start_from_step
-        for step_idx in range(start_from_step, len(chain_steps)):
-            step_name, mission_type = chain_steps[step_idx]
-
-            if mission_type is None:
-                # Metadata step (hydrate, policy) - just record
-                steps_executed.append(step_name)
-                continue
-
-            # Create mission context
+        while instance.current_step_id and instance.state not in TERMINAL_WORKFLOW_STATES:
+            step = get_step(definition, instance.current_step_id)
+            if step is None:
+                return {"outcome": "BLOCKED", "reason": f"unknown_step:{instance.current_step_id}", "steps_executed": steps_executed}
+            instance.state = "RUNNING"
             context = MissionContext(
                 repo_root=effective_root,
                 baseline_commit=baseline_commit,
                 run_id=self.run_id,
                 operation_executor=None,
                 journal=None,
-                metadata={"spine_execution": True},
+                metadata={"spine_execution": True, "workflow_id": instance.workflow_id},
             )
-
-            # Get mission class and instantiate
             try:
-                mission_class = get_mission_class(mission_type)
-                mission = mission_class()
-
-                # Prepare inputs based on step position in chain
-                if step_name == "design":
-                    # Design: raw task spec
-                    inputs = {
-                        "task_spec": task_spec.get("task", ""),
-                        "context_refs": task_spec.get("context_refs", []),
-                    }
-                elif step_name == "build":
-                    # Build: needs build_packet from design + auto-approval
-                    build_packet = chain_state.get("build_packet", {})
-                    inputs = {
-                        "build_packet": build_packet,
-                        "approval": {"verdict": "approved"},
-                    }
-                elif step_name == "review":
-                    # Review: needs review_packet from build as subject_packet
-                    review_packet = chain_state.get("review_packet", {})
-                    inputs = {
-                        "subject_packet": review_packet,
-                        "review_type": "build_review",
-                    }
-                elif step_name == "steward":
-                    # Steward: needs review_packet + approval from review
-                    review_packet = chain_state.get("review_packet", {})
-                    verdict = chain_state.get("verdict", "approved")  # verdict is a string
-                    council_decision = chain_state.get("council_decision", {})
-                    inputs = {
-                        "review_packet": review_packet,
-                        "approval": {"verdict": verdict},  # Wrap string verdict in dict
-                        "council_decision": council_decision,
-                        "max_diff_lines": task_spec.get("constraints", {}).get("max_diff_lines", 500),
-                    }
-                else:
-                    # Fallback for unknown steps
-                    inputs = {
-                        "task_spec": task_spec.get("task", ""),
-                        "context_refs": task_spec.get("context_refs", []),
-                    }
-
-                # Execute mission
-                result = mission.run(context, inputs)
-
-                # Accumulate outputs for next step
-                if hasattr(result, 'outputs') and result.outputs:
-                    chain_state.update(result.outputs)
-
-                # Check for escalation
-                if hasattr(result, 'success') and not result.success:
-                    # Mission failed - check if escalation or termination
-                    if hasattr(result, 'outputs') and result.outputs.get('escalation_required'):
-                        # Trigger checkpoint for escalation
-                        self._trigger_checkpoint(
-                            trigger="ESCALATION_REQUESTED",
-                            step_index=step_idx,
-                            context={"task_spec": task_spec, "current_step": step_name},
-                        )
-                    else:
-                        # Terminal failure — log error for diagnostics
-                        import logging as _log
-                        _log.getLogger(__name__).error(
-                            "Mission '%s' failed: %s",
-                            step_name,
-                            getattr(result, 'error', 'unknown'),
-                        )
-                        try:
-                            _cr = subprocess.run(
-                                ["git", "rev-parse", "HEAD"],
-                                capture_output=True, text=True, timeout=2,
-                                cwd=effective_root,
-                            )
-                            _blocked_hash = _cr.stdout.strip() if _cr.returncode == 0 else None
-                        except Exception:
-                            _blocked_hash = None
-                        return {
-                            "outcome": "BLOCKED",
-                            "reason": "mission_failed",
-                            "steps_executed": steps_executed + [step_name],
-                            "commit_hash": _blocked_hash,
-                        }
-
-                steps_executed.append(step_name)
-
-                # Shadow Council V2 — runs after review, never gates
-                if step_name == "review":
+                invocation = record_invocation_start(instance, step_id=step.step_id, executor_identity=step.role)
+                produced_artifact: Optional[WorkflowArtifact] = None
+                if step.step_kind == "metadata":
+                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=None)
+                elif step.step_kind in {"design", "revise"}:
+                    mission = get_mission_class(step.mission_type)()
+                    result = mission.run(context, self._build_design_inputs(instance))
+                    if not getattr(result, "success", False):
+                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id]}
+                    payload = dict((getattr(result, "outputs", {}) or {}).get("build_packet") or {})
+                    produced_artifact = WorkflowArtifact(
+                        artifact_id=f"{instance.instance_id}:{step.produces}:{step.step_id}",
+                        artifact_type=step.produces or "design_spec.v1",
+                        schema_version=step.produces or "design_spec.v1",
+                        producer_role=step.role,
+                        workflow_instance_id=instance.instance_id,
+                        created_at=self._get_timestamp(),
+                        payload=payload,
+                        sha256=hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest(),
+                    )
+                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=produced_artifact)
+                elif step.step_kind == "build":
+                    mission = get_mission_class(step.mission_type)()
+                    build_packet = (instance.artifact_refs.get("legacy_build_packet.v1") or {}).get("payload", {})
+                    result = mission.run(context, {"build_packet": build_packet, "approval": {"verdict": "approved"}})
+                    if not getattr(result, "success", False):
+                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id]}
+                    payload = dict((getattr(result, "outputs", {}) or {}).get("review_packet") or {})
+                    produced_artifact = WorkflowArtifact(
+                        artifact_id=f"{instance.instance_id}:{step.produces}:{step.step_id}",
+                        artifact_type=step.produces or "legacy_review_packet.v1",
+                        schema_version=step.produces or "legacy_review_packet.v1",
+                        producer_role=step.role,
+                        workflow_instance_id=instance.instance_id,
+                        created_at=self._get_timestamp(),
+                        payload=payload,
+                        sha256=hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest(),
+                    )
+                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=produced_artifact)
+                elif step.step_kind == "review":
+                    mission = get_mission_class(step.mission_type)()
+                    subject_type = step.consumes[0]
+                    subject = instance.artifact_refs.get(subject_type)
+                    if not subject:
+                        return {"outcome": "BLOCKED", "reason": f"missing_subject:{subject_type}", "steps_executed": steps_executed + [step.step_id]}
+                    review_type = "output_review" if instance.workflow_id == "spec_creation.v1" else "build_review"
+                    result = mission.run(context, {"subject_packet": subject.get("payload", {}), "review_type": review_type})
+                    if not getattr(result, "success", False):
+                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id]}
+                    decision = self._normalize_review_decision(
+                        instance=instance,
+                        step_id=step.step_id,
+                        reviewer_role=step.role,
+                        subject_artifact=subject,
+                        review_result=result,
+                    )
                     try:
-                        _ccp = {
-                            "run_id": self.run_id,
-                            "sections": {
-                                "review_packet": chain_state.get("review_packet", {}),
-                                "reviewer_output": chain_state.get("reviewer_packet_parsed"),
-                            },
-                            "task": task_spec.get("task", ""),
-                        }
                         ShadowCouncilRunner(self.repo_root).run_shadow(
                             run_id=self.run_id,
-                            ccp=_ccp,
+                            ccp={
+                                "run_id": self.run_id,
+                                "sections": {
+                                    "review_packet": subject.get("payload", {}),
+                                    "reviewer_output": getattr(result, "outputs", {}).get("reviewer_packet_parsed"),
+                                },
+                                "task": instance.task_context.get("payload", {}).get("objective", ""),
+                            },
                         )
                     except Exception:
-                        pass  # run_shadow never raises; outer guard is defense-in-depth
-
-            except MissionEscalationRequired as e:
-                # Escalation raised - trigger checkpoint
+                        pass
+                    transition = self._apply_review_transition(
+                        instance=instance,
+                        definition=definition,
+                        step=step,
+                        decision=decision,
+                        task_spec=task_spec,
+                    )
+                    if transition:
+                        return {**transition, "steps_executed": steps_executed + [step.step_id]}
+                    produced_artifact = decision
+                elif step.step_kind == "package":
+                    produced_artifact = materialize_packaged_spec(instance, producer_role=step.role)
+                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=produced_artifact)
+                elif step.step_kind == "steward" and step.mission_type:
+                    mission = get_mission_class(step.mission_type)()
+                    review_packet = (instance.artifact_refs.get("legacy_review_packet.v1") or {}).get("payload", {})
+                    approval_artifact = instance.artifact_refs.get(REVIEW_DECISION_SCHEMA_VERSION, {})
+                    approval = {"verdict": approval_artifact.get("payload", {}).get("verdict", "approved")}
+                    result = mission.run(
+                        context,
+                        {
+                            "review_packet": review_packet,
+                            "approval": approval,
+                            "council_decision": {},
+                            "max_diff_lines": task_spec.get("constraints", {}).get("max_diff_lines", 500),
+                        },
+                    )
+                    if not getattr(result, "success", False):
+                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id]}
+                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=None)
+                else:
+                    return {"outcome": "BLOCKED", "reason": f"unsupported_step_kind:{step.step_kind}", "steps_executed": steps_executed + [step.step_id]}
+                record_invocation_finish(instance, invocation, result_ref=produced_artifact.artifact_id if produced_artifact else None, result_status="SUCCESS")
+                steps_executed.append(step.step_id)
+            except MissionEscalationRequired:
+                task_spec["workflow_instance"] = instance.to_dict()
                 self._trigger_checkpoint(
                     trigger="ESCALATION_REQUESTED",
-                    step_index=step_idx,
-                    context={
-                        "task_spec": task_spec,
-                        "current_step": step_name,
-                        "escalation_reason": e.reason,
-                    },
+                    step_index=[idx for idx, item in enumerate(definition.steps) if item.step_id == step.step_id][0],
+                    context={"task_spec": task_spec, "current_step": step.step_id},
                 )
-            except Exception as e:
-                # Unexpected error - fail closed
-                try:
-                    _cr = subprocess.run(
-                        ["git", "rev-parse", "HEAD"],
-                        capture_output=True, text=True, timeout=2,
-                        cwd=effective_root,
-                    )
-                    _blocked_hash = _cr.stdout.strip() if _cr.returncode == 0 else None
-                except Exception:
-                    _blocked_hash = None
-                return {
-                    "outcome": "BLOCKED",
-                    "reason": f"execution_error: {type(e).__name__}",
-                    "steps_executed": steps_executed + [step_name],
-                    "commit_hash": _blocked_hash,
-                }
+            except CheckpointTriggered:
+                raise
+            except WorkflowRuntimeError as exc:
+                return {"outcome": "BLOCKED", "reason": f"workflow_runtime_error:{exc}", "steps_executed": steps_executed + [step.step_id]}
+            except Exception as exc:
+                return {"outcome": "BLOCKED", "reason": f"execution_error:{type(exc).__name__}", "steps_executed": steps_executed + [step.step_id]}
 
-        # Get final commit if steward succeeded
         try:
             cmd_result = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
                 capture_output=True,
                 text=True,
                 timeout=2,
-                cwd=effective_root
+                cwd=effective_root,
             )
             commit_hash = cmd_result.stdout.strip() if cmd_result.returncode == 0 else None
         except Exception:
             commit_hash = None
-
-        # Extract diagnostics for comparison logging
-        reviewer_packet_parsed = chain_state.get("reviewer_packet_parsed")
-        _build_review_packet = chain_state.get("review_packet", {})
-        _artifacts = _build_review_packet.get("payload", {}).get("artifacts_produced", [])
-        artifacts_produced = len(_artifacts) if isinstance(_artifacts, list) else None
-
+        outcome = "PASS" if instance.state == "COMPLETED" else "BLOCKED"
+        reason = "pass" if outcome == "PASS" else instance.state.lower()
+        task_spec["workflow_instance"] = instance.to_dict()
         return {
-            "outcome": "PASS",
+            "outcome": outcome,
+            "reason": reason,
             "steps_executed": steps_executed,
             "commit_hash": commit_hash,
-            "reviewer_packet_parsed": reviewer_packet_parsed,
-            "artifacts_produced": artifacts_produced,
         }
 
     def _trigger_checkpoint(

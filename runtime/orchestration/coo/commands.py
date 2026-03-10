@@ -207,6 +207,7 @@ def cmd_coo_approve(args: argparse.Namespace, repo_root: Path) -> int:
             task.id,
             task.scope_paths,
             created_at=_now_iso(),
+            task=task,
         )
 
         try:

@@ -27,6 +27,8 @@ from runtime.orchestration.dispatch.order import (
     load_order,
     parse_order,
 )
+from runtime.orchestration.coo.backlog import TaskEntry, load_backlog
+from runtime.orchestration.workflow_runtime import translate_order_to_workflow_instance
 from runtime.util.atomic_write import atomic_write_text
 
 
@@ -215,7 +217,8 @@ class DispatchEngine:
 
         try:
             # Step 2: Execute via LoopSpine
-            task_spec = _order_to_task_spec(order)
+            task = _load_task_for_order(self.repo_root, order.task_ref)
+            task_spec = _order_to_task_spec(order, task=task)
 
             from runtime.orchestration.loop.spine import LoopSpine
 
@@ -407,13 +410,40 @@ def _isolation_required(repo_root: Path) -> bool:
         return False
 
 
-def _order_to_task_spec(order: ExecutionOrder) -> Dict[str, Any]:
+def _load_task_for_order(repo_root: Path, task_ref: str) -> Optional[TaskEntry]:
+    backlog_path = repo_root / "config" / "tasks" / "backlog.yaml"
+    if not backlog_path.exists():
+        return None
+    try:
+        tasks = load_backlog(backlog_path)
+    except Exception:
+        return None
+    return next((task for task in tasks if task.id == task_ref), None)
+
+
+def _order_to_task_spec(order: ExecutionOrder, *, task: Optional[TaskEntry] = None) -> Dict[str, Any]:
     """Convert ExecutionOrder to LoopSpine task_spec dict."""
+    workflow_instance = translate_order_to_workflow_instance(order, task=task)
     return {
         "task_ref": order.task_ref,
         "order_id": order.order_id,
+        "workflow_instance": workflow_instance.to_dict(),
+        "task_context": order.task_context,
+        "workflow_id": order.workflow_id,
         "steps": [
-            {"name": s.name, "role": s.role, "provider": s.provider}
+            {
+                "name": s.name,
+                "role": s.role,
+                "provider": s.provider,
+                "mode": s.mode,
+                "lens_providers": dict(s.lens_providers),
+                "step_id": s.step_id,
+                "step_kind": s.step_kind,
+                "mission_type": s.mission_type,
+                "consumes": list(s.consumes),
+                "produces": s.produces,
+                "mutation_class": s.mutation_class,
+            }
             for s in order.steps
         ],
         "constraints": {
@@ -431,8 +461,25 @@ def _order_to_dict(order: ExecutionOrder) -> Dict[str, Any]:
         "order_id": order.order_id,
         "task_ref": order.task_ref,
         "created_at": order.created_at,
+        "workflow_id": order.workflow_id,
+        "workflow_version": order.workflow_version,
+        "review_policy_id": order.review_policy_id,
+        "mutation_policy_id": order.mutation_policy_id,
+        "task_context": order.task_context,
         "steps": [
-            {"name": s.name, "role": s.role, "provider": s.provider}
+            {
+                "name": s.name,
+                "role": s.role,
+                "provider": s.provider,
+                "mode": s.mode,
+                "lens_providers": dict(s.lens_providers),
+                "step_id": s.step_id,
+                "step_kind": s.step_kind,
+                "mission_type": s.mission_type,
+                "consumes": list(s.consumes),
+                "produces": s.produces,
+                "mutation_class": s.mutation_class,
+            }
             for s in order.steps
         ],
         "constraints": {

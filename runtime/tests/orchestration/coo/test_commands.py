@@ -343,6 +343,25 @@ def test_coo_approve_creates_inbox_dir_if_missing(tmp_path: Path) -> None:
     assert inbox_dir.exists()
 
 
+def test_coo_approve_content_task_writes_native_workflow_order(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-020", status="pending", task_type="content")])
+    _write_template(tmp_path, "content")
+
+    rc = cmd_coo_approve(argparse.Namespace(task_ids=["T-020"], json=False), tmp_path)
+
+    assert rc == 0
+    inbox_dir = tmp_path / "artifacts" / "dispatch" / "inbox"
+    files = list(inbox_dir.glob("ORD-T-020-*.yaml"))
+    assert len(files) == 1
+
+    raw = yaml.safe_load(files[0].read_text(encoding="utf-8"))
+    assert raw["workflow_id"] == "spec_creation.v1"
+    assert raw["review_policy_id"] == "spec_review.v1"
+    assert raw["mutation_policy_id"] == "mutation_authority.v1"
+    assert raw["task_context"]["schema_version"] == "task_context.v1"
+    assert raw["task_context"]["payload"]["requested_artifact"]["format"] == "markdown"
+
+
 def test_coo_report_returns_json(tmp_path: Path, capsys) -> None:
     _write_backlog(
         tmp_path,

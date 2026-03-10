@@ -8,6 +8,9 @@ from typing import Any
 
 import yaml
 
+from runtime.orchestration.coo.backlog import TaskEntry
+from runtime.orchestration.workflow_runtime import build_task_context, resolve_workflow_id_for_task_type
+
 TEMPLATE_SCHEMA_VERSION = "order_template.v1"
 
 
@@ -69,17 +72,25 @@ def instantiate_order(
     task_id: str,
     scope_paths: list[str],
     created_at: str,
+    task: TaskEntry | None = None,
 ) -> dict[str, Any]:
     """Instantiate an execution-order-compatible dict from an order template."""
     timestamp = _parse_order_timestamp(created_at)
 
     constraints = template.get("constraints") or {}
+    workflow_id = resolve_workflow_id_for_task_type(task.task_type) if task else None
+    task_context = build_task_context(task) if task else None
 
     return {
         "schema_version": "execution_order.v1",
         "order_id": f"ORD-{task_id}-{timestamp}",
         "task_ref": task_id,
         "created_at": created_at,
+        "workflow_id": workflow_id,
+        "workflow_version": "workflow_runtime.v1" if workflow_id else None,
+        "review_policy_id": "spec_review.v1" if workflow_id == "spec_creation.v1" else "legacy_build_review.v1",
+        "mutation_policy_id": "mutation_authority.v1" if workflow_id else None,
+        "task_context": task_context,
         "steps": deepcopy(template["steps"]),
         "constraints": {
             "governance_policy": constraints.get("governance_policy"),
