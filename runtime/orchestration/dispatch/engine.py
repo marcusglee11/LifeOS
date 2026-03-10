@@ -127,6 +127,9 @@ class DispatchEngine:
 
             recovered.append(order_id)
 
+        if recovered:
+            _clear_orphan_run_lock(self.repo_root)
+
         return recovered
 
     def poll_inbox(self) -> List[Path]:
@@ -384,6 +387,15 @@ def _check_repo_clean(repo_root: Path) -> bool:
         return True
     except Exception:
         return False
+
+
+def _clear_orphan_run_lock(repo_root: Path) -> bool:
+    """Best-effort cleanup for orphaned run-locks during crash recovery."""
+    lock_path = repo_root / "artifacts" / "locks" / "run.lock"
+    if not lock_path.exists():
+        return False
+    lock_path.unlink(missing_ok=True)
+    return True
 
 
 def _isolation_required(repo_root: Path) -> bool:

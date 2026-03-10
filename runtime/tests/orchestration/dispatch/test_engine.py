@@ -407,6 +407,40 @@ def test_crash_recovery_completed_file_has_reason(tmp_path):
     assert "CRASH_RECOVERY" in content
 
 
+def test_crash_recovery_clears_orphan_run_lock(tmp_path):
+    engine = _make_engine(tmp_path)
+
+    stranded = engine.active / "exec_crashed_004.yaml"
+    stranded.write_text(
+        yaml.dump(
+            {**MINIMAL_ORDER_RAW, "order_id": "exec_crashed_004"},
+            sort_keys=True,
+            default_flow_style=False,
+        ),
+        encoding="utf-8",
+    )
+
+    lock_path = tmp_path / "artifacts" / "locks" / "run.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path.write_text("{}", encoding="utf-8")
+
+    engine.recover_crashed_runs()
+
+    assert not lock_path.exists()
+
+
+def test_crash_recovery_does_not_touch_lock_when_no_orphans(tmp_path):
+    engine = _make_engine(tmp_path)
+    lock_path = tmp_path / "artifacts" / "locks" / "run.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path.write_text("{}", encoding="utf-8")
+
+    recovered = engine.recover_crashed_runs()
+
+    assert recovered == []
+    assert lock_path.exists()
+
+
 # ── execute_async is NotImplementedError in Phase 1 ──────────────────────────
 
 
