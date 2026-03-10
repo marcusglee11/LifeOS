@@ -125,7 +125,7 @@ One canonical index per cycle at `artifacts/receipts/<run_id>/index.json`: a sta
 ### Storage Policy
 
 - **During burn-in (manual trigger):** Committed to repo in `artifacts/` directory. Retained indefinitely.
-- **During unattended operation (GitHub Actions):** Terminal packet + receipt index uploaded as GitHub Actions artifacts (90-day retention). Compact manifest (run_id, status, task_ref, packet_hash) appended to `artifacts/manifests/run_log.jsonl` and committed to repo.
+- **During unattended operation (GitHub Actions):** Terminal packet + receipt index uploaded as GitHub Actions artifacts (90-day retention). Live run summaries may be appended to `artifacts/manifests/run_log.jsonl` as runtime operational state, but canonical run truth remains in terminal/checkpoint/ledger/receipt surfaces rather than a repo-tracked JSONL log.
 - **GitHub Issue** links to the Actions artifact URL for the terminal packet.
 
 ---

@@ -122,6 +122,10 @@ artifacts/CEO_Terminal_Packet.md
 artifacts/loop_state/
 artifacts/locks/
 artifacts/queue/
+artifacts/dispatch/inbox/*.yaml
+artifacts/dispatch/active/*.yaml
+artifacts/dispatch/completed/*.yaml
+artifacts/manifests/*.jsonl
 artifacts/terminal/
 artifacts/checkpoints/
 artifacts/steps/

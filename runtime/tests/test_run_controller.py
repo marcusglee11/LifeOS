@@ -6,6 +6,7 @@ Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.6
 
 import os
 import pytest
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -198,6 +199,40 @@ class TestRepoClean:
                 verify_repo_clean(temp_repo)
             
             assert "new_untracked.py" in str(exc_info.value)
+
+    def test_repo_clean_allows_ignored_dispatch_and_manifest_outputs(self, tmp_path):
+        repo = tmp_path / "git-repo"
+        repo.mkdir()
+        subprocess.run(["git", "init"], cwd=repo, capture_output=True, text=True, check=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo, capture_output=True, text=True, check=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, capture_output=True, text=True, check=True)
+        (repo / ".gitignore").write_text(
+            "\n".join(
+                [
+                    "artifacts/dispatch/inbox/*.yaml",
+                    "artifacts/dispatch/active/*.yaml",
+                    "artifacts/dispatch/completed/*.yaml",
+                    "artifacts/manifests/*.jsonl",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        (repo / "tracked.txt").write_text("base\n", encoding="utf-8")
+        subprocess.run(["git", "add", ".gitignore", "tracked.txt"], cwd=repo, capture_output=True, text=True, check=True)
+        subprocess.run(["git", "commit", "-m", "init"], cwd=repo, capture_output=True, text=True, check=True)
+
+        operational_paths = [
+            repo / "artifacts" / "dispatch" / "inbox" / "ORD-test.yaml",
+            repo / "artifacts" / "dispatch" / "active" / "ORD-test.yaml",
+            repo / "artifacts" / "dispatch" / "completed" / "ORD-test.yaml",
+            repo / "artifacts" / "manifests" / "run_log.jsonl",
+        ]
+        for path in operational_paths:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("runtime output\n", encoding="utf-8")
+
+        verify_repo_clean(repo)
 
 
 class TestGitFailClosed:

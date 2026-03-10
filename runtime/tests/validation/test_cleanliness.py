@@ -81,3 +81,40 @@ def test_verify_output_roots_ignore_failure_when_only_evidence_is_ignored(tmp_pa
         verify_output_roots_ignored(repo, run_root, attempt_dir, evidence_root)
 
     assert exc.value.code == "EVIDENCE_ROOT_NOT_IGNORED"
+
+
+def test_dispatch_and_manifest_outputs_are_ignored(git_repo: Path) -> None:
+    (git_repo / ".gitignore").write_text(
+        "\n".join(
+            [
+                "artifacts/validation_runs/",
+                "artifacts/dispatch/inbox/*.yaml",
+                "artifacts/dispatch/active/*.yaml",
+                "artifacts/dispatch/completed/*.yaml",
+                "artifacts/manifests/*.jsonl",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    dispatch_paths = [
+        git_repo / "artifacts" / "dispatch" / "inbox" / "ORD-test.yaml",
+        git_repo / "artifacts" / "dispatch" / "active" / "ORD-test.yaml",
+        git_repo / "artifacts" / "dispatch" / "completed" / "ORD-test.yaml",
+    ]
+    manifest_path = git_repo / "artifacts" / "manifests" / "run_log.jsonl"
+
+    for path in dispatch_paths + [manifest_path]:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("runtime output\n", encoding="utf-8")
+
+    for path in dispatch_paths + [manifest_path]:
+        proof = subprocess.run(
+            ["git", "check-ignore", "-v", path.relative_to(git_repo).as_posix()],
+            cwd=git_repo,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert ".gitignore" in proof.stdout
