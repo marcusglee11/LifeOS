@@ -15,6 +15,7 @@ from typing import Any, Dict
 
 LOCK_RELATIVE_PATH = Path("artifacts/locks/run.lock")
 DEFAULT_TTL = 21600  # 6 hours
+UNVERIFIABLE_LOCK_GRACE_SECONDS = 300  # 5 minutes
 
 
 class RunLockError(RuntimeError):
@@ -42,6 +43,13 @@ def _is_pid_alive(pid: int) -> bool:
     except OSError:
         return False
     return True
+
+
+def _get_pid_namespace() -> str | None:
+    try:
+        return os.readlink("/proc/self/ns/pid")
+    except OSError:
+        return None
 
 
 def _load_lock(lock_path: Path) -> Dict[str, Any]:
@@ -83,6 +91,7 @@ def acquire_run_lock(
     payload = {
         "schema_version": "run_lock_v1",
         "pid": os.getpid(),
+        "pid_namespace": _get_pid_namespace(),
         "created_at_epoch": now,
         "run_id": run_id,
         "start_ts": start_ts,
@@ -109,7 +118,16 @@ def acquire_run_lock(
             existing_pid = int(existing.get("pid") or 0)
             created_at_epoch = int(existing.get("created_at_epoch") or 0)
             age_seconds = now - created_at_epoch if created_at_epoch else ttl_seconds + 1
-            stale = (not existing_pid or not _is_pid_alive(existing_pid)) and age_seconds > ttl_seconds
+            existing_pid_ns = existing.get("pid_namespace")
+            current_pid_ns = _get_pid_namespace()
+            pid_verifiable = bool(existing_pid_ns) and bool(current_pid_ns) and existing_pid_ns == current_pid_ns
+            pid_alive = _is_pid_alive(existing_pid) if pid_verifiable else False
+            stale = (
+                not existing_pid
+                or age_seconds > ttl_seconds
+                or (pid_verifiable and not pid_alive)
+                or ((not pid_verifiable) and age_seconds > UNVERIFIABLE_LOCK_GRACE_SECONDS)
+            )
             if stale:
                 lock_path.unlink(missing_ok=True)
                 continue

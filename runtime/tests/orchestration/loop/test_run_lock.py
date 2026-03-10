@@ -14,6 +14,7 @@ from runtime.orchestration.loop.run_lock import (
     release_run_lock,
     LOCK_RELATIVE_PATH,
     DEFAULT_TTL,
+    UNVERIFIABLE_LOCK_GRACE_SECONDS,
 )
 
 
@@ -28,6 +29,7 @@ def test_acquire_and_release(tmp_path):
     assert payload["schema_version"] == "run_lock_v1"
     assert payload["run_id"] == "run_001"
     assert payload["pid"] == os.getpid()
+    assert "pid_namespace" in payload
     assert "start_ts" in payload
 
     released = release_run_lock(handle)
@@ -127,3 +129,40 @@ def test_release_missing_lock_returns_false(tmp_path):
         run_id="nonexistent",
     )
     assert release_run_lock(handle) is False
+
+
+def test_unverifiable_lock_within_grace_blocks(tmp_path):
+    """Legacy lock without pid namespace is blocked during grace period."""
+    lock_path = tmp_path / LOCK_RELATIVE_PATH
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+
+    payload = {
+        "schema_version": "run_lock_v1",
+        "pid": 2,
+        "created_at_epoch": int(time.time()) - 10,
+        "run_id": "legacy_run",
+        "start_ts": "2020-01-01T00:00:00+00:00",
+    }
+    lock_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(RunLockError):
+        acquire_run_lock(tmp_path, "new_run")
+
+
+def test_unverifiable_lock_after_grace_is_recovered(tmp_path):
+    """Legacy lock without pid namespace is recovered after grace period."""
+    lock_path = tmp_path / LOCK_RELATIVE_PATH
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+
+    payload = {
+        "schema_version": "run_lock_v1",
+        "pid": 2,
+        "created_at_epoch": int(time.time()) - UNVERIFIABLE_LOCK_GRACE_SECONDS - 5,
+        "run_id": "legacy_run",
+        "start_ts": "2020-01-01T00:00:00+00:00",
+    }
+    lock_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    handle = acquire_run_lock(tmp_path, "new_run")
+    assert handle.run_id == "new_run"
+    release_run_lock(handle)
