@@ -103,7 +103,8 @@ nul
 # Local agent runtime scaffolding (non-repo assets)
 /.agent/
 /.athena_root
-/.context/
+/.context/*
+!/.context/REPO_MAP.md
 /.framework/
 /.claude-octopus/
 

@@ -1,0 +1,6 @@
+# Curated module purpose overrides for generate_repo_map.py
+# These take precedence over __init__.py docstrings.
+# Format:
+#   overrides:
+#     runtime/tools: "Tool invocation execution substrate"
+overrides: {}

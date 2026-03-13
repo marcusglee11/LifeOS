@@ -10,6 +10,11 @@ LifeOS is a multi-agent orchestrator for AI governance and personal productivity
 
 **Mandatory pre-flight checklist** (do these in order):
 
+0. **Read repo map** - Module-level orientation (avoids re-exploring the codebase)
+   ```bash
+   cat .context/REPO_MAP.md
+   ```
+
 1. **Check current state** - Understand what's in flight
    ```bash
    cat docs/11_admin/LIFEOS_STATE.md
@@ -241,7 +246,7 @@ This repo runs on WSL with Windows-mounted working copy (`/mnt/c/...`).
 
 ```bash
 # Pre-flight
-cat docs/11_admin/LIFEOS_STATE.md && git status && pytest runtime/tests -q
+cat .context/REPO_MAP.md && cat docs/11_admin/LIFEOS_STATE.md && git status && pytest runtime/tests -q
 
 # After changes
 pytest runtime/tests -q && git status

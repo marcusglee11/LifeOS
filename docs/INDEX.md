@@ -1,6 +1,6 @@
 # LifeOS Strategic Corpus [P26-02-28 (rev12)]
 
-Last Updated: 2026-03-12
+Last Updated: 2026-03-10
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -57,7 +57,6 @@ LifeOS Constitution v2.0 (Supreme)
 | [lifeos-master-operating-manual-v2.1.md](./11_admin/lifeos-master-operating-manual-v2.1.md) | **Strategic context** — Master Operating Manual v2.1 |
 | [TECH_DEBT_INVENTORY.md](./11_admin/TECH_DEBT_INVENTORY.md) | **Tech debt tracker** — Structural debt items with explicit trigger conditions |
 | [build_summaries/COO_Step6_LiveWiring_Build_Summary_2026-03-08.md](./11_admin/build_summaries/COO_Step6_LiveWiring_Build_Summary_2026-03-08.md) | COO Step 6 build summary — live wiring, shadow validation, gaps, workflow |
-| [build_summaries/OPENCLAW_COO_BEHAVIORAL_FIT_SPRINT_Build_Summary_2026-03-12.md](./11_admin/build_summaries/OPENCLAW_COO_BEHAVIORAL_FIT_SPRINT_Build_Summary_2026-03-12.md) | OpenClaw COO behavioral-fit sprint summary — truth surface, validation, verdict, evidence |
 
 ### Subdirectories
 

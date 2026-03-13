@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import subprocess
-import uuid
 from pathlib import Path
 
 
@@ -18,34 +17,6 @@ _PROPOSALS_SUB_KEYS = frozenset({
     "urgency_override",
     "suggested_owner",
 })
-
-_DIRECT_OUTPUT_SCHEMA = {
-    "description": (
-        "Required output format for direct mode. "
-        "Output MUST be valid YAML using schema_version: escalation_packet.v1. "
-        "Do NOT use a 'schema:' key. "
-        "Do NOT write analysis prose outside the YAML document. "
-        "Do NOT omit the required 'type' field."
-    ),
-    "escalation_packet_example": """\
-schema_version: escalation_packet.v1
-generated_at: "2026-03-12T00:00:00Z"
-run_id: "coo-direct-001"
-type: "protected_path_modification"
-context:
-  summary: "Protected governance change requested."
-  objective_ref: "bootstrap"
-  task_ref: ""
-analysis:
-  issue: "Requested change touches protected governance surfaces."
-options:
-  - label: "Escalate to CEO"
-    tradeoff: "Governance-safe and slower."
-  - label: "Defer"
-    tradeoff: "No immediate change."
-recommendation: "Escalate to CEO."
-""",
-}
 
 
 def _normalize_proposal_indentation(text: str) -> str:
@@ -100,13 +71,6 @@ def invoke_coo_reasoning(
     """
     payload = dict(context)
     payload["mode"] = mode
-    if mode == "direct" and "output_schema" not in payload:
-        payload["output_schema"] = _DIRECT_OUTPUT_SCHEMA
-        payload["mode_contract"] = (
-            "Return only escalation_packet.v1 YAML. "
-            "The top-level keys must include schema_version, type, context, analysis, options, and recommendation."
-        )
-        payload["response_style"] = "strict_yaml_only"
 
     message = json.dumps(payload, sort_keys=True)
 
@@ -114,7 +78,6 @@ def invoke_coo_reasoning(
         "openclaw",
         "agent",
         "--agent", "main",
-        "--session-id", f"lifeos-coo-{mode}-{uuid.uuid4().hex}",
         "--message", message,
         "--json",
     ]
@@ -148,17 +111,13 @@ def invoke_coo_reasoning(
             f"openclaw output is not valid JSON: {exc}"
         ) from exc
 
-    # Gateway mode returns {"status":"ok","result":{"payloads":[...]}}
-    # Embedded fallback returns {"payloads":[...],"meta":{...}} with no top-level status.
-    if isinstance(envelope, dict) and envelope.get("status") == "ok":
-        payload_root: object = envelope.get("result")
-    else:
-        payload_root = envelope
+    if envelope.get("status") != "ok":
+        raise InvocationError(
+            f"openclaw returned status={envelope.get('status')!r}"
+        )
 
     try:
-        if not isinstance(payload_root, dict):
-            raise TypeError(f"unexpected payload root type: {type(payload_root).__name__}")
-        payloads = payload_root["payloads"]
+        payloads = envelope["result"]["payloads"]
         raw_text: str = payloads[0]["text"]
     except (KeyError, IndexError, TypeError) as exc:
         raise InvocationError(
