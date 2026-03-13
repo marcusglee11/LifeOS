@@ -6,16 +6,19 @@ from __future__ import annotations
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
+import re
 from typing import Any
 
 import yaml
 
 from runtime.orchestration.coo.backlog import TaskEntry, filter_actionable, load_backlog
+from runtime.orchestration.coo.execution_truth import build_execution_truth
 
 
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
 _DELEGATION_RELATIVE_PATH = Path("config/governance/delegation_envelope.yaml")
 _BRIEF_RELATIVE_PATH = Path("artifacts/coo/brief.md")
+_CANONICAL_STATE_RELATIVE_PATH = Path("docs/11_admin/LIFEOS_STATE.md")
 
 
 def _now_iso() -> str:
@@ -44,6 +47,37 @@ def _read_optional_brief(path: Path) -> str:
     if not path.exists():
         return ""
     return path.read_text(encoding="utf-8")
+
+
+def _extract_marker(content: str, label: str) -> str:
+    pattern = re.compile(rf"^\*\*{re.escape(label)}:\*\*\s*(.+)$", re.MULTILINE)
+    match = pattern.search(content)
+    return match.group(1).strip() if match else ""
+
+
+def _read_canonical_state(repo_root: Path) -> tuple[dict[str, Any], bool]:
+    path = repo_root / _CANONICAL_STATE_RELATIVE_PATH
+    if not path.exists():
+        return (
+            {
+                "path": str(_CANONICAL_STATE_RELATIVE_PATH),
+                "reason": "missing",
+                "content": "",
+            },
+            False,
+        )
+
+    content = path.read_text(encoding="utf-8")
+    return (
+        {
+            "path": str(_CANONICAL_STATE_RELATIVE_PATH),
+            "content": content,
+            "current_focus": _extract_marker(content, "Current Focus"),
+            "active_wip": _extract_marker(content, "Active WIP"),
+            "last_updated": _extract_marker(content, "Last Updated"),
+        },
+        True,
+    )
 
 
 _PROPOSE_OUTPUT_SCHEMA_EXAMPLE = """\
@@ -95,12 +129,18 @@ def build_propose_context(repo_root: Path) -> dict[str, Any]:
     tasks = load_backlog(backlog_path)
     actionable = filter_actionable(tasks)
     delegation = _load_yaml_mapping(delegation_path)
+    canonical_state, canonical_state_present = _read_canonical_state(repo_root)
+    execution_truth = build_execution_truth(repo_root)
 
     return {
         "actionable_tasks": [_task_to_dict(task) for task in actionable],
         "delegation_envelope": delegation,
         "backlog_path": str(backlog_path),
         "brief": _read_optional_brief(brief_path),
+        "canonical_state": canonical_state,
+        "canonical_state_present": canonical_state_present,
+        "execution_truth": execution_truth,
+        "execution_truth_present": bool(execution_truth.get("truth_data_present")),
         "generated_at": _now_iso(),
         "output_schema": _PROPOSE_OUTPUT_SCHEMA,
     }
@@ -110,6 +150,8 @@ def build_status_context(repo_root: Path) -> dict[str, Any]:
     backlog_path = repo_root / _BACKLOG_RELATIVE_PATH
     tasks = load_backlog(backlog_path)
     actionable = filter_actionable(tasks)
+    canonical_state, canonical_state_present = _read_canonical_state(repo_root)
+    execution_truth = build_execution_truth(repo_root)
 
     by_status = {"pending": 0, "in_progress": 0, "completed": 0, "blocked": 0}
     for task in tasks:
@@ -124,6 +166,10 @@ def build_status_context(repo_root: Path) -> dict[str, Any]:
         "by_status": by_status,
         "by_priority": by_priority,
         "actionable_count": len(actionable),
+        "canonical_state": canonical_state,
+        "canonical_state_present": canonical_state_present,
+        "execution_truth": execution_truth,
+        "execution_truth_present": bool(execution_truth.get("truth_data_present")),
         "generated_at": _now_iso(),
     }
 
@@ -134,9 +180,15 @@ def build_report_context(repo_root: Path) -> dict[str, Any]:
 
     tasks = load_backlog(backlog_path)
     delegation = _load_yaml_mapping(delegation_path)
+    canonical_state, canonical_state_present = _read_canonical_state(repo_root)
+    execution_truth = build_execution_truth(repo_root)
 
     return {
         "all_tasks": [_task_to_dict(task) for task in tasks],
         "delegation_envelope": delegation,
+        "canonical_state": canonical_state,
+        "canonical_state_present": canonical_state_present,
+        "execution_truth": execution_truth,
+        "execution_truth_present": bool(execution_truth.get("truth_data_present")),
         "generated_at": _now_iso(),
     }

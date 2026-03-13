@@ -101,6 +101,8 @@ def test_build_propose_context_returns_actionable_tasks(tmp_path: Path) -> None:
     assert [task["id"] for task in context["actionable_tasks"]] == ["T-002", "T-001"]
     assert context["delegation_envelope"] == delegation
     assert context["brief"] == "COO brief content"
+    assert context["canonical_state_present"] is False
+    assert context["execution_truth_present"] is False
     datetime.fromisoformat(context["generated_at"])
 
 
@@ -147,6 +149,8 @@ def test_build_status_context_counts(tmp_path: Path) -> None:
     }
     assert context["by_priority"] == {"P0": 1, "P1": 0, "P2": 1, "P3": 0}
     assert context["actionable_count"] == 2
+    assert context["canonical_state_present"] is False
+    assert context["execution_truth_present"] is False
     datetime.fromisoformat(context["generated_at"])
 
 
@@ -164,4 +168,34 @@ def test_build_report_context_returns_all_tasks(tmp_path: Path) -> None:
     assert len(context["all_tasks"]) == 2
     assert {task["id"] for task in context["all_tasks"]} == {"T-001", "T-002"}
     assert context["delegation_envelope"] == delegation
+    assert context["canonical_state_present"] is False
+    assert context["execution_truth_present"] is False
     datetime.fromisoformat(context["generated_at"])
+
+
+def test_context_builders_include_canonical_state_when_present(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+    state_path = tmp_path / "docs" / "11_admin" / "LIFEOS_STATE.md"
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(
+        "\n".join(
+            [
+                "# LifeOS State",
+                "",
+                "**Current Focus:** Behavioral fit sprint",
+                "**Active WIP:** build/openclaw-coo-behavioral-fit",
+                "**Last Updated:** 2026-03-12 (rev30)",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    propose = build_propose_context(tmp_path)
+    status = build_status_context(tmp_path)
+    report = build_report_context(tmp_path)
+
+    assert propose["canonical_state_present"] is True
+    assert propose["canonical_state"]["current_focus"] == "Behavioral fit sprint"
+    assert status["canonical_state_present"] is True
+    assert report["canonical_state_present"] is True

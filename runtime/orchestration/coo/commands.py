@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -20,6 +21,7 @@ from runtime.orchestration.coo.context import (
 )
 from runtime.orchestration.coo.invoke import InvocationError, invoke_coo_reasoning
 from runtime.orchestration.coo.parser import ParseError, parse_proposal_response
+from runtime.orchestration.coo.validation import validate_coo_response
 from runtime.orchestration.coo.templates import instantiate_order, load_template
 from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.util.atomic_write import atomic_write_text
@@ -38,6 +40,21 @@ def _now_iso() -> str:
 
 def _print_error(message: str) -> None:
     print(message, file=sys.stderr)
+
+
+def _emit_behavioral_violations(mode: str, raw_output: str, context: dict[str, Any]) -> bool:
+    result = validate_coo_response(raw_output, mode=mode, context=context)
+    if result.is_valid:
+        return False
+
+    detail = "; ".join(f"{item.code}: {item.message}" for item in result.violations)
+    warn_only = os.environ.get("LIFEOS_COO_BEHAVIOR_WARN_ONLY") == "1"
+    if warn_only:
+        _print_error(f"Warning: COO behavioral validation warning ({mode}): {detail}")
+        return False
+
+    _print_error(f"Error: COO behavioral validation failed ({mode}): {detail}")
+    return True
 
 
 def cmd_coo_status(args: argparse.Namespace, repo_root: Path) -> int:
@@ -69,6 +86,27 @@ def cmd_coo_status(args: argparse.Namespace, repo_root: Path) -> int:
         f"P2: {by_priority.get('P2', 0)}  "
         f"P3: {by_priority.get('P3', 0)}"
     )
+    print()
+    if context.get("canonical_state_present"):
+        canonical_state = context.get("canonical_state", {})
+        print(f"canonical current focus: {canonical_state.get('current_focus', '') or 'available'}")
+        print(f"canonical active wip:    {canonical_state.get('active_wip', '') or 'available'}")
+    else:
+        print("canonical state: unavailable")
+
+    execution_truth = context.get("execution_truth", {})
+    if context.get("execution_truth_present"):
+        summary = execution_truth.get("authoritative_status_summary", {})
+        print(
+            "execution truth:"
+            f" last_run={summary.get('last_run_id', '') or 'none'}"
+            f" outcome={summary.get('last_outcome', '') or 'unknown'}"
+            f" pending={summary.get('pending_count', 0)}"
+            f" active={summary.get('active_count', 0)}"
+            f" blocked={summary.get('blocked_count', 0)}"
+        )
+    else:
+        print("execution truth: unavailable")
     return 0
 
 
@@ -124,6 +162,8 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
         raw_output = invoke_coo_reasoning(context, mode="propose", repo_root=repo_root)
     except InvocationError as exc:
         _print_error(f"Error: COO invocation failed: {exc}")
+        return 1
+    if _emit_behavioral_violations("propose", raw_output, context):
         return 1
 
     # Try parsing as task_proposal.v1 first
@@ -258,15 +298,58 @@ def cmd_coo_report(args: argparse.Namespace, repo_root: Path) -> int:
 
 def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
     """Invoke live COO with direct intent and queue resulting EscalationPacket."""
+    try:
+        status_context = build_status_context(repo_root)
+    except Exception:
+        status_context = {
+            "canonical_state": {
+                "path": "docs/11_admin/LIFEOS_STATE.md",
+                "reason": "unavailable",
+                "content": "",
+            },
+            "canonical_state_present": False,
+            "execution_truth": {
+                "truth_reader_ok": False,
+                "truth_data_present": False,
+                "truth_generated_at": _now_iso(),
+                "truth_read_errors": ["status_context_unavailable"],
+                "run_in_flight": False,
+                "dispatch_queue": {
+                    "pending": 0,
+                    "active": 0,
+                    "completed": 0,
+                    "pending_ids": [],
+                    "active_ids": [],
+                },
+                "recent_runs": [],
+                "recent_terminal_packets": [],
+                "blockers": [],
+                "conflicts": [],
+                "authoritative_status_summary": {
+                    "last_run_id": "",
+                    "last_outcome": "",
+                    "blocked_count": 0,
+                    "active_count": 0,
+                    "pending_count": 0,
+                },
+            },
+            "execution_truth_present": False,
+        }
     context: dict[str, Any] = {
         "intent": args.intent,
         "source": "coo_direct",
+        "canonical_state": status_context.get("canonical_state"),
+        "canonical_state_present": status_context.get("canonical_state_present"),
+        "execution_truth": status_context.get("execution_truth"),
+        "execution_truth_present": status_context.get("execution_truth_present"),
     }
 
     try:
         raw_output = invoke_coo_reasoning(context, mode="direct", repo_root=repo_root)
     except InvocationError as exc:
         _print_error(f"Error: COO invocation failed: {exc}")
+        return 1
+    if _emit_behavioral_violations("direct", raw_output, context):
         return 1
 
     try:

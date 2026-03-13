@@ -996,6 +996,17 @@ class LoopSpine:
         definition = get_workflow_definition(instance.workflow_id)
         effective_root = execution_root or self.repo_root
         steps_executed: List[str] = []
+
+        def _head_now() -> Optional[str]:
+            """Capture HEAD at the moment of return (for BLOCKED provenance)."""
+            try:
+                r = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    capture_output=True, text=True, timeout=2, cwd=effective_root,
+                )
+                return r.stdout.strip() if r.returncode == 0 else None
+            except Exception:
+                return None
         try:
             cmd_result = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
@@ -1011,7 +1022,7 @@ class LoopSpine:
         while instance.current_step_id and instance.state not in TERMINAL_WORKFLOW_STATES:
             step = get_step(definition, instance.current_step_id)
             if step is None:
-                return {"outcome": "BLOCKED", "reason": f"unknown_step:{instance.current_step_id}", "steps_executed": steps_executed}
+                return {"outcome": "BLOCKED", "reason": f"unknown_step:{instance.current_step_id}", "steps_executed": steps_executed, "commit_hash": _head_now()}
             instance.state = "RUNNING"
             context = MissionContext(
                 repo_root=effective_root,
@@ -1030,7 +1041,7 @@ class LoopSpine:
                     mission = get_mission_class(step.mission_type)()
                     result = mission.run(context, self._build_design_inputs(instance))
                     if not getattr(result, "success", False):
-                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id]}
+                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
                     payload = dict((getattr(result, "outputs", {}) or {}).get("build_packet") or {})
                     produced_artifact = WorkflowArtifact(
                         artifact_id=f"{instance.instance_id}:{step.produces}:{step.step_id}",
@@ -1048,7 +1059,7 @@ class LoopSpine:
                     build_packet = (instance.artifact_refs.get("legacy_build_packet.v1") or {}).get("payload", {})
                     result = mission.run(context, {"build_packet": build_packet, "approval": {"verdict": "approved"}})
                     if not getattr(result, "success", False):
-                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id]}
+                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
                     payload = dict((getattr(result, "outputs", {}) or {}).get("review_packet") or {})
                     produced_artifact = WorkflowArtifact(
                         artifact_id=f"{instance.instance_id}:{step.produces}:{step.step_id}",
@@ -1066,11 +1077,11 @@ class LoopSpine:
                     subject_type = step.consumes[0]
                     subject = instance.artifact_refs.get(subject_type)
                     if not subject:
-                        return {"outcome": "BLOCKED", "reason": f"missing_subject:{subject_type}", "steps_executed": steps_executed + [step.step_id]}
+                        return {"outcome": "BLOCKED", "reason": f"missing_subject:{subject_type}", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
                     review_type = "output_review" if instance.workflow_id == "spec_creation.v1" else "build_review"
                     result = mission.run(context, {"subject_packet": subject.get("payload", {}), "review_type": review_type})
                     if not getattr(result, "success", False):
-                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id]}
+                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
                     decision = self._normalize_review_decision(
                         instance=instance,
                         step_id=step.step_id,
@@ -1100,7 +1111,7 @@ class LoopSpine:
                         task_spec=task_spec,
                     )
                     if transition:
-                        return {**transition, "steps_executed": steps_executed + [step.step_id]}
+                        return {**transition, "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
                     produced_artifact = decision
                 elif step.step_kind == "package":
                     produced_artifact = materialize_packaged_spec(instance, producer_role=step.role)
@@ -1120,10 +1131,10 @@ class LoopSpine:
                         },
                     )
                     if not getattr(result, "success", False):
-                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id]}
+                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
                     self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=None)
                 else:
-                    return {"outcome": "BLOCKED", "reason": f"unsupported_step_kind:{step.step_kind}", "steps_executed": steps_executed + [step.step_id]}
+                    return {"outcome": "BLOCKED", "reason": f"unsupported_step_kind:{step.step_kind}", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
                 record_invocation_finish(instance, invocation, result_ref=produced_artifact.artifact_id if produced_artifact else None, result_status="SUCCESS")
                 steps_executed.append(step.step_id)
             except MissionEscalationRequired:
@@ -1136,9 +1147,9 @@ class LoopSpine:
             except CheckpointTriggered:
                 raise
             except WorkflowRuntimeError as exc:
-                return {"outcome": "BLOCKED", "reason": f"workflow_runtime_error:{exc}", "steps_executed": steps_executed + [step.step_id]}
+                return {"outcome": "BLOCKED", "reason": f"workflow_runtime_error:{exc}", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
             except Exception as exc:
-                return {"outcome": "BLOCKED", "reason": f"execution_error:{type(exc).__name__}", "steps_executed": steps_executed + [step.step_id]}
+                return {"outcome": "BLOCKED", "reason": f"execution_error:{type(exc).__name__}", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
 
         try:
             cmd_result = subprocess.run(

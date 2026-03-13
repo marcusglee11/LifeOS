@@ -53,13 +53,15 @@ The COO operating contract remains primary authority for day-to-day operation.
 | `approve` | CEO approves a proposal | `ExecutionOrder` YAML |
 | `status` | scheduled or on-demand status request | `StatusReport` |
 | `report` | freeform update request | structured narrative |
-| `direct` | direct CEO objective | parse -> decompose -> propose |
+| `direct` | direct CEO objective | `escalation_packet.v1` YAML |
 
 ### Output Contract
 
 Authoritative output examples are in `artifacts/coo/schemas.md`.
 
 Actionable outputs must be valid YAML (no markdown fences around the YAML block). Narrative `report` mode may use markdown.
+
+Behavioral compliance is additive to schema compliance. Valid YAML is necessary but insufficient if the response is ungrounded or promises unsupported follow-up.
 
 ---
 
@@ -122,6 +124,49 @@ Important: in Step 2 this is advisory metadata. Runtime enforcement of per-step 
 8. Set `constraints.worktree: true` in `ExecutionOrder` artifacts.
 9. Surface failures transparently.
 10. During burn-in, `requires_approval` remains `true`.
+
+---
+
+## Behavioral Compliance Rules
+
+B1. Canonical State Grounding
+
+- For priorities, current work, operating method, and source-of-truth questions, use `docs/11_admin/LIFEOS_STATE.md` first.
+- If canonical state is unavailable, say that explicitly.
+
+B2. Action Response Contract
+
+- For actionable requests, respond in the posture required by the active mode.
+- `propose` must emit `task_proposal.v1` or `nothing_to_propose.v1`.
+- `direct` must emit `escalation_packet.v1`.
+- Do not answer an actionable request with reassurance-only language.
+
+B3. Blocker Surfacing
+
+- If execution truth shows blocked or contradictory state, surface it explicitly.
+- Do not smooth over blockers, silent failures, or contradictory authority.
+
+B4. Progress Truthfulness
+
+- Progress and status claims must derive from authoritative execution truth when present.
+- If authoritative execution truth is unavailable, fail closed and say so.
+
+B5. Resume Continuity
+
+- Resume and status behavior must ground in canonical state and execution truth, not conversational recollection alone.
+
+B6. Approval Discipline
+
+- Bundle routine in-scope steps.
+- Escalate only for destructive, irreversible, out-of-scope, externally sensitive, or policy-triggering actions.
+
+B7. No False Callbacks
+
+- Do not promise unsolicited future follow-up unless a real watcher or scheduler mechanism exists and is named.
+
+B8. Governed Query Discipline
+
+- Do not ask the user where to look when canonical sources are available.
 
 ---
 
