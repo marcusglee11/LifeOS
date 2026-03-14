@@ -165,3 +165,59 @@ def test_build_report_context_returns_all_tasks(tmp_path: Path) -> None:
     assert {task["id"] for task in context["all_tasks"]} == {"T-001", "T-002"}
     assert context["delegation_envelope"] == delegation
     datetime.fromisoformat(context["generated_at"])
+
+
+# ---------------------------------------------------------------------------
+# Repo map injection tests
+# ---------------------------------------------------------------------------
+
+def _write_repo_map(repo_root: Path, content: str) -> Path:
+    map_path = repo_root / ".context" / "REPO_MAP.md"
+    map_path.parent.mkdir(parents=True, exist_ok=True)
+    map_path.write_text(content, encoding="utf-8")
+    return map_path
+
+
+def test_propose_context_includes_repo_map(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+    _write_repo_map(tmp_path, "# Repo Map\nmodule: runtime/")
+
+    context = build_propose_context(tmp_path)
+
+    assert "repo_map" in context
+    assert "# Repo Map" in context["repo_map"]
+
+
+def test_report_context_includes_repo_map(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+    _write_repo_map(tmp_path, "# Repo Map\nmodule: runtime/")
+
+    context = build_report_context(tmp_path)
+
+    assert "repo_map" in context
+    assert "# Repo Map" in context["repo_map"]
+
+
+def test_propose_context_repo_map_missing_graceful(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+    # No repo map written
+
+    context = build_propose_context(tmp_path)
+
+    assert "repo_map" in context
+    assert context["repo_map"] == ""
+
+
+def test_propose_context_output_format_instruction_key(tmp_path: Path) -> None:
+    """output_format_instruction replaces output_schema in propose context."""
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+
+    context = build_propose_context(tmp_path)
+
+    assert "output_format_instruction" in context
+    assert "output_schema" not in context
+    assert "REQUIRED OUTPUT FORMAT" in context["output_format_instruction"]

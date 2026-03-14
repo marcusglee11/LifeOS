@@ -271,6 +271,22 @@ def test_coo_propose_ntp_json(tmp_path: Path, capsys) -> None:
     assert payload["payload"]["reason"] == "No pending actionable tasks."
 
 
+def test_coo_direct_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
+    """Prose preamble before escalation_packet.v1 YAML must be recovered (rc=0)."""
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value="Let me explain my reasoning.\n\n" + _VALID_ESCALATION_YAML,
+    ):
+        rc = cmd_coo_direct(
+            argparse.Namespace(intent="update protected governance doc"),
+            tmp_path,
+        )
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert out.startswith("queued:")
+
+
 def test_coo_direct_success(tmp_path: Path, capsys) -> None:
     with patch(
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
@@ -360,6 +376,42 @@ def test_coo_approve_content_task_writes_native_workflow_order(tmp_path: Path) -
     assert raw["mutation_policy_id"] == "mutation_authority.v1"
     assert raw["task_context"]["schema_version"] == "task_context.v1"
     assert raw["task_context"]["payload"]["requested_artifact"]["format"] == "markdown"
+
+
+def test_coo_propose_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
+    """Prose preamble before task_proposal.v1 YAML must be recovered (rc=0)."""
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    prose_plus_yaml = (
+        "I reviewed the backlog and here is my proposal.\n\n"
+        + _VALID_PROPOSAL_YAML
+    )
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=prose_plus_yaml,
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 0
+
+
+def test_coo_propose_ntp_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
+    """Prose preamble before nothing_to_propose.v1 YAML must be recovered (rc=0)."""
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    prose_plus_ntp = (
+        "After careful analysis, I find nothing actionable right now.\n\n"
+        + _VALID_NTP_YAML
+    )
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=prose_plus_ntp,
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 0
 
 
 def test_coo_report_returns_json(tmp_path: Path, capsys) -> None:

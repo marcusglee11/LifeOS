@@ -18,6 +18,10 @@ PROPOSAL_SCHEMA_VERSION = "task_proposal.v1"
 _VALID_ACTIONS = {"dispatch", "defer", "escalate"}
 _VALID_URGENCY = {"P0", "P1", "P2", "P3"}
 _YAML_FENCE_RE = re.compile(r"```yaml\s*(.*?)```", re.DOTALL | re.IGNORECASE)
+_SCHEMA_BLOCK_RE = re.compile(
+    r"^[ \t]*schema_version:",  # [ \t]* not \s* — avoids matching across blank lines
+    re.MULTILINE,
+)
 _ORDER_ID_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
 
 
@@ -35,10 +39,27 @@ class ParseError(ValueError):
 
 
 def _extract_yaml_payload(text: str) -> str:
+    # 1. Markdown fence
     match = _YAML_FENCE_RE.search(text)
     if match:
         return match.group(1).strip()
-    return text.strip()
+
+    stripped = text.strip()
+
+    # 2. Strip prose preamble before schema_version:
+    #    Only apply when the full text doesn't already parse as a valid YAML mapping,
+    #    preventing truncation of valid YAML where schema_version isn't the first key.
+    schema_match = _SCHEMA_BLOCK_RE.search(stripped)
+    if schema_match and schema_match.start() > 0:
+        try:
+            candidate = yaml.safe_load(stripped)
+        except yaml.YAMLError:
+            candidate = None
+        if not isinstance(candidate, dict):
+            return stripped[schema_match.start():].strip()
+
+    # 3. Return as-is
+    return stripped
 
 
 def parse_proposal_response(text: str) -> list[TaskProposal]:

@@ -11,6 +11,7 @@ from runtime.orchestration.coo.backlog import TaskEntry
 from runtime.orchestration.coo.parser import (
     ParseError,
     TaskProposal,
+    _extract_yaml_payload,
     parse_execution_order,
     parse_proposal_response,
 )
@@ -226,3 +227,72 @@ def test_parse_execution_order_invalid_task_id_raises_parse_error() -> None:
             task,
             {"steps": [{"name": "build", "role": "builder"}]},
         )
+
+
+# ---------------------------------------------------------------------------
+# Prose-preamble extraction tests (OUTPUT_CONTRACT_DRIFT fix)
+# ---------------------------------------------------------------------------
+
+def test_extract_yaml_payload_prose_preamble() -> None:
+    text = (
+        "I reviewed the backlog and here is my recommendation.\n\n"
+        "schema_version: task_proposal.v1\n"
+        "proposals:\n"
+        "  - task_id: T-010\n"
+        "    rationale: Highest priority.\n"
+        "    proposed_action: dispatch\n"
+        "    urgency_override: null\n"
+        "    suggested_owner: codex\n"
+    )
+    result = _extract_yaml_payload(text)
+    assert result.startswith("schema_version: task_proposal.v1")
+    assert "I reviewed" not in result
+
+
+def test_extract_yaml_payload_indented_schema_version() -> None:
+    text = (
+        "  schema_version: task_proposal.v1\n"
+        "proposals:\n"
+        "  - task_id: T-011\n"
+        "    rationale: test\n"
+        "    proposed_action: defer\n"
+        "    urgency_override: null\n"
+        "    suggested_owner: \"\"\n"
+    )
+    result = _extract_yaml_payload(text)
+    assert result.startswith("schema_version: task_proposal.v1")
+
+
+def test_extract_yaml_payload_valid_yaml_schema_not_first_not_truncated() -> None:
+    """Valid YAML where schema_version is not the first key must not be truncated."""
+    text = (
+        "proposals:\n"
+        "  - task_id: T-020\n"
+        "schema_version: task_proposal.v1\n"
+    )
+    result = _extract_yaml_payload(text)
+    assert "proposals" in result
+    assert "schema_version" in result
+
+
+def test_parse_proposal_prose_preamble() -> None:
+    text = (
+        "Here is my analysis of the backlog.\n\n"
+        "schema_version: task_proposal.v1\n"
+        "proposals:\n"
+        "  - task_id: T-012\n"
+        "    rationale: Top priority task.\n"
+        "    proposed_action: dispatch\n"
+        "    urgency_override: null\n"
+        "    suggested_owner: codex\n"
+    )
+    proposals = parse_proposal_response(text)
+    assert len(proposals) == 1
+    assert proposals[0].task_id == "T-012"
+    assert proposals[0].proposed_action == "dispatch"
+
+
+def test_parse_proposal_pure_prose_raises() -> None:
+    text = "I looked at the backlog and recommend starting with the highest priority items."
+    with pytest.raises(ParseError):
+        parse_proposal_response(text)

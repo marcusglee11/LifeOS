@@ -19,7 +19,11 @@ from runtime.orchestration.coo.context import (
     build_status_context,
 )
 from runtime.orchestration.coo.invoke import InvocationError, invoke_coo_reasoning
-from runtime.orchestration.coo.parser import ParseError, parse_proposal_response
+from runtime.orchestration.coo.parser import (
+    ParseError,
+    _extract_yaml_payload,  # shared within-package; not public API
+    parse_proposal_response,
+)
 from runtime.orchestration.coo.templates import instantiate_order, load_template
 from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.util.atomic_write import atomic_write_text
@@ -74,8 +78,9 @@ def cmd_coo_status(args: argparse.Namespace, repo_root: Path) -> int:
 
 def _parse_ntp(raw_output: str) -> dict[str, Any]:
     """Parse a nothing_to_propose.v1 YAML block. Raises ParseError if invalid."""
+    payload = _extract_yaml_payload(raw_output.strip())
     try:
-        raw = yaml.safe_load(raw_output.strip())
+        raw = yaml.safe_load(payload)
     except yaml.YAMLError as exc:
         raise ParseError(f"NTP output is not valid YAML: {exc}") from exc
     if not isinstance(raw, dict):
@@ -93,8 +98,9 @@ def _parse_ntp(raw_output: str) -> dict[str, Any]:
 
 def _parse_escalation_packet(raw_output: str) -> dict[str, Any]:
     """Parse an escalation_packet.v1 YAML block. Raises ParseError if invalid."""
+    payload = _extract_yaml_payload(raw_output.strip())
     try:
-        raw = yaml.safe_load(raw_output.strip())
+        raw = yaml.safe_load(payload)
     except yaml.YAMLError as exc:
         raise ParseError(f"Escalation packet is not valid YAML: {exc}") from exc
     if not isinstance(raw, dict):
@@ -130,14 +136,15 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
     try:
         parse_proposal_response(raw_output)
         kind = "task_proposal"
+        normalized = _extract_yaml_payload(raw_output)
         if getattr(args, "json", False):
             try:
-                payload_dict = yaml.safe_load(raw_output.strip())
+                payload_dict = yaml.safe_load(normalized)
             except yaml.YAMLError:
                 payload_dict = {"raw": raw_output}
             print(json.dumps({"kind": kind, "payload": payload_dict}, indent=2))
         else:
-            print(raw_output.strip())
+            print(normalized)
         return 0
     except ParseError:
         pass
@@ -149,7 +156,7 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
         if getattr(args, "json", False):
             print(json.dumps({"kind": kind, "payload": ntp_dict}, indent=2))
         else:
-            print(raw_output.strip())
+            print(_extract_yaml_payload(raw_output))
         return 0
     except ParseError as exc:
         _print_error(f"Error: COO output failed validation: {exc}")

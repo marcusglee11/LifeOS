@@ -16,6 +16,18 @@ from runtime.orchestration.coo.backlog import TaskEntry, filter_actionable, load
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
 _DELEGATION_RELATIVE_PATH = Path("config/governance/delegation_envelope.yaml")
 _BRIEF_RELATIVE_PATH = Path("artifacts/coo/brief.md")
+_REPO_MAP_RELATIVE_PATH = Path(".context/REPO_MAP.md")
+
+
+def _load_repo_map(repo_root: Path) -> str:
+    """Load REPO_MAP.md for LLM context injection (fail-soft)."""
+    path = repo_root / _REPO_MAP_RELATIVE_PATH
+    if not path.exists():
+        return ""
+    try:
+        return path.read_text(encoding="utf-8")
+    except Exception:
+        return ""
 
 
 def _now_iso() -> str:
@@ -86,6 +98,23 @@ _PROPOSE_OUTPUT_SCHEMA = {
     },
 }
 
+_PROPOSE_FORMAT_INSTRUCTION = (
+    "REQUIRED OUTPUT FORMAT.\n"
+    "Your entire response MUST be ONLY valid YAML. No prose. No markdown fences. "
+    "No explanation before or after the YAML block.\n\n"
+    "Use exactly one of these two schemas:\n\n"
+    "--- If tasks exist ---\n"
+    + _PROPOSE_OUTPUT_SCHEMA_EXAMPLE
+    + "\n--- If nothing to propose ---\n"
+    + _NTP_OUTPUT_SCHEMA_EXAMPLE
+    + "\nRules:\n"
+    "- schema_version: exactly 'task_proposal.v1' or 'nothing_to_propose.v1'\n"
+    "- proposed_action: dispatch | defer | escalate\n"
+    "- urgency_override: null or P0|P1|P2|P3\n"
+    "- Sub-keys of each proposals item MUST be indented 2 spaces under the '-' marker.\n"
+    "- Do NOT add any text before or after the YAML.\n"
+)
+
 
 def build_propose_context(repo_root: Path) -> dict[str, Any]:
     backlog_path = repo_root / _BACKLOG_RELATIVE_PATH
@@ -102,7 +131,8 @@ def build_propose_context(repo_root: Path) -> dict[str, Any]:
         "backlog_path": str(backlog_path),
         "brief": _read_optional_brief(brief_path),
         "generated_at": _now_iso(),
-        "output_schema": _PROPOSE_OUTPUT_SCHEMA,
+        "output_format_instruction": _PROPOSE_FORMAT_INSTRUCTION,
+        "repo_map": _load_repo_map(repo_root),
     }
 
 
@@ -139,4 +169,5 @@ def build_report_context(repo_root: Path) -> dict[str, Any]:
         "all_tasks": [_task_to_dict(task) for task in tasks],
         "delegation_envelope": delegation,
         "generated_at": _now_iso(),
+        "repo_map": _load_repo_map(repo_root),
     }
