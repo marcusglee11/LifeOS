@@ -95,4 +95,20 @@ echo ""
 # ------------------------------------------------------------------
 # Step 4: Dispatch to Codex in the isolated worktree
 # ------------------------------------------------------------------
-exec codex exec --sandbox workspace-write -C "$WORKTREE_PATH" "$TASK"
+# Disable errexit around codex invocation so non-zero exits do not
+# terminate the shell before we capture CODEX_EXIT and emit the receipt.
+set +e
+codex exec --sandbox workspace-write -C "$WORKTREE_PATH" "$TASK"
+CODEX_EXIT=$?
+set -e
+
+# ------------------------------------------------------------------
+# Step 5: Emit invocation receipt (audit trail)
+# ------------------------------------------------------------------
+python3 "$SCRIPT_DIR/emit_dispatch_receipt.py" \
+    --topic "$TOPIC" \
+    --worktree "$WORKTREE_PATH" \
+    --exit-code "$CODEX_EXIT" \
+    --repo-root "$REPO_ROOT" || true  # receipt failure must not mask Codex exit
+
+exit $CODEX_EXIT

@@ -203,6 +203,7 @@ def _record_agent_receipt(
     token_usage: Optional[dict[str, int]] = None,
     truncation: Optional[dict[str, bool]] = None,
     error: Optional[str] = None,
+    input_hash: Optional[str] = None,
 ) -> None:
     """Best-effort invocation receipt recording. Never raises."""
     if not run_id:
@@ -221,9 +222,49 @@ def _record_agent_receipt(
             token_usage=token_usage,
             truncation=truncation,
             error=error,
+            input_hash=input_hash,
         )
     except Exception:
         logger.debug("Invocation receipt recording failed", exc_info=True)
+
+
+def _write_replay_cache(call_id: str, content: str, model_version: str) -> None:
+    """
+    Phase 3C: Write successful LLM response to replay cache.
+
+    Keyed by deterministic call_id so identical inputs (same call_id) hit
+    the cache on retry or recovery, making re-runs idempotent.
+
+    Best-effort: failure is logged, not raised.
+    """
+    try:
+        import hashlib
+        from pathlib import Path
+        from runtime.util.atomic_write import atomic_write_json
+
+        # Derive cache dir relative to repo root (best-effort detect)
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                capture_output=True, text=True, timeout=2,
+            )
+            repo_root = Path(result.stdout.strip()) if result.returncode == 0 else Path.cwd()
+        except Exception:
+            repo_root = Path.cwd()
+
+        # Sanitize call_id to safe filename (replace : with -)
+        safe_id = call_id.replace(":", "-")
+        cache_path = repo_root / "artifacts" / "replay_cache" / f"{safe_id}.json"
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+        atomic_write_json(cache_path, {
+            "call_id": call_id,
+            "model_version": model_version,
+            "response_content": content,
+        })
+    except Exception:
+        logger.debug("Replay cache write failed", exc_info=True)
 
 
 def _load_role_prompt(role: str, config_dir: str = "config/agent_roles") -> tuple[str, str]:
@@ -357,7 +398,7 @@ def call_agent(
         prompt_hash=prompt_hash,
         packet_hash=packet_hash,
     )
-    call_id_audit = str(uuid.uuid4())
+    call_id_audit = str(uuid.uuid4())  # AUDIT-ONLY: non-deterministic trace ID for correlation logs
 
     # Check replay mode first
     if is_replay_mode():
@@ -494,7 +535,13 @@ def call_agent(
             output_content=content,
             schema_validation="pass" if packet is not None else "n/a",
             token_usage=_receipt_token_usage(normalized_usage),
+            input_hash=packet_hash,  # Phase 4A: capture input prompt hash
         )
+
+        # Phase 3C: Write response to replay cache keyed by deterministic call_id.
+        # Same inputs → same call_id → cache hit on retry/recovery.
+        _write_replay_cache(call_id, content, model_version)
+
         return agent_response
 
     except Exception as e:
@@ -518,6 +565,7 @@ def _try_cli_dispatch(
     prompt: str,
     cli_provider_name: str,
     config: "ModelConfig",
+    run_id: str = "",
 ) -> Optional["CLIDispatchResult"]:
     """Try dispatching to a single CLI provider. Returns CLIDispatchResult or None."""
     from .models import get_cli_provider_config
@@ -544,7 +592,7 @@ def _try_cli_dispatch(
     )
 
     try:
-        result = dispatch_cli_agent(prompt, dispatch_config, binary_override=cli_cfg.binary)
+        result = dispatch_cli_agent(prompt, dispatch_config, binary_override=cli_cfg.binary, run_id=run_id)
         if result.success or result.partial:
             return result
         logger.warning("CLI provider %s returned exit=%d; trying next", cli_provider_name, result.exit_code)
@@ -624,13 +672,13 @@ def call_agent_cli(
     prompt = f"{system_prompt}\n\n---\n\n{yaml.safe_dump(call.packet, default_flow_style=False)}"
 
     # Try primary CLI provider
-    result = _try_cli_dispatch(prompt, cli_provider_name, config)
+    result = _try_cli_dispatch(prompt, cli_provider_name, config, run_id=run_id)
     used_provider = cli_provider_name
 
     # Try secondary CLI fallback if primary failed
     if result is None and agent_cfg.cli_fallback:
         logger.info("Primary CLI %s failed; trying fallback %s", cli_provider_name, agent_cfg.cli_fallback)
-        result = _try_cli_dispatch(prompt, agent_cfg.cli_fallback, config)
+        result = _try_cli_dispatch(prompt, agent_cfg.cli_fallback, config, run_id=run_id)
         used_provider = agent_cfg.cli_fallback
 
     # All CLI providers failed → fall back to API

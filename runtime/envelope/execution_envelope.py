@@ -111,10 +111,11 @@ class ExecutionEnvelope:
     def verify_network_restrictions(self) -> None:
         """
         Verify no direct network modules are loaded.
-        
-        Note: This is a best-effort check. Modules loaded after
-        envelope verification are not detected.
-        
+
+        LIFEOS_TODO[P1]: Known gap — modules imported AFTER this check is called
+        are not detected. Call verify_network_restrictions_post_hoc() at workflow
+        completion to catch late imports. See Phase 2C constitutional compliance plan.
+
         Raises:
             ExecutionEnvelopeError: If network modules are detected.
         """
@@ -126,6 +127,29 @@ class ExecutionEnvelope:
                 "Use deterministic_call gateway for network operations."
             )
         self._checks_passed.append('network_restrictions')
+
+    def verify_network_restrictions_post_hoc(self) -> List[str]:
+        """
+        Re-check network module restrictions at workflow end.
+
+        Detects network modules that were imported AFTER the initial
+        verify_network_restrictions() call (the known post-import gap).
+
+        Returns:
+            List of detected network module names (empty = clean).
+
+        Note: In sandbox mode this logs a warning; it does not raise,
+        because raising post-hoc would mask the real workflow result.
+        """
+        loaded_network = sorted(self.NETWORK_MODULES.intersection(sys.modules.keys()))
+        if loaded_network and getattr(self, '_mode', None) == 'sandbox':
+            import logging
+            logging.getLogger(__name__).warning(
+                "ENVELOPE POST-HOC: network modules detected post-verification: %s — "
+                "these may indicate a determinism violation.",
+                loaded_network,
+            )
+        return loaded_network
     
     def verify_dependency_lock(self) -> None:
         """

@@ -41,6 +41,8 @@ import atexit
 import json
 import logging
 import os
+import hashlib
+import json
 import shutil
 import subprocess
 import sys
@@ -586,7 +588,9 @@ class OpenCodeClient:
 
     def _execute_attempt(self, model: str, request: LLMCall, provider: Optional[str] = None) -> LLMResponse:
         """Execute a single LLM attempt with specific model and dynamic key swapping."""
-        call_id = str(uuid.uuid4())
+        # Deterministic call_id: content-addressable from model + prompt
+        _call_payload = json.dumps({"model": model, "prompt": request.prompt}, sort_keys=True).encode()
+        call_id = "sha256:" + hashlib.sha256(_call_payload).hexdigest()
         start_time = time.time()
 
         def _normalize_usage(usage: Any) -> Dict[str, int]:
@@ -703,7 +707,7 @@ class OpenCodeClient:
                             content=text,
                             model_used=f"OR:{data.get('model', model)}",
                             latency_ms=int((time.time() - start_time) * 1000),
-                            timestamp=datetime.now().isoformat(),
+                            timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
                             usage=_normalize_usage(data.get("usage")),
                         )
                         
@@ -792,7 +796,7 @@ class OpenCodeClient:
                                  content=text,
                                  model_used=f"ZEN:{model}",
                                  latency_ms=int((time.time() - start_time) * 1000),
-                                 timestamp=datetime.now().isoformat(),
+                                 timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
                                  usage=_normalize_usage(data.get("usageMetadata")),
                              )
                              if self.log_calls:
@@ -840,7 +844,7 @@ class OpenCodeClient:
                                  content=text,
                                  model_used=f"ZEN:{data.get('model', model)}",
                                  latency_ms=int((time.time() - start_time) * 1000),
-                                 timestamp=datetime.now().isoformat(),
+                                 timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
                                  usage=_normalize_usage(data.get("usage")),
                              )
                              

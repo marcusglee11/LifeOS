@@ -190,3 +190,44 @@ class BaseMission(ABC):
             escalation_reason=escalation_reason,
             evidence=evidence or {},
         )
+
+
+class CompensableMission:
+    """
+    Opt-in mixin for missions that support compensation (rollback).
+
+    When a workflow fails after a compensable mission has run, the engine
+    will call compensate() on the mission instance in reverse order.
+    Compensation is best-effort: a failed compensation is logged but does
+    not mask the original failure.
+
+    Usage:
+        class MyMission(CompensableMission, BaseMission):
+            def compensate(self, context, run_result):
+                # undo side effects (e.g., delete created files)
+                return True  # True = compensation succeeded
+    """
+
+    def compensate(
+        self,
+        context: MissionContext,
+        run_result: MissionResult,
+    ) -> bool:
+        """
+        Attempt to compensate (undo) the effects of a previously run mission.
+
+        Args:
+            context: The same MissionContext used in run().
+            run_result: The MissionResult from the original run() call.
+
+        Returns:
+            True if compensation succeeded, False if it failed.
+            Implementations must not raise; return False on error.
+        """
+        import logging
+        logging.getLogger(__name__).warning(
+            "CompensableMission.compensate() called on %s but not overridden — "
+            "no-op compensation applied.",
+            type(self).__name__,
+        )
+        return True

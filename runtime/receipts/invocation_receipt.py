@@ -31,6 +31,7 @@ class InvocationReceipt:
     token_usage: Optional[Dict[str, int]] = None
     truncation: Optional[Dict[str, bool]] = None
     error: Optional[str] = None
+    input_hash: Optional[str] = None  # SHA-256 of input prompt/packet (Phase 4A)
 
 
 class InvocationReceiptCollector:
@@ -54,6 +55,7 @@ class InvocationReceiptCollector:
         token_usage: Optional[Dict[str, int]] = None,
         truncation: Optional[Dict[str, bool]] = None,
         error: Optional[str] = None,
+        input_hash: Optional[str] = None,
     ) -> InvocationReceipt:
         """Record a single invocation and return its receipt."""
         self._seq_counter += 1
@@ -73,6 +75,7 @@ class InvocationReceiptCollector:
             token_usage=token_usage,
             truncation=truncation,
             error=error,
+            input_hash=input_hash,
         )
         self._receipts.append(receipt)
         return receipt
@@ -142,6 +145,7 @@ def record_invocation_receipt(
     token_usage: Optional[Dict[str, int]] = None,
     truncation: Optional[Dict[str, bool]] = None,
     error: Optional[str] = None,
+    input_hash: Optional[str] = None,
 ) -> Optional[InvocationReceipt]:
     """Record an invocation receipt for a run. No-op if run_id is empty."""
     if not run_id:
@@ -160,6 +164,7 @@ def record_invocation_receipt(
         token_usage=token_usage,
         truncation=truncation,
         error=error,
+        input_hash=input_hash,
     )
 
 

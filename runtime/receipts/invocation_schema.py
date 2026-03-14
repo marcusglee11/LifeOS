@@ -36,6 +36,7 @@ INVOCATION_RECEIPT_SCHEMA = {
             },
         },
         "error": {"type": ["string", "null"]},
+        "input_hash": {"type": ["string", "null"]},  # Phase 4A: SHA-256 of input prompt/packet
     },
 }
 

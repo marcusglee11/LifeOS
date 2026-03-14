@@ -5,12 +5,22 @@ CEO approval before the autonomous loop can proceed.
 """
 
 import json
+import logging
 import sqlite3
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from runtime.receipts.invocation_receipt import record_invocation_receipt
+from runtime.util.canonical import compute_sha256
+
+_log = logging.getLogger(__name__)
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 class EscalationStatus(str, Enum):
@@ -112,6 +122,7 @@ class CEOQueue:
         # Serialize context to JSON
         context_json = json.dumps(entry.context)
 
+        ts = _utc_now()
         with sqlite3.connect(self._db_path) as conn:
             conn.execute(
                 """
@@ -132,6 +143,23 @@ class CEOQueue:
                 ),
             )
             conn.commit()
+
+        # Phase 4C: emit receipt for queue state change
+        try:
+            record_invocation_receipt(
+                run_id=entry.run_id,
+                provider_id="ceo_queue",
+                mode="cli",
+                seat_id="queue_add",
+                start_ts=ts,
+                end_ts=ts,
+                exit_status=0,
+                output_content=entry.id,
+                schema_validation="n/a",
+                input_hash=compute_sha256(entry.context),
+            )
+        except Exception:
+            _log.debug("CEO queue add_escalation receipt failed", exc_info=True)
 
         return entry.id
 
@@ -195,6 +223,7 @@ class CEOQueue:
         if entry is None or entry.status != EscalationStatus.PENDING:
             return False
 
+        ts = _utc_now()
         with sqlite3.connect(self._db_path) as conn:
             conn.execute(
                 """
@@ -204,13 +233,29 @@ class CEOQueue:
                 """,
                 (
                     EscalationStatus.APPROVED.value,
-                    datetime.utcnow().isoformat(),
+                    ts,
                     note,
                     resolver,
                     escalation_id,
                 ),
             )
             conn.commit()
+
+        # Phase 4C: emit receipt for resolution state change
+        try:
+            record_invocation_receipt(
+                run_id=entry.run_id,
+                provider_id="ceo_queue",
+                mode="cli",
+                seat_id="queue_approve",
+                start_ts=ts,
+                end_ts=ts,
+                exit_status=0,
+                output_content=f"approved:{escalation_id}",
+                schema_validation="n/a",
+            )
+        except Exception:
+            _log.debug("CEO queue approve receipt failed", exc_info=True)
 
         return True
 
@@ -232,6 +277,7 @@ class CEOQueue:
         if entry is None or entry.status != EscalationStatus.PENDING:
             return False
 
+        ts = _utc_now()
         with sqlite3.connect(self._db_path) as conn:
             conn.execute(
                 """
@@ -241,13 +287,29 @@ class CEOQueue:
                 """,
                 (
                     EscalationStatus.REJECTED.value,
-                    datetime.utcnow().isoformat(),
+                    ts,
                     reason,
                     resolver,
                     escalation_id,
                 ),
             )
             conn.commit()
+
+        # Phase 4C: emit receipt for resolution state change
+        try:
+            record_invocation_receipt(
+                run_id=entry.run_id,
+                provider_id="ceo_queue",
+                mode="cli",
+                seat_id="queue_reject",
+                start_ts=ts,
+                end_ts=ts,
+                exit_status=0,
+                output_content=f"rejected:{escalation_id}",
+                schema_validation="n/a",
+            )
+        except Exception:
+            _log.debug("CEO queue reject receipt failed", exc_info=True)
 
         return True
 

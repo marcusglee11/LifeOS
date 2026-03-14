@@ -143,7 +143,7 @@ class ExecutionContext:
 class OrchestrationResult:
     """
     Result of a workflow execution.
-    
+
     Attributes:
         id: Workflow ID.
         success: Whether execution succeeded.
@@ -153,6 +153,7 @@ class OrchestrationResult:
         error_message: Error message (if any).
         lineage: Lineage record for audit.
         receipt: Execution receipt for attestation.
+        state_snapshots: Pre-step state snapshots for reversibility.
     """
     id: str
     success: bool
@@ -162,11 +163,32 @@ class OrchestrationResult:
     error_message: Optional[str] = None
     lineage: Dict[str, Any] = field(default_factory=dict)
     receipt: Dict[str, Any] = field(default_factory=dict)
-    
+    state_snapshots: List[Dict[str, Any]] = field(default_factory=list)
+
+    def rollback_to_step(self, index: int) -> Dict[str, Any]:
+        """Return the pre-step state snapshot at the given index.
+
+        Args:
+            index: 0-based index into state_snapshots (snapshot[i] is the
+                   state BEFORE step i was executed).
+
+        Returns:
+            Deep copy of the pre-step state.
+
+        Raises:
+            IndexError: If index is out of range.
+        """
+        if index < 0 or index >= len(self.state_snapshots):
+            raise IndexError(
+                f"rollback_to_step: index {index} out of range "
+                f"(snapshots: {len(self.state_snapshots)})"
+            )
+        return copy.deepcopy(self.state_snapshots[index])
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert to JSON-serializable dict with stable key ordering.
-        
+
         Keys: "id", "success", "executed_steps", "final_state",
               "failed_step_id", "error_message", "lineage", "receipt"
         """
@@ -289,13 +311,25 @@ class Orchestrator:
             # Store result in state
             state[output_key] = response.content
 
-            # Also store metadata for audit
-            state[f"{output_key}_metadata"] = {
+            # Also store metadata for audit (Phase 4B: include repo_map_hash if injected)
+            metadata: Dict[str, Any] = {
                 "call_id": response.call_id,
                 "model_used": response.model_used,
                 "latency_ms": response.latency_ms,
                 "timestamp": response.timestamp,
             }
+
+            repo_map_path = payload.get("repo_map_path")
+            if repo_map_path:
+                from pathlib import Path as _Path
+                from runtime.util.canonical import sha256_file
+                rmp = _Path(repo_map_path)
+                if rmp.exists():
+                    metadata["repo_map_hash"] = sha256_file(rmp)
+                else:
+                    metadata["repo_map_hash"] = None
+
+            state[f"{output_key}_metadata"] = metadata
 
             return True, None
 
@@ -367,7 +401,10 @@ class Orchestrator:
             - inputs or params (optional): Mission input data (default: {})
 
         Returns:
-            Tuple of (success: bool, error_message: Optional[str])
+            Tuple of (success: bool, error_message: Optional[str],
+                      mission_context: Optional[MissionContext],
+                      mission_result: Optional[MissionResult])
+            The last two are None when execution did not reach the mission.run() call.
         """
         # Local imports to avoid cycles
         from pathlib import Path
@@ -377,7 +414,7 @@ class Orchestrator:
         # Validate required fields
         mission_type = payload.get("mission_type")
         if not mission_type:
-            return False, "mission_type not specified in step payload"
+            return False, "mission_type not specified in step payload", None, None
 
         # Get inputs (try both 'inputs' and 'params' keys)
         inputs = payload.get("inputs") or payload.get("params", {})
@@ -411,7 +448,7 @@ class Orchestrator:
             if use_direct_path:
                 # Fallback path: Direct mission instantiation
                 from runtime.orchestration.missions import get_mission_class, MissionContext
-                import uuid
+                from runtime.util.canonical import canonical_json, compute_sha256
 
                 mission_class = get_mission_class(mission_type)
                 mission = mission_class()
@@ -420,12 +457,19 @@ class Orchestrator:
                 if hasattr(mission, 'validate_inputs'):
                     mission.validate_inputs(inputs)
 
+                # Deterministic run_id: content-addressable from mission type + step + inputs
+                mission_run_id = compute_sha256({
+                    "mission_type": mission_type,
+                    "step_id": step.id,
+                    "inputs": inputs,
+                })
+
                 # CRITICAL: Missions may expect MissionContext, not ExecutionContext
                 # Build MissionContext from git context
                 mission_context = MissionContext(
                     repo_root=repo_root,
                     baseline_commit=baseline_commit,
-                    run_id=str(uuid.uuid4()),
+                    run_id=mission_run_id,
                     operation_executor=None,
                     journal=None,
                     metadata={"step_id": step.id}
@@ -467,20 +511,94 @@ class Orchestrator:
             # Check success
             if not success:
                 error = result_dict.get('error') or "Mission failed without error message"
-                return False, f"Mission '{mission_type}' failed: {error}"
+                return False, f"Mission '{mission_type}' failed: {error}", mission_context, result
 
-            return True, None
+            return True, None, mission_context, result
 
         except (AttributeError, TypeError) as e:
             # CRITICAL: When using registry path, these are programming bugs - RE-RAISE
             if not use_direct_path:
                 raise
             # For direct path, treat as mission error (may be mission implementation issue)
-            return False, f"Mission execution error: {str(e)}"
+            return False, f"Mission execution error: {str(e)}", None, None
 
         except Exception as e:
             # Catch mission-level errors (MissionError, ValidationError, etc.)
-            return False, f"Mission execution error: {str(e)}"
+            return False, f"Mission execution error: {str(e)}", None, None
+
+    def _run_compensation(
+        self,
+        executed_steps: List[StepSpec],
+        state: Dict[str, Any],
+        ctx: ExecutionContext,
+        step_execution_data: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """
+        Best-effort backward compensation for CompensableMission steps.
+
+        Iterates executed_steps in reverse, calling compensate() on any
+        mission that implements CompensableMission. Uses the real MissionContext
+        and MissionResult from step_execution_data when available; falls back to
+        a minimal synthetic context only when execution did not reach mission.run().
+        Failures are logged, not re-raised, to avoid masking the original workflow error.
+        """
+        import logging
+        _log = logging.getLogger(__name__)
+        if step_execution_data is None:
+            step_execution_data = {}
+
+        for step in reversed(executed_steps):
+            if step.kind != "runtime" or step.payload.get("operation") != "mission":
+                continue
+            mission_type = step.payload.get("mission_type")
+            if not mission_type:
+                continue
+            try:
+                from runtime.orchestration.missions import get_mission_class
+                from runtime.orchestration.missions.base import CompensableMission
+                mission_class = get_mission_class(mission_type)
+                if not issubclass(mission_class, CompensableMission):
+                    continue
+                mission = mission_class()
+
+                # Use real context/result from execution when available
+                stored = step_execution_data.get(step.id)
+                if stored is not None:
+                    mission_ctx, mission_result = stored
+                else:
+                    # Execution did not reach mission.run() — build minimal fallback
+                    from runtime.orchestration.missions.base import (
+                        MissionContext, MissionResult, MissionType,
+                    )
+                    from pathlib import Path
+                    repo_root_str = (getattr(ctx, 'metadata', None) or {}).get("repo_root", "")
+                    mission_ctx = MissionContext(
+                        repo_root=Path(repo_root_str) if repo_root_str else Path.cwd(),
+                        baseline_commit=None,
+                        run_id="compensation-fallback",
+                        operation_executor=None,
+                        journal=None,
+                        metadata={"step_id": step.id},
+                    )
+                    mission_result = MissionResult(
+                        success=False,
+                        mission_type=MissionType(mission_type),
+                    )
+
+                ok = mission.compensate(mission_ctx, mission_result)
+                if not ok:
+                    _log.warning(
+                        "Compensation returned False for mission '%s' (step '%s')",
+                        mission_type,
+                        step.id,
+                    )
+            except Exception as exc:
+                _log.warning(
+                    "Compensation failed for mission '%s' (step '%s'): %s",
+                    mission_type,
+                    step.id,
+                    exc,
+                )
 
     def run_workflow(
         self,
@@ -534,12 +652,17 @@ class Orchestrator:
         state = copy.deepcopy(ctx.initial_state)
 
         executed_steps: List[StepSpec] = []
+        state_snapshots: List[Dict[str, Any]] = []  # pre-step snapshots for reversibility
+        step_execution_data: Dict[str, Any] = {}  # step_id → (MissionContext, MissionResult)
         failed_step_id: Optional[str] = None
         error_message: Optional[str] = None
         success = True
 
         try:
             for step in workflow.steps:
+                # Snapshot state BEFORE executing this step (enables rollback)
+                state_snapshots.append(copy.deepcopy(state))
+
                 # Record step as executed (including the failing one)
                 # Store a frozen snapshot (deepcopy) to prevent post-execution mutation aliasing
                 executed_steps.append(copy.deepcopy(step))
@@ -567,7 +690,9 @@ class Orchestrator:
 
                     elif operation == "mission":
                         # CRITICAL: Pass ctx to helper (reuse existing ExecutionContext)
-                        op_success, op_error = self._execute_mission(step, state, ctx)
+                        op_success, op_error, m_ctx, m_result = self._execute_mission(step, state, ctx)
+                        if m_ctx is not None:
+                            step_execution_data[step.id] = (m_ctx, m_result)
                         if not op_success:
                             success = False
                             failed_step_id = step.id
@@ -588,12 +713,22 @@ class Orchestrator:
             self._cleanup_llm_client()
 
         # =================================================================
+        # Compensation (Phase 3B): on failure, attempt reverse compensation
+        # Best-effort: failures logged, do not mask original error.
+        # =================================================================
+        if not success:
+            self._run_compensation(executed_steps, state, ctx, step_execution_data)
+
+        # =================================================================
         # Build result structures
         # =================================================================
 
-        # Build lineage (deterministic)
+        # Build lineage (deterministic) — include snapshot hashes for auditability
+        from runtime.util.canonical import compute_sha256
+        snapshot_hashes = [compute_sha256(snap) for snap in state_snapshots]
         lineage = {
             "executed_step_ids": [s.id for s in executed_steps],
+            "snapshot_hashes": snapshot_hashes,
             "workflow_id": workflow.id,
         }
 
@@ -612,4 +747,5 @@ class Orchestrator:
             error_message=error_message,
             lineage=lineage,
             receipt=receipt,
+            state_snapshots=state_snapshots,
         )

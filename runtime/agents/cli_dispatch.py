@@ -20,9 +20,16 @@ import shutil
 import subprocess
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Optional
 
+from runtime.receipts.invocation_receipt import record_invocation_receipt
+
 logger = logging.getLogger(__name__)
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 class CLIProvider(enum.Enum):
@@ -143,6 +150,7 @@ def dispatch_cli_agent(
     cwd: Optional[str] = None,
     env: Optional[dict[str, str]] = None,
     binary_override: str = "",
+    run_id: str = "",
 ) -> CLIDispatchResult:
     """
     Dispatch a prompt to a CLI-based LLM agent.
@@ -156,6 +164,7 @@ def dispatch_cli_agent(
         cwd: Working directory for the subprocess (default: current dir).
         env: Optional environment variables to pass to subprocess.
         binary_override: Optional binary name to use instead of the default.
+        run_id: Content-addressable run ID for receipt emission (empty = no receipt).
 
     Returns:
         CLIDispatchResult with output, exit code, latency, etc.
@@ -175,7 +184,7 @@ def dispatch_cli_agent(
     )
 
     start = time.monotonic()
-    partial = False
+    start_ts = _utc_now()
     errors: list[str] = []
 
     try:
@@ -188,10 +197,23 @@ def dispatch_cli_agent(
             env=env,
         )
         elapsed_ms = int((time.monotonic() - start) * 1000)
+        end_ts = _utc_now()
 
         output = result.stdout or ""
         if result.returncode != 0 and result.stderr:
             errors.append(result.stderr.strip())
+
+        record_invocation_receipt(
+            run_id=run_id,
+            provider_id=config.provider.value,
+            mode="cli",
+            seat_id=config.provider.value,
+            start_ts=start_ts,
+            end_ts=end_ts,
+            exit_status=result.returncode,
+            output_content=output,
+            error=errors[0] if errors else None,
+        )
 
         return CLIDispatchResult(
             output=output,
@@ -205,11 +227,24 @@ def dispatch_cli_agent(
 
     except subprocess.TimeoutExpired as exc:
         elapsed_ms = int((time.monotonic() - start) * 1000)
+        end_ts = _utc_now()
         # Recover partial output if available
         partial_output = ""
         if exc.stdout:
             partial_output = exc.stdout if isinstance(exc.stdout, str) else exc.stdout.decode("utf-8", errors="replace")
         errors.append(f"Timeout after {config.timeout_seconds}s")
+
+        record_invocation_receipt(
+            run_id=run_id,
+            provider_id=config.provider.value,
+            mode="cli",
+            seat_id=config.provider.value,
+            start_ts=start_ts,
+            end_ts=end_ts,
+            exit_status=-1,
+            output_content=partial_output,
+            error=f"timeout after {config.timeout_seconds}s",
+        )
 
         return CLIDispatchResult(
             output=partial_output,

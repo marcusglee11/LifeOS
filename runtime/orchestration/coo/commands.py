@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -27,6 +26,7 @@ from runtime.orchestration.coo.parser import (
 from runtime.orchestration.coo.templates import instantiate_order, load_template
 from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.util.atomic_write import atomic_write_text
+from runtime.util.canonical import compute_sha256
 
 
 NTP_SCHEMA_VERSION = "nothing_to_propose.v1"
@@ -126,8 +126,10 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
         _print_error(f"Error: {type(exc).__name__}: {exc}")
         return 1
 
+    run_id = compute_sha256({"context": context, "mode": "propose"})
+
     try:
-        raw_output = invoke_coo_reasoning(context, mode="propose", repo_root=repo_root)
+        raw_output = invoke_coo_reasoning(context, mode="propose", repo_root=repo_root, run_id=run_id)
     except InvocationError as exc:
         _print_error(f"Error: COO invocation failed: {exc}")
         return 1
@@ -270,8 +272,10 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
         "source": "coo_direct",
     }
 
+    direct_run_id = compute_sha256({"context": context, "mode": "direct"})
+
     try:
-        raw_output = invoke_coo_reasoning(context, mode="direct", repo_root=repo_root)
+        raw_output = invoke_coo_reasoning(context, mode="direct", repo_root=repo_root, run_id=direct_run_id)
     except InvocationError as exc:
         _print_error(f"Error: COO invocation failed: {exc}")
         return 1
@@ -291,7 +295,8 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
         )
         return 1
 
-    run_id = str(packet.get("run_id", f"coo-direct-{uuid.uuid4().hex[:8]}"))
+    # Use packet-embedded run_id if present; otherwise derive from packet content.
+    run_id = str(packet.get("run_id") or compute_sha256(packet))
 
     try:
         queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")

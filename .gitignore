@@ -86,6 +86,7 @@ artifacts/review_packets/
 artifacts/steward_tasks/
 artifacts/plans/
 artifacts/council_reviews/
+artifacts/replay_cache/
 
 # Archive bundles (ephemeral)
 artifacts/99_archive/
