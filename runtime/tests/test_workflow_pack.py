@@ -417,6 +417,115 @@ def test_merge_to_main_empty_branch_returns_primary_none() -> None:
     assert result["primary_repo"] is None
 
 
+def test_merge_to_main_blocks_on_untracked_files(monkeypatch, tmp_path: Path) -> None:
+    """Pre-squash gate: untracked files in primary repo block merge early."""
+    repo = tmp_path
+    primary = repo / "primary"
+    primary.mkdir(parents=True, exist_ok=True)
+
+    worktree_list = f"worktree {primary}\nbranch refs/heads/main\n"
+    call_log: list[list[str]] = []
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        call_log.append(cmd)
+        if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        if cmd[-2:] == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
+        if "ls-files" in cmd and "--others" in cmd:
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout="orphan.py\nstray.txt\n", stderr=""
+            )
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = merge_to_main(repo, "build/feature")
+
+    assert result["success"] is False
+    assert any("untracked" in e.lower() for e in result["errors"])
+    assert result["primary_repo"] == str(primary)
+    # Squash merge must never have been attempted.
+    assert not any("--squash" in c for c in call_log)
+
+
+def test_merge_to_main_resets_index_on_commit_failure(monkeypatch, tmp_path: Path) -> None:
+    """When commit fails after squash, git reset HEAD must run before checkout."""
+    repo = tmp_path
+    primary = repo / "primary"
+    primary.mkdir(parents=True, exist_ok=True)
+
+    worktree_list = f"worktree {primary}\nbranch refs/heads/main\n"
+    call_log: list[list[str]] = []
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        call_log.append(cmd)
+        if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        if cmd[-2:] == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
+        if "ls-files" in cmd and "--others" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        # Simulate commit failure (Article XIX blocks it).
+        if "commit" in cmd and "-m" in cmd:
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=1, stdout="", stderr="pre-commit hook failed"
+            )
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = merge_to_main(repo, "build/feature")
+
+    assert result["success"] is False
+    # git reset HEAD must have been called before git checkout.
+    reset_indices = [i for i, c in enumerate(call_log) if "reset" in c and "HEAD" in c]
+    checkout_indices = [
+        i for i, c in enumerate(call_log)
+        if "checkout" in c and "build/feature" in c
+    ]
+    assert len(reset_indices) == 1, f"Expected 1 git reset call, got {reset_indices}"
+    assert len(checkout_indices) == 1, f"Expected 1 git checkout call, got {checkout_indices}"
+    assert reset_indices[0] < checkout_indices[0], "git reset must precede git checkout"
+
+
+def test_merge_to_main_reports_post_merge_dirt(monkeypatch, tmp_path: Path) -> None:
+    """Successful merge with leftover dirt surfaces a health warning."""
+    repo = tmp_path
+    primary = repo / "primary"
+    primary.mkdir(parents=True, exist_ok=True)
+
+    worktree_list = f"worktree {primary}\nbranch refs/heads/main\n"
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        if cmd[-2:] == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
+        if "ls-files" in cmd and "--others" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-1:] == ["HEAD"] and "rev-parse" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="abc123\n", stderr="")
+        if "status" in cmd and "--porcelain" in cmd:
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout="?? orphan.py\n", stderr=""
+            )
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = merge_to_main(repo, "build/feature")
+
+    assert result["success"] is True
+    assert any("post-merge health check" in e for e in result["errors"])
+
+
 # --- Tests for STATE/BACKLOG update functions ---
 
 

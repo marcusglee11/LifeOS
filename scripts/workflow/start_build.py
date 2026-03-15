@@ -516,6 +516,29 @@ def main() -> int:
             print(f"❌ {exc}", file=sys.stderr)
         return 2
 
+    # Verify main is healthy before branching — catches orphaned staged changes
+    # or untracked files left by a failed merge_to_main.
+    _main_staged = _git_stdout(REPO_ROOT, ["diff", "--cached", "--name-only"])
+    _main_untracked = _git_stdout(REPO_ROOT, ["ls-files", "--others", "--exclude-standard"])
+    _health_issues: list[str] = []
+    if _main_staged:
+        _health_issues.append(
+            f"{len(_main_staged.splitlines())} staged file(s) on main — "
+            "likely from a failed merge. Run 'git reset HEAD' on main to unstage."
+        )
+    if _main_untracked:
+        _health_issues.append(
+            f"{len(_main_untracked.splitlines())} untracked file(s) on main — "
+            "Article XIX will block future merges. Stage, gitignore, or remove them."
+        )
+    if _health_issues:
+        err = "MAIN_UNHEALTHY: " + " | ".join(_health_issues)
+        if args.json:
+            print(json.dumps({"ok": False, "error": err, "branch": branch, "worktree_path": None}))
+        else:
+            print(f"❌ {err}", file=sys.stderr)
+        return 1
+
     cmd = [
         sys.executable,
         str(REPO_ROOT / "scripts" / "git_workflow.py"),

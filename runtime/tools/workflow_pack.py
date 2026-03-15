@@ -613,6 +613,31 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
     )
     _repo_already_on_main = _primary_head_proc.stdout.strip() in {"main", "master"}
 
+    # Gate: fail early if the primary repo has untracked files.
+    # The pre-commit hook (Article XIX) unconditionally blocks commits when
+    # untracked files exist, even with LIFEOS_MAIN_COMMIT_ALLOWED=1.
+    # Catching this before `git merge --squash` prevents orphaned staged changes.
+    _untracked_proc = subprocess.run(
+        ["git", "-C", str(primary_repo), "ls-files", "--others", "--exclude-standard"],
+        check=False, capture_output=True, text=True,
+    )
+    _untracked = _untracked_proc.stdout.strip()
+    if _untracked:
+        _untracked_list = _untracked.splitlines()
+        errors.append(
+            f"primary repo has {len(_untracked_list)} untracked file(s) — "
+            "Article XIX will block the merge commit. "
+            "Stage, gitignore, or remove them before retrying: "
+            + ", ".join(_untracked_list[:5])
+            + ("..." if len(_untracked_list) > 5 else "")
+        )
+        return {
+            "success": False,
+            "merge_sha": None,
+            "primary_repo": str(primary_repo),
+            "errors": errors,
+        }
+
     steps = [
         *([("checkout main", ["git", "-C", str(primary_repo), "checkout", "main"])]
           if not _repo_already_on_main else []),
@@ -651,6 +676,16 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
                 # Offline fallback: proceed with local main if remote is unreachable.
                 continue
         errors.append(f"{label} failed: {details or f'exit code {proc.returncode}'}")
+        # If the squash merge staged changes into the index, reset to unstage
+        # them before switching branches.  Without this, orphaned staged
+        # changes persist on main, contaminating future operations.
+        if label in ("squash merge", "commit squash merge"):
+            subprocess.run(
+                ["git", "-C", str(primary_repo), "reset", "HEAD"],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
         subprocess.run(
             ["git", "-C", str(primary_repo), "checkout", source_branch],
             check=False,
@@ -660,7 +695,7 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
         return {
             "success": False,
             "merge_sha": None,
-            "primary_repo": None,
+            "primary_repo": str(primary_repo),
             "errors": errors,
         }
 
@@ -680,11 +715,24 @@ def merge_to_main(repo_root: Path, branch: str) -> dict:
             "errors": errors,
         }
 
+    # Post-merge health check: verify primary repo is clean.
+    _health_proc = subprocess.run(
+        ["git", "-C", str(primary_repo), "status", "--porcelain"],
+        check=False, capture_output=True, text=True,
+    )
+    _health_output = _health_proc.stdout.strip()
+    if _health_output:
+        _dirty_count = len(_health_output.splitlines())
+        errors.append(
+            f"post-merge health check: primary repo has {_dirty_count} dirty file(s) — "
+            "this may indicate a merge artifact or concurrent agent conflict"
+        )
+
     return {
         "success": True,
         "merge_sha": merge_sha,
         "primary_repo": str(primary_repo),
-        "errors": [],
+        "errors": errors,
     }
 
 

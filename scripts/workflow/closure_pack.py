@@ -314,6 +314,9 @@ def main() -> int:
         )
         return 1
     what_done.append(f"Merged to main (squash): {merge['merge_sha']}.")
+    # Surface any health warnings from the merge (e.g. post-merge dirt).
+    for warning in merge.get("errors", []):
+        what_remains.append(f"Merge warning: {warning}")
     _close_build_record(repo_root, branch)
 
     primary_repo_str = merge.get("primary_repo")
