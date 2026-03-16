@@ -206,6 +206,17 @@ Security audit strategy:
   `confinement_detected=true` and
   `confinement_flag=uv_interface_addresses_unknown_system_error_1`.
 
+Sandbox posture strategy:
+
+- COO shared-ingress posture is repo-owned via `config/openclaw/instance_profiles/coo.json`.
+- Runtime verify accepts the configured posture semantically, not via a hard-coded mode string.
+- Current COO expectation is:
+  `target_posture=shared_ingress`,
+  `allowed_modes=["all"]`,
+  `sessionIsSandboxed=true`,
+  `elevated.enabled=false`.
+- `gate_status.json` records expected and observed sandbox posture fields for startup diagnostics.
+
 Model policy assertion:
 
 ```bash

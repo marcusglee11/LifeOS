@@ -112,6 +112,10 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
                     "multiuser_posture_failed": {"severity": "drift", "drift_bypassable": True},
                     "interfaces_policy_failed": {"severity": "drift", "drift_bypassable": True},
                     "cron_delivery_guard_failed": {"severity": "drift", "drift_bypassable": True},
+                    "sandbox_mode_disallowed": {"severity": "hard", "drift_bypassable": False},
+                    "sandbox_session_not_sandboxed": {"severity": "hard", "drift_bypassable": False},
+                    "sandbox_explain_parse_failed": {"severity": "hard", "drift_bypassable": False},
+                    "sandbox_elevated_enabled": {"severity": "hard", "drift_bypassable": False},
                     "leak_scan_failed": {"severity": "hard", "drift_bypassable": False},
                     "gate_reason_unknown": {"severity": "hard", "drift_bypassable": False},
                     "gate_reason_catalog_failed": {"severity": "hard", "drift_bypassable": False},
@@ -295,6 +299,25 @@ def test_breakglass_blocks_never_bypass_failures(tmp_path: Path) -> None:
     assert gate["break_glass_bypass_reasons"] == []
 
 
+def test_breakglass_blocks_sandbox_policy_failures(tmp_path: Path) -> None:
+    repo_dir, env, state_dir = _prepare_repo(tmp_path)
+    env["STUB_VERIFY_RC"] = "1"
+    env["STUB_GATE_STATUS_JSON"] = json.dumps(
+        {
+            "pass": False,
+            "blocking_reasons": [
+                "sandbox_mode_disallowed",
+            ],
+        }
+    )
+
+    proc = _run_start(repo_dir, env, "--unsafe-allow-drift")
+    assert proc.returncode == 1
+    gate = _gate_status(state_dir)
+    assert gate["break_glass_used"] is True
+    assert gate["break_glass_bypass_reasons"] == []
+
+
 def test_start_without_failures_keeps_breakglass_off(tmp_path: Path) -> None:
     repo_dir, env, state_dir = _prepare_repo(tmp_path)
     env["STUB_VERIFY_RC"] = "0"
@@ -405,6 +428,22 @@ def test_openclaw_models_status_distill_shadow_preserves_raw_output_and_writes_a
     audit_path = state_dir / "runtime" / "gates" / "distill" / "audit.jsonl"
     assert audit_path.exists()
     assert "repo_scans" in audit_path.read_text(encoding="utf-8")
+
+
+def test_openclaw_sandbox_explain_does_not_require_training_worktree(tmp_path: Path) -> None:
+    repo_dir, env, _ = _prepare_repo(tmp_path)
+
+    proc = subprocess.run(
+        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "openclaw", "--", "sandbox", "explain", "--json"],
+        cwd=repo_dir,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert "{}" in proc.stdout
 
 
 def test_openclaw_models_status_distill_active_replaces_output(tmp_path: Path) -> None:

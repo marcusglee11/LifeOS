@@ -26,7 +26,17 @@
       "drift_bypassable": true,
       "owner_system": "cron"
     },
-    "sandbox_mode_not_non_main": {
+    "sandbox_mode_disallowed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "sandbox"
+    },
+    "sandbox_session_not_sandboxed": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "sandbox"
+    },
+    "sandbox_explain_parse_failed": {
       "severity": "hard",
       "drift_bypassable": false,
       "owner_system": "sandbox"

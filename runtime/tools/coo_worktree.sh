@@ -246,6 +246,18 @@ except Exception as exc:
     raise SystemExit(0)
 
 print(f"GATE_PASS={'true' if obj.get('pass') else 'false'}")
+expected = str(obj.get("expected_sandbox_posture") or "").strip()
+if expected:
+    print(f"GATE_EXPECTED_SANDBOX_POSTURE={expected}")
+observed = str(obj.get("observed_sandbox_mode") or "").strip()
+if observed:
+    print(f"GATE_OBSERVED_SANDBOX_MODE={observed}")
+session_sandboxed = obj.get("sandbox_session_is_sandboxed")
+if isinstance(session_sandboxed, bool):
+    print(f"GATE_SANDBOX_SESSION_IS_SANDBOXED={'true' if session_sandboxed else 'false'}")
+elevated_enabled = obj.get("sandbox_elevated_enabled")
+if isinstance(elevated_enabled, bool):
+    print(f"GATE_SANDBOX_ELEVATED_ENABLED={'true' if elevated_enabled else 'false'}")
 reasons = obj.get("blocking_reasons") or []
 if isinstance(reasons, list) and reasons:
     print("GATE_BLOCKING_REASONS_BEGIN")
@@ -386,6 +398,38 @@ enter_training_dir() {
     return
   fi
   cd "$TRAIN_WT"
+}
+
+openclaw_command_uses_training_dir() {
+  if [ "$#" -eq 0 ]; then
+    return 1
+  fi
+
+  case "$1" in
+    security|gateway|sandbox)
+      return 1
+      ;;
+    models)
+      if [ "${2:-}" = "status" ] || [ "${2:-}" = "list" ] || [ "${2:-}" = "aliases" ]; then
+        return 1
+      fi
+      ;;
+    status)
+      return 1
+      ;;
+    channels)
+      if [ "${2:-}" = "status" ]; then
+        return 1
+      fi
+      ;;
+    memory)
+      if [ "${2:-}" = "status" ]; then
+        return 1
+      fi
+      ;;
+  esac
+
+  return 0
 }
 
 build_repo_clean() {
@@ -2213,7 +2257,11 @@ EOF
     fi
     shift || true
     print_header
-    enter_training_dir
+    if openclaw_command_uses_training_dir "$@"; then
+      enter_training_dir
+    else
+      cd "$BUILD_REPO"
+    fi
     if [ "$#" -ge 2 ] && [ "$1" = "models" ] && [ "$2" = "status" ]; then
       run_openclaw_maybe_distilled "coo openclaw -- models status" "repo_scans" "actionable_faults" "" "$@"
     elif [ "$#" -ge 3 ] && [ "$1" = "status" ] && [ "$2" = "--all" ] && [ "$3" = "--usage" ]; then

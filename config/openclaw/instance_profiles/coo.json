@@ -1,5 +1,13 @@
 {
   "instance_id": "coo",
   "run_user": "",
-  "parity_jobs": []
+  "parity_jobs": [],
+  "sandbox_policy": {
+    "target_posture": "shared_ingress",
+    "allowed_modes": [
+      "all"
+    ],
+    "require_session_sandboxed": true,
+    "require_elevated_disabled": true
+  }
 }

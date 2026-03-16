@@ -38,6 +38,11 @@ AUTH_HEALTH_STATE="unknown"
 AUTH_HEALTH_REASON="auth_health_unavailable"
 SECURITY_AUDIT_CLEAN="false"
 GATEWAY_PROBE_PASS="false"
+SANDBOX_POLICY_TARGET="unknown"
+SANDBOX_POLICY_ALLOWED_MODES=""
+SANDBOX_POLICY_OBSERVED_MODE="unknown"
+SANDBOX_POLICY_SESSION_IS_SANDBOXED="false"
+SANDBOX_POLICY_ELEVATED_ENABLED="false"
 declare -a BLOCKING_REASONS=()
 
 add_blocking_reason() {
@@ -138,6 +143,7 @@ to_file policy_assert python3 runtime/tools/openclaw_policy_assert.py --config "
 to_file model_ladder_policy_assert python3 runtime/tools/openclaw_model_policy_assert.py --config "$CFG_PATH" --json
 to_file multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --config "$CFG_PATH" --json
 to_file interfaces_policy_assert python3 runtime/tools/openclaw_interfaces_policy_assert.py --config "$CFG_PATH" --json
+to_file sandbox_policy_assert python3 runtime/tools/openclaw_sandbox_policy_assert.py --config "$CFG_PATH" --instance-profile "$INSTANCE_PROFILE_PATH" --sandbox-explain-file "$OUT_DIR/sandbox_explain_json.txt"
 
 auth_health_raw="$OUT_DIR/auth_health_raw.json"
 auth_health_out="$OUT_DIR/auth_health.txt"
@@ -229,13 +235,28 @@ if [ "${CMD_RC[policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "policy_ass
 if [ "${CMD_RC[model_ladder_policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "model_ladder_policy_failed"; fi
 if [ "${CMD_RC[multiuser_posture_assert]:-1}" -ne 0 ]; then add_blocking_reason "multiuser_posture_failed"; fi
 if [ "${CMD_RC[interfaces_policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "interfaces_policy_failed"; fi
+if [ "${CMD_RC[sandbox_policy_assert]:-1}" -ne 0 ]; then
+  violations_csv="$(sed -n 's/^violations=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+  if [ -n "$violations_csv" ]; then
+    OLD_IFS="$IFS"
+    IFS=','
+    for reason in $violations_csv; do
+      reason="$(printf '%s' "$reason" | tr -d '[:space:]')"
+      if [ -n "$reason" ]; then
+        add_blocking_reason "$reason"
+      fi
+    done
+    IFS="$OLD_IFS"
+  else
+    add_blocking_reason "sandbox_explain_parse_failed"
+  fi
+fi
 
-if [ "${CMD_RC[sandbox_explain_json]:-1}" -eq 0 ] && ! rg -q '"mode":\s*"non-main"' "$OUT_DIR/sandbox_explain_json.txt"; then
-  add_blocking_reason "sandbox_mode_not_non_main"
-fi
-if [ "${CMD_RC[sandbox_explain_json]:-1}" -eq 0 ] && rg -q '"elevated":\s*\{[^}]*"enabled":\s*true' "$OUT_DIR/sandbox_explain_json.txt"; then
-  add_blocking_reason "sandbox_elevated_enabled"
-fi
+SANDBOX_POLICY_TARGET="$(sed -n 's/^target_posture=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+SANDBOX_POLICY_ALLOWED_MODES="$(sed -n 's/^allowed_modes=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+SANDBOX_POLICY_OBSERVED_MODE="$(sed -n 's/^observed_mode=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+SANDBOX_POLICY_SESSION_IS_SANDBOXED="$(sed -n 's/^session_is_sandboxed=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+SANDBOX_POLICY_ELEVATED_ENABLED="$(sed -n 's/^elevated_enabled=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
 
 receipt_gen="$OUT_DIR/receipt_generation.txt"
 set +e
@@ -290,6 +311,12 @@ fi
   echo "auth_health_state=$AUTH_HEALTH_STATE"
   echo "auth_health_reason=$AUTH_HEALTH_REASON"
   echo "sandbox_explain_json_exit=${CMD_RC[sandbox_explain_json]:-1}"
+  echo "sandbox_policy_assert_exit=${CMD_RC[sandbox_policy_assert]:-1}"
+  echo "expected_sandbox_posture=$SANDBOX_POLICY_TARGET"
+  echo "allowed_sandbox_modes=$SANDBOX_POLICY_ALLOWED_MODES"
+  echo "observed_sandbox_mode=$SANDBOX_POLICY_OBSERVED_MODE"
+  echo "sandbox_session_is_sandboxed=$SANDBOX_POLICY_SESSION_IS_SANDBOXED"
+  echo "sandbox_elevated_enabled=$SANDBOX_POLICY_ELEVATED_ENABLED"
   echo "gateway_probe_json_exit=${CMD_RC[gateway_probe_json]:-1}"
   echo "gateway_probe_pass=$GATEWAY_PROBE_PASS"
   echo "gateway_probe_retries=$GATEWAY_PROBE_RETRIES"
@@ -355,7 +382,7 @@ export CHECK_SECURITY_AUDIT_CLEAN="$SECURITY_AUDIT_CLEAN"
 export CHECK_CRON_DELIVERY_GUARD="$([ "${CMD_RC[cron_delivery_guard]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_HOST_CRON_PARITY_GUARD="$([ "${CMD_RC[host_cron_parity_guard]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_MODELS_STATUS_PROBE="$([ "${CMD_RC[models_status_probe]:-1}" -eq 0 ] && echo true || echo false)"
-export CHECK_SANDBOX_EXPLAIN="$([ "${CMD_RC[sandbox_explain_json]:-1}" -eq 0 ] && rg -q '"mode":\s*"non-main"' "$OUT_DIR/sandbox_explain_json.txt" && ! rg -q '"elevated":\s*\{[^}]*"enabled":\s*true' "$OUT_DIR/sandbox_explain_json.txt" && echo true || echo false)"
+export CHECK_SANDBOX_EXPLAIN="$([ "${CMD_RC[sandbox_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_GATEWAY_PROBE="$GATEWAY_PROBE_PASS"
 export CHECK_POLICY_ASSERT="$([ "${CMD_RC[policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_MODEL_LADDER_POLICY="$([ "${CMD_RC[model_ladder_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
@@ -363,6 +390,11 @@ export CHECK_MULTIUSER_POSTURE="$([ "${CMD_RC[multiuser_posture_assert]:-1}" -eq
 export CHECK_INTERFACES_POLICY="$([ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_RECEIPT_GENERATION="$([ "$rc_receipt" -eq 0 ] && echo true || echo false)"
 export CHECK_LEAK_SCAN="$([ "$rc_leak" -eq 0 ] && echo true || echo false)"
+export SANDBOX_POLICY_TARGET
+export SANDBOX_POLICY_ALLOWED_MODES
+export SANDBOX_POLICY_OBSERVED_MODE
+export SANDBOX_POLICY_SESSION_IS_SANDBOXED
+export SANDBOX_POLICY_ELEVATED_ENABLED
 
 python3 - <<'PY' "$GATE_STATUS_PATH" "$TS_UTC" "$policy_fingerprint" "$SECURITY_AUDIT_MODE" "$CONFINEMENT_FLAG" "$OUT_DIR" "$reasons_file" "$AUTH_HEALTH_STATE" "$AUTH_HEALTH_REASON"
 import json
@@ -421,6 +453,11 @@ payload: Dict[str, Any] = {
     "policy_fingerprint": policy_fingerprint,
     "auth_health_state": auth_health_state,
     "auth_health_reason": auth_health_reason,
+    "expected_sandbox_posture": str(os.environ.get("SANDBOX_POLICY_TARGET") or "unknown"),
+    "allowed_sandbox_modes": [item for item in str(os.environ.get("SANDBOX_POLICY_ALLOWED_MODES") or "").split(",") if item],
+    "observed_sandbox_mode": str(os.environ.get("SANDBOX_POLICY_OBSERVED_MODE") or "unknown"),
+    "sandbox_session_is_sandboxed": env_bool("SANDBOX_POLICY_SESSION_IS_SANDBOXED"),
+    "sandbox_elevated_enabled": env_bool("SANDBOX_POLICY_ELEVATED_ENABLED"),
 }
 if confinement_flag:
     payload["confinement_flag"] = confinement_flag
