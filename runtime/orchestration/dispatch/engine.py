@@ -27,7 +27,14 @@ from runtime.orchestration.dispatch.order import (
     load_order,
     parse_order,
 )
-from runtime.orchestration.coo.backlog import TaskEntry, load_backlog
+from runtime.orchestration.coo.backlog import (
+    TaskEntry,
+    load_backlog,
+    mark_blocked,
+    mark_completed,
+    mark_in_progress,
+    save_backlog,
+)
 from runtime.orchestration.workflow_runtime import translate_order_to_workflow_instance
 from runtime.util.atomic_write import atomic_write_text
 
@@ -104,6 +111,15 @@ class DispatchEngine:
             }
 
             original_content = order_file.read_text(encoding="utf-8")
+            # Extract task_ref from order for backlog sync
+            task_ref: Optional[str] = None
+            try:
+                order_raw = yaml.safe_load(original_content)
+                if isinstance(order_raw, dict):
+                    task_ref = order_raw.get("task_ref")
+            except Exception:
+                pass
+
             combined = (
                 original_content
                 + "\n# DISPATCH_RESULT:\n"
@@ -123,6 +139,13 @@ class DispatchEngine:
                     "reason": "CRASH_RECOVERY",
                     "run_id": None,
                 }
+            )
+
+            # Sync backlog: mark task blocked with crash evidence
+            _sync_backlog_blocked(
+                self.repo_root, order_id,
+                task_ref=task_ref,
+                evidence=f"CLEAN_FAIL: CRASH_RECOVERY ({order_id})",
             )
 
             recovered.append(order_id)
@@ -217,6 +240,13 @@ class DispatchEngine:
                     yaml.dump(raw_dict, sort_keys=True, default_flow_style=False),
                 )
                 tmp.rename(active_file)
+
+        # Sync backlog: mark task in_progress now that order is active
+        _sync_backlog_in_progress(
+            self.repo_root, order.order_id,
+            task_ref=order.task_ref,
+            evidence=f"dispatched {order.order_id}",
+        )
 
         try:
             # Step 2: Execute via LoopSpine
@@ -339,6 +369,20 @@ class DispatchEngine:
                     else None,
                 }
             )
+
+            # Step 6: Sync backlog with final outcome
+            if outcome == "SUCCESS":
+                _sync_backlog_completed(
+                    self.repo_root, order.order_id,
+                    task_ref=order.task_ref,
+                    evidence=f"completed {order.order_id}",
+                )
+            else:
+                _sync_backlog_blocked(
+                    self.repo_root, order.order_id,
+                    task_ref=order.task_ref,
+                    evidence=f"CLEAN_FAIL: {reason} ({order.order_id})",
+                )
 
         return DispatchResult(
             order_id=order.order_id,
@@ -509,3 +553,67 @@ def _order_to_dict(order: ExecutionOrder) -> Dict[str, Any]:
             "cycle_number": order.supervision.cycle_number,
         },
     }
+
+
+def _backlog_path(repo_root: Path) -> Path:
+    return repo_root / "config" / "tasks" / "backlog.yaml"
+
+
+def _sync_backlog_in_progress(
+    repo_root: Path,
+    order_id: str,
+    task_ref: Optional[str] = None,
+    evidence: str = "",
+) -> None:
+    """Best-effort: mark task in_progress in backlog. Swallows exceptions."""
+    if not task_ref:
+        return
+    path = _backlog_path(repo_root)
+    if not path.exists():
+        return
+    try:
+        tasks = load_backlog(path)
+        updated = mark_in_progress(tasks, task_ref, evidence=evidence)
+        save_backlog(path, updated)
+    except Exception:
+        pass
+
+
+def _sync_backlog_completed(
+    repo_root: Path,
+    order_id: str,
+    task_ref: Optional[str] = None,
+    evidence: str = "",
+) -> None:
+    """Best-effort: mark task completed in backlog. Swallows exceptions."""
+    if not task_ref:
+        return
+    path = _backlog_path(repo_root)
+    if not path.exists():
+        return
+    try:
+        tasks = load_backlog(path)
+        updated = mark_completed(tasks, task_ref, evidence=evidence)
+        save_backlog(path, updated)
+    except Exception:
+        pass
+
+
+def _sync_backlog_blocked(
+    repo_root: Path,
+    order_id: str,
+    task_ref: Optional[str] = None,
+    evidence: str = "",
+) -> None:
+    """Best-effort: mark task blocked in backlog. Swallows exceptions."""
+    if not task_ref:
+        return
+    path = _backlog_path(repo_root)
+    if not path.exists():
+        return
+    try:
+        tasks = load_backlog(path)
+        updated = mark_blocked(tasks, task_ref, evidence=evidence)
+        save_backlog(path, updated)
+    except Exception:
+        pass

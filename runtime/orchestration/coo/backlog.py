@@ -185,6 +185,88 @@ def filter_actionable(tasks: list[TaskEntry]) -> list[TaskEntry]:
     return sorted(active, key=lambda t: _PRIORITY_ORDER.get(t.priority, 99))
 
 
+def mark_in_progress(
+    tasks: list[TaskEntry], task_id: str, evidence: str = ""
+) -> list[TaskEntry]:
+    """Return a new list with the specified task marked in_progress.
+
+    Raises BacklogValidationError if task_id is not found.
+    """
+    found = False
+    result = []
+    for task in tasks:
+        if task.id == task_id:
+            found = True
+            updated = TaskEntry(
+                id=task.id,
+                title=task.title,
+                description=task.description,
+                dod=task.dod,
+                priority=task.priority,
+                risk=task.risk,
+                scope_paths=task.scope_paths,
+                status="in_progress",
+                requires_approval=task.requires_approval,
+                owner=task.owner,
+                evidence=evidence or task.evidence,
+                task_type=task.task_type,
+                tags=task.tags,
+                objective_ref=task.objective_ref,
+                created_at=task.created_at,
+                completed_at=task.completed_at,
+            )
+            result.append(updated)
+        else:
+            result.append(task)
+
+    if not found:
+        raise BacklogValidationError(
+            f"Task '{task_id}' not found in backlog"
+        )
+    return result
+
+
+def mark_blocked(
+    tasks: list[TaskEntry], task_id: str, evidence: str = ""
+) -> list[TaskEntry]:
+    """Return a new list with the specified task marked blocked.
+
+    Raises BacklogValidationError if task_id is not found.
+    """
+    found = False
+    result = []
+    for task in tasks:
+        if task.id == task_id:
+            found = True
+            updated = TaskEntry(
+                id=task.id,
+                title=task.title,
+                description=task.description,
+                dod=task.dod,
+                priority=task.priority,
+                risk=task.risk,
+                scope_paths=task.scope_paths,
+                status="blocked",
+                requires_approval=task.requires_approval,
+                owner=task.owner,
+                evidence=evidence or task.evidence,
+                task_type=task.task_type,
+                tags=task.tags,
+                objective_ref=task.objective_ref,
+                created_at=task.created_at,
+                completed_at=task.completed_at,
+            )
+            result.append(updated)
+        else:
+            result.append(task)
+
+    if not found:
+        raise BacklogValidationError(
+            f"Task '{task_id}' not found in backlog"
+        )
+    return result
+
+
 def mark_completed(
     tasks: list[TaskEntry], task_id: str, evidence: str = ""
 ) -> list[TaskEntry]:

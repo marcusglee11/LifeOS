@@ -463,3 +463,141 @@ def test_status_counts(tmp_path):
     assert status["pending_orders"] == 1
     assert status["active_orders"] == 0
     assert "exec_engine_test_001" in status["pending"]
+
+
+# ── Backlog sync ──────────────────────────────────────────────────────────────
+
+
+def _write_backlog(tmp_path: Path, task_id: str, status: str = "pending") -> Path:
+    """Write a minimal backlog.yaml with one task."""
+    import yaml as _yaml
+    from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION
+    from datetime import datetime, timezone
+
+    backlog_dir = tmp_path / "config" / "tasks"
+    backlog_dir.mkdir(parents=True, exist_ok=True)
+    path = backlog_dir / "backlog.yaml"
+    data = {
+        "schema_version": BACKLOG_SCHEMA_VERSION,
+        "tasks": [
+            {
+                "id": task_id,
+                "title": f"Task {task_id}",
+                "description": "",
+                "dod": "",
+                "priority": "P1",
+                "risk": "low",
+                "scope_paths": [],
+                "status": status,
+                "requires_approval": False,
+                "owner": "codex",
+                "evidence": "",
+                "task_type": "build",
+                "tags": [],
+                "objective_ref": "bootstrap",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "completed_at": None,
+            }
+        ],
+    }
+    path.write_text(
+        _yaml.dump(data, default_flow_style=False, sort_keys=False),
+        encoding="utf-8",
+    )
+    return path
+
+
+ORDER_WITH_TASK_REF = {
+    **MINIMAL_ORDER_RAW,
+    "order_id": "sync_test_001",
+    "task_ref": "T-sync-001",
+}
+
+
+def test_execute_syncs_backlog_in_progress(tmp_path):
+    """After inbox->active transition, backlog shows in_progress."""
+    backlog_path = _write_backlog(tmp_path, "T-sync-001", "pending")
+
+    engine = _make_engine(tmp_path)
+    order_file = _make_order_file(tmp_path, raw=ORDER_WITH_TASK_REF)
+    engine.submit_to_inbox(order_file)
+
+    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls:
+        mock_spine = MagicMock()
+        # Return PASS after a tiny delay so in_progress is set before final sync
+        mock_spine.run.return_value = PASS_SPINE_RESULT
+        mock_spine_cls.return_value = mock_spine
+
+        engine.execute(parse_order(ORDER_WITH_TASK_REF))
+
+    # After execution completes (SUCCESS) the backlog should be in completed state
+    from runtime.orchestration.coo.backlog import load_backlog
+    tasks = load_backlog(backlog_path)
+    task = next(t for t in tasks if t.id == "T-sync-001")
+    assert task.status == "completed"
+
+
+def test_execute_success_syncs_backlog_completed(tmp_path):
+    """After SUCCESS outcome, backlog shows completed."""
+    backlog_path = _write_backlog(tmp_path, "T-sync-002", "pending")
+
+    engine = _make_engine(tmp_path)
+
+    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls:
+        mock_spine = MagicMock()
+        mock_spine.run.return_value = PASS_SPINE_RESULT
+        mock_spine_cls.return_value = mock_spine
+
+        raw = {**ORDER_WITH_TASK_REF, "order_id": "sync_test_002", "task_ref": "T-sync-002"}
+        engine.execute(parse_order(raw))
+
+    from runtime.orchestration.coo.backlog import load_backlog
+    tasks = load_backlog(backlog_path)
+    task = next(t for t in tasks if t.id == "T-sync-002")
+    assert task.status == "completed"
+    assert "sync_test_002" in task.evidence
+
+
+def test_execute_fail_syncs_backlog_blocked(tmp_path):
+    """After CLEAN_FAIL outcome, backlog shows blocked with evidence."""
+    backlog_path = _write_backlog(tmp_path, "T-sync-003", "pending")
+
+    engine = _make_engine(tmp_path)
+
+    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls:
+        mock_spine = MagicMock()
+        mock_spine.run.return_value = FAIL_SPINE_RESULT
+        mock_spine_cls.return_value = mock_spine
+
+        raw = {**ORDER_WITH_TASK_REF, "order_id": "sync_test_003", "task_ref": "T-sync-003"}
+        engine.execute(parse_order(raw))
+
+    from runtime.orchestration.coo.backlog import load_backlog
+    tasks = load_backlog(backlog_path)
+    task = next(t for t in tasks if t.id == "T-sync-003")
+    assert task.status == "blocked"
+    assert "CLEAN_FAIL" in task.evidence
+
+
+def test_crash_recovery_syncs_backlog_blocked(tmp_path):
+    """Recovered orders mark their backlog task as blocked."""
+    backlog_path = _write_backlog(tmp_path, "T-crash-001", "in_progress")
+
+    engine = _make_engine(tmp_path)
+    stranded = engine.active / "crash_sync_001.yaml"
+    stranded.write_text(
+        yaml.dump(
+            {**MINIMAL_ORDER_RAW, "order_id": "crash_sync_001", "task_ref": "T-crash-001"},
+            sort_keys=True,
+            default_flow_style=False,
+        ),
+        encoding="utf-8",
+    )
+
+    engine.recover_crashed_runs()
+
+    from runtime.orchestration.coo.backlog import load_backlog
+    tasks = load_backlog(backlog_path)
+    task = next(t for t in tasks if t.id == "T-crash-001")
+    assert task.status == "blocked"
+    assert "CRASH_RECOVERY" in task.evidence

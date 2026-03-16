@@ -430,3 +430,96 @@ def test_coo_report_returns_json(tmp_path: Path, capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert len(payload["all_tasks"]) == 2
     assert payload["delegation_envelope"]["schema_version"] == "delegation_envelope.v1"
+
+
+# ── Claim verification tests ──────────────────────────────────────────────────
+
+_PROPOSAL_WITH_CLAIM = """\
+schema_version: task_proposal.v1
+generated_at: "2026-03-08T00:00:00Z"
+mode: propose
+objective_ref: bootstrap
+proposals:
+  - task_id: T-101
+    rationale: T-101 has been completed. Now proposing next step.
+    proposed_action: dispatch
+    urgency_override: null
+    suggested_owner: codex
+"""
+
+
+def test_propose_blocks_on_claim_violation(tmp_path: Path, capsys) -> None:
+    """Proposal with unsupported execution claim -> exit code 1."""
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_PROPOSAL_WITH_CLAIM,
+    ), patch(
+        "runtime.orchestration.coo.commands.verify_claims",
+        return_value=[
+            __import__(
+                "runtime.orchestration.coo.claim_verifier",
+                fromlist=["ClaimViolation"],
+            ).ClaimViolation(
+                claim_text="T-101 has been completed",
+                claim_type="execution_state",
+                required_evidence="order in completed/ with SUCCESS for task T-101",
+                found_evidence="none",
+            )
+        ],
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "CLAIM_VIOLATION" in err
+
+
+def test_propose_passes_clean_output(tmp_path: Path, capsys) -> None:
+    """Proposal with no execution claims -> exit code 0."""
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_PROPOSAL_YAML,
+    ), patch(
+        "runtime.orchestration.coo.commands.verify_claims",
+        return_value=[],
+    ):
+        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 0
+
+
+def test_status_shows_dispatch_state(tmp_path: Path, capsys) -> None:
+    """cmd_coo_status output includes dispatch state section."""
+    _write_backlog(
+        tmp_path,
+        [
+            _task("T-001", status="pending", priority="P0"),
+            _task("T-002", status="in_progress", priority="P1"),
+        ],
+    )
+
+    rc = cmd_coo_status(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "dispatch:" in out
+    assert "escalations:" in out
+
+
+def test_status_json_includes_dispatch_state(tmp_path: Path, capsys) -> None:
+    """cmd_coo_status --json output includes dispatch key."""
+    _write_backlog(tmp_path, [_task("T-001", status="pending", priority="P0")])
+
+    rc = cmd_coo_status(argparse.Namespace(json=True), tmp_path)
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert "dispatch" in payload
+    assert "inbox" in payload["dispatch"]
+    assert "active" in payload["dispatch"]

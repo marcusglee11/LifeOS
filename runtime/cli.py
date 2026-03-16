@@ -1066,6 +1066,11 @@ def main() -> int:
 
     p_coo_propose = coo_subs.add_parser("propose", help="Print COO proposal context")
     p_coo_propose.add_argument("--json", action="store_true", help="Output context as JSON")
+    p_coo_propose.add_argument(
+        "--execute",
+        action="store_true",
+        help="Auto-dispatch eligible proposals (requires_approval=false, risk=low)",
+    )
 
     p_coo_approve = coo_subs.add_parser(
         "approve", help="Approve tasks and write ExecutionOrders to dispatch inbox"

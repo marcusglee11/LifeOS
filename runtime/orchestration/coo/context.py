@@ -136,6 +136,62 @@ def build_propose_context(repo_root: Path) -> dict[str, Any]:
     }
 
 
+def _collect_dispatch_state(repo_root: Path) -> dict[str, Any]:
+    """Read dispatch dirs to build a summary of current order state."""
+    import yaml as _yaml
+
+    dispatch_base = repo_root / "artifacts" / "dispatch"
+    inbox_dir = dispatch_base / "inbox"
+    active_dir = dispatch_base / "active"
+    completed_dir = dispatch_base / "completed"
+
+    inbox_orders = [
+        f.stem for f in inbox_dir.glob("*.yaml") if not f.name.endswith(".tmp")
+    ] if inbox_dir.exists() else []
+
+    active_orders = [
+        f.stem for f in active_dir.glob("*.yaml") if not f.name.endswith(".tmp")
+    ] if active_dir.exists() else []
+
+    completed_success = 0
+    completed_fail = 0
+    if completed_dir.exists():
+        for f in completed_dir.glob("*.yaml"):
+            if f.name.endswith(".tmp"):
+                continue
+            try:
+                raw = _yaml.safe_load(f.read_text(encoding="utf-8"))
+                if isinstance(raw, dict):
+                    dr = raw.get("dispatch_result", {})
+                    if isinstance(dr, dict):
+                        outcome = dr.get("outcome", "")
+                        if outcome == "SUCCESS":
+                            completed_success += 1
+                        elif outcome == "CLEAN_FAIL":
+                            completed_fail += 1
+            except Exception:
+                pass
+
+    escalation_count = 0
+    try:
+        from runtime.orchestration.ceo_queue import CEOQueue
+        queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+        escalation_count = len(queue.list_pending())
+    except Exception:
+        pass
+
+    return {
+        "inbox": len(inbox_orders),
+        "inbox_orders": inbox_orders,
+        "active": len(active_orders),
+        "active_orders": active_orders,
+        "completed_total": completed_success + completed_fail,
+        "completed_success": completed_success,
+        "completed_fail": completed_fail,
+        "escalations_pending": escalation_count,
+    }
+
+
 def build_status_context(repo_root: Path) -> dict[str, Any]:
     backlog_path = repo_root / _BACKLOG_RELATIVE_PATH
     tasks = load_backlog(backlog_path)
@@ -149,11 +205,14 @@ def build_status_context(repo_root: Path) -> dict[str, Any]:
     for task in actionable:
         by_priority[task.priority] = by_priority.get(task.priority, 0) + 1
 
+    dispatch_state = _collect_dispatch_state(repo_root)
+
     return {
         "total_tasks": len(tasks),
         "by_status": by_status,
         "by_priority": by_priority,
         "actionable_count": len(actionable),
+        "dispatch": dispatch_state,
         "generated_at": _now_iso(),
     }
 

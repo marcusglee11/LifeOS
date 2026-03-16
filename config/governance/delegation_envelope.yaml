@@ -29,6 +29,16 @@ autonomy:
       - update_artifacts_coo_brief
       - update_artifacts_coo_decisions
       - update_artifacts_coo_memory
+      - auto_dispatch_eligible  # tasks passing all auto-dispatch predicates
+  auto_dispatch_policy:
+    requires_approval: false
+    risk: low
+    protected_paths: excluded
+    concurrency: no scope_path overlap with in_progress tasks
+    note: >
+      Tasks meeting ALL predicates may be dispatched without CEO approval.
+      This is a scoped L0 exception, not an activation of L1/L2.
+      The full predicate logic lives in runtime/orchestration/coo/auto_dispatch.py.
 
   L3:
     label: "propose-and-wait"

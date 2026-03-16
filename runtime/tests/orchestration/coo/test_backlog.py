@@ -12,7 +12,9 @@ from runtime.orchestration.coo.backlog import (
     TaskEntry,
     filter_actionable,
     load_backlog,
+    mark_blocked,
     mark_completed,
+    mark_in_progress,
     save_backlog,
 )
 
@@ -281,3 +283,77 @@ class TestIntegration:
         # Verify T-001 is present as the first bootstrap task
         ids = {t.id for t in tasks}
         assert "T-001" in ids, "T-001 (Step 1A) must be in seed backlog"
+
+
+def _make_task(task_id: str, status: str = "pending") -> TaskEntry:
+    return TaskEntry(
+        id=task_id,
+        title=f"Task {task_id}",
+        description="",
+        dod="",
+        priority="P1",
+        risk="low",
+        scope_paths=[],
+        status=status,
+        requires_approval=False,
+        owner="",
+        evidence="",
+        task_type="build",
+        tags=[],
+        objective_ref="bootstrap",
+        created_at="2026-03-05T00:00:00Z",
+        completed_at=None,
+    )
+
+
+class TestMarkInProgress:
+    def test_mark_in_progress_sets_status(self) -> None:
+        tasks = [_make_task("T-010", "pending")]
+        result = mark_in_progress(tasks, "T-010", evidence="dispatched ORD-T-010-001")
+        assert result[0].status == "in_progress"
+        assert result[0].evidence == "dispatched ORD-T-010-001"
+
+    def test_mark_in_progress_does_not_mutate_original(self) -> None:
+        tasks = [_make_task("T-010", "pending")]
+        mark_in_progress(tasks, "T-010")
+        assert tasks[0].status == "pending"
+
+    def test_mark_in_progress_not_found(self) -> None:
+        tasks = [_make_task("T-010", "pending")]
+        with pytest.raises(BacklogValidationError, match="not found"):
+            mark_in_progress(tasks, "NONEXISTENT-999")
+
+    def test_mark_in_progress_preserves_other_tasks(self) -> None:
+        tasks = [_make_task("T-010", "pending"), _make_task("T-011", "pending")]
+        result = mark_in_progress(tasks, "T-010")
+        assert result[1].status == "pending"
+        assert result[1].id == "T-011"
+
+    def test_mark_in_progress_sets_completed_at_none(self) -> None:
+        tasks = [_make_task("T-010", "pending")]
+        result = mark_in_progress(tasks, "T-010")
+        assert result[0].completed_at is None
+
+
+class TestMarkBlocked:
+    def test_mark_blocked_sets_status_and_evidence(self) -> None:
+        tasks = [_make_task("T-012", "in_progress")]
+        result = mark_blocked(tasks, "T-012", evidence="CLEAN_FAIL: repo dirty (ORD-T-012-001)")
+        assert result[0].status == "blocked"
+        assert "CLEAN_FAIL" in result[0].evidence
+
+    def test_mark_blocked_does_not_mutate_original(self) -> None:
+        tasks = [_make_task("T-012", "in_progress")]
+        mark_blocked(tasks, "T-012")
+        assert tasks[0].status == "in_progress"
+
+    def test_mark_blocked_not_found(self) -> None:
+        tasks = [_make_task("T-012", "in_progress")]
+        with pytest.raises(BacklogValidationError, match="not found"):
+            mark_blocked(tasks, "NONEXISTENT-999")
+
+    def test_mark_blocked_preserves_other_tasks(self) -> None:
+        tasks = [_make_task("T-012", "in_progress"), _make_task("T-013", "pending")]
+        result = mark_blocked(tasks, "T-012")
+        assert result[1].status == "pending"
+        assert result[1].id == "T-013"
