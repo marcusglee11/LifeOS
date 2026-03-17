@@ -99,6 +99,9 @@ _PROPOSE_OUTPUT_SCHEMA = {
 }
 
 _PROPOSE_FORMAT_INSTRUCTION = (
+    "RUNTIME MACHINE-OUTPUT INVOCATION.\n"
+    "This response is for the orchestration runtime, not for direct human reading.\n"
+    "Suppress conversational narration and emit only the machine-readable packet.\n\n"
     "REQUIRED OUTPUT FORMAT.\n"
     "Your entire response MUST be ONLY valid YAML. No prose. No markdown fences. "
     "No explanation before or after the YAML block.\n\n"
@@ -126,6 +129,8 @@ def build_propose_context(repo_root: Path) -> dict[str, Any]:
     delegation = _load_yaml_mapping(delegation_path)
 
     return {
+        "audience": "runtime_machine",
+        "interaction_style": "machine_packet_only",
         "actionable_tasks": [_task_to_dict(task) for task in actionable],
         "delegation_envelope": delegation,
         "backlog_path": str(backlog_path),
@@ -225,6 +230,8 @@ def build_report_context(repo_root: Path) -> dict[str, Any]:
     delegation = _load_yaml_mapping(delegation_path)
 
     return {
+        "audience": "human_operator",
+        "interaction_style": "natural_language",
         "all_tasks": [_task_to_dict(task) for task in tasks],
         "delegation_envelope": delegation,
         "generated_at": _now_iso(),

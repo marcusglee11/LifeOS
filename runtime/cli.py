@@ -1067,6 +1067,17 @@ def main() -> int:
     p_coo_propose = coo_subs.add_parser("propose", help="Print COO proposal context")
     p_coo_propose.add_argument("--json", action="store_true", help="Output context as JSON")
     p_coo_propose.add_argument(
+        "--yaml",
+        action="store_true",
+        help="Output validated YAML packet instead of the human view",
+    )
+    p_coo_propose.add_argument(
+        "--format",
+        choices=("auto", "human", "yaml", "json"),
+        default="auto",
+        help="Output format. Default: human on TTY, yaml otherwise.",
+    )
+    p_coo_propose.add_argument(
         "--execute",
         action="store_true",
         help="Auto-dispatch eligible proposals (requires_approval=false, risk=low)",

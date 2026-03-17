@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -48,6 +49,77 @@ def _now_iso() -> str:
 
 def _print_error(message: str) -> None:
     print(message, file=sys.stderr)
+
+
+def _coo_output_format(args: argparse.Namespace) -> str:
+    if getattr(args, "json", False):
+        return "json"
+    if getattr(args, "yaml", False):
+        return "yaml"
+
+    explicit = getattr(args, "format", None)
+    if explicit and explicit != "auto":
+        return explicit
+
+    env_value = os.environ.get("LIFEOS_COO_OUTPUT_FORMAT", "").strip().lower()
+    if env_value in {"human", "yaml", "json"}:
+        return env_value
+
+    return "human" if sys.stdout.isatty() else "yaml"
+
+
+def _task_title_map(repo_root: Path) -> dict[str, str]:
+    backlog_path = repo_root / _BACKLOG_RELATIVE_PATH
+    try:
+        tasks = load_backlog(backlog_path)
+    except Exception:
+        return {}
+    return {task.id: task.title for task in tasks}
+
+
+def _render_task_proposal_human(payload: dict[str, Any], repo_root: Path) -> str:
+    proposals = payload.get("proposals", [])
+    title_map = _task_title_map(repo_root)
+
+    lines = [
+        f"COO proposal: {len(proposals)} item(s)",
+        f"Objective: {payload.get('objective_ref', 'unknown')}",
+    ]
+
+    notes = str(payload.get("notes", "")).strip()
+    if notes:
+        lines.append(f"Notes: {notes}")
+
+    for idx, proposal in enumerate(proposals, start=1):
+        if not isinstance(proposal, dict):
+            continue
+        task_id = str(proposal.get("task_id", "")).strip() or "unknown-task"
+        action = str(proposal.get("proposed_action", "")).strip() or "unspecified"
+        urgency = proposal.get("urgency_override")
+        owner = str(proposal.get("suggested_owner", "")).strip() or "unspecified"
+        rationale = str(proposal.get("rationale", "")).strip() or "No rationale provided."
+        title = title_map.get(task_id)
+
+        header = f"{idx}. {task_id}"
+        if title:
+            header += f" - {title}"
+        header += f" [{action}]"
+        lines.append(header)
+        if urgency:
+            lines.append(f"   Priority override: {urgency}")
+        lines.append(f"   Suggested owner: {owner}")
+        lines.append(f"   Why: {rationale}")
+
+    return "\n".join(lines)
+
+
+def _render_ntp_human(payload: dict[str, Any]) -> str:
+    reason = str(payload.get("reason", "")).strip() or "No reason provided."
+    follow_up = str(payload.get("recommended_follow_up", "")).strip()
+    lines = ["Nothing to propose", f"Reason: {reason}"]
+    if follow_up:
+        lines.append(f"Recommended follow-up: {follow_up}")
+    return "\n".join(lines)
 
 
 def cmd_coo_status(args: argparse.Namespace, repo_root: Path) -> int:
@@ -157,6 +229,8 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
         _print_error(f"Error: COO invocation failed: {exc}")
         return 1
 
+    output_format = _coo_output_format(args)
+
     # Try parsing as task_proposal.v1 first
     try:
         parse_proposal_response(raw_output)
@@ -192,22 +266,34 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
                 _print_dispatch_summary(dispatch_results, args)
             else:
                 # Nothing was dispatched — print full proposal YAML so CEO can review.
-                if getattr(args, "json", False):
+                if output_format == "json":
                     try:
                         payload_dict = yaml.safe_load(normalized)
                     except yaml.YAMLError:
                         payload_dict = {"raw": raw_output}
                     print(json.dumps({"kind": kind, "payload": payload_dict}, indent=2))
+                elif output_format == "human":
+                    try:
+                        payload_dict = yaml.safe_load(normalized)
+                    except yaml.YAMLError:
+                        payload_dict = {"proposals": []}
+                    print(_render_task_proposal_human(payload_dict, repo_root))
                 else:
                     print(normalized)
             return 0 if not dispatch_results["failed_dispatches"] else 1
 
-        if getattr(args, "json", False):
+        if output_format == "json":
             try:
                 payload_dict = yaml.safe_load(normalized)
             except yaml.YAMLError:
                 payload_dict = {"raw": raw_output}
             print(json.dumps({"kind": kind, "payload": payload_dict}, indent=2))
+        elif output_format == "human":
+            try:
+                payload_dict = yaml.safe_load(normalized)
+            except yaml.YAMLError:
+                payload_dict = {"proposals": []}
+            print(_render_task_proposal_human(payload_dict, repo_root))
         else:
             print(normalized)
         return 0
@@ -223,8 +309,10 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
         obligation_violation = verify_progress_obligation(raw_output, ntp_evidence)
         if obligation_violation:
             _print_error(f"Warning: {obligation_violation}")
-        if getattr(args, "json", False):
+        if output_format == "json":
             print(json.dumps({"kind": kind, "payload": ntp_dict}, indent=2))
+        elif output_format == "human":
+            print(_render_ntp_human(ntp_dict))
         else:
             print(_extract_yaml_payload(raw_output))
         return 0

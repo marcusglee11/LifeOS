@@ -101,6 +101,8 @@ def test_build_propose_context_returns_actionable_tasks(tmp_path: Path) -> None:
     assert [task["id"] for task in context["actionable_tasks"]] == ["T-002", "T-001"]
     assert context["delegation_envelope"] == delegation
     assert context["brief"] == "COO brief content"
+    assert context["audience"] == "runtime_machine"
+    assert context["interaction_style"] == "machine_packet_only"
     datetime.fromisoformat(context["generated_at"])
 
 
@@ -164,6 +166,8 @@ def test_build_report_context_returns_all_tasks(tmp_path: Path) -> None:
     assert len(context["all_tasks"]) == 2
     assert {task["id"] for task in context["all_tasks"]} == {"T-001", "T-002"}
     assert context["delegation_envelope"] == delegation
+    assert context["audience"] == "human_operator"
+    assert context["interaction_style"] == "natural_language"
     datetime.fromisoformat(context["generated_at"])
 
 
@@ -220,4 +224,6 @@ def test_propose_context_output_format_instruction_key(tmp_path: Path) -> None:
 
     assert "output_format_instruction" in context
     assert "output_schema" not in context
+    assert context["audience"] == "runtime_machine"
     assert "REQUIRED OUTPUT FORMAT" in context["output_format_instruction"]
+    assert "RUNTIME MACHINE-OUTPUT INVOCATION" in context["output_format_instruction"]

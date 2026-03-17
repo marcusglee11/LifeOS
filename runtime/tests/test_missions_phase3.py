@@ -472,15 +472,18 @@ class TestBuildMission:
             })
         assert "approved" in str(exc_info.value)
     
-    @patch("runtime.agents.api.call_agent")
-    def test_run_succeeds(self, mock_call_agent, mock_context: MissionContext, valid_build_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
+    @patch("runtime.agents.api.call_agent_cli")
+    def test_run_succeeds(self, mock_call_agent_cli, mock_context: MissionContext, valid_build_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
         """Verify build mission runs successfully."""
         # Setup mock
         mock_response = MagicMock()
         mock_response.success = True
         mock_response.packet = {"build_output": {"status": "success"}}
         mock_response.content = "Build complete"
-        mock_call_agent.return_value = mock_response
+        mock_response.call_id = "test-call-id"
+        mock_response.model_used = "test-model"
+        mock_response.usage = {}
+        mock_call_agent_cli.return_value = mock_response
 
         mission = BuildMission()
         inputs = {

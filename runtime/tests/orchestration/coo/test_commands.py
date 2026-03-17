@@ -186,7 +186,10 @@ def test_coo_propose_success(tmp_path: Path, capsys) -> None:
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
         return_value=_VALID_PROPOSAL_YAML,
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
 
     assert rc == 0
     out = capsys.readouterr().out
@@ -202,7 +205,10 @@ def test_coo_propose_json_output(tmp_path: Path, capsys) -> None:
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
         return_value=_VALID_PROPOSAL_YAML,
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=True), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=True, yaml=False, format="auto", execute=False),
+            tmp_path,
+        )
 
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
@@ -218,7 +224,10 @@ def test_coo_propose_parse_error(tmp_path: Path, capsys) -> None:
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
         return_value="this is not valid yaml: ::::",
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
 
     assert rc == 1
     err = capsys.readouterr().err
@@ -233,7 +242,10 @@ def test_coo_propose_invocation_error(tmp_path: Path, capsys) -> None:
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
         side_effect=InvocationError("gateway unreachable"),
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
 
     assert rc == 1
     err = capsys.readouterr().err
@@ -248,7 +260,10 @@ def test_coo_propose_ntp(tmp_path: Path, capsys) -> None:
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
         return_value=_VALID_NTP_YAML,
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
 
     assert rc == 0
     out = capsys.readouterr().out
@@ -263,7 +278,10 @@ def test_coo_propose_ntp_json(tmp_path: Path, capsys) -> None:
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
         return_value=_VALID_NTP_YAML,
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=True), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=True, yaml=False, format="auto", execute=False),
+            tmp_path,
+        )
 
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
@@ -391,7 +409,10 @@ def test_coo_propose_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
         return_value=prose_plus_yaml,
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
 
     assert rc == 0
 
@@ -409,7 +430,10 @@ def test_coo_propose_ntp_prose_preamble_recovered(tmp_path: Path, capsys) -> Non
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
         return_value=prose_plus_ntp,
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
 
     assert rc == 0
 
@@ -470,7 +494,10 @@ def test_propose_blocks_on_claim_violation(tmp_path: Path, capsys) -> None:
             )
         ],
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
 
     assert rc == 1
     err = capsys.readouterr().err
@@ -489,9 +516,51 @@ def test_propose_passes_clean_output(tmp_path: Path, capsys) -> None:
         "runtime.orchestration.coo.commands.verify_claims",
         return_value=[],
     ):
-        rc = cmd_coo_propose(argparse.Namespace(json=False), tmp_path)
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
 
     assert rc == 0
+
+
+def test_coo_propose_human_output(tmp_path: Path, capsys) -> None:
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_PROPOSAL_YAML,
+    ):
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="human", execute=False),
+            tmp_path,
+        )
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "COO proposal: 1 item(s)" in out
+    assert "T-101 - Task T-101 [dispatch]" in out
+    assert "Suggested owner: codex" in out
+
+
+def test_coo_propose_human_ntp_output(tmp_path: Path, capsys) -> None:
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_NTP_YAML,
+    ):
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="human", execute=False),
+            tmp_path,
+        )
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "Nothing to propose" in out
+    assert "Recommended follow-up: Wait for completions." in out
 
 
 def test_status_shows_dispatch_state(tmp_path: Path, capsys) -> None:
