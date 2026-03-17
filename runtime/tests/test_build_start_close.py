@@ -36,6 +36,7 @@ def test_start_build_json_output_success(monkeypatch, capsys, tmp_path: Path) ->
         return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=fake_out, stderr="")
 
     monkeypatch.setattr(start_build.subprocess, "run", fake_run)
+    monkeypatch.setattr(start_build, "_git_stdout", lambda *_args, **_kwargs: "")
     monkeypatch.setattr(sys, "argv", ["start_build.py", "auth token", "--json"])
 
     rc = start_build.main()

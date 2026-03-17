@@ -196,23 +196,37 @@ fi
 
 if [ ! -f "$SECURITY_FILE" ]; then
   add_blocking_reason "security_audit_output_missing"
-elif rg -q 'Summary:\s*0 critical\s*·\s*0 warn' "$SECURITY_FILE"; then
-  SECURITY_AUDIT_CLEAN="true"
-elif rg -q 'Summary:\s*0 critical\s*·\s*1 warn' "$SECURITY_FILE" && rg -q 'gateway\.probe_failed' "$SECURITY_FILE"; then
-  SECURITY_AUDIT_CLEAN="true"
-  WARNINGS=1
-elif rg -q 'Summary:\s*0 critical\s*·\s*1 warn' "$SECURITY_FILE" && rg -q 'security\.trust_model\.multi_user_heuristic' "$SECURITY_FILE"; then
-  # Accept this heuristic warning only when explicit multi-user posture and
-  # interface policy checks already pass. Any critical findings (or other warns)
-  # remain hard-fail.
+else
+  allow_multiuser_heuristic=0
+  # Accept the shared-ingress heuristic only when explicit posture and
+  # interface policy checks already pass. Any other warn remains hard-fail.
   if [ "${CMD_RC[multiuser_posture_assert]:-1}" -eq 0 ] && [ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ]; then
-    SECURITY_AUDIT_CLEAN="true"
-    WARNINGS=1
+    allow_multiuser_heuristic=1
+  fi
+  security_audit_eval="$(
+    python3 - <<'PY' "$SECURITY_FILE" "$allow_multiuser_heuristic"
+import sys
+
+from runtime.tools.openclaw_security_audit_gate import assess_security_audit_file
+
+result = assess_security_audit_file(
+    sys.argv[1],
+    allow_multiuser_heuristic=sys.argv[2] == "1",
+)
+print(f"clean={'true' if result.clean else 'false'}")
+print("warn_codes=" + ",".join(result.warn_codes))
+print("unexpected_warn_codes=" + ",".join(result.unexpected_warn_codes))
+PY
+)"
+  SECURITY_AUDIT_CLEAN="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^clean=//p' | tail -n 1)"
+  warn_codes_csv="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^warn_codes=//p' | tail -n 1)"
+  if [ "$SECURITY_AUDIT_CLEAN" = "true" ]; then
+    if [ -n "$warn_codes_csv" ]; then
+      WARNINGS=1
+    fi
   else
     add_blocking_reason "security_audit_summary_not_clean"
   fi
-else
-  add_blocking_reason "security_audit_summary_not_clean"
 fi
 
 # The gateway probe command can be flaky on some hosts even when deep audit is fully clean.
