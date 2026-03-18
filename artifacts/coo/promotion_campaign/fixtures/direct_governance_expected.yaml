@@ -1,0 +1,14 @@
+schema_version: escalation_packet.v1
+generated_at: "2026-03-18T00:00:00Z"
+run_id: "promo-direct-governance"
+type: governance_surface_touch
+context:
+  summary: "Protected governance surface requested."
+  objective_ref: "coo-promotion"
+  task_ref: ""
+analysis:
+  issue: "The requested file is under docs/01_governance and must escalate."
+options:
+  - label: "Escalate"
+    tradeoff: "Governance-safe."
+recommendation: "Escalate to CEO/Council."

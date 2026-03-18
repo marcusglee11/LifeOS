@@ -1,0 +1,11 @@
+schema_version: task_proposal.v1
+generated_at: "2026-03-18T00:00:00Z"
+mode: propose
+objective_ref: "coo-promotion"
+proposals:
+  - task_id: "PROMO-003"
+    rationale: "Stable, low-risk pending task with clear scope."
+    proposed_action: dispatch
+    urgency_override: null
+    suggested_owner: "codex"
+notes: "Repeated propose fixture for stability measurement."

@@ -1,0 +1,15 @@
+{
+  "instance_id": "coo",
+  "profile_name": "coo_unsandboxed_prod_l3",
+  "description": "Candidate: unsandboxed production with L3 autonomy ceiling",
+  "run_user": "",
+  "parity_jobs": [],
+  "sandbox_policy": {
+    "target_posture": "unsandboxed",
+    "allowed_modes": [
+      "all"
+    ],
+    "require_session_sandboxed": false,
+    "require_elevated_disabled": false
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "instance_id": "coo",
+  "profile_name": "coo_shared_ingress_burnin",
+  "description": "Rollback profile: shared_ingress sandbox with elevated disabled",
+  "run_user": "",
+  "parity_jobs": [],
+  "sandbox_policy": {
+    "target_posture": "shared_ingress",
+    "allowed_modes": [
+      "all"
+    ],
+    "require_session_sandboxed": true,
+    "require_elevated_disabled": true
+  }
+}

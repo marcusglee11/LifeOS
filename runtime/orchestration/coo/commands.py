@@ -28,6 +28,7 @@ from runtime.orchestration.coo.invoke import InvocationError, invoke_coo_reasoni
 from runtime.orchestration.coo.parser import (
     ParseError,
     _extract_yaml_payload,  # shared within-package; not public API
+    _extract_yaml_payload_with_stage,
     parse_proposal_response,
 )
 from runtime.orchestration.coo.templates import instantiate_order, load_template
@@ -41,6 +42,41 @@ ESCALATION_SCHEMA_VERSION = "escalation_packet.v1"
 
 
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
+
+
+def _maybe_capture_dump(
+    *,
+    mode: str,
+    raw_output: str,
+    run_id: str,
+    kind: str,
+    parse_status: str,
+    parse_recovery_stage: str,
+    claim_violations: list,
+) -> None:
+    """Write a capture dump if LIFEOS_COO_CAPTURE_DIR is set."""
+    capture_dir = os.environ.get("LIFEOS_COO_CAPTURE_DIR", "").strip()
+    if not capture_dir:
+        return
+
+    label = os.environ.get("LIFEOS_COO_CAPTURE_LABEL", "unlabeled").strip() or "unlabeled"
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    dump = {
+        "capture_ts": ts,
+        "label": label,
+        "mode": mode,
+        "run_id": run_id,
+        "kind": kind,
+        "parse_status": parse_status,
+        "parse_recovery_stage": parse_recovery_stage,
+        "claim_violation_count": len(claim_violations),
+        "raw_output_sha256": compute_sha256({"raw": raw_output}),
+        "raw_output": raw_output,
+    }
+    out_dir = Path(capture_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{ts}_{mode}_{label}.json"
+    atomic_write_text(out_dir / filename, json.dumps(dump, indent=2, sort_keys=True))
 
 
 def _now_iso() -> str:
@@ -228,6 +264,7 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
     except InvocationError as exc:
         _print_error(f"Error: COO invocation failed: {exc}")
         return 1
+    _, _capture_stage = _extract_yaml_payload_with_stage(raw_output)
 
     output_format = _coo_output_format(args)
 
@@ -296,6 +333,15 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
             print(_render_task_proposal_human(payload_dict, repo_root))
         else:
             print(normalized)
+        _maybe_capture_dump(
+            mode="propose",
+            raw_output=raw_output,
+            run_id=run_id,
+            kind=kind,
+            parse_status="pass",
+            parse_recovery_stage=_capture_stage,
+            claim_violations=violations,
+        )
         return 0
     except ParseError:
         pass
@@ -315,6 +361,15 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
             print(_render_ntp_human(ntp_dict))
         else:
             print(_extract_yaml_payload(raw_output))
+        _maybe_capture_dump(
+            mode="propose",
+            raw_output=raw_output,
+            run_id=run_id,
+            kind=kind,
+            parse_status="pass",
+            parse_recovery_stage=_capture_stage,
+            claim_violations=[],
+        )
         return 0
     except ParseError as exc:
         _print_error(f"Error: COO output failed validation: {exc}")
@@ -435,6 +490,7 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
     except InvocationError as exc:
         _print_error(f"Error: COO invocation failed: {exc}")
         return 1
+    _, _capture_stage = _extract_yaml_payload_with_stage(raw_output)
 
     try:
         packet = _parse_escalation_packet(raw_output)
@@ -477,6 +533,15 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
         )
         escalation_id = queue.add_escalation(entry)
         print(f"queued: {escalation_id}")
+        _maybe_capture_dump(
+            mode="direct",
+            raw_output=raw_output,
+            run_id=direct_run_id,
+            kind="escalation_packet",
+            parse_status="pass",
+            parse_recovery_stage=_capture_stage,
+            claim_violations=violations,
+        )
         return 0
     except Exception as exc:
         _print_error(f"Error: {type(exc).__name__}: {exc}")

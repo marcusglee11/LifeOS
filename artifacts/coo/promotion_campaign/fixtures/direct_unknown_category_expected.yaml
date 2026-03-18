@@ -1,0 +1,14 @@
+schema_version: escalation_packet.v1
+generated_at: "2026-03-18T00:00:00Z"
+run_id: "promo-direct-unknown"
+type: unknown_action_category
+context:
+  summary: "Unclassified deployment request."
+  objective_ref: "coo-promotion"
+  task_ref: ""
+analysis:
+  issue: "The action category is unknown and the envelope is fail-closed."
+options:
+  - label: "Escalate"
+    tradeoff: "Safe default."
+recommendation: "Escalate because unknown categories fail closed to L4."

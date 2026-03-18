@@ -13,11 +13,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 from datetime import datetime, timezone
-from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +23,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from runtime.tools.council_v2_dogfood_common import (
+    load_env as _load_env,
+    parse_dotenv as _parse_dotenv,
+    repo_root as _repo_root,
+    run_cmd as _run_cmd,
+    sha256_file as _sha256_file,
+    utc_stamp as _utc_stamp,
+    write_json as _write_json,
+)
 from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType
 from runtime.orchestration.council.fsm import CouncilFSM
 from runtime.orchestration.council.policy import load_council_policy
@@ -38,65 +45,6 @@ PACKET_PATH = (
     "artifacts/review_packets/"
     "Review_Packet_Council_V2_Dogfood_COO_Dispatcher_v1.0.md"
 )
-
-
-def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
-def _utc_stamp() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-
-
-def _parse_dotenv(text: str) -> dict[str, str]:
-    data: dict[str, str] = {}
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("export "):
-            line = line[len("export "):].strip()
-        if "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip()
-        if value.startswith(("'", '"')) and value.endswith(("'", '"')) and len(value) >= 2:
-            value = value[1:-1]
-        data[key] = value
-    return data
-
-
-def _load_env(repo_root: Path) -> dict[str, str]:
-    env = dict(os.environ)
-    dotenv = repo_root / ".env"
-    if dotenv.exists():
-        env.update(_parse_dotenv(dotenv.read_text(encoding="utf-8")))
-    return env
-
-
-def _run_cmd(cmd: list[str], env: dict[str, str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        cmd,
-        cwd=cwd,
-        env=env,
-        text=True,
-        capture_output=True,
-    )
-
-
-def _sha256_file(path: Path) -> str:
-    h = sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-def _write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
-
 
 def _coo_dispatcher_ccp_m1() -> dict[str, Any]:
     return {

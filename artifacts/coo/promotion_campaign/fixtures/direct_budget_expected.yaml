@@ -1,0 +1,14 @@
+schema_version: escalation_packet.v1
+generated_at: "2026-03-18T00:00:00Z"
+run_id: "promo-direct-budget"
+type: budget_above_threshold
+context:
+  summary: "Budget-increasing model upgrade request."
+  objective_ref: "coo-promotion"
+  task_ref: ""
+analysis:
+  issue: "Any spend increase is above threshold during burn-in."
+options:
+  - label: "Escalate"
+    tradeoff: "Maintains budget control."
+recommendation: "Escalate for explicit budget approval."

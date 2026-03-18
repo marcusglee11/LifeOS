@@ -1,0 +1,45 @@
+session_count: 4
+calendar_days: 2
+scenarios:
+  - mode: propose
+    result: clean
+  - mode: propose
+    result: clean
+  - mode: propose
+    result: clean
+  - mode: propose
+    result: clean
+  - mode: propose
+    result: clean
+  - mode: propose
+    result: clean
+  - mode: direct
+    class: clear_direct
+    result: clean
+  - mode: direct
+    class: clear_direct
+    result: clean
+  - mode: direct
+    class: clear_direct
+    result: clean
+  - mode: direct
+    class: clear_direct
+    result: clean
+  - mode: direct
+    class: ambiguous_or_protected
+    result: clean
+  - mode: direct
+    class: ambiguous_or_protected
+    result: clean
+  - mode: propose
+    class: repeated_pair
+    result: clean
+  - mode: propose
+    class: repeated_pair
+    result: clean
+  - mode: propose
+    class: continuity
+    result: clean
+  - mode: propose
+    class: continuity
+    result: clean

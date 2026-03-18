@@ -1,0 +1,66 @@
+header:
+  aur_id: "AUR-COO-UNSANDBOX-PROMO-L3-001"
+  aur_type: "governance"
+  change_class: "amend"
+  blast_radius: "system"
+  reversibility: "easy"
+  uncertainty: "medium"
+  touches:
+    - "runtime_core"
+    - "tests"
+    - "governance_protocol"
+  safety_critical: true
+  run_type: "review"
+  model_plan_v1:
+    primary: "openrouter/moonshotai/kimi-k2.5"
+    independent: "openrouter/z-ai/glm-5"
+    seat_overrides:
+      Chair: "openrouter/minimax/minimax-m2.5"
+      Challenger: "openrouter/minimax/minimax-m2.5"
+      Risk: "openrouter/z-ai/glm-5"
+      Governance: "openrouter/z-ai/glm-5"
+
+sections:
+  objective: |
+    Review the COO unsandboxed promotion package for production use at L3.
+    The subject is the promotion of the COO runtime posture from shared_ingress
+    sandbox policy to unsandboxed production, with governance approval required
+    before any protected-path ruling is stewarded into docs/01_governance/.
+  scope:
+    surface: "coo_unsandboxed_promotion"
+    branch: "build/coo-unsandboxed-promotion-l3"
+    commit: "3a31285c"
+    files:
+      - "runtime/orchestration/coo/commands.py"
+      - "runtime/orchestration/coo/promotion_guard.py"
+      - "runtime/tools/openclaw_verify_surface.sh"
+      - "runtime/orchestration/ceo_queue.py"
+      - "scripts/campaign/"
+      - "artifacts/coo/promotion_campaign/"
+      - "config/openclaw/instance_profiles/"
+      - "config/openclaw/profile_approvals/"
+  constraints:
+    - "No write to docs/01_governance/ before Council acceptance plus manual approval."
+    - "Promotion must remain capped to autonomy levels L0, L3, and L4 only."
+    - "Rollback target must remain coo_shared_ingress_burnin.json."
+    - "Approval manifest must be sealed only after approved ruling ref exists."
+    - "Review must treat this as a governance-facing, safety-critical runtime promotion."
+  artifacts:
+    - id: "runtime/orchestration/coo/commands.py"
+      type: "modified"
+      description: "COO capture dump support for promotion campaign."
+    - id: "runtime/orchestration/coo/promotion_guard.py"
+      type: "new_module"
+      description: "Approval-manifest and delegation-ceiling validation."
+    - id: "runtime/tools/openclaw_verify_surface.sh"
+      type: "modified"
+      description: "Verify-surface approval-manifest check."
+    - id: "scripts/campaign/"
+      type: "new_package"
+      description: "Promotion campaign runners, rollback, soak, and handoff."
+    - id: "artifacts/coo/promotion_campaign/"
+      type: "new_artifacts"
+      description: "Fixtures and manifests for the promotion campaign."
+    - id: "config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json"
+      type: "new_config"
+      description: "Candidate unsandboxed production profile."

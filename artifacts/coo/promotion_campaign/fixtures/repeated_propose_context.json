@@ -1,0 +1,33 @@
+{
+  "mode": "propose",
+  "scenario": "repeated_propose",
+  "actionable_tasks": [
+    {
+      "id": "PROMO-003",
+      "title": "Repeatable actionable task",
+      "description": "Stable fixture for repeated propose runs.",
+      "dod": "Fixture only.",
+      "priority": "P1",
+      "risk": "low",
+      "scope_paths": [
+        "runtime/"
+      ],
+      "status": "pending",
+      "requires_approval": false,
+      "owner": "codex",
+      "evidence": "",
+      "task_type": "build",
+      "tags": [
+        "promotion"
+      ],
+      "objective_ref": "coo-promotion",
+      "created_at": "2026-03-18T00:00:00Z",
+      "completed_at": null
+    }
+  ],
+  "delegation_envelope": {
+    "schema_version": "delegation_envelope.v1",
+    "trust_tier": "burn-in",
+    "active_levels": ["L0", "L3", "L4"]
+  }
+}

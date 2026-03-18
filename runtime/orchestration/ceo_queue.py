@@ -35,9 +35,11 @@ class EscalationType(str, Enum):
     """Type of escalation requiring CEO approval."""
     GOVERNANCE_SURFACE_TOUCH = "governance_surface_touch"
     BUDGET_ESCALATION = "budget_escalation"
+    BUDGET_ABOVE_THRESHOLD = "budget_above_threshold"
     PROTECTED_PATH_MODIFICATION = "protected_path_modification"
     AMBIGUOUS_TASK = "ambiguous_task"
     POLICY_VIOLATION = "policy_violation"
+    UNKNOWN_ACTION_CATEGORY = "unknown_action_category"
 
 
 @dataclass

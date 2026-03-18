@@ -1,0 +1,34 @@
+{
+  "mode": "propose",
+  "scenario": "blocked_truth",
+  "actionable_tasks": [],
+  "blocked_tasks": [
+    {
+      "id": "PROMO-001",
+      "title": "Await vendor credential",
+      "description": "Cannot proceed until external vendor provisions access.",
+      "dod": "Credential received and verified.",
+      "priority": "P1",
+      "risk": "med",
+      "scope_paths": [
+        "runtime/"
+      ],
+      "status": "blocked",
+      "requires_approval": false,
+      "owner": "codex",
+      "evidence": "Blocked on external dependency.",
+      "task_type": "build",
+      "tags": [
+        "promotion"
+      ],
+      "objective_ref": "coo-promotion",
+      "created_at": "2026-03-18T00:00:00Z",
+      "completed_at": null
+    }
+  ],
+  "delegation_envelope": {
+    "schema_version": "delegation_envelope.v1",
+    "trust_tier": "burn-in",
+    "active_levels": ["L0", "L3", "L4"]
+  }
+}

@@ -1,0 +1,6 @@
+schema_version: nothing_to_propose.v1
+generated_at: "2026-03-18T00:00:00Z"
+mode: propose
+objective_ref: "coo-promotion"
+reason: "All candidate tasks are blocked by external dependencies."
+recommended_follow_up: "Wait for dependencies to clear before proposing work."

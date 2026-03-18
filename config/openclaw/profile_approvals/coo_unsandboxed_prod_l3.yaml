@@ -1,0 +1,17 @@
+schema_version: "profile_approval.v1"
+profile_name: "coo_unsandboxed_prod_l3"
+profile_path: "config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json"
+profile_sha256: ""
+delegation_envelope_path: "config/governance/delegation_envelope.yaml"
+delegation_envelope_sha256: ""
+autonomy_ceiling:
+  active_levels:
+    - "L0"
+    - "L3"
+    - "L4"
+  trust_tier: "burn-in"
+approval:
+  council_ruling_ref: ""
+  approved_at: ""
+  approved_by: "CEO"
+status: "pending"

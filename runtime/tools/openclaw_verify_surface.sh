@@ -144,6 +144,13 @@ to_file model_ladder_policy_assert python3 runtime/tools/openclaw_model_policy_a
 to_file multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --config "$CFG_PATH" --json
 to_file interfaces_policy_assert python3 runtime/tools/openclaw_interfaces_policy_assert.py --config "$CFG_PATH" --json
 to_file sandbox_policy_assert python3 runtime/tools/openclaw_sandbox_policy_assert.py --config "$CFG_PATH" --instance-profile "$INSTANCE_PROFILE_PATH" --sandbox-explain-file "$OUT_DIR/sandbox_explain_json.txt"
+PROFILE_NAME="$(python3 -c "import json; p=json.load(open('$INSTANCE_PROFILE_PATH')); print(p.get('profile_name',''))" 2>/dev/null || true)"
+if [ -n "$PROFILE_NAME" ]; then
+  to_file approval_manifest_check python3 -m runtime.orchestration.coo.promotion_guard --repo-root "$(pwd)" --profile-name "$PROFILE_NAME" --json
+  if [ "${CMD_RC[approval_manifest_check]:-1}" -ne 0 ]; then
+    add_blocking_reason "approval_manifest_check_failed"
+  fi
+fi
 
 auth_health_raw="$OUT_DIR/auth_health_raw.json"
 auth_health_out="$OUT_DIR/auth_health.txt"
@@ -402,6 +409,7 @@ export CHECK_POLICY_ASSERT="$([ "${CMD_RC[policy_assert]:-1}" -eq 0 ] && echo tr
 export CHECK_MODEL_LADDER_POLICY="$([ "${CMD_RC[model_ladder_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_MULTIUSER_POSTURE="$([ "${CMD_RC[multiuser_posture_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_INTERFACES_POLICY="$([ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_APPROVAL_MANIFEST="$([ -z "$PROFILE_NAME" ] || [ "${CMD_RC[approval_manifest_check]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_RECEIPT_GENERATION="$([ "$rc_receipt" -eq 0 ] && echo true || echo false)"
 export CHECK_LEAK_SCAN="$([ "$rc_leak" -eq 0 ] && echo true || echo false)"
 export SANDBOX_POLICY_TARGET
@@ -449,6 +457,7 @@ checks: List[Dict[str, Any]] = [
     {"name": "model_ladder_policy_assert", "pass": env_bool("CHECK_MODEL_LADDER_POLICY"), "mode": "required", "detail": first_line(out_dir / "model_ladder_policy_assert.txt")},
     {"name": "multiuser_posture_assert", "pass": env_bool("CHECK_MULTIUSER_POSTURE"), "mode": "required", "detail": first_line(out_dir / "multiuser_posture_assert.txt")},
     {"name": "interfaces_policy_assert", "pass": env_bool("CHECK_INTERFACES_POLICY"), "mode": "required", "detail": first_line(out_dir / "interfaces_policy_assert.txt")},
+    {"name": "approval_manifest", "pass": env_bool("CHECK_APPROVAL_MANIFEST"), "mode": "required", "detail": first_line(out_dir / "approval_manifest_check.txt")},
     {"name": "receipt_generation", "pass": env_bool("CHECK_RECEIPT_GENERATION"), "mode": "required", "detail": first_line(out_dir / "receipt_generation.txt")},
     {"name": "leak_scan", "pass": env_bool("CHECK_LEAK_SCAN"), "mode": "required", "detail": first_line(out_dir / "leak_scan_output.txt")},
 ]

@@ -1,0 +1,6 @@
+schema_version: nothing_to_propose.v1
+generated_at: "2026-03-18T00:00:00Z"
+mode: propose
+objective_ref: "coo-promotion"
+reason: "Backlog state is contradictory and requires operator cleanup before any truthful proposal."
+recommended_follow_up: "Resolve the active-order contradiction, then rerun propose."
