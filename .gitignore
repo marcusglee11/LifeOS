@@ -90,6 +90,9 @@ artifacts/replay_cache/
 
 # Archive bundles (ephemeral)
 artifacts/99_archive/
+
+# Entropy scan reports (generated locally, not auto-committed)
+artifacts/entropy/
 # artifacts/review_packets/Review_Packet_*.md  <-- REMOVED
 
 # Root-level bundles (should be moved to artifacts/)

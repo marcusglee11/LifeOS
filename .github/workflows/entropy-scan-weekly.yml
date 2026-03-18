@@ -1,0 +1,92 @@
+name: Entropy Scan (Weekly)
+
+on:
+  schedule:
+    - cron: "0 4 * * 0"  # Sunday 04:00 UTC
+  workflow_dispatch:       # Allow manual trigger
+
+jobs:
+  entropy-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for stale_repo_map detector
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Run entropy scanner
+        run: |
+          DATE=$(date +%Y%m%d)
+          REPORT_PATH="artifacts/entropy/scan_${DATE}.json"
+          mkdir -p artifacts/entropy
+          python scripts/entropy/scan_v1.py --output "${REPORT_PATH}"
+          echo "REPORT_PATH=${REPORT_PATH}" >> "$GITHUB_ENV"
+
+      - name: Write job summary
+        if: always()
+        run: |
+          python - <<'EOF'
+          import json, os
+          report_path = os.environ.get("REPORT_PATH", "")
+          if not report_path or not os.path.exists(report_path):
+              print("No report found.", flush=True)
+              exit(0)
+          with open(report_path) as f:
+              report = json.load(f)
+          summary = report["summary"]
+          detectors = report["detectors"]
+          lines = [
+              "## Entropy Scan Results",
+              f"**Repo ref:** `{report['repo_ref'][:8]}`  ",
+              f"**Generated:** {report['generated_at']}  ",
+              "",
+              f"| Status | Count |",
+              f"|--------|-------|",
+              f"| ok | {summary['ok']} |",
+              f"| warn | {summary['warn']} |",
+              f"| error | {summary['error']} |",
+              "",
+              "### Detector Details",
+          ]
+          for name, result in detectors.items():
+              status = result.get("status", "?")
+              detail = result.get("detail", "")
+              findings = result.get("findings", [])
+              lines.append(f"**{name}**: `{status}`")
+              if detail:
+                  lines.append(f"  - {detail}")
+              for finding in findings:
+                  lines.append(f"  - {finding}")
+          step_summary = os.environ.get("GITHUB_STEP_SUMMARY", "")
+          if step_summary:
+              with open(step_summary, "a") as f:
+                  f.write("\n".join(lines) + "\n")
+          else:
+              print("\n".join(lines))
+          EOF
+
+      - name: Upload scan report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: entropy-scan-${{ github.run_id }}
+          path: artifacts/entropy/scan_*.json
+          retention-days: 90
+
+      - name: Verify no files committed
+        run: |
+          git status --porcelain
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "ERROR: Workflow left uncommitted changes in the working tree"
+            git status
+            exit 1
+          fi
+          echo "Working tree is clean — no unintended commits."

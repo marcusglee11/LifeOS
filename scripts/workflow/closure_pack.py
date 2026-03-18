@@ -183,6 +183,15 @@ def main() -> int:
         action="store_true",
         help="Skip automatic STATE/BACKLOG updates after merge.",
     )
+    parser.add_argument(
+        "--allow-concurrent-wip",
+        action="store_true",
+        help=(
+            "Skip the primary-repo untracked-files gate and use --no-verify on the merge commit. "
+            "For Article XIX chicken-and-egg: concurrent agent WIP is intentionally present. "
+            "Documents the exemption in the commit message."
+        ),
+    )
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
@@ -299,7 +308,7 @@ def main() -> int:
         )
         return 0
 
-    merge = merge_to_main(repo_root, branch)
+    merge = merge_to_main(repo_root, branch, allow_concurrent_wip=args.allow_concurrent_wip)
     if not merge["success"]:
         test_results.append("FAIL: Merge to main failed.")
         for err in merge["errors"]:

@@ -1,0 +1,7 @@
+schema_version: canonical_state.v1
+extracted_from: docs/11_admin/LIFEOS_STATE.md
+extracted_at: "2026-03-18T04:48:51.307347+00:00"
+current_focus: "OpenClaw distill lane operational rollout — shadow-first enablement and active promotion gating"
+active_wip: "build/openclaw-distill-operational-r"
+last_updated: "2026-03-09 (rev29)"
+blockers: []

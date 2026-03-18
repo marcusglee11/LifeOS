@@ -1,0 +1,19 @@
+schema_version: failure_registry.v1
+
+# Agent Failure → Fix Loop Registry
+#
+# Each entry records a class of agent failure, its root cause, the fix applied,
+# and a regression test verifying the fix. Populated prospectively as failures occur.
+#
+# Fields:
+#   id              — Unique identifier (AF-NNN)
+#   failure_class   — Descriptive label for the failure class
+#   root_cause      — Why the agent failed
+#   fix_type        — One of: doc | tool | constraint | test
+#   fix_path        — Path to the file implementing the fix
+#   regression_test — Path to the test proving the fix (required when status=resolved)
+#   evidence_ref    — Commit SHA, PR URL, or file path proving the fix exists
+#   status          — One of: resolved | open | wont_fix
+#   date            — Date the entry was recorded (YYYY-MM-DD)
+
+entries: []

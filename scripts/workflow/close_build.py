@@ -19,6 +19,11 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Run gates only")
     parser.add_argument("--no-cleanup", action="store_true", help="Skip post-merge cleanup")
     parser.add_argument("--no-state-update", action="store_true", help="Skip STATE/BACKLOG updates")
+    parser.add_argument(
+        "--allow-concurrent-wip",
+        action="store_true",
+        help="Skip untracked-file gate when concurrent agent WIP is present (Article XIX exemption).",
+    )
     parser.add_argument("--json", action="store_true", help="Emit structured output")
     args = parser.parse_args()
 
@@ -31,6 +36,8 @@ def main() -> int:
         cmd.append("--no-cleanup")
     if args.no_state_update:
         cmd.append("--no-state-update")
+    if args.allow_concurrent_wip:
+        cmd.append("--allow-concurrent-wip")
 
     proc = subprocess.run(
         cmd,

@@ -1,0 +1,61 @@
+schema_version: import_policy.v1
+bootstrap_source: .context/REPO_MAP.md
+
+# Flat per-module allowed-import declaration for all 21 runtime packages.
+# Cross-package imports not listed here are policy violations.
+# Same-package imports are always allowed and not checked.
+# Imports of non-policy targets (e.g. runtime.errors, stdlib, third-party) are skipped.
+modules:
+  - name: runtime.agents
+    allowed_imports: [runtime.receipts, runtime.util]
+  - name: runtime.amu0
+    allowed_imports: [runtime.governance, runtime.util]
+  - name: runtime.api
+    allowed_imports: [runtime.amu0, runtime.governance, runtime.validator]
+  - name: runtime.backlog
+    allowed_imports: [runtime.orchestration]
+  - name: runtime.config
+    allowed_imports: []
+  - name: runtime.envelope
+    allowed_imports: []
+  - name: runtime.gateway
+    allowed_imports: [runtime.util]
+  - name: runtime.governance
+    allowed_imports: [runtime.tools, runtime.util]
+  - name: runtime.index
+    allowed_imports: [runtime.util]
+  - name: runtime.mission
+    allowed_imports: [runtime.api]
+  - name: runtime.orchestration
+    allowed_imports:
+      - runtime.agents
+      - runtime.api
+      - runtime.receipts
+      - runtime.tools
+      - runtime.util
+      - runtime.validation
+  - name: runtime.reactive
+    allowed_imports: []
+  - name: runtime.receipts
+    allowed_imports: [runtime.util]
+  - name: runtime.safety
+    allowed_imports: [runtime.util]
+  - name: runtime.state
+    allowed_imports: []
+  - name: runtime.tools
+    allowed_imports: [runtime.agents, runtime.api, runtime.orchestration, runtime.util]
+  - name: runtime.util
+    allowed_imports: [runtime.config]
+  - name: runtime.validation
+    allowed_imports: [runtime.util]
+  - name: runtime.validator
+    allowed_imports: []
+  - name: runtime.verifiers
+    allowed_imports: []
+  - name: runtime.workflows
+    allowed_imports: []
+
+forbidden_patterns:
+  - from: runtime.config
+    to: runtime.orchestration
+    reason: "config is leaf-tier; orchestration is high-tier"

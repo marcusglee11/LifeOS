@@ -2,10 +2,12 @@
 """SessionStart hook: inject project state context into Claude Code session.
 
 Gathers git branch, status summary, and key fields from LIFEOS_STATE.md.
+Also injects latest entropy scan summary when available.
 Outputs {"additionalContext": "..."} JSON to stdout.
 Always exits 0 (never blocks session start).
 """
 
+import glob
 import json
 import os
 import re
@@ -15,7 +17,10 @@ import sys
 
 PROJECT_DIR = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
 STATE_FILE = os.path.join(PROJECT_DIR, "docs", "11_admin", "LIFEOS_STATE.md")
+CANONICAL_STATE_FILE = os.path.join(PROJECT_DIR, "artifacts", "status", "canonical_state.yaml")
+ENTROPY_GLOB = os.path.join(PROJECT_DIR, "artifacts", "entropy", "scan_*.json")
 MAX_CONTEXT_CHARS = 900
+ENTROPY_MAX_CHARS = 80
 WORKTREE_WARNING_THRESHOLD = 8
 
 
@@ -45,14 +50,8 @@ def git_context() -> str:
     return f"Branch: {branch} | Status: {status}"
 
 
-def state_context() -> str:
-    """Extract key fields from LIFEOS_STATE.md."""
-    try:
-        with open(STATE_FILE, "r", encoding="utf-8") as f:
-            content = f.read()
-    except Exception:
-        return ""
-
+def _parse_state_from_markdown(content: str) -> list[str]:
+    """Extract focus/wip/next fields from LIFEOS_STATE.md markdown."""
     fields = []
     for pattern in [
         r"\*\*Current Focus:\*\*\s*(.+)",
@@ -61,14 +60,77 @@ def state_context() -> str:
         m = re.search(pattern, content)
         if m:
             fields.append(m.group(1).strip())
-
-    # Extract the "Next immediate" one-liner
     next_match = re.search(r"\*\*Next immediate:\*\*\s*(.+)", content)
-
     if next_match:
         fields.append("Next: " + next_match.group(1).strip())
+    return fields
 
+
+def _parse_canonical_yaml(path: str) -> dict:
+    """Parse canonical_state.yaml without importing yaml (simple key: value parser)."""
+    result = {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.rstrip()
+                if ": " in line and not line.startswith(" "):
+                    key, _, val = line.partition(": ")
+                    result[key.strip()] = val.strip().strip('"')
+    except Exception:
+        pass
+    return result
+
+
+def state_context() -> str:
+    """Extract key fields from state. Uses canonical_state.yaml when fresh, else regex fallback."""
+    fields = []
+
+    # Phase 5: Try canonical YAML first (freshness check via mtime)
+    try:
+        if os.path.exists(CANONICAL_STATE_FILE) and os.path.exists(STATE_FILE):
+            yaml_mtime = os.path.getmtime(CANONICAL_STATE_FILE)
+            state_mtime = os.path.getmtime(STATE_FILE)
+            if yaml_mtime >= state_mtime:
+                canonical = _parse_canonical_yaml(CANONICAL_STATE_FILE)
+                focus = canonical.get("current_focus", "")
+                wip = canonical.get("active_wip", "")
+                if focus:
+                    fields.append(focus)
+                if wip:
+                    fields.append(wip)
+                if fields:
+                    return " | ".join(fields)
+    except Exception:
+        pass
+
+    # Fallback: Markdown regex (original behavior)
+    try:
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception:
+        return ""
+
+    fields = _parse_state_from_markdown(content)
     return " | ".join(fields)
+
+
+def entropy_context() -> str:
+    """Return compact entropy scan summary if available (max ENTROPY_MAX_CHARS)."""
+    try:
+        scan_files = sorted(glob.glob(ENTROPY_GLOB))
+        if not scan_files:
+            return ""
+        latest = scan_files[-1]
+        with open(latest, "r", encoding="utf-8") as f:
+            report = json.load(f)
+        summary = report.get("summary", {})
+        ok = summary.get("ok", 0)
+        warn = summary.get("warn", 0)
+        error = summary.get("error", 0)
+        snippet = f"Entropy: ok={ok} warn={warn} err={error}"
+        return snippet[:ENTROPY_MAX_CHARS]
+    except Exception:
+        return ""
 
 
 def isolation_warning() -> str:
@@ -139,6 +201,10 @@ def main() -> int:
     state = state_context()
     if state:
         parts.append(state)
+
+    entropy = entropy_context()
+    if entropy:
+        parts.append(entropy)
 
     warning = isolation_warning()
     if warning:
