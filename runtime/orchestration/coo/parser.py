@@ -39,10 +39,14 @@ class ParseError(ValueError):
 
 
 def _extract_yaml_payload(text: str) -> str:
+    return _extract_yaml_payload_with_stage(text)[0]
+
+
+def _extract_yaml_payload_with_stage(text: str) -> tuple[str, str]:
     # 1. Markdown fence
     match = _YAML_FENCE_RE.search(text)
     if match:
-        return match.group(1).strip()
+        return match.group(1).strip(), "fence_recovery"
 
     stripped = text.strip()
 
@@ -56,10 +60,10 @@ def _extract_yaml_payload(text: str) -> str:
         except yaml.YAMLError:
             candidate = None
         if not isinstance(candidate, dict):
-            return stripped[schema_match.start():].strip()
+            return stripped[schema_match.start():].strip(), "schema_block_recovery"
 
     # 3. Return as-is
-    return stripped
+    return stripped, "direct"
 
 
 def parse_proposal_response(text: str) -> list[TaskProposal]:

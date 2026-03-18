@@ -12,6 +12,7 @@ from runtime.orchestration.coo.parser import (
     ParseError,
     TaskProposal,
     _extract_yaml_payload,
+    _extract_yaml_payload_with_stage,
     parse_execution_order,
     parse_proposal_response,
 )
@@ -273,6 +274,40 @@ def test_extract_yaml_payload_valid_yaml_schema_not_first_not_truncated() -> Non
     result = _extract_yaml_payload(text)
     assert "proposals" in result
     assert "schema_version" in result
+
+
+def test_extract_yaml_payload_with_stage_fence_recovery() -> None:
+    text = (
+        "Operator note.\n\n"
+        "```yaml\n"
+        "schema_version: task_proposal.v1\n"
+        "proposals: []\n"
+        "```\n"
+    )
+    result, stage = _extract_yaml_payload_with_stage(text)
+    assert result.startswith("schema_version: task_proposal.v1")
+    assert stage == "fence_recovery"
+
+
+def test_extract_yaml_payload_with_stage_schema_block_recovery() -> None:
+    text = (
+        "Intro prose.\n\n"
+        "schema_version: task_proposal.v1\n"
+        "proposals: []\n"
+    )
+    result, stage = _extract_yaml_payload_with_stage(text)
+    assert result.startswith("schema_version: task_proposal.v1")
+    assert stage == "schema_block_recovery"
+
+
+def test_extract_yaml_payload_with_stage_direct() -> None:
+    text = (
+        "schema_version: task_proposal.v1\n"
+        "proposals: []\n"
+    )
+    result, stage = _extract_yaml_payload_with_stage(text)
+    assert result.startswith("schema_version: task_proposal.v1")
+    assert stage == "direct"
 
 
 def test_parse_proposal_prose_preamble() -> None:

@@ -127,7 +127,7 @@ def collect_evidence(repo_root: Path) -> EvidenceSnapshot:
     try:
         from runtime.orchestration.ceo_queue import CEOQueue
         queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
-        entries = queue.list_pending()
+        entries = queue.get_pending()
         escalation_ids = [str(e.id) for e in entries]
     except Exception:
         pass
