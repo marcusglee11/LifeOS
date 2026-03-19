@@ -20,7 +20,7 @@ def verify_delegation_ceiling(
     violations: list[str] = []
 
     active_levels = envelope.get("active_levels")
-    if active_levels != expected_levels:
+    if sorted(active_levels or []) != sorted(expected_levels):
         violations.append(
             f"delegation_active_levels_mismatch: expected {expected_levels}, got {active_levels!r}"
         )
@@ -38,6 +38,7 @@ def verify_approval_manifest(
     manifest: dict[str, Any],
     profile_path: Path,
     envelope: dict[str, Any],
+    repo_root: Path | None = None,
 ) -> list[str]:
     violations: list[str] = []
 
@@ -60,6 +61,17 @@ def verify_approval_manifest(
     ).strip()
     if not ruling_ref:
         violations.append("approval_manifest_missing_ruling_ref")
+    elif repo_root is not None:
+        ruling_path = (Path(repo_root) / ruling_ref).resolve()
+        gov_root = (Path(repo_root) / "docs" / "01_governance").resolve()
+        if not str(ruling_path).startswith(str(gov_root) + "/"):
+            violations.append(
+                f"approval_manifest_ruling_ref_outside_governance: {ruling_ref!r}"
+            )
+        elif not ruling_path.is_file():
+            violations.append(
+                f"approval_manifest_ruling_ref_missing: {ruling_ref!r}"
+            )
 
     approval_levels = ((manifest.get("autonomy_ceiling") or {}).get("active_levels")) or []
     approval_tier = str(
@@ -112,7 +124,12 @@ def full_promotion_guard(
         violations.append(f"profile_missing: {profile_path}")
 
     if envelope and manifest and profile_path.exists():
-        violations.extend(verify_approval_manifest(manifest, profile_path, envelope))
+        violations.extend(verify_approval_manifest(manifest, profile_path, envelope, repo_root=repo_root))
+        manifest_envelope_sha = str(manifest.get("delegation_envelope_sha256", "")).strip()
+        if manifest_envelope_sha:
+            actual_envelope_sha = sha256_file(envelope_path)
+            if manifest_envelope_sha != actual_envelope_sha:
+                violations.append("approval_manifest_delegation_envelope_sha_mismatch")
 
     return {"pass": not violations, "violations": violations}
 

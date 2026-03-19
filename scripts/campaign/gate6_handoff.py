@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from runtime.util.atomic_write import atomic_write_text
 from runtime.util.canonical import sha256_file
 
@@ -23,7 +25,11 @@ def build_handoff(repo_root: Path) -> dict[str, Any]:
     }
     atomic_write_text(handoff_dir / "profile_hashes.json", json.dumps(profile_hashes, indent=2, sort_keys=True) + "\n")
 
-    ruling_ref = "docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md"
+    manifest_path = repo_root / "config" / "openclaw" / "profile_approvals" / "coo_unsandboxed_prod_l3.yaml"
+    manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+    ruling_ref = str(((manifest.get("approval") or {}).get("council_ruling_ref")) or "").strip()
+    if not ruling_ref:
+        raise RuntimeError("gate6_handoff: approval manifest is not sealed; ruling_ref is missing")
     atomic_write_text(handoff_dir / "ruling_ref.txt", ruling_ref + "\n")
 
     summary = {"gates": ["gate1", "gate4", "gate5"], "status": "prepared"}

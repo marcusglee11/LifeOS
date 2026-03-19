@@ -87,10 +87,13 @@ def test_full_promotion_guard_pass(tmp_path: Path) -> None:
     (tmp_path / "config" / "governance").mkdir(parents=True)
     (tmp_path / "config" / "openclaw" / "instance_profiles").mkdir(parents=True)
     (tmp_path / "config" / "openclaw" / "profile_approvals").mkdir(parents=True)
+    (tmp_path / "docs" / "01_governance").mkdir(parents=True)
     envelope_path = tmp_path / "config" / "governance" / "delegation_envelope.yaml"
     envelope_path.write_text(yaml.safe_dump(_envelope(), sort_keys=False), encoding="utf-8")
     profile_path = tmp_path / "config" / "openclaw" / "instance_profiles" / "coo_unsandboxed_prod_l3.json"
     profile_path.write_text("{}", encoding="utf-8")
+    ruling_path = tmp_path / "docs" / "01_governance" / "ruling.md"
+    ruling_path.write_text("**Decision**: RATIFIED\n", encoding="utf-8")
     from runtime.util.canonical import sha256_file
 
     manifest = {
@@ -104,6 +107,41 @@ def test_full_promotion_guard_pass(tmp_path: Path) -> None:
     )
     result = full_promotion_guard(tmp_path)
     assert result["pass"] is True
+
+
+def test_verify_delegation_ceiling_order_independent(tmp_path: Path) -> None:
+    """sorted() normalization: [L3, L0, L4] should still pass."""
+    assert verify_delegation_ceiling({"active_levels": ["L3", "L0", "L4"], "trust_tier": "burn-in"}) == []
+
+
+def test_verify_approval_manifest_ruling_ref_missing_file(tmp_path: Path) -> None:
+    profile = tmp_path / "profile.json"
+    profile.write_text("{}", encoding="utf-8")
+    from runtime.util.canonical import sha256_file
+
+    manifest = {
+        "status": "approved",
+        "profile_sha256": sha256_file(profile),
+        "autonomy_ceiling": {"active_levels": ["L0", "L3", "L4"], "trust_tier": "burn-in"},
+        "approval": {"council_ruling_ref": "docs/01_governance/nonexistent.md"},
+    }
+    violations = verify_approval_manifest(manifest, profile, _envelope(), repo_root=tmp_path)
+    assert any("ruling_ref_missing" in v for v in violations)
+
+
+def test_verify_approval_manifest_ruling_ref_outside_governance(tmp_path: Path) -> None:
+    profile = tmp_path / "profile.json"
+    profile.write_text("{}", encoding="utf-8")
+    from runtime.util.canonical import sha256_file
+
+    manifest = {
+        "status": "approved",
+        "profile_sha256": sha256_file(profile),
+        "autonomy_ceiling": {"active_levels": ["L0", "L3", "L4"], "trust_tier": "burn-in"},
+        "approval": {"council_ruling_ref": "docs/00_foundations/some.md"},
+    }
+    violations = verify_approval_manifest(manifest, profile, _envelope(), repo_root=tmp_path)
+    assert any("outside_governance" in v for v in violations)
 
 
 def test_profiles_on_disk_valid_json() -> None:

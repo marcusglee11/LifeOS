@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -60,6 +61,9 @@ def _maybe_capture_dump(
         return
 
     label = os.environ.get("LIFEOS_COO_CAPTURE_LABEL", "unlabeled").strip() or "unlabeled"
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", label):
+        raise ValueError(f"_maybe_capture_dump: LIFEOS_COO_CAPTURE_LABEL contains unsafe characters: {label!r}")
+    capture_root = Path(capture_dir).resolve()
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     dump = {
         "capture_ts": ts,
@@ -73,10 +77,12 @@ def _maybe_capture_dump(
         "raw_output_sha256": compute_sha256({"raw": raw_output}),
         "raw_output": raw_output,
     }
-    out_dir = Path(capture_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    capture_root.mkdir(parents=True, exist_ok=True)
     filename = f"{ts}_{mode}_{label}.json"
-    atomic_write_text(out_dir / filename, json.dumps(dump, indent=2, sort_keys=True))
+    out_path = (capture_root / filename).resolve()
+    if not str(out_path).startswith(str(capture_root) + "/") and out_path != capture_root:
+        raise ValueError(f"_maybe_capture_dump: resolved output path escapes capture_dir: {out_path}")
+    atomic_write_text(out_path, json.dumps(dump, indent=2, sort_keys=True))
 
 
 def _now_iso() -> str:
@@ -317,6 +323,15 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
                     print(_render_task_proposal_human(payload_dict, repo_root))
                 else:
                     print(normalized)
+            _maybe_capture_dump(
+                mode="propose",
+                raw_output=raw_output,
+                run_id=run_id,
+                kind=kind,
+                parse_status="pass",
+                parse_recovery_stage=_capture_stage,
+                claim_violations=violations,
+            )
             return 0 if not dispatch_results["failed_dispatches"] else 1
 
         if output_format == "json":

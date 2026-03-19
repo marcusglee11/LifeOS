@@ -30,7 +30,9 @@ def apply_reset(clean_run_count: int, reason: str) -> int:
         return 0
     if reason in SOFT_RESET_REASONS:
         return max(0, clean_run_count - 1)
-    return clean_run_count + 1
+    if reason == "clean":
+        return clean_run_count + 1
+    raise ValueError(f"apply_reset: unrecognized reason {reason!r}")
 
 
 def run_soak(manifest_path: Path, result_path: Path) -> dict[str, Any]:

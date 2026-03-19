@@ -144,8 +144,14 @@ to_file model_ladder_policy_assert python3 runtime/tools/openclaw_model_policy_a
 to_file multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --config "$CFG_PATH" --json
 to_file interfaces_policy_assert python3 runtime/tools/openclaw_interfaces_policy_assert.py --config "$CFG_PATH" --json
 to_file sandbox_policy_assert python3 runtime/tools/openclaw_sandbox_policy_assert.py --config "$CFG_PATH" --instance-profile "$INSTANCE_PROFILE_PATH" --sandbox-explain-file "$OUT_DIR/sandbox_explain_json.txt"
-PROFILE_NAME="$(python3 -c "import json; p=json.load(open('$INSTANCE_PROFILE_PATH')); print(p.get('profile_name',''))" 2>/dev/null || true)"
-if [ -n "$PROFILE_NAME" ]; then
+PROFILE_NAME="$(python3 - "$INSTANCE_PROFILE_PATH" <<'_PYEOF' 2>/dev/null || true
+import sys, json
+p = json.load(open(sys.argv[1]))
+print(p.get('profile_name', ''))
+_PYEOF
+)"
+# Validate profile_name is safe before use in shell/Python path construction.
+if [[ "$PROFILE_NAME" =~ ^[A-Za-z0-9_-]+$ ]]; then
   to_file approval_manifest_check python3 -m runtime.orchestration.coo.promotion_guard --repo-root "$(pwd)" --profile-name "$PROFILE_NAME" --json
   if [ "${CMD_RC[approval_manifest_check]:-1}" -ne 0 ]; then
     add_blocking_reason "approval_manifest_check_failed"
