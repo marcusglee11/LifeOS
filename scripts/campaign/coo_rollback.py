@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -23,7 +22,7 @@ def run_rollback(repo_root: Path, dry_run: bool = False) -> dict[str, Any]:
     envelope_path = repo_root / "config" / "governance" / "delegation_envelope.yaml"
 
     if not dry_run:
-        shutil.copyfile(source, target)
+        atomic_write_text(target, source.read_text(encoding="utf-8"))
 
     verify_proc = subprocess.run(
         ["bash", "runtime/tools/openclaw_verify_surface.sh"],

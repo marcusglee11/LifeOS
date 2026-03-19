@@ -35,8 +35,10 @@ def benign_exec(repo_root: Path) -> dict[str, Any]:
 
 def protected_path_block(repo_root: Path) -> dict[str, Any]:
     envelope = _load_envelope(repo_root)
-    protected = list(envelope.get("protected_paths") or [])
-    return {"probe": "protected_path_block", "pass": "docs/00_foundations/" in protected}
+    protected = set(envelope.get("protected_paths") or [])
+    required = {"docs/00_foundations/", "docs/01_governance/", "config/governance/protected_artefacts.json"}
+    missing = sorted(required - protected)
+    return {"probe": "protected_path_block", "pass": not missing, "missing": missing}
 
 
 def unknown_category_block(repo_root: Path) -> dict[str, Any]:

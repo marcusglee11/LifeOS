@@ -415,7 +415,7 @@ export CHECK_POLICY_ASSERT="$([ "${CMD_RC[policy_assert]:-1}" -eq 0 ] && echo tr
 export CHECK_MODEL_LADDER_POLICY="$([ "${CMD_RC[model_ladder_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_MULTIUSER_POSTURE="$([ "${CMD_RC[multiuser_posture_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_INTERFACES_POLICY="$([ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
-export CHECK_APPROVAL_MANIFEST="$([ -z "$PROFILE_NAME" ] || [ "${CMD_RC[approval_manifest_check]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_APPROVAL_MANIFEST="$([ -n "$PROFILE_NAME" ] && [ "${CMD_RC[approval_manifest_check]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_RECEIPT_GENERATION="$([ "$rc_receipt" -eq 0 ] && echo true || echo false)"
 export CHECK_LEAK_SCAN="$([ "$rc_leak" -eq 0 ] && echo true || echo false)"
 export SANDBOX_POLICY_TARGET

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -100,6 +101,8 @@ def full_promotion_guard(
     profile_name: str = "coo_unsandboxed_prod_l3",
 ) -> dict[str, Any]:
     repo_root = Path(repo_root)
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", profile_name):
+        raise ValueError(f"full_promotion_guard: unsafe profile_name {profile_name!r}")
     violations: list[str] = []
 
     envelope_path = repo_root / "config" / "governance" / "delegation_envelope.yaml"
