@@ -246,7 +246,7 @@ def test_closure_pack_regen_after_merge(monkeypatch, tmp_path: Path) -> None:
             return "artifacts/status/runtime_status.json"
         return ""
 
-    def fake_merge_to_main(repo_root_arg: Path, branch: str) -> dict:
+    def fake_merge_to_main(repo_root_arg: Path, branch: str, **kwargs) -> dict:
         events.append("merge")
         return {
             "success": True,
