@@ -255,6 +255,23 @@ def _parse_escalation_packet(raw_output: str) -> dict[str, Any]:
     return raw
 
 
+def classify_coo_response(mode: str, raw_output: str) -> str:
+    """Return the packet family string for a COO response without exposing parse internals.
+
+    Returns one of: "escalation_packet", "task_proposal", "nothing_to_propose".
+    Raises ParseError if the output does not match any known schema for the given mode.
+    """
+    if mode == "direct":
+        _parse_escalation_packet(raw_output)
+        return "escalation_packet"
+    try:
+        parse_proposal_response(raw_output)
+        return "task_proposal"
+    except Exception:
+        _parse_ntp(raw_output)
+        return "nothing_to_propose"
+
+
 def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
     """Invoke live COO and emit task proposal or NothingToPropose response."""
     try:

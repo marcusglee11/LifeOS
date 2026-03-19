@@ -11,22 +11,10 @@ from typing import Any
 import yaml
 
 from runtime.orchestration.coo.claim_verifier import collect_evidence, verify_claims
-from runtime.orchestration.coo.commands import _parse_escalation_packet, _parse_ntp
+from runtime.orchestration.coo.commands import classify_coo_response
 from runtime.orchestration.coo.mirror import build_evaluation_row, diff_evidence
-from runtime.orchestration.coo.parser import _extract_yaml_payload_with_stage, parse_proposal_response
+from runtime.orchestration.coo.parser import _extract_yaml_payload_with_stage
 from runtime.util.atomic_write import atomic_write_text
-
-
-def _actual_family_for_mode(mode: str, raw_output: str) -> str:
-    if mode == "direct":
-        _parse_escalation_packet(raw_output)
-        return "escalation_packet"
-    try:
-        parse_proposal_response(raw_output)
-        return "task_proposal"
-    except Exception:
-        _parse_ntp(raw_output)
-        return "nothing_to_propose"
 
 
 def _build_command(mode: str, scenario: dict[str, Any]) -> list[str]:
@@ -60,7 +48,7 @@ def run_scenario(
 
     raw_output = proc.stdout
     _, stage = _extract_yaml_payload_with_stage(raw_output)
-    actual_family = _actual_family_for_mode(mode, raw_output)
+    actual_family = classify_coo_response(mode, raw_output)
     diff = diff_evidence(before, after)
     violations = verify_claims(raw_output, before, repo_root=repo_root)
     row = build_evaluation_row(
