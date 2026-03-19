@@ -23,6 +23,7 @@ from runtime.orchestration.council.models import (
     DECISION_STATUS_NORMAL,
     VERDICT_ACCEPT,
 )
+from runtime.agents.models import load_model_config
 from runtime.orchestration.council.multi_provider import build_multi_provider_executor
 from runtime.orchestration.council.policy import load_council_policy, resolve_model_family
 from runtime.tools.council_v2_dogfood_common import (
@@ -116,9 +117,13 @@ def run_live_review(
     policy: Any,
     out_path: Path,
 ) -> tuple[bool, dict[str, Any]]:
+    config = load_model_config()
     fsm = CouncilFSMv2(
         policy=policy,
-        lens_executor=build_multi_provider_executor(),
+        lens_executor=build_multi_provider_executor(
+            config=config,
+            provider_overrides=config.council_provider_overrides,
+        ),
     )
     result = fsm.run(ccp)
     payload = dataclasses.asdict(result)
