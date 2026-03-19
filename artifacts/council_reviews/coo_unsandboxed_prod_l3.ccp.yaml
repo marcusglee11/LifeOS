@@ -28,8 +28,8 @@ sections:
     before any protected-path ruling is stewarded into docs/01_governance/.
   scope:
     surface: "coo_unsandboxed_promotion"
-    branch: "build/coo-unsandboxed-promotion-l3"
-    commit: "3a31285c"
+    branch: "main"
+    commit: "1098c3ed"
     files:
       - "runtime/orchestration/coo/commands.py"
       - "runtime/orchestration/coo/promotion_guard.py"
