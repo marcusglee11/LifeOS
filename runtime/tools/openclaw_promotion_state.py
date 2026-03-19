@@ -71,6 +71,31 @@ def _git_head() -> str:
     return (proc.stdout or "").strip()
 
 
+def _normalize_version(raw: str) -> str:
+    import re
+    raw = raw.strip()
+    m = re.search(r"(\d+(?:\.\d+)+(?:-[A-Za-z0-9._+-]+)?)", raw)
+    return m.group(1) if m else raw
+
+
+def _current_openclaw_version() -> str:
+    try:
+        proc = subprocess.run(["openclaw", "--version"], capture_output=True, text=True, check=False, timeout=10)
+    except subprocess.TimeoutExpired:
+        return ""
+    if proc.returncode != 0:
+        return ""
+    for line in (proc.stdout or "").splitlines():
+        candidate = line.strip()
+        if candidate:
+            return _normalize_version(candidate)
+    for line in (proc.stderr or "").splitlines():
+        candidate = line.strip()
+        if candidate:
+            return _normalize_version(candidate)
+    return ""
+
+
 
 def _is_ancestor(base: str, target: str) -> bool:
     if not base or not target:
@@ -105,6 +130,11 @@ def verify_packet(packet_dir: Path, staleness_hours: int) -> VerifyResult:
     if not isinstance(ticket, dict):
         errors.append("ticket_missing")
         return VerifyResult(ok=False, errors=errors, packet=packet)
+
+    required_packet = ["target_commit", "target_version", "previous_version"]
+    for key in required_packet:
+        if not str(packet.get(key) or "").strip():
+            errors.append(f"packet_field_missing:{key}")
 
     required_ticket = ["ticket_id", "change_seq", "target_instance", "issued_at", "expires_at", "tip_at_issue"]
     for key in required_ticket:
@@ -199,6 +229,32 @@ def cmd_apply(args: argparse.Namespace) -> int:
         return 1
 
     packet = result.packet
+    target_version = _normalize_version(str(packet.get("target_version") or ""))
+    observed_version = _current_openclaw_version()
+    if not observed_version:
+        print(
+            json.dumps(
+                {"pass": False, "errors": ["installed_version_unavailable"]},
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            )
+        )
+        return 1
+    if observed_version != target_version:
+        print(
+            json.dumps(
+                {
+                    "pass": False,
+                    "errors": [f"installed_version_mismatch:{target_version}:{observed_version}"],
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            )
+        )
+        return 1
+
     ticket = packet.get("ticket") or {}
     state_root = Path(args.state_dir).expanduser()
     state_path = state_root / "state.json"

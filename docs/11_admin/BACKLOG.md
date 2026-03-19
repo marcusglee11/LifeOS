@@ -58,6 +58,7 @@
 - [ ] **COO cron/event trigger** — DoD: `lifeos coo propose` runs on a schedule or backlog-change event without manual invocation — Owner: Wiring — Context: Step 6 gap #6; currently manual-pull only — Priority: P2
 - [ ] **`coo.md` output schema section** — DoD: `config/agent_roles/coo.md` includes inline output schema matching `context.py`; `schemas.md` cross-referenced — Owner: Docs — Context: Step 6 gap #7; schema lives only in `schemas.md` + `context.py`, not in the role definition the COO reads — Priority: P2
 - [ ] **`_normalize_proposal_indentation()` field coverage** — DoD: Either generalize the normalizer or add a regression test that fails when new COO sub-keys appear at column 0 — Owner: Substrate — Context: Step 6 gap #2; currently hard-codes 4 field names; new sub-keys silently ignored — Priority: P3
+- [ ] **Thread `OPENCLAW_BIN` into promotion state version check** — DoD: `_current_openclaw_version()` in `openclaw_promotion_state.py` uses `OPENCLAW_BIN` env var (already set by `openclaw_coo_update_protocol.sh`) instead of bare PATH lookup; test with fake binary at explicit path — Owner: Substrate — Context: Codex review finding on `build/openclaw-runtime-upgrade`; version check gates promotion but resolves binary from untrusted PATH; defense-in-depth, not urgent since orchestrated-mode + attestation TTL bound the attack window — Priority: P2
 
 ## Later (not actionable / unclear / exploratory)
 

@@ -128,6 +128,19 @@ Use the protocol runner for enforceable OpenClaw COO update flow:
 runtime/tools/openclaw_coo_update_protocol.sh all-preclose
 ```
 
+Promotion packet flow for an actual version upgrade:
+
+```bash
+runtime/tools/openclaw_upgrade_module.sh propose --channel stable
+runtime/tools/openclaw_coo_update_protocol.sh promotion-seq-allocate --instance coo
+# Construct promotion_packet.json from propose's promotion_packet_base + the allocated ticket:
+# jq -s '.[0].promotion_packet_base * {ticket: .[1]}' proposal.json ticket.json > <dir>/promotion_packet.json
+runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>
+npm install -g openclaw@<target_version>   # mutating — only after verify passes
+openclaw --version                          # confirm installed version matches packet
+runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir>
+```
+
 Step-by-step mode:
 
 ```bash
@@ -150,6 +163,8 @@ Notes:
   - `openclaw models list --all`
   - `openclaw models status`
   - `openclaw models aliases list`
+- `promotion-run` does not install OpenClaw. It attests and records the promotion after the target version is already installed.
+- `promotion_packet.json` should include `target_commit`, `target_version`, and `previous_version` in addition to the promotion ticket.
 - Automated escalation checks run `runtime/tools/openclaw_models_preflight.sh`, which internally uses `openclaw models list` and `openclaw models status --probe`.
 - Merge/push remains fail-closed via `.claude/hooks/close-build-gate.sh`.
 

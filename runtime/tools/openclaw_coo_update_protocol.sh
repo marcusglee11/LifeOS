@@ -69,7 +69,7 @@ Commands:
   all-preclose       Runs preflight -> concurrency -> operational -> escalation -> preclose.
   promotion-seq-allocate  Allocates monotonic promotion sequence ticket (COO issuer only).
   promotion-verify   Verifies packet structure, sequence and trust checks (read-only).
-  promotion-run      Only supported mutating promotion entrypoint with preclose attestation.
+  promotion-run      Records a completed upgrade via the mutating promotion entrypoint with preclose attestation.
   promotion-record   Writes non-authoritative promotion evidence mirror.
 EOF
 }
@@ -262,6 +262,9 @@ run_promotion_apply_internal() {
 run_promotion_run() {
   local packet_dir="$1"
   _ensure_packet_dir "$packet_dir"
+
+  echo "NOTE: promotion-run does not install OpenClaw." >&2
+  echo "NOTE: Install the target package first and ensure 'openclaw --version' matches promotion_packet.json target_version." >&2
 
   run_preflight
   run_concurrency_check

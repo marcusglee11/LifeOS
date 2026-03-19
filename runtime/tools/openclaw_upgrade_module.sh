@@ -348,6 +348,8 @@ def main() -> int:
         "update_available": None,
         "recommended_apply_command": None,
         "recommended_validation_command": "runtime/tools/openclaw_coo_update_protocol.sh all-preclose",
+        "recommended_verify_command_template": "runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>",
+        "recommended_record_command_template": "runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir>",
         "health_gate": _coo_health(),
         "needs_action": None,
         "status_report_path": str(out_path_raw) if command == "report" else None,
@@ -408,14 +410,28 @@ def main() -> int:
     payload["needs_action"] = bool(update_available is True or health_pass is False)
 
     if command == "propose":
+        head_sha = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True, text=True, check=False, timeout=10,
+        ).stdout.strip() or None
+        payload["promotion_packet_base"] = {
+            "target_commit": head_sha,
+            "target_version": payload.get("registry_latest"),
+            "previous_version": payload.get("installed_version"),
+        }
         payload["proposal"] = {
-            "apply_then_validate": [
+            "apply_then_record": [
                 payload.get("recommended_apply_command"),
-                payload.get("recommended_validation_command"),
+                "openclaw --version",
+                payload.get("recommended_verify_command_template"),
+                payload.get("recommended_record_command_template"),
             ]
             if payload.get("recommended_apply_command")
-            else [payload.get("recommended_validation_command")],
-            "mode": "manual_apply",
+            else [
+                payload.get("recommended_verify_command_template"),
+                payload.get("recommended_record_command_template"),
+            ],
+            "mode": "manual_apply_then_record",
         }
 
     if command == "report":

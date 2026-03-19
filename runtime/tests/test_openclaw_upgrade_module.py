@@ -88,6 +88,8 @@ exit 1
     assert payload["health_gate"]["pass"] is False
     assert payload["needs_action"] is True
     assert payload["recommended_apply_command"] == "npm install -g openclaw@2026.2.25"
+    assert payload["recommended_verify_command_template"] == "runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>"
+    assert payload["recommended_record_command_template"] == "runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir>"
 
 
 def test_report_writes_status_file(tmp_path: Path) -> None:
@@ -245,3 +247,50 @@ exit 0
     assert payload["registry_check"]["error"]
     assert payload["registry_source"] == "none"
     assert payload["update_available"] is None
+
+
+def test_propose_returns_install_then_record_sequence(tmp_path: Path) -> None:
+    res = _run_module(
+        tmp_path,
+        openclaw_script="""#!/usr/bin/env bash
+if [ "$1" = "--version" ]; then
+  echo "2026.2.23"
+  exit 0
+fi
+if [ "$1" = "update" ] && [ "${2:-}" = "status" ]; then
+  echo '{"channel":{"value":"stable"}}'
+  exit 0
+fi
+exit 1
+""",
+        npm_script="""#!/usr/bin/env bash
+if [ "$1" = "view" ] && [ "$2" = "openclaw" ] && [ "$3" = "dist-tags" ] && [ "$4" = "--json" ]; then
+  echo '{"latest":"2026.2.25","beta":"2026.2.25-beta.1"}'
+  exit 0
+fi
+exit 1
+""",
+        coo_script="""#!/usr/bin/env bash
+if [ "$1" = "models" ] && [ "$2" = "status" ]; then
+  echo "STATUS: OK - all ladders satisfy policy"
+  exit 0
+fi
+exit 1
+""",
+        args=["propose", "--channel", "stable"],
+    )
+
+    assert res.returncode == 0
+    payload = json.loads(res.stdout)
+    assert payload["recommended_apply_command"] == "npm install -g openclaw@2026.2.25"
+    base = payload["promotion_packet_base"]
+    assert base["target_version"] == "2026.2.25"
+    assert base["previous_version"] == "2026.2.23"
+    assert base["target_commit"]  # non-empty HEAD sha
+    assert payload["proposal"]["mode"] == "manual_apply_then_record"
+    assert payload["proposal"]["apply_then_record"] == [
+        "npm install -g openclaw@2026.2.25",
+        "openclaw --version",
+        "runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>",
+        "runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir>",
+    ]
