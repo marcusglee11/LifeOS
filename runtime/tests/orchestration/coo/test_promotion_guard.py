@@ -144,6 +144,23 @@ def test_verify_approval_manifest_ruling_ref_outside_governance(tmp_path: Path) 
     assert any("outside_governance" in v for v in violations)
 
 
+def test_verify_surface_profile_name_consistency() -> None:
+    """Regression: empty PROFILE_NAME must be vacuously OK (not false) in verify_surface.sh.
+
+    The old code set CHECK_APPROVAL_MANIFEST=false when PROFILE_NAME was empty,
+    while the shell PASS variable stayed 1 — shell exit 0 but JSON pass=false.
+    Fix: empty PROFILE_NAME → vacuously true; invalid format → blocking reason.
+    """
+    script = Path(__file__).resolve().parents[4] / "runtime" / "tools" / "openclaw_verify_surface.sh"
+    text = script.read_text(encoding="utf-8")
+    # Empty PROFILE_NAME must take the vacuous-OK branch, not fall into false
+    assert 'if [ -z "$PROFILE_NAME" ]; then' in text, "missing vacuous-OK branch for empty PROFILE_NAME"
+    # Invalid format must add a blocking reason (no silent skip)
+    assert "approval_manifest_profile_name_invalid_format" in text, "missing blocking reason for invalid PROFILE_NAME format"
+    # CHECK_APPROVAL_MANIFEST must be true when PROFILE_NAME is empty (vacuous pass)
+    assert "echo true" in text, "empty-PROFILE_NAME path must set CHECK_APPROVAL_MANIFEST=true"
+
+
 def test_profiles_on_disk_valid_json() -> None:
     root = Path(__file__).resolve().parents[4]
     for name in [

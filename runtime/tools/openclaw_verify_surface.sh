@@ -151,11 +151,15 @@ print(p.get('profile_name', ''))
 _PYEOF
 )"
 # Validate profile_name is safe before use in shell/Python path construction.
-if [[ "$PROFILE_NAME" =~ ^[A-Za-z0-9_-]+$ ]]; then
+if [ -z "$PROFILE_NAME" ]; then
+  : # No promotion profile active — vacuously OK; CHECK_APPROVAL_MANIFEST set to true below.
+elif [[ "$PROFILE_NAME" =~ ^[A-Za-z0-9_-]+$ ]]; then
   to_file approval_manifest_check python3 -m runtime.orchestration.coo.promotion_guard --repo-root "$(pwd)" --profile-name "$PROFILE_NAME" --json
   if [ "${CMD_RC[approval_manifest_check]:-1}" -ne 0 ]; then
     add_blocking_reason "approval_manifest_check_failed"
   fi
+else
+  add_blocking_reason "approval_manifest_profile_name_invalid_format"
 fi
 
 auth_health_raw="$OUT_DIR/auth_health_raw.json"
@@ -415,7 +419,15 @@ export CHECK_POLICY_ASSERT="$([ "${CMD_RC[policy_assert]:-1}" -eq 0 ] && echo tr
 export CHECK_MODEL_LADDER_POLICY="$([ "${CMD_RC[model_ladder_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_MULTIUSER_POSTURE="$([ "${CMD_RC[multiuser_posture_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_INTERFACES_POLICY="$([ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
-export CHECK_APPROVAL_MANIFEST="$([ -n "$PROFILE_NAME" ] && [ "${CMD_RC[approval_manifest_check]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_APPROVAL_MANIFEST="$(
+  if [ -z "$PROFILE_NAME" ]; then
+    echo true
+  elif [ "${CMD_RC[approval_manifest_check]:-1}" -eq 0 ]; then
+    echo true
+  else
+    echo false
+  fi
+)"
 export CHECK_RECEIPT_GENERATION="$([ "$rc_receipt" -eq 0 ] && echo true || echo false)"
 export CHECK_LEAK_SCAN="$([ "$rc_leak" -eq 0 ] && echo true || echo false)"
 export SANDBOX_POLICY_TARGET
