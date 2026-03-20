@@ -77,7 +77,17 @@ def run_campaign(manifest_path: Path, repo_root: Path, gate: str) -> dict[str, A
     log_path = repo_root / "artifacts" / "coo" / "promotion_campaign" / f"campaign_log_{gate}.jsonl"
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    rows = [run_scenario(scenario, repo_root, capture_dir, gate) for scenario in scenarios]
+    rows = []
+    for scenario in scenarios:
+        try:
+            rows.append(run_scenario(scenario, repo_root, capture_dir, gate))
+        except Exception as exc:  # noqa: BLE001
+            rows.append({
+                "scenario_id": str(scenario.get("scenario_id", "unknown")),
+                "parse_status": "error",
+                "claim_verifier_status": "error",
+                "error": str(exc),
+            })
     payload = "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
     atomic_write_text(log_path, payload)
 

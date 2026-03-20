@@ -59,7 +59,7 @@ def main() -> int:
         print(json.dumps(result, indent=2, sort_keys=True))
     else:
         print(result)
-    return 0 if not result["delegation_violations"] else 1
+    return 0 if (not result["delegation_violations"] and result["verify_exit_code"] == 0) else 1
 
 
 if __name__ == "__main__":

@@ -23,10 +23,24 @@ def run_gate4(repo_root: Path) -> dict[str, Any]:
     candidate = profile_dir / "coo_unsandboxed_prod_l3.json"
     result_path = repo_root / "artifacts" / "coo" / "promotion_campaign" / "gate4_result.json"
 
+
+    # Run promotion guard BEFORE activating the candidate profile (Gov F1: pre-activation guard).
+    guard = full_promotion_guard(repo_root)
+    if not guard["pass"]:
+        return {
+            "pass": False,
+            "guard": guard,
+            "abort_reason": "promotion_guard_failed_before_activation",
+        }
+
     shutil.copyfile(active_profile, backup_profile)
+    verify_proc = None
+    probes = None
+    campaign = None
     passed = False
     rollback = None
     try:
+        # Profile swap: wrapped in try/finally so exceptions always restore the safe profile (Gov F2).
         shutil.copyfile(candidate, active_profile)
         verify_proc = subprocess.run(
             ["bash", "runtime/tools/openclaw_verify_surface.sh"],
@@ -41,7 +55,7 @@ def run_gate4(repo_root: Path) -> dict[str, Any]:
             repo_root,
             "gate4",
         )
-        guard = full_promotion_guard(repo_root)
+
         passed = verify_proc.returncode == 0 and probes["all_pass"] and guard["pass"]
     finally:
         if not passed:
@@ -50,7 +64,7 @@ def run_gate4(repo_root: Path) -> dict[str, Any]:
 
     payload: dict[str, Any] = {
         "pass": passed,
-        "verify_exit_code": verify_proc.returncode,
+        "verify_exit_code": verify_proc.returncode if verify_proc is not None else None,
         "probes": probes,
         "campaign": campaign,
         "guard": guard,

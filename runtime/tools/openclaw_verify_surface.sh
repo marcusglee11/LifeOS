@@ -99,6 +99,14 @@ finally:
 PY
 }
 
+# Validate INSTANCE_PROFILE_PATH is within the repo-controlled profile directory (Gov F3 / CWE-15).
+# Environment override to an out-of-allowlist path is a hard block.
+_PROFILE_ALLOWLIST="$(realpath --canonicalize-missing "config/openclaw/instance_profiles")"
+_PROFILE_RESOLVED="$(realpath --canonicalize-missing "$INSTANCE_PROFILE_PATH" 2>/dev/null || echo "")"
+if [[ -z "$_PROFILE_RESOLVED" ]] || [[ "$_PROFILE_RESOLVED" != "$_PROFILE_ALLOWLIST/"* && "$_PROFILE_RESOLVED" != "$_PROFILE_ALLOWLIST" ]]; then
+  add_blocking_reason "instance_profile_path_outside_allowlist"
+fi
+
 # Required order with signature-gated fallback.
 to_file security_audit_deep coo openclaw -- security audit --deep
 if [ "${CMD_RC[security_audit_deep]:-1}" -eq 0 ]; then
