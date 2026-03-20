@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -24,9 +25,11 @@ def _validate_ruling_ref(repo_root: Path, ruling_ref: str) -> None:
             f"gate3_prepare: ruling_ref {ruling_ref!r} does not exist"
         )
     text = ruling_path.read_text(encoding="utf-8")
-    if "RATIFIED" not in text and "APPROVED" not in text:
+    # Require a structural approval marker on its own line — bare substring rejected (Governance R2).
+    if not re.search(r"^\*\*Decision\*\*:\s*(RATIFIED|APPROVED)\b", text, re.MULTILINE):
         raise ValueError(
-            f"gate3_prepare: ruling_ref {ruling_ref!r} does not contain an approval marker"
+            f"gate3_prepare: ruling_ref {ruling_ref!r} does not contain a structured"
+            " approval marker (**Decision**: RATIFIED or **Decision**: APPROVED)"
         )
 
 

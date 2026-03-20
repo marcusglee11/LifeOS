@@ -144,15 +144,25 @@ to_file model_ladder_policy_assert python3 runtime/tools/openclaw_model_policy_a
 to_file multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --config "$CFG_PATH" --json
 to_file interfaces_policy_assert python3 runtime/tools/openclaw_interfaces_policy_assert.py --config "$CFG_PATH" --json
 to_file sandbox_policy_assert python3 runtime/tools/openclaw_sandbox_policy_assert.py --config "$CFG_PATH" --instance-profile "$INSTANCE_PROFILE_PATH" --sandbox-explain-file "$OUT_DIR/sandbox_explain_json.txt"
-PROFILE_NAME="$(python3 - "$INSTANCE_PROFILE_PATH" <<'_PYEOF' 2>/dev/null || true
+# Extract profile_name and target_posture from the active instance profile.
+# Output format: "<profile_name>|<target_posture>" — pipe-delimited, single line.
+_PROFILE_META="$(python3 - "$INSTANCE_PROFILE_PATH" <<'_PYEOF' 2>/dev/null || true
 import sys, json
 p = json.load(open(sys.argv[1]))
-print(p.get('profile_name', ''))
+name = p.get('profile_name', '')
+posture = p.get('sandbox_policy', {}).get('target_posture', 'sandboxed')
+print(name + '|' + posture)
 _PYEOF
 )"
+PROFILE_NAME="${_PROFILE_META%%|*}"
+PROFILE_TARGET_POSTURE="${_PROFILE_META##*|}"
 # Validate profile_name is safe before use in shell/Python path construction.
+# Empty profile_name is fail-closed for unsandboxed posture (no governance bypass via config-shape drift).
 if [ -z "$PROFILE_NAME" ]; then
-  : # No promotion profile active — vacuously OK; CHECK_APPROVAL_MANIFEST set to true below.
+  if [ "$PROFILE_TARGET_POSTURE" = "unsandboxed" ]; then
+    add_blocking_reason "approval_manifest_missing_profile_name_for_unsandboxed_posture"
+  fi
+  # sandboxed/shared_ingress: no promotion profile active — vacuously OK
 elif [[ "$PROFILE_NAME" =~ ^[A-Za-z0-9_-]+$ ]]; then
   to_file approval_manifest_check python3 -m runtime.orchestration.coo.promotion_guard --repo-root "$(pwd)" --profile-name "$PROFILE_NAME" --json
   if [ "${CMD_RC[approval_manifest_check]:-1}" -ne 0 ]; then
@@ -421,7 +431,13 @@ export CHECK_MULTIUSER_POSTURE="$([ "${CMD_RC[multiuser_posture_assert]:-1}" -eq
 export CHECK_INTERFACES_POLICY="$([ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
 export CHECK_APPROVAL_MANIFEST="$(
   if [ -z "$PROFILE_NAME" ]; then
-    echo true
+    # Unsandboxed posture without profile_name is already blocked above; here it's false.
+    # Sandboxed/shared_ingress without profile_name: no promotion profile active, vacuously true.
+    if [ "$PROFILE_TARGET_POSTURE" = "unsandboxed" ]; then
+      echo false
+    else
+      echo true
+    fi
   elif [ "${CMD_RC[approval_manifest_check]:-1}" -eq 0 ]; then
     echo true
   else

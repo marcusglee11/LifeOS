@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 import yaml
 
 from runtime.orchestration.coo.promotion_guard import (
@@ -145,20 +146,45 @@ def test_verify_approval_manifest_ruling_ref_outside_governance(tmp_path: Path) 
 
 
 def test_verify_surface_profile_name_consistency() -> None:
-    """Regression: empty PROFILE_NAME must be vacuously OK (not false) in verify_surface.sh.
-
-    The old code set CHECK_APPROVAL_MANIFEST=false when PROFILE_NAME was empty,
-    while the shell PASS variable stayed 1 — shell exit 0 but JSON pass=false.
-    Fix: empty PROFILE_NAME → vacuously true; invalid format → blocking reason.
+    """Regression: empty PROFILE_NAME for sandboxed posture is vacuously OK;
+    for unsandboxed posture it must block (fail-closed, no governance bypass).
+    Invalid-format PROFILE_NAME must also block.
     """
     script = Path(__file__).resolve().parents[4] / "runtime" / "tools" / "openclaw_verify_surface.sh"
     text = script.read_text(encoding="utf-8")
-    # Empty PROFILE_NAME must take the vacuous-OK branch, not fall into false
-    assert 'if [ -z "$PROFILE_NAME" ]; then' in text, "missing vacuous-OK branch for empty PROFILE_NAME"
+    # Must extract target_posture alongside profile_name
+    assert "PROFILE_TARGET_POSTURE" in text, "missing posture-aware PROFILE_TARGET_POSTURE variable"
+    # Unsandboxed posture with empty profile_name must add a blocking reason
+    assert "approval_manifest_missing_profile_name_for_unsandboxed_posture" in text, (
+        "missing blocking reason for unsandboxed+empty profile_name"
+    )
     # Invalid format must add a blocking reason (no silent skip)
     assert "approval_manifest_profile_name_invalid_format" in text, "missing blocking reason for invalid PROFILE_NAME format"
-    # CHECK_APPROVAL_MANIFEST must be true when PROFILE_NAME is empty (vacuous pass)
-    assert "echo true" in text, "empty-PROFILE_NAME path must set CHECK_APPROVAL_MANIFEST=true"
+    # CHECK_APPROVAL_MANIFEST must be false for unsandboxed without profile_name
+    assert '"unsandboxed"' in text, "missing unsandboxed posture guard in CHECK_APPROVAL_MANIFEST block"
+
+
+def test_gate3_ruling_requires_structured_marker(tmp_path: Path) -> None:
+    """Regression: gate3_prepare must require **Decision**: RATIFIED/APPROVED, not bare substring.
+
+    Old code accepted any file containing 'RATIFIED' anywhere — a document referencing
+    a prior RATIFIED ruling would falsely pass. New code requires a structural marker.
+    """
+    from scripts.campaign.gate3_prepare import _validate_ruling_ref
+
+    gov_dir = tmp_path / "docs" / "01_governance"
+    gov_dir.mkdir(parents=True)
+
+    # Bare substring alone must fail
+    bad = gov_dir / "weak_ruling.md"
+    bad.write_text("This ruling is NOT RATIFIED, see previous APPROVED decision.", encoding="utf-8")
+    with pytest.raises(ValueError, match="structured approval marker"):
+        _validate_ruling_ref(tmp_path, "docs/01_governance/weak_ruling.md")
+
+    # Structural marker must pass
+    good = gov_dir / "good_ruling.md"
+    good.write_text("**Decision**: RATIFIED\n", encoding="utf-8")
+    _validate_ruling_ref(tmp_path, "docs/01_governance/good_ruling.md")  # no exception
 
 
 def test_profiles_on_disk_valid_json() -> None:

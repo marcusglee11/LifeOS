@@ -15,3 +15,7 @@ approval:
   approved_at: ""
   approved_by: "CEO"
 status: "pending"
+exception_justification:
+  run_user: "COO operates as the session user by design; no separate service account is applicable in this single-user WSL deployment."
+  allowed_modes: "all modes are required for full production orchestration capability; blast radius is bounded by the delegation envelope ceiling (L0, L3, L4 only)."
+  sandboxing: "Unsandboxed posture is the explicit goal of this promotion and the subject of the Council-reviewed ruling; disabling confinement requirements is intentional and Council-ratified."
