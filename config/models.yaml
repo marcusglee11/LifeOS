@@ -191,8 +191,8 @@ council:
   topology: HYBRID
   provider_overrides:
     Architecture: claude_code
-    Risk: gemini
-    Governance: codex
+    Risk: claude_code
+    Governance: claude_code
     Implementation: claude_code
     Strategy: claude_code
     Pragmatism: codex
