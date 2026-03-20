@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -71,10 +72,23 @@ def run_scenario(
 
 
 def run_campaign(manifest_path: Path, repo_root: Path, gate: str) -> dict[str, Any]:
+    # Gov F1: validate gate before any path construction (path traversal prevention).
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", gate):
+        raise ValueError(f"run_campaign: gate must match [A-Za-z0-9_-]+, got {gate!r}")
+
     manifest = yaml.safe_load(Path(manifest_path).read_text(encoding="utf-8")) or {}
     scenarios = list(manifest.get("scenarios") or [])
-    capture_dir = repo_root / "artifacts" / "coo" / "promotion_campaign" / "captures" / gate
-    log_path = repo_root / "artifacts" / "coo" / "promotion_campaign" / f"campaign_log_{gate}.jsonl"
+    _campaign_root = repo_root / "artifacts" / "coo" / "promotion_campaign"
+    capture_dir = _campaign_root / "captures" / gate
+    log_path = _campaign_root / f"campaign_log_{gate}.jsonl"
+
+    # Gov F2: enforce resolved-path containment under campaign root.
+    _root_resolved = str(_campaign_root.resolve())
+    if not str(capture_dir.resolve()).startswith(_root_resolved):
+        raise ValueError(f"run_campaign: capture_dir escapes campaign root: {capture_dir}")
+    if not str(log_path.resolve()).startswith(_root_resolved):
+        raise ValueError(f"run_campaign: log_path escapes campaign root: {log_path}")
+
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
     rows = []

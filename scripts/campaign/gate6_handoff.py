@@ -32,7 +32,7 @@ def build_handoff(repo_root: Path) -> dict[str, Any]:
         raise RuntimeError("gate6_handoff: approval manifest is not sealed; ruling_ref is missing")
     atomic_write_text(handoff_dir / "ruling_ref.txt", ruling_ref + "\n")
 
-    summary = {"gates": ["gate1", "gate4", "gate5"], "status": "prepared"}
+    summary = {"gates": ["gate1", "gate3", "gate4", "gate5"], "status": "prepared"}
     atomic_write_text(handoff_dir / "campaign_summary.json", json.dumps(summary, indent=2, sort_keys=True) + "\n")
 
     soak = {"status": "pending_gate5_execution"}

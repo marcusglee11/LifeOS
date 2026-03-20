@@ -59,6 +59,22 @@ def test_stability_insufficient_runs(tmp_path: Path) -> None:
     assert check_stability(log)["all_stable"] is False
 
 
+def test_run_campaign_rejects_invalid_gate(tmp_path: Path) -> None:
+    manifest = tmp_path / "manifest.yaml"
+    manifest.write_text("scenarios: []\n", encoding="utf-8")
+    import pytest
+    with pytest.raises(ValueError, match="gate must match"):
+        run_campaign(manifest, tmp_path, "../evil")
+
+
+def test_run_campaign_rejects_path_traversal_gate(tmp_path: Path) -> None:
+    manifest = tmp_path / "manifest.yaml"
+    manifest.write_text("scenarios: []\n", encoding="utf-8")
+    import pytest
+    with pytest.raises(ValueError, match="gate must match"):
+        run_campaign(manifest, tmp_path, "gate/../../etc/passwd")
+
+
 def test_rollback_restores_profile(tmp_path: Path, monkeypatch) -> None:
     (tmp_path / "config" / "openclaw" / "instance_profiles").mkdir(parents=True)
     (tmp_path / "config" / "openclaw" / "profile_approvals").mkdir(parents=True)

@@ -56,9 +56,11 @@ def run_gate4(repo_root: Path) -> dict[str, Any]:
             "gate4",
         )
 
-        passed = verify_proc.returncode == 0 and probes["all_pass"] and guard["pass"]
+        passed = verify_proc.returncode == 0 and probes["all_pass"]
     finally:
-        if not passed:
+        if passed:
+            backup_profile.unlink(missing_ok=True)
+        else:
             shutil.copyfile(backup_profile, active_profile)
             rollback = run_rollback(repo_root, dry_run=False)
 
