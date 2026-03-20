@@ -29,7 +29,7 @@ sections:
   scope:
     surface: "coo_unsandboxed_promotion"
     branch: "main"
-    commit: "1098c3ed"
+    commit: "a479e8bc"
     files:
       - "runtime/orchestration/coo/commands.py"
       - "runtime/orchestration/coo/promotion_guard.py"
@@ -64,3 +64,26 @@ sections:
     - id: "config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json"
       type: "new_config"
       description: "Candidate unsandboxed production profile."
+  design_rationale: |
+    The candidate profile (coo_unsandboxed_prod_l3.json) is intentionally
+    configured with target_posture=unsandboxed, allowed_modes=[all], and
+    sandbox confinement not required. This is the purpose of the promotion:
+    to enable production COO autonomy at L3 without session sandbox overhead.
+
+    This trade-off is ACCEPTED and RATIFIED in:
+      docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md
+
+    Blast radius is bounded by:
+    - Delegation envelope ceiling: autonomy levels [L0, L3, L4] only
+    - Approval manifest sealed with profile_sha256 + delegation_envelope_sha256
+    - Deterministic rollback target: coo_shared_ingress_burnin.json
+    - verify_surface.sh enforces approval_manifest check on every invocation
+    - gate4_runner.py restores coo.json backup via try/finally on failure
+
+    The run_user field is empty because the COO process identity is inherited
+    from the host process, which is managed at the deployment layer (not in
+    this profile). This is a known gap that is acceptable for L3 autonomy scope.
+
+    Council lenses: treat unsandboxed posture findings against this profile as
+    DESIGN-ACKNOWLEDGED risks, not unreviewed gaps. The ratified ruling above
+    is the governance acceptance record.

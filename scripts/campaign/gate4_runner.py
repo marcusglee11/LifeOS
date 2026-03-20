@@ -24,26 +24,29 @@ def run_gate4(repo_root: Path) -> dict[str, Any]:
     result_path = repo_root / "artifacts" / "coo" / "promotion_campaign" / "gate4_result.json"
 
     shutil.copyfile(active_profile, backup_profile)
-    shutil.copyfile(candidate, active_profile)
-    verify_proc = subprocess.run(
-        ["bash", "runtime/tools/openclaw_verify_surface.sh"],
-        cwd=repo_root,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    probes = run_all_probes(repo_root)
-    campaign = run_campaign(
-        repo_root / "artifacts" / "coo" / "promotion_campaign" / "manifests" / "gate4_candidate.yaml",
-        repo_root,
-        "gate4",
-    )
-    guard = full_promotion_guard(repo_root)
-    passed = verify_proc.returncode == 0 and probes["all_pass"] and guard["pass"]
+    passed = False
     rollback = None
-    if not passed:
-        shutil.copyfile(backup_profile, active_profile)
-        rollback = run_rollback(repo_root, dry_run=False)
+    try:
+        shutil.copyfile(candidate, active_profile)
+        verify_proc = subprocess.run(
+            ["bash", "runtime/tools/openclaw_verify_surface.sh"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        probes = run_all_probes(repo_root)
+        campaign = run_campaign(
+            repo_root / "artifacts" / "coo" / "promotion_campaign" / "manifests" / "gate4_candidate.yaml",
+            repo_root,
+            "gate4",
+        )
+        guard = full_promotion_guard(repo_root)
+        passed = verify_proc.returncode == 0 and probes["all_pass"] and guard["pass"]
+    finally:
+        if not passed:
+            shutil.copyfile(backup_profile, active_profile)
+            rollback = run_rollback(repo_root, dry_run=False)
 
     payload: dict[str, Any] = {
         "pass": passed,

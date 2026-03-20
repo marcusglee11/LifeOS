@@ -193,7 +193,7 @@ council:
     Architecture: claude_code
     Risk: gemini
     Governance: codex
-    Implementation: gemini
+    Implementation: claude_code
     Strategy: claude_code
     Pragmatism: codex
 
