@@ -29,7 +29,7 @@ sections:
   scope:
     surface: "coo_unsandboxed_promotion"
     branch: "main"
-    commit: "a479e8bc"
+    commit: "3ca414ec"
     files:
       - "runtime/orchestration/coo/commands.py"
       - "runtime/orchestration/coo/promotion_guard.py"
