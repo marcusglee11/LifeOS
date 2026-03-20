@@ -1,0 +1,595 @@
+{
+  "block_report": null,
+  "decision_payload": {
+    "decision_status": "NORMAL",
+    "fix_plan": [],
+    "run_id": "council_23b19616d394472bb845996c682029f9",
+    "status": "COMPLETE",
+    "tier": "T3",
+    "verdict": "Accept"
+  },
+  "run_log": {
+    "aur_id": "AUR-COO-UNSANDBOX-PROMO-L3-001",
+    "closure_gate": [
+      {
+        "build_details": {},
+        "build_ok": true,
+        "cycle": 0,
+        "validate_details": {},
+        "validate_ok": true
+      }
+    ],
+    "decision_status": "NORMAL",
+    "lens_results": {
+      "Architecture": {
+        "claims": [
+          {
+            "category": "finding",
+            "claim_id": "C-1",
+            "evidence_refs": [
+              "REF: git:3ca414ec:scripts/campaign/gate4_runner.py#L42-L65"
+            ],
+            "statement": "gate4_runner wraps the profile swap in try/finally so any exception after copyfile(candidate\u2192coo.json) unconditionally restores the backup and invokes run_rollback, preventing the system from remaining in an unstable posture. REF: git:3ca414ec:scripts/campaign/gate4_runner.py#L42-L65"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-2",
+            "evidence_refs": [
+              "REF: git:3ca414ec:scripts/campaign/gate4_runner.py#L28-L34",
+              "REF: git:3ca414ec:runtime/orchestration/coo/promotion_guard.py#L99-L137"
+            ],
+            "statement": "full_promotion_guard() is called BEFORE profile swap and returns early on any violation, so gate4 aborts before touching coo.json if the manifest is unsealed or hashes mismatch. REF: git:3ca414ec:scripts/campaign/gate4_runner.py#L28-L34"
+          },
+          {
+            "category": "risk",
+            "claim_id": "C-3",
+            "evidence_refs": [
+              "REF: git:3ca414ec:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L3-L17",
+              "REF: git:3ca414ec:runtime/orchestration/coo/promotion_guard.py#L56-L76"
+            ],
+            "statement": "The approval manifest at commit 3ca414ec has profile_sha256='', delegation_envelope_sha256='', council_ruling_ref='', and status='pending'. The Council ruling file exists at docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md. Manual sealing of these three fields is the required open action before gate4 can pass. This is expected pre-gate-4 state \u2014 not a defect \u2014 but must be completed before C3. REF: git:3ca414ec:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L3-L17"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-4",
+            "evidence_refs": [
+              "REF: git:3ca414ec:runtime/tools/openclaw_verify_surface.sh#L105-L110"
+            ],
+            "statement": "verify_surface.sh anchors the INSTANCE_PROFILE_PATH allowlist to SCRIPT_DIR via realpath, making the path-containment check CWD-independent and resistant to override escapes (Gov F3 / CWE-15). REF: git:3ca414ec:runtime/tools/openclaw_verify_surface.sh#L105-L110"
+          },
+          {
+            "category": "risk",
+            "claim_id": "C-5",
+            "evidence_refs": [
+              "REF: git:3ca414ec:scripts/campaign/gate6_handoff.py#L38-L39",
+              "REF: git:3ca414ec:scripts/campaign/gate6_handoff.py#L60-L73"
+            ],
+            "statement": "gate6_handoff.py writes soak_results.json as {status: pending_gate5_execution} unconditionally and does not verify gate5 PASS before completing. Gate6 can succeed before gate5 is run. The cutover_checklist.md in the handoff pack requires gate5 PASS as a human gate, partially compensating, but the code has no automated ordering enforcement. REF: git:3ca414ec:scripts/campaign/gate6_handoff.py#L38-L39"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-6",
+            "evidence_refs": [
+              "REF: git:3ca414ec:scripts/campaign/gate6_handoff.py#L31-L33"
+            ],
+            "statement": "gate6_handoff.py raises RuntimeError if council_ruling_ref is missing, providing a hard block at handoff assembly \u2014 the handoff pack cannot be produced against an unsealed manifest. REF: git:3ca414ec:scripts/campaign/gate6_handoff.py#L31-L33"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-7",
+            "evidence_refs": [
+              "REF: git:3ca414ec:runtime/orchestration/coo/promotion_guard.py#L131-L135"
+            ],
+            "statement": "Approval manifest cross-binds both profile_sha256 and delegation_envelope_sha256, so envelope drift (e.g. adding autonomy levels after manifest is sealed) is detectable at every verify_surface invocation. REF: git:3ca414ec:runtime/orchestration/coo/promotion_guard.py#L131-L135"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-8",
+            "evidence_refs": [
+              "REF: git:3ca414ec:runtime/orchestration/coo/commands.py#L64-L84"
+            ],
+            "statement": "_maybe_capture_dump validates that the resolved output path stays within capture_root before writing, preventing path traversal via LIFEOS_COO_CAPTURE_DIR. Label is validated against [A-Za-z0-9._-]+ before use in filename. REF: git:3ca414ec:runtime/orchestration/coo/commands.py#L64-L84"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-9",
+            "evidence_refs": [
+              "REF: git:3ca414ec:scripts/campaign/gate5_soak_runner.py#L38-L66"
+            ],
+            "statement": "gate5_soak_runner reads a manually pre-populated YAML manifest (not automated test execution). The scenarios list must be populated from real CEO+COO sessions. The soak validator enforces thresholds (16 clean runs, 4 sessions, 2 calendar days, distribution minimums) but cannot detect a manipulated manifest. This is correct-by-design for behavioral validation, but the seam exists. REF: git:3ca414ec:scripts/campaign/gate5_soak_runner.py#L38-L66"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-10",
+            "evidence_refs": [
+              "REF: git:3ca414ec:config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json#L4",
+              "REF: git:3ca414ec:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L19"
+            ],
+            "statement": "empty run_user field in coo_unsandboxed_prod_l3.json is design-acknowledged in the CCP design_rationale and exception_justification in the approval manifest, scoped to the single-user WSL deployment model. REF: git:3ca414ec:config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json#L4"
+          }
+        ],
+        "complexity_budget": {
+          "mechanized": "yes",
+          "net_human_steps": 2,
+          "new_surfaces_introduced": 6,
+          "surfaces_removed": 0,
+          "trade_statement": "The 6 campaign gate scripts mechanize what would otherwise be ad-hoc manual verification steps. Net human burden is bounded to manifest sealing (1 step, requires ruling ref) and gate5 soak facilitation (requires real CEO+COO sessions by design). Both are governance-required human steps, not avoidable automation gaps."
+        },
+        "confidence": "high",
+        "lens_name": "Architecture",
+        "model_used": "claude_code/default",
+        "model_version": "claude_code/default",
+        "notes": "Package is structurally sound; single open action is manual manifest sealing before gate4 can run.",
+        "operator_view": "The promotion package introduces a coherent 6-gate pipeline with well-isolated responsibilities.\nProfile swap in gate4 uses try/finally to guarantee deterministic rollback to the burnin profile on\nany failure. The approval guard enforces manifest sealing (profile SHA + envelope SHA + ruling ref)\nbefore any profile activation can occur \u2014 the current unsealed manifest (status: pending) is the\nexpected pre-gate-4 state, not a defect. The Council ruling exists at\ndocs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md and must be wired into the manifest\nas the immediate next step before gate4 can run. One minor ordering gap: gate6_handoff.py can complete\nsuccessfully before gate5 soak results exist; the handoff pack simply records soak_results as\npending. This is low risk but the cutover checklist (which requires gate5 PASS) compensates.\nAll other control paths are explicit, fail-closed, and testable.\n",
+        "run_type": "review",
+        "verdict_recommendation": "Accept"
+      },
+      "Governance": {
+        "assumptions": [
+          "Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md referenced in design_rationale is assumed to exist in docs/01_governance/ with a valid RATIFIED/APPROVED marker \u2014 not verified directly as the file was not present in scoped artifacts and docs/01_governance/ is a protected path. gate3_prepare.py validation will enforce this at seal time.",
+          "No automated path exists to re-activate the unsandboxed profile after rollback without re-running gate3_prepare; this was not verified by reading all callers of promotion_guard."
+        ],
+        "claims": [
+          {
+            "category": "finding",
+            "claim_id": "F1",
+            "evidence_refs": [
+              "REF:git:007d78ed:runtime/orchestration/coo/promotion_guard.py#L104-L105"
+            ],
+            "statement": "Profile name validated with re.fullmatch([A-Za-z0-9_-]+) before use in path construction, preventing path traversal via env override or CLI argument. REF: git:007d78ed:runtime/orchestration/coo/promotion_guard.py#L104-L105"
+          },
+          {
+            "category": "finding",
+            "claim_id": "F2",
+            "evidence_refs": [
+              "REF:git:007d78ed:runtime/tools/openclaw_verify_surface.sh#L105-L110"
+            ],
+            "statement": "INSTANCE_PROFILE_PATH env override validated against allowlist using realpath --canonicalize-missing, hard-blocking out-of-allowlist paths. REF: git:007d78ed:runtime/tools/openclaw_verify_surface.sh#L105-L110"
+          },
+          {
+            "category": "finding",
+            "claim_id": "F3",
+            "evidence_refs": [
+              "REF:git:007d78ed:scripts/campaign/gate3_prepare.py#L17-L19"
+            ],
+            "statement": "Ruling ref containment enforced via resolve() + startswith(gov_root + '/') in both gate3_prepare.py and promotion_guard.py; symlink and relative-path traversal blocked. REF: git:007d78ed:scripts/campaign/gate3_prepare.py#L17-L19"
+          },
+          {
+            "category": "finding",
+            "claim_id": "F4",
+            "evidence_refs": [
+              "REF:git:007d78ed:runtime/orchestration/coo/promotion_guard.py#L46-L48"
+            ],
+            "statement": "Approval manifest status must be 'approved' or 'active' for unsandboxed posture to pass verify_surface; current state 'pending' is correctly fail-closed at gate invocation. REF: git:007d78ed:runtime/orchestration/coo/promotion_guard.py#L46-L48"
+          },
+          {
+            "category": "finding",
+            "claim_id": "F5",
+            "evidence_refs": [
+              "REF:git:007d78ed:scripts/campaign/gate4_runner.py#L42-L65"
+            ],
+            "statement": "Profile swap in gate4_runner.py uses shutil.copyfile (not shell) and is wrapped in try/finally for atomic restore on failure. REF: git:007d78ed:scripts/campaign/gate4_runner.py#L42-L65"
+          },
+          {
+            "category": "finding",
+            "claim_id": "F6",
+            "evidence_refs": [
+              "REF:git:007d78ed:scripts/campaign/gate4_runner.py#L45-L51,"
+            ],
+            "statement": "All subprocess.run calls use list form (not shell=True), eliminating command injection via constructed arguments. REF: git:007d78ed:scripts/campaign/gate4_runner.py#L45-L51, scripts/campaign/coo_rollback.py#L27-L33"
+          },
+          {
+            "category": "finding",
+            "claim_id": "F7",
+            "evidence_refs": [
+              "REF:git:007d78ed"
+            ],
+            "statement": "No hardcoded credentials, API keys, or secrets found in scoped files. REF: git:007d78ed \u2014 reviewed commands.py, promotion_guard.py, gate3_prepare.py, gate4_runner.py, coo_rollback.py, coo_unsandboxed_prod_l3.json"
+          },
+          {
+            "category": "finding",
+            "claim_id": "F8",
+            "evidence_refs": [
+              "REF:git:007d78ed:scripts/campaign/gate3_prepare.py#L38-L54"
+            ],
+            "statement": "Protected paths docs/00_foundations/ and docs/01_governance/ are not modified by this package; gate3_prepare.py reads from governance dir but writes only to config/openclaw/profile_approvals/. REF: git:007d78ed:scripts/campaign/gate3_prepare.py#L38-L54"
+          },
+          {
+            "category": "risk",
+            "claim_id": "R1",
+            "evidence_refs": [
+              "REF:git:007d78ed:config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json#L5."
+            ],
+            "statement": "run_user is empty string in coo_unsandboxed_prod_l3.json \u2014 COO operates as the session user with no separate privilege boundary; privilege escalation path is the session account itself. REF: git:007d78ed:config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json#L5. Design rationale documents this as accepted for WSL single-user deployment."
+          },
+          {
+            "category": "risk",
+            "claim_id": "R2",
+            "evidence_refs": [
+              "REF:git:007d78ed:config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json#L7-L14."
+            ],
+            "statement": "require_elevated_disabled: false combined with target_posture: unsandboxed and allowed_modes: [all] is a broad permission surface; if the process is compromised, full session-level access is available. REF: git:007d78ed:config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json#L7-L14. Council-ratified per design_rationale."
+          },
+          {
+            "category": "risk",
+            "claim_id": "R3",
+            "evidence_refs": [
+              "REF:git:007d78ed:runtime/orchestration/coo/promotion_guard.py#L56-L58."
+            ],
+            "statement": "approval_manifest currently has empty profile_sha256 and delegation_envelope_sha256 (status: pending); if gate3_prepare is bypassed and manifest is manually edited to status: approved with empty hashes, the SHA mismatch check in promotion_guard.py would only block if actual_profile_sha is truthy \u2014 conditional on profile file existing. REF: git:007d78ed:runtime/orchestration/coo/promotion_guard.py#L56-L58. Residual risk: low, requires deliberate manifest tampering."
+          },
+          {
+            "category": "risk",
+            "claim_id": "R4",
+            "evidence_refs": [
+              "REF:git:007d78ed:scripts/campaign/coo_rollback.py#L37-L41."
+            ],
+            "statement": "coo_rollback.py marks manifest status as 'rolled_back' unconditionally if manifest exists, including on dry_run=False; there is no re-seal protection after rollback \u2014 a subsequent manual status edit could re-activate without going through gate3_prepare. REF: git:007d78ed:scripts/campaign/coo_rollback.py#L37-L41. [ASSUMPTION]: no automated re-seal path exists; manual intervention required."
+          },
+          {
+            "category": "fix",
+            "claim_id": "F1",
+            "evidence_refs": [
+              "REF:git:007d78ed:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L18-L21"
+            ],
+            "statement": "No required remediations. run_user gap and broad permission surface are Council-ratified design decisions documented in config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L18-L21. REF: git:007d78ed:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L18-L21"
+          },
+          {
+            "category": "fix",
+            "claim_id": "F2",
+            "evidence_refs": [
+              "REF:git:007d78ed:runtime/orchestration/coo/promotion_guard.py#L56-L58"
+            ],
+            "statement": "Optional hardening: add explicit empty-SHA guard in verify_approval_manifest to block status: approved manifests with empty profile_sha256 or delegation_envelope_sha256 (defense-in-depth against manual manifest tampering). REF: git:007d78ed:runtime/orchestration/coo/promotion_guard.py#L56-L58"
+          }
+        ],
+        "complexity_budget": {
+          "mechanized": "yes",
+          "net_human_steps": 1,
+          "new_surfaces_introduced": 5,
+          "surfaces_removed": 0,
+          "trade_statement": "New surfaces (promotion_guard, gate3_prepare, gate4_runner, verify_surface extension, coo_unsandboxed_prod_l3.json) introduce the unsandboxed posture under layered governance controls. The 1 remaining human step is the CEO manual approval seal (gate3_prepare --ruling-ref), which is a deliberate authorization chokepoint, not a complexity leak."
+        },
+        "confidence": "high",
+        "lens_name": "Governance",
+        "model_used": "claude_code/default",
+        "model_version": "claude_code/default",
+        "notes": "The COO unsandboxed promotion package introduces a candidate production profile\n(coo_unsandboxed_prod_l3.json) with target_posture=unsandboxed and allowed_modes=[all].\nThis is the intended outcome of",
+        "operator_view": "The COO unsandboxed promotion package introduces a candidate production profile\n(coo_unsandboxed_prod_l3.json) with target_posture=unsandboxed and allowed_modes=[all].\nThis is the intended outcome of the promotion campaign and is Council-ratified.\n\nSecurity controls are layered and fail-closed: the profile cannot be activated until\ngate3_prepare seals the approval manifest with the ratified ruling ref and computed SHAs,\nand verify_surface.sh hard-blocks on any approval_manifest_check failure. Profile name\nand path inputs are validated (regex + realpath canonicalization) to prevent traversal.\nThe gate4 profile swap uses atomic backup/restore with try/finally.\n\nKnown accepted risks: empty run_user (WSL session user = COO process identity) and\nrequire_elevated_disabled: false are documented and Council-ratified. These are\ndesign-acknowledged, not unreviewed gaps.\n\nGovernance compliance: protected paths (docs/00_foundations/, docs/01_governance/,\nconfig/governance/protected_artefacts.json) are not modified. The constraint that\ndocs/01_governance/ must not be written before Council acceptance is enforced both\nby the CCP constraint declaration and by gate3_prepare's ruling-ref validation.\n\nNo action required before proceeding. The one open step is the CEO manual approval\nseal after the Council ruling is stearded \u2014 this is by design.",
+        "run_type": "review",
+        "verdict_recommendation": "Accept"
+      },
+      "Implementation": {
+        "claims": [
+          {
+            "category": "finding",
+            "claim_id": "C-1",
+            "evidence_refs": [
+              "REF: git:f978a378:runtime/orchestration/coo/promotion_guard.py#L15-L137"
+            ],
+            "statement": "promotion_guard.py is cleanly decomposed into composable, independently-testable units: verify_delegation_ceiling, verify_approval_manifest, full_promotion_guard \u2014 no hidden shared state, each a pure function returning violations[]. REF: git:f978a378:runtime/orchestration/coo/promotion_guard.py#L15-L137"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-2",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate4_runner.py#L40-L90"
+            ],
+            "statement": "Gate4 try/finally pattern ensures the active coo.json profile is restored on any failure path, including Python exceptions in run_campaign(); rollback is invoked only when passed=False inside the finally block. REF: git:f978a378:scripts/campaign/gate4_runner.py#L40-L90"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-3",
+            "evidence_refs": [
+              "REF: git:f978a378:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L1-L20",
+              "REF: git:f978a378:runtime/orchestration/coo/promotion_guard.py#L38-L92"
+            ],
+            "statement": "Approval manifest is currently status='pending' with profile_sha256='', delegation_envelope_sha256 absent, and council_ruling_ref='', making full_promotion_guard emit three violations and causing verify_surface.sh's approval_manifest_check to hard-block. This is the correct pre-Council state \u2014 the manifest acts as a dead-man switch. REF: git:f978a378:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L1-L20"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-4",
+            "evidence_refs": [
+              "REF: git:f978a378:runtime/tools/openclaw_verify_surface.sh#L169-L183",
+              "REF: git:f978a378:runtime/orchestration/coo/promotion_guard.py#L104-L105"
+            ],
+            "statement": "verify_surface.sh's approval_manifest_check block validates profile_name format (^[A-Za-z0-9_-]+$) and fails closed for unsandboxed posture with empty profile_name \u2014 defense-in-depth matching the profile_name regex in promotion_guard.py. REF: git:f978a378:runtime/tools/openclaw_verify_surface.sh#L169-L183"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-5",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate4_runner.py#L63-L67"
+            ],
+            "statement": "Gate4's passed condition is verify_proc.returncode==0 and probes['all_pass']; run_campaign() outcome is captured in the payload but not gated. This is design-correct: gate4 validates infrastructure readiness; behavioral scenario acceptance is gate5's responsibility via soak thresholds. REF: git:f978a378:scripts/campaign/gate4_runner.py#L63-L67"
+          },
+          {
+            "category": "risk",
+            "claim_id": "C-6",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate4_host_probes.py#L55-L58",
+              "REF: git:f978a378:runtime/orchestration/coo/promotion_guard.py#L23-L27"
+            ],
+            "statement": "delegation_ceiling host probe uses ordered equality (active == ['L0','L3','L4']) while promotion_guard uses sorted() comparison. In practice these are equivalent for this specific input since sorted(['L0','L3','L4'])==['L0','L3','L4'], but the probe is more brittle than the guard for any future envelope reordering. REF: git:f978a378:scripts/campaign/gate4_host_probes.py#L55-L58 vs git:f978a378:runtime/orchestration/coo/promotion_guard.py#L23-L27"
+          },
+          {
+            "category": "risk",
+            "claim_id": "C-7",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate4_runner.py#L70-L78"
+            ],
+            "statement": "In gate4_runner.py's finally block, the fallback copyfile(backup_profile, active_profile) call has no exception handler; a disk-full condition at restore time would propagate silently without logging, leaving coo.json in an indeterminate state. This is edge-case and self-correcting via the subsequent run_rollback() call which re-runs verify_surface. REF: git:f978a378:scripts/campaign/gate4_runner.py#L70-L78"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-8",
+            "evidence_refs": [
+              "REF: git:f978a378:runtime/orchestration/coo/commands.py#L48-L85"
+            ],
+            "statement": "_maybe_capture_dump in commands.py uses path-escape validation and label sanitization (re.fullmatch([A-Za-z0-9._-]+)) ensuring the env-gated capture side-channel cannot escape the capture_root directory or inject arbitrary filenames. REF: git:f978a378:runtime/orchestration/coo/commands.py#L48-L85"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-9",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate5_soak_runner.py#L1-L67",
+              "REF: git:f978a378:scripts/campaign/gate5_soak_validator.py#L1-L35"
+            ],
+            "statement": "gate5_soak_runner.py reads pre-built YAML scenarios rather than executing live invocations; scenario result values ('clean', 'governance_escape', etc.) must be populated externally during actual soak sessions. The validator enforces structured acceptance thresholds (>=16 clean_runs, >=4 sessions, >=2 calendar_days, distribution minimums). REF: git:f978a378:scripts/campaign/gate5_soak_runner.py#L1-L67 and git:f978a378:scripts/campaign/gate5_soak_validator.py#L1-L35"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-10",
+            "evidence_refs": [
+              "REF: git:f978a378:runtime/orchestration/coo/promotion_guard.py#L50-L58",
+              "REF: git:f978a378:runtime/orchestration/coo/promotion_guard.py#L131-L135"
+            ],
+            "statement": "SHA256 integrity binding is implemented for both profile and delegation_envelope in the manifest; verify_approval_manifest checks profile_sha256 and full_promotion_guard additionally checks delegation_envelope_sha256 if present, providing dual-anchor tamper detection. REF: git:f978a378:runtime/orchestration/coo/promotion_guard.py#L50-L58 and #L131-L135"
+          }
+        ],
+        "complexity_budget": {
+          "mechanized": "yes",
+          "net_human_steps": 2,
+          "new_surfaces_introduced": 3,
+          "surfaces_removed": 0,
+          "trade_statement": "Three new surfaces (promotion_guard, campaign scripts, approval manifest) are all mechanically enforced via verify_surface.sh blocking gate; human steps are seal-manifest and Council ruling commit, which are required governance actions, not incidental complexity."
+        },
+        "confidence": "high",
+        "lens_name": "Implementation",
+        "model_used": "claude_code/default",
+        "model_version": "claude_code/default",
+        "notes": "Implementation is structurally sound; all integrity enforcement points are present and correctly wired. Two minor asymmetries noted but neither is blocking.",
+        "operator_view": "The promotion package delivers a well-layered guard chain: manifest sealing \u2192 delegation ceiling \u2192 verify_surface\napproval_manifest_check \u2192 gate4 try/finally backup/restore. The approval manifest is intentionally PENDING\n(empty sha256 fields, empty council_ruling_ref, status=\"pending\"), which correctly makes verify_surface's\napproval_manifest_check a hard blocker until Council seals it. The campaign run in gate4 is deliberately\nnot included in the `passed` condition \u2014 gate4 tests infrastructure readiness; behavioral stability is\ngate5's domain. Two minor findings are logged: an ordered-vs-sorted asymmetry between the delegation_ceiling\nhost probe and promotion_guard (cosmetic; equivalent for the specific [L0,L3,L4] input), and the gate4\nfinally block silently discards its own copyfile failure if disk is full at restore time. Neither blocks\nacceptance. Seal the manifest once the ruling ref is committed to docs/01_governance/.\n",
+        "run_type": "review",
+        "verdict_recommendation": "Accept"
+      },
+      "Risk": {
+        "claims": [
+          {
+            "category": "finding",
+            "claim_id": "C-1",
+            "evidence_refs": [
+              "REF: git:3ca414ec:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L4-L16",
+              "REF: git:3ca414ec:runtime/orchestration/coo/promotion_guard.py#L38-L92"
+            ],
+            "statement": "Approval manifest is intentionally unsealed at review time \u2014 profile_sha256='', delegation_envelope_sha256='', council_ruling_ref='', status='pending' \u2014 and verify_approval_manifest() will hard-block Gate 4 until all four fields are populated, matching the CCP constraint. REF: git:3ca414ec:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L4-L16"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-2",
+            "evidence_refs": [
+              "REF: git:3ca414ec:runtime/orchestration/coo/promotion_guard.py#L66-L75",
+              "REF: git:3ca414ec:docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md#L1-L10"
+            ],
+            "statement": "Council ruling document exists and is RATIFIED at docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md; ruling_ref path satisfies the gov_root prefix check in verify_approval_manifest(). REF: git:3ca414ec:runtime/orchestration/coo/promotion_guard.py#L66-L75"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-3",
+            "evidence_refs": [
+              "REF: git:f978a378:runtime/tools/openclaw_verify_surface.sh#L105-L110"
+            ],
+            "statement": "Profile path allowlist in verify_surface.sh is anchored to SCRIPT_DIR (not CWD) via realpath --canonicalize-missing, preventing CWD-relative path traversal and environment override to out-of-allowlist paths. REF: git:f978a378:runtime/tools/openclaw_verify_surface.sh#L105-L110"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-4",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate4_runner.py#L28-L65"
+            ],
+            "statement": "gate4_runner.py executes full_promotion_guard BEFORE profile swap (pre-activation guard, Gov F1) and wraps the swap in try/finally ensuring the backup profile is restored on any failure path. REF: git:f978a378:scripts/campaign/gate4_runner.py#L28-L65"
+          },
+          {
+            "category": "risk",
+            "claim_id": "C-5",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate4_runner.py#L61-L65"
+            ],
+            "statement": "Risk: if shutil.copyfile(backup_profile, active_profile) raises inside the gate4_runner finally block (L64), the active profile is left in an undefined/truncated state with no secondary recovery path. The backup file exists but the restore itself has no guard. REF: git:f978a378:scripts/campaign/gate4_runner.py#L61-L65"
+          },
+          {
+            "category": "risk",
+            "claim_id": "C-6",
+            "evidence_refs": [
+              "REF: git:3ca414ec:runtime/orchestration/coo/commands.py#L80-L84"
+            ],
+            "statement": "commands.py calls capture_root.mkdir(parents=True, exist_ok=True) at L80 before the filename containment check at L83-84; an adversarial LIFEOS_COO_CAPTURE_DIR value could cause arbitrary directory creation even though the subsequent atomic_write_text is correctly guarded. Impact is limited to directory creation, not arbitrary writes. REF: git:3ca414ec:runtime/orchestration/coo/commands.py#L80-L84"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-7",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate6_handoff.py#L31-L33"
+            ],
+            "statement": "gate6_handoff.py raises RuntimeError if council_ruling_ref is empty in the manifest, hard-blocking handoff pack generation until the manifest is sealed; this is a correct second-order gate on the sealing requirement. REF: git:f978a378:scripts/campaign/gate6_handoff.py#L31-L33"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-8",
+            "evidence_refs": [
+              "REF: git:3ca414ec:config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json#L4",
+              "REF: git:3ca414ec:config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml#L19"
+            ],
+            "statement": "run_user is empty in the candidate profile; this is accepted and justified in both the CCP design_rationale and manifest exception_justification.run_user (single-user WSL deployment, process identity inherited from host). REF: git:3ca414ec:config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json#L4"
+          },
+          {
+            "category": "risk",
+            "claim_id": "C-9",
+            "evidence_refs": [
+              "REF: git:f978a378:runtime/tools/openclaw_verify_surface.sh#L16"
+            ],
+            "statement": "Process gap: OPENCLAW_POLICY_PHASE defaults to 'burnin' in verify_surface.sh and no campaign script updates this value after Gate 5 soak completion; post-promotion the operator must explicitly update policy_phase to reflect active/production state, or the system will continue asserting burn-in policy rules under the production profile. REF: git:f978a378:runtime/tools/openclaw_verify_surface.sh#L16"
+          },
+          {
+            "category": "finding",
+            "claim_id": "C-10",
+            "evidence_refs": [
+              "REF: git:f978a378:scripts/campaign/gate5_soak_runner.py#L14-L19"
+            ],
+            "statement": "gate5_soak_runner.py classifies 'autonomy_ceiling_breach' and 'governance_escape' as HARD_RESET_REASONS (clean_run_count \u2192 0), providing a strong soak-phase regression guard against the highest-severity failure modes. REF: git:f978a378:scripts/campaign/gate5_soak_runner.py#L14-L19"
+          }
+        ],
+        "complexity_budget": {
+          "mechanized": "yes",
+          "net_human_steps": 1,
+          "new_surfaces_introduced": 3,
+          "surfaces_removed": 0,
+          "trade_statement": "The one manual step is manifest sealing (operator action between review Accept and Gate 4 run). All gate execution, rollback, and verification are mechanized. Three new surfaces (promotion_guard.py, gate4_runner.py, verify_surface.sh approval_manifest_check branch) are justified by the governance requirement for pre-activation integrity checks."
+        },
+        "confidence": "high",
+        "lens_name": "Risk",
+        "model_used": "claude_code/default",
+        "model_version": "claude_code/default",
+        "notes": "All architectural safety controls are operational; two moderate implementation-level hardening gaps noted but neither is promotion-blocking.",
+        "operator_view": "The promotion package is structurally safe to proceed. The approval manifest is intentionally\nunsealed (status: \"pending\", empty SHAs, empty ruling_ref) \u2014 this is the correct pre-activation\nstate, enforced by verify_approval_manifest() which will hard-block Gate 4 until the seal is\napplied. The Council ruling document exists at docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md.\nThe operator's next action is: (1) accept this review, (2) seal the manifest by writing\nprofile_sha256, delegation_envelope_sha256, council_ruling_ref, and flipping status to \"approved\",\nthen (3) run Gate 4. Two non-blocking risks are noted: a capture-dir directory-creation race\n(mkdir before containment check \u2014 low impact) and a missing secondary recovery path inside the\ngate4 finally-block restore. Neither prevents the promotion; both should be addressed before Gate 6\nUAT. The policy_phase defaulting to \"burnin\" post-promotion is a process gap requiring an explicit\noperator action after soak completion.\n",
+        "run_type": "review",
+        "verdict_recommendation": "Accept"
+      }
+    },
+    "plan_core_hash": "pending",
+    "run_id": "council_23b19616d394472bb845996c682029f9",
+    "run_type": "review",
+    "state_transitions": [
+      {
+        "details": {},
+        "from_state": "S0_ASSEMBLE",
+        "reason": "lenses_required",
+        "to_state": "S1_EXECUTE_LENSES"
+      },
+      {
+        "details": {
+          "lens": "Architecture",
+          "retry": 0,
+          "valid": true
+        },
+        "from_state": "S1_EXECUTE_LENSES",
+        "reason": "lens_output_received",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES"
+      },
+      {
+        "details": {
+          "lens": "Governance",
+          "retry": 0,
+          "valid": true
+        },
+        "from_state": "S1_EXECUTE_LENSES",
+        "reason": "lens_output_received",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES"
+      },
+      {
+        "details": {
+          "lens": "Implementation",
+          "retry": 0,
+          "valid": true
+        },
+        "from_state": "S1_EXECUTE_LENSES",
+        "reason": "lens_output_received",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES"
+      },
+      {
+        "details": {
+          "lens": "Risk",
+          "retry": 0,
+          "valid": true
+        },
+        "from_state": "S1_EXECUTE_LENSES",
+        "reason": "lens_output_received",
+        "to_state": "S1_25_SCHEMA_GATE_LENSES"
+      },
+      {
+        "details": {
+          "coverage_degraded": false
+        },
+        "from_state": "S1_25_SCHEMA_GATE_LENSES",
+        "reason": "lens_gate_complete",
+        "to_state": "S1_5_COVERAGE_COMPLETE"
+      },
+      {
+        "details": {},
+        "from_state": "S1_5_COVERAGE_COMPLETE",
+        "reason": "coverage_check_ok",
+        "to_state": "S1_55_EXECUTION_FIDELITY"
+      },
+      {
+        "details": {},
+        "from_state": "S1_55_EXECUTION_FIDELITY",
+        "reason": "fidelity_check_ok",
+        "to_state": "S2_SYNTHESIS"
+      },
+      {
+        "details": {},
+        "from_state": "S2_SYNTHESIS",
+        "reason": "synthesis_started",
+        "to_state": "S2_25_SCHEMA_GATE_SYNTHESIS"
+      },
+      {
+        "details": {},
+        "from_state": "S2_25_SCHEMA_GATE_SYNTHESIS",
+        "reason": "synthesis_schema_ok",
+        "to_state": "S2_5_CHALLENGER_REVIEW"
+      },
+      {
+        "details": {},
+        "from_state": "S2_5_CHALLENGER_REVIEW",
+        "reason": "entering_closure_gate",
+        "to_state": "S3_CLOSURE_GATE"
+      },
+      {
+        "details": {
+          "closure_ok": true
+        },
+        "from_state": "S3_CLOSURE_GATE",
+        "reason": "closure_gate_complete",
+        "to_state": "S4_CLOSEOUT"
+      },
+      {
+        "details": {},
+        "from_state": "S4_CLOSEOUT",
+        "reason": "run_complete",
+        "to_state": "TERMINAL_COMPLETE"
+      }
+    ],
+    "status": "complete",
+    "synthesis": {
+      "complexity_budget": {
+        "net_human_steps": 0
+      },
+      "contradiction_ledger": [],
+      "coverage_degraded": false,
+      "evidence_summary": {
+        "assumption_count": 0,
+        "ref_count": 56
+      },
+      "fix_plan": [],
+      "operator_view": [
+        "synthesis complete"
+      ],
+      "run_type": "review",
+      "tier": "T3",
+      "verdict": "Accept",
+      "waived_lenses": []
+    },
+    "tier": "T3"
+  },
+  "status": "complete"
+}

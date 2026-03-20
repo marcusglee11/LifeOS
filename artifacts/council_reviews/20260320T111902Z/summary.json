@@ -1,0 +1,29 @@
+{
+  "ccp_path": "artifacts/council_reviews/coo_unsandboxed_prod_l3.ccp.yaml",
+  "live_gate": {
+    "log": "artifacts/council_reviews/20260320T111902Z/live_promotion.log",
+    "ok": true,
+    "result": "artifacts/council_reviews/20260320T111902Z/live_result.json"
+  },
+  "mock_gate": {
+    "exit_code": 0,
+    "log": "artifacts/council_reviews/20260320T111902Z/mock_promotion.log",
+    "ok": true
+  },
+  "packet_gate": {
+    "exit_code": 0,
+    "log": "artifacts/council_reviews/20260320T111902Z/review_packet_validator.log",
+    "ok": true
+  },
+  "packet_path": "artifacts/review_packets/Review_Packet_COO_Unsandboxed_Prod_L3_Council_Dogfood_v1.0.md",
+  "queue": {
+    "escalation_id": "ESC-0005"
+  },
+  "queue_status": "PENDING",
+  "run_stamp": "20260320T111902Z",
+  "subject": {
+    "branch": "main",
+    "commit": "3ca414ec"
+  },
+  "terminal_outcome": "PASS"
+}

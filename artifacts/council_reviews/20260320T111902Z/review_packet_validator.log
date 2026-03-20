@@ -1,0 +1,10 @@
+$ /home/linuxbrew/.linuxbrew/opt/python@3.14/bin/python3.14 scripts/validate_review_packet.py /mnt/c/Users/cabra/Projects/LifeOS/artifacts/review_packets/Review_Packet_COO_Unsandboxed_Prod_L3_Council_Dogfood_v1.0.md
+
+exit_code=0
+
+STDOUT:
+PASS
+
+
+STDERR:
+

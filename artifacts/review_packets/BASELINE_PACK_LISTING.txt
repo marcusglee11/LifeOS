@@ -1,0 +1,5 @@
+-rw-r--r-- cabra/197609    181 2026-02-02 22:40 00_META.yaml
+-rw-r--r-- cabra/197609    116 2026-02-02 22:40 01_REPO_SNAPSHOT.txt
+-rw-r--r-- cabra/197609    128 2026-02-02 22:40 02_KEY_PATHS.txt
+-rw-r--r-- cabra/197609      0 2026-02-02 22:40 03_AUTONOMY_BLOCKERS.md
+-rw-r--r-- cabra/197609    339 2026-02-02 22:40 06_MANIFEST.txt
