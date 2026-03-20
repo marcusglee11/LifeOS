@@ -11,9 +11,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** OpenClaw distill lane operational rollout — shadow-first enablement and active promotion gating
-**Active WIP:** build/openclaw-distill-operational-r
-**Last Updated:** 2026-03-09 (rev29)
+**Current Focus:** COO unsandboxed promotion — C3 Gate-5 soak (16 runs / 4 sessions / 2 calendar days)
+**Active WIP:** none (awaiting soak window)
+**Last Updated:** 2026-03-20 (rev30)
 
 ---
 
@@ -86,6 +86,7 @@ None — all prior blockers resolved:
 
 ## 🟩 Recent Wins
 
+- **2026-03-20:** COO Unsandboxed Promotion C2 PASS — Council V2 `Accept` verdict (all 4 lenses) at commit `45973858`. Wave fixes merged: PROFILE_NAME bypass (wave1), posture-aware check + ruling structured marker + profile exception_justification (wave2+3), gate validation / path containment / dead logic / artifact hygiene (wave4). Council ruling already in `docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md`. Escalation ESC-0004 queued. Next: C3 Gate-5 soak (16 runs / 4 sessions / 2 calendar days).
 - **2026-03-09:** OpenClaw distill lane operational rollout packet defined — canonical runbook now specifies session-scoped shadow enablement, 12-run / 2-session shadow window, blocker policy, CEO-approved shadow receipt, forced-failure drill, and active re-approval after fingerprint drift. Backlog and state now track rollout as an explicit operational work item.
 - **2026-03-08:** COO Bootstrap Step 6 COMPLETE — `lifeos coo propose` invokes live OpenClaw COO (gpt-5.3-codex); `lifeos coo direct` wired with escalation packet parsing; Stage A (propose+NTP) PASS; Stage B real-backlog CEO verdict = PASS; 60 tests; BIN fixtures removed. Evidence: `artifacts/coo/step6_shadow_validation.md`.
 - **2026-03-08:** COO Bootstrap Step 5 COMPLETE — proxy COO validated 7/7 scenarios on frozen substrate; zero defects; CEO-approved. (merge commit 4483fdf0)
