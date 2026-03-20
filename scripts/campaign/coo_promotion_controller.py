@@ -100,6 +100,9 @@ def run_campaign(manifest_path: Path, repo_root: Path, gate: str) -> dict[str, A
                 "scenario_id": str(scenario.get("scenario_id", "unknown")),
                 "parse_status": "error",
                 "claim_verifier_status": "error",
+                "actual_packet_family": "error",
+                "expected_packet_family": str(scenario.get("expected_packet_family", "unknown")),
+                "inside_outside_consistent": False,
                 "error": str(exc),
             })
     payload = "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)

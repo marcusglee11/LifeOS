@@ -1,0 +1,2 @@
+{"actual_packet_family": "error", "claim_verifier_status": "error", "error": "NTP output must be a YAML mapping", "expected_packet_family": "task_proposal", "inside_outside_consistent": false, "parse_status": "error", "scenario_id": "gate4_propose"}
+{"actual_packet_family": "error", "claim_verifier_status": "error", "error": "Escalation packet must be a YAML mapping", "expected_packet_family": "escalation_packet", "inside_outside_consistent": false, "parse_status": "error", "scenario_id": "gate4_direct_governance"}

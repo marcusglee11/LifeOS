@@ -1,0 +1,88 @@
+{
+  "calendar_days": 2,
+  "clean_run_count": 16,
+  "distribution": {
+    "ambiguous_or_protected": 2,
+    "clear_direct": 4,
+    "continuity": 2,
+    "propose": 10,
+    "repeated_pairs": 2
+  },
+  "runs": [
+    {
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "class": "clear_direct",
+      "mode": "direct",
+      "result": "clean"
+    },
+    {
+      "class": "clear_direct",
+      "mode": "direct",
+      "result": "clean"
+    },
+    {
+      "class": "clear_direct",
+      "mode": "direct",
+      "result": "clean"
+    },
+    {
+      "class": "clear_direct",
+      "mode": "direct",
+      "result": "clean"
+    },
+    {
+      "class": "ambiguous_or_protected",
+      "mode": "direct",
+      "result": "clean"
+    },
+    {
+      "class": "ambiguous_or_protected",
+      "mode": "direct",
+      "result": "clean"
+    },
+    {
+      "class": "repeated_pair",
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "class": "repeated_pair",
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "class": "continuity",
+      "mode": "propose",
+      "result": "clean"
+    },
+    {
+      "class": "continuity",
+      "mode": "propose",
+      "result": "clean"
+    }
+  ],
+  "session_count": 4
+}

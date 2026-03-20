@@ -1,0 +1,7 @@
+- All 6 gates PASS
+- Council ruling verdict PASS or PASS_WITH_CONDITIONS
+- Soak: 16 clean runs, 4 sessions, 2 calendar days
+- CEO completes 5/5 UAT prompts
+- Profile SHA matches manifest
+- Delegation ceiling confirmed [L0, L3, L4]
+- Rollback verified (dry-run)

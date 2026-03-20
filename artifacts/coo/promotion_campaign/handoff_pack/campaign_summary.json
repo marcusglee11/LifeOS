@@ -1,0 +1,9 @@
+{
+  "gates": [
+    "gate1",
+    "gate3",
+    "gate4",
+    "gate5"
+  ],
+  "status": "prepared"
+}

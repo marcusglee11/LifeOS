@@ -1,0 +1,53 @@
+{
+  "campaign": {
+    "claim_pass": 0,
+    "consistent": 0,
+    "family_match": 0,
+    "log_path": "artifacts/coo/promotion_campaign/campaign_log_gate4.jsonl",
+    "parse_pass": 0,
+    "total": 2
+  },
+  "guard": {
+    "pass": true,
+    "violations": []
+  },
+  "pass": true,
+  "probes": {
+    "all_pass": true,
+    "probes": [
+      {
+        "bytes_read": 9220,
+        "pass": true,
+        "probe": "benign_read"
+      },
+      {
+        "pass": true,
+        "probe": "benign_write"
+      },
+      {
+        "pass": true,
+        "probe": "benign_exec",
+        "returncode": 0
+      },
+      {
+        "missing": [],
+        "pass": true,
+        "probe": "protected_path_block"
+      },
+      {
+        "pass": true,
+        "probe": "unknown_category_block"
+      },
+      {
+        "active_levels": [
+          "L0",
+          "L3",
+          "L4"
+        ],
+        "pass": true,
+        "probe": "delegation_ceiling"
+      }
+    ]
+  },
+  "verify_exit_code": 0
+}

@@ -1,21 +1,25 @@
-schema_version: "profile_approval.v1"
-profile_name: "coo_unsandboxed_prod_l3"
-profile_path: "config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json"
-profile_sha256: ""
-delegation_envelope_path: "config/governance/delegation_envelope.yaml"
-delegation_envelope_sha256: ""
+schema_version: profile_approval.v1
+profile_name: coo_unsandboxed_prod_l3
+profile_path: config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json
+profile_sha256: e1bce4f5be3135cc03390886ed79e46281cdd76e4e473d4bc440a6f34d1cc6bf
+delegation_envelope_path: config/governance/delegation_envelope.yaml
+delegation_envelope_sha256: 236aee34a735eb32347054bc5c4598df0d71728cafc2b01d18c79de53fbf484e
 autonomy_ceiling:
   active_levels:
-    - "L0"
-    - "L3"
-    - "L4"
-  trust_tier: "burn-in"
+  - L0
+  - L3
+  - L4
+  trust_tier: burn-in
 approval:
-  council_ruling_ref: ""
-  approved_at: ""
-  approved_by: "CEO"
-status: "pending"
+  council_ruling_ref: docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md
+  approved_at: '2026-03-20T18:30:34.557101+00:00'
+  approved_by: CEO
+status: approved
 exception_justification:
-  run_user: "COO operates as the session user by design; no separate service account is applicable in this single-user WSL deployment."
-  allowed_modes: "all modes are required for full production orchestration capability; blast radius is bounded by the delegation envelope ceiling (L0, L3, L4 only)."
-  sandboxing: "Unsandboxed posture is the explicit goal of this promotion and the subject of the Council-reviewed ruling; disabling confinement requirements is intentional and Council-ratified."
+  run_user: COO operates as the session user by design; no separate service account
+    is applicable in this single-user WSL deployment.
+  allowed_modes: all modes are required for full production orchestration capability;
+    blast radius is bounded by the delegation envelope ceiling (L0, L3, L4 only).
+  sandboxing: Unsandboxed posture is the explicit goal of this promotion and the subject
+    of the Council-reviewed ruling; disabling confinement requirements is intentional
+    and Council-ratified.
