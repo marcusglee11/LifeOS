@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -83,12 +84,55 @@ def invoke_coo_reasoning(
     payload = dict(context)
     payload["mode"] = mode
 
-    message = json.dumps(payload, sort_keys=True)
+    _schema_for_mode = {
+        "propose": "task_proposal.v1 or nothing_to_propose.v1",
+        "direct": "escalation_packet.v1",
+    }
+    _required_schema = _schema_for_mode.get(mode, "unknown")
+
+    if mode == "propose":
+        message = (
+            f"[MACHINE_API mode={mode}]\n"
+            "Draft the task proposal packet for CEO review.\n"
+            "This is the DRAFTING stage — the CEO will approve or reject AFTER seeing your output.\n"
+            "Your output IS the proposal document. Output it as YAML and nothing else.\n\n"
+            "OUTPUT FORMAT (strict):\n"
+            "- First line MUST be exactly: schema_version: task_proposal.v1\n"
+            "- OR if nothing to propose: schema_version: nothing_to_propose.v1\n"
+            "- No prose before or after the YAML. No explanation. No questions.\n"
+            "- Do NOT read any files — all context provided below.\n\n"
+            f"Context:\n{json.dumps(payload, sort_keys=True)}"
+        )
+    elif mode == "direct":
+        message = (
+            f"[MACHINE_API mode={mode}]\n"
+            "Generate the escalation packet for this direct CEO objective.\n"
+            "Output the escalation_packet.v1 YAML and nothing else.\n\n"
+            "OUTPUT FORMAT (strict):\n"
+            "- First line MUST be exactly: schema_version: escalation_packet.v1\n"
+            "- No prose before or after the YAML.\n"
+            "- Do NOT read any files — all context provided below.\n\n"
+            f"Context:\n{json.dumps(payload, sort_keys=True)}"
+        )
+    else:
+        message = (
+            f"[MACHINE_API mode={mode}] "
+            f"Output {_required_schema} YAML only. First line: schema_version:\n\n"
+            + json.dumps(payload, sort_keys=True)
+        )
+
+    # Use a fresh session ID per invocation so machine API calls are stateless.
+    # This prevents OpenClaw's session-recovery mechanism from injecting a
+    # "Continue where you left off" user message before our actual payload,
+    # and stops conversation history from accumulating across invocations.
+    session_id = str(uuid.uuid4())
 
     cmd = [
         "openclaw",
         "agent",
         "--agent", "main",
+        "--session-id", session_id,
+        "--thinking", "high",
         "--message", message,
         "--json",
     ]
