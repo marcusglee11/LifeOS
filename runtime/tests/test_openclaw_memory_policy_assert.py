@@ -11,7 +11,7 @@ def _base_cfg():
                 "thinkingDefault": "low",
                 "model": {
                     "primary": "openai-codex/gpt-5.3-codex",
-                    "fallbacks": ["github-copilot/gpt-5-mini", "google-gemini-cli/gemini-3-flash-preview"],
+                    "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"],
                 },
                 "memorySearch": {
                     "enabled": False,
@@ -21,9 +21,9 @@ def _base_cfg():
                 },
             },
             "list": [
-                {"id": "main", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["github-copilot/gpt-5-mini", "google-gemini-cli/gemini-3-flash-preview"]}},
-                {"id": "quick", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["github-copilot/gpt-5-mini", "google-gemini-cli/gemini-3-flash-preview"]}},
-                {"id": "think", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["github-copilot/gpt-5-mini", "google-gemini-cli/gemini-3-flash-preview"]}},
+                {"id": "main", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"]}},
+                {"id": "quick", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"]}},
+                {"id": "think", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"]}},
             ],
         },
     }

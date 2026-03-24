@@ -10,7 +10,7 @@ def _cfg():
                 'thinkingDefault': 'low',
                 'model': {
                     'primary': 'openai-codex/gpt-5.3-codex',
-                    'fallbacks': ['github-copilot/gpt-5-mini', 'google-gemini-cli/gemini-3-flash-preview'],
+                    'fallbacks': ['openai-codex/gpt-5.1', 'openai-codex/gpt-5.1-codex-max'],
                 },
                 'memorySearch': {
                     'enabled': False,
@@ -20,9 +20,9 @@ def _cfg():
                 },
             },
             'list': [
-                {'id': 'main', 'model': {'primary': 'openai-codex/gpt-5.3-codex', 'fallbacks': ['github-copilot/gpt-5-mini', 'google-gemini-cli/gemini-3-flash-preview']}},
-                {'id': 'quick', 'model': {'primary': 'openai-codex/gpt-5.3-codex', 'fallbacks': ['github-copilot/gpt-5-mini', 'google-gemini-cli/gemini-3-flash-preview']}},
-                {'id': 'think', 'model': {'primary': 'openai-codex/gpt-5.3-codex', 'fallbacks': ['github-copilot/gpt-5-mini', 'google-gemini-cli/gemini-3-flash-preview']}},
+                {'id': 'main', 'model': {'primary': 'openai-codex/gpt-5.3-codex', 'fallbacks': ['openai-codex/gpt-5.1', 'openai-codex/gpt-5.1-codex-max']}},
+                {'id': 'quick', 'model': {'primary': 'openai-codex/gpt-5.3-codex', 'fallbacks': ['openai-codex/gpt-5.1', 'openai-codex/gpt-5.1-codex-max']}},
+                {'id': 'think', 'model': {'primary': 'openai-codex/gpt-5.3-codex', 'fallbacks': ['openai-codex/gpt-5.1', 'openai-codex/gpt-5.1-codex-max']}},
             ],
         },
     }
@@ -33,7 +33,7 @@ def test_assert_policy_passes_for_expected_ladders():
     result = assert_policy(cfg)
     assert result['owners'] == ['owner-1']
     assert result['defaults_thinking'] == 'low'
-    assert result['required_subscription_fallbacks'] == ['github-copilot/gpt-5-mini', 'google-gemini-cli/gemini-3-flash-preview']
+    assert result['required_subscription_fallbacks'] == ['openai-codex/gpt-5.1', 'openai-codex/gpt-5.1-codex-max']
     assert result['policy_phase'] == 'burnin'
     assert result['memory']['policy_phase'] == 'burnin'
     assert result['memory']['canonical_backend'] in {'missing', 'local'}

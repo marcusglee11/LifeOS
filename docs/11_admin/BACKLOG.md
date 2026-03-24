@@ -51,7 +51,7 @@
 
 ### COO Step 6 Known Gaps (carried forward 2026-03-08)
 
-- [ ] **COO Sandboxing Decision** — DoD: Council ruling on OS-level containment strategy — Owner: Council — Context: COO currently runs with full filesystem + exec access (`sandboxed: false`); autonomy boundary is delegation envelope + fail-closed reasoning only. Requires architectural decision before L1/L2 autonomy promotion — Priority: P2
+- [x] **COO Sandboxing Decision** — DoD: Council ruling on OS-level containment strategy — Owner: Council — Context: COO currently runs with full filesystem + exec access (`sandboxed: false`); autonomy boundary is delegation envelope + fail-closed reasoning only. Requires architectural decision before L1/L2 autonomy promotion — Priority: P2 — **Done: 2026-03-24** — Council ruling APPROVED (2026-03-20); COO promoted to unsandboxed prod L3; manifest active; Gate-6 UAT 5/5 PASS
 - [ ] **COO schema drift guard** — DoD: `output_schema` in `context.py` and `artifacts/coo/schemas.md` stay in sync; add CI check or single source-of-truth — Owner: Substrate — Context: Step 6 gap #3; `build_propose_context()` embeds schema inline, divergence from `schemas.md` is silent — Priority: P2
 - [ ] **`cmd_coo_direct()` live Stage A parity** — DoD: Escalation and ambiguous parity cases pass live COO replay (not just mock tests) — Owner: Substrate — Context: Step 6 gap #4; only mocked tests exist; Stage A escalation/ambiguous cases were SKIPPED — Priority: P2
 - [ ] **COO retry/backoff in `invoke_coo_reasoning()`** — DoD: Gateway timeouts trigger exponential backoff (max 2 retries) before raising `InvocationError` — Owner: Substrate — Context: Step 6 gap #5; current adapter is single-shot; gateway restarts cause cascading failures — Priority: P3

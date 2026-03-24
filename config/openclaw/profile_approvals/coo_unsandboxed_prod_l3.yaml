@@ -14,7 +14,7 @@ approval:
   council_ruling_ref: docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md
   approved_at: '2026-03-20T18:30:34.557101+00:00'
   approved_by: CEO
-status: approved
+status: active
 exception_justification:
   run_user: COO operates as the session user by design; no separate service account
     is applicable in this single-user WSL deployment.

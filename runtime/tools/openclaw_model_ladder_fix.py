@@ -23,8 +23,8 @@ from runtime.util.canonical import sha256_file
 
 EXECUTION_BASE = [
     "openai-codex/gpt-5.3-codex",
-    "github-copilot/gpt-5-mini",
-    "google-gemini-cli/gemini-3-flash-preview",
+    "openai-codex/gpt-5.1",
+    "openai-codex/gpt-5.1-codex-max",
 ]
 THINKING_BASE = list(EXECUTION_BASE)
 

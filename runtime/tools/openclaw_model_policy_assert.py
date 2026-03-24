@@ -11,8 +11,8 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 REQUIRED_PREFIX = [
     "openai-codex/gpt-5.3-codex",
-    "github-copilot/gpt-5-mini",
-    "google-gemini-cli/gemini-3-flash-preview",
+    "openai-codex/gpt-5.1",
+    "openai-codex/gpt-5.1-codex-max",
 ]
 DISALLOWED_FALLBACK_RE = re.compile(r"(haiku|small)", re.IGNORECASE)
 QUARANTINED_PROVIDER_RE = re.compile(r"^claude-max/", re.IGNORECASE)

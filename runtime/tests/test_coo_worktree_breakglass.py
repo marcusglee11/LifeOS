@@ -361,11 +361,11 @@ def test_models_status_parses_policy_json(tmp_path: Path) -> None:
             "violations": ["main: no working model detected in configured ladder"],
             "ladders": {
                 "main": {
-                    "actual": ["openai-codex/gpt-5.3-codex", "github-copilot/gpt-5-mini"],
+                    "actual": ["openai-codex/gpt-5.3-codex", "openai-codex/gpt-5.1"],
                     "required_prefix": [
                         "openai-codex/gpt-5.3-codex",
-                        "github-copilot/gpt-5-mini",
-                        "google-gemini-cli/gemini-3-flash-preview",
+                        "openai-codex/gpt-5.1",
+                        "openai-codex/gpt-5.1-codex-max",
                     ],
                     "working_count": 0,
                     "top_rung_auth_missing": True,

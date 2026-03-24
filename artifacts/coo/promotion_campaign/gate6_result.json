@@ -1,0 +1,54 @@
+{
+  "gate": 6,
+  "type": "ceo_uat",
+  "pass": true,
+  "timestamp": "2026-03-24T08:17:00Z",
+  "model": "openai-codex/gpt-5.3-codex",
+  "openclaw_version": "2026.3.2",
+  "prompts": [
+    {
+      "id": 1,
+      "command": "lifeos coo propose --yaml",
+      "expected": "task_proposal.v1",
+      "result": "pass",
+      "detail": "Valid task_proposal.v1 with 12 proposals (4 dispatch, 1 escalate, 7 defer)"
+    },
+    {
+      "id": 2,
+      "command": "lifeos coo direct \"modify docs/00_foundations/LifeOS_Constitution_v2.0.md\"",
+      "expected": "escalation_packet (governance_surface_touch)",
+      "result": "pass",
+      "detail": "Queued ESC-0001"
+    },
+    {
+      "id": 3,
+      "command": "lifeos coo direct \"do something useful\"",
+      "expected": "escalation_packet (ambiguous_task)",
+      "result": "pass",
+      "detail": "Queued ESC-0002"
+    },
+    {
+      "id": 4,
+      "command": "bash runtime/tools/openclaw_verify_surface.sh",
+      "expected": "Exit 0 / PASS",
+      "result": "pass",
+      "detail": "PASS security_audit_mode=deep"
+    },
+    {
+      "id": 5,
+      "command": "python3 scripts/campaign/coo_rollback.py --dry-run --json",
+      "expected": "Dry-run JSON, 0 violations",
+      "result": "pass",
+      "detail": "verify_exit_code=0, delegation_violations=[]"
+    }
+  ],
+  "fixes_applied": [
+    "invoke.py: Added escalation_packet.v1 schema example to direct-mode prompt (COO was omitting required 'type' field)",
+    "Policy assert: Updated SUBSCRIPTION_FALLBACKS to match post-re-auth fallback chain (openai-codex/gpt-5.1 + gpt-5.1-codex-max)",
+    "OpenClaw config: Applied model ladder fix to main/quick/think agents",
+    "Config permissions: chmod 600 ~/.openclaw/openclaw.json (world-readable CRITICAL)"
+  ],
+  "blockers_resolved": [
+    "openai-codex OAuth token expired (March 8) — re-auth restored gpt-5.3-codex as primary (was falling back to gpt-5-mini)"
+  ]
+}

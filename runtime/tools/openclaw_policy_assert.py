@@ -10,8 +10,8 @@ from typing import Any, Dict, List
 
 PRIMARY_MODEL = "openai-codex/gpt-5.3-codex"
 SUBSCRIPTION_FALLBACKS = [
-    "github-copilot/gpt-5-mini",
-    "google-gemini-cli/gemini-3-flash-preview",
+    "openai-codex/gpt-5.1",
+    "openai-codex/gpt-5.1-codex-max",
 ]
 OWNER_ONLY_COMMANDS = {"/model", "/models", "/think"}
 MEMORY_BACKEND_BURNIN = "local"
