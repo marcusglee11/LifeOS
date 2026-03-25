@@ -74,6 +74,34 @@ def test_receipt_output_hash_matches_content():
     assert r.output_hash == compute_sha256(expected_text)
 
 
+def test_chat_mode_uses_low_thinking():
+    with patch("subprocess.run", return_value=_make_completed()) as mock_run:
+        invoke_coo_reasoning(
+            context={"message": "hello"},
+            mode="chat",
+            repo_root=None,
+            run_id=_RUN_ID,
+        )
+
+    cmd = mock_run.call_args.kwargs["args"] if "args" in mock_run.call_args.kwargs else mock_run.call_args.args[0]
+    thinking_index = cmd.index("--thinking")
+    assert cmd[thinking_index + 1] == "low"
+
+
+def test_non_chat_modes_keep_high_thinking():
+    with patch("subprocess.run", return_value=_make_completed()) as mock_run:
+        invoke_coo_reasoning(
+            context={"backlog": []},
+            mode="propose",
+            repo_root=None,
+            run_id=_RUN_ID,
+        )
+
+    cmd = mock_run.call_args.kwargs["args"] if "args" in mock_run.call_args.kwargs else mock_run.call_args.args[0]
+    thinking_index = cmd.index("--thinking")
+    assert cmd[thinking_index + 1] == "high"
+
+
 # ---------------------------------------------------------------------------
 # 1A-3: Non-zero exit code produces receipt with error, still raises
 # ---------------------------------------------------------------------------

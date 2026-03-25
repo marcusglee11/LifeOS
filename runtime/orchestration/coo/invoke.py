@@ -72,6 +72,12 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _thinking_level_for_mode(mode: str) -> str:
+    if mode == "chat":
+        return "low"
+    return "high"
+
+
 def invoke_coo_reasoning(
     context: dict,
     mode: str,
@@ -189,7 +195,7 @@ def invoke_coo_reasoning(
         "agent",
         "--agent", "main",
         "--session-id", session_id,
-        "--thinking", "high",
+        "--thinking", _thinking_level_for_mode(mode),
         "--message", message,
         "--json",
     ]

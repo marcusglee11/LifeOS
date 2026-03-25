@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -13,6 +15,7 @@ from runtime.orchestration.coo.parser import ParseError
 @dataclass
 class _FakeChat:
     type: str = "private"
+    id: int = 1
 
 
 @dataclass
@@ -81,6 +84,70 @@ async def test_handle_message_replies_with_buttons(monkeypatch: pytest.MonkeyPat
     await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
 
     assert message.replies == [("Queued for approval.", {"proposal_id": "OP-a1b2c3d4"})]
+
+
+@pytest.mark.asyncio
+async def test_handle_message_starts_and_cancels_typing_pulse(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="write a note")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+    events: list[str] = []
+
+    async def _fake_typing_pulse(update_arg, context_arg, interval_s: float = 4.0) -> None:
+        assert update_arg is update
+        assert interval_s == 4.0
+        events.append("typing")
+        try:
+            await asyncio.Future()
+        except asyncio.CancelledError:
+            events.append("cancelled")
+            raise
+
+    monkeypatch.setattr(handlers, "_typing_pulse", _fake_typing_pulse)
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "chat_message",
+        lambda text, repo_root: {
+            "mode": "chat",
+            "has_proposal": False,
+            "proposal_id": None,
+            "status": "conversation_only",
+            "message": "All set.",
+        },
+    )
+
+    await handlers.handle_message(
+        update,
+        SimpleNamespace(bot=object()),
+        repo_root=tmp_path,
+        config=config,
+    )
+
+    assert events == ["typing", "cancelled"]
+    assert message.replies == [("All set.", None)]
+
+
+@pytest.mark.asyncio
+async def test_send_typing_action_uses_bot_chat_action() -> None:
+    calls: list[tuple[int, str]] = []
+
+    class _FakeBot:
+        async def send_chat_action(self, *, chat_id: int, action: str) -> None:
+            calls.append((chat_id, action))
+
+    update = _FakeUpdate(
+        effective_message=_FakeMessage(text="hello"),
+        effective_user=_FakeUser(id=123),
+    )
+
+    sent = await handlers._send_typing_action(update, SimpleNamespace(bot=_FakeBot()))
+
+    assert sent is True
+    assert calls == [(1, "typing")]
 
 
 @pytest.mark.asyncio

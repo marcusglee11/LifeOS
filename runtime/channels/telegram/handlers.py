@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
@@ -58,8 +59,33 @@ def _render_terminal_text(receipt: dict[str, Any]) -> str:
     return f"{proposal_id} status: {status}"
 
 
+async def _send_typing_action(update: Any, context: Any) -> bool:
+    bot = getattr(context, "bot", None)
+    chat = getattr(getattr(update, "effective_message", None), "chat", None)
+    chat_id = getattr(chat, "id", None)
+    if bot is None or not isinstance(chat_id, int):
+        return False
+
+    try:
+        from telegram.constants import ChatAction
+        action = ChatAction.TYPING
+    except ModuleNotFoundError:
+        action = "typing"
+
+    await bot.send_chat_action(chat_id=chat_id, action=action)
+    return True
+
+
+async def _typing_pulse(update: Any, context: Any, interval_s: float = 4.0) -> None:
+    if not await _send_typing_action(update, context):
+        return
+
+    while True:
+        await asyncio.sleep(interval_s)
+        await _send_typing_action(update, context)
+
+
 async def handle_message(update: Any, context: Any, *, repo_root: Path, config: TelegramConfig) -> None:
-    del context
     if not _is_private_chat(update) or not _is_allowed(update, config):
         return
 
@@ -68,6 +94,8 @@ async def handle_message(update: Any, context: Any, *, repo_root: Path, config: 
     if not text:
         return
 
+    typing_task = asyncio.create_task(_typing_pulse(update, context))
+    await asyncio.sleep(0)
     try:
         result = await asyncio.to_thread(coo_service.chat_message, text, repo_root)
     except ParseError as exc:
@@ -78,6 +106,10 @@ async def handle_message(update: Any, context: Any, *, repo_root: Path, config: 
     except Exception as exc:
         await message.reply_text(f"COO chat failed: {exc}")
         return
+    finally:
+        typing_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await typing_task
     reply_text = str(result.get("message", "")).strip() or "Queued."
     if result.get("has_proposal"):
         await message.reply_text(
