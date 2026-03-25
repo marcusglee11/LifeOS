@@ -1,0 +1,1 @@
+"""Telegram COO channel adapter."""

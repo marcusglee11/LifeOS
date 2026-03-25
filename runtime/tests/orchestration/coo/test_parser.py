@@ -9,11 +9,13 @@ import pytest
 
 from runtime.orchestration.coo.backlog import TaskEntry
 from runtime.orchestration.coo.parser import (
+    OPERATION_PROPOSAL_SCHEMA_VERSION,
     ParseError,
     TaskProposal,
     _extract_yaml_payload,
     _extract_yaml_payload_with_stage,
     parse_execution_order,
+    parse_operation_proposal,
     parse_proposal_response,
 )
 
@@ -331,3 +333,60 @@ def test_parse_proposal_pure_prose_raises() -> None:
     text = "I looked at the backlog and recommend starting with the highest priority items."
     with pytest.raises(ParseError):
         parse_proposal_response(text)
+
+
+def test_parse_operation_proposal_success() -> None:
+    text = (
+        f"schema_version: {OPERATION_PROPOSAL_SCHEMA_VERSION}\n"
+        "proposal_id: OP-a1b2c3d4\n"
+        "title: Write note\n"
+        "rationale: Safe workspace mutation.\n"
+        "operation_kind: mutation\n"
+        "action_id: workspace.file.write\n"
+        "args:\n"
+        "  path: /workspace/notes/test.md\n"
+        "  content: hello\n"
+        "requires_approval: true\n"
+        "suggested_owner: lifeos\n"
+    )
+
+    parsed = parse_operation_proposal(text)
+
+    assert parsed["proposal_id"] == "OP-a1b2c3d4"
+    assert parsed["action_id"] == "workspace.file.write"
+
+
+def test_parse_operation_proposal_rejects_unknown_action() -> None:
+    text = (
+        f"schema_version: {OPERATION_PROPOSAL_SCHEMA_VERSION}\n"
+        "proposal_id: OP-a1b2c3d4\n"
+        "title: Bad action\n"
+        "rationale: no-op\n"
+        "operation_kind: mutation\n"
+        "action_id: workspace.file.delete\n"
+        "args: {}\n"
+        "requires_approval: true\n"
+        "suggested_owner: lifeos\n"
+    )
+
+    with pytest.raises(ParseError, match="Unsupported action_id"):
+        parse_operation_proposal(text)
+
+
+def test_parse_operation_proposal_rejects_invalid_workspace_path() -> None:
+    text = (
+        f"schema_version: {OPERATION_PROPOSAL_SCHEMA_VERSION}\n"
+        "proposal_id: OP-a1b2c3d4\n"
+        "title: Bad path\n"
+        "rationale: invalid\n"
+        "operation_kind: mutation\n"
+        "action_id: workspace.file.write\n"
+        "args:\n"
+        "  path: /tmp/outside.md\n"
+        "  content: hello\n"
+        "requires_approval: true\n"
+        "suggested_owner: lifeos\n"
+    )
+
+    with pytest.raises(ParseError, match="relative or use the /workspace"):
+        parse_operation_proposal(text)

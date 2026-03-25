@@ -120,10 +120,11 @@ CEO (CLI Chat)
 * `coo queue list|show|approve|reject` – CEO approval queue operations
 * `coo run-mission <type>` – run a mission directly
 * `coo spine run|resume|run-openclaw-job` – autonomous build loop spine
+* `coo direct|chat|approve|reject` – COO directive and operator chat/approval operations
+* `coo telegram run` – polling-only Telegram COO operator surface
 
 *Planned:*
 * `coo orchestrator` [NOT YET IMPLEMENTED] – start the long-running orchestrator daemon
-* `coo chat` [NOT YET IMPLEMENTED] – CEO-facing interactive chat
 * `coo mission <id> [--follow]` – per-mission detail view with progress tracking
 * `coo logs --mission <id> [--tail N]` [NOT YET IMPLEMENTED] – show recent timeline/log events
 * `coo dlq ...` [NOT YET IMPLEMENTED] – dead-letter queue tools (`list`, `show <id>`, `replay <id>`)

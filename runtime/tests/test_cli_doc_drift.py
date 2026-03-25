@@ -39,6 +39,15 @@ class TestCoreSpecCliAccuracy:
                             f"and not marked [NOT YET IMPLEMENTED]"
                         )
 
+    def test_implemented_commands_are_not_marked_unimplemented(self):
+        spec = self._read_spec()
+
+        for i, line in enumerate(spec.splitlines(), 1):
+            if "coo chat" in line and "NOT YET IMPLEMENTED" in line:
+                raise AssertionError(
+                    f"Line {i}: 'coo chat' exists in cli.py but is still marked [NOT YET IMPLEMENTED]"
+                )
+
 
 class TestWalkthroughCliAccuracy:
     """Verify COO_Runtime_Walkthrough_v1.0.md CLI section."""

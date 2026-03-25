@@ -79,6 +79,20 @@ reason: "No pending actionable tasks after policy checks."
 recommended_follow_up: "Wait for blocked tasks to unblock."
 """
 
+_OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE = """\
+schema_version: operation_proposal.v1
+proposal_id: OP-a1b2c3d4
+title: "Write workspace note"
+rationale: "The user asked for a workspace mutation that fits the allowlisted ops lane."
+operation_kind: mutation
+action_id: workspace.file.write
+args:
+  path: /workspace/notes/example.md
+  content: "Hello from COO."
+requires_approval: true
+suggested_owner: lifeos
+"""
+
 _PROPOSE_OUTPUT_SCHEMA = {
     "description": (
         "Required output format for propose mode. "
@@ -236,4 +250,24 @@ def build_report_context(repo_root: Path) -> dict[str, Any]:
         "delegation_envelope": delegation,
         "generated_at": _now_iso(),
         "repo_map": _load_repo_map(repo_root),
+    }
+
+
+def build_direct_context(repo_root: Path, intent: str, source: str = "coo_direct") -> dict[str, Any]:
+    return {
+        "intent": intent,
+        "source": source,
+        "generated_at": _now_iso(),
+        "repo_map": _load_repo_map(repo_root),
+        "operation_proposal_example": _OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE,
+    }
+
+
+def build_chat_context(message: str, repo_root: Path) -> dict[str, Any]:
+    return {
+        "message": message,
+        "source": "coo_chat",
+        "generated_at": _now_iso(),
+        "repo_map": _load_repo_map(repo_root),
+        "operation_proposal_example": _OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE,
     }

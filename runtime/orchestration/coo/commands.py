@@ -15,10 +15,12 @@ import yaml
 from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType
 from runtime.orchestration.coo.backlog import load_backlog
 from runtime.orchestration.coo.context import (
+    build_direct_context,
     build_propose_context,
     build_report_context,
     build_status_context,
 )
+from runtime.orchestration.coo import service as coo_service
 from runtime.orchestration.coo.auto_dispatch import is_fully_auto_dispatchable
 from runtime.orchestration.coo.claim_verifier import (
     collect_evidence,
@@ -30,19 +32,25 @@ from runtime.orchestration.coo.parser import (
     ParseError,
     _extract_yaml_payload,  # shared within-package; not public API
     _extract_yaml_payload_with_stage,
+    parse_operation_proposal,
     parse_proposal_response,
 )
+from runtime.orchestration.ops.executor import OperationExecutionError, execute_operation_proposal
+from runtime.orchestration.ops.queue import persist_operation_proposal
+from runtime.orchestration.ops.registry import resolve_openclaw_workspace_root
 from runtime.orchestration.coo.templates import instantiate_order, load_template
 from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.util.atomic_write import atomic_write_text
-from runtime.util.canonical import compute_sha256
+from runtime.util.canonical import compute_sha256, sha256_file
 
 
 NTP_SCHEMA_VERSION = "nothing_to_propose.v1"
 ESCALATION_SCHEMA_VERSION = "escalation_packet.v1"
+OPERATION_SCHEMA_VERSION = "operation_proposal.v1"
 
 
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
+_PROMPT_CANONICAL_RELATIVE_PATH = Path("config") / "coo" / "prompt_canonical.md"
 
 
 def _maybe_capture_dump(
@@ -258,18 +266,80 @@ def _parse_escalation_packet(raw_output: str) -> dict[str, Any]:
 def classify_coo_response(mode: str, raw_output: str) -> str:
     """Return the packet family string for a COO response without exposing parse internals.
 
-    Returns one of: "escalation_packet", "task_proposal", "nothing_to_propose".
+    Returns one of: "operation_proposal", "escalation_packet", "task_proposal",
+    "nothing_to_propose", "conversation_only".
     Raises ParseError if the output does not match any known schema for the given mode.
     """
     if mode == "direct":
-        _parse_escalation_packet(raw_output)
-        return "escalation_packet"
+        try:
+            parse_operation_proposal(raw_output)
+            return "operation_proposal"
+        except Exception:
+            _parse_escalation_packet(raw_output)
+            return "escalation_packet"
+    if mode == "chat":
+        try:
+            parse_operation_proposal(raw_output)
+            return "operation_proposal"
+        except Exception:
+            return "conversation_only"
     try:
         parse_proposal_response(raw_output)
         return "task_proposal"
     except Exception:
         _parse_ntp(raw_output)
         return "nothing_to_propose"
+
+
+def _persist_prompt_sync_receipt(repo_root: Path, payload: dict[str, Any]) -> Path:
+    receipt_dir = repo_root / "artifacts" / "coo" / "operations" / "receipts"
+    receipt_dir.mkdir(parents=True, exist_ok=True)
+    receipt_name = f"prompt_sync_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
+    path = receipt_dir / receipt_name
+    atomic_write_text(path, json.dumps(payload, indent=2, sort_keys=True))
+    return path
+
+
+def _build_prompt_status(repo_root: Path) -> dict[str, Any]:
+    canonical_path = repo_root / _PROMPT_CANONICAL_RELATIVE_PATH
+    live_path = resolve_openclaw_workspace_root() / "AGENTS.md"
+    canonical_exists = canonical_path.exists()
+    live_exists = live_path.exists()
+    canonical_hash = sha256_file(canonical_path) if canonical_exists else None
+    live_hash = sha256_file(live_path) if live_exists else None
+    return {
+        "canonical_path": str(canonical_path),
+        "live_path": str(live_path),
+        "canonical_exists": canonical_exists,
+        "live_exists": live_exists,
+        "canonical_sha256": canonical_hash,
+        "live_sha256": live_hash,
+        "in_sync": bool(canonical_exists and live_exists and canonical_hash == live_hash),
+    }
+
+
+def _strip_yaml_payload_from_text(raw_output: str, payload: str) -> str:
+    text = raw_output.strip()
+    fenced = f"```yaml\n{payload}\n```"
+    if fenced in text:
+        text = text.replace(fenced, "", 1)
+    elif payload in text:
+        text = text.replace(payload, "", 1)
+    return text.strip()
+
+
+def _queue_or_execute_operation(
+    raw_output: str,
+    repo_root: Path,
+    *,
+    auto_execute: bool = False,
+) -> tuple[dict[str, Any], str, dict[str, Any] | None]:
+    proposal = parse_operation_proposal(raw_output)
+    persist_operation_proposal(repo_root, proposal)
+    if auto_execute and not bool(proposal.get("requires_approval", True)):
+        receipt = execute_operation_proposal(repo_root, str(proposal["proposal_id"]))
+        return proposal, "executed", receipt
+    return proposal, "pending", None
 
 
 def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
@@ -422,7 +492,27 @@ def cmd_coo_approve(args: argparse.Namespace, repo_root: Path) -> int:
 
     backlog_path = repo_root / _BACKLOG_RELATIVE_PATH
 
-    for task_id in args.task_ids:
+    task_ids = list(getattr(args, "task_ids", None) or getattr(args, "ids", None) or [])
+
+    for task_id in task_ids:
+        if task_id.startswith("OP-"):
+            try:
+                receipt = coo_service.approve_operation(
+                    task_id,
+                    repo_root,
+                    approved_by="CEO",
+                )
+            except Exception as exc:
+                message = f"failed to execute operation proposal {task_id}: {exc}"
+                _print_error(f"Error: {message}")
+                failed.append({"task_id": task_id, "error": message})
+                continue
+
+            approved.append(str(receipt.get("order_id")))
+            if not getattr(args, "json", False):
+                print(f"approved: {task_id} -> {receipt.get('order_id')}")
+            continue
+
         try:
             tasks = load_backlog(backlog_path)
         except Exception as exc:
@@ -508,12 +598,24 @@ def cmd_coo_report(args: argparse.Namespace, repo_root: Path) -> int:
     return 0
 
 
+def cmd_coo_prompt_status(args: argparse.Namespace, repo_root: Path) -> int:
+    payload = _build_prompt_status(repo_root)
+    if getattr(args, "json", False):
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0 if payload["in_sync"] else 1
+
+    status = "in_sync" if payload["in_sync"] else "drift"
+    print(f"status: {status}")
+    print(f"canonical: {payload['canonical_path']}")
+    print(f"live: {payload['live_path']}")
+    print(f"canonical_sha256: {payload['canonical_sha256'] or 'missing'}")
+    print(f"live_sha256: {payload['live_sha256'] or 'missing'}")
+    return 0 if payload["in_sync"] else 1
+
+
 def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
-    """Invoke live COO with direct intent and queue resulting EscalationPacket."""
-    context: dict[str, Any] = {
-        "intent": args.intent,
-        "source": "coo_direct",
-    }
+    """Invoke live COO with direct intent and route escalation or operation output."""
+    context = build_direct_context(repo_root, args.intent, source="coo_direct")
 
     direct_run_id = compute_sha256({"context": context, "mode": "direct"})
 
@@ -525,12 +627,11 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
     _, _capture_stage = _extract_yaml_payload_with_stage(raw_output)
 
     try:
-        packet = _parse_escalation_packet(raw_output)
+        kind = classify_coo_response("direct", raw_output)
     except ParseError as exc:
         _print_error(f"Error: COO output failed validation: {exc}")
         return 1
 
-    # Verify no unsupported execution claims before enqueueing
     evidence = collect_evidence(repo_root)
     violations = verify_claims(raw_output, evidence, repo_root=repo_root)
     if violations:
@@ -544,32 +645,43 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
             )
         return 1
 
-    packet_type_str = str(packet.get("type", "")).strip()
     try:
-        escalation_type = EscalationType(packet_type_str)
-    except ValueError:
-        _print_error(
-            f"Error: Unknown escalation type {packet_type_str!r} from COO output"
-        )
-        return 1
+        if kind == "operation_proposal":
+            proposal, status, receipt = _queue_or_execute_operation(
+                raw_output,
+                repo_root,
+                auto_execute=getattr(args, "execute", False),
+            )
+            if status == "executed" and receipt is not None:
+                print(f"executed: {proposal['proposal_id']} -> {receipt['order_id']}")
+            else:
+                print(f"queued: {proposal['proposal_id']}")
+        else:
+            packet = _parse_escalation_packet(raw_output)
+            packet_type_str = str(packet.get("type", "")).strip()
+            try:
+                escalation_type = EscalationType(packet_type_str)
+            except ValueError:
+                _print_error(
+                    f"Error: Unknown escalation type {packet_type_str!r} from COO output"
+                )
+                return 1
 
-    # Use packet-embedded run_id if present; otherwise derive from packet content.
-    run_id = str(packet.get("run_id") or compute_sha256(packet))
+            run_id = str(packet.get("run_id") or compute_sha256(packet))
+            queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+            entry = EscalationEntry(
+                type=escalation_type,
+                context=packet.get("context", {"summary": args.intent, "source": "coo_direct"}),
+                run_id=run_id,
+            )
+            escalation_id = queue.add_escalation(entry)
+            print(f"queued: {escalation_id}")
 
-    try:
-        queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
-        entry = EscalationEntry(
-            type=escalation_type,
-            context=packet.get("context", {"summary": args.intent, "source": "coo_direct"}),
-            run_id=run_id,
-        )
-        escalation_id = queue.add_escalation(entry)
-        print(f"queued: {escalation_id}")
         _maybe_capture_dump(
             mode="direct",
             raw_output=raw_output,
             run_id=direct_run_id,
-            kind="escalation_packet",
+            kind=kind,
             parse_status="pass",
             parse_recovery_stage=_capture_stage,
             claim_violations=violations,
@@ -578,6 +690,59 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
     except Exception as exc:
         _print_error(f"Error: {type(exc).__name__}: {exc}")
         return 1
+
+
+def cmd_coo_chat(args: argparse.Namespace, repo_root: Path) -> int:
+    try:
+        envelope = coo_service.chat_message(
+            args.message,
+            repo_root,
+            auto_execute=getattr(args, "execute", False),
+        )
+    except InvocationError as exc:
+        _print_error(f"Error: COO invocation failed: {exc}")
+        return 1
+    except (OperationExecutionError, ParseError, ValueError) as exc:
+        _print_error(f"Error: COO chat failed: {exc}")
+        return 1
+
+    print(json.dumps(envelope, indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_coo_reject(args: argparse.Namespace, repo_root: Path) -> int:
+    proposal_id = str(args.proposal_id).strip()
+    if not proposal_id.startswith("OP-"):
+        _print_error("Error: coo reject only supports OP-... proposal IDs")
+        return 1
+
+    reason = str(getattr(args, "reason", "") or "").strip() or "Rejected by operator"
+    try:
+        receipt = coo_service.reject_operation(
+            proposal_id,
+            repo_root,
+            rejected_by="CEO",
+            reason=reason,
+        )
+    except Exception as exc:
+        _print_error(f"Error: failed to reject {proposal_id}: {exc}")
+        return 1
+
+    print(json.dumps(receipt, indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_coo_telegram_run(args: argparse.Namespace, repo_root: Path) -> int:
+    try:
+        from runtime.channels.telegram.adapter import run_polling
+        from runtime.channels.telegram.config import load_config
+
+        config = load_config()
+        run_polling(config, repo_root)
+    except Exception as exc:
+        _print_error(f"Error: telegram adapter failed: {exc}")
+        return 1
+    return 0
 
 
 def _auto_execute_proposals(

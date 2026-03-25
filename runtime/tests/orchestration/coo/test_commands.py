@@ -12,8 +12,11 @@ import yaml
 from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION
 from runtime.orchestration.coo.commands import (
     cmd_coo_approve,
+    cmd_coo_chat,
     cmd_coo_direct,
+    cmd_coo_prompt_status,
     cmd_coo_propose,
+    cmd_coo_reject,
     cmd_coo_report,
     cmd_coo_status,
 )
@@ -60,6 +63,20 @@ options:
   - label: Defer
     tradeoff: Slower.
 recommendation: Escalate to CEO.
+"""
+
+_VALID_OPERATION_YAML = """\
+schema_version: operation_proposal.v1
+proposal_id: OP-a1b2c3d4
+title: "Write workspace note"
+rationale: "The request fits the allowlisted ops lane."
+operation_kind: mutation
+action_id: workspace.file.write
+args:
+  path: /workspace/notes/example.md
+  content: "Hello from COO."
+requires_approval: true
+suggested_owner: lifeos
 """
 
 
@@ -320,6 +337,23 @@ def test_coo_direct_success(tmp_path: Path, capsys) -> None:
     assert out.startswith("queued:")
 
 
+def test_coo_direct_operation_proposal_queued(tmp_path: Path, capsys, monkeypatch) -> None:
+    monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
+    with patch(
+        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        return_value=_VALID_OPERATION_YAML,
+    ):
+        rc = cmd_coo_direct(
+            argparse.Namespace(intent="write a workspace note", execute=False),
+            tmp_path,
+        )
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert out.strip() == "queued: OP-a1b2c3d4"
+    assert (tmp_path / "artifacts" / "coo" / "operations" / "proposals" / "OP-a1b2c3d4.yaml").exists()
+
+
 def test_coo_direct_invocation_error(tmp_path: Path, capsys) -> None:
     with patch(
         "runtime.orchestration.coo.commands.invoke_coo_reasoning",
@@ -396,6 +430,20 @@ def test_coo_approve_content_task_writes_native_workflow_order(tmp_path: Path) -
     assert raw["task_context"]["payload"]["requested_artifact"]["format"] == "markdown"
 
 
+def test_coo_approve_operation_proposal_executes(tmp_path: Path, capsys, monkeypatch) -> None:
+    monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
+    proposal_dir = tmp_path / "artifacts" / "coo" / "operations" / "proposals"
+    proposal_dir.mkdir(parents=True, exist_ok=True)
+    (proposal_dir / "OP-a1b2c3d4.yaml").write_text(_VALID_OPERATION_YAML, encoding="utf-8")
+
+    rc = cmd_coo_approve(argparse.Namespace(task_ids=["OP-a1b2c3d4"], json=False), tmp_path)
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "approved: OP-a1b2c3d4 -> OPR-" in out
+    assert (tmp_path / "workspace" / "notes" / "example.md").read_text(encoding="utf-8") == "Hello from COO."
+
+
 def test_coo_propose_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
     """Prose preamble before task_proposal.v1 YAML must be recovered (rc=0)."""
     _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
@@ -454,6 +502,89 @@ def test_coo_report_returns_json(tmp_path: Path, capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert len(payload["all_tasks"]) == 2
     assert payload["delegation_envelope"]["schema_version"] == "delegation_envelope.v1"
+
+
+def test_coo_chat_returns_json_envelope_with_operation(tmp_path: Path, capsys, monkeypatch) -> None:
+    monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
+    with patch(
+        "runtime.orchestration.coo.commands.coo_service.chat_message",
+        return_value={
+            "mode": "chat",
+            "has_proposal": True,
+            "proposal_id": "OP-a1b2c3d4",
+            "status": "pending",
+            "message": "I can stage that for approval.",
+        },
+    ):
+        rc = cmd_coo_chat(
+            argparse.Namespace(message="write a workspace note", execute=False),
+            tmp_path,
+        )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["has_proposal"] is True
+    assert payload["proposal_id"] == "OP-a1b2c3d4"
+    assert payload["status"] == "pending"
+    assert "stage that for approval" in payload["message"]
+
+
+def test_coo_chat_returns_conversation_only(tmp_path: Path, capsys) -> None:
+    with patch(
+        "runtime.orchestration.coo.commands.coo_service.chat_message",
+        return_value={
+            "mode": "chat",
+            "has_proposal": False,
+            "proposal_id": None,
+            "status": "conversation_only",
+            "message": "Here is a conversational answer with no machine packet.",
+        },
+    ):
+        rc = cmd_coo_chat(
+            argparse.Namespace(message="hello", execute=False),
+            tmp_path,
+        )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["has_proposal"] is False
+    assert payload["status"] == "conversation_only"
+
+
+def test_coo_prompt_status_detects_drift(tmp_path: Path, capsys, monkeypatch) -> None:
+    canonical = tmp_path / "config" / "coo"
+    canonical.mkdir(parents=True, exist_ok=True)
+    (canonical / "prompt_canonical.md").write_text("canonical prompt", encoding="utf-8")
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    (workspace / "AGENTS.md").write_text("different prompt", encoding="utf-8")
+    monkeypatch.setenv("OPENCLAW_WORKSPACE", str(workspace))
+
+    rc = cmd_coo_prompt_status(argparse.Namespace(json=True), tmp_path)
+
+    assert rc == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["in_sync"] is False
+
+
+def test_coo_reject_operation_proposal_writes_receipt(tmp_path: Path, capsys) -> None:
+    proposal_dir = tmp_path / "artifacts" / "coo" / "operations" / "proposals"
+    proposal_dir.mkdir(parents=True, exist_ok=True)
+    (proposal_dir / "OP-a1b2c3d4.yaml").write_text(_VALID_OPERATION_YAML, encoding="utf-8")
+
+    rc = cmd_coo_reject(
+        argparse.Namespace(
+            proposal_id="OP-a1b2c3d4",
+            reason="Not approved",
+        ),
+        tmp_path,
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "rejected"
+    assert payload["reason"] == "Not approved"
+    assert payload["order_id"] is None
 
 
 # ── Claim verification tests ──────────────────────────────────────────────────

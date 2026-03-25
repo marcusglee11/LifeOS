@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 from unittest.mock import patch
@@ -154,8 +155,9 @@ def test_review_mission_allows_advisory_run_type(MockFSM, mock_load_policy, tmp_
 
 
 @pytest.mark.skipif(
-    not all(shutil.which(t) for t in ("claude", "codex", "gemini")),
-    reason="All 3 CLI tools required for delegated council dispatch",
+    os.environ.get("RUN_LIVE_REVIEW_COUNCIL_RUNTIME") != "1"
+    or not all(shutil.which(t) for t in ("claude", "codex", "gemini")),
+    reason="Set RUN_LIVE_REVIEW_COUNCIL_RUNTIME=1 with claude/codex/gemini CLIs available to run live delegated council dispatch",
 )
 def test_review_mission_real_v2_runtime_path_smoke(tmp_path: Path):
     mission = ReviewMission()

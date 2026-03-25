@@ -12,11 +12,18 @@ from typing import Any, Optional
 import yaml
 
 from runtime.orchestration.coo.backlog import TaskEntry
+from runtime.orchestration.ops.registry import (
+    OperationValidationError,
+    get_action_spec,
+    validate_action,
+)
 
 PROPOSAL_SCHEMA_VERSION = "task_proposal.v1"
+OPERATION_PROPOSAL_SCHEMA_VERSION = "operation_proposal.v1"
 
 _VALID_ACTIONS = {"dispatch", "defer", "escalate"}
 _VALID_URGENCY = {"P0", "P1", "P2", "P3"}
+_VALID_OPERATION_KINDS = {"query", "mutation", "internal_notify"}
 _YAML_FENCE_RE = re.compile(r"```yaml\s*(.*?)```", re.DOTALL | re.IGNORECASE)
 _SCHEMA_BLOCK_RE = re.compile(
     r"^[ \t]*schema_version:",  # [ \t]* not \s* — avoids matching across blank lines
@@ -144,6 +151,84 @@ def parse_proposal_response(text: str) -> list[TaskProposal]:
         )
 
     return proposals
+
+
+def parse_operation_proposal(text: str) -> dict[str, Any]:
+    payload = _extract_yaml_payload(text)
+    try:
+        raw = yaml.safe_load(payload)
+    except yaml.YAMLError as exc:
+        raise ParseError(f"Operation proposal YAML is not valid: {exc}") from exc
+
+    if not isinstance(raw, dict):
+        raise ParseError(
+            f"Operation proposal payload must be a YAML mapping, got {type(raw).__name__}"
+        )
+
+    schema_version = str(raw.get("schema_version", "")).strip()
+    if schema_version != OPERATION_PROPOSAL_SCHEMA_VERSION:
+        raise ParseError(
+            f"Unsupported schema_version: {schema_version!r}. "
+            f"Expected {OPERATION_PROPOSAL_SCHEMA_VERSION!r}"
+        )
+
+    required_fields = (
+        "proposal_id",
+        "title",
+        "rationale",
+        "operation_kind",
+        "action_id",
+        "args",
+        "requires_approval",
+        "suggested_owner",
+    )
+    missing = [field for field in required_fields if field not in raw]
+    if missing:
+        raise ParseError(
+            f"Operation proposal missing required field(s): {', '.join(missing)}"
+        )
+
+    proposal_id = str(raw.get("proposal_id", "")).strip()
+    if not re.fullmatch(r"OP-[A-Za-z0-9]{4,32}", proposal_id):
+        raise ParseError("Operation proposal has invalid proposal_id format")
+
+    if not str(raw.get("title", "")).strip():
+        raise ParseError("Operation proposal missing required 'title' field")
+    if not str(raw.get("rationale", "")).strip():
+        raise ParseError("Operation proposal missing required 'rationale' field")
+
+    operation_kind = str(raw.get("operation_kind", "")).strip()
+    if operation_kind not in _VALID_OPERATION_KINDS:
+        raise ParseError(
+            f"Operation proposal invalid operation_kind {operation_kind!r}. "
+            f"Must be one of {sorted(_VALID_OPERATION_KINDS)}"
+        )
+
+    action_id = str(raw.get("action_id", "")).strip()
+    try:
+        spec = get_action_spec(action_id)
+    except OperationValidationError as exc:
+        raise ParseError(str(exc)) from exc
+    if operation_kind != spec.operation_kind:
+        raise ParseError(
+            f"Operation proposal operation_kind {operation_kind!r} does not match "
+            f"allowlisted action kind {spec.operation_kind!r} for {action_id!r}"
+        )
+
+    args = raw.get("args")
+    if not isinstance(args, dict):
+        raise ParseError("Operation proposal 'args' must be a YAML mapping")
+    try:
+        validate_action(action_id, args)
+    except OperationValidationError as exc:
+        raise ParseError(str(exc)) from exc
+
+    if not isinstance(raw.get("requires_approval"), bool):
+        raise ParseError("Operation proposal 'requires_approval' must be a boolean")
+    if not isinstance(raw.get("suggested_owner"), str):
+        raise ParseError("Operation proposal 'suggested_owner' must be a string")
+
+    return raw
 
 
 def parse_execution_order(

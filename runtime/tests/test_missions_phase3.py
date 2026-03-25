@@ -36,7 +36,7 @@ from runtime.orchestration.registry import (
     run_mission,
     UnknownMissionError,
 )
-from runtime.orchestration.engine import ExecutionContext
+from runtime.orchestration.engine import ExecutionContext, OrchestrationResult
 
 
 # =============================================================================
@@ -1097,14 +1097,35 @@ class TestMissionResultSerialization:
 class TestEngineMissionDispatch:
     """Tests for engine.py mission operation dispatch."""
     
-    def test_design_mission_via_registry(self):
-        """Verify design mission can be run via registry."""
+    def test_design_mission_via_registry(self, monkeypatch: pytest.MonkeyPatch):
+        """Verify registry builds the expected workflow without invoking live agents."""
+        captured: Dict[str, Any] = {}
+
+        def fake_run_workflow(self, workflow, ctx):
+            captured["workflow"] = workflow
+            captured["ctx"] = ctx
+            return OrchestrationResult(
+                id=workflow.id,
+                success=True,
+                executed_steps=workflow.steps,
+                final_state=dict(ctx.initial_state),
+            )
+
+        monkeypatch.setattr(
+            "runtime.orchestration.registry.Orchestrator.run_workflow",
+            fake_run_workflow,
+        )
+
         ctx = ExecutionContext(initial_state={"task_spec": "Test task"})
-        # This tests the workflow builder, not direct mission execution
         result = run_mission("design", ctx, params={"task_spec": "Test task"})
         
-        # The result is an OrchestrationResult from the workflow
-        assert result.success is True or result.success is False  # Any valid result
+        assert result.success is True
+        assert captured["ctx"] is ctx
+        assert captured["workflow"].id == "wf-design"
+        assert captured["workflow"].metadata["mission_type"] == "design"
+        assert captured["workflow"].steps[0].payload["operation"] == "mission"
+        assert captured["workflow"].steps[0].payload["mission_type"] == "design"
+        assert captured["workflow"].steps[0].payload["params"] == {"task_spec": "Test task"}
     
     def test_unknown_mission_fails_closed(self):
         """Verify unknown mission type fails closed."""

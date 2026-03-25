@@ -1084,10 +1084,10 @@ def main() -> int:
     )
 
     p_coo_approve = coo_subs.add_parser(
-        "approve", help="Approve tasks and write ExecutionOrders to dispatch inbox"
+        "approve", help="Approve COO task or operation proposals"
     )
     p_coo_approve.add_argument(
-        "task_ids", nargs="+", help="Task IDs to approve (e.g. T-003 T-005)"
+        "task_ids", nargs="+", help="IDs to approve (e.g. T-003 OP-a1b2c3d4)"
     )
     p_coo_approve.add_argument("--json", action="store_true", help="Output result as JSON")
 
@@ -1097,6 +1097,43 @@ def main() -> int:
         "direct", help="Send a CEO directive to the approval queue"
     )
     p_coo_direct.add_argument("intent", help="Directive text")
+    p_coo_direct.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute immediately if the COO returns an allowlisted operation proposal that does not require approval",
+    )
+
+    p_coo_chat = coo_subs.add_parser(
+        "chat", help="Send a chat message through the COO wrapper surface"
+    )
+    p_coo_chat.add_argument("message", help="Chat message text")
+    p_coo_chat.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute immediately if the extracted operation proposal does not require approval",
+    )
+
+    p_coo_reject = coo_subs.add_parser(
+        "reject", help="Reject a COO operation proposal"
+    )
+    p_coo_reject.add_argument("proposal_id", help="Operation proposal ID (e.g. OP-a1b2c3d4)")
+    p_coo_reject.add_argument(
+        "--reason",
+        default="Rejected by operator",
+        help="Human-readable rejection reason",
+    )
+
+    p_coo_telegram = coo_subs.add_parser("telegram", help="Telegram COO adapter commands")
+    coo_telegram_subs = p_coo_telegram.add_subparsers(
+        dest="coo_telegram_cmd",
+        required=True,
+    )
+    coo_telegram_subs.add_parser("run", help="Run the Telegram COO adapter in polling mode")
+
+    p_coo_prompt_status = coo_subs.add_parser(
+        "prompt-status", help="Compare canonical COO prompt hash to the live OpenClaw workspace prompt"
+    )
+    p_coo_prompt_status.add_argument("--json", action="store_true", help="Output as JSON")
 
     # spine group (Phase 4A0)
     p_spine = subparsers.add_parser("spine", help="Loop Spine (A1 Chain Controller) commands")
@@ -1191,6 +1228,15 @@ def main() -> int:
                 return coo_commands.cmd_coo_report(args, repo_root)
             elif args.coo_cmd == "direct":
                 return coo_commands.cmd_coo_direct(args, repo_root)
+            elif args.coo_cmd == "chat":
+                return coo_commands.cmd_coo_chat(args, repo_root)
+            elif args.coo_cmd == "reject":
+                return coo_commands.cmd_coo_reject(args, repo_root)
+            elif args.coo_cmd == "telegram":
+                if args.coo_telegram_cmd == "run":
+                    return coo_commands.cmd_coo_telegram_run(args, repo_root)
+            elif args.coo_cmd == "prompt-status":
+                return coo_commands.cmd_coo_prompt_status(args, repo_root)
 
         if args.subcommand == "spine":
             if args.spine_cmd == "run":

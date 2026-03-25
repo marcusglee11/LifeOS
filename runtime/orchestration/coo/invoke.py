@@ -18,7 +18,12 @@ class InvocationError(RuntimeError):
 
 # Sub-keys that appear in proposals list items and must be indented 2 spaces.
 _PROPOSALS_SUB_KEYS = frozenset({
+    "title",
     "rationale",
+    "operation_kind",
+    "action_id",
+    "args",
+    "requires_approval",
     "proposed_action",
     "urgency_override",
     "suggested_owner",
@@ -40,7 +45,12 @@ def _normalize_proposal_indentation(text: str) -> str:
     in_item = False
 
     for line in lines:
-        if line.startswith("- task_id:") or line.startswith("-task_id:"):
+        if (
+            line.startswith("- task_id:")
+            or line.startswith("-task_id:")
+            or line.startswith("- proposal_id:")
+            or line.startswith("-proposal_id:")
+        ):
             in_item = True
             result.append(line)
             continue
@@ -76,7 +86,7 @@ def invoke_coo_reasoning(
     Raises InvocationError on subprocess failure or timeout.
 
     :param context: Context dict to pass as the message body (serialized to JSON).
-    :param mode: "propose" | "direct" — included in context for COO routing.
+    :param mode: "propose" | "direct" | "chat" — included in context for COO routing.
     :param repo_root: Repository root path (unused in CLI invocation; kept for future SDK use).
     :param timeout_s: Subprocess timeout in seconds.
     :param run_id: Content-addressable run ID for receipt emission (empty = no receipt).
@@ -86,7 +96,8 @@ def invoke_coo_reasoning(
 
     _schema_for_mode = {
         "propose": "task_proposal.v1 or nothing_to_propose.v1",
-        "direct": "escalation_packet.v1",
+        "direct": "operation_proposal.v1 or escalation_packet.v1",
+        "chat": "natural language or inline operation_proposal.v1",
     }
     _required_schema = _schema_for_mode.get(mode, "unknown")
 
@@ -106,13 +117,28 @@ def invoke_coo_reasoning(
     elif mode == "direct":
         message = (
             f"[MACHINE_API mode={mode}]\n"
-            "Generate the escalation packet for this direct CEO objective.\n"
-            "Output the escalation_packet.v1 YAML and nothing else.\n\n"
+            "Classify this direct CEO objective.\n"
+            "If it fits an allowlisted workspace/internal action, emit operation_proposal.v1 YAML.\n"
+            "Otherwise emit escalation_packet.v1 YAML.\n"
+            "Output YAML and nothing else.\n\n"
             "OUTPUT FORMAT (strict):\n"
-            "- First line MUST be exactly: schema_version: escalation_packet.v1\n"
+            "- First line MUST be exactly: schema_version: operation_proposal.v1\n"
+            "- OR first line MUST be exactly: schema_version: escalation_packet.v1\n"
             "- No prose before or after the YAML.\n"
             "- Do NOT read any files — all context provided below.\n\n"
-            "EXAMPLE (exact structure required):\n"
+            "OPERATION EXAMPLE:\n"
+            "schema_version: operation_proposal.v1\n"
+            "proposal_id: OP-a1b2c3d4\n"
+            "title: \"Write COO workspace note\"\n"
+            "rationale: \"The request is a workspace mutation that fits the allowlisted ops lane.\"\n"
+            "operation_kind: mutation\n"
+            "action_id: workspace.file.write\n"
+            "args:\n"
+            "  path: /workspace/notes/example.md\n"
+            "  content: \"Hello from COO.\"\n"
+            "requires_approval: true\n"
+            "suggested_owner: lifeos\n\n"
+            "ESCALATION EXAMPLE:\n"
             "schema_version: escalation_packet.v1\n"
             "type: governance_surface_touch\n"
             "objective: \"the CEO objective text\"\n"
@@ -124,12 +150,26 @@ def invoke_coo_reasoning(
             "    title: \"Alternative title\"\n"
             "    action: \"What this alternative does\"\n\n"
             "Rules:\n"
+            "- operation_proposal.v1 is for allowlisted workspace/internal actions only\n"
+            "- action_id: one of workspace.file.write, workspace.file.edit, lifeos.note.record\n"
+            "- /workspace/... paths refer to the COO workspace root\n"
             "- type: one of governance_surface_touch, ambiguous_task, "
             "policy_violation, protected_path_modification, "
             "budget_escalation, unknown_action_category\n"
             "- options: non-empty list with option_id, title, action per item\n"
             "- Do NOT add any text before or after the YAML.\n\n"
             f"Context:\n{json.dumps(payload, sort_keys=True)}"
+        )
+    elif mode == "chat":
+        message = (
+            "You are in chat mode.\n"
+            "Respond conversationally to the user message below.\n"
+            "If the user is asking for an allowlisted workspace/internal action, include a valid "
+            "operation_proposal.v1 YAML block inline in your response.\n"
+            "Do not use markdown fences around the YAML block.\n"
+            "Allowlisted actions: workspace.file.write, workspace.file.edit, lifeos.note.record.\n"
+            "/workspace/... paths refer to the COO workspace root.\n\n"
+            f"User message:\n{json.dumps(payload, sort_keys=True)}"
         )
     else:
         message = (
