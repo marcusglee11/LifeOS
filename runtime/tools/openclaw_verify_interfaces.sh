@@ -75,7 +75,14 @@ if [ "$SECURITY_AUDIT_MODE" = "non_deep_fallback_due_uv_interface_addresses" ]; 
   SECURITY_FILE="$OUT_DIR/security_audit_fallback.txt"
 fi
 if [ ! -f "$SECURITY_FILE" ]; then PASS=0; fi
-if ! rg -q 'Summary:\s*0 critical\s*·\s*0 warn' "$SECURITY_FILE"; then PASS=0; fi
+if ! python3 - "$SECURITY_FILE" <<'PY'
+import sys
+sys.path.insert(0, ".")
+from runtime.tools.openclaw_security_audit_gate import assess_security_audit_file
+r = assess_security_audit_file(sys.argv[1], allow_multiuser_heuristic=True)
+sys.exit(0 if r.clean else 1)
+PY
+then PASS=0; fi
 
 reply_mode="unknown"
 if [ -f "$OUT_DIR/interfaces_policy_assert.txt" ]; then

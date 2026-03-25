@@ -295,7 +295,7 @@ payload = {
     "head_sha": os.popen("git rev-parse HEAD").read().strip(),
     "generated_by": "openclaw_coo_update_protocol.sh",
 }
-out.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\\n", encoding="utf-8")
+out.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
 PY
 
   export OPENCLAW_ORCHESTRATED_MODE=1

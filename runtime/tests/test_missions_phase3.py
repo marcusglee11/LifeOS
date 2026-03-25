@@ -286,7 +286,7 @@ class TestDesignMission:
             mission.validate_inputs({})
         assert "task_spec" in str(exc_info.value)
     
-    @patch("runtime.agents.api.call_agent")
+    @patch("runtime.agents.api.call_agent_cli")
     def test_run_succeeds(self, mock_call_agent, mock_context: MissionContext):
         """Verify design mission runs successfully with valid packet."""
         # Setup mock with valid BUILD_PACKET
@@ -353,7 +353,7 @@ class TestDesignMission:
         assert "goal" in result.error  # Error mentions missing key
         assert result.evidence.get("validation_errors") is not None
 
-    @patch("runtime.agents.api.call_agent")
+    @patch("runtime.agents.api.call_agent_cli")
     def test_run_with_context_refs(self, mock_call_agent, mock_context: MissionContext):
         """Verify design mission handles context_refs."""
         mock_response = MagicMock()
