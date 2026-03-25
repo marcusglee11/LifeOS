@@ -7,6 +7,7 @@ import pytest
 
 from runtime.channels.telegram.config import TelegramConfig
 from runtime.channels.telegram import handlers
+from runtime.orchestration.coo.parser import ParseError
 
 
 @dataclass
@@ -93,6 +94,32 @@ async def test_handle_message_ignores_unauthorized_user(monkeypatch: pytest.Monk
     await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
 
     assert message.replies == []
+
+
+@pytest.mark.asyncio
+async def test_handle_message_replies_on_parse_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="write a note")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "chat_message",
+        lambda text, repo_root: (_ for _ in ()).throw(
+            ParseError("Operation proposal has invalid proposal_id format")
+        ),
+    )
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert message.replies == [
+        (
+            "COO returned an invalid operation packet and nothing was queued: "
+            "Operation proposal has invalid proposal_id format",
+            None,
+        )
+    ]
 
 
 @pytest.mark.asyncio

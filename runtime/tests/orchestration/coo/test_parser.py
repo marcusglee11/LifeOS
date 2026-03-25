@@ -356,6 +356,26 @@ def test_parse_operation_proposal_success() -> None:
     assert parsed["action_id"] == "workspace.file.write"
 
 
+def test_parse_operation_proposal_accepts_hyphenated_proposal_id() -> None:
+    text = (
+        f"schema_version: {OPERATION_PROPOSAL_SCHEMA_VERSION}\n"
+        "proposal_id: OP-WORKSPACE-WRITE-TELEGRAM-002\n"
+        "title: Write note\n"
+        "rationale: Safe workspace mutation.\n"
+        "operation_kind: mutation\n"
+        "action_id: workspace.file.write\n"
+        "args:\n"
+        "  path: /workspace/notes/test.md\n"
+        "  content: hello\n"
+        "requires_approval: true\n"
+        "suggested_owner: lifeos\n"
+    )
+
+    parsed = parse_operation_proposal(text)
+
+    assert parsed["proposal_id"] == "OP-WORKSPACE-WRITE-TELEGRAM-002"
+
+
 def test_parse_operation_proposal_rejects_unknown_action() -> None:
     text = (
         f"schema_version: {OPERATION_PROPOSAL_SCHEMA_VERSION}\n"

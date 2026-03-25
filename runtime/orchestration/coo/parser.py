@@ -25,6 +25,7 @@ _VALID_ACTIONS = {"dispatch", "defer", "escalate"}
 _VALID_URGENCY = {"P0", "P1", "P2", "P3"}
 _VALID_OPERATION_KINDS = {"query", "mutation", "internal_notify"}
 _YAML_FENCE_RE = re.compile(r"```yaml\s*(.*?)```", re.DOTALL | re.IGNORECASE)
+_PROPOSAL_ID_RE = re.compile(r"^OP-[A-Za-z0-9][A-Za-z0-9_-]{3,63}$")
 _SCHEMA_BLOCK_RE = re.compile(
     r"^[ \t]*schema_version:",  # [ \t]* not \s* — avoids matching across blank lines
     re.MULTILINE,
@@ -189,7 +190,7 @@ def parse_operation_proposal(text: str) -> dict[str, Any]:
         )
 
     proposal_id = str(raw.get("proposal_id", "")).strip()
-    if not re.fullmatch(r"OP-[A-Za-z0-9]{4,32}", proposal_id):
+    if not _PROPOSAL_ID_RE.fullmatch(proposal_id):
         raise ParseError("Operation proposal has invalid proposal_id format")
 
     if not str(raw.get("title", "")).strip():

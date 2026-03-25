@@ -27,6 +27,21 @@ requires_approval: true
 suggested_owner: lifeos
 """
 
+_LIVE_STYLE_OPERATION_YAML = """\
+schema_version: operation_proposal.v1
+proposal_id: OP-WORKSPACE-WRITE-TELEGRAM-002
+title: "Write workspace note from Telegram"
+rationale: "Persist a short note requested via chat: 'test from telegram'."
+operation_kind: mutation
+action_id: workspace.file.write
+args:
+  file_path: "/workspace/notes/telegram_test.md"
+  content: "test from telegram"
+  overwrite: true
+requires_approval: true
+suggested_owner: coo
+"""
+
 
 def test_chat_message_returns_conversation_only(tmp_path: Path) -> None:
     with patch(
@@ -79,6 +94,28 @@ def test_chat_message_persists_operation_proposal(tmp_path: Path, monkeypatch) -
         / "operations"
         / "proposals"
         / "OP-a1b2c3d4.yaml"
+    )
+    assert proposal_path.exists()
+
+
+def test_chat_message_persists_live_style_operation_proposal(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
+    raw_output = "Got it.\n\n" + _LIVE_STYLE_OPERATION_YAML
+    with patch(
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
+        return_value=raw_output,
+    ):
+        payload = chat_message("write a workspace note saying test from telegram", tmp_path)
+
+    assert payload["has_proposal"] is True
+    assert payload["proposal_id"] == "OP-WORKSPACE-WRITE-TELEGRAM-002"
+    proposal_path = (
+        tmp_path
+        / "artifacts"
+        / "coo"
+        / "operations"
+        / "proposals"
+        / "OP-WORKSPACE-WRITE-TELEGRAM-002.yaml"
     )
     assert proposal_path.exists()
 

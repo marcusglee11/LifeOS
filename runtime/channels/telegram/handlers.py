@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from runtime.channels.telegram.config import TelegramConfig
+from runtime.orchestration.coo.parser import ParseError
 from runtime.orchestration.coo import service as coo_service
 
 
@@ -67,7 +68,16 @@ async def handle_message(update: Any, context: Any, *, repo_root: Path, config: 
     if not text:
         return
 
-    result = await asyncio.to_thread(coo_service.chat_message, text, repo_root)
+    try:
+        result = await asyncio.to_thread(coo_service.chat_message, text, repo_root)
+    except ParseError as exc:
+        await message.reply_text(
+            f"COO returned an invalid operation packet and nothing was queued: {exc}"
+        )
+        return
+    except Exception as exc:
+        await message.reply_text(f"COO chat failed: {exc}")
+        return
     reply_text = str(result.get("message", "")).strip() or "Queued."
     if result.get("has_proposal"):
         await message.reply_text(

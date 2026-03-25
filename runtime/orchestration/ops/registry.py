@@ -96,8 +96,16 @@ def normalize_workspace_path(path_value: str, workspace_root: Path | None = None
     return resolved
 
 
+def _path_arg(args: dict[str, Any]) -> str:
+    for key in ("path", "file_path"):
+        value = str(args.get(key, "")).strip()
+        if value:
+            return value
+    return ""
+
+
 def _normalize_write_args(args: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
-    path_value = str(args.get("path", "")).strip()
+    path_value = _path_arg(args)
     content = args.get("content")
     if not isinstance(content, str):
         raise OperationValidationError("workspace.file.write requires string args.content")
@@ -110,7 +118,7 @@ def _normalize_write_args(args: dict[str, Any], workspace_root: Path) -> dict[st
 
 
 def _normalize_edit_args(args: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
-    path_value = str(args.get("path", "")).strip()
+    path_value = _path_arg(args)
     old_text = args.get("old_text")
     new_text = args.get("new_text")
     if not isinstance(old_text, str) or not isinstance(new_text, str):
