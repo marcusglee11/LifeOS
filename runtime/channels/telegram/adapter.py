@@ -1,9 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 from runtime.channels.telegram.config import TelegramConfig
 from runtime.channels.telegram.handlers import handle_callback, handle_message
+
+
+def _ensure_event_loop() -> None:
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
 
 def run_polling(config: TelegramConfig, repo_root: Path) -> None:
@@ -23,4 +31,5 @@ def run_polling(config: TelegramConfig, repo_root: Path) -> None:
     application.add_handler(
         CallbackQueryHandler(_callback_handler, pattern=r"^(approve|reject):")
     )
+    _ensure_event_loop()
     application.run_polling()
