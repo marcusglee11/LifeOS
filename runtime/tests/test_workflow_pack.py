@@ -775,6 +775,41 @@ def test_update_backlog_updates_timestamp_only_if_no_match(tmp_path: Path) -> No
     assert "[ ] **Some unrelated task**" in content
 
 
+def test_update_backlog_accepts_single_owner_with_collaborators_in_context(tmp_path: Path) -> None:
+    """Canonical backlog lines should parse cleanly during close-build updates."""
+    from runtime.tools.workflow_pack import _update_backlog_state
+
+    backlog_path = tmp_path / "docs" / "11_admin" / "BACKLOG.md"
+    backlog_path.parent.mkdir(parents=True, exist_ok=True)
+    backlog_path.write_text(
+        """# BACKLOG
+
+**Last Updated:** 2026-03-09
+
+## Now
+
+### P1 (High)
+
+- [ ] **OpenClaw distill lane operational rollout** — DoD: Session-scoped shadow rollout completed — Owner: Substrate — Context: Collaborators COO + CEO; milestone 1 keeps raw path authoritative
+""",
+        encoding="utf-8",
+    )
+
+    result = _update_backlog_state(
+        backlog_path=backlog_path,
+        branch="fix/backlog-owner-normalization",
+        commit_messages=["normalize backlog owner field"],
+        skip_on_error=True,
+    )
+
+    assert result["success"] is True
+    assert result["errors"] == []
+    content = backlog_path.read_text(encoding="utf-8")
+    today = datetime.now().strftime("%Y-%m-%d")
+    assert f"**Last Updated:** {today}" in content
+    assert "**OpenClaw distill lane operational rollout**" in content
+
+
 def test_update_state_and_backlog_integration(tmp_path: Path, monkeypatch) -> None:
     """Test integration of STATE and BACKLOG updates."""
     from runtime.tools.workflow_pack import update_state_and_backlog

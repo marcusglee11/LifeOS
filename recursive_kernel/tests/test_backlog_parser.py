@@ -128,6 +128,19 @@ Some random text
             parse_backlog(backlog)
         
         assert "Owner" in str(exc_info.value)
+
+    def test_fails_closed_on_multi_owner_dispatchable_item(self, tmp_path: Path):
+        """Dispatchable items must keep a single machine-parseable Owner token."""
+        backlog = tmp_path / "BACKLOG.md"
+        write_backlog(backlog, """### P1 (High)
+
+- [ ] **Distill lane rollout** -- DoD: Completed shadow window -- Owner: Substrate + COO + CEO
+""")
+
+        with pytest.raises(BacklogParseError) as exc_info:
+            parse_backlog(backlog)
+
+        assert "Owner" in str(exc_info.value)
     
     def test_item_without_priority_section_gets_p3(self, tmp_path: Path):
         """Items without priority section header default to P3 and don't require complete fields."""
