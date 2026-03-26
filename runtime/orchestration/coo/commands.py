@@ -745,6 +745,66 @@ def cmd_coo_telegram_run(args: argparse.Namespace, repo_root: Path) -> int:
     return 0
 
 
+def cmd_coo_telegram_status(args: argparse.Namespace, repo_root: Path) -> int:
+    from datetime import datetime, timezone
+
+    from runtime.channels.telegram.status import read_status
+
+    data = read_status(repo_root)
+
+    if data is None:
+        if getattr(args, "json", False):
+            print(json.dumps({"status": "not_running", "reason": "no status file found"}, indent=2))
+        else:
+            print("Telegram bot: not running (no status file found)")
+        return 0
+
+    state = str(data.get("state", "unknown"))
+    updated_at_str = data.get("updated_at")
+
+    stale = False
+    stale_seconds = 0
+    if state == "running" and updated_at_str:
+        try:
+            updated_dt = datetime.fromisoformat(updated_at_str)
+            age_s = (datetime.now(timezone.utc) - updated_dt).total_seconds()
+            if age_s > 60:
+                stale = True
+                stale_seconds = int(age_s)
+        except Exception:
+            pass
+
+    if stale:
+        state_display = f"running (stale — last seen {stale_seconds}s ago)"
+    elif state == "running":
+        state_display = "running (active)"
+    else:
+        state_display = state
+
+    if getattr(args, "json", False):
+        output = dict(data)
+        if stale:
+            output["state_display"] = state_display
+        print(json.dumps(output, indent=2, sort_keys=True))
+        return 0
+
+    lines = [
+        f"state:           {state_display}",
+        f"mode:            {data.get('mode', '—')}",
+        f"started_at:      {data.get('started_at', '—')}",
+        f"last_message_at: {data.get('last_message_at', '—')}",
+        f"last_reply_at:   {data.get('last_reply_at', '—')}",
+    ]
+    last_latency = data.get("last_latency_ms")
+    if last_latency is not None:
+        lines.append(f"last_latency_ms: {last_latency}")
+    last_err = data.get("last_error") or ""
+    if last_err:
+        lines.append(f"last_error:      {last_err}")
+    print("\n".join(lines))
+    return 0
+
+
 def _auto_execute_proposals(
     proposal_dict: dict[str, Any],
     repo_root: Path,

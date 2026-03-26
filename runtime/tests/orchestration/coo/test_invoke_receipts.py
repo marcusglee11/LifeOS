@@ -147,6 +147,7 @@ def test_binary_not_found_produces_receipt_and_raises():
         with pytest.raises(InvocationError, match="not found"):
             invoke_coo_reasoning(
                 context={}, mode="direct", repo_root=None, run_id=_RUN_ID,
+                _retry_delays=(0.0, 0.0),
             )
 
     collector = get_or_create_collector(_RUN_ID)
@@ -185,3 +186,113 @@ def test_json_decode_failure_produces_receipt():
     r = get_or_create_collector(_RUN_ID).receipts[0]
     assert r.schema_validation == "fail"
     assert "JSON decode" in (r.error or "")
+
+
+# ---------------------------------------------------------------------------
+# Retry behaviour (transient failures on chat/direct, no retry on propose)
+# ---------------------------------------------------------------------------
+
+def test_timeout_retries_on_chat_exhausts_all_attempts():
+    call_count = [0]
+
+    def _always_timeout(*args, **kwargs):
+        call_count[0] += 1
+        raise subprocess.TimeoutExpired(cmd=["openclaw"], timeout=120)
+
+    with patch("subprocess.run", side_effect=_always_timeout):
+        with pytest.raises(InvocationError, match="timed out"):
+            invoke_coo_reasoning(
+                context={}, mode="chat", repo_root=None, run_id=_RUN_ID,
+                _retry_delays=(0.0, 0.0),
+            )
+    # 1 initial + 2 retries = 3 total
+    assert call_count[0] == 3
+    # Only one receipt recorded (the final failure)
+    assert len(get_or_create_collector(_RUN_ID).receipts) == 1
+
+
+def test_timeout_retries_on_direct_exhausts_all_attempts():
+    call_count = [0]
+
+    def _always_timeout(*args, **kwargs):
+        call_count[0] += 1
+        raise subprocess.TimeoutExpired(cmd=["openclaw"], timeout=120)
+
+    with patch("subprocess.run", side_effect=_always_timeout):
+        with pytest.raises(InvocationError, match="timed out"):
+            invoke_coo_reasoning(
+                context={}, mode="direct", repo_root=None, run_id=_RUN_ID,
+                _retry_delays=(0.0, 0.0),
+            )
+    assert call_count[0] == 3
+
+
+def test_timeout_does_not_retry_on_propose():
+    call_count = [0]
+
+    def _always_timeout(*args, **kwargs):
+        call_count[0] += 1
+        raise subprocess.TimeoutExpired(cmd=["openclaw"], timeout=120)
+
+    with patch("subprocess.run", side_effect=_always_timeout):
+        with pytest.raises(InvocationError, match="timed out"):
+            invoke_coo_reasoning(
+                context={}, mode="propose", repo_root=None, run_id=_RUN_ID,
+                _retry_delays=(0.0, 0.0),
+            )
+    # propose never retries
+    assert call_count[0] == 1
+
+
+def test_success_after_retry_returns_normally():
+    call_count = [0]
+
+    def _fail_then_succeed(*args, **kwargs):
+        call_count[0] += 1
+        if call_count[0] < 2:
+            raise subprocess.TimeoutExpired(cmd=["openclaw"], timeout=120)
+        return _make_completed()
+
+    with patch("subprocess.run", side_effect=_fail_then_succeed):
+        result = invoke_coo_reasoning(
+            context={}, mode="chat", repo_root=None, run_id=_RUN_ID,
+            _retry_delays=(0.0, 0.0),
+        )
+    assert call_count[0] == 2
+    assert "task_proposal" in result
+    # Success receipt recorded (not a failure receipt)
+    r = get_or_create_collector(_RUN_ID).receipts[0]
+    assert r.exit_status == 0
+
+
+def test_non_transient_error_not_retried_on_chat():
+    """Non-zero exit is a deterministic failure — not retried even for chat mode."""
+    call_count = [0]
+
+    def _nonzero(*args, **kwargs):
+        call_count[0] += 1
+        return _make_completed(returncode=1, stdout="", stderr="policy reject")
+
+    with patch("subprocess.run", side_effect=_nonzero):
+        with pytest.raises(InvocationError):
+            invoke_coo_reasoning(
+                context={}, mode="chat", repo_root=None, run_id=_RUN_ID,
+                _retry_delays=(0.0, 0.0),
+            )
+    assert call_count[0] == 1
+
+
+def test_file_not_found_retries_on_chat():
+    call_count = [0]
+
+    def _missing(*args, **kwargs):
+        call_count[0] += 1
+        raise FileNotFoundError("openclaw")
+
+    with patch("subprocess.run", side_effect=_missing):
+        with pytest.raises(InvocationError, match="not found"):
+            invoke_coo_reasoning(
+                context={}, mode="chat", repo_root=None, run_id=_RUN_ID,
+                _retry_delays=(0.0, 0.0),
+            )
+    assert call_count[0] == 3

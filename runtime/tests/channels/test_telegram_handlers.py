@@ -217,3 +217,75 @@ async def test_handle_callback_approve_edits_message(monkeypatch: pytest.MonkeyP
 
     assert query.answered is True
     assert query.edited_messages == ["Approved OP-a1b2c3d4 and executed OPR-a1b2c3d4."]
+
+
+@pytest.mark.asyncio
+async def test_handle_message_writes_activity_status(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """handle_message writes last_message_at, last_reply_at, last_latency_ms."""
+    import json as _json
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="write a note")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "chat_message",
+        lambda text, repo_root: {
+            "mode": "chat",
+            "has_proposal": False,
+            "proposal_id": None,
+            "status": "conversation_only",
+            "message": "Done.",
+        },
+    )
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    status_path = tmp_path / "artifacts" / "status" / "coo_telegram_runtime.json"
+    assert status_path.exists()
+    data = _json.loads(status_path.read_text())
+    assert "last_message_at" in data
+    assert "last_reply_at" in data
+    assert "last_latency_ms" in data
+    assert isinstance(data["last_latency_ms"], int)
+
+
+@pytest.mark.asyncio
+async def test_handle_callback_writes_last_callback_at(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """handle_callback writes last_callback_at after processing."""
+    import json as _json
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="write a note")
+    query = _FakeQuery(data="approve:OP-a1b2c3d4")
+    update = _FakeUpdate(
+        effective_message=message,
+        effective_user=_FakeUser(id=123),
+        callback_query=query,
+    )
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "approve_operation",
+        lambda proposal_id, repo_root, approved_by: {
+            "proposal_id": proposal_id,
+            "order_id": "OPR-a1b2c3d4",
+            "status": "executed",
+            "reason": None,
+            "error": None,
+        },
+    )
+
+    await handlers.handle_callback(update, None, repo_root=tmp_path, config=config)
+
+    status_path = tmp_path / "artifacts" / "status" / "coo_telegram_runtime.json"
+    assert status_path.exists()
+    data = _json.loads(status_path.read_text())
+    assert "last_callback_at" in data

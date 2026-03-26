@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -84,6 +85,7 @@ def invoke_coo_reasoning(
     repo_root: Path,
     timeout_s: int = 120,
     run_id: str = "",
+    _retry_delays: tuple[float, ...] = (1.0, 3.0),
 ) -> str:
     """
     Invoke the live OpenClaw COO with the given context.
@@ -200,48 +202,65 @@ def invoke_coo_reasoning(
         "--json",
     ]
 
-    start_ts = _utc_now()
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout_s,
-        )
-    except subprocess.TimeoutExpired as exc:
+    # Retry only for modes where transient gateway failures are recoverable.
+    # Non-transient failures (non-zero exit, bad envelope, policy rejection) are
+    # not caught here and will raise InvocationError immediately below.
+    _retry_schedule = list(_retry_delays) if mode in ("chat", "direct") else []
+    _last_transient_exc: BaseException | None = None
+    result: subprocess.CompletedProcess | None = None
+
+    for _retry_num in range(len(_retry_schedule) + 1):
+        if _retry_num > 0:
+            time.sleep(_retry_schedule[_retry_num - 1])
+        start_ts = _utc_now()
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout_s,
+            )
+            _last_transient_exc = None
+            break
+        except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+            _last_transient_exc = exc
+
+    if _last_transient_exc is not None:
         end_ts = _utc_now()
-        record_invocation_receipt(
-            run_id=run_id,
-            provider_id="openclaw",
-            mode="cli",
-            seat_id=f"coo_{mode}",
-            start_ts=start_ts,
-            end_ts=end_ts,
-            exit_status=-1,
-            output_content="",
-            schema_validation="n/a",
-            error=f"timeout after {timeout_s}s",
-        )
-        raise InvocationError(
-            f"OpenClaw agent timed out after {timeout_s}s"
-        ) from exc
-    except FileNotFoundError as exc:
-        end_ts = _utc_now()
-        record_invocation_receipt(
-            run_id=run_id,
-            provider_id="openclaw",
-            mode="cli",
-            seat_id=f"coo_{mode}",
-            start_ts=start_ts,
-            end_ts=end_ts,
-            exit_status=-1,
-            output_content="",
-            schema_validation="n/a",
-            error="openclaw binary not found",
-        )
-        raise InvocationError(
-            "openclaw binary not found — is OpenClaw installed and on PATH?"
-        ) from exc
+        if isinstance(_last_transient_exc, subprocess.TimeoutExpired):
+            record_invocation_receipt(
+                run_id=run_id,
+                provider_id="openclaw",
+                mode="cli",
+                seat_id=f"coo_{mode}",
+                start_ts=start_ts,
+                end_ts=end_ts,
+                exit_status=-1,
+                output_content="",
+                schema_validation="n/a",
+                error=f"timeout after {timeout_s}s",
+            )
+            raise InvocationError(
+                f"OpenClaw agent timed out after {timeout_s}s"
+            ) from _last_transient_exc
+        else:
+            record_invocation_receipt(
+                run_id=run_id,
+                provider_id="openclaw",
+                mode="cli",
+                seat_id=f"coo_{mode}",
+                start_ts=start_ts,
+                end_ts=end_ts,
+                exit_status=-1,
+                output_content="",
+                schema_validation="n/a",
+                error="openclaw binary not found",
+            )
+            raise InvocationError(
+                "openclaw binary not found — is OpenClaw installed and on PATH?"
+            ) from _last_transient_exc
+
+    assert result is not None
 
     end_ts = _utc_now()
 

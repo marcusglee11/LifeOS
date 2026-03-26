@@ -19,6 +19,7 @@ from runtime.orchestration.coo.commands import (
     cmd_coo_reject,
     cmd_coo_report,
     cmd_coo_status,
+    cmd_coo_telegram_status,
 )
 from runtime.orchestration.coo.invoke import InvocationError
 from runtime.orchestration.dispatch.order import parse_order
@@ -723,3 +724,87 @@ def test_status_json_includes_dispatch_state(tmp_path: Path, capsys) -> None:
     assert "dispatch" in payload
     assert "inbox" in payload["dispatch"]
     assert "active" in payload["dispatch"]
+
+
+# ---------------------------------------------------------------------------
+# coo telegram status
+# ---------------------------------------------------------------------------
+
+def test_telegram_status_no_file(tmp_path: Path, capsys) -> None:
+    rc = cmd_coo_telegram_status(argparse.Namespace(json=False), tmp_path)
+    assert rc == 0
+    assert "not running" in capsys.readouterr().out
+
+
+def test_telegram_status_no_file_json(tmp_path: Path, capsys) -> None:
+    rc = cmd_coo_telegram_status(argparse.Namespace(json=True), tmp_path)
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "not_running"
+
+
+def _write_telegram_status(tmp_path: Path, data: dict) -> None:
+    p = tmp_path / "artifacts" / "status"
+    p.mkdir(parents=True, exist_ok=True)
+    (p / "coo_telegram_runtime.json").write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_telegram_status_running_active(tmp_path: Path, capsys) -> None:
+    _write_telegram_status(tmp_path, {
+        "state": "running",
+        "mode": "polling",
+        "started_at": "2026-03-26T10:00:00+00:00",
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "last_message_at": "2026-03-26T10:01:00+00:00",
+        "last_reply_at": "2026-03-26T10:01:01+00:00",
+        "last_latency_ms": 950,
+    })
+    rc = cmd_coo_telegram_status(argparse.Namespace(json=False), tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "running (active)" in out
+    assert "950" in out
+
+
+def test_telegram_status_stale(tmp_path: Path, capsys) -> None:
+    from datetime import timedelta
+    stale_time = (datetime.now(timezone.utc) - timedelta(seconds=120)).isoformat()
+    _write_telegram_status(tmp_path, {
+        "state": "running",
+        "mode": "polling",
+        "started_at": "2026-03-26T10:00:00+00:00",
+        "updated_at": stale_time,
+    })
+    rc = cmd_coo_telegram_status(argparse.Namespace(json=False), tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "stale" in out
+
+
+def test_telegram_status_stale_json(tmp_path: Path, capsys) -> None:
+    from datetime import timedelta
+    stale_time = (datetime.now(timezone.utc) - timedelta(seconds=120)).isoformat()
+    _write_telegram_status(tmp_path, {
+        "state": "running",
+        "mode": "polling",
+        "updated_at": stale_time,
+    })
+    rc = cmd_coo_telegram_status(argparse.Namespace(json=True), tmp_path)
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert "stale" in payload["state_display"]
+
+
+def test_telegram_status_error_state(tmp_path: Path, capsys) -> None:
+    _write_telegram_status(tmp_path, {
+        "state": "error",
+        "mode": "polling",
+        "started_at": "2026-03-26T10:00:00+00:00",
+        "updated_at": "2026-03-26T10:05:00+00:00",
+        "last_error": "gateway connection refused",
+    })
+    rc = cmd_coo_telegram_status(argparse.Namespace(json=False), tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "error" in out
+    assert "gateway connection refused" in out

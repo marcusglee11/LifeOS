@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from contextlib import suppress
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from runtime.channels.telegram.config import TelegramConfig
+from runtime.channels.telegram.status import write_status
 from runtime.orchestration.coo.parser import ParseError
 from runtime.orchestration.coo import service as coo_service
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _is_private_chat(update: Any) -> bool:
@@ -94,6 +101,9 @@ async def handle_message(update: Any, context: Any, *, repo_root: Path, config: 
     if not text:
         return
 
+    _msg_start = time.monotonic()
+    write_status(repo_root, last_message_at=_utc_now())
+
     typing_task = asyncio.create_task(_typing_pulse(update, context))
     await asyncio.sleep(0)
     try:
@@ -116,9 +126,19 @@ async def handle_message(update: Any, context: Any, *, repo_root: Path, config: 
             reply_text,
             reply_markup=_build_inline_markup(str(result["proposal_id"])),
         )
+        write_status(
+            repo_root,
+            last_reply_at=_utc_now(),
+            last_latency_ms=int((time.monotonic() - _msg_start) * 1000),
+        )
         return
 
     await message.reply_text(reply_text)
+    write_status(
+        repo_root,
+        last_reply_at=_utc_now(),
+        last_latency_ms=int((time.monotonic() - _msg_start) * 1000),
+    )
 
 
 async def handle_callback(update: Any, context: Any, *, repo_root: Path, config: TelegramConfig) -> None:
@@ -155,3 +175,4 @@ async def handle_callback(update: Any, context: Any, *, repo_root: Path, config:
 
     await query.answer()
     await query.edit_message_text(_render_terminal_text(receipt))
+    write_status(repo_root, last_callback_at=_utc_now())

@@ -1129,6 +1129,10 @@ def main() -> int:
         required=True,
     )
     coo_telegram_subs.add_parser("run", help="Run the Telegram COO adapter in polling mode")
+    p_coo_telegram_status = coo_telegram_subs.add_parser(
+        "status", help="Show Telegram COO bot runtime status"
+    )
+    p_coo_telegram_status.add_argument("--json", action="store_true", help="Output as JSON")
 
     p_coo_prompt_status = coo_subs.add_parser(
         "prompt-status", help="Compare canonical COO prompt hash to the live OpenClaw workspace prompt"
@@ -1235,6 +1239,8 @@ def main() -> int:
             elif args.coo_cmd == "telegram":
                 if args.coo_telegram_cmd == "run":
                     return coo_commands.cmd_coo_telegram_run(args, repo_root)
+                elif args.coo_telegram_cmd == "status":
+                    return coo_commands.cmd_coo_telegram_status(args, repo_root)
             elif args.coo_cmd == "prompt-status":
                 return coo_commands.cmd_coo_prompt_status(args, repo_root)
 

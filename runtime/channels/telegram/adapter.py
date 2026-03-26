@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 from pathlib import Path
 
 from runtime.channels.telegram.config import TelegramConfig
 from runtime.channels.telegram.handlers import handle_callback, handle_message
+from runtime.channels.telegram.status import write_status
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _ensure_event_loop() -> None:
@@ -16,6 +22,8 @@ def _ensure_event_loop() -> None:
 
 def run_polling(config: TelegramConfig, repo_root: Path) -> None:
     from telegram.ext import ApplicationBuilder, CallbackQueryHandler, MessageHandler, filters
+
+    write_status(repo_root, state="starting", mode=config.mode, started_at=_utc_now())
 
     application = ApplicationBuilder().token(config.bot_token).build()
 
@@ -32,4 +40,10 @@ def run_polling(config: TelegramConfig, repo_root: Path) -> None:
         CallbackQueryHandler(_callback_handler, pattern=r"^(approve|reject):")
     )
     _ensure_event_loop()
-    application.run_polling()
+    write_status(repo_root, state="running")
+    try:
+        application.run_polling()
+    except Exception as exc:
+        write_status(repo_root, state="error", last_error=str(exc))
+        raise
+    write_status(repo_root, state="stopped")

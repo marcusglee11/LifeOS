@@ -169,6 +169,9 @@ artifacts/comparison_results.jsonl
 artifacts/Review_Packet_*.md
 artifacts/store/
 
+# Telegram bot runtime state (local ephemeral, not a repo deliverable)
+artifacts/status/coo_telegram_runtime.json
+
 # Stale runtime artifacts (WSL/Windows filesystem side-effects)
 /nul
 /test_budget_concurrency.db
