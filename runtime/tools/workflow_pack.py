@@ -118,9 +118,17 @@ def _matches(file_path: str, prefixes: Sequence[str]) -> bool:
     return any(file_path == prefix or file_path.startswith(prefix) for prefix in prefixes)
 
 
+def is_plan_only_change(changed_files: Sequence[str]) -> bool:
+    """Return True when every changed file is a plan artifact under artifacts/plans/."""
+    files = _unique_ordered(changed_files)
+    return bool(files) and all(path.startswith("artifacts/plans/") for path in files)
+
+
 def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
     """Map changed files to targeted test commands."""
     files = _unique_ordered(changed_files)
+    if is_plan_only_change(files):
+        return []
 
     routed: list[str] = []
 
@@ -319,6 +327,14 @@ def discover_changed_files(repo_root: Path, branch: str | None = None) -> list[s
 
 def run_closure_tests(repo_root: Path, changed_files: Sequence[str]) -> dict:
     """Run targeted closure tests derived from changed files."""
+    if is_plan_only_change(changed_files):
+        return {
+            "passed": True,
+            "commands_run": [],
+            "summary": "Plan-only artifact change; targeted closure tests skipped.",
+            "failures": [],
+        }
+
     commands = route_targeted_tests(changed_files)
     commands_run: list[str] = []
     failures: list[str] = []

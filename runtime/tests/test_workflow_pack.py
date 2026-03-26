@@ -10,6 +10,7 @@ from runtime.tools.workflow_pack import (
     build_active_work_payload,
     check_doc_stewardship,
     cleanup_after_merge,
+    is_plan_only_change,
     merge_to_main,
     read_active_work,
     run_closure_tests,
@@ -161,7 +162,18 @@ def test_route_targeted_tests_config_governance() -> None:
 
 def test_route_targeted_tests_artifacts_plans() -> None:
     commands = route_targeted_tests(["artifacts/plans/2026-03-05-coo-bootstrap-plan.md"])
-    assert commands == ["pytest -q runtime/tests/test_workflow_pack.py"]
+    assert commands == []
+
+
+def test_is_plan_only_change_true() -> None:
+    assert is_plan_only_change(["artifacts/plans/2026-03-05-coo-bootstrap-plan.md"]) is True
+
+
+def test_is_plan_only_change_false_for_mixed_changes() -> None:
+    assert is_plan_only_change([
+        "artifacts/plans/2026-03-05-coo-bootstrap-plan.md",
+        "runtime/tools/workflow_pack.py",
+    ]) is False
 
 
 def test_route_targeted_tests_artifacts_handoffs() -> None:
@@ -203,6 +215,17 @@ def test_run_closure_tests_fails_on_nonzero(monkeypatch) -> None:
     result = run_closure_tests(Path("."), ["runtime/tools/workflow_pack.py"])
     assert result["passed"] is False
     assert result["failures"]
+
+
+def test_run_closure_tests_skips_plan_only_without_subprocess(monkeypatch) -> None:
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("subprocess should not be called for plan-only closure checks")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fail_if_called)
+    result = run_closure_tests(Path("."), ["artifacts/plans/2026-03-05-coo-bootstrap-plan.md"])
+    assert result["passed"] is True
+    assert result["commands_run"] == []
+    assert "Plan-only artifact change" in result["summary"]
 
 
 def test_check_doc_stewardship_skips_when_no_docs(monkeypatch) -> None:

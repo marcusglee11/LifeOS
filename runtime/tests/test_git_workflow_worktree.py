@@ -336,3 +336,88 @@ def test_closure_pack_blocks_primary_scoped_branch(monkeypatch, tmp_path: Path, 
     assert rc == 1
     assert "ISOLATION_REQUIRED" in output
     assert "--recover-primary" in output
+
+
+def test_closure_pack_plan_only_skips_post_merge_state_churn(
+    monkeypatch, tmp_path: Path
+) -> None:
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir(parents=True)
+
+    events: list[str] = []
+
+    def fake_git_stdout(repo: Path, args: list[str]) -> str:
+        if args == ["rev-parse", "--abbrev-ref", "HEAD"]:
+            return "plan/coo-telegram-reliability"
+        if args == ["log", "--oneline", "-n", "10"]:
+            return "abc123 add plan artifact"
+        return ""
+
+    def fake_merge_to_main(repo_root_arg: Path, branch: str, **kwargs) -> dict:
+        events.append("merge")
+        return {
+            "success": True,
+            "merge_sha": "deadbeef",
+            "primary_repo": str(repo_root_arg),
+            "errors": [],
+        }
+
+    monkeypatch.setattr(cp, "_git_stdout", fake_git_stdout)
+    monkeypatch.setattr(cp, "_working_tree_clean", lambda _: True)
+    monkeypatch.setattr(
+        cp,
+        "discover_changed_files",
+        lambda _: ["artifacts/plans/2026-03-26-coo-telegram-reliability-operatorization-v1.md"],
+    )
+    monkeypatch.setattr(
+        cp,
+        "run_closure_tests",
+        lambda *_: {
+            "passed": True,
+            "summary": "Plan-only artifact change; targeted closure tests skipped.",
+            "commands_run": [],
+            "failures": [],
+        },
+    )
+    monkeypatch.setattr(
+        cp,
+        "check_doc_stewardship",
+        lambda *_args, **_kwargs: {"passed": True, "required": False, "auto_fixed": False, "errors": []},
+    )
+    monkeypatch.setattr(cp, "merge_to_main", fake_merge_to_main)
+    monkeypatch.setattr(
+        cp,
+        "update_state_and_backlog",
+        lambda *_args, **_kwargs: events.append("state_update"),
+    )
+    monkeypatch.setattr(
+        cp,
+        "update_structured_backlog",
+        lambda *_args, **_kwargs: events.append("structured_update"),
+    )
+    monkeypatch.setattr(
+        cp,
+        "cleanup_after_merge",
+        lambda *_args, **_kwargs: {
+            "branch_deleted": True,
+            "context_cleared": True,
+            "worktree_removed": False,
+            "errors": [],
+        },
+    )
+
+    def fake_subprocess_run(cmd, **kwargs):
+        if cmd[:2] == [sys.executable, str(repo_root / "scripts" / "generate_runtime_status.py")]:
+            events.append("regen")
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(cp.subprocess, "run", fake_subprocess_run)
+    monkeypatch.setattr(sys, "argv", ["closure_pack.py", "--repo-root", str(repo_root)])
+
+    rc = cp.main()
+
+    assert rc == 0
+    assert "merge" in events
+    assert "regen" not in events
+    assert "state_update" not in events
+    assert "structured_update" not in events

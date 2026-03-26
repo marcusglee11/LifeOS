@@ -20,6 +20,7 @@ from runtime.tools.workflow_pack import (  # noqa: E402
     check_doc_stewardship,
     cleanup_after_merge,
     discover_changed_files,
+    is_plan_only_change,
     merge_to_main,
     run_closure_tests,
     update_state_and_backlog,
@@ -245,6 +246,7 @@ def main() -> int:
         return 1
 
     changed_files = discover_changed_files(repo_root)
+    plan_only_change = is_plan_only_change(changed_files)
     test_run = run_closure_tests(repo_root, changed_files)
     test_results.append(f"{'PASS' if test_run['passed'] else 'FAIL'}: {test_run['summary']}")
     for command in test_run["commands_run"]:
@@ -329,7 +331,7 @@ def main() -> int:
     _close_build_record(repo_root, branch)
 
     primary_repo_str = merge.get("primary_repo")
-    if primary_repo_str:
+    if primary_repo_str and not plan_only_change:
         primary_repo = Path(primary_repo_str)
         status_gen = primary_repo / "scripts" / "generate_runtime_status.py"
         if status_gen.exists():
@@ -370,9 +372,11 @@ def main() -> int:
                 )
             else:
                 what_remains.append(f"Runtime status generation failed: {status_proc.stderr.strip()}")
+    elif plan_only_change:
+        what_done.append("Skipped runtime_status.json refresh for plan-only artifact change.")
 
     # Update STATE and BACKLOG
-    if not args.no_state_update:
+    if not args.no_state_update and not plan_only_change:
         state_update = update_state_and_backlog(
             repo_root,
             branch=branch,
@@ -405,6 +409,8 @@ def main() -> int:
             )
         for err in structured_update["errors"]:
             what_remains.append(f"Structured backlog warning: {err}")
+    elif plan_only_change:
+        what_done.append("Skipped STATE/BACKLOG updates for plan-only artifact change.")
     else:
         what_done.append("State update skipped by --no-state-update.")
 

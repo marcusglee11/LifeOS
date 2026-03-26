@@ -26,6 +26,7 @@ Model fallback chains are defined in `config/models.yaml`. If a primary model is
    - `config/governance/protected_artefacts.json`
 
 2. **Test Discipline**: Run `pytest runtime/tests -q` before and after changes. Never commit with failing tests.
+   - Exception: plan-only artifact edits limited to `artifacts/plans/*.md` use the lightweight path. Do not run repo-wide pytest for those changes; rely on the plan-only close-build gate instead.
 
 3. **State Awareness**: Check `docs/11_admin/LIFEOS_STATE.md` for current context before starting work.
 
@@ -41,6 +42,7 @@ Model fallback chains are defined in `config/models.yaml`. If a primary model is
    `python3 scripts/workflow/close_build.py` from the linked worktree. If scoped
    work was started in primary by mistake, run
    `python3 scripts/workflow/start_build.py --recover-primary`.
+   - Exception: plan-only artifact edits limited to `artifacts/plans/*.md` do not require a scoped worktree branch.
 
 ---
 
