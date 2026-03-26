@@ -112,9 +112,11 @@ async def handle_message(update: Any, context: Any, *, repo_root: Path, config: 
         await message.reply_text(
             f"COO returned an invalid operation packet and nothing was queued: {exc}"
         )
+        write_status(repo_root, last_error=f"parse error: {exc}")
         return
     except Exception as exc:
         await message.reply_text(f"COO chat failed: {exc}")
+        write_status(repo_root, last_error=str(exc))
         return
     finally:
         typing_task.cancel()

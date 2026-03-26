@@ -289,3 +289,29 @@ async def test_handle_callback_writes_last_callback_at(
     assert status_path.exists()
     data = _json.loads(status_path.read_text())
     assert "last_callback_at" in data
+
+@pytest.mark.asyncio
+async def test_handle_message_writes_last_error_on_exception(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """handle_message writes last_error to status when COO invocation fails."""
+    import json as _json
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="do something")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "chat_message",
+        lambda text, repo_root: (_ for _ in ()).throw(RuntimeError("gateway down")),
+    )
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert message.replies[0][0] == "COO chat failed: gateway down"
+    status_path = tmp_path / "artifacts" / "status" / "coo_telegram_runtime.json"
+    assert status_path.exists()
+    data = _json.loads(status_path.read_text())
+    assert data.get("last_error") == "gateway down"
