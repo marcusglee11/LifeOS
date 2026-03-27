@@ -93,6 +93,19 @@ requires_approval: true
 suggested_owner: lifeos
 """
 
+_ESCALATION_OUTPUT_SCHEMA_EXAMPLE = """\
+schema_version: escalation_packet.v1
+type: ambiguous_task
+objective: "the CEO objective text"
+options:
+  - option_id: A
+    title: "Escalate to CEO"
+    action: "Pause and request clarification."
+  - option_id: B
+    title: "Proceed at L3"
+    action: "Continue with operator-visible risk."
+"""
+
 _PROPOSE_OUTPUT_SCHEMA = {
     "description": (
         "Required output format for propose mode. "
@@ -260,6 +273,7 @@ def build_direct_context(repo_root: Path, intent: str, source: str = "coo_direct
         "generated_at": _now_iso(),
         "repo_map": _load_repo_map(repo_root),
         "operation_proposal_example": _OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE,
+        "escalation_packet_example": _ESCALATION_OUTPUT_SCHEMA_EXAMPLE,
     }
 
 
@@ -270,4 +284,5 @@ def build_chat_context(message: str, repo_root: Path) -> dict[str, Any]:
         "generated_at": _now_iso(),
         "repo_map": _load_repo_map(repo_root),
         "operation_proposal_example": _OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE,
+        "escalation_packet_example": _ESCALATION_OUTPUT_SCHEMA_EXAMPLE,
     }

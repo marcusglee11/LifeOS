@@ -189,7 +189,7 @@ def test_json_decode_failure_produces_receipt():
 
 
 # ---------------------------------------------------------------------------
-# Retry behaviour (transient failures on chat/direct, no retry on propose)
+# Retry behaviour (transient failures on chat/direct/propose)
 # ---------------------------------------------------------------------------
 
 def test_timeout_retries_on_chat_exhausts_all_attempts():
@@ -227,7 +227,7 @@ def test_timeout_retries_on_direct_exhausts_all_attempts():
     assert call_count[0] == 3
 
 
-def test_timeout_does_not_retry_on_propose():
+def test_timeout_retry_on_propose():
     call_count = [0]
 
     def _always_timeout(*args, **kwargs):
@@ -240,7 +240,22 @@ def test_timeout_does_not_retry_on_propose():
                 context={}, mode="propose", repo_root=None, run_id=_RUN_ID,
                 _retry_delays=(0.0, 0.0),
             )
-    # propose never retries
+    assert call_count[0] == 3
+
+
+def test_file_not_found_does_not_retry_on_propose():
+    call_count = [0]
+
+    def _missing(*args, **kwargs):
+        call_count[0] += 1
+        raise FileNotFoundError("openclaw")
+
+    with patch("subprocess.run", side_effect=_missing):
+        with pytest.raises(InvocationError, match="not found"):
+            invoke_coo_reasoning(
+                context={}, mode="propose", repo_root=None, run_id=_RUN_ID,
+                _retry_delays=(0.0, 0.0),
+            )
     assert call_count[0] == 1
 
 

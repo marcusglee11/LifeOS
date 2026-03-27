@@ -20,7 +20,7 @@ def test_autonomous_build_cycle_imports():
     from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
     assert AutonomousBuildCycleMission is not None
 
-@pytest.mark.skip(reason="Plan bypass functionality not yet implemented in autonomous_build_cycle.py")
+@pytest.mark.skip(reason="LIFEOS_TODO[P1] bypass path not yet implemented in autonomous_build_cycle.py")
 def test_plan_bypass_activation(dogfood_context):
     """
     Controlled Dogfood Run:

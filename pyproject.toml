@@ -30,7 +30,7 @@ pythonpath = [
 ]
 
 # Addopts: verbose mode with ignored paths for excluded tests
-# Each exclusion documented with evidence (verified 2026-02-08):
+# Canonical classification source: config/certification_profiles.yaml
 addopts = [
     "-v",
     # Archived legacy tests from pre-Phase 3 rewrite — not maintained

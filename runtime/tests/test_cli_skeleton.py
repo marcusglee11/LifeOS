@@ -145,6 +145,17 @@ class TestCLI:
                 captured = capsys.readouterr()
                 assert "Error: No config file" in captured.out
 
+    def test_cli_certify_pipeline(self, temp_repo, capsys):
+        completed = MagicMock(returncode=0, stdout='{"state":"prod_local"}\n', stderr="")
+        with patch("runtime.cli.detect_repo_root", return_value=temp_repo):
+            with patch("runtime.cli.subprocess.run", return_value=completed) as mock_run:
+                with patch("sys.argv", ["runtime", "certify", "pipeline", "--profile", "local"]):
+                    assert main() == 0
+        captured = capsys.readouterr()
+        assert '"state":"prod_local"' in captured.out
+        cmd = mock_run.call_args.args[0]
+        assert cmd[-2:] == ["--profile", "local"]
+
     def test_cli_spine_run_openclaw_job_json(self, temp_repo, tmp_path, capsys):
         """spine run-openclaw-job should emit JSON and PASS exit code."""
         payload_path = tmp_path / "job_payload.json"

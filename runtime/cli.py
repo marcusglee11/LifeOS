@@ -77,6 +77,22 @@ def cmd_mission_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_certify_pipeline(args: argparse.Namespace, repo_root: Path) -> int:
+    script = repo_root / "scripts" / "run_certification.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--profile", args.profile],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, file=sys.stderr, end="")
+    return result.returncode
+
+
 
 def _baseline_commit(repo_root: Path) -> str | None:
     try:
@@ -1057,6 +1073,14 @@ def main() -> int:
     )
     p_dispatch_status.add_argument("--json", action="store_true", help="Output as JSON")
 
+    # certify group
+    p_certify = subparsers.add_parser("certify", help="Pipeline certification commands")
+    certify_subs = p_certify.add_subparsers(dest="certify_cmd", required=True)
+    p_certify_pipeline = certify_subs.add_parser(
+        "pipeline", help="Run pipeline readiness certification"
+    )
+    p_certify_pipeline.add_argument("--profile", choices=("local", "ci", "live"), required=True)
+
     # coo group
     p_coo = subparsers.add_parser("coo", help="COO orchestration commands")
     coo_subs = p_coo.add_subparsers(dest="coo_cmd", required=True)
@@ -1218,6 +1242,10 @@ def main() -> int:
                 return cmd_dispatch_submit(args, repo_root)
             elif args.dispatch_cmd == "status":
                 return cmd_dispatch_status(args, repo_root)
+
+        if args.subcommand == "certify":
+            if args.certify_cmd == "pipeline":
+                return cmd_certify_pipeline(args, repo_root)
 
         if args.subcommand == "coo":
             from runtime.orchestration.coo import commands as coo_commands

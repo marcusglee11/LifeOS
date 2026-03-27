@@ -1,0 +1,49 @@
+schema_version: certification_profiles.v1
+suites:
+  - path: runtime/tests/archive_legacy_r6x
+    profile: archive
+    reason: Legacy pre-Phase-3 tests
+  - path: tests_recursive/test_steward_runner.py
+    profile: ci
+    reason: WSL git worktree ops too slow for local execution
+  - path: runtime/tests/test_sandbox_remediation.py
+    profile: ci
+    reason: Hardlink-defense instability on WSL
+  - path: runtime/tests/test_demo_approval_determinism.py
+    profile: ci
+    reason: Non-deterministic approval demo
+  - path: runtime/tests/test_e2e_mission_cli.py
+    profile: live
+    reason: Requires live LLM backend
+  - path: runtime/tests/test_isolated_smoke_test.py
+    profile: ci
+    reason: Isolated worktree plus venv setup
+  - path: runtime/tests/test_opencode_stage1_5_live.py
+    profile: live
+    reason: Requires ZEN_BUILDER_KEY
+skipped_tests:
+  - test: runtime/tests/orchestration/missions/test_bypass_dogfood.py::test_plan_bypass_activation
+    classification: wip
+    reason: LIFEOS_TODO[P1] bypass path not yet implemented
+  - test: runtime/tests/test_doc_hygiene.py::TestDocHygieneMarkdownLint::test_missing_markdownlint_dependency
+    classification: wip
+    reason: LIFEOS_TODO[P2] markdownlint dependency path not yet implemented
+skip_reason_patterns:
+  - pattern: Symlinks not supported on this platform
+    classification: platform
+    reason: Platform capability dependent
+  - pattern: Symlinks require admin on Windows
+    classification: platform
+    reason: Windows privilege dependent
+  - pattern: Symlinks require special permissions on Windows
+    classification: platform
+    reason: Windows privilege dependent
+  - pattern: requires network access for pip dependencies
+    classification: env_optional
+    reason: Offline environment dependent
+  - pattern: (?i)set RUN_LIVE_
+    classification: live_only
+    reason: Explicit opt-in live test
+  - pattern: (?i)requires? ZEN_
+    classification: live_only
+    reason: Live API credential dependent

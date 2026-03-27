@@ -9,6 +9,10 @@ import yaml
 
 from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION
 from runtime.orchestration.coo.context import (
+    _ESCALATION_OUTPUT_SCHEMA_EXAMPLE,
+    _NTP_OUTPUT_SCHEMA_EXAMPLE,
+    _OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE,
+    _PROPOSE_OUTPUT_SCHEMA_EXAMPLE,
     build_propose_context,
     build_report_context,
     build_status_context,
@@ -227,6 +231,43 @@ def test_propose_context_output_format_instruction_key(tmp_path: Path) -> None:
     assert context["audience"] == "runtime_machine"
     assert "REQUIRED OUTPUT FORMAT" in context["output_format_instruction"]
     assert "RUNTIME MACHINE-OUTPUT INVOCATION" in context["output_format_instruction"]
+
+
+def _top_level_fields_from_yaml(text: str) -> set[str]:
+    payload = yaml.safe_load(text)
+    assert isinstance(payload, dict)
+    return set(payload.keys())
+
+
+def _extract_markdown_yaml_fields(doc_text: str, schema_version: str) -> set[str]:
+    for block in doc_text.split("```yaml")[1:]:
+        yaml_block = block.split("```", 1)[0].strip()
+        if f"schema_version: {schema_version}" in yaml_block:
+            return _top_level_fields_from_yaml(yaml_block)
+    raise AssertionError(f"Schema block not found for {schema_version}")
+
+
+def test_output_schema_examples_match_authoritative_markdown() -> None:
+    schema_doc = (REPO_ROOT / "artifacts" / "coo" / "schemas.md").read_text(encoding="utf-8")
+    coo_prompt = (REPO_ROOT / "config" / "agent_roles" / "coo.md").read_text(encoding="utf-8")
+
+    assert "artifacts/coo/schemas.md" in coo_prompt
+    assert _top_level_fields_from_yaml(_PROPOSE_OUTPUT_SCHEMA_EXAMPLE) == _extract_markdown_yaml_fields(
+        schema_doc,
+        "task_proposal.v1",
+    )
+    assert _top_level_fields_from_yaml(_NTP_OUTPUT_SCHEMA_EXAMPLE) == _extract_markdown_yaml_fields(
+        schema_doc,
+        "nothing_to_propose.v1",
+    )
+    assert _top_level_fields_from_yaml(_OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE) == _extract_markdown_yaml_fields(
+        schema_doc,
+        "operation_proposal.v1",
+    )
+    assert _top_level_fields_from_yaml(_ESCALATION_OUTPUT_SCHEMA_EXAMPLE) == _extract_markdown_yaml_fields(
+        schema_doc,
+        "escalation_packet.v1",
+    )
 
 
 # ---------------------------------------------------------------------------

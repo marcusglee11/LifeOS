@@ -9,26 +9,17 @@ Each proposal recommends an action on an existing backlog task.
 
 ```yaml
 schema_version: task_proposal.v1
-generated_at: "2026-03-06T00:00:00Z"
-mode: propose
-objective_ref: "OBJ-001"
 proposals:
-  - task_id: "T-001"
-    rationale: "Highest priority, all dependencies met, low risk"
-    proposed_action: "dispatch"
+  - task_id: T-001
+    rationale: "Highest priority with all deps met."
+    proposed_action: dispatch
     urgency_override: null
-    suggested_owner: "codex"
-  - task_id: "T-009"
-    rationale: "Blocked by missing provider health data; defer until monitoring is in place"
-    proposed_action: "defer"
+    suggested_owner: codex
+  - task_id: T-002
+    rationale: "Next priority; defer until T-001 complete."
+    proposed_action: defer
     urgency_override: null
     suggested_owner: ""
-  - task_id: "T-004"
-    rationale: "Scope ambiguity — CEO must clarify deliverable format before dispatch"
-    proposed_action: "escalate"
-    urgency_override: "P0"
-    suggested_owner: ""
-notes: "All proposals are L3 during burn-in"
 ```
 
 Rules:
@@ -41,11 +32,8 @@ Rules:
 
 ```yaml
 schema_version: nothing_to_propose.v1
-generated_at: "2026-03-06T00:00:00Z"
-mode: propose
-objective_ref: "OBJ-001"
-reason: "No pending actionable tasks after policy checks"
-recommended_follow_up: "Request new objective or resolve blocked tasks"
+reason: "No pending actionable tasks after policy checks."
+recommended_follow_up: "Wait for blocked tasks to unblock."
 ```
 
 ## 3) ExecutionOrder (`execution_order.v1`)
@@ -85,29 +73,37 @@ Validation notes:
 - `steps` must be non-empty; each step requires `name` and `role`.
 - `provider` routing is advisory in Step 2; runtime enforcement is deferred.
 
-## 4) EscalationPacket (`escalation_packet.v1`)
+## 4) OperationProposal (`operation_proposal.v1`)
+
+```yaml
+schema_version: operation_proposal.v1
+proposal_id: OP-a1b2c3d4
+title: "Write workspace note"
+rationale: "The user asked for a workspace mutation that fits the allowlisted ops lane."
+operation_kind: mutation
+action_id: workspace.file.write
+args:
+  path: /workspace/notes/example.md
+  content: "Hello from COO."
+requires_approval: true
+suggested_owner: lifeos
+```
+
+## 5) EscalationPacket (`escalation_packet.v1`)
 
 `type` values align with `EscalationType` enum in `runtime/orchestration/ceo_queue.py`.
 
 ```yaml
 schema_version: escalation_packet.v1
-generated_at: "2026-03-06T00:00:00Z"
-run_id: "run_20260306_000000"
-type: "ambiguous_task"
-context:
-  summary: "Objective scope conflicts with current governance envelope"
-  objective_ref: "OBJ-001"
-  task_ref: "COO-TASK-001"
-  files_considered:
-    - "config/governance/delegation_envelope.yaml"
-analysis:
-  issue: "Unable to classify action under known autonomy categories"
+type: ambiguous_task
+objective: "the CEO objective text"
 options:
-  - label: "Escalate to CEO"
-    tradeoff: "Slower, governance-safe"
-  - label: "Proceed at L3"
-    tradeoff: "Faster, but policy risk"
-recommendation: "Escalate to CEO"
+  - option_id: A
+    title: "Escalate to CEO"
+    action: "Pause and request clarification."
+  - option_id: B
+    title: "Proceed at L3"
+    action: "Continue with operator-visible risk."
 ```
 
 Allowed escalation `type` values:
@@ -117,7 +113,7 @@ Allowed escalation `type` values:
 - `ambiguous_task`
 - `policy_violation`
 
-## 5) StatusReport (`status_report.v1`)
+## 6) StatusReport (`status_report.v1`)
 
 ```yaml
 schema_version: status_report.v1

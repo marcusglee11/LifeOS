@@ -44,7 +44,7 @@ def test_all_promotion_fixtures() -> None:
         _write_delegation(tmp_path)
 
         before = collect_evidence(tmp_path)
-        with patch("runtime.orchestration.coo.commands.invoke_coo_reasoning", return_value=expected_yaml):
+        with patch("runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml):
             if mode == "propose":
                 rc = cmd_coo_propose(
                     argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),

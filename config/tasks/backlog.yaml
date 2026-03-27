@@ -300,17 +300,17 @@ tasks:
   scope_paths:
   - runtime/orchestration/coo/context.py
   - artifacts/coo/schemas.md
-  status: pending
+  status: completed
   requires_approval: false
-  owner: ''
-  evidence: ''
+  owner: codex
+  evidence: merged 1cd86177 + 69eb7a10
   task_type: build
   tags:
   - coo-step6
   - tech-debt
   objective_ref: coo-gaps
   created_at: '2026-03-09T00:00:00Z'
-  completed_at: null
+  completed_at: '2026-03-27T00:00:00Z'
 - id: T-016
   title: cmd_coo_direct() live Stage A parity
   description: cmd_coo_direct() currently uses stub/placeholder logic. Bring it to
@@ -344,17 +344,17 @@ tasks:
   risk: low
   scope_paths:
   - runtime/orchestration/coo/invoke.py
-  status: pending
+  status: completed
   requires_approval: false
-  owner: ''
-  evidence: ''
+  owner: codex
+  evidence: merged 1cd86177 + 69eb7a10
   task_type: build
   tags:
   - coo-step6
   - tech-debt
   objective_ref: coo-gaps
   created_at: '2026-03-09T00:00:00Z'
-  completed_at: null
+  completed_at: '2026-03-27T00:00:00Z'
 - id: T-018
   title: COO cron/event trigger
   description: Set up OpenClaw cron heartbeat so COO orients and proposes autonomously
@@ -421,4 +421,77 @@ tasks:
   - tech-debt
   objective_ref: coo-gaps
   created_at: '2026-03-09T00:00:00Z'
+  completed_at: null
+- id: T-021
+  title: Prove prod_local on clean worktree
+  description: Run pipeline certification from a clean worktree and close any remaining
+    local-profile leaks until lifeos certify pipeline --profile local returns prod_local.
+  dod: Clean worktree; lifeos certify pipeline --profile local exits 0 with state
+    prod_local; readiness artifact has zero blocking leaks
+  priority: P1
+  risk: med
+  scope_paths:
+  - scripts/run_certification.py
+  - runtime/cli.py
+  - artifacts/status/
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - production-hardening
+  - readiness
+  objective_ref: pipeline-readiness
+  created_at: '2026-03-27T00:00:00Z'
+  completed_at: null
+- id: T-022
+  title: Bring CI certification profile to prod_ci
+  description: Stabilize and prove all ci-classified suites and certification substeps
+    so lifeos certify pipeline --profile ci returns prod_ci across repeated runs.
+  dod: ci-classified suites green; CI certification exits 0 with state prod_ci; soak
+    evidence recorded for repeated clean runs
+  priority: P1
+  risk: med
+  scope_paths:
+  - tests_recursive/
+  - runtime/tests/
+  - scripts/run_certification.py
+  - scripts/run_certification_tests.py
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - production-hardening
+  - readiness
+  - ci
+  objective_ref: pipeline-readiness
+  created_at: '2026-03-27T00:00:00Z'
+  completed_at: null
+- id: T-023
+  title: Define ops-autonomy production bar beyond repo loop
+  description: Specify and ratify the next acceptance bar for operational autonomy
+    after code construction plus repo ops, including scope, leak ledger, and proof
+    requirements.
+  dod: Written plan or ruling defines allowed ops scope, required safeguards, certification
+    profiles, and promotion criteria for post-repo operational autonomy
+  priority: P2
+  risk: med
+  scope_paths:
+  - docs/11_admin/
+  - artifacts/plans/
+  - config/tasks/
+  status: pending
+  requires_approval: true
+  owner: ''
+  evidence: ''
+  task_type: build
+  tags:
+  - operations
+  - autonomy
+  - roadmap
+  objective_ref: pipeline-readiness
+  created_at: '2026-03-27T00:00:00Z'
   completed_at: null

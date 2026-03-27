@@ -136,7 +136,7 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         self.assertIn(result.returncode, [0, 1],
                      f"Expected exit 0 or 1, got {result.returncode}. stderr: {result.stderr}")
 
-    @pytest.mark.skip(reason="Placeholder — markdownlint check not yet implemented")
+    @pytest.mark.skip(reason="LIFEOS_TODO[P2] markdownlint dependency path not yet implemented")
     def test_missing_markdownlint_dependency(self):
         """
         Scenario: Missing markdownlint dependency

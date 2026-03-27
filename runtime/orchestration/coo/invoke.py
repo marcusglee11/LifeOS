@@ -202,17 +202,17 @@ def invoke_coo_reasoning(
         "--json",
     ]
 
-    # Retry only for modes where transient gateway failures are recoverable.
-    # Non-transient failures (non-zero exit, bad envelope, policy rejection) are
-    # not caught here and will raise InvocationError immediately below.
-    _retry_schedule = list(_retry_delays) if mode in ("chat", "direct") else []
+    # Retry only for modes where transient failures are recoverable. For
+    # propose mode, a missing binary is treated as a deterministic
+    # configuration failure and should fail fast.
+    _retry_schedule = list(_retry_delays) if mode in ("chat", "direct", "propose") else []
     _last_transient_exc: BaseException | None = None
     result: subprocess.CompletedProcess | None = None
+    start_ts = _utc_now()
 
     for _retry_num in range(len(_retry_schedule) + 1):
         if _retry_num > 0:
             time.sleep(_retry_schedule[_retry_num - 1])
-        start_ts = _utc_now()
         try:
             result = subprocess.run(
                 cmd,
@@ -222,7 +222,26 @@ def invoke_coo_reasoning(
             )
             _last_transient_exc = None
             break
-        except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+        except subprocess.TimeoutExpired as exc:
+            _last_transient_exc = exc
+        except FileNotFoundError as exc:
+            if mode == "propose":
+                end_ts = _utc_now()
+                record_invocation_receipt(
+                    run_id=run_id,
+                    provider_id="openclaw",
+                    mode="cli",
+                    seat_id=f"coo_{mode}",
+                    start_ts=start_ts,
+                    end_ts=end_ts,
+                    exit_status=-1,
+                    output_content="",
+                    schema_validation="n/a",
+                    error="openclaw binary not found",
+                )
+                raise InvocationError(
+                    "openclaw binary not found — is OpenClaw installed and on PATH?"
+                ) from exc
             _last_transient_exc = exc
 
     if _last_transient_exc is not None:
@@ -243,22 +262,22 @@ def invoke_coo_reasoning(
             raise InvocationError(
                 f"OpenClaw agent timed out after {timeout_s}s"
             ) from _last_transient_exc
-        else:
-            record_invocation_receipt(
-                run_id=run_id,
-                provider_id="openclaw",
-                mode="cli",
-                seat_id=f"coo_{mode}",
-                start_ts=start_ts,
-                end_ts=end_ts,
-                exit_status=-1,
-                output_content="",
-                schema_validation="n/a",
-                error="openclaw binary not found",
-            )
-            raise InvocationError(
-                "openclaw binary not found — is OpenClaw installed and on PATH?"
-            ) from _last_transient_exc
+
+        record_invocation_receipt(
+            run_id=run_id,
+            provider_id="openclaw",
+            mode="cli",
+            seat_id=f"coo_{mode}",
+            start_ts=start_ts,
+            end_ts=end_ts,
+            exit_status=-1,
+            output_content="",
+            schema_validation="n/a",
+            error="openclaw binary not found",
+        )
+        raise InvocationError(
+            "openclaw binary not found — is OpenClaw installed and on PATH?"
+        ) from _last_transient_exc
 
     assert result is not None
 
