@@ -494,3 +494,27 @@ def test_get_status_context_escalation_count_via_service(tmp_path: Path) -> None
     ctx = get_status_context(tmp_path)
 
     assert ctx["dispatch"]["escalations_pending"] == 1
+
+
+def test_chat_message_prose_mentioning_schema_version_returns_conversation(tmp_path: Path) -> None:
+    """COO response that mentions 'operation_proposal.v1' in prose must not raise.
+
+    Regression test for false-positive: naive string-containment check on
+    OPERATION_PROPOSAL_SCHEMA_VERSION triggered when COO mentioned the schema
+    name in conversational prose, dropping the helpful response and showing
+    the user a parse error instead.
+    """
+    prose = (
+        "You can handle this via the code construction agent. "
+        "The operation_proposal.v1 schema is used for mutations, but for "
+        "conversational queries like this one, I just reply directly."
+    )
+    with patch(
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
+        return_value=prose,
+    ):
+        result = chat_message("should I handle this with you?", tmp_path)
+
+    assert result["has_proposal"] is False
+    assert result["status"] == "conversation_only"
+    assert "operation_proposal" in result["message"]

@@ -339,8 +339,17 @@ def chat_message(
     try:
         proposal = parse_operation_proposal(raw_output)
     except ParseError:
-        if OPERATION_PROPOSAL_SCHEMA_VERSION in raw_output:
-            raise
+        # Only re-raise if the output actually contains a YAML dict with the correct
+        # schema_version key — i.e. COO tried to emit a proposal but the YAML is
+        # malformed or failed validation.  A plain string-containment check fires
+        # false-positives when COO mentions "operation_proposal.v1" in prose.
+        _payload = _extract_yaml_payload(raw_output)
+        try:
+            _parsed = yaml.safe_load(_payload)
+            if isinstance(_parsed, dict) and _parsed.get("schema_version") == OPERATION_PROPOSAL_SCHEMA_VERSION:
+                raise
+        except yaml.YAMLError:
+            pass
         return {
             "mode": "chat",
             "has_proposal": False,
