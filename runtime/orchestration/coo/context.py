@@ -195,7 +195,7 @@ def _collect_dispatch_state(repo_root: Path) -> dict[str, Any]:
     try:
         from runtime.orchestration.ceo_queue import CEOQueue
         queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
-        escalation_count = len(queue.list_pending())
+        escalation_count = len(queue.get_pending())
     except Exception:
         pass
 

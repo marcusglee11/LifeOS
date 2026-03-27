@@ -20,6 +20,8 @@ from runtime.orchestration.ops.registry import (
 
 PROPOSAL_SCHEMA_VERSION = "task_proposal.v1"
 OPERATION_PROPOSAL_SCHEMA_VERSION = "operation_proposal.v1"
+NTP_SCHEMA_VERSION = "nothing_to_propose.v1"
+ESCALATION_SCHEMA_VERSION = "escalation_packet.v1"
 
 _VALID_ACTIONS = {"dispatch", "defer", "escalate"}
 _VALID_URGENCY = {"P0", "P1", "P2", "P3"}
@@ -229,6 +231,48 @@ def parse_operation_proposal(text: str) -> dict[str, Any]:
     if not isinstance(raw.get("suggested_owner"), str):
         raise ParseError("Operation proposal 'suggested_owner' must be a string")
 
+    return raw
+
+
+def parse_ntp(raw_output: str) -> dict[str, Any]:
+    """Parse a nothing_to_propose.v1 YAML block. Raises ParseError if invalid."""
+    payload = _extract_yaml_payload(raw_output.strip())
+    try:
+        raw = yaml.safe_load(payload)
+    except yaml.YAMLError as exc:
+        raise ParseError(f"NTP output is not valid YAML: {exc}") from exc
+    if not isinstance(raw, dict):
+        raise ParseError("NTP output must be a YAML mapping")
+    schema_version = str(raw.get("schema_version", "")).strip()
+    if schema_version != NTP_SCHEMA_VERSION:
+        raise ParseError(
+            f"Unsupported schema_version: {schema_version!r}. "
+            f"Expected {NTP_SCHEMA_VERSION!r}"
+        )
+    if not str(raw.get("reason", "")).strip():
+        raise ParseError("NTP output missing required 'reason' field")
+    return raw
+
+
+def parse_escalation_packet(raw_output: str) -> dict[str, Any]:
+    """Parse an escalation_packet.v1 YAML block. Raises ParseError if invalid."""
+    payload = _extract_yaml_payload(raw_output.strip())
+    try:
+        raw = yaml.safe_load(payload)
+    except yaml.YAMLError as exc:
+        raise ParseError(f"Escalation packet is not valid YAML: {exc}") from exc
+    if not isinstance(raw, dict):
+        raise ParseError("Escalation packet must be a YAML mapping")
+    schema_version = str(raw.get("schema_version", "")).strip()
+    if schema_version != ESCALATION_SCHEMA_VERSION:
+        raise ParseError(
+            f"Unsupported schema_version: {schema_version!r}. "
+            f"Expected {ESCALATION_SCHEMA_VERSION!r}"
+        )
+    if not str(raw.get("type", "")).strip():
+        raise ParseError("Escalation packet missing required 'type' field")
+    if not isinstance(raw.get("options"), list) or not raw["options"]:
+        raise ParseError("Escalation packet 'options' must be a non-empty list")
     return raw
 
 

@@ -201,7 +201,7 @@ def test_coo_propose_success(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_PROPOSAL_YAML,
     ):
         rc = cmd_coo_propose(
@@ -220,7 +220,7 @@ def test_coo_propose_json_output(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_PROPOSAL_YAML,
     ):
         rc = cmd_coo_propose(
@@ -239,7 +239,7 @@ def test_coo_propose_parse_error(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value="this is not valid yaml: ::::",
     ):
         rc = cmd_coo_propose(
@@ -257,7 +257,7 @@ def test_coo_propose_invocation_error(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         side_effect=InvocationError("gateway unreachable"),
     ):
         rc = cmd_coo_propose(
@@ -275,7 +275,7 @@ def test_coo_propose_ntp(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_NTP_YAML,
     ):
         rc = cmd_coo_propose(
@@ -293,7 +293,7 @@ def test_coo_propose_ntp_json(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_NTP_YAML,
     ):
         rc = cmd_coo_propose(
@@ -310,7 +310,7 @@ def test_coo_propose_ntp_json(tmp_path: Path, capsys) -> None:
 def test_coo_direct_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
     """Prose preamble before escalation_packet.v1 YAML must be recovered (rc=0)."""
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value="Let me explain my reasoning.\n\n" + _VALID_ESCALATION_YAML,
     ):
         rc = cmd_coo_direct(
@@ -325,7 +325,7 @@ def test_coo_direct_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
 
 def test_coo_direct_success(tmp_path: Path, capsys) -> None:
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_ESCALATION_YAML,
     ):
         rc = cmd_coo_direct(
@@ -341,7 +341,7 @@ def test_coo_direct_success(tmp_path: Path, capsys) -> None:
 def test_coo_direct_operation_proposal_queued(tmp_path: Path, capsys, monkeypatch) -> None:
     monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_OPERATION_YAML,
     ):
         rc = cmd_coo_direct(
@@ -357,7 +357,7 @@ def test_coo_direct_operation_proposal_queued(tmp_path: Path, capsys, monkeypatc
 
 def test_coo_direct_invocation_error(tmp_path: Path, capsys) -> None:
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         side_effect=InvocationError("timeout"),
     ):
         rc = cmd_coo_direct(
@@ -455,7 +455,7 @@ def test_coo_propose_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
         + _VALID_PROPOSAL_YAML
     )
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=prose_plus_yaml,
     ):
         rc = cmd_coo_propose(
@@ -476,7 +476,7 @@ def test_coo_propose_ntp_prose_preamble_recovered(tmp_path: Path, capsys) -> Non
         + _VALID_NTP_YAML
     )
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=prose_plus_ntp,
     ):
         rc = cmd_coo_propose(
@@ -610,10 +610,10 @@ def test_propose_blocks_on_claim_violation(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_PROPOSAL_WITH_CLAIM,
     ), patch(
-        "runtime.orchestration.coo.commands.verify_claims",
+        "runtime.orchestration.coo.service.verify_claims",
         return_value=[
             __import__(
                 "runtime.orchestration.coo.claim_verifier",
@@ -642,10 +642,10 @@ def test_propose_passes_clean_output(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_PROPOSAL_YAML,
     ), patch(
-        "runtime.orchestration.coo.commands.verify_claims",
+        "runtime.orchestration.coo.service.verify_claims",
         return_value=[],
     ):
         rc = cmd_coo_propose(
@@ -661,7 +661,7 @@ def test_coo_propose_human_output(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_PROPOSAL_YAML,
     ):
         rc = cmd_coo_propose(
@@ -681,7 +681,7 @@ def test_coo_propose_human_ntp_output(tmp_path: Path, capsys) -> None:
     _write_delegation(tmp_path)
 
     with patch(
-        "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=_VALID_NTP_YAML,
     ):
         rc = cmd_coo_propose(
@@ -808,3 +808,104 @@ def test_telegram_status_error_state(tmp_path: Path, capsys) -> None:
     out = capsys.readouterr().out
     assert "error" in out
     assert "gateway connection refused" in out
+
+
+# ---------------------------------------------------------------------------
+# CLI regression: capture dump still fires after service refactor (Fix 4)
+# ---------------------------------------------------------------------------
+
+def test_propose_writes_capture_dump(tmp_path: Path) -> None:
+    """cmd_coo_propose() writes a capture dump when LIFEOS_COO_CAPTURE_DIR is set."""
+    import os
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
+    _write_delegation(tmp_path)
+    capture_dir = tmp_path / "captures"
+
+    env = {**os.environ, "LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}
+    with patch(
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
+        return_value=_VALID_PROPOSAL_YAML,
+    ), patch.dict(os.environ, {"LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}):
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
+            tmp_path,
+        )
+
+    assert rc == 0
+    dumps = list(capture_dir.glob("*.json"))
+    assert len(dumps) == 1
+    data = json.loads(dumps[0].read_text())
+    assert data["mode"] == "propose"
+    assert data["kind"] == "task_proposal"
+
+
+def test_direct_writes_capture_dump(tmp_path: Path) -> None:
+    """cmd_coo_direct() writes a capture dump when LIFEOS_COO_CAPTURE_DIR is set."""
+    import os
+    capture_dir = tmp_path / "captures"
+
+    with patch(
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
+        return_value=_VALID_ESCALATION_YAML,
+    ), patch.dict(os.environ, {"LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}):
+        rc = cmd_coo_direct(
+            argparse.Namespace(intent="update protected governance doc"),
+            tmp_path,
+        )
+
+    assert rc == 0
+    dumps = list(capture_dir.glob("*.json"))
+    assert len(dumps) == 1
+    data = json.loads(dumps[0].read_text())
+    assert data["mode"] == "direct"
+    assert data["kind"] == "escalation_packet"
+
+
+def test_propose_execute_flag_calls_auto_dispatch(tmp_path: Path, capsys, monkeypatch) -> None:
+    """--execute still triggers _auto_execute_proposals() via CLI wrapper (Fix 4)."""
+    monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
+
+    _REQUIRES_NO_APPROVAL_YAML = """\
+schema_version: task_proposal.v1
+proposals:
+  - task_id: T-101
+    rationale: P1 priority, highest actionable.
+    proposed_action: dispatch
+    urgency_override: null
+    suggested_owner: codex
+"""
+    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1", requires_approval=False)])
+    _write_delegation(tmp_path)
+
+    # Write minimal template for "build"
+    template_dir = tmp_path / "config" / "tasks" / "order_templates"
+    template_dir.mkdir(parents=True, exist_ok=True)
+    import yaml as _yaml
+    (template_dir / "build.yaml").write_text(
+        _yaml.dump({
+            "steps": [{"id": "s1", "tool": "shell", "command": "echo ok"}],
+            "constraints": {"max_duration_seconds": 60},
+        }),
+        encoding="utf-8",
+    )
+
+    auto_dispatch_called = []
+
+    def _fake_auto_execute(payload_dict, repo_root, args):
+        auto_dispatch_called.append(payload_dict)
+        return {"any_dispatched": False, "failed_dispatches": []}
+
+    with patch(
+        "runtime.orchestration.coo.service.invoke_coo_reasoning",
+        return_value=_REQUIRES_NO_APPROVAL_YAML,
+    ), patch(
+        "runtime.orchestration.coo.commands._auto_execute_proposals",
+        side_effect=_fake_auto_execute,
+    ):
+        rc = cmd_coo_propose(
+            argparse.Namespace(json=False, yaml=False, format="yaml", execute=True),
+            tmp_path,
+        )
+
+    assert rc == 0
+    assert len(auto_dispatch_called) == 1

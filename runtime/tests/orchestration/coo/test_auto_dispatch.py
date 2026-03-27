@@ -346,7 +346,7 @@ class TestProposExecuteFlag:
         mock_dispatch_result.outcome = "SUCCESS"
 
         with patch(
-            "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
             return_value=_ELIGIBLE_PROPOSAL_YAML,
         ), patch(
             "runtime.orchestration.coo.commands.verify_claims",
@@ -369,7 +369,7 @@ class TestProposExecuteFlag:
         _write_delegation(tmp_path)
 
         with patch(
-            "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
             return_value=_INELIGIBLE_PROPOSAL_YAML,
         ), patch(
             "runtime.orchestration.coo.commands.verify_claims",
@@ -395,7 +395,7 @@ class TestProposExecuteFlag:
         mock_dispatch_result.reason = "repo dirty after execution"
 
         with patch(
-            "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
             return_value=_ELIGIBLE_PROPOSAL_YAML,
         ), patch(
             "runtime.orchestration.coo.commands.verify_claims",
@@ -426,7 +426,7 @@ class TestProgressObligationIntegration:
         )
 
         with patch(
-            "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
             return_value=vague_ntp,
         ), patch(
             "runtime.orchestration.coo.commands.collect_evidence",
@@ -448,7 +448,7 @@ class TestProgressObligationIntegration:
         )
 
         with patch(
-            "runtime.orchestration.coo.commands.invoke_coo_reasoning",
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
             return_value=specific_ntp,
         ), patch(
             "runtime.orchestration.coo.commands.collect_evidence",

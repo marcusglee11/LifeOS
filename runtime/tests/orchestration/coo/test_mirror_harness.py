@@ -43,7 +43,7 @@ def test_mirror_propose_parity_row_no_side_effects(tmp_path: Path, capsys) -> No
     )
 
     before = collect_evidence(tmp_path)
-    with patch("runtime.orchestration.coo.commands.invoke_coo_reasoning", return_value=expected_yaml):
+    with patch("runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml):
         rc = cmd_coo_propose(
             argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
             tmp_path,
@@ -93,7 +93,7 @@ def test_mirror_ntp_parity_row_no_side_effects(tmp_path: Path, capsys) -> None:
     )
 
     before = collect_evidence(tmp_path)
-    with patch("runtime.orchestration.coo.commands.invoke_coo_reasoning", return_value=expected_yaml):
+    with patch("runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml):
         rc = cmd_coo_propose(
             argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
             tmp_path,
@@ -135,7 +135,7 @@ def test_mirror_direct_escalation_parity_queues_side_effect(tmp_path: Path, caps
     _write_delegation(tmp_path)
 
     before = collect_evidence(tmp_path)
-    with patch("runtime.orchestration.coo.commands.invoke_coo_reasoning", return_value=expected_yaml):
+    with patch("runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml):
         rc = cmd_coo_direct(argparse.Namespace(intent=escalation_context["intent"]), tmp_path)
     assert rc == 0
     after = collect_evidence(tmp_path)

@@ -227,3 +227,38 @@ def test_propose_context_output_format_instruction_key(tmp_path: Path) -> None:
     assert context["audience"] == "runtime_machine"
     assert "REQUIRED OUTPUT FORMAT" in context["output_format_instruction"]
     assert "RUNTIME MACHINE-OUTPUT INVOCATION" in context["output_format_instruction"]
+
+
+# ---------------------------------------------------------------------------
+# Fix 1 regression: escalation count uses get_pending() (not list_pending)
+# ---------------------------------------------------------------------------
+
+def test_build_status_context_escalation_count_with_pending(tmp_path: Path) -> None:
+    """Escalation count reflects real pending entries — tests the get_pending() fix at source."""
+    from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType
+
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+
+    db_path = tmp_path / "artifacts" / "queue" / "escalations.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    queue = CEOQueue(db_path=db_path)
+    queue.add_escalation(
+        EscalationEntry(
+            type=EscalationType.AMBIGUOUS_TASK,
+            context={"summary": "test escalation"},
+            run_id="fix1-regression-test",
+        )
+    )
+
+    context = build_status_context(tmp_path)
+
+    assert context["dispatch"]["escalations_pending"] == 1
+
+
+def test_build_status_context_escalation_count_zero_when_empty(tmp_path: Path) -> None:
+    """Escalation count is 0 when no pending entries exist."""
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+
+    context = build_status_context(tmp_path)
+
+    assert context["dispatch"]["escalations_pending"] == 0

@@ -32,6 +32,8 @@ from runtime.orchestration.coo.parser import (
     ParseError,
     _extract_yaml_payload,  # shared within-package; not public API
     _extract_yaml_payload_with_stage,
+    parse_escalation_packet as _parse_escalation_packet,
+    parse_ntp as _parse_ntp,
     parse_operation_proposal,
     parse_proposal_response,
 )
@@ -42,11 +44,6 @@ from runtime.orchestration.coo.templates import instantiate_order, load_template
 from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.util.atomic_write import atomic_write_text
 from runtime.util.canonical import compute_sha256, sha256_file
-
-
-NTP_SCHEMA_VERSION = "nothing_to_propose.v1"
-ESCALATION_SCHEMA_VERSION = "escalation_packet.v1"
-OPERATION_SCHEMA_VERSION = "operation_proposal.v1"
 
 
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
@@ -221,47 +218,6 @@ def cmd_coo_status(args: argparse.Namespace, repo_root: Path) -> int:
     return 0
 
 
-def _parse_ntp(raw_output: str) -> dict[str, Any]:
-    """Parse a nothing_to_propose.v1 YAML block. Raises ParseError if invalid."""
-    payload = _extract_yaml_payload(raw_output.strip())
-    try:
-        raw = yaml.safe_load(payload)
-    except yaml.YAMLError as exc:
-        raise ParseError(f"NTP output is not valid YAML: {exc}") from exc
-    if not isinstance(raw, dict):
-        raise ParseError("NTP output must be a YAML mapping")
-    schema_version = str(raw.get("schema_version", "")).strip()
-    if schema_version != NTP_SCHEMA_VERSION:
-        raise ParseError(
-            f"Unsupported schema_version: {schema_version!r}. "
-            f"Expected {NTP_SCHEMA_VERSION!r}"
-        )
-    if not str(raw.get("reason", "")).strip():
-        raise ParseError("NTP output missing required 'reason' field")
-    return raw
-
-
-def _parse_escalation_packet(raw_output: str) -> dict[str, Any]:
-    """Parse an escalation_packet.v1 YAML block. Raises ParseError if invalid."""
-    payload = _extract_yaml_payload(raw_output.strip())
-    try:
-        raw = yaml.safe_load(payload)
-    except yaml.YAMLError as exc:
-        raise ParseError(f"Escalation packet is not valid YAML: {exc}") from exc
-    if not isinstance(raw, dict):
-        raise ParseError("Escalation packet must be a YAML mapping")
-    schema_version = str(raw.get("schema_version", "")).strip()
-    if schema_version != ESCALATION_SCHEMA_VERSION:
-        raise ParseError(
-            f"Unsupported schema_version: {schema_version!r}. "
-            f"Expected {ESCALATION_SCHEMA_VERSION!r}"
-        )
-    if not str(raw.get("type", "")).strip():
-        raise ParseError("Escalation packet missing required 'type' field")
-    if not isinstance(raw.get("options"), list) or not raw["options"]:
-        raise ParseError("Escalation packet 'options' must be a non-empty list")
-    return raw
-
 
 def classify_coo_response(mode: str, raw_output: str) -> str:
     """Return the packet family string for a COO response without exposing parse internals.
@@ -345,68 +301,46 @@ def _queue_or_execute_operation(
 def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
     """Invoke live COO and emit task proposal or NothingToPropose response."""
     try:
-        context = build_propose_context(repo_root)
-    except Exception as exc:
-        _print_error(f"Error: {type(exc).__name__}: {exc}")
-        return 1
-
-    run_id = compute_sha256({"context": context, "mode": "propose"})
-
-    try:
-        raw_output = invoke_coo_reasoning(context, mode="propose", repo_root=repo_root, run_id=run_id)
+        result = coo_service.propose_coo(repo_root)
     except InvocationError as exc:
         _print_error(f"Error: COO invocation failed: {exc}")
         return 1
-    _, _capture_stage = _extract_yaml_payload_with_stage(raw_output)
+    except ParseError as exc:
+        _print_error(f"Error: COO output failed validation: {exc}")
+        return 1
+
+    kind = result["kind"]
+    violations = result["claim_violations"]
+    raw_output = result["raw_output"]
+    run_id = result["run_id"]
+    _capture_stage = result["parse_recovery_stage"]
+    payload_dict = result["payload"]
+
+    if violations:
+        _print_error(
+            f"CLAIM_VIOLATION: COO output contains {len(violations)} unsupported claim(s)"
+        )
+        for v in violations:
+            _print_error(
+                f"  - {v.claim_type}: {v.claim_text!r} "
+                f"(need: {v.required_evidence}, found: {v.found_evidence})"
+            )
+        return 1
 
     output_format = _coo_output_format(args)
 
-    # Try parsing as task_proposal.v1 first
-    try:
-        parse_proposal_response(raw_output)
-        kind = "task_proposal"
-        # Verify no unsupported execution claims
-        evidence = collect_evidence(repo_root)
-        violations = verify_claims(raw_output, evidence, repo_root=repo_root)
-        if violations:
-            _print_error(
-                f"CLAIM_VIOLATION: COO output contains {len(violations)} unsupported claim(s)"
-            )
-            for v in violations:
-                _print_error(
-                    f"  - {v.claim_type}: {v.claim_text!r} "
-                    f"(need: {v.required_evidence}, found: {v.found_evidence})"
-                )
-            return 1
+    if kind == "task_proposal":
         normalized = _extract_yaml_payload(raw_output)
 
         # --execute: auto-dispatch eligible proposals
         if getattr(args, "execute", False):
-            try:
-                proposal_dict = yaml.safe_load(normalized)
-            except yaml.YAMLError:
-                proposal_dict = {}
-
-            dispatch_results = _auto_execute_proposals(
-                proposal_dict, repo_root, args
-            )
+            dispatch_results = _auto_execute_proposals(payload_dict, repo_root, args)
             if dispatch_results["any_dispatched"]:
-                # Dispatch summary includes pending_proposals in JSON mode;
-                # non-JSON pending proposals are printed per-task during eligibility check.
                 _print_dispatch_summary(dispatch_results, args)
             else:
-                # Nothing was dispatched — print full proposal YAML so CEO can review.
                 if output_format == "json":
-                    try:
-                        payload_dict = yaml.safe_load(normalized)
-                    except yaml.YAMLError:
-                        payload_dict = {"raw": raw_output}
                     print(json.dumps({"kind": kind, "payload": payload_dict}, indent=2))
                 elif output_format == "human":
-                    try:
-                        payload_dict = yaml.safe_load(normalized)
-                    except yaml.YAMLError:
-                        payload_dict = {"proposals": []}
                     print(_render_task_proposal_human(payload_dict, repo_root))
                 else:
                     print(normalized)
@@ -422,60 +356,34 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
             return 0 if not dispatch_results["failed_dispatches"] else 1
 
         if output_format == "json":
-            try:
-                payload_dict = yaml.safe_load(normalized)
-            except yaml.YAMLError:
-                payload_dict = {"raw": raw_output}
             print(json.dumps({"kind": kind, "payload": payload_dict}, indent=2))
         elif output_format == "human":
-            try:
-                payload_dict = yaml.safe_load(normalized)
-            except yaml.YAMLError:
-                payload_dict = {"proposals": []}
             print(_render_task_proposal_human(payload_dict, repo_root))
         else:
             print(normalized)
-        _maybe_capture_dump(
-            mode="propose",
-            raw_output=raw_output,
-            run_id=run_id,
-            kind=kind,
-            parse_status="pass",
-            parse_recovery_stage=_capture_stage,
-            claim_violations=violations,
-        )
-        return 0
-    except ParseError:
-        pass
 
-    # Fall back to nothing_to_propose.v1
-    try:
-        ntp_dict = _parse_ntp(raw_output)
-        kind = "nothing_to_propose"
-        # Check progress obligation: NTP must cite a specific blocker
+    else:  # nothing_to_propose
         ntp_evidence = collect_evidence(repo_root)
         obligation_violation = verify_progress_obligation(raw_output, ntp_evidence)
         if obligation_violation:
             _print_error(f"Warning: {obligation_violation}")
         if output_format == "json":
-            print(json.dumps({"kind": kind, "payload": ntp_dict}, indent=2))
+            print(json.dumps({"kind": kind, "payload": payload_dict}, indent=2))
         elif output_format == "human":
-            print(_render_ntp_human(ntp_dict))
+            print(_render_ntp_human(payload_dict))
         else:
             print(_extract_yaml_payload(raw_output))
-        _maybe_capture_dump(
-            mode="propose",
-            raw_output=raw_output,
-            run_id=run_id,
-            kind=kind,
-            parse_status="pass",
-            parse_recovery_stage=_capture_stage,
-            claim_violations=[],
-        )
-        return 0
-    except ParseError as exc:
-        _print_error(f"Error: COO output failed validation: {exc}")
-        return 1
+
+    _maybe_capture_dump(
+        mode="propose",
+        raw_output=raw_output,
+        run_id=run_id,
+        kind=kind,
+        parse_status="pass",
+        parse_recovery_stage=_capture_stage,
+        claim_violations=violations,
+    )
+    return 0
 
 
 def cmd_coo_approve(args: argparse.Namespace, repo_root: Path) -> int:
@@ -599,7 +507,7 @@ def cmd_coo_report(args: argparse.Namespace, repo_root: Path) -> int:
 
 
 def cmd_coo_prompt_status(args: argparse.Namespace, repo_root: Path) -> int:
-    payload = _build_prompt_status(repo_root)
+    payload = coo_service.get_prompt_status(repo_root)
     if getattr(args, "json", False):
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0 if payload["in_sync"] else 1
@@ -615,25 +523,26 @@ def cmd_coo_prompt_status(args: argparse.Namespace, repo_root: Path) -> int:
 
 def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
     """Invoke live COO with direct intent and route escalation or operation output."""
-    context = build_direct_context(repo_root, args.intent, source="coo_direct")
-
-    direct_run_id = compute_sha256({"context": context, "mode": "direct"})
-
     try:
-        raw_output = invoke_coo_reasoning(context, mode="direct", repo_root=repo_root, run_id=direct_run_id)
+        result = coo_service.direct_coo(
+            args.intent,
+            repo_root,
+            source="coo_direct",
+            actor="cli:coo_direct",
+        )
     except InvocationError as exc:
         _print_error(f"Error: COO invocation failed: {exc}")
         return 1
-    _, _capture_stage = _extract_yaml_payload_with_stage(raw_output)
-
-    try:
-        kind = classify_coo_response("direct", raw_output)
     except ParseError as exc:
         _print_error(f"Error: COO output failed validation: {exc}")
         return 1
 
-    evidence = collect_evidence(repo_root)
-    violations = verify_claims(raw_output, evidence, repo_root=repo_root)
+    kind = result["kind"]
+    violations = result["claim_violations"]
+    raw_output = result["raw_output"]
+    direct_run_id = result["run_id"]
+    _capture_stage = result["parse_recovery_stage"]
+
     if violations:
         _print_error(
             f"CLAIM_VIOLATION: COO output contains {len(violations)} unsupported claim(s)"
@@ -647,34 +556,15 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
 
     try:
         if kind == "operation_proposal":
-            proposal, status, receipt = _queue_or_execute_operation(
-                raw_output,
-                repo_root,
-                auto_execute=getattr(args, "execute", False),
-            )
-            if status == "executed" and receipt is not None:
-                print(f"executed: {proposal['proposal_id']} -> {receipt['order_id']}")
+            proposal_id = result["payload"]["proposal_id"]
+            proposal = result["payload"]["proposal"]
+            if getattr(args, "execute", False) and not bool(proposal.get("requires_approval", True)):
+                receipt = execute_operation_proposal(repo_root, proposal_id)
+                print(f"executed: {proposal_id} -> {receipt['order_id']}")
             else:
-                print(f"queued: {proposal['proposal_id']}")
-        else:
-            packet = _parse_escalation_packet(raw_output)
-            packet_type_str = str(packet.get("type", "")).strip()
-            try:
-                escalation_type = EscalationType(packet_type_str)
-            except ValueError:
-                _print_error(
-                    f"Error: Unknown escalation type {packet_type_str!r} from COO output"
-                )
-                return 1
-
-            run_id = str(packet.get("run_id") or compute_sha256(packet))
-            queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
-            entry = EscalationEntry(
-                type=escalation_type,
-                context=packet.get("context", {"summary": args.intent, "source": "coo_direct"}),
-                run_id=run_id,
-            )
-            escalation_id = queue.add_escalation(entry)
+                print(f"queued: {proposal_id}")
+        else:  # escalation_packet
+            escalation_id = result["payload"].get("escalation_id", "")
             print(f"queued: {escalation_id}")
 
         _maybe_capture_dump(
