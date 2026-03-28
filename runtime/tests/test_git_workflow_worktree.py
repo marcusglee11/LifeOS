@@ -281,6 +281,11 @@ def test_closure_pack_regen_after_merge(monkeypatch, tmp_path: Path) -> None:
         "check_doc_stewardship",
         lambda *_args, **_kwargs: {"passed": True, "required": False, "auto_fixed": False, "errors": []},
     )
+    monkeypatch.setattr(
+        cp,
+        "run_quality_gates",
+        lambda *_args, **_kwargs: {"passed": True, "auto_fixed": False, "summary": "ok", "commands_run": [], "results": []},
+    )
     monkeypatch.setattr(cp, "merge_to_main", fake_merge_to_main)
     monkeypatch.setattr(
         cp,
@@ -383,6 +388,11 @@ def test_closure_pack_plan_only_skips_post_merge_state_churn(
         cp,
         "check_doc_stewardship",
         lambda *_args, **_kwargs: {"passed": True, "required": False, "auto_fixed": False, "errors": []},
+    )
+    monkeypatch.setattr(
+        cp,
+        "run_quality_gates",
+        lambda *_args, **_kwargs: {"passed": True, "auto_fixed": False, "summary": "ok", "commands_run": [], "results": []},
     )
     monkeypatch.setattr(cp, "merge_to_main", fake_merge_to_main)
     monkeypatch.setattr(

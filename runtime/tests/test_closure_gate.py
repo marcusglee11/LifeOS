@@ -128,3 +128,35 @@ def test_no_docs_changed_summary_mentions_skipped(monkeypatch) -> None:
     verdict = run_gate(Path("."))
     assert verdict["passed"] is True
     assert "skipped" in verdict["summary"].lower()
+
+
+def test_quality_gate_fails(monkeypatch) -> None:
+    """When blocking quality checks fail, gate is 'quality'."""
+
+    def sequenced_run(*args, **kwargs):
+        cmd = args[0] if args else kwargs.get("args", [])
+        cmd_str = " ".join(str(c) for c in cmd) if isinstance(cmd, list) else str(cmd)
+
+        if "git" in cmd_str and "diff" in cmd_str:
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout="runtime/tools/workflow_pack.py\n", stderr="",
+            )
+
+        if "pytest" in cmd_str:
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout="ok", stderr="",
+            )
+
+        if cmd[:2] == ["ruff", "check"]:
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=1, stdout="", stderr="unused import",
+            )
+
+        return subprocess.CompletedProcess(
+            args=cmd, returncode=0, stdout="", stderr="",
+        )
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", sequenced_run)
+    verdict = run_gate(Path("."))
+    assert verdict["passed"] is False
+    assert verdict["gate"] == "quality"

@@ -10,6 +10,7 @@ from runtime.tools.workflow_pack import (
     build_active_work_payload,
     check_doc_stewardship,
     cleanup_after_merge,
+    discover_changed_files,
     is_plan_only_change,
     merge_to_main,
     read_active_work,
@@ -199,7 +200,7 @@ def test_run_closure_tests_passes_on_zero_returncode(monkeypatch) -> None:
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
     result = run_closure_tests(Path("."), ["runtime/tools/workflow_pack.py"])
     assert result["passed"] is True
-    assert result["commands_run"] == ["pytest -q runtime/tests/test_workflow_pack.py"]
+    assert result["commands_run"] == ["pytest -q runtime/tests/test_workflow_pack.py runtime/tests/test_git_workflow_worktree.py"]
 
 
 def test_run_closure_tests_fails_on_nonzero(monkeypatch) -> None:
@@ -226,6 +227,45 @@ def test_run_closure_tests_skips_plan_only_without_subprocess(monkeypatch) -> No
     assert result["passed"] is True
     assert result["commands_run"] == []
     assert "Plan-only artifact change" in result["summary"]
+
+
+def test_discover_changed_files_includes_untracked(monkeypatch) -> None:
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        if cmd[-2:] == ["status", "--short"]:
+            return subprocess.CompletedProcess(
+                args=cmd,
+                returncode=0,
+                stdout="?? scripts/workflow/quality_gate.py\n M runtime/tools/workflow_pack.py\n",
+                stderr="",
+            )
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    files = discover_changed_files(Path("."))
+    assert files == ["scripts/workflow/quality_gate.py", "runtime/tools/workflow_pack.py"]
+
+
+def test_discover_changed_files_expands_untracked_directory(tmp_path: Path, monkeypatch) -> None:
+    config_dir = tmp_path / "config" / "quality"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    (config_dir / "manifest.yaml").write_text("version: 1\n", encoding="utf-8")
+    (config_dir / "mypy_baseline.json").write_text("{}", encoding="utf-8")
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        if cmd[-2:] == ["status", "--short"]:
+            return subprocess.CompletedProcess(
+                args=cmd,
+                returncode=0,
+                stdout="?? config/quality/\n",
+                stderr="",
+            )
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    files = discover_changed_files(tmp_path)
+    assert files == ["config/quality/manifest.yaml", "config/quality/mypy_baseline.json"]
 
 
 def test_check_doc_stewardship_skips_when_no_docs(monkeypatch) -> None:

@@ -28,15 +28,19 @@ Model fallback chains are defined in `config/models.yaml`. If a primary model is
 2. **Test Discipline**: Run `pytest runtime/tests -q` before and after changes. Never commit with failing tests.
    - Exception: plan-only artifact edits limited to `artifacts/plans/*.md` use the lightweight path. Do not run repo-wide pytest for those changes; rely on the plan-only close-build gate instead.
 
-3. **State Awareness**: Check `docs/11_admin/LIFEOS_STATE.md` for current context before starting work.
+3. **Quality Discipline**: Run `python3 scripts/workflow/quality_gate.py check --scope changed --json` before handoff or closure for scoped code changes.
+   - Safe auto-fix is explicit only: `python3 scripts/workflow/quality_gate.py fix --scope changed --json`
+   - Safe auto-fix covers deterministic style/import/doc-style fixes only. Do not treat semantic or type failures as auto-fixable.
 
-4. **Zero-Friction Rule**: Do not ask the user for file lists. Discover them yourself.
+4. **State Awareness**: Check `docs/11_admin/LIFEOS_STATE.md` for current context before starting work.
 
-5. **No Bare TODOs**: Use `LIFEOS_TODO[P0|P1|P2]` format only.
+5. **Zero-Friction Rule**: Do not ask the user for file lists. Discover them yourself.
 
-6. **Clean Repo on Exit**: `git status` must be clean. Stage, gitignore, or remove untracked files.
+6. **No Bare TODOs**: Use `LIFEOS_TODO[P0|P1|P2]` format only.
 
-7. **Worktree-First Builds**: Start build/fix/hotfix/spike work with
+7. **Clean Repo on Exit**: `git status` must be clean. Stage, gitignore, or remove untracked files.
+
+8. **Worktree-First Builds**: Start build/fix/hotfix/spike work with
    `python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]`
    and work inside the printed `.worktrees/<name>` path. For closure, use
    `python3 scripts/workflow/close_build.py` from the linked worktree. If scoped

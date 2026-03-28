@@ -1,0 +1,65 @@
+version: 1
+
+policy:
+  safe_autofix_mode: explicit_only
+  notes:
+    - "Auto-fix is opt-in via quality_gate.py fix."
+    - "Hooks remain check-only."
+    - "Markdown semantic validation remains owned by doc stewardship."
+
+repo:
+  exclude_prefixes:
+    - "artifacts/"
+    - "spikes/"
+    - ".worktrees/"
+  python_targets:
+    - "runtime"
+    - "doc_steward"
+    - "recursive_kernel"
+    - "project_builder"
+
+tools:
+  ruff_check:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: true
+    failure_class: ruff_error
+  ruff_format:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: true
+    failure_class: ruff_error
+  mypy:
+    enabled: true
+    mode: advisory
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: mypy_error
+  biome:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: biome_error
+  markdownlint:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: true
+    failure_class: markdownlint_error
+  yamllint:
+    enabled: true
+    mode: advisory
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: yamllint_error
+  shellcheck:
+    enabled: true
+    mode: advisory
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: shellcheck_error
+
+waivers: []

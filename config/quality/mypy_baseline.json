@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "generated_by": "quality-standard-v1 rollout",
+  "generated_at": "2026-03-27T00:00:00Z",
+  "invocation": [
+    "mypy",
+    "runtime",
+    "doc_steward",
+    "recursive_kernel",
+    "project_builder"
+  ],
+  "mode": "non-strict",
+  "config_only_adjustments_allowed": [
+    "pyproject.toml overrides",
+    "ignore_missing_imports",
+    "exclude lists"
+  ],
+  "config_only_adjustments_disallowed": [
+    "code edits",
+    "# type: ignore",
+    "stub generation"
+  ],
+  "blocking": [],
+  "advisory": [
+    "runtime",
+    "doc_steward",
+    "recursive_kernel",
+    "project_builder"
+  ],
+  "notes": [
+    "Initial rollout keeps mypy advisory until a config-only green subset is proven."
+  ]
+}

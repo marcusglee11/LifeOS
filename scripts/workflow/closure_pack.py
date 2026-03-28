@@ -23,6 +23,7 @@ from runtime.tools.workflow_pack import (  # noqa: E402
     is_plan_only_change,
     merge_to_main,
     run_closure_tests,
+    run_quality_gates,
     update_state_and_backlog,
     update_structured_backlog,
 )
@@ -264,6 +265,27 @@ def main() -> int:
         )
         return 1
     what_done.append("Closure targeted tests passed.")
+
+    quality_check = run_quality_gates(repo_root, changed_files, scope="changed", fix=False)
+    test_results.append(f"{'PASS' if quality_check['passed'] else 'FAIL'}: {quality_check['summary']}")
+    for command in quality_check["commands_run"]:
+        test_results.append(f"- {command}")
+    if not quality_check["passed"]:
+        for row in quality_check["results"]:
+            if row["passed"] or row["mode"] != "blocking":
+                continue
+            detail = str(row["details"]).strip() or "blocking quality failure"
+            test_results.append(f"  {row['tool']}: {detail}")
+        what_remains.append("Fix blocking quality gate failures.")
+        _print_report(
+            branch=branch,
+            commits=commits,
+            test_results=test_results,
+            what_done=what_done,
+            what_remains=what_remains,
+        )
+        return 1
+    what_done.append("Closure quality gate passed.")
 
     doc_check = check_doc_stewardship(repo_root, changed_files, auto_fix=True)
     if not doc_check["passed"]:

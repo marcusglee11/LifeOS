@@ -61,19 +61,32 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
 
-  lint:
-    name: Lint Check
+  quality:
+    name: Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - name: Run Biome linter
-        run: npx @biomejs/biome check .
+
+      - name: Install quality dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep shellcheck
+          sudo npm install -g @biomejs/biome
+          sudo npm install -g markdownlint-cli
+          pip install -r requirements-dev.txt
+
+      - name: Run quality gate
+        run: python3 scripts/workflow/quality_gate.py check --scope repo --json
 
   docs:
     name: Documentation Validation

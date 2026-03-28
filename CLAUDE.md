@@ -11,21 +11,25 @@ LifeOS is a multi-agent orchestrator for AI governance and personal productivity
 **Mandatory pre-flight checklist** (do these in order):
 
 0. **Read repo map** - Module-level orientation (avoids re-exploring the codebase)
+
    ```bash
    cat .context/REPO_MAP.md
    ```
 
 1. **Check current state** - Understand what's in flight
+
    ```bash
    cat docs/11_admin/LIFEOS_STATE.md
    ```
 
 2. **Check git status** - See uncommitted work
+
    ```bash
    git status
    ```
 
 3. **Verify tests pass** - Confirm baseline is green
+
    ```bash
    pytest runtime/tests -q
    ```
@@ -81,6 +85,12 @@ lifeos/
 # Run tests (do this before AND after changes)
 pytest runtime/tests -q
 
+# Run the canonical changed-file quality gate
+python3 scripts/workflow/quality_gate.py check --scope changed --json
+
+# Apply only safe, deterministic quality fixes
+python3 scripts/workflow/quality_gate.py fix --scope changed --json
+
 # TDD compliance check
 pytest tests_doc/test_tdd_compliance.py
 
@@ -107,8 +117,10 @@ python -m doc_steward.cli dap-validate .
 2. **Follow existing patterns** - Look at similar files before creating new ones
 3. **Small batches** - Make incremental changes, verify each step
 4. **Tests matter** - Run tests before and after. If tests break, fix before moving on
-5. **Match code style** - Follow conventions in the existing codebase
-6. **Always start builds in a worktree** - Use `/new-build <topic>` (runs `python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]`) to atomically create branch + isolated worktree. `build` is default; fixes use `--kind fix`. If work already started on a scoped branch in primary, recover it with `python3 scripts/workflow/start_build.py --recover-primary`. `/close-build` maps to `python3 scripts/workflow/close_build.py` and must be run from linked worktrees. Shared working tree + concurrent agents = Article XIX blocks, merge conflicts, and stash pop failures.
+5. **Quality gate matters** - Before handoff, run `python3 scripts/workflow/quality_gate.py check --scope changed --json`
+6. **Safe auto-fix only** - `quality_gate.py fix` is allowed only for deterministic style/import/doc-style fixes
+7. **Match code style** - Follow conventions in the existing codebase
+8. **Always start builds in a worktree** - Use `/new-build <topic>` (runs `python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]`) to atomically create branch + isolated worktree. `build` is default; fixes use `--kind fix`. If work already started on a scoped branch in primary, recover it with `python3 scripts/workflow/start_build.py --recover-primary`. `/close-build` maps to `python3 scripts/workflow/close_build.py` and must be run from linked worktrees. Shared working tree + concurrent agents = Article XIX blocks, merge conflicts, and stash pop failures.
 
 ### TODO & Documentation Discipline
 
@@ -126,6 +138,7 @@ python -m doc_steward.cli dap-validate .
 ### Pattern Discovery
 
 Before writing new code:
+
 1. Search for similar functionality in the codebase
 2. Check how existing modules handle the same concerns
 3. Reuse existing utilities rather than creating new ones
@@ -167,27 +180,32 @@ When reviewing builds (from Codex, Claude Code, or any agent), **fix obvious iss
 ## Mistakes to Avoid
 
 ### 1. Over-Scoping
+
 - Don't refactor code that wasn't asked to be refactored
 - Don't add features not explicitly requested
 - Don't "improve" adjacent code while fixing something else
 - Don't add documentation, comments, or type hints to unchanged code
 
 ### 2. Ignoring Patterns
+
 - Check how the codebase already does things before inventing new approaches
 - Match existing error handling, logging, and validation patterns
 - Use existing utilities rather than creating duplicates
 
 ### 3. Conflicting with Work-in-Progress
+
 - Check `LIFEOS_STATE.md` for what's currently being worked on
 - Ask before modifying files that might be in active development
 - If unsure, ask about scope boundaries
 
 ### 4. Breaking Tests
+
 - Run `pytest runtime/tests -q` after every significant change
 - Never commit with failing tests
 - Fix test failures before moving on to new work
 
 ### 5. Governance Trampling
+
 - Leave `docs/00_foundations/` and `docs/01_governance/` alone
 - Don't modify protected paths without explicit permission
 - When in doubt, ask
@@ -211,16 +229,19 @@ When reviewing builds (from Codex, Claude Code, or any agent), **fix obvious iss
 When finishing a sprint:
 
 1. **Run full test suite**
+
    ```bash
    pytest runtime/tests -q
    ```
 
 2. **Verify git status is clean**
+
    ```bash
    git status --porcelain=v1  # Should be empty or only expected changes
    ```
 
 3. **Commit evidence** (if committing)
+
    ```bash
    git rev-parse HEAD
    git log -1 --oneline

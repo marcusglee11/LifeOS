@@ -59,3 +59,39 @@ filterwarnings = [
 markers = [
     "cold_start: marks tests that measure or test cold start (first-run) performance and initialization"
 ]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = [
+    "artifacts",
+    "spikes",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_configs = true
+exclude = [
+    '^artifacts/',
+    '^spikes/',
+    '^runtime/tests/',
+    '^tests_doc/',
+    '^tests_recursive/',
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "runtime.tests.*",
+    "tests_doc.*",
+    "tests_recursive.*",
+]
+ignore_errors = true

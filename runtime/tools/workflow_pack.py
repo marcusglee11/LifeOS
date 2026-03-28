@@ -6,9 +6,10 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Iterable, Optional, Sequence
@@ -33,6 +34,23 @@ except ImportError:
 
 
 ACTIVE_WORK_RELATIVE_PATH = Path(".context/active_work.yaml")
+QUALITY_MANIFEST_RELATIVE_PATH = Path("config/quality/manifest.yaml")
+QUALITY_MYPY_BASELINE_RELATIVE_PATH = Path("config/quality/mypy_baseline.json")
+
+QUALITY_TOOL_EXECUTABLES = {
+    "ruff_check": "ruff",
+    "ruff_format": "ruff",
+    "mypy": "mypy",
+    "biome": "biome",
+    "markdownlint": "markdownlint",
+    "yamllint": "yamllint",
+    "shellcheck": "shellcheck",
+}
+QUALITY_PYTHON_CONFIG_FILES = {"pyproject.toml", "requirements.txt", "requirements-dev.txt"}
+QUALITY_BIOME_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc"}
+QUALITY_BIOME_CONFIG_FILES = {"biome.json"}
+QUALITY_MARKDOWN_CONFIG_FILES = {".markdownlint.json", ".markdownlint.yaml", ".markdownlint.yml"}
+QUALITY_YAML_CONFIG_FILES = {".yamllint", ".yamllint.yml", ".yamllint.yaml"}
 
 
 def _unique_ordered(values: Iterable[str]) -> list[str]:
@@ -118,6 +136,403 @@ def _matches(file_path: str, prefixes: Sequence[str]) -> bool:
     return any(file_path == prefix or file_path.startswith(prefix) for prefix in prefixes)
 
 
+def load_quality_manifest(repo_root: Path) -> dict:
+    """Load the canonical quality manifest."""
+    manifest_path = Path(repo_root) / QUALITY_MANIFEST_RELATIVE_PATH
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"quality manifest not found: {manifest_path}")
+    loaded = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+    if not isinstance(loaded, dict):
+        raise ValueError("quality manifest must be a mapping")
+    return loaded
+
+
+def load_mypy_baseline(repo_root: Path) -> dict:
+    """Load the committed mypy baseline artifact."""
+    baseline_path = Path(repo_root) / QUALITY_MYPY_BASELINE_RELATIVE_PATH
+    if not baseline_path.exists():
+        raise FileNotFoundError(f"mypy baseline not found: {baseline_path}")
+    loaded = json.loads(baseline_path.read_text(encoding="utf-8"))
+    if not isinstance(loaded, dict):
+        raise ValueError("mypy baseline must be a JSON object")
+    return loaded
+
+
+def _git_tracked_files(repo_root: Path) -> list[str]:
+    proc = subprocess.run(
+        ["git", "-C", str(repo_root), "ls-files"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        return []
+    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+
+
+def _tracked_files_matching(repo_root: Path, predicate) -> list[str]:
+    return [file_path for file_path in _git_tracked_files(repo_root) if predicate(file_path)]
+
+
+def _filter_quality_scope_files(files: Sequence[str], manifest: dict) -> list[str]:
+    exclude_prefixes = manifest.get("repo", {}).get("exclude_prefixes", []) or []
+    filtered = []
+    for file_path in _unique_ordered(files):
+        if any(file_path.startswith(prefix) for prefix in exclude_prefixes):
+            continue
+        filtered.append(file_path)
+    return filtered
+
+
+def _resolve_quality_scope_files(
+    repo_root: Path,
+    changed_files: Sequence[str],
+    manifest: dict,
+    scope: str,
+) -> list[str]:
+    if scope == "repo":
+        files = _git_tracked_files(repo_root)
+    else:
+        files = list(changed_files)
+    return _filter_quality_scope_files(files, manifest)
+
+
+def route_quality_tools(repo_root: Path, changed_files: Sequence[str], scope: str = "changed") -> dict[str, list[str]]:
+    """Map files to quality tools using the canonical manifest-driven router."""
+    manifest = load_quality_manifest(repo_root)
+    files = _resolve_quality_scope_files(repo_root, changed_files, manifest, scope)
+    routed = {name: [] for name in manifest.get("tools", {})}
+
+    python_files: list[str] = []
+    python_trigger = False
+    biome_files: list[str] = []
+    biome_trigger = False
+    markdown_files: list[str] = []
+    markdown_trigger = False
+    yaml_files: list[str] = []
+    yaml_trigger = False
+    shell_files: list[str] = []
+
+    for file_path in files:
+        path = Path(file_path)
+        name = path.name
+        suffix = path.suffix.lower()
+
+        if suffix == ".py":
+            python_files.append(file_path)
+            python_trigger = True
+        elif name in QUALITY_PYTHON_CONFIG_FILES:
+            python_trigger = True
+
+        if suffix in QUALITY_BIOME_EXTENSIONS:
+            biome_files.append(file_path)
+            biome_trigger = True
+        elif name in QUALITY_BIOME_CONFIG_FILES:
+            biome_trigger = True
+
+        # Style-only markdown checks live here; semantic doc validation stays in doc stewardship.
+        if suffix == ".md" and file_path.startswith("docs/"):
+            markdown_files.append(file_path)
+            markdown_trigger = True
+        elif name in QUALITY_MARKDOWN_CONFIG_FILES:
+            markdown_trigger = True
+
+        if name in QUALITY_YAML_CONFIG_FILES:
+            yaml_trigger = True
+        elif suffix in {".yml", ".yaml"}:
+            yaml_files.append(file_path)
+            yaml_trigger = True
+
+        if suffix == ".sh":
+            shell_files.append(file_path)
+
+    if python_trigger:
+        routed["ruff_check"] = _unique_ordered(python_files)
+        routed["ruff_format"] = _unique_ordered(python_files)
+        routed["mypy"] = _unique_ordered(python_files)
+    if biome_trigger:
+        routed["biome"] = _unique_ordered(biome_files)
+    if markdown_trigger:
+        if not markdown_files:
+            markdown_files = _tracked_files_matching(
+                repo_root,
+                lambda file_path: file_path.startswith("docs/") and file_path.endswith(".md"),
+            )
+        routed["markdownlint"] = _unique_ordered(markdown_files)
+    if yaml_trigger:
+        if not yaml_files:
+            yaml_files = _tracked_files_matching(
+                repo_root,
+                lambda file_path: file_path.endswith((".yml", ".yaml")),
+            )
+        routed["yamllint"] = _unique_ordered(yaml_files)
+    if shell_files:
+        routed["shellcheck"] = _unique_ordered(shell_files)
+
+    return routed
+
+
+def _quality_tool_mode(manifest: dict, tool_name: str) -> str:
+    return str(manifest.get("tools", {}).get(tool_name, {}).get("mode", "blocking"))
+
+
+def _quality_tool_enabled(manifest: dict, tool_name: str, scope: str) -> bool:
+    tool_cfg = manifest.get("tools", {}).get(tool_name, {})
+    return bool(tool_cfg.get("enabled")) and scope in (tool_cfg.get("scopes") or [])
+
+
+def _waiver_applies_to_files(paths: Sequence[str], files: Sequence[str]) -> bool:
+    if not paths:
+        return True
+    for file_path in files:
+        for candidate in paths:
+            if file_path == candidate or file_path.startswith(candidate.rstrip("/") + "/"):
+                return True
+    return False
+
+
+def _waiver_is_active(waiver: dict) -> bool:
+    expires_at = str(waiver.get("expires_at", "")).strip()
+    if not expires_at:
+        return True
+    try:
+        expires = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if expires.tzinfo is None:
+        expires = expires.replace(tzinfo=timezone.utc)
+    return expires >= datetime.now(timezone.utc)
+
+
+def _resolve_quality_result_mode(
+    manifest: dict,
+    tool_name: str,
+    failure_class: str,
+    files: Sequence[str],
+    passed: bool,
+    details: str,
+    *,
+    scope: str,
+    missing_executable: bool,
+) -> tuple[str, bool, str | None]:
+    mode = _quality_tool_mode(manifest, tool_name)
+    if passed:
+        return mode, False, None
+
+    if missing_executable and scope == "changed":
+        return "advisory", False, "tool_unavailable_locally"
+
+    waivers = manifest.get("waivers") or []
+    for waiver in waivers:
+        if not isinstance(waiver, dict):
+            continue
+        if not _waiver_is_active(waiver):
+            continue
+        if waiver.get("tool") not in (None, "", tool_name):
+            continue
+        if waiver.get("failure_class") not in (None, "", failure_class):
+            continue
+        waiver_paths = waiver.get("paths") or []
+        if not _waiver_applies_to_files(waiver_paths, files):
+            continue
+        return "advisory", True, str(waiver.get("reason", "")).strip() or None
+
+    return mode, False, None
+
+
+def _build_quality_command(
+    repo_root: Path,
+    manifest: dict,
+    tool_name: str,
+    files: Sequence[str],
+    scope: str,
+    fix: bool = False,
+) -> list[str] | None:
+    repo_config = manifest.get("repo", {})
+    python_targets = repo_config.get("python_targets") or []
+    markdown_config = Path(repo_root) / ".markdownlint.json"
+    yamllint_config = Path(repo_root) / ".yamllint.yml"
+
+    if tool_name == "ruff_check":
+        targets = list(files) if files else list(python_targets)
+        if not targets:
+            return None
+        cmd = ["ruff", "check"]
+        if fix:
+            cmd.append("--fix")
+        cmd.extend(targets)
+        return cmd
+
+    if tool_name == "ruff_format":
+        targets = list(files) if files else list(python_targets)
+        if not targets:
+            return None
+        cmd = ["ruff", "format"]
+        if not fix:
+            cmd.append("--check")
+        cmd.extend(targets)
+        return cmd
+
+    if tool_name == "mypy":
+        if not python_targets:
+            return None
+        return ["mypy", *python_targets]
+
+    if tool_name == "biome":
+        targets = list(files) if files else ["."]
+        cmd = ["biome", "check"]
+        if fix:
+            cmd.append("--write")
+        cmd.extend(targets)
+        return cmd
+
+    if tool_name == "markdownlint":
+        if not files:
+            return None
+        cmd = ["markdownlint"]
+        if fix:
+            cmd.append("--fix")
+        if markdown_config.exists():
+            cmd.extend(["--config", str(markdown_config)])
+        cmd.extend(files)
+        return cmd
+
+    if tool_name == "yamllint":
+        if not files:
+            return None
+        cmd = ["yamllint"]
+        if yamllint_config.exists():
+            cmd.extend(["-c", str(yamllint_config)])
+        cmd.extend(files)
+        return cmd
+
+    if tool_name == "shellcheck":
+        if not files:
+            return None
+        return ["shellcheck", *files]
+
+    return None
+
+
+def run_quality_gates(
+    repo_root: Path,
+    changed_files: Sequence[str],
+    scope: str = "changed",
+    fix: bool = False,
+) -> dict:
+    """Run manifest-driven code quality gates."""
+    effective_changed_files = list(changed_files)
+    if scope == "changed" and not effective_changed_files:
+        effective_changed_files = discover_changed_files(repo_root)
+
+    manifest = load_quality_manifest(repo_root)
+    routed = route_quality_tools(repo_root, effective_changed_files, scope=scope)
+    commands_run: list[str] = []
+    results: list[dict[str, object]] = []
+    auto_fixed = False
+
+    for tool_name in manifest.get("tools", {}):
+        if not _quality_tool_enabled(manifest, tool_name, scope):
+            continue
+        tool_cfg = manifest["tools"][tool_name]
+        if fix and not tool_cfg.get("autofix_allowed"):
+            continue
+
+        files = routed.get(tool_name, [])
+        command = _build_quality_command(
+            repo_root,
+            manifest,
+            tool_name,
+            files,
+            scope=scope,
+            fix=fix,
+        )
+        if not command:
+            continue
+
+        commands_run.append(shlex.join(command))
+        try:
+            proc = subprocess.run(
+                command,
+                check=False,
+                cwd=Path(repo_root),
+                capture_output=True,
+                text=True,
+            )
+            passed = proc.returncode == 0
+            details = (proc.stderr or "").strip() or (proc.stdout or "").strip()
+            missing_executable = False
+        except FileNotFoundError as exc:
+            passed = False
+            details = str(exc)
+            missing_executable = True
+
+        result = {
+            "tool": tool_name,
+            "failure_class": str(tool_cfg.get("failure_class", "quality_error")),
+            "passed": passed,
+            "auto_fixed": bool(fix and tool_cfg.get("autofix_allowed") and passed),
+            "files": list(files),
+            "details": details,
+        }
+        result["mode"], result["waived"], waiver_reason = _resolve_quality_result_mode(
+            manifest,
+            tool_name,
+            str(result["failure_class"]),
+            list(files),
+            passed,
+            details,
+            scope=scope,
+            missing_executable=missing_executable,
+        )
+        if waiver_reason:
+            result["waiver_reason"] = waiver_reason
+        results.append(result)
+        auto_fixed = auto_fixed or bool(result["auto_fixed"])
+
+    blocking_failures = [r for r in results if (not r["passed"]) and r["mode"] == "blocking"]
+    advisory_failures = [r for r in results if (not r["passed"]) and r["mode"] == "advisory"]
+    summary = (
+        f"Quality gate ran {len(results)} tool(s); "
+        f"{len(blocking_failures)} blocking failure(s), "
+        f"{len(advisory_failures)} advisory failure(s)."
+    )
+
+    return {
+        "passed": not blocking_failures,
+        "scope": scope,
+        "summary": summary,
+        "commands_run": commands_run,
+        "files_checked": _resolve_quality_scope_files(repo_root, effective_changed_files, manifest, scope),
+        "results": results,
+        "auto_fixed": auto_fixed,
+    }
+
+
+def doctor_quality_tools(repo_root: Path) -> dict:
+    """Inspect whether enabled quality tool executables are present."""
+    manifest = load_quality_manifest(repo_root)
+    results = []
+    for tool_name in manifest.get("tools", {}):
+        executable = QUALITY_TOOL_EXECUTABLES.get(tool_name, tool_name)
+        present = shutil.which(executable) is not None
+        results.append(
+            {
+                "tool": tool_name,
+                "enabled": bool(manifest["tools"][tool_name].get("enabled")),
+                "executable": executable,
+                "present": present,
+                "mode": _quality_tool_mode(manifest, tool_name),
+            }
+        )
+
+    return {
+        "passed": all((not row["enabled"]) or row["present"] for row in results),
+        "results": results,
+        "summary": f"Quality doctor inspected {len(results)} tool(s).",
+    }
+
+
 def is_plan_only_change(changed_files: Sequence[str]) -> bool:
     """Return True when every changed file is a plan artifact under artifacts/plans/."""
     files = _unique_ordered(changed_files)
@@ -176,10 +591,27 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
             (
                 "runtime/tools/workflow_pack.py",
                 "runtime/tests/test_workflow_pack.py",
+                "runtime/tests/test_git_workflow_worktree.py",
                 "scripts/workflow/",
             ),
         ):
-            add("pytest -q runtime/tests/test_workflow_pack.py")
+            add("pytest -q runtime/tests/test_workflow_pack.py runtime/tests/test_git_workflow_worktree.py")
+            continue
+
+        if _matches(
+            file_path,
+            (
+                "runtime/tests/test_quality_gate.py",
+                "runtime/tests/test_closure_gate.py",
+                "config/quality/",
+            ),
+        ):
+            add(
+                "pytest -q runtime/tests/test_quality_gate.py"
+                " runtime/tests/test_closure_gate.py"
+                " runtime/tests/test_workflow_pack.py"
+                " runtime/tests/test_git_workflow_worktree.py"
+            )
             continue
 
         if _matches(
@@ -310,6 +742,7 @@ def discover_changed_files(repo_root: Path, branch: str | None = None) -> list[s
     probes = []
     if branch:
         probes.append(["git", "-C", str(repo), "diff", "--name-only", f"main..{branch}"])
+    probes.append(["git", "-C", str(repo), "status", "--short"])
     probes.extend([
         ["git", "-C", str(repo), "diff", "--name-only", "--cached"],
         ["git", "-C", str(repo), "diff", "--name-only"],
@@ -319,7 +752,25 @@ def discover_changed_files(repo_root: Path, branch: str | None = None) -> list[s
         proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
         if proc.returncode != 0:
             continue
-        files = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+        if cmd[-2:] == ["status", "--short"]:
+            files = []
+            for line in proc.stdout.splitlines():
+                if len(line) < 4:
+                    continue
+                candidate = line[3:].strip()
+                if " -> " in candidate:
+                    candidate = candidate.split(" -> ", 1)[1].strip()
+                if not candidate:
+                    continue
+                candidate_path = repo / candidate
+                if candidate_path.is_dir():
+                    for nested in candidate_path.rglob("*"):
+                        if nested.is_file():
+                            files.append(str(nested.relative_to(repo)).replace(os.sep, "/"))
+                    continue
+                files.append(candidate)
+        else:
+            files = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
         if files:
             return _unique_ordered(files)
     return []

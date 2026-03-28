@@ -23,6 +23,7 @@ from runtime.tools.workflow_pack import (  # noqa: E402
     check_doc_stewardship,
     discover_changed_files,
     run_closure_tests,
+    run_quality_gates,
 )
 
 
@@ -40,7 +41,23 @@ def run_gate(repo_root: Path, branch: str | None = None) -> dict:
             "summary": test_result["summary"],
         }
 
-    # Gate 2: doc stewardship (no auto-fix in hook context)
+    # Gate 2: code quality (no auto-fix in hook context)
+    quality_result = run_quality_gates(repo_root, changed_files, scope="changed", fix=False)
+    if not quality_result["passed"]:
+        blocking_details = [
+            row["details"]
+            for row in quality_result["results"]
+            if (not row["passed"]) and row["mode"] == "blocking" and row["details"]
+        ]
+        errors = "; ".join(str(item) for item in blocking_details) or quality_result["summary"]
+        return {
+            "passed": False,
+            "gate": "quality",
+            "reason": errors,
+            "summary": f"Quality gate failed: {quality_result['summary']}",
+        }
+
+    # Gate 3: doc stewardship (no auto-fix in hook context)
     doc_result = check_doc_stewardship(repo_root, changed_files, auto_fix=False)
     if not doc_result["passed"]:
         errors = "; ".join(doc_result["errors"]) if doc_result["errors"] else "doc stewardship failed"
@@ -52,7 +69,7 @@ def run_gate(repo_root: Path, branch: str | None = None) -> dict:
         }
 
     # Build summary
-    parts = [test_result["summary"]]
+    parts = [test_result["summary"], quality_result["summary"]]
     if doc_result["required"]:
         parts.append("Doc stewardship passed.")
     else:
