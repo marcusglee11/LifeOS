@@ -36,6 +36,8 @@ CANONICAL_OPTIONAL_FILES = {
     "Batch2_BurnIn_Report.md",
     # Tech debt inventory (living doc produced by audit passes)
     "TECH_DEBT_INVENTORY.md",
+    # Repo-wide quality baseline summary (produced by quality audit passes)
+    "QUALITY_AUDIT_BASELINE_v1.0.md",
 }
 
 ALLOWED_ROOT_FILES = REQUIRED_FILES | CANONICAL_OPTIONAL_FILES
@@ -62,10 +64,10 @@ def check_admin_structure(repo_root: str) -> list[str]:
     admin_dir = Path(repo_root).resolve() / "docs" / "11_admin"
 
     if not admin_dir.exists():
-        return [f"docs/11_admin/ does not exist"]
+        return ["docs/11_admin/ does not exist"]
 
     if not admin_dir.is_dir():
-        return [f"docs/11_admin/ is not a directory"]
+        return ["docs/11_admin/ is not a directory"]
 
     # Check for missing REQUIRED files
     for required_file in REQUIRED_FILES:
@@ -91,7 +93,8 @@ def check_admin_structure(repo_root: str) -> list[str]:
                     if archive_subdir.is_dir():
                         if not ARCHIVE_SUBDIR_PATTERN.match(archive_subdir.name):
                             errors.append(
-                                f"Invalid archive subdir name: docs/11_admin/archive/{archive_subdir.name}/ "
+                                "Invalid archive subdir name: "
+                                f"docs/11_admin/archive/{archive_subdir.name}/ "
                                 f"(must match: YYYY-MM-DD_<topic>)"
                             )
 
@@ -99,7 +102,8 @@ def check_admin_structure(repo_root: str) -> list[str]:
                         readme_path = archive_subdir / "README.md"
                         if not readme_path.exists():
                             errors.append(
-                                f"Missing README.md in archive subdir: docs/11_admin/archive/{archive_subdir.name}/"
+                                "Missing README.md in archive subdir: "
+                                f"docs/11_admin/archive/{archive_subdir.name}/"
                             )
 
         elif item.is_file():
@@ -117,7 +121,8 @@ def check_admin_structure(repo_root: str) -> list[str]:
             if summary_file.is_file() and summary_file.suffix == ".md":
                 if not BUILD_SUMMARY_PATTERN.match(summary_file.name):
                     errors.append(
-                        f"Invalid build summary name: docs/11_admin/build_summaries/{summary_file.name} "
+                        "Invalid build summary name: "
+                        f"docs/11_admin/build_summaries/{summary_file.name} "
                         f"(must match: *_Build_Summary_YYYY-MM-DD.md)"
                     )
 

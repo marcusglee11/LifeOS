@@ -1,0 +1,3 @@
+[PASSED] Link check passed.
+
+EXIT_CODE=0

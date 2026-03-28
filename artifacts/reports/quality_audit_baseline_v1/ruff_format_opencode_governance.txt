@@ -1,0 +1,5 @@
+Would reformat: opencode_governance/errors.py
+Would reformat: opencode_governance/service.py
+2 files would be reformatted, 1 file already formatted
+
+EXIT_CODE=1

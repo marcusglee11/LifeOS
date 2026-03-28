@@ -1,0 +1,86 @@
+biome.json:2:14 deserialize ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  i The configuration schema version does not match the CLI version 2.4.9
+  
+    1 │ {
+  > 2 │   "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+      │              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    3 │   "vcs": {
+    4 │     "enabled": true,
+  
+  i   Expected:                     2.4.9
+      Found:                        2.4.4
+  
+  
+  i Run the command biome migrate to migrate the configuration file.
+  
+
+config/openclaw/instance_profiles/coo.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     7  7 │     "sandbox_policy": {
+     8  8 │       "target_posture": "unsandboxed",
+     9    │ - ····"allowed_modes":·[
+    10    │ - ······"all"
+    11    │ - ····],
+        9 │ + ····"allowed_modes":·["all"],
+    12 10 │       "require_session_sandboxed": false,
+    13 11 │       "require_elevated_disabled": false
+  
+
+config/openclaw/instance_profiles/coo_shared_ingress_burnin.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     7  7 │     "sandbox_policy": {
+     8  8 │       "target_posture": "shared_ingress",
+     9    │ - ····"allowed_modes":·[
+    10    │ - ······"all"
+    11    │ - ····],
+        9 │ + ····"allowed_modes":·["all"],
+    12 10 │       "require_session_sandboxed": true,
+    13 11 │       "require_elevated_disabled": true
+  
+
+config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     7  7 │     "sandbox_policy": {
+     8  8 │       "target_posture": "unsandboxed",
+     9    │ - ····"allowed_modes":·[
+    10    │ - ······"all"
+    11    │ - ····],
+        9 │ + ····"allowed_modes":·["all"],
+    12 10 │       "require_session_sandboxed": false,
+    13 11 │       "require_elevated_disabled": false
+  
+
+config/quality/mypy_baseline.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    22 22 │     ],
+    23 23 │     "blocking": [],
+    24    │ - ··"advisory":·[
+    25    │ - ····"runtime",
+    26    │ - ····"doc_steward",
+    27    │ - ····"recursive_kernel",
+    28    │ - ····"project_builder"
+    29    │ - ··],
+       24 │ + ··"advisory":·["runtime",·"doc_steward",·"recursive_kernel",·"project_builder"],
+    30 25 │     "notes": [
+    31 26 │       "Initial rollout keeps mypy advisory until a config-only green subset is proven."
+  
+
+Checked 34 files in 14s. No fixes applied.
+Found 4 errors.
+Found 1 info.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+
+
+EXIT_CODE=1

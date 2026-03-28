@@ -1,5 +1,7 @@
 # Tech Debt Inventory
 
+<!-- markdownlint-disable MD013 MD032 MD060 -->
+
 **Created:** 2026-02-27
 **Source:** 3-Pass Audit (build/audit-3pass)
 **Status:** Living document — update trigger conditions as items are resolved.
@@ -7,6 +9,10 @@
 This inventory documents known structural debt with explicit **trigger conditions** for when each item becomes urgent. The goal is to track without over-engineering — fix things when they become obstacles, not before.
 
 ---
+
+## Audit References
+
+- 2026-03-28: [QUALITY_AUDIT_BASELINE_v1.0.md](./QUALITY_AUDIT_BASELINE_v1.0.md) — repo-wide quality baseline audit. Cross-reference Item 4 (Logging Inconsistency) and Item 5 (Validation Pattern Fragmentation) when triaging follow-up cleanup.
 
 ## 1. Orchestration Module Sprawl
 
@@ -101,3 +107,5 @@ The following items were **fixed** during the 2026-02-27 audit rather than docum
 | Full HTTP response body in debug logs | Truncated to 200 chars in 3 REST failure paths |
 | `EnvelopeViolation` defined in 4 places | Consolidated to `runtime/errors.py`; 3 duplicates removed |
 | Duplicate imports in `mission/__init__.py` | Removed duplicate `MissionSynthesisRequest` + `synthesize_mission` entries |
+
+<!-- markdownlint-enable MD013 MD032 MD060 -->

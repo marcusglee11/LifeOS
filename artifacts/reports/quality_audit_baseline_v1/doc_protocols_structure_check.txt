@@ -1,0 +1,3 @@
+[PASSED] Protocols structure check passed.
+
+EXIT_CODE=0

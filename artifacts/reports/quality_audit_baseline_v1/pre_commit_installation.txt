@@ -1,0 +1,5 @@
+source_hook=scripts/hooks/pre-commit
+installed_hook=.git/hooks/pre-commit
+installed=false
+matches=false
+status=not_installed

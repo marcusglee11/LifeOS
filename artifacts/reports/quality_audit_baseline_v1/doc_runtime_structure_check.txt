@@ -1,0 +1,3 @@
+[PASSED] Runtime structure check passed.
+
+EXIT_CODE=0

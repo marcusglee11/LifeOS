@@ -1,0 +1,3 @@
+[FAILED] Missing required directory: /mnt/c/Users/cabra/Projects/LifeOS/.worktrees/repo-quality-audit-baseline/artifacts/opencode
+
+EXIT_CODE=1

@@ -1,0 +1,3 @@
+[SKIPPED] Freshness check disabled (LIFEOS_DOC_FRESHNESS_MODE=off)
+
+EXIT_CODE=0

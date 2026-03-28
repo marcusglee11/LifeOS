@@ -1,0 +1,38 @@
+$ python --version
+Python 3.14.2
+EXIT_CODE=0
+
+$ ruff --version
+ruff 0.15.8
+EXIT_CODE=0
+
+$ mypy --version
+mypy 1.19.1 (compiled: yes)
+EXIT_CODE=0
+
+$ biome --version
+Version: 2.4.9
+EXIT_CODE=0
+
+$ markdownlint --version
+0.48.0
+EXIT_CODE=0
+
+$ yamllint --version
+yamllint 1.38.0
+EXIT_CODE=0
+
+$ shellcheck --version
+ShellCheck - shell script analysis tool
+version: 0.11.0
+license: GNU General Public License, version 3
+website: https://www.shellcheck.net
+EXIT_CODE=0
+
+$ node --version
+v25.2.1
+EXIT_CODE=0
+
+$ npm --version
+11.6.2
+EXIT_CODE=0

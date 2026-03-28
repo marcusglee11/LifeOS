@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "enabled": true,
+      "executable": "ruff",
+      "mode": "blocking",
+      "present": true,
+      "tool": "ruff_check"
+    },
+    {
+      "enabled": true,
+      "executable": "ruff",
+      "mode": "blocking",
+      "present": true,
+      "tool": "ruff_format"
+    },
+    {
+      "enabled": true,
+      "executable": "mypy",
+      "mode": "advisory",
+      "present": true,
+      "tool": "mypy"
+    },
+    {
+      "enabled": true,
+      "executable": "biome",
+      "mode": "blocking",
+      "present": true,
+      "tool": "biome"
+    },
+    {
+      "enabled": true,
+      "executable": "markdownlint",
+      "mode": "blocking",
+      "present": true,
+      "tool": "markdownlint"
+    },
+    {
+      "enabled": true,
+      "executable": "yamllint",
+      "mode": "advisory",
+      "present": true,
+      "tool": "yamllint"
+    },
+    {
+      "enabled": true,
+      "executable": "shellcheck",
+      "mode": "advisory",
+      "present": true,
+      "tool": "shellcheck"
+    }
+  ],
+  "summary": "Quality doctor inspected 7 tool(s)."
+}

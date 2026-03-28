@@ -1,0 +1,3 @@
+[PASSED] DAP validation passed.
+
+EXIT_CODE=0

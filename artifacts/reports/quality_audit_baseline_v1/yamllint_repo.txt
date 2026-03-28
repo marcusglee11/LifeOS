@@ -1,0 +1,850 @@
+.github/workflows/branch_housekeeping_delete_merged_validator_suite.yml
+  95:121    error    line too long (125 > 120 characters)  (line-length)
+  104:121   error    line too long (134 > 120 characters)  (line-length)
+  106:121   error    line too long (154 > 120 characters)  (line-length)
+
+.github/workflows/build-entry-check.yml
+  44:121    error    line too long (193 > 120 characters)  (line-length)
+  49:121    error    line too long (192 > 120 characters)  (line-length)
+
+.github/workflows/build_loop_nightly.yml
+  118:121   error    line too long (142 > 120 characters)  (line-length)
+  144:121   error    line too long (133 > 120 characters)  (line-length)
+  157:121   error    line too long (157 > 120 characters)  (line-length)
+  158:121   error    line too long (141 > 120 characters)  (line-length)
+
+.github/workflows/ci.yml
+  19:1      error    trailing spaces  (trailing-spaces)
+  22:1      error    trailing spaces  (trailing-spaces)
+  27:1      error    trailing spaces  (trailing-spaces)
+  30:1      error    trailing spaces  (trailing-spaces)
+  127:1     error    trailing spaces  (trailing-spaces)
+  130:1     error    trailing spaces  (trailing-spaces)
+  135:1     error    trailing spaces  (trailing-spaces)
+  138:1     error    trailing spaces  (trailing-spaces)
+
+.github/workflows/opencode_ci.yml
+  47:12     error    wrong indentation: expected 10 but found 11  (indentation)
+  53:100    error    trailing spaces  (trailing-spaces)
+
+.github/workflows/phase1_autonomy_nightly.yml
+  120:121   error    line too long (134 > 120 characters)  (line-length)
+  131:12    error    syntax error: expected alphabetic or numeric character, but found '*' (syntax)
+
+.github/workflows/recursive_kernel_nightly.yml
+  16:1      error    trailing spaces  (trailing-spaces)
+  19:1      error    trailing spaces  (trailing-spaces)
+  24:1      error    trailing spaces  (trailing-spaces)
+  39:121    error    line too long (130 > 120 characters)  (line-length)
+  45:1      error    trailing spaces  (trailing-spaces)
+  48:1      error    trailing spaces  (trailing-spaces)
+  53:1      error    trailing spaces  (trailing-spaces)
+  60:46     error    no new line character at the end of file  (new-line-at-end-of-file)
+
+.github/workflows/tool_invoke_hardening.yml
+  25:1      error    trailing spaces  (trailing-spaces)
+  28:1      error    trailing spaces  (trailing-spaces)
+  33:1      error    trailing spaces  (trailing-spaces)
+  36:1      error    trailing spaces  (trailing-spaces)
+  42:1      error    trailing spaces  (trailing-spaces)
+  51:1      error    trailing spaces  (trailing-spaces)
+  54:1      error    trailing spaces  (trailing-spaces)
+  59:1      error    trailing spaces  (trailing-spaces)
+  62:1      error    trailing spaces  (trailing-spaces)
+  68:1      error    trailing spaces  (trailing-spaces)
+
+artifacts/coo/burnin/cycles/02/parsed.yaml
+  7:121     error    line too long (225 > 120 characters)  (line-length)
+  12:121    error    line too long (188 > 120 characters)  (line-length)
+  17:121    error    line too long (209 > 120 characters)  (line-length)
+
+artifacts/coo/burnin/cycles/03/ORD-BIN-001-20260308004107.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/coo/burnin/cycles/03/parsed.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/coo/burnin/cycles/04/parsed.yaml
+  6:121     error    line too long (206 > 120 characters)  (line-length)
+  13:121    error    line too long (301 > 120 characters)  (line-length)
+  21:121    error    line too long (286 > 120 characters)  (line-length)
+
+artifacts/coo/burnin/cycles/05/parsed.yaml
+  6:121     error    line too long (213 > 120 characters)  (line-length)
+  12:121    error    line too long (304 > 120 characters)  (line-length)
+  16:121    error    line too long (125 > 120 characters)  (line-length)
+  17:121    error    line too long (127 > 120 characters)  (line-length)
+  20:121    error    line too long (227 > 120 characters)  (line-length)
+
+artifacts/coo/burnin/cycles/06/parsed.yaml
+  5:121     error    line too long (241 > 120 characters)  (line-length)
+  6:121     error    line too long (225 > 120 characters)  (line-length)
+
+artifacts/coo/burnin/fixtures/backlog_ntp.yaml
+  3:1       error    wrong indentation: expected at least 1  (indentation)
+  12:3      error    wrong indentation: expected at least 3  (indentation)
+  20:3      error    wrong indentation: expected at least 3  (indentation)
+  33:3      error    wrong indentation: expected at least 3  (indentation)
+  40:3      error    wrong indentation: expected at least 3  (indentation)
+  54:3      error    wrong indentation: expected at least 3  (indentation)
+  61:3      error    wrong indentation: expected at least 3  (indentation)
+  74:3      error    wrong indentation: expected at least 3  (indentation)
+  82:3      error    wrong indentation: expected at least 3  (indentation)
+  96:3      error    wrong indentation: expected at least 3  (indentation)
+  103:3     error    wrong indentation: expected at least 3  (indentation)
+  116:3     error    wrong indentation: expected at least 3  (indentation)
+  124:3     error    wrong indentation: expected at least 3  (indentation)
+  137:3     error    wrong indentation: expected at least 3  (indentation)
+  145:3     error    wrong indentation: expected at least 3  (indentation)
+  158:3     error    wrong indentation: expected at least 3  (indentation)
+  166:3     error    wrong indentation: expected at least 3  (indentation)
+  179:3     error    wrong indentation: expected at least 3  (indentation)
+  186:3     error    wrong indentation: expected at least 3  (indentation)
+  199:3     error    wrong indentation: expected at least 3  (indentation)
+  206:3     error    wrong indentation: expected at least 3  (indentation)
+  219:3     error    wrong indentation: expected at least 3  (indentation)
+  226:3     error    wrong indentation: expected at least 3  (indentation)
+  238:3     error    wrong indentation: expected at least 3  (indentation)
+  245:3     error    wrong indentation: expected at least 3  (indentation)
+  258:3     error    wrong indentation: expected at least 3  (indentation)
+  265:3     error    wrong indentation: expected at least 3  (indentation)
+  283:3     error    wrong indentation: expected at least 3  (indentation)
+  294:3     error    wrong indentation: expected at least 3  (indentation)
+  301:3     error    wrong indentation: expected at least 3  (indentation)
+  318:3     error    wrong indentation: expected at least 3  (indentation)
+  335:3     error    wrong indentation: expected at least 3  (indentation)
+
+artifacts/coo/step6_parity_pack/ambiguous_expected.yaml
+  6:121     error    line too long (213 > 120 characters)  (line-length)
+  12:121    error    line too long (304 > 120 characters)  (line-length)
+  16:121    error    line too long (125 > 120 characters)  (line-length)
+  17:121    error    line too long (127 > 120 characters)  (line-length)
+  20:121    error    line too long (227 > 120 characters)  (line-length)
+
+artifacts/coo/step6_parity_pack/escalation_expected.yaml
+  6:121     error    line too long (206 > 120 characters)  (line-length)
+  13:121    error    line too long (301 > 120 characters)  (line-length)
+  21:121    error    line too long (286 > 120 characters)  (line-length)
+
+artifacts/coo/step6_parity_pack/ntp_expected.yaml
+  5:121     error    line too long (241 > 120 characters)  (line-length)
+  6:121     error    line too long (225 > 120 characters)  (line-length)
+
+artifacts/coo/step6_parity_pack/propose_expected.yaml
+  7:121     error    line too long (225 > 120 characters)  (line-length)
+  12:121    error    line too long (188 > 120 characters)  (line-length)
+  17:121    error    line too long (209 > 120 characters)  (line-length)
+
+artifacts/council_reviews/coo_dispatch_phase1.ccp.yaml
+  35:121    error    line too long (133 > 120 characters)  (line-length)
+  45:121    error    line too long (122 > 120 characters)  (line-length)
+
+artifacts/council_reviews/remediation_plan.ccp.yaml
+  104:121   error    line too long (163 > 120 characters)  (line-length)
+  131:121   error    line too long (122 > 120 characters)  (line-length)
+
+artifacts/dispatch/nightly_queue.yaml
+  8:121     error    line too long (187 > 120 characters)  (line-length)
+  15:121    error    line too long (185 > 120 characters)  (line-length)
+  22:121    error    line too long (169 > 120 characters)  (line-length)
+
+artifacts/doc_steward_requests/DOC_STEWARD_REQUEST_AUR_20260105_Plan_Cycle_v1.4.yaml
+  18:121    error    line too long (124 > 120 characters)  (line-length)
+  28:1      error    syntax error: expected '<document start>', but found '<block mapping start>' (syntax)
+
+artifacts/doc_steward_requests/DOC_STEWARD_REQUEST_CLAUDE_MD_Integration.yaml
+  24:121    error    line too long (181 > 120 characters)  (line-length)
+  28:1      error    syntax error: expected '<document start>', but found '<block sequence start>' (syntax)
+  38:121    error    line too long (205 > 120 characters)  (line-length)
+  39:121    error    line too long (174 > 120 characters)  (line-length)
+  41:121    error    line too long (124 > 120 characters)  (line-length)
+
+artifacts/for_ceo/deliverables/lifeos_packet_schemas_v1.2.yaml
+  61:1      error    trailing spaces  (trailing-spaces)
+
+artifacts/for_ceo/deliverables/lifeos_packet_templates_v1.yaml
+  357:84    error    trailing spaces  (trailing-spaces)
+  358:34    warning  comment not indented like content  (comments-indentation)
+  358:81    error    trailing spaces  (trailing-spaces)
+  401:34    warning  comment not indented like content  (comments-indentation)
+  492:84    error    trailing spaces  (trailing-spaces)
+  493:34    warning  comment not indented like content  (comments-indentation)
+
+artifacts/ledger/dl_doc/2026-01-06_neg_test_8c509d2a.yaml
+  9:5       error    wrong indentation: expected 6 but found 4  (indentation)
+  12:5      error    wrong indentation: expected 6 but found 4  (indentation)
+  17:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  25:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  31:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  37:5      error    wrong indentation: expected 6 but found 4  (indentation)
+
+artifacts/ledger/dl_doc/2026-01-06_neg_test_boundary_126292d8.yaml
+  9:5       error    wrong indentation: expected 6 but found 4  (indentation)
+  12:5      error    wrong indentation: expected 6 but found 4  (indentation)
+  17:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  25:3      error    wrong indentation: expected 4 but found 2  (indentation)
+
+artifacts/ledger/dl_doc/2026-01-06_neg_test_multi_5d73b8fa.yaml
+  9:5       error    wrong indentation: expected 6 but found 4  (indentation)
+  12:5      error    wrong indentation: expected 6 but found 4  (indentation)
+  17:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  25:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  31:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  37:5      error    wrong indentation: expected 6 but found 4  (indentation)
+
+artifacts/ledger/dl_doc/2026-01-06_smoke_test_0e9431f2.yaml
+  9:5       error    wrong indentation: expected 6 but found 4  (indentation)
+  12:5      error    wrong indentation: expected 6 but found 4  (indentation)
+  17:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  25:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  31:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  45:121    error    line too long (125 > 120 characters)  (line-length)
+  65:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  99:121    error    line too long (136 > 120 characters)  (line-length)
+
+artifacts/ledger/dl_doc/2026-01-06_smoke_test_0e9431f2_findings.yaml
+  2:1       error    wrong indentation: expected at least 1  (indentation)
+  36:121    error    line too long (134 > 120 characters)  (line-length)
+  53:121    error    line too long (137 > 120 characters)  (line-length)
+  67:121    error    line too long (121 > 120 characters)  (line-length)
+  75:121    error    line too long (131 > 120 characters)  (line-length)
+  79:121    error    line too long (131 > 120 characters)  (line-length)
+  83:121    error    line too long (129 > 120 characters)  (line-length)
+  102:121   error    line too long (137 > 120 characters)  (line-length)
+  106:121   error    line too long (127 > 120 characters)  (line-length)
+  118:121   error    line too long (132 > 120 characters)  (line-length)
+  139:121   error    line too long (122 > 120 characters)  (line-length)
+  143:121   error    line too long (124 > 120 characters)  (line-length)
+  163:121   error    line too long (136 > 120 characters)  (line-length)
+  171:121   error    line too long (134 > 120 characters)  (line-length)
+
+artifacts/missions/Antigrav_Mission_Tier1_Hardening_v0.1.yaml
+  2:11      error    syntax error: mapping values are not allowed here (syntax)
+
+artifacts/packets/council_context/COUNCIL_REVIEW_PACKET_build_handoff_20260104_031210.yaml
+  9:1       error    wrong indentation: expected at least 1  (indentation)
+  13:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  19:1      error    wrong indentation: expected 2 but found 0  (indentation)
+
+artifacts/packets/council_context/COUNCIL_REVIEW_PACKET_build_handoff_20260104_045950.yaml
+  9:1       error    wrong indentation: expected at least 1  (indentation)
+  13:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  19:1      error    wrong indentation: expected 2 but found 0  (indentation)
+  25:1      error    wrong indentation: expected 2 but found 0  (indentation)
+  30:1      error    wrong indentation: expected 2 but found 0  (indentation)
+
+artifacts/packets/council_context/COUNCIL_REVIEW_PACKET_build_handoff_20260104_053800.yaml
+  9:1       error    wrong indentation: expected at least 1  (indentation)
+  15:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  21:1      error    wrong indentation: expected 2 but found 0  (indentation)
+  27:1      error    wrong indentation: expected 2 but found 0  (indentation)
+  32:1      error    wrong indentation: expected 2 but found 0  (indentation)
+
+artifacts/packets/council_context/manifest.yaml
+  5:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/current/build_handoff/COUNCIL_REVIEW.current.yaml
+  9:1       error    wrong indentation: expected at least 1  (indentation)
+  15:3      error    wrong indentation: expected 4 but found 2  (indentation)
+  21:1      error    wrong indentation: expected 2 but found 0  (indentation)
+  27:1      error    wrong indentation: expected 2 but found 0  (indentation)
+  32:1      error    wrong indentation: expected 2 but found 0  (indentation)
+
+artifacts/packets/current/build_handoff_scripts/READINESS.current.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/current/council_context_pack/READINESS.current.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/current/council_ruling_fix_pack/READINESS.current.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/current/final_blocker_fix/READINESS.current.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/current/general/READINESS.current.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/readiness/READINESS_build_handoff_scripts_20260104_031322.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/readiness/READINESS_council_context_pack_20260104_041618.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/readiness/READINESS_council_ruling_fix_pack_20260104_050028.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/readiness/READINESS_final_blocker_fix_20260104_053837.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/readiness/READINESS_general_20260113_124357.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+  30:3      error    wrong indentation: expected 4 but found 2  (indentation)
+
+artifacts/packets/readiness/READINESS_general_20260113_124532.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+  30:3      error    wrong indentation: expected 4 but found 2  (indentation)
+
+artifacts/packets/readiness/READINESS_general_20260113_124641.yaml
+  6:1       error    wrong indentation: expected at least 1  (indentation)
+
+artifacts/packets/review/CLOSURE_BUNDLE_Policy_Engine_v1.2/Review_Packet_Policy_Engine_v1.2.yaml
+  23:121    error    line too long (134 > 120 characters)  (line-length)
+  41:121    error    line too long (243 > 120 characters)  (line-length)
+  99:121    error    line too long (783 > 120 characters)  (line-length)
+  104:121   error    line too long (159 > 120 characters)  (line-length)
+  136:121   error    line too long (125 > 120 characters)  (line-length)
+  138:121   error    line too long (124 > 120 characters)  (line-length)
+  147:121   error    line too long (131 > 120 characters)  (line-length)
+  159:121   error    line too long (126 > 120 characters)  (line-length)
+  160:121   error    line too long (170 > 120 characters)  (line-length)
+  191:121   error    line too long (128 > 120 characters)  (line-length)
+  206:121   error    line too long (123 > 120 characters)  (line-length)
+  209:121   error    line too long (123 > 120 characters)  (line-length)
+  212:121   error    line too long (123 > 120 characters)  (line-length)
+  215:121   error    line too long (123 > 120 characters)  (line-length)
+  218:121   error    line too long (123 > 120 characters)  (line-length)
+  221:121   error    line too long (123 > 120 characters)  (line-length)
+  224:121   error    line too long (123 > 120 characters)  (line-length)
+
+artifacts/packets/review/Review_Packet_Policy_Engine_v1.2.yaml
+  23:121    error    line too long (134 > 120 characters)  (line-length)
+  41:121    error    line too long (243 > 120 characters)  (line-length)
+  99:121    error    line too long (783 > 120 characters)  (line-length)
+  104:121   error    line too long (159 > 120 characters)  (line-length)
+  136:121   error    line too long (125 > 120 characters)  (line-length)
+  138:121   error    line too long (124 > 120 characters)  (line-length)
+  147:121   error    line too long (131 > 120 characters)  (line-length)
+  159:121   error    line too long (126 > 120 characters)  (line-length)
+  160:121   error    line too long (170 > 120 characters)  (line-length)
+  191:121   error    line too long (128 > 120 characters)  (line-length)
+  206:121   error    line too long (123 > 120 characters)  (line-length)
+  209:121   error    line too long (123 > 120 characters)  (line-length)
+  212:121   error    line too long (123 > 120 characters)  (line-length)
+  215:121   error    line too long (123 > 120 characters)  (line-length)
+  218:121   error    line too long (123 > 120 characters)  (line-length)
+  221:121   error    line too long (123 > 120 characters)  (line-length)
+  224:121   error    line too long (123 > 120 characters)  (line-length)
+
+artifacts/reviews/2026-03-05-coo-bootstrap/codex_architecture_review.yaml
+  2:121     error    line too long (262 > 120 characters)  (line-length)
+  7:121     error    line too long (150 > 120 characters)  (line-length)
+  8:121     error    line too long (397 > 120 characters)  (line-length)
+  9:121     error    line too long (189 > 120 characters)  (line-length)
+  14:121    error    line too long (128 > 120 characters)  (line-length)
+  15:121    error    line too long (312 > 120 characters)  (line-length)
+  16:121    error    line too long (190 > 120 characters)  (line-length)
+  21:121    error    line too long (126 > 120 characters)  (line-length)
+  22:121    error    line too long (347 > 120 characters)  (line-length)
+  23:121    error    line too long (215 > 120 characters)  (line-length)
+  28:121    error    line too long (133 > 120 characters)  (line-length)
+  29:121    error    line too long (440 > 120 characters)  (line-length)
+  30:121    error    line too long (179 > 120 characters)  (line-length)
+  35:121    error    line too long (137 > 120 characters)  (line-length)
+  36:121    error    line too long (228 > 120 characters)  (line-length)
+  37:121    error    line too long (144 > 120 characters)  (line-length)
+  42:121    error    line too long (159 > 120 characters)  (line-length)
+  43:121    error    line too long (237 > 120 characters)  (line-length)
+  44:121    error    line too long (179 > 120 characters)  (line-length)
+  49:121    error    line too long (252 > 120 characters)  (line-length)
+  52:121    error    line too long (168 > 120 characters)  (line-length)
+  53:121    error    line too long (146 > 120 characters)  (line-length)
+  54:121    error    line too long (147 > 120 characters)  (line-length)
+  55:121    error    line too long (146 > 120 characters)  (line-length)
+
+artifacts/reviews/2026-03-05-coo-bootstrap/gemini_risk_review.yaml
+  2:121     error    line too long (207 > 120 characters)  (line-length)
+  7:121     error    line too long (169 > 120 characters)  (line-length)
+  9:121     error    line too long (168 > 120 characters)  (line-length)
+  13:121    error    line too long (183 > 120 characters)  (line-length)
+  15:121    error    line too long (180 > 120 characters)  (line-length)
+  19:121    error    line too long (191 > 120 characters)  (line-length)
+  21:121    error    line too long (187 > 120 characters)  (line-length)
+  25:121    error    line too long (193 > 120 characters)  (line-length)
+  26:121    error    line too long (121 > 120 characters)  (line-length)
+  27:121    error    line too long (142 > 120 characters)  (line-length)
+  31:121    error    line too long (157 > 120 characters)  (line-length)
+  33:121    error    line too long (160 > 120 characters)  (line-length)
+  37:121    error    line too long (170 > 120 characters)  (line-length)
+  39:121    error    line too long (121 > 120 characters)  (line-length)
+  40:121    error    line too long (124 > 120 characters)  (line-length)
+  41:121    error    line too long (128 > 120 characters)  (line-length)
+
+config/governance_baseline.yaml
+  3:1       error    wrong indentation: expected at least 1  (indentation)
+
+config/invariants.yaml
+  38:1      error    too many blank lines (1 > 0)  (empty-lines)
+
+config/openclaw/profile_approvals/coo_unsandboxed_prod_l3.yaml
+  9:3       error    wrong indentation: expected 4 but found 2  (indentation)
+
+config/packaging/preflight_allowlist.yaml
+  20:1      error    too many blank lines (1 > 0)  (empty-lines)
+
+config/policy/council_policy.yaml
+  33:121    error    line too long (138 > 120 characters)  (line-length)
+  150:121   error    line too long (138 > 120 characters)  (line-length)
+
+config/recursive_kernel_config.yaml
+  12:19     error    no new line character at the end of file  (new-line-at-end-of-file)
+
+config/tasks/backlog.yaml
+  3:1       error    wrong indentation: expected at least 1  (indentation)
+  12:3      error    wrong indentation: expected at least 3  (indentation)
+  20:3      error    wrong indentation: expected at least 3  (indentation)
+  33:3      error    wrong indentation: expected at least 3  (indentation)
+  40:3      error    wrong indentation: expected at least 3  (indentation)
+  54:3      error    wrong indentation: expected at least 3  (indentation)
+  61:3      error    wrong indentation: expected at least 3  (indentation)
+  74:3      error    wrong indentation: expected at least 3  (indentation)
+  82:3      error    wrong indentation: expected at least 3  (indentation)
+  96:3      error    wrong indentation: expected at least 3  (indentation)
+  103:3     error    wrong indentation: expected at least 3  (indentation)
+  116:3     error    wrong indentation: expected at least 3  (indentation)
+  124:3     error    wrong indentation: expected at least 3  (indentation)
+  137:3     error    wrong indentation: expected at least 3  (indentation)
+  145:3     error    wrong indentation: expected at least 3  (indentation)
+  158:3     error    wrong indentation: expected at least 3  (indentation)
+  166:3     error    wrong indentation: expected at least 3  (indentation)
+  179:3     error    wrong indentation: expected at least 3  (indentation)
+  186:3     error    wrong indentation: expected at least 3  (indentation)
+  199:3     error    wrong indentation: expected at least 3  (indentation)
+  206:3     error    wrong indentation: expected at least 3  (indentation)
+  219:3     error    wrong indentation: expected at least 3  (indentation)
+  226:3     error    wrong indentation: expected at least 3  (indentation)
+  238:3     error    wrong indentation: expected at least 3  (indentation)
+  245:3     error    wrong indentation: expected at least 3  (indentation)
+  258:3     error    wrong indentation: expected at least 3  (indentation)
+  265:3     error    wrong indentation: expected at least 3  (indentation)
+  279:3     error    wrong indentation: expected at least 3  (indentation)
+  286:3     error    wrong indentation: expected at least 3  (indentation)
+  301:3     error    wrong indentation: expected at least 3  (indentation)
+  309:3     error    wrong indentation: expected at least 3  (indentation)
+  324:3     error    wrong indentation: expected at least 3  (indentation)
+  332:3     error    wrong indentation: expected at least 3  (indentation)
+  346:3     error    wrong indentation: expected at least 3  (indentation)
+  353:3     error    wrong indentation: expected at least 3  (indentation)
+  367:3     error    wrong indentation: expected at least 3  (indentation)
+  375:3     error    wrong indentation: expected at least 3  (indentation)
+  391:3     error    wrong indentation: expected at least 3  (indentation)
+  398:3     error    wrong indentation: expected at least 3  (indentation)
+  413:3     error    wrong indentation: expected at least 3  (indentation)
+  420:3     error    wrong indentation: expected at least 3  (indentation)
+  434:3     error    wrong indentation: expected at least 3  (indentation)
+  443:3     error    wrong indentation: expected at least 3  (indentation)
+  457:3     error    wrong indentation: expected at least 3  (indentation)
+  467:3     error    wrong indentation: expected at least 3  (indentation)
+  483:3     error    wrong indentation: expected at least 3  (indentation)
+  492:3     error    wrong indentation: expected at least 3  (indentation)
+
+docs/02_protocols/schemas/backlog_schema_v1.0.yaml
+  40:1      error    trailing spaces  (trailing-spaces)
+
+docs/02_protocols/schemas/build_artifact_schemas_v1.yaml
+  23:30     warning  comment not indented like content  (comments-indentation)
+  48:30     warning  too few spaces before comment: expected 2  (comments)
+  62:1      error    trailing spaces  (trailing-spaces)
+  67:1      error    trailing spaces  (trailing-spaces)
+  71:1      error    trailing spaces  (trailing-spaces)
+  78:1      error    trailing spaces  (trailing-spaces)
+  85:1      error    trailing spaces  (trailing-spaces)
+  89:1      error    trailing spaces  (trailing-spaces)
+  92:1      error    trailing spaces  (trailing-spaces)
+  95:1      error    trailing spaces  (trailing-spaces)
+  98:1      error    trailing spaces  (trailing-spaces)
+  112:1     error    trailing spaces  (trailing-spaces)
+  117:1     error    trailing spaces  (trailing-spaces)
+  126:1     error    trailing spaces  (trailing-spaces)
+  135:1     error    trailing spaces  (trailing-spaces)
+  139:1     error    trailing spaces  (trailing-spaces)
+  143:1     error    trailing spaces  (trailing-spaces)
+  148:1     error    trailing spaces  (trailing-spaces)
+  152:1     error    trailing spaces  (trailing-spaces)
+  166:1     error    trailing spaces  (trailing-spaces)
+  171:1     error    trailing spaces  (trailing-spaces)
+  175:1     error    trailing spaces  (trailing-spaces)
+  179:1     error    trailing spaces  (trailing-spaces)
+  184:1     error    trailing spaces  (trailing-spaces)
+  188:1     error    trailing spaces  (trailing-spaces)
+  191:1     error    trailing spaces  (trailing-spaces)
+  205:1     error    trailing spaces  (trailing-spaces)
+  210:1     error    trailing spaces  (trailing-spaces)
+  219:1     error    trailing spaces  (trailing-spaces)
+  223:1     error    trailing spaces  (trailing-spaces)
+  227:1     error    trailing spaces  (trailing-spaces)
+  241:1     error    trailing spaces  (trailing-spaces)
+  246:1     error    trailing spaces  (trailing-spaces)
+  254:1     error    trailing spaces  (trailing-spaces)
+  258:1     error    trailing spaces  (trailing-spaces)
+  273:1     error    trailing spaces  (trailing-spaces)
+  278:1     error    trailing spaces  (trailing-spaces)
+  289:1     error    trailing spaces  (trailing-spaces)
+  293:1     error    trailing spaces  (trailing-spaces)
+  297:1     error    trailing spaces  (trailing-spaces)
+  314:1     error    trailing spaces  (trailing-spaces)
+  319:1     error    trailing spaces  (trailing-spaces)
+  323:1     error    trailing spaces  (trailing-spaces)
+  342:1     error    trailing spaces  (trailing-spaces)
+
+docs/02_protocols/schemas/example_converted_antigravity_packet.yaml
+  37:1      error    trailing spaces  (trailing-spaces)
+  44:1      error    trailing spaces  (trailing-spaces)
+  51:1      error    trailing spaces  (trailing-spaces)
+  58:1      error    trailing spaces  (trailing-spaces)
+  65:1      error    trailing spaces  (trailing-spaces)
+  72:1      error    trailing spaces  (trailing-spaces)
+  79:1      error    trailing spaces  (trailing-spaces)
+  156:5     warning  comment not indented like content  (comments-indentation)
+  188:1     error    trailing spaces  (trailing-spaces)
+  192:1     error    trailing spaces  (trailing-spaces)
+  196:1     error    trailing spaces  (trailing-spaces)
+  200:1     error    trailing spaces  (trailing-spaces)
+  204:1     error    trailing spaces  (trailing-spaces)
+  212:1     error    trailing spaces  (trailing-spaces)
+  217:1     error    trailing spaces  (trailing-spaces)
+
+docs/02_protocols/schemas/implementation_plan_schema_v1.0.yaml
+  18:1      error    trailing spaces  (trailing-spaces)
+  7:44      error    syntax error: found unknown escape character '.' (syntax)
+
+docs/02_protocols/schemas/lifeos_packet_schemas_CURRENT.yaml
+  62:1      error    trailing spaces  (trailing-spaces)
+  126:5     warning  comment not indented like content  (comments-indentation)
+
+docs/02_protocols/schemas/lifeos_packet_schemas_v1.2.yaml
+  61:1      error    trailing spaces  (trailing-spaces)
+
+docs/02_protocols/schemas/lifeos_packet_templates_v1.yaml
+  274:15    error    trailing spaces  (trailing-spaces)
+  282:17    error    trailing spaces  (trailing-spaces)
+  391:84    error    trailing spaces  (trailing-spaces)
+  392:34    warning  comment not indented like content  (comments-indentation)
+  392:81    error    trailing spaces  (trailing-spaces)
+  435:34    warning  comment not indented like content  (comments-indentation)
+  526:84    error    trailing spaces  (trailing-spaces)
+  527:34    warning  comment not indented like content  (comments-indentation)
+
+docs/02_protocols/schemas/lifeos_state_schema_v1.0.yaml
+  19:1      error    trailing spaces  (trailing-spaces)
+  23:1      error    trailing spaces  (trailing-spaces)
+  29:1      error    trailing spaces  (trailing-spaces)
+  34:1      error    trailing spaces  (trailing-spaces)
+  38:1      error    trailing spaces  (trailing-spaces)
+  41:1      error    trailing spaces  (trailing-spaces)
+  45:1      error    trailing spaces  (trailing-spaces)
+  54:1      error    trailing spaces  (trailing-spaces)
+  61:19     error    trailing spaces  (trailing-spaces)
+
+docs/99_archive/2025-06_v1_sunset/superseded_superseded_lifeos_packet_schemas_v1.1.yaml
+  61:1      error    trailing spaces  (trailing-spaces)
+
+docs/99_archive/2025-06_v1_sunset/superseded_superseded_lifeos_packet_schemas_v1.yaml
+  57:1      error    trailing spaces  (trailing-spaces)
+  63:31     warning  too few spaces before comment: expected 2  (comments)
+  65:1      error    trailing spaces  (trailing-spaces)
+  71:39     warning  too few spaces before comment: expected 2  (comments)
+  72:1      error    trailing spaces  (trailing-spaces)
+  76:7      error    syntax error: expected <block end>, but found '<block sequence start>' (syntax)
+  80:7      error    wrong indentation: expected 4 but found 6  (indentation)
+  84:1      error    trailing spaces  (trailing-spaces)
+  88:7      error    wrong indentation: expected 4 but found 6  (indentation)
+  92:7      error    wrong indentation: expected 4 but found 6  (indentation)
+  95:32     warning  too few spaces before comment: expected 2  (comments)
+  96:1      error    trailing spaces  (trailing-spaces)
+  120:1     error    trailing spaces  (trailing-spaces)
+  127:1     error    trailing spaces  (trailing-spaces)
+  130:5     error    wrong indentation: expected 2 but found 4  (indentation)
+  136:1     error    trailing spaces  (trailing-spaces)
+  140:31    warning  too few spaces before comment: expected 2  (comments)
+  142:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  148:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  153:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  164:1     error    trailing spaces  (trailing-spaces)
+  171:1     error    trailing spaces  (trailing-spaces)
+  175:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  175:31    warning  too few spaces before comment: expected 2  (comments)
+  180:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  184:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  189:1     error    trailing spaces  (trailing-spaces)
+  196:31    warning  too few spaces before comment: expected 2  (comments)
+  197:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  209:1     error    trailing spaces  (trailing-spaces)
+  215:1     error    trailing spaces  (trailing-spaces)
+  219:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  227:1     error    trailing spaces  (trailing-spaces)
+  232:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  237:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  241:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  245:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  247:1     error    trailing spaces  (trailing-spaces)
+  254:1     error    trailing spaces  (trailing-spaces)
+  258:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  262:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  273:1     error    trailing spaces  (trailing-spaces)
+  280:1     error    trailing spaces  (trailing-spaces)
+  284:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  291:7     error    wrong indentation: expected 4 but found 6  (indentation)
+  297:1     error    trailing spaces  (trailing-spaces)
+  309:1     error    trailing spaces  (trailing-spaces)
+  318:1     error    trailing spaces  (trailing-spaces)
+  334:1     error    trailing spaces  (trailing-spaces)
+  339:1     error    trailing spaces  (trailing-spaces)
+  359:1     error    trailing spaces  (trailing-spaces)
+  365:1     error    trailing spaces  (trailing-spaces)
+  380:1     error    trailing spaces  (trailing-spaces)
+  386:76    error    trailing spaces  (trailing-spaces)
+  389:1     error    trailing spaces  (trailing-spaces)
+  400:1     error    trailing spaces  (trailing-spaces)
+  409:1     error    trailing spaces  (trailing-spaces)
+  424:1     error    trailing spaces  (trailing-spaces)
+  430:1     error    trailing spaces  (trailing-spaces)
+  438:1     error    trailing spaces  (trailing-spaces)
+  450:1     error    trailing spaces  (trailing-spaces)
+  466:1     error    trailing spaces  (trailing-spaces)
+  472:1     error    trailing spaces  (trailing-spaces)
+  480:1     error    trailing spaces  (trailing-spaces)
+  488:1     error    trailing spaces  (trailing-spaces)
+  498:1     error    trailing spaces  (trailing-spaces)
+  515:1     error    trailing spaces  (trailing-spaces)
+  518:78    error    trailing spaces  (trailing-spaces)
+  523:1     error    trailing spaces  (trailing-spaces)
+  530:1     error    trailing spaces  (trailing-spaces)
+  540:1     error    trailing spaces  (trailing-spaces)
+  558:1     error    trailing spaces  (trailing-spaces)
+  565:1     error    trailing spaces  (trailing-spaces)
+  577:1     error    trailing spaces  (trailing-spaces)
+  586:1     error    trailing spaces  (trailing-spaces)
+  602:1     error    trailing spaces  (trailing-spaces)
+  609:1     error    trailing spaces  (trailing-spaces)
+  616:1     error    trailing spaces  (trailing-spaces)
+  626:1     error    trailing spaces  (trailing-spaces)
+  634:1     error    trailing spaces  (trailing-spaces)
+  645:1     error    trailing spaces  (trailing-spaces)
+  662:1     error    trailing spaces  (trailing-spaces)
+  670:1     error    trailing spaces  (trailing-spaces)
+  678:1     error    trailing spaces  (trailing-spaces)
+  689:1     error    trailing spaces  (trailing-spaces)
+  697:1     error    trailing spaces  (trailing-spaces)
+  705:1     error    trailing spaces  (trailing-spaces)
+  711:1     error    trailing spaces  (trailing-spaces)
+  733:1     error    trailing spaces  (trailing-spaces)
+  737:1     error    trailing spaces  (trailing-spaces)
+  743:1     error    trailing spaces  (trailing-spaces)
+  766:1     error    trailing spaces  (trailing-spaces)
+  772:1     error    trailing spaces  (trailing-spaces)
+  782:1     error    trailing spaces  (trailing-spaces)
+  792:121   error    line too long (143 > 120 characters)  (line-length)
+  793:1     error    trailing spaces  (trailing-spaces)
+  809:1     error    trailing spaces  (trailing-spaces)
+
+docs/99_archive/2026-02_pre_consolidation/backlog_legacy_v1.0.yaml
+  28:40     error    no new line character at the end of file  (new-line-at-end-of-file)
+
+spikes/claude-code-mcp-test/node_modules/call-bind-apply-helpers/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/call-bound/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/dunder-proto/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/es-define-property/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/es-errors/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/es-object-atoms/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/fast-uri/.github/.stale.yml
+  21:20     error    no new line character at the end of file  (new-line-at-end-of-file)
+
+spikes/claude-code-mcp-test/node_modules/fast-uri/.github/tests_checker.yml
+  3:121     error    line too long (122 > 120 characters)  (line-length)
+  8:16      error    no new line character at the end of file  (new-line-at-end-of-file)
+
+spikes/claude-code-mcp-test/node_modules/fast-uri/.github/workflows/ci.yml
+  6:6       error    wrong indentation: expected 6 but found 5  (indentation)
+  83:1      error    trailing spaces  (trailing-spaces)
+  90:1      error    trailing spaces  (trailing-spaces)
+
+spikes/claude-code-mcp-test/node_modules/fast-uri/.github/workflows/package-manager-ci.yml
+  6:6       error    wrong indentation: expected 6 but found 5  (indentation)
+
+spikes/claude-code-mcp-test/node_modules/function-bind/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/get-intrinsic/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/get-proto/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/gopd/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/has-symbols/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/hasown/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/math-intrinsics/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/object-inspect/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/qs/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/side-channel-list/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/side-channel-map/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/side-channel-weakmap/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+spikes/claude-code-mcp-test/node_modules/side-channel/.github/FUNDING.yml
+  4:10      warning  too few spaces before comment: expected 2  (comments)
+  5:18      warning  too few spaces before comment: expected 2  (comments)
+  6:8       warning  too few spaces before comment: expected 2  (comments)
+  8:19      warning  too few spaces before comment: expected 2  (comments)
+  9:12      warning  too few spaces before comment: expected 2  (comments)
+  10:12     warning  too few spaces before comment: expected 2  (comments)
+  11:10     warning  too few spaces before comment: expected 2  (comments)
+  12:9      warning  too few spaces before comment: expected 2  (comments)
+
+
+EXIT_CODE=123

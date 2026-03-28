@@ -1,5 +1,14 @@
 # DECISION LOG (append-only; low volume)
 
+<!-- markdownlint-disable MD013 -->
+
+- **2026-03-28 — Decision:** Add `QUALITY_AUDIT_BASELINE_v1.0.md` to the admin allowlist
+  - **Why:** The repo-wide quality audit baseline is a recurring admin control artifact
+    that records evidence, debt posture, and promotion guidance.
+  - **Scope:** `docs/11_admin/`, `doc_steward/admin_structure_validator.py`,
+    and `docs/INDEX.md`
+  - **Evidence:** `0ed3a2da`, `d78a90e2`, quality audit baseline evidence bundle
+
 - **2026-01-02 — Decision:** Activate Tier-2.5 Semi-Autonomous Development Layer
   - **Why:** All activation conditions (F3, F4, F7) satisfied; Tier-2 tests 100% pass
   - **Scope:** Enables semi-autonomous doc stewardship, recursive builder, agentic missions
@@ -70,3 +79,5 @@
   - **Key finding:** OpenCode loop (~61s, ~$0.08/task) vs Claude Code direct (~30s, ~$0.01/task). OpenCode value is governance + audit trail, not speed/cost.
   - **Decider:** COO Runtime (autonomous execution + Claude Code sprint)
   - **Evidence:** [OpenCode_CLI_Config_Build_Summary_2026-02-20.md](./build_summaries/OpenCode_CLI_Config_Build_Summary_2026-02-20.md), autonomous commit `f7daab46`, `artifacts/comparison_results.jsonl`
+
+<!-- markdownlint-enable MD013 -->

@@ -1,0 +1,3 @@
+[PASSED] Admin archive link ban check passed.
+
+EXIT_CODE=0

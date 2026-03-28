@@ -1,0 +1,46 @@
+[REPORT] Version Duplicate Scan:
+
+Found 8 version duplicate group(s) in active paths:
+
+  Base: ARCH_LifeOS_Operating_Model
+    - docs/00_foundations/ARCH_LifeOS_Operating_Model_v0.3.md
+    - docs/00_foundations/ARCH_LifeOS_Operating_Model_v0.4.md
+
+  Base: Council_Ruling_OpenCode_DocSteward_CT2_Phase2
+    - docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md
+      [WARNING] Missing lineage in ARTEFACT_INDEX
+    - docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md
+      [WARNING] Missing lineage in ARTEFACT_INDEX
+
+  Base: Council_Ruling_OpenCode_First_Stewardship
+    - docs/01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.0.md
+      [WARNING] Missing lineage in ARTEFACT_INDEX
+    - docs/01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md
+      [WARNING] Missing lineage in ARTEFACT_INDEX
+
+  Base: OpenCode_First_Stewardship_Policy
+    - docs/01_governance/OpenCode_First_Stewardship_Policy_v1.0.md
+      [WARNING] Missing lineage in ARTEFACT_INDEX
+    - docs/01_governance/OpenCode_First_Stewardship_Policy_v1.1.md
+      [WARNING] Missing lineage in ARTEFACT_INDEX
+
+  Base: Test_Protocol
+    - docs/02_protocols/Test_Protocol_v1.0.md
+      [WARNING] Missing lineage in ARTEFACT_INDEX
+    - docs/02_protocols/Test_Protocol_v2.0.md
+      [WARNING] Missing lineage in ARTEFACT_INDEX
+
+  Base: chair_prompt
+    - docs/09_prompts/v1.0/roles/chair_prompt_v1.0.md
+    - docs/09_prompts/v1.2/chair_prompt_v1.2.md
+
+  Base: cochair_prompt
+    - docs/09_prompts/v1.0/roles/cochair_prompt_v1.0.md
+    - docs/09_prompts/v1.2/cochair_prompt_v1.2.md
+
+  Base: reviewer_l1_unified
+    - docs/09_prompts/v1.0/roles/reviewer_l1_unified_v1.0.md
+    - docs/09_prompts/v1.2/reviewer_l1_unified_v1.2.md
+
+
+EXIT_CODE=0

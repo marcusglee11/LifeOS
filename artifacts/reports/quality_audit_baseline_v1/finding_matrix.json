@@ -1,0 +1,603 @@
+[
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_check_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 26559,
+    "lane": "python_style",
+    "notes": "",
+    "path_or_subsystem": "runtime",
+    "recommended_owner": "runtime",
+    "representative_examples": [
+      "F841 [*] Local variable `e` is assigned to but never used",
+      "--> doc_steward/admin_archive_link_ban_validator.py:57:29",
+      "|",
+      "55 |         try:",
+      "56 |             content = md_file.read_text(encoding=\"utf-8\")"
+    ],
+    "tool": "ruff_check"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_check_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 26559,
+    "lane": "python_style",
+    "notes": "",
+    "path_or_subsystem": "doc_steward",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "F841 [*] Local variable `e` is assigned to but never used",
+      "--> doc_steward/admin_archive_link_ban_validator.py:57:29",
+      "|",
+      "55 |         try:",
+      "56 |             content = md_file.read_text(encoding=\"utf-8\")"
+    ],
+    "tool": "ruff_check"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_check_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 26559,
+    "lane": "python_style",
+    "notes": "",
+    "path_or_subsystem": "recursive_kernel",
+    "recommended_owner": "recursive_kernel",
+    "representative_examples": [
+      "F841 [*] Local variable `e` is assigned to but never used",
+      "--> doc_steward/admin_archive_link_ban_validator.py:57:29",
+      "|",
+      "55 |         try:",
+      "56 |             content = md_file.read_text(encoding=\"utf-8\")"
+    ],
+    "tool": "ruff_check"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_check_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 26559,
+    "lane": "python_style",
+    "notes": "",
+    "path_or_subsystem": "project_builder",
+    "recommended_owner": "project_builder",
+    "representative_examples": [
+      "F841 [*] Local variable `e` is assigned to but never used",
+      "--> doc_steward/admin_archive_link_ban_validator.py:57:29",
+      "|",
+      "55 |         try:",
+      "56 |             content = md_file.read_text(encoding=\"utf-8\")"
+    ],
+    "tool": "ruff_check"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_format_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 518,
+    "lane": "python_format",
+    "notes": "",
+    "path_or_subsystem": "runtime",
+    "recommended_owner": "runtime",
+    "representative_examples": [
+      "Would reformat: doc_steward/admin_archive_link_ban_validator.py",
+      "Would reformat: doc_steward/admin_structure_validator.py",
+      "Would reformat: doc_steward/archive_structure_validator.py",
+      "Would reformat: doc_steward/artefact_index_validator.py",
+      "Would reformat: doc_steward/cli.py"
+    ],
+    "tool": "ruff_format"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_format_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 518,
+    "lane": "python_format",
+    "notes": "",
+    "path_or_subsystem": "doc_steward",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "Would reformat: doc_steward/admin_archive_link_ban_validator.py",
+      "Would reformat: doc_steward/admin_structure_validator.py",
+      "Would reformat: doc_steward/archive_structure_validator.py",
+      "Would reformat: doc_steward/artefact_index_validator.py",
+      "Would reformat: doc_steward/cli.py"
+    ],
+    "tool": "ruff_format"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_format_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 518,
+    "lane": "python_format",
+    "notes": "",
+    "path_or_subsystem": "recursive_kernel",
+    "recommended_owner": "recursive_kernel",
+    "representative_examples": [
+      "Would reformat: doc_steward/admin_archive_link_ban_validator.py",
+      "Would reformat: doc_steward/admin_structure_validator.py",
+      "Would reformat: doc_steward/archive_structure_validator.py",
+      "Would reformat: doc_steward/artefact_index_validator.py",
+      "Would reformat: doc_steward/cli.py"
+    ],
+    "tool": "ruff_format"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_format_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 518,
+    "lane": "python_format",
+    "notes": "",
+    "path_or_subsystem": "project_builder",
+    "recommended_owner": "project_builder",
+    "representative_examples": [
+      "Would reformat: doc_steward/admin_archive_link_ban_validator.py",
+      "Would reformat: doc_steward/admin_structure_validator.py",
+      "Would reformat: doc_steward/archive_structure_validator.py",
+      "Would reformat: doc_steward/artefact_index_validator.py",
+      "Would reformat: doc_steward/cli.py"
+    ],
+    "tool": "ruff_format"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/mypy_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "mypy_error",
+    "finding_count": 279,
+    "lane": "python_types",
+    "notes": "",
+    "path_or_subsystem": "runtime",
+    "recommended_owner": "runtime",
+    "representative_examples": [
+      "runtime/util/detsort.py:21: error: Incompatible default for argument \"key\" (default has type \"None\", argument has type \"Callable[[Any], Any]\")  [assignment]",
+      "runtime/util/detsort.py:21: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True",
+      "runtime/util/detsort.py:21: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase",
+      "runtime/governance/protected_paths.py:225: error: Incompatible return value type (got \"tuple[bool, str | None]\", expected \"tuple[bool, str]\")  [return-value]",
+      "runtime/governance/protected_paths.py:230: error: Incompatible return value type (got \"tuple[bool, str | None]\", expected \"tuple[bool, str]\")  [return-value]"
+    ],
+    "tool": "mypy"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/mypy_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "mypy_error",
+    "finding_count": 279,
+    "lane": "python_types",
+    "notes": "",
+    "path_or_subsystem": "doc_steward",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "runtime/util/detsort.py:21: error: Incompatible default for argument \"key\" (default has type \"None\", argument has type \"Callable[[Any], Any]\")  [assignment]",
+      "runtime/util/detsort.py:21: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True",
+      "runtime/util/detsort.py:21: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase",
+      "runtime/governance/protected_paths.py:225: error: Incompatible return value type (got \"tuple[bool, str | None]\", expected \"tuple[bool, str]\")  [return-value]",
+      "runtime/governance/protected_paths.py:230: error: Incompatible return value type (got \"tuple[bool, str | None]\", expected \"tuple[bool, str]\")  [return-value]"
+    ],
+    "tool": "mypy"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/mypy_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "mypy_error",
+    "finding_count": 279,
+    "lane": "python_types",
+    "notes": "",
+    "path_or_subsystem": "recursive_kernel",
+    "recommended_owner": "recursive_kernel",
+    "representative_examples": [
+      "runtime/util/detsort.py:21: error: Incompatible default for argument \"key\" (default has type \"None\", argument has type \"Callable[[Any], Any]\")  [assignment]",
+      "runtime/util/detsort.py:21: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True",
+      "runtime/util/detsort.py:21: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase",
+      "runtime/governance/protected_paths.py:225: error: Incompatible return value type (got \"tuple[bool, str | None]\", expected \"tuple[bool, str]\")  [return-value]",
+      "runtime/governance/protected_paths.py:230: error: Incompatible return value type (got \"tuple[bool, str | None]\", expected \"tuple[bool, str]\")  [return-value]"
+    ],
+    "tool": "mypy"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/mypy_python.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "mypy_error",
+    "finding_count": 279,
+    "lane": "python_types",
+    "notes": "",
+    "path_or_subsystem": "project_builder",
+    "recommended_owner": "project_builder",
+    "representative_examples": [
+      "runtime/util/detsort.py:21: error: Incompatible default for argument \"key\" (default has type \"None\", argument has type \"Callable[[Any], Any]\")  [assignment]",
+      "runtime/util/detsort.py:21: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True",
+      "runtime/util/detsort.py:21: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase",
+      "runtime/governance/protected_paths.py:225: error: Incompatible return value type (got \"tuple[bool, str | None]\", expected \"tuple[bool, str]\")  [return-value]",
+      "runtime/governance/protected_paths.py:230: error: Incompatible return value type (got \"tuple[bool, str | None]\", expected \"tuple[bool, str]\")  [return-value]"
+    ],
+    "tool": "mypy"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_check_opencode_governance.txt",
+    "disposition": "exclude_or_rescope",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 41,
+    "lane": "python_style",
+    "notes": "packaged_but_not_in_manifest",
+    "path_or_subsystem": "opencode_governance",
+    "recommended_owner": "opencode",
+    "representative_examples": [
+      "E501 Line too long (285 > 100)",
+      "--> opencode_governance/service.py:4:101",
+      "|",
+      "2 | \u2026",
+      "3 | \u2026"
+    ],
+    "tool": "ruff_check"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/ruff_format_opencode_governance.txt",
+    "disposition": "exclude_or_rescope",
+    "exit_code": 1,
+    "failure_class": "ruff_error",
+    "finding_count": 3,
+    "lane": "python_format",
+    "notes": "packaged_but_not_in_manifest",
+    "path_or_subsystem": "opencode_governance",
+    "recommended_owner": "opencode",
+    "representative_examples": [
+      "Would reformat: opencode_governance/errors.py",
+      "Would reformat: opencode_governance/service.py",
+      "2 files would be reformatted, 1 file already formatted"
+    ],
+    "tool": "ruff_format"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/mypy_opencode_governance.txt",
+    "disposition": "exclude_or_rescope",
+    "exit_code": 1,
+    "failure_class": "mypy_error",
+    "finding_count": 1,
+    "lane": "python_types",
+    "notes": "packaged_but_not_in_manifest",
+    "path_or_subsystem": "opencode_governance",
+    "recommended_owner": "opencode",
+    "representative_examples": [
+      "Success: no issues found in 3 source files"
+    ],
+    "tool": "mypy"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/biome_repo.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "biome_error",
+    "finding_count": 58,
+    "lane": "js_json_style",
+    "notes": "broader_than_quality_gate_routing",
+    "path_or_subsystem": "scripts_root_config",
+    "recommended_owner": "repo_hygiene",
+    "representative_examples": [
+      "biome.json:2:14 deserialize \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
+      "i The configuration schema version does not match the CLI version 2.4.9",
+      "1 \u2502 {",
+      "> 2 \u2502   \"$schema\": \"https://biomejs.dev/schemas/2.4.4/schema.json\",",
+      "\u2502              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    ],
+    "tool": "biome"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/markdownlint_docs.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 123,
+    "failure_class": "markdownlint_error",
+    "finding_count": 13725,
+    "lane": "docs_markdown_style",
+    "notes": "",
+    "path_or_subsystem": "docs_markdown_style",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "docs/.pending_root_files/PULL_REQUEST_TEMPLATE.md:32 error MD012/no-multiple-blanks Multiple consecutive blank lines [Expected: 1; Actual: 2]",
+      "docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md:4:121 error MD013/line-length Line length [Expected: 120; Actual: 143]",
+      "docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md:6:121 error MD013/line-length Line length [Expected: 120; Actual: 143]",
+      "docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md:30:121 error MD013/line-length Line length [Expected: 120; Actual: 208]",
+      "docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md:150:121 error MD013/line-length Line length [Expected: 120; Actual: 149]"
+    ],
+    "tool": "markdownlint"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/yamllint_repo.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 123,
+    "failure_class": "yamllint_error",
+    "finding_count": 754,
+    "lane": "yaml_style",
+    "notes": "",
+    "path_or_subsystem": "yaml_shell_json_misc",
+    "recommended_owner": "repo_hygiene",
+    "representative_examples": [
+      ".github/workflows/branch_housekeeping_delete_merged_validator_suite.yml",
+      "95:121    error    line too long (125 > 120 characters)  (line-length)",
+      "104:121   error    line too long (134 > 120 characters)  (line-length)",
+      "106:121   error    line too long (154 > 120 characters)  (line-length)",
+      ".github/workflows/build-entry-check.yml"
+    ],
+    "tool": "yamllint"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/shellcheck_repo.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 123,
+    "failure_class": "shellcheck_error",
+    "finding_count": 20,
+    "lane": "shell_style",
+    "notes": "",
+    "path_or_subsystem": "yaml_shell_json_misc",
+    "recommended_owner": "repo_hygiene",
+    "representative_examples": [
+      ".claude/skills/lifeos-workflow/skills/merge-concurrent-sprints/branch-audit.sh:6:25: note: Double quote to prevent globbing and word splitting. [SC2086]",
+      ".claude/skills/lifeos-workflow/skills/merge-concurrent-sprints/branch-audit.sh:7:20: note: Double quote to prevent globbing and word splitting. [SC2086]",
+      ".claude/skills/lifeos-workflow/skills/merge-concurrent-sprints/branch-audit.sh:8:43: note: Double quote to prevent globbing and word splitting. [SC2086]",
+      ".claude/skills/lifeos-workflow/skills/merge-concurrent-sprints/branch-audit.sh:18:16: note: Double quote to prevent globbing and word splitting. [SC2086]",
+      ".claude/skills/lifeos-workflow/skills/merge-concurrent-sprints/branch-audit.sh:22:14: note: Double quote to prevent globbing and word splitting. [SC2086]"
+    ],
+    "tool": "shellcheck"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_dap_validate.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[PASSED] DAP validation passed."
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_index_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 14,
+    "lane": "docs_semantic",
+    "notes": "two_argument_validator",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[FAILED] Index check failed (13 errors):",
+      "* Indexed file missing: ./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md",
+      "* Indexed file missing: ./02_protocols/Document_Steward_Protocol_v1.0.md",
+      "* Indexed file missing: ./02_protocols/Build_Handoff_Protocol_v1.0.md",
+      "* Indexed file missing: ./02_protocols/lifeos_packet_schemas_v1.yaml"
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_link_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[PASSED] Link check passed."
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_opencode_validate.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[FAILED] Missing required directory: /mnt/c/Users/cabra/Projects/LifeOS/.worktrees/repo-quality-audit-baseline/artifacts/opencode"
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_admin_structure_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 2,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[FAILED] Admin structure check failed (1 errors):",
+      "* Unexpected file at root: docs/11_admin/QUALITY_AUDIT_BASELINE_v1.0.md (not in allowlist)"
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_admin_archive_link_ban_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[PASSED] Admin archive link ban check passed."
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_freshness_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[SKIPPED] Freshness check disabled (LIFEOS_DOC_FRESHNESS_MODE=off)"
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_protocols_structure_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[PASSED] Protocols structure check passed."
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_runtime_structure_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[PASSED] Runtime structure check passed."
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_archive_structure_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[PASSED] Archive structure check passed."
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_docs_archive_link_ban_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 1,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[PASSED] Archive link ban check passed."
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_artefact_index_check.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 29,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[FAILED] Artefact index check failed (28 errors):",
+      "* docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md",
+      "* docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.1.md",
+      "* docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md",
+      "* docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/ARTEFACT_INDEX_SCHEMA.md"
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/doc_version_duplicate_scan.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "doc_semantic_error",
+    "finding_count": 34,
+    "lane": "docs_semantic",
+    "notes": "",
+    "path_or_subsystem": "docs_semantic",
+    "recommended_owner": "doc_steward",
+    "representative_examples": [
+      "[REPORT] Version Duplicate Scan:",
+      "Found 8 version duplicate group(s) in active paths:",
+      "Base: ARCH_LifeOS_Operating_Model",
+      "- docs/00_foundations/ARCH_LifeOS_Operating_Model_v0.3.md",
+      "- docs/00_foundations/ARCH_LifeOS_Operating_Model_v0.4.md"
+    ],
+    "tool": "doc_steward"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/hook_gate_tests.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 1,
+    "failure_class": "enforcement_error",
+    "finding_count": 11,
+    "lane": "enforcement_chain",
+    "notes": "",
+    "path_or_subsystem": "scripts_root_config",
+    "recommended_owner": "repo_hygiene",
+    "representative_examples": [
+      "============================= test session starts ==============================",
+      "platform linux -- Python 3.14.2, pytest-8.4.2, pluggy-1.6.0",
+      "rootdir: /mnt/c/Users/cabra/Projects/LifeOS/.worktrees/repo-quality-audit-baseline",
+      "configfile: pyproject.toml",
+      "plugins: anyio-4.13.0, cov-4.1.0, asyncio-0.26.0"
+    ],
+    "tool": "pytest"
+  },
+  {
+    "artifact": "artifacts/reports/quality_audit_baseline_v1/pytest_fast_fail.txt",
+    "disposition": "advisory_keep",
+    "exit_code": 124,
+    "failure_class": "runtime_baseline_error",
+    "finding_count": 135,
+    "lane": "runtime_baseline",
+    "notes": "context_only",
+    "path_or_subsystem": "runtime",
+    "recommended_owner": "runtime",
+    "representative_examples": [
+      "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000........... [  8%]",
+      "[  8%]",
+      "runtime/tests/orchestration/coo/test_mirror_harness.py ...               [  8%]",
+      "runtime/tests/orchestration/coo/test_parser.py ......................    [  9%]",
+      "runtime/tests/orchestration/coo/test_promotion_fixtures.py .             [  9%]"
+    ],
+    "tool": "pytest"
+  }
+]

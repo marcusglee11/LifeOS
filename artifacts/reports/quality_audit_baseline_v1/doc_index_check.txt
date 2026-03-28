@@ -1,0 +1,17 @@
+[FAILED] Index check failed (13 errors):
+
+  * Indexed file missing: ./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md
+  * Indexed file missing: ./02_protocols/Document_Steward_Protocol_v1.0.md
+  * Indexed file missing: ./02_protocols/Build_Handoff_Protocol_v1.0.md
+  * Indexed file missing: ./02_protocols/lifeos_packet_schemas_v1.yaml
+  * Indexed file missing: ./02_protocols/lifeos_packet_templates_v1.yaml
+  * Indexed file missing: ./02_protocols/build_artifact_schemas_v1.yaml
+  * Indexed file missing: ./02_protocols/example_converted_antigravity_packet.yaml
+  * Indexed file missing: ./03_runtime/Hardening_Backlog_v0.1.md
+  * Indexed file missing: ./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md
+  * Indexed file missing: ./03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md
+  * Indexed file missing: ./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md
+  * Indexed file missing: ./03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md
+  * Indexed file missing: ./03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md
+
+EXIT_CODE=1

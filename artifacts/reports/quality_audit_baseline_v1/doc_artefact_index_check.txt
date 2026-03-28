@@ -1,0 +1,32 @@
+[FAILED] Artefact index check failed (28 errors):
+
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Antigravity_Council_Review_Packet_Spec_v1.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/ARTEFACT_INDEX_SCHEMA.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/COO_Expectations_Log_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Review_Stewardship_Runner_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_Build_Handoff_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_Build_Loop_Architecture_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_Core_TDD_Principles_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_Phase3_Closure_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Council_Ruling_Trusted_Builder_Mode_v1.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/CSO_Role_Constitution_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/INDEX.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/LOG_RETENTION.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/OpenCode_First_Stewardship_Policy_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/OpenCode_First_Stewardship_Policy_v1.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/PLATFORM_POLICY.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Tier1_Hardening_Council_Ruling_v0.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Tier3_Mission_Registry_Council_Ruling_v0.1.md
+  * docs/01_governance/ARTEFACT_INDEX.json: Orphan active file not in index: docs/01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md
+
+EXIT_CODE=1
