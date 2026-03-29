@@ -74,7 +74,7 @@ config/quality/mypy_baseline.json format ━━━━━━━━━━━━━
     31 26 │       "Initial rollout keeps mypy advisory until a config-only green subset is proven."
   
 
-Checked 34 files in 14s. No fixes applied.
+Checked 34 files in 9s. No fixes applied.
 Found 4 errors.
 Found 1 info.
 check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

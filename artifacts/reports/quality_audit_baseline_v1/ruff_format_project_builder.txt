@@ -1,0 +1,23 @@
+Would reformat: project_builder/agents/planner.py
+Would reformat: project_builder/config/governance.py
+Would reformat: project_builder/config/settings.py
+Would reformat: project_builder/context/injection.py
+Would reformat: project_builder/context/tokenizer.py
+Would reformat: project_builder/context/truncation.py
+Would reformat: project_builder/database/__init__.py
+Would reformat: project_builder/database/migrations.py
+Would reformat: project_builder/database/snapshot.py
+Would reformat: project_builder/database/timeline.py
+Would reformat: project_builder/orchestrator/budget_txn.py
+Would reformat: project_builder/orchestrator/fsm.py
+Would reformat: project_builder/orchestrator/missions.py
+Would reformat: project_builder/orchestrator/reclaim.py
+Would reformat: project_builder/orchestrator/routing.py
+Would reformat: project_builder/sandbox/__init__.py
+Would reformat: project_builder/sandbox/manifest.py
+Would reformat: project_builder/sandbox/runner.py
+Would reformat: project_builder/sandbox/security.py
+Would reformat: project_builder/sandbox/workspace.py
+20 files would be reformatted, 3 files already formatted
+
+EXIT_CODE=1

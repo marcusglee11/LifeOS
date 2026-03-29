@@ -1,0 +1,748 @@
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/agents/planner.py:1:1
+  |
+1 | / import json
+2 | | import sqlite3
+3 | | from project_builder.config.settings import PLANNER_BUDGET_FRACTION
+  | |___________________________________________________________________^
+4 |
+5 |   def validate_required_artifact_ids(required_artifact_ids: list[str] | None) -> None:
+  |
+help: Organize imports
+
+F401 [*] `json` imported but unused
+ --> project_builder/agents/planner.py:1:8
+  |
+1 | import json
+  |        ^^^^
+2 | import sqlite3
+3 | from project_builder.config.settings import PLANNER_BUDGET_FRACTION
+  |
+help: Remove unused import: `json`
+
+E501 Line too long (103 > 100)
+  --> project_builder/agents/planner.py:23:101
+   |
+21 |             raise ValueError("required_artifact_ids items must be strings")
+22 |
+23 | def validate_plan_budget(conn: sqlite3.Connection, mission_id: str, estimated_cost_usd: float) -> None:
+   |                                                                                                     ^^^
+24 |     """
+25 |     Validates that the sum of all task budgets does not exceed 80% of the Mission Max Budget
+   |
+
+E501 Line too long (147 > 100)
+  --> project_builder/agents/planner.py:37:101
+   |
+36 | …
+37 | …d} exceeds {PLANNER_BUDGET_FRACTION*100}% of mission max {max_cost_usd} (Limit: {limit})")
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/config/governance.py:1:1
+  |
+1 | / import os
+2 | | import re
+3 | | from project_builder.config import settings
+  | |___________________________________________^
+4 |
+5 |   # MUST match the Git-tracked canonical coo-sandbox@prod digest.
+  |
+help: Organize imports
+
+E501 Line too long (114 > 100)
+  --> project_builder/config/governance.py:29:101
+   |
+27 |     placeholder_digest = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+28 |     if current_digest == placeholder_digest:
+29 |         raise SandboxConfigError("Governance Violation: Placeholder digest detected. Production digest required.")
+   |                                                                                                     ^^^^^^^^^^^^^^
+30 |
+31 |     # Check against allowed list
+   |
+
+E501 Line too long (104 > 100)
+  --> project_builder/config/governance.py:33:101
+   |
+31 |     # Check against allowed list
+32 |     if current_digest not in ALLOWED_PROD_DIGESTS:
+33 |         raise SandboxConfigError(f"Governance Violation: Unauthorized sandbox digest: {current_digest}")
+   |                                                                                                     ^^^^
+34 |
+35 |     # 2. Platform Verification
+   |
+
+E501 Line too long (121 > 100)
+  --> project_builder/config/settings.py:29:101
+   |
+27 | SANDBOX_USER_UID = "1000:1000"  # Non-root user for Docker
+28 | SANDBOX_CPU_LIMIT = "1"
+29 | SANDBOX_IMAGE_DIGEST = "sha256:f2c125a3328cd4dc8bbe2afee07e7870028e34fed6440f9c3d6ffaea2f8898477" # Canonical PROD digest
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^
+30 | MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB limit
+31 | MANIFEST_PATH_REGEX = r"^[A-Za-z0-9._ -]+(/[A-Za-z0-9._ -]+)*$"
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/context/injection.py:1:1
+  |
+1 | / import json
+2 | | from typing import Any, Protocol
+3 | | from project_builder.context.truncation import TRUNCATION_MARKER
+4 | | from project_builder.config.settings import MAX_ARTIFACT_TOKENS
+  | |_______________________________________________________________^
+5 |
+6 |   class Tokenizer(Protocol):
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/database/__init__.py:1:1
+  |
+1 | import sqlite3
+  | ^^^^^^^^^^^^^^
+2 |
+3 | def verify_json1(conn: sqlite3.Connection) -> None:
+  |
+help: Organize imports
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> project_builder/database/__init__.py:12:9
+   |
+10 |         cursor.fetchone()
+11 |     except sqlite3.OperationalError:
+12 |         raise RuntimeError("SQLite JSON1 extension is not available.")
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/database/migrations.py:1:1
+  |
+1 | / import sqlite3
+2 | | import os
+  | |_________^
+3 |
+4 |   def apply_schema(conn: sqlite3.Connection) -> None:
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/database/snapshot.py:1:1
+  |
+1 | import sqlite3
+  | ^^^^^^^^^^^^^^
+2 |
+3 | def snapshot_query(conn: sqlite3.Connection, mission_id: str, task_id: str) -> list[tuple[str, bytes, str]]:
+  |
+help: Organize imports
+
+E501 Line too long (108 > 100)
+ --> project_builder/database/snapshot.py:3:101
+  |
+1 | import sqlite3
+2 |
+3 | def snapshot_query(conn: sqlite3.Connection, mission_id: str, task_id: str) -> list[tuple[str, bytes, str]]:
+  |                                                                                                     ^^^^^^^^
+4 |     """
+5 |     Returns a list of (file_path, content_bytes, created_at_iso) representing the snapshot
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/database/timeline.py:1:1
+  |
+1 | / import uuid
+2 | | import json
+3 | | import sqlite3
+4 | | from datetime import datetime
+  | |_____________________________^
+5 |
+6 |   # Fixed namespace from Packet §4.3
+  |
+help: Organize imports
+
+E501 Line too long (108 > 100)
+  --> project_builder/database/timeline.py:28:101
+   |
+26 |     _task_counters = {}
+27 |
+28 | def generate_timeline_event_id(mission_id: str, task_id: str, event_type: str, created_at: datetime) -> str:
+   |                                                                                                     ^^^^^^^^
+29 |     """
+30 |     Generates a deterministic UUIDv5 for a timeline event.
+   |
+
+E501 Line too long (134 > 100)
+  --> project_builder/database/timeline.py:41:101
+   |
+39 |     return str(uuid.uuid5(TIMELINE_NAMESPACE, name))
+40 |
+41 | def log_event(conn: sqlite3.Connection, mission_id: str, task_id: str, event_type: str, metadata: dict, created_at: datetime) -> None:
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+42 |     """
+43 |     Logs a timeline event to the database.
+   |
+
+E501 Line too long (130 > 100)
+  --> project_builder/database/timeline.py:53:101
+   |
+51 |     """, (event_id, mission_id, task_id, event_type, event_json, created_at))
+52 |
+53 | def log_task_repair_requested(conn: sqlite3.Connection, mission_id: str, task_id: str, reason: str, created_at: datetime) -> None:
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+54 |     log_event(conn, mission_id, task_id, 'task_repair_requested', {'reason': reason}, created_at)
+   |
+
+E501 Line too long (142 > 100)
+  --> project_builder/database/timeline.py:56:101
+   |
+54 | …equested', {'reason': reason}, created_at)
+55 | …
+56 | …on, mission_id: str, task_id: str, original_length: int, created_at: datetime) -> None:
+   |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+57 | …t_truncated', {'original_length': original_length, 'truncated_length': 2000}, created_at)
+   |
+
+E501 Line too long (144 > 100)
+  --> project_builder/database/timeline.py:57:101
+   |
+56 | …n, mission_id: str, task_id: str, original_length: int, created_at: datetime) -> None:
+57 | …_truncated', {'original_length': original_length, 'truncated_length': 2000}, created_at)
+   |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+58 | …
+59 | …e3.Connection, mission_id: str, task_id: str, count: int, created_at: datetime) -> None:
+   |
+
+E501 Line too long (144 > 100)
+  --> project_builder/database/timeline.py:59:101
+   |
+57 | …_truncated', {'original_length': original_length, 'truncated_length': 2000}, created_at)
+58 | …
+59 | …e3.Connection, mission_id: str, task_id: str, count: int, created_at: datetime) -> None:
+   |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+60 | …act_ids_limit_exceeded', {'count': count, 'limit': 3}, created_at)
+   |
+
+E501 Line too long (122 > 100)
+  --> project_builder/database/timeline.py:60:101
+   |
+59 | def log_required_artifact_ids_limit_exceeded(conn: sqlite3.Connection, mission_id: str, task_id: str, count: int, created_at: datetime…
+60 |     log_event(conn, mission_id, task_id, 'required_artifact_ids_limit_exceeded', {'count': count, 'limit': 3}, created_at)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^
+61 |
+62 | def log_task_reclaim_skipped_alive_or_unknown(conn: sqlite3.Connection, mission_id: str, task_id: str, locked_by: str, created_at: dat…
+   |
+
+E501 Line too long (149 > 100)
+  --> project_builder/database/timeline.py:62:101
+   |
+60 | …t_ids_limit_exceeded', {'count': count, 'limit': 3}, created_at)
+61 | …
+62 | …3.Connection, mission_id: str, task_id: str, locked_by: str, created_at: datetime) -> None:
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+63 | …pped_alive_or_unknown', {'locked_by': locked_by}, created_at)
+   |
+
+E501 Line too long (119 > 100)
+  --> project_builder/database/timeline.py:63:101
+   |
+62 | def log_task_reclaim_skipped_alive_or_unknown(conn: sqlite3.Connection, mission_id: str, task_id: str, locked_by: str, created_at: dat…
+63 |     log_event(conn, mission_id, task_id, 'task_reclaim_skipped_alive_or_unknown', {'locked_by': locked_by}, created_at)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/orchestrator/budget_txn.py:1:1
+  |
+1 | import sqlite3
+  | ^^^^^^^^^^^^^^
+2 |
+3 | def try_charge_budget(conn: sqlite3.Connection, mission_id: str, task_id: str | None, cost: float, is_repair_attempt: bool) -> bool:
+  |
+help: Organize imports
+
+E501 Line too long (132 > 100)
+ --> project_builder/orchestrator/budget_txn.py:3:101
+  |
+1 | import sqlite3
+2 |
+3 | def try_charge_budget(conn: sqlite3.Connection, mission_id: str, task_id: str | None, cost: float, is_repair_attempt: bool) -> bool:
+  |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |     """
+5 |     Atomically attempts to charge `cost` to the mission budget, and if
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/orchestrator/fsm.py:1:1
+  |
+1 | / import sqlite3
+2 | | import json
+3 | | import re
+4 | | from datetime import datetime
+5 | | from project_builder.database.timeline import log_event, log_repair_context_truncated
+6 | | from project_builder.context.truncation import truncate_repair_context
+  | |______________________________________________________________________^
+7 |
+8 |   ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]+$")
+  |
+help: Organize imports
+
+E402 Module level import not at top of file
+  --> project_builder/orchestrator/fsm.py:10:1
+   |
+ 8 | ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]+$")
+ 9 |
+10 | from project_builder.config.governance import enforce_governance
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+11 |
+12 | def validate_id(ident: str, name: str):
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> project_builder/orchestrator/fsm.py:10:1
+   |
+ 8 | ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]+$")
+ 9 |
+10 | from project_builder.config.governance import enforce_governance
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+11 |
+12 | def validate_id(ident: str, name: str):
+   |
+help: Organize imports
+
+E501 Line too long (124 > 100)
+  --> project_builder/orchestrator/fsm.py:24:101
+   |
+22 |         raise ValueError(f"Invalid state transition from {row[0]} (allowed: {allowed_states})")
+23 |
+24 | def start_task_execution(conn: sqlite3.Connection, mission_id: str, task_id: str, tokenizer_id: str, now: datetime) -> None:
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+25 |     """
+26 |     Atomically transitions task to 'executing', sets started_at, and records tokenizer.
+   |
+
+E501 Line too long (137 > 100)
+  --> project_builder/orchestrator/fsm.py:62:101
+   |
+60 | …
+61 | …
+62 | …ission_id: str, task_id: str, result_artifact_ids: list[str], now: datetime) -> None:
+   |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+63 | …
+64 | …
+   |
+
+E501 Line too long (107 > 100)
+  --> project_builder/orchestrator/fsm.py:86:101
+   |
+84 |         raise
+85 |
+86 | def transition_to_approved(conn: sqlite3.Connection, mission_id: str, task_id: str, now: datetime) -> None:
+   |                                                                                                     ^^^^^^^
+87 |     validate_id(mission_id, "mission_id")
+88 |     validate_id(task_id, "task_id")
+   |
+
+E501 Line too long (132 > 100)
+   --> project_builder/orchestrator/fsm.py:109:101
+    |
+107 |         raise
+108 |
+109 | def transition_to_repair_retry(conn: sqlite3.Connection, mission_id: str, task_id: str, repair_context: str, now: datetime) -> None:
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+110 |     validate_id(mission_id, "mission_id")
+111 |     validate_id(task_id, "task_id")
+    |
+
+E501 Line too long (103 > 100)
+   --> project_builder/orchestrator/fsm.py:138:101
+    |
+136 |         new_attempt = cur.fetchone()[0]
+137 |         
+138 |         log_event(conn, mission_id, task_id, 'task_repair_retry', {'repair_attempt': new_attempt}, now)
+    |                                                                                                     ^^^
+139 |         conn.commit()
+140 |     except Exception:
+    |
+
+E501 Line too long (127 > 100)
+   --> project_builder/orchestrator/fsm.py:144:101
+    |
+142 |         raise
+143 |
+144 | def transition_to_failed_terminal(conn: sqlite3.Connection, mission_id: str, task_id: str, reason: str, now: datetime) -> None:
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+145 |     validate_id(mission_id, "mission_id")
+146 |     validate_id(task_id, "task_id")
+    |
+
+E501 Line too long (109 > 100)
+   --> project_builder/orchestrator/fsm.py:182:101
+    |
+181 |         log_event(conn, mission_id, task_id, 'task_failed_terminal', {'reason': reason}, now)
+182 |         log_event(conn, mission_id, None, 'mission_failed', {'reason': reason, 'trigger_task': task_id}, now)
+    |                                                                                                     ^^^^^^^^^
+183 |         
+184 |         conn.commit()
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/orchestrator/missions.py:1:1
+  |
+1 | import sqlite3
+  | ^^^^^^^^^^^^^^
+2 | """
+3 | This module requires the COO core schema (messages table).
+  |
+help: Organize imports
+
+E402 Module level import not at top of file
+ --> project_builder/orchestrator/missions.py:6:1
+  |
+4 | Project Builder schema alone is insufficient.
+5 | """
+6 | from datetime import datetime
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | from project_builder.config.settings import BASE_PENDING_LIMIT, MAX_PENDING_PER_TASK
+8 | from project_builder.database.timeline import log_event
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> project_builder/orchestrator/missions.py:6:1
+   |
+ 4 |   Project Builder schema alone is insufficient.
+ 5 |   """
+ 6 | / from datetime import datetime
+ 7 | | from project_builder.config.settings import BASE_PENDING_LIMIT, MAX_PENDING_PER_TASK
+ 8 | | from project_builder.database.timeline import log_event
+   | |_______________________________________________________^
+ 9 |
+10 |   def compute_backpressure_thresholds(task_count: int) -> tuple[int, int]:
+   |
+help: Organize imports
+
+E402 Module level import not at top of file
+ --> project_builder/orchestrator/missions.py:7:1
+  |
+5 | """
+6 | from datetime import datetime
+7 | from project_builder.config.settings import BASE_PENDING_LIMIT, MAX_PENDING_PER_TASK
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 | from project_builder.database.timeline import log_event
+  |
+
+E402 Module level import not at top of file
+  --> project_builder/orchestrator/missions.py:8:1
+   |
+ 6 | from datetime import datetime
+ 7 | from project_builder.config.settings import BASE_PENDING_LIMIT, MAX_PENDING_PER_TASK
+ 8 | from project_builder.database.timeline import log_event
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 9 |
+10 | def compute_backpressure_thresholds(task_count: int) -> tuple[int, int]:
+   |
+
+E501 Line too long (108 > 100)
+  --> project_builder/orchestrator/missions.py:33:101
+   |
+31 |     # Pending tasks: status IN ('pending', 'repair_retry')
+32 |     cur.execute(
+33 |         "SELECT COUNT(*) FROM mission_tasks WHERE mission_id = ? AND status IN ('pending', 'repair_retry')",
+   |                                                                                                     ^^^^^^^^
+34 |         (mission_id,)
+35 |     )
+   |
+
+E501 Line too long (105 > 100)
+  --> project_builder/orchestrator/missions.py:96:101
+   |
+95 |             log_event(conn, mission_id, None, 'mission_resumed_backpressure', 
+96 |                       {'total_pending': total_pending, 'threshold': resume_threshold}, datetime.utcnow())
+   |                                                                                                     ^^^^^
+97 |             
+98 |             conn.commit()
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/orchestrator/reclaim.py:1:1
+  |
+1 | / import os
+2 | | import sqlite3
+3 | | from abc import ABC, abstractmethod
+4 | | from datetime import datetime, timedelta
+5 | | from project_builder.config.settings import TASK_LOCK_TIMEOUT_SECONDS
+6 | | from project_builder.database.timeline import log_event, log_task_reclaim_skipped_alive_or_unknown
+  | |__________________________________________________________________________________________________^
+7 |
+8 |   class WorkerRegistry(ABC):
+  |
+help: Organize imports
+
+E501 Line too long (106 > 100)
+  --> project_builder/orchestrator/reclaim.py:28:101
+   |
+26 |         return True 
+27 |
+28 | def attempt_reclaim_task(conn: sqlite3.Connection, task_id: str, worker_registry: WorkerRegistry) -> bool:
+   |                                                                                                     ^^^^^^
+29 |     """
+30 |     Attempts to reclaim a stale-locked task.
+   |
+
+E501 Line too long (102 > 100)
+  --> project_builder/orchestrator/reclaim.py:34:101
+   |
+32 |     """
+33 |     cur = conn.cursor()
+34 |     cur.execute("SELECT mission_id, locked_by, locked_at FROM mission_tasks WHERE id = ?", (task_id,))
+   |                                                                                                     ^^
+35 |     row = cur.fetchone()
+36 |     if not row:
+   |
+
+E501 Line too long (111 > 100)
+  --> project_builder/orchestrator/reclaim.py:68:101
+   |
+67 |     if is_alive:
+68 |         log_task_reclaim_skipped_alive_or_unknown(conn, mission_id, task_id, str(locked_by), datetime.utcnow())
+   |                                                                                                     ^^^^^^^^^^^
+69 |         return False
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/orchestrator/routing.py:1:1
+  |
+1 | / import sqlite3
+2 | | from datetime import datetime
+3 | | from project_builder.database.timeline import log_event
+  | |_______________________________________________________^
+4 |
+5 |   ALLOWED_ROUTES = {
+  |
+help: Organize imports
+
+E501 Line too long (110 > 100)
+  --> project_builder/orchestrator/routing.py:21:101
+   |
+19 |     return (from_agent, to_agent) in ALLOWED_ROUTES
+20 |
+21 | def validate_and_log_route(conn: sqlite3.Connection, mission_id: str, from_agent: str, to_agent: str) -> bool:
+   |                                                                                                     ^^^^^^^^^^
+22 |     """
+23 |     Checks if route is allowed. If not, logs a timeline event.
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/sandbox/manifest.py:1:1
+  |
+1 | / import json
+2 | | import re
+3 | | from pathlib import Path
+4 | | from project_builder.config import settings
+5 | | from project_builder.config.governance import validate_manifest_path_contract, ManifestValidationError
+  | |______________________________________________________________________________________________________^
+6 |
+7 |   class SandboxTerminalFailure(Exception):
+  |
+help: Organize imports
+
+E501 Line too long (102 > 100)
+ --> project_builder/sandbox/manifest.py:5:101
+  |
+3 | from pathlib import Path
+4 | from project_builder.config import settings
+5 | from project_builder.config.governance import validate_manifest_path_contract, ManifestValidationError
+  |                                                                                                     ^^
+6 |
+7 | class SandboxTerminalFailure(Exception):
+  |
+
+F811 Redefinition of unused `ManifestValidationError` from line 5
+  --> project_builder/sandbox/manifest.py:11:7
+   |
+ 9 |     pass
+10 |
+11 | class ManifestValidationError(Exception):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^ `ManifestValidationError` redefined here
+12 |     """Raised when manifest validation fails."""
+13 |     pass
+   |
+  ::: project_builder/sandbox/manifest.py:5:80
+   |
+ 3 | from pathlib import Path
+ 4 | from project_builder.config import settings
+ 5 | from project_builder.config.governance import validate_manifest_path_contract, ManifestValidationError
+   |                                                                                ----------------------- previous definition of `ManifestValidationError` here
+ 6 |
+ 7 | class SandboxTerminalFailure(Exception):
+   |
+help: Remove definition: `ManifestValidationError`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> project_builder/sandbox/manifest.py:42:9
+   |
+40 |             manifest_data = json.load(f)
+41 |     except json.JSONDecodeError as e:
+42 |         raise ManifestValidationError(f"manifest_syntax_error: {e}")
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+43 |     
+44 |     if not isinstance(manifest_data, list):
+   |
+
+E501 Line too long (103 > 100)
+  --> project_builder/sandbox/manifest.py:61:101
+   |
+59 |         # Checksum format validation
+60 |         if not CHECKSUM_FORMAT_REGEX.match(checksum):
+61 |             raise ManifestValidationError(f"manifest_syntax_error: Invalid checksum format for {path}")
+   |                                                                                                     ^^^
+62 |         
+63 |         validated_entries.append(entry)
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/sandbox/runner.py:1:1
+  |
+1 | / import subprocess
+2 | | import threading
+3 | | import time
+4 | | import os
+5 | | from pathlib import Path
+6 | | from project_builder.config import settings
+  | |___________________________________________^
+7 |
+8 |   # Try importing watchdog for inotify support (Linux only usually, but good for structure)
+  |
+help: Organize imports
+
+F401 [*] `threading` imported but unused
+ --> project_builder/sandbox/runner.py:2:8
+  |
+1 | import subprocess
+2 | import threading
+  |        ^^^^^^^^^
+3 | import time
+4 | import os
+  |
+help: Remove unused import: `threading`
+
+F401 [*] `time` imported but unused
+ --> project_builder/sandbox/runner.py:3:8
+  |
+1 | import subprocess
+2 | import threading
+3 | import time
+  |        ^^^^
+4 | import os
+5 | from pathlib import Path
+  |
+help: Remove unused import: `time`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> project_builder/sandbox/runner.py:10:5
+   |
+ 8 |   # Try importing watchdog for inotify support (Linux only usually, but good for structure)
+ 9 |   try:
+10 | /     from watchdog.observers import Observer
+11 | |     from watchdog.events import FileSystemEventHandler
+   | |______________________________________________________^
+12 |       WATCHDOG_AVAILABLE = True
+13 |   except ImportError:
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> project_builder/sandbox/runner.py:16:1
+   |
+14 |       WATCHDOG_AVAILABLE = False
+15 |
+16 | / from . import SecurityViolation
+17 | | from project_builder.config.governance import enforce_governance
+   | |________________________________________________________________^
+18 |
+19 |   class InotifyGuard(FileSystemEventHandler if WATCHDOG_AVAILABLE else object):
+   |
+help: Organize imports
+
+E501 Line too long (103 > 100)
+  --> project_builder/sandbox/runner.py:37:101
+   |
+35 |             subprocess.run(["docker", "kill", self.container_name], check=False)
+36 |
+37 | def run_sandbox(workspace_root: Path, output_root: Path, entrypoint: str, timeout_seconds: int) -> int:
+   |                                                                                                     ^^^
+38 |     """
+39 |     Execute entrypoint script inside Docker container with security constraints.
+   |
+
+E501 Line too long (102 > 100)
+  --> project_builder/sandbox/runner.py:90:101
+   |
+88 |             "-w", "/workspace",                                # Working Directory
+89 |             image_ref,
+90 |             "bash", "-c", entrypoint # Entrypoint is passed as arg, not interpolated into shell string
+   |                                                                                                     ^^
+91 |         ]
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/sandbox/security.py:1:1
+  |
+1 | / from pathlib import Path
+2 | | from . import SecurityViolation
+  | |_______________________________^
+3 |
+4 |   def scan_for_symlinks(root: Path) -> None:
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> project_builder/sandbox/workspace.py:1:1
+  |
+1 | / import os
+2 | | import unicodedata
+3 | | import logging
+4 | | from pathlib import Path
+5 | | from project_builder.config import settings
+6 | | from . import SecurityViolation
+  | |_______________________________^
+7 |
+8 |   logger = logging.getLogger(__name__)
+  |
+help: Organize imports
+
+E501 Line too long (105 > 100)
+  --> project_builder/sandbox/workspace.py:38:101
+   |
+36 |         for char in normalized_path:
+37 |             if unicodedata.category(char).startswith('M'):
+38 |                 raise SecurityViolation(f"invalid_artifact_path: {file_path} (contains combining marks)")
+   |                                                                                                     ^^^^^
+39 |         
+40 |         # Security checks (FIX 3: Explicit backslash rejection)
+   |
+
+E501 Line too long (135 > 100)
+  --> project_builder/sandbox/workspace.py:88:101
+   |
+86 |         # We will log warning on Windows but fail on POSIX.
+87 |         if os.name == 'nt':
+88 |             logger.warning("Hardlink defense (st_dev check) is a no-op on Windows. Deployment is assumed dev-only/reduced guarantees.")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+89 |         else:
+90 |              raise SecurityViolation("hardlink_defense_failure: workspace and output must be on distinct filesystems")
+   |
+
+E501 Line too long (118 > 100)
+  --> project_builder/sandbox/workspace.py:90:101
+   |
+88 |             logger.warning("Hardlink defense (st_dev check) is a no-op on Windows. Deployment is assumed dev-only/reduced guarantees.")
+89 |         else:
+90 |              raise SecurityViolation("hardlink_defense_failure: workspace and output must be on distinct filesystems")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^
+   |
+
+Found 66 errors.
+[*] 23 fixable with the `--fix` option.
+
+EXIT_CODE=1

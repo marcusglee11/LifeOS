@@ -29,6 +29,12 @@ SUMMARY_REL = Path("docs/11_admin/QUALITY_AUDIT_BASELINE_v1.0.md")
 TECH_DEBT_REL = Path("docs/11_admin/TECH_DEBT_INVENTORY.md")
 DOCS_INDEX_REL = Path("docs/INDEX.md")
 PYTHON_EXE = shlex.quote(sys.executable)
+GOVERNED_PYTHON_TARGETS = (
+    "runtime",
+    "doc_steward",
+    "recursive_kernel",
+    "project_builder",
+)
 
 
 @dataclass(frozen=True)
@@ -104,10 +110,13 @@ def capture_command(repo_root: Path, command: str, output_path: Path, *, timeout
         combined = (proc.stdout or "") + (proc.stderr or "")
         combined = append_exit_footer(combined, exit_code=proc.returncode)
         _write_text(output_path, combined)
+    effective_exit_code = extract_exit_code(combined)
+    if effective_exit_code is None:
+        effective_exit_code = proc.returncode
     return {
         "command": command,
         "output_path": str(output_path.relative_to(repo_root)),
-        "exit_code": proc.returncode,
+        "exit_code": effective_exit_code,
         "output": combined,
     }
 
@@ -143,45 +152,60 @@ def capture_json_command(repo_root: Path, command: str, output_path: Path, *, ti
     return payload
 
 
+def _python_audit_command(tool: str, target: str, report_path: Path) -> str:
+    command_map = {
+        "ruff_check": f"ruff check {target}",
+        "ruff_format": f"ruff format --check {target}",
+        "mypy": f"mypy {target}",
+    }
+    base_command = command_map[tool]
+    return (
+        f"{base_command} > {report_path} 2>&1; "
+        f"code=$?; printf '\\nEXIT_CODE=%s\\n' \"$code\" >> {report_path}; exit 0"
+    )
+
+
 def audit_command_specs(report_dir: Path) -> list[CommandSpec]:
-    return [
-        CommandSpec(
-            artifact_name="ruff_check_python.txt",
-            lane="python_style",
-            tool="ruff_check",
-            failure_class="ruff_error",
-            subsystem="runtime+doc_steward+recursive_kernel+project_builder",
-            command=(
-                "ruff check runtime doc_steward recursive_kernel project_builder"
-                f" > {report_dir / 'ruff_check_python.txt'} 2>&1; "
-                f"code=$?; printf '\\nEXIT_CODE=%s\\n' \"$code\" >> {report_dir / 'ruff_check_python.txt'}; exit 0"
-            ),
-        ),
-        CommandSpec(
-            artifact_name="ruff_format_python.txt",
-            lane="python_format",
-            tool="ruff_format",
-            failure_class="ruff_error",
-            subsystem="runtime+doc_steward+recursive_kernel+project_builder",
-            command=(
-                "ruff format --check runtime doc_steward recursive_kernel project_builder"
-                f" > {report_dir / 'ruff_format_python.txt'} 2>&1; "
-                f"code=$?; printf '\\nEXIT_CODE=%s\\n' \"$code\" >> {report_dir / 'ruff_format_python.txt'}; exit 0"
-            ),
-        ),
-        CommandSpec(
-            artifact_name="mypy_python.txt",
-            lane="python_types",
-            tool="mypy",
-            failure_class="mypy_error",
-            subsystem="runtime+doc_steward+recursive_kernel+project_builder",
-            command=(
-                "mypy runtime doc_steward recursive_kernel project_builder"
-                f" > {report_dir / 'mypy_python.txt'} 2>&1; "
-                f"code=$?; printf '\\nEXIT_CODE=%s\\n' \"$code\" >> {report_dir / 'mypy_python.txt'}; exit 0"
-            ),
-        ),
-        CommandSpec(
+    specs: list[CommandSpec] = []
+    for target in GOVERNED_PYTHON_TARGETS:
+        specs.extend(
+            [
+                CommandSpec(
+                    artifact_name=f"ruff_check_{target}.txt",
+                    lane="python_style",
+                    tool="ruff_check",
+                    failure_class="ruff_error",
+                    subsystem=target,
+                    command=_python_audit_command(
+                        "ruff_check", target, report_dir / f"ruff_check_{target}.txt"
+                    ),
+                ),
+                CommandSpec(
+                    artifact_name=f"ruff_format_{target}.txt",
+                    lane="python_format",
+                    tool="ruff_format",
+                    failure_class="ruff_error",
+                    subsystem=target,
+                    command=_python_audit_command(
+                        "ruff_format", target, report_dir / f"ruff_format_{target}.txt"
+                    ),
+                ),
+                CommandSpec(
+                    artifact_name=f"mypy_{target}.txt",
+                    lane="python_types",
+                    tool="mypy",
+                    failure_class="mypy_error",
+                    subsystem=target,
+                    command=_python_audit_command(
+                        "mypy", target, report_dir / f"mypy_{target}.txt"
+                    ),
+                ),
+            ]
+        )
+
+    specs.extend(
+        [
+            CommandSpec(
             artifact_name="ruff_check_opencode_governance.txt",
             lane="python_style",
             tool="ruff_check",
@@ -452,7 +476,9 @@ def audit_command_specs(report_dir: Path) -> list[CommandSpec]:
             ),
             notes="context_only",
         ),
-    ]
+        ]
+    )
+    return specs
 
 
 def extract_exit_code(output: str) -> int | None:
@@ -495,12 +521,6 @@ def classify_disposition(tool: str, subsystem: str, exit_code: int, notes: str) 
     return "advisory_keep"
 
 
-def expand_subsystems(raw_subsystem: str) -> list[str]:
-    if raw_subsystem == "runtime+doc_steward+recursive_kernel+project_builder":
-        return ["runtime", "doc_steward", "recursive_kernel", "project_builder"]
-    return [raw_subsystem]
-
-
 def build_finding_matrix(
     repo_root: Path,
     command_specs: Iterable[CommandSpec],
@@ -511,22 +531,21 @@ def build_finding_matrix(
         result = command_outputs[spec.artifact_name]
         exit_code = int(result["exit_code"])
         output = str(result["output"])
-        for subsystem in expand_subsystems(spec.subsystem):
-            rows.append(
-                {
-                    "lane": spec.lane,
-                    "tool": spec.tool,
-                    "failure_class": spec.failure_class,
-                    "path_or_subsystem": subsystem,
-                    "finding_count": finding_count(output, exit_code),
-                    "representative_examples": representative_examples(output),
-                    "exit_code": exit_code,
-                    "disposition": classify_disposition(spec.tool, subsystem, exit_code, spec.notes),
-                    "recommended_owner": owner_for_subsystem(subsystem),
-                    "notes": spec.notes,
-                    "artifact": str((REPORT_DIR_REL / spec.artifact_name)),
-                }
-            )
+        rows.append(
+            {
+                "lane": spec.lane,
+                "tool": spec.tool,
+                "failure_class": spec.failure_class,
+                "path_or_subsystem": spec.subsystem,
+                "finding_count": finding_count(output, exit_code),
+                "representative_examples": [] if exit_code == 0 else representative_examples(output),
+                "exit_code": exit_code,
+                "disposition": classify_disposition(spec.tool, spec.subsystem, exit_code, spec.notes),
+                "recommended_owner": owner_for_subsystem(spec.subsystem),
+                "notes": spec.notes,
+                "artifact": str((REPORT_DIR_REL / spec.artifact_name)),
+            }
+        )
     matrix_path = repo_root / REPORT_DIR_REL / "finding_matrix.json"
     _write_text(matrix_path, json.dumps(rows, indent=2, sort_keys=True) + "\n")
     return rows
@@ -619,7 +638,7 @@ def root_markdown_gap(repo_root: Path) -> list[str]:
 
 def write_environment(repo_root: Path) -> None:
     commands = [
-        "python --version",
+        f"{PYTHON_EXE} --version",
         "ruff --version",
         "mypy --version",
         "biome --version",
@@ -640,39 +659,53 @@ def write_environment(repo_root: Path) -> None:
     _write_text(repo_root / REPORT_DIR_REL / "environment.txt", "\n".join(lines).rstrip() + "\n")
 
 
-def update_docs_index(repo_root: Path) -> None:
-    path = repo_root / DOCS_INDEX_REL
-    text = path.read_text(encoding="utf-8")
+def updated_docs_index_text(text: str) -> str:
     lines = text.splitlines()
     updated: list[str] = []
     inserted = False
+    timestamp_updated = False
     row = "| [QUALITY_AUDIT_BASELINE_v1.0.md](./11_admin/QUALITY_AUDIT_BASELINE_v1.0.md) | **Audit baseline** — Repo-wide quality findings, evidence, and promotion recommendations |"
+    row_present = "QUALITY_AUDIT_BASELINE_v1.0.md" in text
     for line in lines:
         if line.startswith("Last Updated: "):
-            updated.append(f"Last Updated: {utc_date()}")
+            if not row_present:
+                updated.append(f"Last Updated: {utc_date()}")
+                timestamp_updated = True
+            else:
+                updated.append(line)
             continue
         updated.append(line)
-        if "TECH_DEBT_INVENTORY.md" in line and row not in text:
+        if "TECH_DEBT_INVENTORY.md" in line and not row_present:
             updated.append(row)
             inserted = True
-    if not inserted and row not in text:
+    if not inserted and not row_present:
         updated.append("")
         updated.append(row)
-    _write_text(path, "\n".join(updated) + "\n")
+    if inserted and not timestamp_updated:
+        for idx, line in enumerate(updated):
+            if line.startswith("Last Updated: "):
+                updated[idx] = f"Last Updated: {utc_date()}"
+                break
+    return "\n".join(updated) + "\n"
 
 
-def update_tech_debt_inventory(repo_root: Path) -> None:
-    path = repo_root / TECH_DEBT_REL
+def update_docs_index(repo_root: Path) -> None:
+    path = repo_root / DOCS_INDEX_REL
     text = path.read_text(encoding="utf-8")
+    _write_text(path, updated_docs_index_text(text))
+
+
+def updated_tech_debt_inventory_text(text: str) -> str:
     section_header = "## Audit References"
+    packet_label = "[QUALITY_AUDIT_BASELINE_v1.0.md](./QUALITY_AUDIT_BASELINE_v1.0.md)"
+    if packet_label in text:
+        return text if text.endswith("\n") else text + "\n"
     entry = (
-        f"- {utc_date()}: [QUALITY_AUDIT_BASELINE_v1.0.md](./QUALITY_AUDIT_BASELINE_v1.0.md) "
-        "— repo-wide quality baseline audit. Cross-reference Item 4 (Logging Inconsistency) "
-        "and Item 5 (Validation Pattern Fragmentation) when triaging follow-up cleanup."
+        f"- {packet_label} — repo-wide quality baseline audit. "
+        "Cross-reference Item 4 (Logging Inconsistency) and Item 5 "
+        "(Validation Pattern Fragmentation) when triaging follow-up cleanup."
     )
     if section_header in text:
-        if entry in text:
-            return
         text = text.replace(section_header, f"{section_header}\n\n{entry}", 1)
     else:
         marker = "---\n\n"
@@ -681,7 +714,13 @@ def update_tech_debt_inventory(repo_root: Path) -> None:
             text = text.replace(marker, insertion, 1)
         else:
             text = f"{text.rstrip()}\n\n{section_header}\n\n{entry}\n"
-    _write_text(path, text if text.endswith("\n") else text + "\n")
+    return text if text.endswith("\n") else text + "\n"
+
+
+def update_tech_debt_inventory(repo_root: Path) -> None:
+    path = repo_root / TECH_DEBT_REL
+    text = path.read_text(encoding="utf-8")
+    _write_text(path, updated_tech_debt_inventory_text(text))
 
 
 def render_summary(

@@ -1,15 +1,21 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from scripts.workflow.run_quality_audit_baseline import (
+    CommandSpec,
     append_exit_footer,
+    build_finding_matrix,
+    capture_command,
     classify_disposition,
-    expand_subsystems,
     extract_exit_code,
     finding_count,
     known_pytest_failure,
     nonempty_lines,
     representative_examples,
     runtime_baseline_status,
+    updated_docs_index_text,
+    updated_tech_debt_inventory_text,
 )
 
 
@@ -47,15 +53,6 @@ def test_classify_disposition_marks_opencode_governance_for_rescope() -> None:
     assert classify_disposition("ruff_check", "opencode_governance", 1, "packaged_but_not_in_manifest") == "exclude_or_rescope"
 
 
-def test_expand_subsystems_splits_governed_python_roots() -> None:
-    assert expand_subsystems("runtime+doc_steward+recursive_kernel+project_builder") == [
-        "runtime",
-        "doc_steward",
-        "recursive_kernel",
-        "project_builder",
-    ]
-
-
 def test_classify_disposition_marks_success_as_blocking_ready() -> None:
     assert classify_disposition("ruff_check", "runtime", 0, "") == "blocking_ready"
 
@@ -81,6 +78,18 @@ def test_append_exit_footer_adds_timeout_and_exit_code() -> None:
     assert output.endswith("TIMEOUT_SECONDS=300\nEXIT_CODE=124\n")
 
 
+def test_capture_command_uses_appended_tool_exit_code(tmp_path: Path) -> None:
+    output_path = tmp_path / "tool.txt"
+    result = capture_command(
+        tmp_path,
+        f"printf 'problem\\n' > {output_path}; printf '\\nEXIT_CODE=7\\n' >> {output_path}; exit 0",
+        output_path,
+    )
+
+    assert result["exit_code"] == 7
+    assert extract_exit_code(str(result["output"])) == 7
+
+
 def test_runtime_baseline_status_reports_timeout() -> None:
     output = "partial output\nTIMEOUT_SECONDS=300\nEXIT_CODE=124\n"
     assert runtime_baseline_status(output) == "timed out after 300 second(s) before first failure"
@@ -88,3 +97,92 @@ def test_runtime_baseline_status_reports_timeout() -> None:
 
 def test_runtime_baseline_status_reports_pass() -> None:
     assert runtime_baseline_status("ok\nEXIT_CODE=0\n") == "passed within audit budget"
+
+
+def test_build_finding_matrix_keeps_subsystem_specific_output(tmp_path: Path) -> None:
+    specs = [
+        CommandSpec(
+            artifact_name="ruff_check_runtime.txt",
+            lane="python_style",
+            tool="ruff_check",
+            failure_class="ruff_error",
+            subsystem="runtime",
+            command="ruff check runtime",
+        ),
+        CommandSpec(
+            artifact_name="ruff_check_doc_steward.txt",
+            lane="python_style",
+            tool="ruff_check",
+            failure_class="ruff_error",
+            subsystem="doc_steward",
+            command="ruff check doc_steward",
+        ),
+    ]
+    outputs = {
+        "ruff_check_runtime.txt": {
+            "exit_code": 1,
+            "output": "runtime/file.py:1: error\nEXIT_CODE=1\n",
+        },
+        "ruff_check_doc_steward.txt": {
+            "exit_code": 1,
+            "output": "doc_steward/file.py:1: error\nEXIT_CODE=1\n",
+        },
+    }
+
+    rows = build_finding_matrix(tmp_path, specs, outputs)
+
+    assert rows[0]["path_or_subsystem"] == "runtime"
+    assert rows[0]["representative_examples"] == ["runtime/file.py:1: error"]
+    assert rows[1]["path_or_subsystem"] == "doc_steward"
+    assert rows[1]["representative_examples"] == ["doc_steward/file.py:1: error"]
+
+
+def test_build_finding_matrix_omits_examples_for_passing_rows(tmp_path: Path) -> None:
+    specs = [
+        CommandSpec(
+            artifact_name="ruff_check_runtime.txt",
+            lane="python_style",
+            tool="ruff_check",
+            failure_class="ruff_error",
+            subsystem="runtime",
+            command="ruff check runtime",
+        )
+    ]
+    outputs = {
+        "ruff_check_runtime.txt": {
+            "exit_code": 0,
+            "output": "informational output\nEXIT_CODE=0\n",
+        }
+    }
+
+    rows = build_finding_matrix(tmp_path, specs, outputs)
+
+    assert rows[0]["finding_count"] == 0
+    assert rows[0]["representative_examples"] == []
+
+
+def test_updated_docs_index_text_preserves_timestamp_when_row_exists() -> None:
+    original = (
+        "# Index\n\n"
+        "Last Updated: 2026-03-28\n\n"
+        "| Document | Purpose |\n"
+        "|----------|---------|\n"
+        "| [TECH_DEBT_INVENTORY.md](./11_admin/TECH_DEBT_INVENTORY.md) | Debt |\n"
+        "| [QUALITY_AUDIT_BASELINE_v1.0.md](./11_admin/QUALITY_AUDIT_BASELINE_v1.0.md) | Audit |\n"
+    )
+
+    updated = updated_docs_index_text(original)
+
+    assert updated == original
+
+
+def test_updated_tech_debt_inventory_text_is_idempotent_when_reference_exists() -> None:
+    original = (
+        "# Tech Debt Inventory\n\n"
+        "## Audit References\n\n"
+        "- [QUALITY_AUDIT_BASELINE_v1.0.md](./QUALITY_AUDIT_BASELINE_v1.0.md) — repo-wide quality baseline audit.\n"
+    )
+
+    updated = updated_tech_debt_inventory_text(original)
+
+    assert updated == original

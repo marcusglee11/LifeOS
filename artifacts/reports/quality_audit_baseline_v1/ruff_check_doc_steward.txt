@@ -1,0 +1,614 @@
+F841 [*] Local variable `e` is assigned to but never used
+  --> doc_steward/admin_archive_link_ban_validator.py:57:29
+   |
+55 |         try:
+56 |             content = md_file.read_text(encoding="utf-8")
+57 |         except Exception as e:
+   |                             ^
+58 |             # Skip files we can't read (don't fail on encoding issues)
+59 |             continue
+   |
+help: Remove assignment to unused variable `e`
+
+F841 Local variable `link_text` is assigned to but never used
+  --> doc_steward/admin_archive_link_ban_validator.py:63:13
+   |
+61 |         # Find all markdown links
+62 |         for match in LINK_PATTERN.finditer(content):
+63 |             link_text = match.group(1)
+   |             ^^^^^^^^^
+64 |             link_url = match.group(2)
+   |
+help: Remove assignment to unused variable `link_text`
+
+E501 Line too long (107 > 100)
+  --> doc_steward/admin_archive_link_ban_validator.py:90:101
+   |
+88 |                 if is_admin_readme:
+89 |                     # Check if link points to an archive README
+90 |                     if link_target.name == "README.md" and link_target.parent.parent == admin_archive_path:
+   |                                                                                                     ^^^^^^^
+91 |                         # Link to archive subdir README, allowed
+92 |                         continue
+   |
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/archive_structure_validator.py:43:17
+   |
+42 |     if not archive_dir.is_dir():
+43 |         return [f"docs/99_archive/ exists but is not a directory"]
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |
+45 |     # Check root files (only README.md allowed)
+   |
+help: Remove extraneous `f` prefix
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> doc_steward/artefact_index_validator.py:12:1
+   |
+10 |   Fail-closed for indexed directories.
+11 |   """
+12 | / import json
+13 | | from pathlib import Path
+14 | | from typing import Dict, List, Set, Any
+   | |_______________________________________^
+   |
+help: Organize imports
+
+E501 Line too long (101 > 100)
+   --> doc_steward/artefact_index_validator.py:165:101
+    |
+165 | def _extract_artefact_paths_from_list(artefacts: List[Dict[str, Any]], repo_path: Path) -> Set[Path]:
+    |                                                                                                     ^
+166 |     """
+167 |     Extract file paths from artefacts list (array format).
+    |
+
+E501 Line too long (104 > 100)
+   --> doc_steward/artefact_index_validator.py:208:101
+    |
+208 | def _validate_supersession_chains(artefacts: Any, indexed_paths: Set[Path], context: Path) -> list[str]:
+    |                                                                                                     ^^^^
+209 |     """
+210 |     Validate supersession chain consistency.
+    |
+
+E501 Line too long (105 > 100)
+   --> doc_steward/artefact_index_validator.py:255:101
+    |
+253 |                     if superseded_path and superseded_path not in path_to_artefact:
+254 |                         errors.append(
+255 |                             f"{context}: {path_str} references non-indexed supersedes: {superseded_path}"
+    |                                                                                                     ^^^^^
+256 |                         )
+    |
+
+E501 Line too long (112 > 100)
+   --> doc_steward/artefact_index_validator.py:261:101
+    |
+261 | def _validate_no_orphans(dir_path: Path, indexed_paths: Set[Path], repo_path: Path, context: Path) -> list[str]:
+    |                                                                                                     ^^^^^^^^^^^^
+262 |     """
+263 |     Validate that all non-archive files in directory are indexed.
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> doc_steward/cli.py:15:1
+   |
+13 |   """
+14 |
+15 | / import argparse
+16 | | import sys
+17 | | from pathlib import Path
+18 | |
+19 | | from .dap_validator import check_dap_compliance
+20 | | from .index_checker import check_index
+21 | | from .link_checker import check_links
+22 | | from .admin_structure_validator import check_admin_structure
+23 | | from .admin_archive_link_ban_validator import check_admin_archive_link_ban
+24 | | from .freshness_validator import check_freshness, get_freshness_mode
+25 | | from .protocols_structure_validator import check_protocols_structure
+26 | | from .runtime_structure_validator import check_runtime_structure
+27 | | from .archive_structure_validator import check_archive_structure
+28 | | from .global_archive_link_ban_validator import check_global_archive_link_ban
+29 | | from .version_duplicate_detector import check_version_duplicates_with_lineage
+30 | | from .artefact_index_validator import check_artefact_index
+   | |__________________________________________________________^
+31 |
+32 |   def cmd_opencode_validate(args: argparse.Namespace) -> int:
+   |
+help: Organize imports
+
+E501 Line too long (109 > 100)
+   --> doc_steward/cli.py:273:101
+    |
+272 |     # admin-structure-check
+273 |     p_admin_struct = subparsers.add_parser("admin-structure-check", help="Validate docs/11_admin/ structure")
+    |                                                                                                     ^^^^^^^^^
+274 |     p_admin_struct.add_argument("repo_root", help="Repository root directory")
+275 |     p_admin_struct.set_defaults(func=cmd_admin_structure_check)
+    |
+
+E501 Line too long (116 > 100)
+   --> doc_steward/cli.py:278:101
+    |
+277 |     # admin-archive-link-ban-check
+278 |     p_admin_archive = subparsers.add_parser("admin-archive-link-ban-check", help="Check for links to archived docs")
+    |                                                                                                     ^^^^^^^^^^^^^^^^
+279 |     p_admin_archive.add_argument("repo_root", help="Repository root directory")
+280 |     p_admin_archive.set_defaults(func=cmd_admin_archive_link_ban_check)
+    |
+
+E501 Line too long (114 > 100)
+   --> doc_steward/cli.py:288:101
+    |
+287 |     # protocols-structure-check
+288 |     p_protocols = subparsers.add_parser("protocols-structure-check", help="Validate docs/02_protocols/ structure")
+    |                                                                                                     ^^^^^^^^^^^^^^
+289 |     p_protocols.add_argument("repo_root", help="Repository root directory")
+290 |     p_protocols.set_defaults(func=cmd_protocols_structure_check)
+    |
+
+E501 Line too long (108 > 100)
+   --> doc_steward/cli.py:293:101
+    |
+292 |     # runtime-structure-check
+293 |     p_runtime = subparsers.add_parser("runtime-structure-check", help="Validate docs/03_runtime/ structure")
+    |                                                                                                     ^^^^^^^^
+294 |     p_runtime.add_argument("repo_root", help="Repository root directory")
+295 |     p_runtime.set_defaults(func=cmd_runtime_structure_check)
+    |
+
+E501 Line too long (108 > 100)
+   --> doc_steward/cli.py:298:101
+    |
+297 |     # archive-structure-check
+298 |     p_archive = subparsers.add_parser("archive-structure-check", help="Validate docs/99_archive/ structure")
+    |                                                                                                     ^^^^^^^^
+299 |     p_archive.add_argument("repo_root", help="Repository root directory")
+300 |     p_archive.set_defaults(func=cmd_archive_structure_check)
+    |
+
+E501 Line too long (119 > 100)
+   --> doc_steward/cli.py:303:101
+    |
+302 |     # docs-archive-link-ban-check
+303 |     p_link_ban = subparsers.add_parser("docs-archive-link-ban-check", help="Check for links to archived docs (global)")
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^
+304 |     p_link_ban.add_argument("repo_root", help="Repository root directory")
+305 |     p_link_ban.set_defaults(func=cmd_docs_archive_link_ban_check)
+    |
+
+E501 Line too long (105 > 100)
+   --> doc_steward/cli.py:308:101
+    |
+307 |     # artefact-index-check
+308 |     p_artefact = subparsers.add_parser("artefact-index-check", help="Validate ARTEFACT_INDEX.json files")
+    |                                                                                                     ^^^^^
+309 |     p_artefact.add_argument("repo_root", help="Repository root directory")
+310 |     p_artefact.add_argument("--directory", help="Optional specific directory to check", default=None)
+    |
+
+E501 Line too long (101 > 100)
+   --> doc_steward/cli.py:310:101
+    |
+308 |     p_artefact = subparsers.add_parser("artefact-index-check", help="Validate ARTEFACT_INDEX.json files")
+309 |     p_artefact.add_argument("repo_root", help="Repository root directory")
+310 |     p_artefact.add_argument("--directory", help="Optional specific directory to check", default=None)
+    |                                                                                                     ^
+311 |     p_artefact.set_defaults(func=cmd_artefact_index_check)
+    |
+
+E501 Line too long (109 > 100)
+   --> doc_steward/cli.py:314:101
+    |
+313 |     # version-duplicate-scan
+314 |     p_version = subparsers.add_parser("version-duplicate-scan", help="Report version duplicates (warn-only)")
+    |                                                                                                     ^^^^^^^^^
+315 |     p_version.add_argument("repo_root", help="Repository root directory")
+316 |     p_version.set_defaults(func=cmd_version_duplicate_scan)
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> doc_steward/daily_summary.py:8:1
+   |
+ 6 |   """
+ 7 |
+ 8 | / import os
+ 9 | | import datetime
+10 | | from pathlib import Path
+   | |________________________^
+   |
+help: Organize imports
+
+F401 [*] `os` imported but unused
+  --> doc_steward/dap_validator.py:8:8
+   |
+ 6 | - Deterministic and auditable (explicit allowlist, no heuristics)
+ 7 | """
+ 8 | import os
+   |        ^^
+ 9 | import re
+10 | from pathlib import Path
+   |
+help: Remove unused import: `os`
+
+F841 Local variable `link_text` is assigned to but never used
+  --> doc_steward/global_archive_link_ban_validator.py:60:13
+   |
+58 |         # Find all markdown links
+59 |         for match in LINK_PATTERN.finditer(content):
+60 |             link_text = match.group(1)
+   |             ^^^^^^^^^
+61 |             link_url = match.group(2)
+   |
+help: Remove assignment to unused variable `link_text`
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/protocols_structure_validator.py:42:17
+   |
+41 |     if not protocols_dir.exists():
+42 |         return [f"docs/02_protocols/ does not exist"]
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+43 |
+44 |     if not protocols_dir.is_dir():
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/protocols_structure_validator.py:45:17
+   |
+44 |     if not protocols_dir.is_dir():
+45 |         return [f"docs/02_protocols/ is not a directory"]
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+46 |
+47 |     # Check for required files
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/runtime_structure_validator.py:42:17
+   |
+41 |     if not runtime_dir.exists():
+42 |         return [f"docs/03_runtime/ does not exist"]
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+43 |
+44 |     if not runtime_dir.is_dir():
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/runtime_structure_validator.py:45:17
+   |
+44 |     if not runtime_dir.is_dir():
+45 |         return [f"docs/03_runtime/ is not a directory"]
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+46 |
+47 |     # Check for required files
+   |
+help: Remove extraneous `f` prefix
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> doc_steward/scripts/archive_scripts.py:1:1
+  |
+1 | / import shutil
+2 | | import os
+3 | | from pathlib import Path
+  | |________________________^
+4 |
+5 |   ROOT = Path(r"c:\Users\cabra\Projects\LifeOS")
+  |
+help: Organize imports
+
+F401 [*] `os` imported but unused
+ --> doc_steward/scripts/archive_scripts.py:2:8
+  |
+1 | import shutil
+2 | import os
+  |        ^^
+3 | from pathlib import Path
+  |
+help: Remove unused import: `os`
+
+E501 Line too long (109 > 100)
+  --> doc_steward/scripts/archive_scripts.py:36:101
+   |
+34 |     readme = ARCHIVE / "README.md"
+35 |     with open(readme, "w", encoding="utf-8") as f:
+36 |         f.write("# Archive\n\nLegacy Phase 1 scaffolding scripts. Referenced for historical context only.\n")
+   |                                                                                                     ^^^^^^^^^
+37 |
+38 | if __name__ == "__main__":
+   |
+
+E501 Line too long (109 > 100)
+  --> doc_steward/scripts/auto_index.py:29:101
+   |
+27 |     index_lines = ["# LifeOS Documentation Index (Auto-Generated)\n"]
+28 |     index_lines.append("> [!NOTE]")
+29 |     index_lines.append("> This file is automatically maintained by `auto_index.py`. Do not edit manually.\n")
+   |                                                                                                     ^^^^^^^^^
+30 |     
+31 |     # Walk the directory
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> doc_steward/scripts/conftest_runtime.py:1:1
+  |
+1 | / import pytest
+2 | | import os
+  | |_________^
+3 |
+4 |   @pytest.fixture(scope="session", autouse=True)
+  |
+help: Organize imports
+
+F401 [*] `os` imported but unused
+ --> doc_steward/scripts/port_project_builder.py:1:8
+  |
+1 | import os
+  |        ^^
+2 | import shutil
+3 | import sys
+  |
+help: Remove unused import: `os`
+
+F401 [*] `sys` imported but unused
+ --> doc_steward/scripts/port_project_builder.py:3:8
+  |
+1 | import os
+2 | import shutil
+3 | import sys
+  |        ^^^
+4 | from pathlib import Path
+  |
+help: Remove unused import: `sys`
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/scripts/port_project_builder.py:11:11
+   |
+10 | def port_project_builder():
+11 |     print(f"--- Porting Project Builder ---")
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+12 |     print(f"Source: {SOURCE_PB}")
+13 |     print(f"Target: {TARGET_PB}")
+   |
+help: Remove extraneous `f` prefix
+
+F401 [*] `os` imported but unused
+ --> doc_steward/scripts/port_runtime.py:1:8
+  |
+1 | import os
+  |        ^^
+2 | import shutil
+3 | import sys
+  |
+help: Remove unused import: `os`
+
+F401 [*] `sys` imported but unused
+ --> doc_steward/scripts/port_runtime.py:3:8
+  |
+1 | import os
+2 | import shutil
+3 | import sys
+  |        ^^^
+4 | from pathlib import Path
+  |
+help: Remove unused import: `sys`
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/scripts/port_runtime.py:33:11
+   |
+31 |         TARGET_BASE.mkdir(parents=True, exist_ok=True)
+32 |
+33 |     print(f"--- Porting Runtime Code ---")
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+34 |     for fname in FILES_TO_COPY:
+35 |         src = SOURCE_BASE / fname
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/scripts/port_runtime.py:52:11
+   |
+50 |         TARGET_TESTS.mkdir(parents=True, exist_ok=True)
+51 |
+52 |     print(f"--- Porting Tests ---")
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^
+53 |     # Basic heuristic: Copy files starting with test_
+54 |     for item in SOURCE_TESTS.glob("test_*.py"):
+   |
+help: Remove extraneous `f` prefix
+
+F401 [*] `os` imported but unused
+ --> doc_steward/scripts/port_runtime_v2.py:1:8
+  |
+1 | import os
+  |        ^^
+2 | import shutil
+3 | import sys
+  |
+help: Remove unused import: `os`
+
+F401 [*] `sys` imported but unused
+ --> doc_steward/scripts/port_runtime_v2.py:3:8
+  |
+1 | import os
+2 | import shutil
+3 | import sys
+  |        ^^^
+4 | from pathlib import Path
+  |
+help: Remove unused import: `sys`
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/scripts/port_runtime_v2.py:35:11
+   |
+33 |         TARGET_BASE.mkdir(parents=True, exist_ok=True)
+34 |
+35 |     print(f"--- Porting Runtime Code ---")
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+36 |     for src_name, dst_name in FILE_MAPPING.items():
+37 |         src = SOURCE_RUNTIME / src_name
+   |
+help: Remove extraneous `f` prefix
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/scripts/port_runtime_v2.py:54:11
+   |
+52 |         TARGET_TESTS.mkdir(parents=True, exist_ok=True)
+53 |
+54 |     print(f"--- Porting Tests ---")
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^
+55 |     for item in SOURCE_TESTS.glob("test_*.py"):
+56 |         dst = TARGET_TESTS / item.name
+   |
+help: Remove extraneous `f` prefix
+
+F601 Dictionary key literal `"from runtime"` repeated
+  --> doc_steward/scripts/refactor_imports.py:10:5
+   |
+ 8 |     "from runtime": "from runtime",
+ 9 |     "import runtime": "import runtime",
+10 |     "from runtime": "from runtime",
+   |     ^^^^^^^^^^^^^^
+11 |     "import runtime": "import runtime",
+12 |     # If project_builder was also namespaced differently, fix it here
+   |
+help: Remove repeated key literal `"from runtime"`
+
+F601 Dictionary key literal `"import runtime"` repeated
+  --> doc_steward/scripts/refactor_imports.py:11:5
+   |
+ 9 |     "import runtime": "import runtime",
+10 |     "from runtime": "from runtime",
+11 |     "import runtime": "import runtime",
+   |     ^^^^^^^^^^^^^^^^
+12 |     # If project_builder was also namespaced differently, fix it here
+13 |     # "from coo.project_builder": "from project_builder"
+   |
+help: Remove repeated key literal `"import runtime"`
+
+B007 Loop control variable `dirs` not used within loop body
+  --> doc_steward/scripts/refactor_imports.py:20:15
+   |
+18 |     count = 0
+19 |     
+20 |     for root, dirs, files in os.walk(ROOT):
+   |               ^^^^
+21 |         if "venv" in root or ".git" in root:
+22 |             continue
+   |
+help: Rename unused `dirs` to `_dirs`
+
+F401 [*] `os` imported but unused
+ --> doc_steward/scripts/scaffold_lifeos.py:1:8
+  |
+1 | import os
+  |        ^^
+2 | import pathlib
+  |
+help: Remove unused import: `os`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> doc_steward/scripts/verify_imports.py:1:1
+  |
+1 | / import sys
+2 | | import os
+3 | | from pathlib import Path
+  | |________________________^
+4 |
+5 |   ROOT = Path(r"c:\Users\cabra\Projects\LifeOS")
+  |
+help: Organize imports
+
+F401 [*] `os` imported but unused
+ --> doc_steward/scripts/verify_imports.py:2:8
+  |
+1 | import sys
+2 | import os
+  |        ^^
+3 | from pathlib import Path
+  |
+help: Remove unused import: `os`
+
+F401 `runtime.engine` imported but unused; consider using `importlib.util.find_spec` to test for availability
+  --> doc_steward/scripts/verify_imports.py:26:29
+   |
+25 |     try:
+26 |         from runtime import engine
+   |                             ^^^^^^
+27 |         print("SUCCESS: from runtime import engine")
+28 |     except ImportError as e:
+   |
+help: Remove unused import: `runtime.engine`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> doc_steward/scripts/verify_migration.py:1:1
+  |
+1 | / import subprocess
+2 | | import sys
+3 | | import os
+4 | | from pathlib import Path
+  | |________________________^
+5 |
+6 |   # LifeOS Root
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> doc_steward/scripts/verify_migration_selective.py:1:1
+  |
+1 | / import subprocess
+2 | | import sys
+3 | | import os
+4 | | from pathlib import Path
+  | |________________________^
+5 |
+6 |   ROOT = Path(r"c:\Users\cabra\Projects\LifeOS")
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> doc_steward/version_duplicate_detector.py:9:1
+   |
+ 7 |   If ARTEFACT_INDEX exists for a directory, the report also notes whether lineage is recorded.
+ 8 |   """
+ 9 | / import re
+10 | | from pathlib import Path
+11 | | from typing import Dict, List
+12 | | import json
+   | |___________^
+13 |
+14 |   # Pattern to match versioned files: *_vX.Y.md or *_vX.Y.Z.md
+   |
+help: Organize imports
+
+F841 Local variable `version` is assigned to but never used
+  --> doc_steward/version_duplicate_detector.py:46:13
+   |
+44 |         if match:
+45 |             base_name = match.group(1)
+46 |             version = match.group(2)
+   |             ^^^^^^^
+47 |
+48 |             if base_name not in versioned_files:
+   |
+help: Remove assignment to unused variable `version`
+
+F541 [*] f-string without any placeholders
+  --> doc_steward/version_duplicate_detector.py:97:35
+   |
+95 |                 lineage_status = _check_lineage_in_index(index_path, file_full_path.name)
+96 |                 if not lineage_status:
+97 |                     report.append(f"      [WARNING] Missing lineage in ARTEFACT_INDEX")
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+98 |
+99 |         report.append("")
+   |
+help: Remove extraneous `f` prefix
+
+Found 54 errors.
+[*] 31 fixable with the `--fix` option (6 hidden fixes can be enabled with the `--unsafe-fixes` option).
+
+EXIT_CODE=1

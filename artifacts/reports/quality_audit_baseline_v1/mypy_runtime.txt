@@ -6,13 +6,10 @@ runtime/governance/protected_paths.py:230: error: Incompatible return value type
 runtime/orchestration/loop/budgets.py:39: error: Incompatible default for argument "config" (default has type "None", argument has type "BudgetConfig")  [assignment]
 runtime/orchestration/loop/budgets.py:39: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
 runtime/orchestration/loop/budgets.py:39: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
-doc_steward/artefact_index_validator.py:17: error: Incompatible default for argument "directory" (default has type "None", argument has type "str")  [assignment]
-doc_steward/artefact_index_validator.py:17: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
-doc_steward/artefact_index_validator.py:17: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
 runtime/tools/openclaw_sandbox_policy_assert.py:51: error: No overload variant of "list" matches argument type "object"  [call-overload]
 runtime/tools/openclaw_sandbox_policy_assert.py:51: note: Possible overload variants:
-runtime/tools/openclaw_sandbox_policy_assert.py:51: note:     def [_T] __init__(self) -> list[_T]
-runtime/tools/openclaw_sandbox_policy_assert.py:51: note:     def [_T] __init__(self, Iterable[_T], /) -> list[_T]
+runtime/tools/openclaw_sandbox_policy_assert.py:51: note:     def [_T] list(self) -> list[_T]
+runtime/tools/openclaw_sandbox_policy_assert.py:51: note:     def [_T] list(self, Iterable[_T], /) -> list[_T]
 runtime/tools/openclaw_operator_status.py:809: error: Item "None" of "Any | dict[Any, Any] | None" has no attribute "get"  [union-attr]
 runtime/tools/openclaw_operator_status.py:810: error: Item "None" of "Any | dict[Any, Any] | None" has no attribute "get"  [union-attr]
 runtime/tools/openclaw_operator_status.py:811: error: Item "None" of "Any | dict[Any, Any] | None" has no attribute "get"  [union-attr]
@@ -42,12 +39,9 @@ runtime/reactive/interfaces.py:86: error: Name "ReactiveBoundaryConfig" is not d
 runtime/reactive/boundaries.py:35: error: Name "ReactiveTaskRequest" is not defined  [name-defined]
 runtime/tools/schemas.py:238: error: Incompatible types in assignment (expression has type "dict[str, Any]", target has type "list[dict[str, Any]]")  [assignment]
 runtime/tools/schemas.py:335: error: Incompatible types in assignment (expression has type "dict[str, Any]", target has type "str")  [assignment]
-project_builder/sandbox/manifest.py:11: error: Name "ManifestValidationError" already defined (possibly by an import)  [no-redef]
-project_builder/sandbox/runner.py:19: error: Invalid base class  [misc]
 runtime/gateway/deterministic_call.py:139: error: Item "None" of "Path | None" has no attribute "exists"  [union-attr]
 runtime/gateway/deterministic_call.py:140: error: Argument 1 to "open" has incompatible type "Path | None"; expected "int | str | bytes | PathLike[str] | PathLike[bytes]"  [arg-type]
 runtime/gateway/deterministic_call.py:144: error: Argument 1 to "atomic_write_json" has incompatible type "Path | None"; expected "Path | str"  [arg-type]
-doc_steward/cli.py:220: error: Argument 2 to "check_artefact_index" has incompatible type "Any | None"; expected "str"  [arg-type]
 runtime/orchestration/council/lenses.py:113: error: Argument 1 has incompatible type "dict[Any, Any] | None"; expected "dict[Any, Any]"  [arg-type]
 runtime/verifiers/doc_verifier.py:57: error: Incompatible default for argument "docs_dir" (default has type "None", argument has type "Path")  [assignment]
 runtime/verifiers/doc_verifier.py:57: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
@@ -85,10 +79,6 @@ runtime/validation/evidence.py:98: error: Incompatible return value type (got "o
 runtime/governance/override_protocol.py:181: error: Item "None" of "Path | None" has no attribute "exists"  [union-attr]
 runtime/governance/override_protocol.py:182: error: Argument 1 to "open" has incompatible type "Path | None"; expected "int | str | bytes | PathLike[str] | PathLike[bytes]"  [arg-type]
 runtime/governance/override_protocol.py:190: error: Argument 1 to "atomic_write_json" has incompatible type "Path | None"; expected "Path | str"  [arg-type]
-project_builder/orchestrator/routing.py:29: error: Argument 3 to "log_event" has incompatible type "None"; expected "str"  [arg-type]
-project_builder/orchestrator/missions.py:72: error: Argument 3 to "log_event" has incompatible type "None"; expected "str"  [arg-type]
-project_builder/orchestrator/missions.py:95: error: Argument 3 to "log_event" has incompatible type "None"; expected "str"  [arg-type]
-project_builder/orchestrator/fsm.py:182: error: Argument 3 to "log_event" has incompatible type "None"; expected "str"  [arg-type]
 runtime/orchestration/missions/build_with_validation.py:52: error: Name "Dict" is not defined  [name-defined]
 runtime/orchestration/missions/build_with_validation.py:52: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Dict")
 runtime/orchestration/missions/build_with_validation.py:52: error: Name "Any" is not defined  [name-defined]
@@ -113,8 +103,6 @@ runtime/orchestration/missions/build_with_validation.py:221: note: Possible over
 runtime/orchestration/missions/build_with_validation.py:221: note:     def __add__(self, list[str], /) -> list[str]
 runtime/orchestration/missions/build_with_validation.py:221: note:     def [_S] __add__(self, list[_S], /) -> list[_S | str]
 runtime/validation/gate_runner.py:105: error: Incompatible types in assignment (expression has type "dict[str, str]", target has type "str")  [assignment]
-recursive_kernel/builder.py:79: error: Incompatible types in assignment (expression has type "TextIOWrapper[_WrappedBuffer]", variable has type "str")  [assignment]
-recursive_kernel/builder.py:80: error: "str" has no attribute "write"  [attr-defined]
 runtime/tools/workflow_pack.py:31: error: Incompatible types in assignment (expression has type "None", variable has type "Callable[[Path], list[BacklogItem]]")  [assignment]
 runtime/tools/workflow_pack.py:32: error: Incompatible types in assignment (expression has type "None", variable has type "Callable[[Path, BacklogItem, str | None], None]")  [assignment]
 runtime/tools/workflow_pack.py:33: error: Cannot assign to a type  [misc]
@@ -191,8 +179,6 @@ runtime/mission/interfaces.py:71: note: PEP 484 prohibits implicit Optional. Acc
 runtime/mission/interfaces.py:71: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
 runtime/mission/interfaces.py:90: error: Incompatible types in assignment (expression has type "tuple[tuple[str, Any], ...]", variable has type "tuple[()]")  [assignment]
 runtime/orchestration/loop/policy.py:149: error: Argument 2 to "_handle_escalate" of "ConfigDrivenLoopPolicy" has incompatible type "str | None"; expected "str"  [arg-type]
-recursive_kernel/tests/test_backlog_parser.py:216: error: Item "None" of "BacklogItem | None" has no attribute "title"  [union-attr]
-recursive_kernel/tests/test_backlog_parser.py:230: error: Item "None" of "BacklogItem | None" has no attribute "title"  [union-attr]
 runtime/agents/health.py:77: error: Value expression in dictionary comprehension has incompatible type "float | None"; expected type "float"  [misc]
 runtime/agents/health.py:86: error: Argument "key" to "min" has incompatible type overloaded function; expected "Callable[[str], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"  [arg-type]
 runtime/agents/api.py:342: error: Name "AgentCallLogger" is not defined  [name-defined]
@@ -276,6 +262,6 @@ runtime/cli.py:727: error: Item "None" of "datetime | None" has no attribute "is
 runtime/cli.py:833: error: Missing return statement  [return]
 runtime/cli.py:941: error: Missing return statement  [return]
 runtime/orchestration/expectations.py:287: error: Need type annotation for "details" (hint: "details: dict[<type>, <type>] = ...")  [var-annotated]
-Found 200 errors in 54 files (checked 290 source files)
+Found 188 errors in 45 files (checked 227 source files)
 
 EXIT_CODE=1

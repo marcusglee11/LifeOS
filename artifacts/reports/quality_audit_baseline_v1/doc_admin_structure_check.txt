@@ -1,5 +1,3 @@
-[FAILED] Admin structure check failed (1 errors):
+[PASSED] Admin structure check passed.
 
-  * Unexpected file at root: docs/11_admin/QUALITY_AUDIT_BASELINE_v1.0.md (not in allowlist)
-
-EXIT_CODE=1
+EXIT_CODE=0

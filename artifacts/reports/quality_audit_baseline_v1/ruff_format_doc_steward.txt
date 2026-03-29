@@ -1,0 +1,31 @@
+Would reformat: doc_steward/admin_archive_link_ban_validator.py
+Would reformat: doc_steward/admin_structure_validator.py
+Would reformat: doc_steward/archive_structure_validator.py
+Would reformat: doc_steward/artefact_index_validator.py
+Would reformat: doc_steward/cli.py
+Would reformat: doc_steward/daily_summary.py
+Would reformat: doc_steward/dap_validator.py
+Would reformat: doc_steward/freshness_validator.py
+Would reformat: doc_steward/global_archive_link_ban_validator.py
+Would reformat: doc_steward/index_checker.py
+Would reformat: doc_steward/link_checker.py
+Would reformat: doc_steward/protocols_structure_validator.py
+Would reformat: doc_steward/runtime_structure_validator.py
+Would reformat: doc_steward/scripts/archive_scripts.py
+Would reformat: doc_steward/scripts/auto_index.py
+Would reformat: doc_steward/scripts/conftest_runtime.py
+Would reformat: doc_steward/scripts/find_runtime_files.py
+Would reformat: doc_steward/scripts/list_root.py
+Would reformat: doc_steward/scripts/list_source_tree.py
+Would reformat: doc_steward/scripts/port_project_builder.py
+Would reformat: doc_steward/scripts/port_runtime.py
+Would reformat: doc_steward/scripts/port_runtime_v2.py
+Would reformat: doc_steward/scripts/refactor_imports.py
+Would reformat: doc_steward/scripts/scaffold_lifeos.py
+Would reformat: doc_steward/scripts/verify_imports.py
+Would reformat: doc_steward/scripts/verify_migration.py
+Would reformat: doc_steward/scripts/verify_migration_selective.py
+Would reformat: doc_steward/version_duplicate_detector.py
+28 files would be reformatted, 2 files already formatted
+
+EXIT_CODE=1

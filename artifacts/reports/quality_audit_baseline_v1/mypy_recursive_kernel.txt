@@ -1,0 +1,150 @@
+runtime/governance/protected_paths.py:225: error: Incompatible return value type (got "tuple[bool, str | None]", expected "tuple[bool, str]")  [return-value]
+runtime/governance/protected_paths.py:230: error: Incompatible return value type (got "tuple[bool, str | None]", expected "tuple[bool, str]")  [return-value]
+runtime/orchestration/loop/budgets.py:39: error: Incompatible default for argument "config" (default has type "None", argument has type "BudgetConfig")  [assignment]
+runtime/orchestration/loop/budgets.py:39: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+runtime/orchestration/loop/budgets.py:39: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+runtime/tools/schemas.py:238: error: Incompatible types in assignment (expression has type "dict[str, Any]", target has type "list[dict[str, Any]]")  [assignment]
+runtime/tools/schemas.py:335: error: Incompatible types in assignment (expression has type "dict[str, Any]", target has type "str")  [assignment]
+runtime/util/canonical.py:170: error: Name "Path" is not defined  [name-defined]
+runtime/orchestration/missions/base.py:51: error: Incompatible default for argument "evidence" (default has type "None", argument has type "dict[str, Any]")  [assignment]
+runtime/orchestration/missions/base.py:51: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+runtime/orchestration/missions/base.py:51: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+runtime/orchestration/missions/base.py:177: error: Incompatible default for argument "outputs" (default has type "None", argument has type "dict[str, Any]")  [assignment]
+runtime/orchestration/missions/base.py:177: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+runtime/orchestration/missions/base.py:177: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+runtime/orchestration/missions/base.py:178: error: Incompatible default for argument "executed_steps" (default has type "None", argument has type "list[str]")  [assignment]
+runtime/orchestration/missions/base.py:178: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+runtime/orchestration/missions/base.py:178: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+runtime/orchestration/missions/base.py:179: error: Incompatible default for argument "error" (default has type "None", argument has type "str")  [assignment]
+runtime/orchestration/missions/base.py:179: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+runtime/orchestration/missions/base.py:179: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+runtime/orchestration/missions/base.py:180: error: Incompatible default for argument "escalation_reason" (default has type "None", argument has type "str")  [assignment]
+runtime/orchestration/missions/base.py:180: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+runtime/orchestration/missions/base.py:180: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+runtime/orchestration/missions/base.py:181: error: Incompatible default for argument "evidence" (default has type "None", argument has type "dict[str, Any]")  [assignment]
+runtime/orchestration/missions/base.py:181: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+runtime/orchestration/missions/base.py:181: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+runtime/orchestration/missions/build_with_validation.py:52: error: Name "Dict" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:52: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Dict")
+runtime/orchestration/missions/build_with_validation.py:52: error: Name "Any" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:52: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Any")
+runtime/orchestration/missions/build_with_validation.py:59: error: Name "Dict" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:59: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Dict")
+runtime/orchestration/missions/build_with_validation.py:59: error: Name "Any" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:59: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Any")
+runtime/orchestration/missions/build_with_validation.py:84: error: Name "Dict" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:84: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Dict")
+runtime/orchestration/missions/build_with_validation.py:84: error: Name "Any" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:84: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Any")
+runtime/orchestration/missions/build_with_validation.py:132: error: Unsupported operand types for / ("Path" and "Sequence[str]")  [operator]
+runtime/orchestration/missions/build_with_validation.py:135: error: Name "Dict" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:135: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Dict")
+runtime/orchestration/missions/build_with_validation.py:137: error: Name "Dict" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:137: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Dict")
+runtime/orchestration/missions/build_with_validation.py:137: error: Name "Any" is not defined  [name-defined]
+runtime/orchestration/missions/build_with_validation.py:137: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Any")
+runtime/orchestration/missions/build_with_validation.py:221: error: No overload variant of "__add__" of "list" matches argument type "Sequence[str]"  [operator]
+runtime/orchestration/missions/build_with_validation.py:221: note: Possible overload variants:
+runtime/orchestration/missions/build_with_validation.py:221: note:     def __add__(self, list[str], /) -> list[str]
+runtime/orchestration/missions/build_with_validation.py:221: note:     def [_S] __add__(self, list[_S], /) -> list[_S | str]
+runtime/agents/opencode_client.py:60: error: Library stubs not installed for "requests"  [import-untyped]
+runtime/agents/opencode_client.py:60: note: Hint: "python3 -m pip install types-requests"
+runtime/agents/opencode_client.py:60: note: (or run "mypy --install-types" to install all missing stub packages)
+runtime/agents/opencode_client.py:60: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+runtime/agents/opencode_client.py:79: error: All conditional function variants must have identical signatures  [misc]
+runtime/agents/opencode_client.py:79: note: Original:
+runtime/agents/opencode_client.py:79: note:     def get_api_key_fallback_chain() -> list[str]
+runtime/agents/opencode_client.py:79: note: Redefinition:
+runtime/agents/opencode_client.py:79: note:     def get_api_key_fallback_chain() -> list[Any]
+runtime/agents/opencode_client.py:89: error: All conditional function variants must have identical signatures  [misc]
+runtime/agents/opencode_client.py:89: note: Original:
+runtime/agents/opencode_client.py:89: note:     def load_model_config(config_path: str | None = ...) -> ModelConfig
+runtime/agents/opencode_client.py:89: note: Redefinition:
+runtime/agents/opencode_client.py:89: note:     def load_model_config() -> Any
+runtime/agents/opencode_client.py:579: error: Argument 1 to "_execute_attempt" of "OpenCodeClient" has incompatible type "str | None"; expected "str"  [arg-type]
+runtime/agents/opencode_client.py:765: error: Dict entry 1 has incompatible type "str": "dict[str, float]"; expected "str": "Sequence[Collection[str]]"  [dict-item]
+runtime/agents/opencode_client.py:820: error: Dict entry 2 has incompatible type "str": "int"; expected "str": "Sequence[Collection[str]]"  [dict-item]
+runtime/agents/opencode_client.py:821: error: Dict entry 3 has incompatible type "str": "float"; expected "str": "Sequence[Collection[str]]"  [dict-item]
+recursive_kernel/builder.py:79: error: Incompatible types in assignment (expression has type "TextIOWrapper[_WrappedBuffer]", variable has type "str")  [assignment]
+recursive_kernel/builder.py:80: error: "str" has no attribute "write"  [attr-defined]
+runtime/orchestration/loop/ledger.py:334: error: Item "None" of "dict[str, Any] | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/ledger.py:335: error: Item "None" of "dict[str, Any] | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/ledger.py:336: error: Item "None" of "dict[str, Any] | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/ledger.py:337: error: Item "None" of "dict[str, Any] | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/ledger.py:339: error: Item "None" of "dict[str, Any] | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/ledger.py:359: error: Argument 2 to "_compute_record_hash" has incompatible type "str | None"; expected "str"  [arg-type]
+runtime/orchestration/missions/steward.py:176: error: Argument 1 to "join" of "str" has incompatible type "list[Collection[str]]"; expected "Iterable[str]"  [arg-type]
+runtime/orchestration/missions/steward.py:677: error: Incompatible types in assignment (expression has type "str | None", variable has type "str")  [assignment]
+runtime/orchestration/loop/configurable_policy.py:435: error: Need type annotation for "decision"  [var-annotated]
+runtime/orchestration/loop/configurable_policy.py:482: error: Incompatible types in assignment (expression has type "dict[str, object]", target has type "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None")  [assignment]
+runtime/orchestration/loop/configurable_policy.py:483: error: Unsupported target for indexed assignment ("dict[str, bool] | dict[str, int] | list[Any] | str | bool | None")  [index]
+runtime/orchestration/loop/configurable_policy.py:483: error: No overload variant of "__setitem__" of "list" matches argument types "str", "bool"  [call-overload]
+runtime/orchestration/loop/configurable_policy.py:483: note: Possible overload variants:
+runtime/orchestration/loop/configurable_policy.py:483: note:     def __setitem__(self, SupportsIndex, Any, /) -> None
+runtime/orchestration/loop/configurable_policy.py:483: note:     def __setitem__(self, slice[Any, Any, Any], Iterable[Any], /) -> None
+runtime/orchestration/loop/configurable_policy.py:490: error: Item "list[Any]" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:490: error: Item "str" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:490: error: Item "bool" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:490: error: Item "None" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:490: error: Need type annotation for "touched_files"  [var-annotated]
+runtime/orchestration/loop/configurable_policy.py:494: error: Item "int" of "list[Any] | int | Any" has no attribute "__iter__" (not iterable)  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:529: error: Item "list[Any]" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:529: error: Item "str" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:529: error: Item "bool" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:529: error: Item "None" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:530: error: No overload variant of "__getitem__" of "list" matches argument type "str"  [call-overload]
+runtime/orchestration/loop/configurable_policy.py:530: note: Possible overload variants:
+runtime/orchestration/loop/configurable_policy.py:530: note:     def __getitem__(self, SupportsIndex, /) -> Any
+runtime/orchestration/loop/configurable_policy.py:530: note:     def __getitem__(self, slice[Any, Any, Any], /) -> list[Any]
+runtime/orchestration/loop/configurable_policy.py:530: error: Value of type "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" is not indexable  [index]
+runtime/orchestration/loop/configurable_policy.py:530: error: Invalid index type "str" for "str"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+runtime/orchestration/loop/configurable_policy.py:533: error: Item "list[Any]" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:533: error: Item "str" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:533: error: Item "bool" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:533: error: Item "None" of "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" has no attribute "get"  [union-attr]
+runtime/orchestration/loop/configurable_policy.py:534: error: No overload variant of "__getitem__" of "list" matches argument type "str"  [call-overload]
+runtime/orchestration/loop/configurable_policy.py:534: note: Possible overload variants:
+runtime/orchestration/loop/configurable_policy.py:534: note:     def __getitem__(self, SupportsIndex, /) -> Any
+runtime/orchestration/loop/configurable_policy.py:534: note:     def __getitem__(self, slice[Any, Any, Any], /) -> list[Any]
+runtime/orchestration/loop/configurable_policy.py:534: error: Value of type "dict[str, bool] | dict[str, int] | list[Any] | str | bool | None" is not indexable  [index]
+runtime/orchestration/loop/configurable_policy.py:534: error: Invalid index type "str" for "str"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+runtime/orchestration/loop/policy.py:149: error: Argument 2 to "_handle_escalate" of "ConfigDrivenLoopPolicy" has incompatible type "str | None"; expected "str"  [arg-type]
+recursive_kernel/tests/test_backlog_parser.py:216: error: Item "None" of "BacklogItem | None" has no attribute "title"  [union-attr]
+recursive_kernel/tests/test_backlog_parser.py:230: error: Item "None" of "BacklogItem | None" has no attribute "title"  [union-attr]
+runtime/agents/health.py:77: error: Value expression in dictionary comprehension has incompatible type "float | None"; expected type "float"  [misc]
+runtime/agents/health.py:86: error: Argument "key" to "min" has incompatible type overloaded function; expected "Callable[[str], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"  [arg-type]
+runtime/agents/api.py:342: error: Name "AgentCallLogger" is not defined  [name-defined]
+runtime/agents/api.py:474: error: Incompatible types in assignment (expression has type "LLMResponse", variable has type "AgentResponse")  [assignment]
+runtime/agents/api.py:569: error: Name "CLIDispatchResult" is not defined  [name-defined]
+runtime/agents/api.py:611: error: Name "AgentCallLogger" is not defined  [name-defined]
+runtime/orchestration/council/fsm.py:298: error: "Collection[Any]" has no attribute "append"  [attr-defined]
+runtime/orchestration/council/fsm.py:1232: error: Argument 2 has incompatible type "CouncilRunPlanCore"; expected "CouncilRunPlan"  [arg-type]
+runtime/orchestration/council/fsm.py:1233: error: Argument 2 has incompatible type "CouncilRunPlanCore"; expected "CouncilRunPlan"  [arg-type]
+runtime/orchestration/missions/build.py:244: error: Need type annotation for "apply_errors" (hint: "apply_errors: list[<type>] = ...")  [var-annotated]
+runtime/orchestration/missions/build.py:335: error: Argument "evidence" to "_make_result" of "BaseMission" has incompatible type "Collection[str]"; expected "dict[str, Any]"  [arg-type]
+runtime/orchestration/missions/review.py:368: error: Argument "escalation_reason" to "_make_result" of "BaseMission" has incompatible type "str | None"; expected "str"  [arg-type]
+runtime/orchestration/missions/autonomous_build_cycle.py:209: error: No overload variant of "__sub__" of "datetime" matches argument type "None"  [operator]
+runtime/orchestration/missions/autonomous_build_cycle.py:209: note: Possible overload variants:
+runtime/orchestration/missions/autonomous_build_cycle.py:209: note:     def __sub__(self, datetime, /) -> timedelta
+runtime/orchestration/missions/autonomous_build_cycle.py:209: note:     def __sub__(self, timedelta, /) -> datetime
+runtime/orchestration/missions/autonomous_build_cycle.py:209: note: Right operand is of type "datetime | None"
+runtime/orchestration/missions/autonomous_build_cycle.py:246: error: Missing return statement  [return]
+runtime/orchestration/missions/autonomous_build_cycle.py:330: error: Value of type "dict[str, Any] | None" is not indexable  [index]
+runtime/orchestration/missions/autonomous_build_cycle.py:335: error: Value of type "dict[str, Any] | None" is not indexable  [index]
+runtime/orchestration/missions/autonomous_build_cycle.py:452: error: Argument "error" to "_make_result" of "BaseMission" has incompatible type "str | None"; expected "str"  [arg-type]
+runtime/orchestration/missions/autonomous_build_cycle.py:625: error: Incompatible default for argument "diff_evidence" (default has type "None", argument has type "str")  [assignment]
+runtime/orchestration/missions/autonomous_build_cycle.py:625: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+runtime/orchestration/missions/autonomous_build_cycle.py:625: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+runtime/orchestration/engine.py:38: error: Cannot assign to a type  [misc]
+runtime/orchestration/engine.py:38: error: Incompatible types in assignment (expression has type "None", variable has type "type[OpenCodeClient]")  [assignment]
+runtime/orchestration/engine.py:39: error: Cannot assign to a type  [misc]
+runtime/orchestration/engine.py:39: error: Incompatible types in assignment (expression has type "None", variable has type "type[LLMCall]")  [assignment]
+runtime/orchestration/engine.py:40: error: Cannot assign to a type  [misc]
+runtime/orchestration/engine.py:40: error: Incompatible types in assignment (expression has type "type[Exception]", variable has type "type[OpenCodeError]")  [assignment]
+runtime/orchestration/engine.py:236: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+runtime/orchestration/engine.py:471: error: Argument "baseline_commit" to "MissionContext" has incompatible type "Any | None"; expected "str"  [arg-type]
+runtime/orchestration/engine.py:483: error: Name "registry" is not defined  [name-defined]
+runtime/orchestration/engine.py:577: error: Argument "baseline_commit" to "MissionContext" has incompatible type "None"; expected "str"  [arg-type]
+Found 94 errors in 20 files (checked 10 source files)
+
+EXIT_CODE=1

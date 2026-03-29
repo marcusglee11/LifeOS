@@ -1,4 +1,4 @@
-$ python --version
+$ /tmp/quality_audit_venv/bin/python --version
 Python 3.14.2
 EXIT_CODE=0
 
@@ -15,7 +15,7 @@ Version: 2.4.9
 EXIT_CODE=0
 
 $ markdownlint --version
-0.48.0
+0.47.0
 EXIT_CODE=0
 
 $ yamllint --version

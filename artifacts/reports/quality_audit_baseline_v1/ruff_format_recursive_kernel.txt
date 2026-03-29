@@ -1,0 +1,11 @@
+Would reformat: recursive_kernel/autogate.py
+Would reformat: recursive_kernel/backlog_parser.py
+Would reformat: recursive_kernel/builder.py
+Would reformat: recursive_kernel/planner.py
+Would reformat: recursive_kernel/runner.py
+Would reformat: recursive_kernel/tests/test_backlog_parser.py
+Would reformat: recursive_kernel/tests/test_runner_integration.py
+Would reformat: recursive_kernel/verifier.py
+8 files would be reformatted, 2 files already formatted
+
+EXIT_CODE=1

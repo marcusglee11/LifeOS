@@ -1,0 +1,9 @@
+project_builder/sandbox/manifest.py:11: error: Name "ManifestValidationError" already defined (possibly by an import)  [no-redef]
+project_builder/sandbox/runner.py:19: error: Invalid base class  [misc]
+project_builder/orchestrator/routing.py:29: error: Argument 3 to "log_event" has incompatible type "None"; expected "str"  [arg-type]
+project_builder/orchestrator/missions.py:72: error: Argument 3 to "log_event" has incompatible type "None"; expected "str"  [arg-type]
+project_builder/orchestrator/missions.py:95: error: Argument 3 to "log_event" has incompatible type "None"; expected "str"  [arg-type]
+project_builder/orchestrator/fsm.py:182: error: Argument 3 to "log_event" has incompatible type "None"; expected "str"  [arg-type]
+Found 6 errors in 5 files (checked 23 source files)
+
+EXIT_CODE=1
