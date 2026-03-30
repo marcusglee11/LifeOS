@@ -934,7 +934,6 @@ PY
         echo "DOCTOR_FIX_FAILED=${fix_command:-$action_id}"
       fi
     done <"$fix_actions_file"
-    ensure_coo_shim >/dev/null
     rm -f "$fix_actions_file"
     if [ "$json_output" -eq 0 ]; then
       echo "DOCTOR_REPROBE_BEGIN"
