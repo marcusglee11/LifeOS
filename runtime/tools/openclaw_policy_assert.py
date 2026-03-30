@@ -48,8 +48,8 @@ def _assert_ladder_prefix(entry: Dict[str, Any], label: str) -> None:
     if not isinstance(got_fallbacks, list):
         got_fallbacks = []
 
-    if got_primary != PRIMARY_MODEL:
-        raise AssertionError(f"{label} primary mismatch: {got_primary} != {PRIMARY_MODEL}")
+    if not got_primary:
+        raise AssertionError(f"{label} primary model must be set")
     if len(got_fallbacks) < len(SUBSCRIPTION_FALLBACKS):
         raise AssertionError(
             f"{label} fallbacks must begin with {SUBSCRIPTION_FALLBACKS}; got too few entries: {got_fallbacks}"
@@ -182,9 +182,10 @@ def assert_policy(cfg: Dict[str, Any], policy_phase: str = "burnin") -> Dict[str
     if command_authorized(cfg, "__non_owner__", "/think high"):
         raise AssertionError("non-owner must be rejected for /think")
 
+    defaults_model = _model_cfg({"model": (defaults.get("model") or {})})
     memory = _assert_memory_policy(cfg, policy_phase=policy_phase)
     return {
-        "primary_model": PRIMARY_MODEL,
+        "primary_model": str(defaults_model.get("primary") or ""),
         "required_subscription_fallbacks": SUBSCRIPTION_FALLBACKS,
         "owners": owners,
         "defaults_thinking": defaults_think,

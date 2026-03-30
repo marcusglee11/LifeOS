@@ -79,6 +79,17 @@ def test_qmd_phase_requires_qmd_backend():
     assert result["memory"]["canonical_backend"] == "qmd"
 
 
+def test_policy_allows_any_primary_model():
+    """Primary model is not pinned — changing it should still pass."""
+    cfg = _cfg()
+    cfg["agents"]["defaults"]["workspace"] = str(Path.home() / ".openclaw" / "workspace")
+    for agent in cfg["agents"]["list"]:
+        agent["model"]["primary"] = "openai-codex/gpt-5.4"
+    cfg["agents"]["defaults"]["model"]["primary"] = "openai-codex/gpt-5.4"
+    result = assert_policy(cfg)
+    assert result["primary_model"] == "openai-codex/gpt-5.4"
+
+
 def test_qmd_phase_rejects_non_qmd_backend():
     cfg = _cfg()
     cfg["agents"]["defaults"]["workspace"] = str(Path.home() / ".openclaw" / "workspace")
