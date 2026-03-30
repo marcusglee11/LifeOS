@@ -5,8 +5,15 @@ INVOCATION_RECEIPT_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "required": [
-        "seq", "run_id", "provider_id", "mode", "seat_id",
-        "start_ts", "end_ts", "exit_status", "output_hash",
+        "seq",
+        "run_id",
+        "provider_id",
+        "mode",
+        "seat_id",
+        "start_ts",
+        "end_ts",
+        "exit_status",
+        "output_hash",
         "schema_validation",
     ],
     "properties": {

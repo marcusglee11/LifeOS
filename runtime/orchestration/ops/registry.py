@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 _WORKSPACE_ALIAS = "/workspace/"
 _DEFAULT_OPENCLAW_WORKSPACE = Path.home() / ".openclaw" / "workspace"
 _OP_NOTE_DIR = Path("artifacts") / "coo" / "notes"
@@ -72,13 +71,11 @@ def _normalize_workspace_relative_path(path_value: str) -> str:
     if not candidate:
         raise OperationValidationError("args.path is required")
     if candidate.startswith(_WORKSPACE_ALIAS):
-        candidate = candidate[len(_WORKSPACE_ALIAS):]
+        candidate = candidate[len(_WORKSPACE_ALIAS) :]
     elif candidate.startswith("/workspace"):
         candidate = candidate.removeprefix("/workspace").lstrip("/")
     elif candidate.startswith("/"):
-        raise OperationValidationError(
-            "args.path must be relative or use the /workspace/... alias"
-        )
+        raise OperationValidationError("args.path must be relative or use the /workspace/... alias")
     candidate = candidate.lstrip("/")
     if not candidate:
         raise OperationValidationError("args.path must resolve within the workspace root")
@@ -90,9 +87,7 @@ def normalize_workspace_path(path_value: str, workspace_root: Path | None = None
     relative = _normalize_workspace_relative_path(path_value)
     resolved = (root / relative).resolve()
     if resolved != root and root not in resolved.parents:
-        raise OperationValidationError(
-            f"Resolved path escapes workspace root: {path_value}"
-        )
+        raise OperationValidationError(f"Resolved path escapes workspace root: {path_value}")
     return resolved
 
 

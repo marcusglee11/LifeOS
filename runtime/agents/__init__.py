@@ -7,18 +7,46 @@ Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.1
 
 # Core API
 from .api import (
-    canonical_json,
-    compute_run_id_deterministic,
-    compute_call_id_deterministic,
+    AgentAPIError,
     AgentCall,
     AgentResponse,
-    AgentAPIError,
+    AgentResponseInvalid,
+    AgentTimeoutError,
     DelegatedDispatchError,
     EnvelopeViolation,
-    AgentTimeoutError,
-    AgentResponseInvalid,
     call_agent,
     call_agent_cli,
+    canonical_json,
+    compute_call_id_deterministic,
+    compute_run_id_deterministic,
+)
+
+# CLI dispatch
+from .cli_dispatch import (
+    CLIDispatchConfig,
+    CLIDispatchError,
+    CLIDispatchResult,
+    CLIDispatchTimeout,
+    CLIProvider,
+    CLIProviderNotFound,
+    dispatch_cli_agent,
+)
+
+# Fixtures (replay mode)
+from .fixtures import (
+    CachedResponse,
+    ReplayFixtureCache,
+    ReplayMissError,
+    get_cached_response,
+    is_replay_mode,
+)
+
+# Health monitoring
+from .health import (
+    HealthReport,
+    LatencyTracker,
+    ProviderStatus,
+    check_all_providers,
 )
 
 # Logging (hash chain)
@@ -28,50 +56,22 @@ from .logging import (
     AgentCallLogger,
 )
 
-# Fixtures (replay mode)
-from .fixtures import (
-    ReplayMissError,
-    CachedResponse,
-    ReplayFixtureCache,
-    is_replay_mode,
-    get_cached_response,
-)
-
 # Model resolution
 from .models import (
-    ModelConfig,
     CLIProviderConfig,
+    ModelConfig,
+    get_cli_provider_config,
+    get_model_chain,
+    is_cli_dispatch,
     load_model_config,
     resolve_model_auto,
-    get_model_chain,
-    get_cli_provider_config,
-    is_cli_dispatch,
-)
-
-# Health monitoring
-from .health import (
-    ProviderStatus,
-    HealthReport,
-    LatencyTracker,
-    check_all_providers,
-)
-
-# CLI dispatch
-from .cli_dispatch import (
-    CLIProvider,
-    CLIDispatchConfig,
-    CLIDispatchResult,
-    CLIDispatchError,
-    CLIProviderNotFound,
-    CLIDispatchTimeout,
-    dispatch_cli_agent,
 )
 
 # OpenCode client
 from .opencode_client import (
-    OpenCodeClient,
     LLMCall,
     LLMResponse,
+    OpenCodeClient,
     OpenCodeError,
     OpenCodeServerError,
     OpenCodeTimeoutError,

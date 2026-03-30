@@ -115,10 +115,14 @@ def _load_payload(args: argparse.Namespace) -> Tuple[str, str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Classify outbound payloads for OpenClaw scheduled egress policy.")
+    parser = argparse.ArgumentParser(
+        description="Classify outbound payloads for OpenClaw scheduled egress policy."
+    )
     parser.add_argument("--payload", default=None, help="Raw payload text.")
     parser.add_argument("--payload-file", default="", help="Path to payload text file.")
-    parser.add_argument("--scheduled", action="store_true", help="Fail closed unless payload is metadata_only.")
+    parser.add_argument(
+        "--scheduled", action="store_true", help="Fail closed unless payload is metadata_only."
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 

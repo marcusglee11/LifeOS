@@ -7,9 +7,15 @@ from runtime.orchestration.council.policy import load_council_policy
 def _valid_seat_output(verify_ledger: bool = False) -> dict:
     return {
         "verdict": "Accept",
-        "key_findings": ["Finding is bounded and deterministic REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L1-L20"],
-        "risks": ["Minimal operational risk REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L21-L40"],
-        "fixes": ["Add regression test REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L41-L80"],
+        "key_findings": [
+            "Finding is bounded and deterministic REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L1-L20"
+        ],
+        "risks": [
+            "Minimal operational risk REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L21-L40"
+        ],
+        "fixes": [
+            "Add regression test REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L41-L80"
+        ],
         "confidence": "high",
         "assumptions": ["test fixture controls runtime"],
         "operator_view": "Looks safe.",
@@ -235,12 +241,18 @@ def test_fsm_cochair_challenge_rework_succeeds():
     assert result.status == "blocked"
     assert result.decision_payload["reason"] == "cochair_challenge_failed"
     # Verify the detail uses the rework reason (the fixed line 510).
-    assert result.decision_payload["detail"] == "CoChair did not verify contradiction ledger completeness."
+    assert (
+        result.decision_payload["detail"]
+        == "CoChair did not verify contradiction ledger completeness."
+    )
     # Verify transition log has the correct reason.
     blocked_transition = result.run_log["state_transitions"][-1]
     assert blocked_transition["to_state"] == "TERMINAL_BLOCKED"
     assert blocked_transition["reason"] == "cochair_challenge_failed"
-    assert blocked_transition["details"]["detail"] == "CoChair did not verify contradiction ledger completeness."
+    assert (
+        blocked_transition["details"]["detail"]
+        == "CoChair did not verify contradiction ledger completeness."
+    )
 
 
 def test_fsm_reject_verdict_skips_closure_gate():

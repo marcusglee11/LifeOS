@@ -1,4 +1,5 @@
 """CLI command handlers for COO orchestration flows."""
+
 from __future__ import annotations
 
 import argparse
@@ -12,39 +13,38 @@ from typing import Any
 
 import yaml
 
-from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType
+from runtime.orchestration.coo import service as coo_service
+from runtime.orchestration.coo.auto_dispatch import is_fully_auto_dispatchable
 from runtime.orchestration.coo.backlog import load_backlog
+from runtime.orchestration.coo.claim_verifier import (
+    collect_evidence,
+    verify_claims,  # noqa: F401 - patched by tests via this module surface
+    verify_progress_obligation,
+)
 from runtime.orchestration.coo.context import (
-    build_direct_context,
-    build_propose_context,
     build_report_context,
     build_status_context,
 )
-from runtime.orchestration.coo import service as coo_service
-from runtime.orchestration.coo.auto_dispatch import is_fully_auto_dispatchable
-from runtime.orchestration.coo.claim_verifier import (
-    collect_evidence,
-    verify_claims,
-    verify_progress_obligation,
-)
-from runtime.orchestration.coo.invoke import InvocationError, invoke_coo_reasoning
+from runtime.orchestration.coo.invoke import InvocationError
 from runtime.orchestration.coo.parser import (
     ParseError,
     _extract_yaml_payload,  # shared within-package; not public API
-    _extract_yaml_payload_with_stage,
-    parse_escalation_packet as _parse_escalation_packet,
-    parse_ntp as _parse_ntp,
     parse_operation_proposal,
     parse_proposal_response,
 )
+from runtime.orchestration.coo.parser import (
+    parse_escalation_packet as _parse_escalation_packet,
+)
+from runtime.orchestration.coo.parser import (
+    parse_ntp as _parse_ntp,
+)
+from runtime.orchestration.coo.templates import instantiate_order, load_template
+from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.orchestration.ops.executor import OperationExecutionError, execute_operation_proposal
 from runtime.orchestration.ops.queue import persist_operation_proposal
 from runtime.orchestration.ops.registry import resolve_openclaw_workspace_root
-from runtime.orchestration.coo.templates import instantiate_order, load_template
-from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.util.atomic_write import atomic_write_text
 from runtime.util.canonical import compute_sha256, sha256_file
-
 
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
 _PROMPT_CANONICAL_RELATIVE_PATH = Path("config") / "coo" / "prompt_canonical.md"
@@ -67,7 +67,9 @@ def _maybe_capture_dump(
 
     label = os.environ.get("LIFEOS_COO_CAPTURE_LABEL", "unlabeled").strip() or "unlabeled"
     if not re.fullmatch(r"[A-Za-z0-9._-]+", label):
-        raise ValueError(f"_maybe_capture_dump: LIFEOS_COO_CAPTURE_LABEL contains unsafe characters: {label!r}")
+        raise ValueError(
+            f"_maybe_capture_dump: LIFEOS_COO_CAPTURE_LABEL contains unsafe characters: {label!r}"
+        )
     capture_root = Path(capture_dir).resolve()
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     dump = {
@@ -86,7 +88,9 @@ def _maybe_capture_dump(
     filename = f"{ts}_{mode}_{label}.json"
     out_path = (capture_root / filename).resolve()
     if not str(out_path).startswith(str(capture_root) + "/") and out_path != capture_root:
-        raise ValueError(f"_maybe_capture_dump: resolved output path escapes capture_dir: {out_path}")
+        raise ValueError(
+            f"_maybe_capture_dump: resolved output path escapes capture_dir: {out_path}"
+        )
     atomic_write_text(out_path, json.dumps(dump, indent=2, sort_keys=True))
 
 
@@ -218,7 +222,6 @@ def cmd_coo_status(args: argparse.Namespace, repo_root: Path) -> int:
     return 0
 
 
-
 def classify_coo_response(mode: str, raw_output: str) -> str:
     """Return the packet family string for a COO response without exposing parse internals.
 
@@ -317,9 +320,7 @@ def cmd_coo_propose(args: argparse.Namespace, repo_root: Path) -> int:
     payload_dict = result["payload"]
 
     if violations:
-        _print_error(
-            f"CLAIM_VIOLATION: COO output contains {len(violations)} unsupported claim(s)"
-        )
+        _print_error(f"CLAIM_VIOLATION: COO output contains {len(violations)} unsupported claim(s)")
         for v in violations:
             _print_error(
                 f"  - {v.claim_type}: {v.claim_text!r} "
@@ -447,7 +448,9 @@ def cmd_coo_approve(args: argparse.Namespace, repo_root: Path) -> int:
             failed.append({"task_id": task_id, "error": message})
             continue
         except Exception as exc:
-            message = f"failed to load template for task_type '{task.task_type}' (task {task_id}): {exc}"
+            message = (
+                f"failed to load template for task_type '{task.task_type}' (task {task_id}): {exc}"
+            )
             _print_error(f"Error: {message}")
             failed.append({"task_id": task_id, "error": message})
             continue
@@ -544,9 +547,7 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
     _capture_stage = result["parse_recovery_stage"]
 
     if violations:
-        _print_error(
-            f"CLAIM_VIOLATION: COO output contains {len(violations)} unsupported claim(s)"
-        )
+        _print_error(f"CLAIM_VIOLATION: COO output contains {len(violations)} unsupported claim(s)")
         for v in violations:
             _print_error(
                 f"  - {v.claim_type}: {v.claim_text!r} "
@@ -558,7 +559,9 @@ def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
         if kind == "operation_proposal":
             proposal_id = result["payload"]["proposal_id"]
             proposal = result["payload"]["proposal"]
-            if getattr(args, "execute", False) and not bool(proposal.get("requires_approval", True)):
+            if getattr(args, "execute", False) and not bool(
+                proposal.get("requires_approval", True)
+            ):
                 receipt = execute_operation_proposal(repo_root, proposal_id)
                 print(f"executed: {proposal_id} -> {receipt['order_id']}")
             else:
@@ -705,8 +708,8 @@ def _auto_execute_proposals(
     Returns a summary dict with dispatch results.
     """
     from runtime.orchestration.coo.backlog import load_backlog
-    from runtime.orchestration.dispatch.engine import DispatchEngine
     from runtime.orchestration.coo.templates import instantiate_order, load_template
+    from runtime.orchestration.dispatch.engine import DispatchEngine
     from runtime.orchestration.dispatch.order import parse_order
 
     results: dict[str, Any] = {
@@ -730,6 +733,7 @@ def _auto_execute_proposals(
     delegation_path = repo_root / "config" / "governance" / "delegation_envelope.yaml"
     try:
         import yaml as _yaml
+
         with open(delegation_path, "r", encoding="utf-8") as fh:
             envelope = _yaml.safe_load(fh)
     except Exception as exc:
@@ -784,16 +788,20 @@ def _auto_execute_proposals(
 
         results["any_dispatched"] = True
         if dispatch_result.outcome != "SUCCESS":
-            results["failed_dispatches"].append({
-                "task_id": task_id,
-                "error": f"CLEAN_FAIL: {dispatch_result.reason}",
-            })
+            results["failed_dispatches"].append(
+                {
+                    "task_id": task_id,
+                    "error": f"CLEAN_FAIL: {dispatch_result.reason}",
+                }
+            )
         else:
-            results["dispatched"].append({
-                "task_id": task_id,
-                "order_id": dispatch_result.order_id,
-                "outcome": dispatch_result.outcome,
-            })
+            results["dispatched"].append(
+                {
+                    "task_id": task_id,
+                    "order_id": dispatch_result.order_id,
+                    "outcome": dispatch_result.outcome,
+                }
+            )
 
     return results
 
@@ -804,9 +812,7 @@ def _print_dispatch_summary(
 ) -> None:
     """Print dispatch summary to stdout."""
     if getattr(args, "json", False):
-        print(json.dumps({
-            "auto_dispatch_results": dispatch_results
-        }, indent=2))
+        print(json.dumps({"auto_dispatch_results": dispatch_results}, indent=2))
         return
 
     for d in dispatch_results.get("dispatched", []):

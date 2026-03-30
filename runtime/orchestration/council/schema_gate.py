@@ -4,15 +4,14 @@ Deterministic schema gate for council seat outputs.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Mapping
 import copy
 import re
+from dataclasses import dataclass, field
+from typing import Any, Mapping
 
 import yaml
 
 from .policy import CouncilPolicy
-
 
 P0_ALLOWED_CATEGORIES = {
     "determinism",
@@ -171,9 +170,7 @@ def _validate_claim_grounding(
             if is_assumption and not has_citation:
                 assumption_only_claims += 1
                 if not _assumption_has_resolution_hint(item):
-                    warnings.append(
-                        f"{section}[{idx}] assumption should state resolving evidence."
-                    )
+                    warnings.append(f"{section}[{idx}] assumption should state resolving evidence.")
 
     return total_claims, cited_claims, assumption_only_claims
 
@@ -202,15 +199,18 @@ def _validate_complexity_budget(output: dict[str, Any], warnings: list[str]) -> 
     )
     missing = [key for key in required if key not in budget]
     if missing:
-        warnings.append(
-            f"complexity_budget missing fields: {', '.join(sorted(missing))}"
-        )
+        warnings.append(f"complexity_budget missing fields: {', '.join(sorted(missing))}")
         return
 
     net_steps = _parse_net_steps(budget.get("net_human_steps"))
     mechanized = str(budget.get("mechanized", "")).strip().lower()
     trade_statement = str(budget.get("trade_statement", "")).strip().lower()
-    if net_steps is not None and net_steps > 0 and mechanized == "no" and trade_statement in {"", "none"}:
+    if (
+        net_steps is not None
+        and net_steps > 0
+        and mechanized == "no"
+        and trade_statement in {"", "none"}
+    ):
         warnings.append(
             "complexity_budget has net-positive human steps without mechanization trade statement."
         )
@@ -227,9 +227,7 @@ def _validate_p0_labels(output: dict[str, Any], warnings: list[str]) -> None:
                 continue
             category = str(finding.get("category", "")).lower()
             if category not in P0_ALLOWED_CATEGORIES:
-                warnings.append(
-                    f"key_findings[{idx}] uses P0 without recognized blocker category."
-                )
+                warnings.append(f"key_findings[{idx}] uses P0 without recognized blocker category.")
             continue
         if isinstance(finding, str) and "P0" in finding:
             lowered = finding.lower()
@@ -292,9 +290,7 @@ def validate_seat_output(
         warnings=warnings,
     )
     if verdict not in allowed_verdicts:
-        errors.append(
-            f"Invalid verdict '{verdict}'. Allowed values: {sorted(allowed_verdicts)}"
-        )
+        errors.append(f"Invalid verdict '{verdict}'. Allowed values: {sorted(allowed_verdicts)}")
 
     if policy.schema_gate_require_explicit_claim_grounding:
         (
@@ -315,9 +311,7 @@ def validate_seat_output(
 
         if verdict == "Accept" and policy.schema_gate_accept_requires_ref_balance:
             if cited_claims == 0:
-                errors.append(
-                    "Accept verdict requires at least one REF/CWE-cited material claim."
-                )
+                errors.append("Accept verdict requires at least one REF/CWE-cited material claim.")
             if assumption_only_claims > 0 and assumption_only_claims >= cited_claims:
                 errors.append(
                     "Accept verdict requires cited claims to outnumber assumption-only claims."
@@ -355,7 +349,9 @@ _VALID_VERDICTS_V2 = {"Accept", "Revise", "Reject"}
 _TIERS_WITH_LEDGER = {"T2", "T3"}
 
 
-def _make_result(errors: list[str], warnings: list[str], output: dict[str, Any]) -> SchemaGateResult:
+def _make_result(
+    errors: list[str], warnings: list[str], output: dict[str, Any]
+) -> SchemaGateResult:
     rejected = len(errors) > 0
     return SchemaGateResult(
         valid=not rejected,
@@ -436,8 +432,7 @@ def validate_lens_output(
             evs = str(output.get("evidence_status", "")).lower()
             if evs not in _VALID_EVIDENCE_STATUSES:
                 errors.append(
-                    f"Invalid evidence_status '{evs}'. "
-                    f"Allowed: {sorted(_VALID_EVIDENCE_STATUSES)}"
+                    f"Invalid evidence_status '{evs}'. Allowed: {sorted(_VALID_EVIDENCE_STATUSES)}"
                 )
         # recommendations required (non-empty list)
         recs = output.get("recommendations")
@@ -458,9 +453,7 @@ def _validate_ledger_entries(ledger: list[Any], errors: list[str]) -> None:
             errors.append(f"contradiction_ledger[{idx}] missing topic")
         positions = entry.get("positions")
         if not isinstance(positions, dict) or len(positions) < 2:
-            errors.append(
-                f"contradiction_ledger[{idx}] positions must be a dict with >=2 lenses"
-            )
+            errors.append(f"contradiction_ledger[{idx}] positions must be a dict with >=2 lenses")
         if "resolution" not in entry:
             errors.append(f"contradiction_ledger[{idx}] missing resolution")
         if "status" not in entry:
@@ -488,8 +481,16 @@ def validate_synthesis_output(
     errors: list[str] = list(parse_errors)
     warnings: list[str] = []
 
-    for field_name in ("run_type", "tier", "verdict", "fix_plan", "complexity_budget",
-                       "operator_view", "coverage_degraded", "waived_lenses"):
+    for field_name in (
+        "run_type",
+        "tier",
+        "verdict",
+        "fix_plan",
+        "complexity_budget",
+        "operator_view",
+        "coverage_degraded",
+        "waived_lenses",
+    ):
         if field_name not in output:
             errors.append(f"Missing required field: {field_name}")
 
@@ -500,9 +501,7 @@ def validate_synthesis_output(
         warnings=warnings,
     )
     if verdict is not None and verdict not in _VALID_VERDICTS_V2:
-        errors.append(
-            f"Invalid verdict '{verdict}'. Allowed: {sorted(_VALID_VERDICTS_V2)}"
-        )
+        errors.append(f"Invalid verdict '{verdict}'. Allowed: {sorted(_VALID_VERDICTS_V2)}")
 
     if not isinstance(output.get("complexity_budget"), dict):
         errors.append("complexity_budget must be an object")
@@ -514,9 +513,7 @@ def validate_synthesis_output(
     if tier in _TIERS_WITH_LEDGER:
         ledger = output.get("contradiction_ledger")
         if not isinstance(ledger, list):
-            errors.append(
-                f"Tier {tier} synthesis requires contradiction_ledger (list)"
-            )
+            errors.append(f"Tier {tier} synthesis requires contradiction_ledger (list)")
         else:
             _validate_ledger_entries(ledger, errors)
 
@@ -542,8 +539,15 @@ def validate_challenger_output(
     errors: list[str] = list(parse_errors)
     warnings: list[str] = []
 
-    for field_name in ("weakest_claim", "stress_test", "material_issue",
-                       "issue_class", "severity", "required_action", "notes"):
+    for field_name in (
+        "weakest_claim",
+        "stress_test",
+        "material_issue",
+        "issue_class",
+        "severity",
+        "required_action",
+        "notes",
+    ):
         if field_name not in output:
             errors.append(f"Missing required field: {field_name}")
 

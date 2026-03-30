@@ -7,7 +7,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 ALLOWED_CLASSIFICATIONS = {"PUBLIC", "INTERNAL", "CONFIDENTIAL"}
 RETENTION_RE = re.compile(r"^(?:\d+(?:d|w|m|y)|permanent)$", re.IGNORECASE)
@@ -69,7 +69,6 @@ def _expand_root(raw: str, workspace: Path) -> Path:
     return path.resolve()
 
 
-
 def load_roots_file(path: Path, workspace: Path) -> RootSpec:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -101,21 +100,31 @@ def load_roots_file(path: Path, workspace: Path) -> RootSpec:
     return RootSpec(roots=resolved_roots, include_globs=include_globs, source_path=str(path))
 
 
-
 def redact_line(line: str) -> str:
     out = line.rstrip("\n")
-    out = re.sub(r"Authorization\s*:\s*Bearer\s+\S+", "Authorization: Bearer [REDACTED]", out, flags=re.IGNORECASE)
+    out = re.sub(
+        r"Authorization\s*:\s*Bearer\s+\S+",
+        "Authorization: Bearer [REDACTED]",
+        out,
+        flags=re.IGNORECASE,
+    )
     out = re.sub(r"\bsk-[A-Za-z0-9_-]{8,}\b", "sk-[REDACTED]", out)
     out = re.sub(r"\bxox[baprs]-[A-Za-z0-9-]{8,}\b", "xox?- [REDACTED]", out)
     out = re.sub(r"\bghp_[A-Za-z0-9]{20,}\b", "ghp_[REDACTED]", out)
     out = re.sub(r"\bAIza[0-9A-Za-z_-]{20,}\b", "AIza[REDACTED]", out)
     out = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", "[REDACTED_EMAIL]", out)
-    out = re.sub(r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b", "[REDACTED_PHONE]", out)
+    out = re.sub(
+        r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b", "[REDACTED_PHONE]", out
+    )
     out = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[REDACTED_SSN]", out)
     out = LONG_BLOB_RE.sub("[REDACTED_LONG_BLOB]", out)
-    out = re.sub(r"\b(apiKey|botToken|signingSecret)\b\s*[:=]\s*\S+", r"\1=[REDACTED]", out, flags=re.IGNORECASE)
+    out = re.sub(
+        r"\b(apiKey|botToken|signingSecret)\b\s*[:=]\s*\S+",
+        r"\1=[REDACTED]",
+        out,
+        flags=re.IGNORECASE,
+    )
     return out
-
 
 
 def parse_front_matter(lines: List[str]) -> Tuple[Optional[Dict[str, str]], int]:
@@ -137,7 +146,6 @@ def parse_front_matter(lines: List[str]) -> Tuple[Optional[Dict[str, str]], int]
     return None, 0
 
 
-
 def iter_memory_files(workspace: Path) -> Iterable[Path]:
     memory_md = workspace / "MEMORY.md"
     if memory_md.exists():
@@ -147,7 +155,6 @@ def iter_memory_files(workspace: Path) -> Iterable[Path]:
         for path in sorted(memory_dir.rglob("*.md")):
             if path.is_file():
                 yield path
-
 
 
 def iter_curated_files(root_spec: RootSpec) -> Iterable[Path]:
@@ -166,15 +173,14 @@ def iter_curated_files(root_spec: RootSpec) -> Iterable[Path]:
                 yield resolved
 
 
-
 def detect_secret_like(text: str, line: str) -> bool:
-    return any(p.search(text) for p in KEYWORD_PATTERNS + TOKEN_PATTERNS) or bool(LONG_BLOB_RE.search(line))
-
+    return any(p.search(text) for p in KEYWORD_PATTERNS + TOKEN_PATTERNS) or bool(
+        LONG_BLOB_RE.search(line)
+    )
 
 
 def detect_pii(text: str) -> bool:
     return any(p.search(text) for p in PII_PATTERNS)
-
 
 
 def _display_path(path: Path, workspace: Path) -> str:
@@ -182,7 +188,6 @@ def _display_path(path: Path, workspace: Path) -> str:
         return str(path.relative_to(workspace))
     except Exception:
         return str(path)
-
 
 
 def _scan_file(
@@ -293,7 +298,6 @@ def _scan_file(
             )
 
 
-
 def scan_workspace(
     workspace: Path,
     *,
@@ -369,13 +373,14 @@ def scan_workspace(
     return summary
 
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="OpenClaw memory policy guard.")
     parser.add_argument("--workspace", default=str(Path.home() / ".openclaw" / "workspace"))
     parser.add_argument("--mode", choices=("raw", "curated"), default="raw")
     parser.add_argument("--roots-file", default="", help="JSON file with curated roots policy.")
-    parser.add_argument("--fail-on-pii", action="store_true", help="Fail closed on PII-like patterns.")
+    parser.add_argument(
+        "--fail-on-pii", action="store_true", help="Fail closed on PII-like patterns."
+    )
     parser.add_argument("--json-summary", action="store_true", help="Print JSON summary only.")
     parser.add_argument("--summary-out", help="Write JSON summary to this path.")
     args = parser.parse_args()

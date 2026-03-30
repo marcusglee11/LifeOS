@@ -8,17 +8,17 @@ Tests the complete flow:
 - Loop resumes or terminates deterministically
 """
 
-import pytest
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+
+import pytest
 
 from runtime.orchestration.ceo_queue import (
     CEOQueue,
     EscalationEntry,
-    EscalationType,
     EscalationStatus,
+    EscalationType,
 )
 from runtime.orchestration.missions.autonomous_build_cycle import (
     AutonomousBuildCycleMission,
@@ -48,7 +48,7 @@ def e2e_repo(tmp_path: Path) -> Path:
             "oscillation_window": 3,
         }
     }
-    with open(repo / "config" / "policy" / "loop_policy.json", 'w') as f:
+    with open(repo / "config" / "policy" / "loop_policy.json", "w") as f:
         json.dump(policy_config, f)
 
     return repo
@@ -67,7 +67,9 @@ def e2e_context(e2e_repo: Path) -> MissionContext:
 class TestCEOQueueMissionE2E:
     """End-to-end mission-level integration tests."""
 
-    def test_escalation_halts_loop_then_approval_resumes(self, e2e_repo: Path, e2e_context: MissionContext):
+    def test_escalation_halts_loop_then_approval_resumes(
+        self, e2e_repo: Path, e2e_context: MissionContext
+    ):
         """
         E2E Test: Escalation → Halt → Approval → Resume
 
@@ -82,19 +84,21 @@ class TestCEOQueueMissionE2E:
         queue = CEOQueue(db_path=e2e_repo / "artifacts" / "queue" / "escalations.db")
 
         # Step 1: Manually create an escalation (simulating detection)
-        escalation_id = queue.add_escalation(EscalationEntry(
-            type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
-            context={
-                "path": "docs/01_governance/test.md",
-                "action": "modify",
-                "summary": "Test escalation for E2E",
-            },
-            run_id=e2e_context.run_id,
-        ))
+        escalation_id = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
+                context={
+                    "path": "docs/01_governance/test.md",
+                    "action": "modify",
+                    "summary": "Test escalation for E2E",
+                },
+                run_id=e2e_context.run_id,
+            )
+        )
 
         # Step 2: Save escalation state (simulating loop halt)
         escalation_state_path = e2e_repo / "artifacts" / "loop_state" / "escalation_state.json"
-        with open(escalation_state_path, 'w') as f:
+        with open(escalation_state_path, "w") as f:
             json.dump({"escalation_id": escalation_id}, f)
 
         # Step 3: Initialize ledger (simulating resume scenario)
@@ -103,12 +107,15 @@ class TestCEOQueueMissionE2E:
 
         # Create a minimal ledger header to simulate resume
         from runtime.orchestration.loop.ledger import AttemptLedger, LedgerHeader
+
         ledger = AttemptLedger(ledger_path)
-        ledger.initialize(LedgerHeader(
-            policy_hash="test_policy_hash",
-            handoff_hash="test_handoff_hash",
-            run_id=e2e_context.run_id,
-        ))
+        ledger.initialize(
+            LedgerHeader(
+                policy_hash="test_policy_hash",
+                handoff_hash="test_handoff_hash",
+                run_id=e2e_context.run_id,
+            )
+        )
 
         # Step 4: Verify escalation is pending (loop cannot proceed)
         entry = queue.get_by_id(escalation_id)
@@ -128,7 +135,9 @@ class TestCEOQueueMissionE2E:
         # (In actual mission, this would be deleted after successful approval check)
         assert escalation_state_path.exists(), "State file should exist for resume"
 
-    def test_escalation_halts_loop_then_rejection_terminates(self, e2e_repo: Path, e2e_context: MissionContext):
+    def test_escalation_halts_loop_then_rejection_terminates(
+        self, e2e_repo: Path, e2e_context: MissionContext
+    ):
         """
         E2E Test: Escalation → Halt → Rejection → Terminate
 
@@ -143,19 +152,21 @@ class TestCEOQueueMissionE2E:
         queue = CEOQueue(db_path=e2e_repo / "artifacts" / "queue" / "escalations.db")
 
         # Step 1: Create escalation
-        escalation_id = queue.add_escalation(EscalationEntry(
-            type=EscalationType.PROTECTED_PATH_MODIFICATION,
-            context={
-                "path": "config/governance/protected.json",
-                "action": "modify",
-                "summary": "Attempted protected path modification",
-            },
-            run_id=e2e_context.run_id,
-        ))
+        escalation_id = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.PROTECTED_PATH_MODIFICATION,
+                context={
+                    "path": "config/governance/protected.json",
+                    "action": "modify",
+                    "summary": "Attempted protected path modification",
+                },
+                run_id=e2e_context.run_id,
+            )
+        )
 
         # Step 2: Save escalation state
         escalation_state_path = e2e_repo / "artifacts" / "loop_state" / "escalation_state.json"
-        with open(escalation_state_path, 'w') as f:
+        with open(escalation_state_path, "w") as f:
             json.dump({"escalation_id": escalation_id}, f)
 
         # Step 3: Verify escalation is pending
@@ -177,7 +188,9 @@ class TestCEOQueueMissionE2E:
         checked_entry = mission._check_queue_for_approval(queue, escalation_id)
         assert checked_entry.status == EscalationStatus.REJECTED
 
-    def test_escalation_timeout_after_24_hours(self, e2e_repo: Path, e2e_context: MissionContext, monkeypatch):
+    def test_escalation_timeout_after_24_hours(
+        self, e2e_repo: Path, e2e_context: MissionContext, monkeypatch
+    ):
         """
         E2E Test: Escalation → 24h Timeout → Auto-Reject
 
@@ -206,12 +219,16 @@ class TestCEOQueueMissionE2E:
 
         # Step 3: Check queue triggers timeout
         checked_entry = mission._check_queue_for_approval(queue, escalation_id)
-        assert checked_entry.status == EscalationStatus.TIMEOUT, "Stale escalation should be marked TIMEOUT"
+        assert checked_entry.status == EscalationStatus.TIMEOUT, (
+            "Stale escalation should be marked TIMEOUT"
+        )
 
         # Step 4: Verify timeout reason recorded
         assert "TIMEOUT_24H" in (checked_entry.resolution_note or "")
 
-    def test_mission_escalation_helpers_integration(self, e2e_repo: Path, e2e_context: MissionContext):
+    def test_mission_escalation_helpers_integration(
+        self, e2e_repo: Path, e2e_context: MissionContext
+    ):
         """
         Test mission helper methods work correctly in integration.
 
@@ -254,7 +271,9 @@ class TestCEOQueueMissionE2E:
         is_stale = mission._is_escalation_stale(fresh_entry, hours=24)
         assert is_stale is False, "Fresh escalation should not be stale"
 
-    def test_queue_persistence_across_mission_runs(self, e2e_repo: Path, e2e_context: MissionContext):
+    def test_queue_persistence_across_mission_runs(
+        self, e2e_repo: Path, e2e_context: MissionContext
+    ):
         """
         Test that queue persists across multiple mission runs.
 
@@ -299,23 +318,29 @@ class TestCEOQueueMissionE2E:
         queue = CEOQueue(db_path=e2e_repo / "artifacts" / "queue" / "escalations.db")
 
         # Create 3 escalations
-        id1 = queue.add_escalation(EscalationEntry(
-            type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
-            context={"order": 1},
-            run_id="run-001",
-        ))
+        id1 = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
+                context={"order": 1},
+                run_id="run-001",
+            )
+        )
 
-        id2 = queue.add_escalation(EscalationEntry(
-            type=EscalationType.BUDGET_ESCALATION,
-            context={"order": 2},
-            run_id="run-002",
-        ))
+        id2 = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.BUDGET_ESCALATION,
+                context={"order": 2},
+                run_id="run-002",
+            )
+        )
 
-        id3 = queue.add_escalation(EscalationEntry(
-            type=EscalationType.PROTECTED_PATH_MODIFICATION,
-            context={"order": 3},
-            run_id="run-003",
-        ))
+        id3 = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.PROTECTED_PATH_MODIFICATION,
+                context={"order": 3},
+                run_id="run-003",
+            )
+        )
 
         # Get pending (should be oldest first)
         pending = queue.get_pending()

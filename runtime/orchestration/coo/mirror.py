@@ -1,4 +1,5 @@
 """Helpers for COO mirror evaluation runs."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -27,7 +28,9 @@ def diff_evidence(before: EvidenceSnapshot, after: EvidenceSnapshot) -> dict[str
         "new_inbox_orders": sorted(set(after.inbox_orders) - set(before.inbox_orders)),
         "new_active_orders": sorted(set(after.active_orders) - set(before.active_orders)),
         "new_completed_orders": sorted(
-            order_id for order_id in after.completed_orders if order_id not in before.completed_orders
+            order_id
+            for order_id in after.completed_orders
+            if order_id not in before.completed_orders
         ),
         "task_status_deltas": task_status_deltas,
     }
@@ -85,7 +88,9 @@ def build_evaluation_row(
         "inside_outside_consistent": assess_inside_outside_consistency(actual_packet_family, diff),
         "side_effect_class": classify_side_effect(diff),
         "new_escalation_ids": diff["new_escalation_ids"],
-        "new_order_ids": diff["new_inbox_orders"] + diff["new_active_orders"] + diff["new_completed_orders"],
+        "new_order_ids": diff["new_inbox_orders"]
+        + diff["new_active_orders"]
+        + diff["new_completed_orders"],
         "task_status_deltas": diff["task_status_deltas"],
         "invocation_receipt_ref": invocation_receipt_ref,
         "token_usage": token_usage,

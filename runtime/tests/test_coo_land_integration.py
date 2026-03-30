@@ -49,7 +49,9 @@ def test_coo_land_path_transplant_creates_receipt(tmp_path: Path) -> None:
 
     _run(["git", "checkout", "-b", "feature-src"], repo)
     target = repo / "runtime" / "tools" / "coo_worktree.sh"
-    target.write_text(target.read_text(encoding="utf-8") + "\n# land-test-marker\n", encoding="utf-8")
+    target.write_text(
+        target.read_text(encoding="utf-8") + "\n# land-test-marker\n", encoding="utf-8"
+    )
     _run(["git", "add", "runtime/tools/coo_worktree.sh"], repo)
     _run(["git", "commit", "-m", "feature change"], repo)
     src_head = _run(["git", "rev-parse", "HEAD"], repo).stdout.strip()
@@ -59,7 +61,9 @@ def test_coo_land_path_transplant_creates_receipt(tmp_path: Path) -> None:
     evid.mkdir(parents=True)
     (evid / "worktree_head.txt").write_text(src_head + "\n", encoding="utf-8")
     (evid / "worktree_status_porcelain.txt").write_text("(empty)\n", encoding="utf-8")
-    (evid / "worktree_diff_name_only.txt").write_text("runtime/tools/coo_worktree.sh\n", encoding="utf-8")
+    (evid / "worktree_diff_name_only.txt").write_text(
+        "runtime/tools/coo_worktree.sh\n", encoding="utf-8"
+    )
 
     proc = subprocess.run(
         [
@@ -92,7 +96,9 @@ def test_coo_land_path_transplant_creates_receipt(tmp_path: Path) -> None:
     assert "CLEAN_PROOF_PRE_STATUS_BEGIN\n(empty)\nCLEAN_PROOF_PRE_STATUS_END" in text
     assert "CLEAN_PROOF_POST_STATUS_BEGIN\n(empty)\nCLEAN_PROOF_POST_STATUS_END" in text
 
-    assert "land-test-marker" in (repo / "runtime" / "tools" / "coo_worktree.sh").read_text(encoding="utf-8")
+    assert "land-test-marker" in (repo / "runtime" / "tools" / "coo_worktree.sh").read_text(
+        encoding="utf-8"
+    )
     assert _run(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo).stdout.strip() == "main"
     assert _run(["git", "status", "--porcelain=v1"], repo).stdout.strip() == ""
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 
 def _git(repo: Path, *args: str) -> None:
@@ -122,7 +122,9 @@ def test_isolate_allow_protected_moves_and_logs_invoker(tmp_path: Path) -> None:
 
     ledger = repo / "logs" / "cleanup_ledger.jsonl"
     assert ledger.exists()
-    entries = [json.loads(line) for line in ledger.read_text(encoding="utf-8").splitlines() if line.strip()]
+    entries = [
+        json.loads(line) for line in ledger.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
     assert entries
     last = entries[-1]
     assert last["rationale"] == "intentional isolation"

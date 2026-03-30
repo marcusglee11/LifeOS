@@ -31,6 +31,7 @@ _DEFAULT_WINDOW = 10
 @dataclass
 class ProviderStatus:
     """Health status for a single provider."""
+
     name: str
     available: bool
     latency_ms: float = 0.0
@@ -41,6 +42,7 @@ class ProviderStatus:
 @dataclass
 class HealthReport:
     """Aggregate health report for all configured providers."""
+
     providers: list[ProviderStatus]
     all_healthy: bool
     recommended_fallbacks: list[str] = field(default_factory=list)
@@ -73,11 +75,7 @@ class LatencyTracker:
         return sum(samples) / len(samples)
 
     def all_averages(self) -> dict[str, float]:
-        return {
-            p: self.average(p)
-            for p in self._samples
-            if self.average(p) is not None
-        }
+        return {p: self.average(p) for p in self._samples if self.average(p) is not None}
 
     def fastest(self) -> Optional[str]:
         avgs = self.all_averages()
@@ -118,6 +116,7 @@ def check_api_provider(name: str, endpoint: str, timeout: float = 5.0) -> Provid
     start = time.monotonic()
     try:
         import httpx
+
         # Use a short timeout for health checks
         with httpx.Client(timeout=timeout) as client:
             resp = client.head(endpoint)

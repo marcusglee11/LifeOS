@@ -3,6 +3,7 @@
 Safe repair tool for OpenClaw model ladder configuration.
 Creates backup, applies minimal fixes, generates audit capsule.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -20,15 +21,12 @@ if str(REPO_ROOT) not in sys.path:
 
 from runtime.util.canonical import sha256_file
 
-
 EXECUTION_BASE = [
     "openai-codex/gpt-5.3-codex",
     "openai-codex/gpt-5.1",
     "openai-codex/gpt-5.1-codex-max",
 ]
 THINKING_BASE = list(EXECUTION_BASE)
-
-
 
 
 def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
@@ -45,7 +43,9 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
         filtered_existing = [
             x
             for x in existing
-            if ("haiku" not in x.lower()) and ("small" not in x.lower()) and (not x.lower().startswith("claude-max/"))
+            if ("haiku" not in x.lower())
+            and ("small" not in x.lower())
+            and (not x.lower().startswith("claude-max/"))
         ]
         extras = [x for x in filtered_existing if x not in required_prefix]
         return required_prefix + extras
@@ -74,7 +74,9 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
         defaults_model["primary"] = EXECUTION_BASE[0]
         changes.append(f"agents.defaults: set primary to {EXECUTION_BASE[0]}")
 
-    normalized_defaults_fallbacks = normalize_fallbacks(defaults_model.get("fallbacks"), EXECUTION_BASE[1:])
+    normalized_defaults_fallbacks = normalize_fallbacks(
+        defaults_model.get("fallbacks"), EXECUTION_BASE[1:]
+    )
     if defaults_model.get("fallbacks") != normalized_defaults_fallbacks:
         defaults_model["fallbacks"] = normalized_defaults_fallbacks
         changes.append("agents.defaults: normalized fallback prefix to subscription-first ladder")
@@ -109,7 +111,9 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
                 current_fallbacks = fallbacks if isinstance(fallbacks, list) else []
                 if current_fallbacks != normalized_fallbacks:
                     model["fallbacks"] = normalized_fallbacks
-                    changes.append(f"{agent_id}: normalized fallback prefix to subscription-first ladder")
+                    changes.append(
+                        f"{agent_id}: normalized fallback prefix to subscription-first ladder"
+                    )
 
                 return
 
@@ -119,7 +123,7 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
             "model": {
                 "primary": ladder_base[0],
                 "fallbacks": ladder_base[1:],
-            }
+            },
         }
         if agent_id == "think":
             new_agent["thinking"] = "extra_high"
@@ -135,19 +139,25 @@ def apply_ladder_fixes(cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Safe repair tool for OpenClaw model ladder configuration.")
+    parser = argparse.ArgumentParser(
+        description="Safe repair tool for OpenClaw model ladder configuration."
+    )
     parser.add_argument(
         "--config",
-        default=os.environ.get("OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")),
+        default=os.environ.get(
+            "OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")
+        ),
     )
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be changed without applying")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would be changed without applying"
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config).expanduser()
 
     if not config_path.exists():
         print(f"ERROR: Config file not found: {config_path}", file=sys.stderr)
-        print(f"NEXT: Run 'openclaw onboard' to initialize configuration", file=sys.stderr)
+        print("NEXT: Run 'openclaw onboard' to initialize configuration", file=sys.stderr)
         return 1
 
     print("=== OpenClaw Model Ladder Fix ===\n")

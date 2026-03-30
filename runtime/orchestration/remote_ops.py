@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
-from pathlib import Path
 import subprocess
 import tempfile
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Literal, Optional
 
 from runtime.validation.reporting import write_json_atomic
-
 
 RemoteOpStatus = Literal["PENDING", "DEFERRED", "DONE", "TERMINAL"]
 
@@ -46,7 +45,9 @@ class RemoteOp:
             target=str(payload["target"]),
             created_at=str(payload["created_at"]),
             attempts=int(payload.get("attempts", 0)),
-            next_attempt_at=str(payload["next_attempt_at"]) if payload.get("next_attempt_at") else None,
+            next_attempt_at=str(payload["next_attempt_at"])
+            if payload.get("next_attempt_at")
+            else None,
             last_error=str(payload["last_error"]) if payload.get("last_error") else None,
             status=payload.get("status", "PENDING"),
         )
@@ -133,12 +134,18 @@ def _write_queue_atomic(queue_path: Path, ops: Iterable[RemoteOp]) -> None:
     queue_path.parent.mkdir(parents=True, exist_ok=True)
     sorted_ops = sorted(ops, key=lambda op: op.op_id)
 
-    fd, tmp_name = tempfile.mkstemp(prefix=f".{queue_path.name}.", suffix=".tmp", dir=str(queue_path.parent))
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{queue_path.name}.", suffix=".tmp", dir=str(queue_path.parent)
+    )
     tmp_path = Path(tmp_name)
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
             for op in sorted_ops:
-                handle.write(json.dumps(op.to_dict(), sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+                handle.write(
+                    json.dumps(
+                        op.to_dict(), sort_keys=True, separators=(",", ":"), ensure_ascii=True
+                    )
+                )
                 handle.write("\n")
         os.replace(tmp_path, queue_path)
     finally:

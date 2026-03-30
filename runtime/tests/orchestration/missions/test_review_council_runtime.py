@@ -77,14 +77,21 @@ def test_review_mission_opt_in_handles_blocked_runtime(MockFSM, mock_load_policy
 
 @patch("runtime.orchestration.missions.review.load_council_policy")
 @patch("runtime.orchestration.missions.review.CouncilFSMv2")
-def test_review_mission_revise_verdict_maps_to_needs_revision(MockFSM, mock_load_policy, tmp_path: Path):
+def test_review_mission_revise_verdict_maps_to_needs_revision(
+    MockFSM, mock_load_policy, tmp_path: Path
+):
     """'Revise' (v2.2.1 verdict) must map to 'needs_revision' mission verdict."""
     mock_load_policy.return_value = object()
 
     runtime_result = CouncilRuntimeResult(
         status="complete",
         run_log={"synthesis": {"verdict": "Revise"}},
-        decision_payload={"status": "COMPLETE", "verdict": "Revise", "run_id": "council-2", "tier": "T1"},
+        decision_payload={
+            "status": "COMPLETE",
+            "verdict": "Revise",
+            "run_id": "council-2",
+            "tier": "T1",
+        },
         block_report=None,
     )
     MockFSM.return_value.run.return_value = runtime_result
@@ -98,7 +105,9 @@ def test_review_mission_revise_verdict_maps_to_needs_revision(MockFSM, mock_load
 
 @patch("runtime.orchestration.missions.review.load_council_policy")
 @patch("runtime.orchestration.missions.review.CouncilFSMv2")
-def test_review_mission_ccp_includes_run_type_and_output_has_tier(MockFSM, mock_load_policy, tmp_path: Path):
+def test_review_mission_ccp_includes_run_type_and_output_has_tier(
+    MockFSM, mock_load_policy, tmp_path: Path
+):
     """CCP header must include run_type; council_decision output must include tier."""
     mock_load_policy.return_value = object()
 
@@ -109,7 +118,12 @@ def test_review_mission_ccp_includes_run_type_and_output_has_tier(MockFSM, mock_
         return CouncilRuntimeResult(
             status="complete",
             run_log={"synthesis": {"verdict": "Accept"}},
-            decision_payload={"status": "COMPLETE", "verdict": "Accept", "run_id": "c3", "tier": "T2"},
+            decision_payload={
+                "status": "COMPLETE",
+                "verdict": "Accept",
+                "run_id": "c3",
+                "tier": "T2",
+            },
             block_report=None,
         )
 
@@ -138,7 +152,12 @@ def test_review_mission_allows_advisory_run_type(MockFSM, mock_load_policy, tmp_
         return CouncilRuntimeResult(
             status="complete",
             run_log={"synthesis": {"verdict": "Accept"}},
-            decision_payload={"status": "COMPLETE", "verdict": "Accept", "run_id": "c4", "tier": "T1"},
+            decision_payload={
+                "status": "COMPLETE",
+                "verdict": "Accept",
+                "run_id": "c4",
+                "tier": "T1",
+            },
             block_report=None,
         )
 

@@ -1,10 +1,11 @@
-import os
 import json
-import pytest
-from pathlib import Path
-from runtime.config import detect_repo_root, load_config, verify_containment
-from runtime.cli import main
 from unittest.mock import MagicMock, patch
+
+import pytest
+
+from runtime.cli import main
+from runtime.config import detect_repo_root, load_config, verify_containment
+
 
 @pytest.fixture
 def temp_repo(tmp_path):
@@ -14,6 +15,7 @@ def temp_repo(tmp_path):
     git_dir = repo / ".git"
     git_dir.mkdir()
     return repo
+
 
 class TestRepoRootDetection:
     def test_detect_repo_root_git_dir(self, temp_repo):
@@ -28,10 +30,10 @@ class TestRepoRootDetection:
         repo_root.mkdir()
         git_file = repo_root / ".git"
         git_file.write_text("gitdir: /path/to/main/repo/.git/worktrees/wt1")
-        
+
         subdir = repo_root / "src"
         subdir.mkdir()
-        
+
         assert detect_repo_root(start_path=subdir) == repo_root
 
     def test_detect_repo_root_no_marker_fails(self, tmp_path):
@@ -45,25 +47,27 @@ class TestRepoRootDetection:
         root = tmp_path / "root"
         root.mkdir()
         (root / ".git").mkdir()
-        
+
         current = root
         for i in range(10):
             current = current / f"level_{i}"
             current.mkdir()
-            
+
         with pytest.raises(RuntimeError):
             detect_repo_root(start_path=current, max_depth=5)
+
 
 class TestPathContainment:
     def test_verify_containment_success(self, temp_repo):
         """Should allow paths inside repo root."""
         inside = temp_repo / "docs" / "file.md"
         assert verify_containment(inside, temp_repo) is True
-        
+
     def test_verify_containment_failure(self, temp_repo, tmp_path):
         """Should reject paths outside repo root."""
         outside = tmp_path / "other_repo" / "secret.txt"
         assert verify_containment(outside, temp_repo) is False
+
 
 class TestConfigLoader:
     def test_load_config_valid(self, tmp_path):
@@ -89,6 +93,7 @@ class TestConfigLoader:
             load_config(cfg_path)
         assert "string" in str(excinfo.value)
 
+
 class TestCLI:
     def test_cli_status(self, temp_repo, capsys):
         """Test status command."""
@@ -104,7 +109,7 @@ class TestCLI:
         """Test that --config works BEFORE subcommand."""
         cfg_path = tmp_path / "test.yaml"
         cfg_path.write_text("key: value")
-        
+
         with patch("runtime.cli.detect_repo_root", return_value=temp_repo):
             with patch("sys.argv", ["runtime", "--config", str(cfg_path), "status"]):
                 assert main() == 0
@@ -116,7 +121,7 @@ class TestCLI:
         cfg_path = tmp_path / "test.yaml"
         # Use unsorted keys to test sorting
         cfg_path.write_text("z: 1\na: 2\nm: 3")
-        
+
         with patch("runtime.cli.detect_repo_root", return_value=temp_repo):
             with patch("sys.argv", ["runtime", "--config", str(cfg_path), "config", "show"]):
                 assert main() == 0
@@ -128,7 +133,7 @@ class TestCLI:
         """Test config validate with valid file."""
         cfg_path = tmp_path / "test.yaml"
         cfg_path.write_text("ok: true")
-        
+
         with patch("runtime.cli.detect_repo_root", return_value=temp_repo):
             with patch("sys.argv", ["runtime", "--config", str(cfg_path), "config", "validate"]):
                 assert main() == 0
@@ -281,10 +286,7 @@ class TestCLIMission:
     def test_mission_run_invalid_param(self, temp_repo, capsys, monkeypatch):
         """Test invalid parameter format."""
         monkeypatch.chdir(temp_repo)
-        with patch("sys.argv", [
-            "runtime", "mission", "run", "design",
-            "--param", "no_equals"
-        ]):
+        with patch("sys.argv", ["runtime", "mission", "run", "design", "--param", "no_equals"]):
             assert main() == 1
 
             captured = capsys.readouterr()

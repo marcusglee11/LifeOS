@@ -224,7 +224,12 @@ BLOCKED_REPORT_SCHEMA = {
 _ACCEPTANCE_LINEAGE_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
-    "required": ["acceptance_receipt_id", "workspace_sha", "workspace_tree_oid", "plan_core_sha256"],
+    "required": [
+        "acceptance_receipt_id",
+        "workspace_sha",
+        "workspace_tree_oid",
+        "plan_core_sha256",
+    ],
     "properties": {
         "acceptance_receipt_id": {"type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"},
         "workspace_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
@@ -265,9 +270,17 @@ LAND_RECEIPT_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "required": [
-        "receipt_id", "schema_version", "receipt_type", "created_at",
-        "landed_sha", "landed_tree_oid", "land_target", "merge_method",
-        "acceptance_lineage", "tree_equivalence", "emitter",
+        "receipt_id",
+        "schema_version",
+        "receipt_type",
+        "created_at",
+        "landed_sha",
+        "landed_tree_oid",
+        "land_target",
+        "merge_method",
+        "acceptance_lineage",
+        "tree_equivalence",
+        "emitter",
     ],
     "properties": {
         "receipt_id": {"type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"},

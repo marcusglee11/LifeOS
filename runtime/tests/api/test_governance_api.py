@@ -10,10 +10,10 @@ Test Coverage:
 - Chain integrity verification
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock
-from runtime.api.governance_api import GovernanceAPI
+from unittest.mock import Mock
+
 from runtime.amu0.lineage import LineageEntry
+from runtime.api.governance_api import GovernanceAPI
 
 
 class TestGovernanceAPIInitialization:
@@ -81,13 +81,7 @@ class TestDataHashing:
     def test_hash_nested_dict(self):
         """hash_data works with nested dictionaries."""
         api = GovernanceAPI()
-        data = {
-            "outer": {
-                "inner": {
-                    "deep": "value"
-                }
-            }
-        }
+        data = {"outer": {"inner": {"deep": "value"}}}
         hash_result = api.hash_data(data)
         assert isinstance(hash_result, str)
         assert len(hash_result) > 0
@@ -109,7 +103,7 @@ class TestDataHashing:
             "bool": True,
             "null": None,
             "list": [1, 2, 3],
-            "dict": {"nested": "value"}
+            "dict": {"nested": "value"},
         }
         hash_result = api.hash_data(data)
         assert isinstance(hash_result, str)
@@ -167,11 +161,7 @@ class TestLineageEntries:
 
     def test_get_lineage_entries_with_multiple_entries(self):
         """get_lineage_entries returns all entries."""
-        mock_entries = [
-            Mock(spec=LineageEntry),
-            Mock(spec=LineageEntry),
-            Mock(spec=LineageEntry)
-        ]
+        mock_entries = [Mock(spec=LineageEntry), Mock(spec=LineageEntry), Mock(spec=LineageEntry)]
         mock_entries[0].to_dict.return_value = {"entry_id": "test1"}
         mock_entries[1].to_dict.return_value = {"entry_id": "test2"}
         mock_entries[2].to_dict.return_value = {"entry_id": "test3"}
@@ -221,7 +211,7 @@ class TestLatestEntry:
         mock_entry = Mock(spec=LineageEntry)
         mock_entry.to_dict.return_value = {
             "entry_id": "latest",
-            "timestamp": "2026-01-19T00:00:00Z"
+            "timestamp": "2026-01-19T00:00:00Z",
         }
 
         mock_lineage = Mock()
@@ -268,10 +258,7 @@ class TestChainIntegrity:
     def test_verify_chain_integrity_broken_chain(self):
         """verify_chain_integrity returns (False, errors) for broken chain."""
         mock_lineage = Mock()
-        mock_lineage.verify_chain.return_value = (
-            False,
-            ["Entry test2: parent_hash mismatch"]
-        )
+        mock_lineage.verify_chain.return_value = (False, ["Entry test2: parent_hash mismatch"])
 
         api = GovernanceAPI(lineage=mock_lineage)
         is_valid, errors = api.verify_chain_integrity()
@@ -288,8 +275,8 @@ class TestChainIntegrity:
             [
                 "Error 1: parent_hash mismatch",
                 "Error 2: entry_hash invalid",
-                "Error 3: broken link"
-            ]
+                "Error 3: broken link",
+            ],
         )
 
         api = GovernanceAPI(lineage=mock_lineage)

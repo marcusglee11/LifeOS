@@ -10,8 +10,8 @@ from typing import Any
 from runtime.channels.telegram.config import TelegramConfig
 from runtime.channels.telegram.sessions import clear_session
 from runtime.channels.telegram.status import write_status
-from runtime.orchestration.coo.parser import ParseError
 from runtime.orchestration.coo import service as coo_service
+from runtime.orchestration.coo.parser import ParseError
 
 
 def _utc_now() -> str:
@@ -43,10 +43,12 @@ def _build_inline_markup(proposal_id: str) -> Any:
     from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
     return InlineKeyboardMarkup(
-        [[
-            InlineKeyboardButton("Approve", callback_data=f"approve:{proposal_id}"),
-            InlineKeyboardButton("Reject", callback_data=f"reject:{proposal_id}"),
-        ]]
+        [
+            [
+                InlineKeyboardButton("Approve", callback_data=f"approve:{proposal_id}"),
+                InlineKeyboardButton("Reject", callback_data=f"reject:{proposal_id}"),
+            ]
+        ]
     )
 
 
@@ -76,6 +78,7 @@ async def _send_typing_action(update: Any, context: Any) -> bool:
 
     try:
         from telegram.constants import ChatAction
+
         action = ChatAction.TYPING
     except ModuleNotFoundError:
         action = "typing"
@@ -259,7 +262,9 @@ async def _dispatch_slash_command(
         identifier = parts2[0]
         reason = parts2[1].strip() if len(parts2) > 1 else "Rejected from Telegram"
         actor = _actor_label(update, "telegram_reject")
-        result = await asyncio.to_thread(coo_service.reject_item, identifier, repo_root, actor, reason)
+        result = await asyncio.to_thread(
+            coo_service.reject_item, identifier, repo_root, actor, reason
+        )
         kind = result.get("kind")
         if kind == "operation_receipt":
             await message.reply_text(_render_terminal_text(result["receipt"]))
@@ -272,7 +277,9 @@ async def _dispatch_slash_command(
     return True
 
 
-async def handle_message(update: Any, context: Any, *, repo_root: Path, config: TelegramConfig) -> None:
+async def handle_message(
+    update: Any, context: Any, *, repo_root: Path, config: TelegramConfig
+) -> None:
     if not _is_private_chat(update) or not _is_allowed(update, config):
         return
 
@@ -326,7 +333,9 @@ async def handle_message(update: Any, context: Any, *, repo_root: Path, config: 
     )
 
 
-async def handle_callback(update: Any, context: Any, *, repo_root: Path, config: TelegramConfig) -> None:
+async def handle_callback(
+    update: Any, context: Any, *, repo_root: Path, config: TelegramConfig
+) -> None:
     del context
     if not _is_private_chat(update) or not _is_allowed(update, config):
         return

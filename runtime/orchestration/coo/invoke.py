@@ -1,4 +1,5 @@
 """Thin adapter for invoking the live OpenClaw COO agent."""
+
 from __future__ import annotations
 
 import json
@@ -7,10 +8,8 @@ import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 from runtime.receipts.invocation_receipt import record_invocation_receipt
-from runtime.util.canonical import compute_sha256
 
 
 class InvocationError(RuntimeError):
@@ -18,17 +17,19 @@ class InvocationError(RuntimeError):
 
 
 # Sub-keys that appear in proposals list items and must be indented 2 spaces.
-_PROPOSALS_SUB_KEYS = frozenset({
-    "title",
-    "rationale",
-    "operation_kind",
-    "action_id",
-    "args",
-    "requires_approval",
-    "proposed_action",
-    "urgency_override",
-    "suggested_owner",
-})
+_PROPOSALS_SUB_KEYS = frozenset(
+    {
+        "title",
+        "rationale",
+        "operation_kind",
+        "action_id",
+        "args",
+        "requires_approval",
+        "proposed_action",
+        "urgency_override",
+        "suggested_owner",
+    }
+)
 
 
 def _normalize_proposal_indentation(text: str) -> str:
@@ -137,26 +138,26 @@ def invoke_coo_reasoning(
             "OPERATION EXAMPLE:\n"
             "schema_version: operation_proposal.v1\n"
             "proposal_id: OP-a1b2c3d4\n"
-            "title: \"Write COO workspace note\"\n"
-            "rationale: \"The request is a workspace mutation that fits the allowlisted ops lane.\"\n"
+            'title: "Write COO workspace note"\n'
+            'rationale: "The request is a workspace mutation that fits the allowlisted ops lane."\n'
             "operation_kind: mutation\n"
             "action_id: workspace.file.write\n"
             "args:\n"
             "  path: /workspace/notes/example.md\n"
-            "  content: \"Hello from COO.\"\n"
+            '  content: "Hello from COO."\n'
             "requires_approval: true\n"
             "suggested_owner: lifeos\n\n"
             "ESCALATION EXAMPLE:\n"
             "schema_version: escalation_packet.v1\n"
             "type: governance_surface_touch\n"
-            "objective: \"the CEO objective text\"\n"
+            'objective: "the CEO objective text"\n'
             "options:\n"
             "  - option_id: A\n"
-            "    title: \"Option title\"\n"
-            "    action: \"What this option does\"\n"
+            '    title: "Option title"\n'
+            '    action: "What this option does"\n'
             "  - option_id: B\n"
-            "    title: \"Alternative title\"\n"
-            "    action: \"What this alternative does\"\n\n"
+            '    title: "Alternative title"\n'
+            '    action: "What this alternative does"\n\n'
             "Rules:\n"
             "- operation_proposal.v1 is for allowlisted workspace/internal actions only\n"
             "- action_id: one of workspace.file.write, workspace.file.edit, lifeos.note.record\n"
@@ -195,10 +196,14 @@ def invoke_coo_reasoning(
     cmd = [
         "openclaw",
         "agent",
-        "--agent", "main",
-        "--session-id", session_id,
-        "--thinking", _thinking_level_for_mode(mode),
-        "--message", message,
+        "--agent",
+        "main",
+        "--session-id",
+        session_id,
+        "--thinking",
+        _thinking_level_for_mode(mode),
+        "--message",
+        message,
         "--json",
     ]
 
@@ -297,9 +302,7 @@ def invoke_coo_reasoning(
             schema_validation="n/a",
             error=stderr_snippet,
         )
-        raise InvocationError(
-            f"openclaw exited {result.returncode}: {stderr_snippet}"
-        )
+        raise InvocationError(f"openclaw exited {result.returncode}: {stderr_snippet}")
 
     try:
         envelope = json.loads(result.stdout)
@@ -316,9 +319,7 @@ def invoke_coo_reasoning(
             schema_validation="fail",
             error=f"JSON decode error: {exc}",
         )
-        raise InvocationError(
-            f"openclaw output is not valid JSON: {exc}"
-        ) from exc
+        raise InvocationError(f"openclaw output is not valid JSON: {exc}") from exc
 
     if envelope.get("status") != "ok":
         record_invocation_receipt(
@@ -333,9 +334,7 @@ def invoke_coo_reasoning(
             schema_validation="fail",
             error=f"openclaw status={envelope.get('status')!r}",
         )
-        raise InvocationError(
-            f"openclaw returned status={envelope.get('status')!r}"
-        )
+        raise InvocationError(f"openclaw returned status={envelope.get('status')!r}")
 
     try:
         payloads = envelope["result"]["payloads"]
@@ -353,9 +352,7 @@ def invoke_coo_reasoning(
             schema_validation="fail",
             error=f"unexpected output shape: {exc}",
         )
-        raise InvocationError(
-            f"Unexpected openclaw output shape: {exc}"
-        ) from exc
+        raise InvocationError(f"Unexpected openclaw output shape: {exc}") from exc
 
     normalized = _normalize_proposal_indentation(raw_text)
 

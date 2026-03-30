@@ -5,10 +5,11 @@ Canonical task registry for the COO agent. The COO reads and writes this file
 to track task state across invocations. This is the single source of truth for
 all active, pending, completed, and blocked tasks.
 """
+
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -56,9 +57,7 @@ def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
     def _req(key: str) -> Any:
         val = raw.get(key)
         if val is None:
-            raise BacklogValidationError(
-                f"Task[{index}] missing required field '{key}'"
-            )
+            raise BacklogValidationError(f"Task[{index}] missing required field '{key}'")
         return val
 
     task_id = str(_req("id")).strip()
@@ -185,9 +184,7 @@ def filter_actionable(tasks: list[TaskEntry]) -> list[TaskEntry]:
     return sorted(active, key=lambda t: _PRIORITY_ORDER.get(t.priority, 99))
 
 
-def mark_in_progress(
-    tasks: list[TaskEntry], task_id: str, evidence: str = ""
-) -> list[TaskEntry]:
+def mark_in_progress(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> list[TaskEntry]:
     """Return a new list with the specified task marked in_progress.
 
     Raises BacklogValidationError if task_id is not found.
@@ -220,15 +217,11 @@ def mark_in_progress(
             result.append(task)
 
     if not found:
-        raise BacklogValidationError(
-            f"Task '{task_id}' not found in backlog"
-        )
+        raise BacklogValidationError(f"Task '{task_id}' not found in backlog")
     return result
 
 
-def mark_blocked(
-    tasks: list[TaskEntry], task_id: str, evidence: str = ""
-) -> list[TaskEntry]:
+def mark_blocked(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> list[TaskEntry]:
     """Return a new list with the specified task marked blocked.
 
     Raises BacklogValidationError if task_id is not found.
@@ -261,15 +254,11 @@ def mark_blocked(
             result.append(task)
 
     if not found:
-        raise BacklogValidationError(
-            f"Task '{task_id}' not found in backlog"
-        )
+        raise BacklogValidationError(f"Task '{task_id}' not found in backlog")
     return result
 
 
-def mark_completed(
-    tasks: list[TaskEntry], task_id: str, evidence: str = ""
-) -> list[TaskEntry]:
+def mark_completed(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> list[TaskEntry]:
     """Return a new list with the specified task marked completed.
 
     Raises BacklogValidationError if task_id is not found.
@@ -304,7 +293,5 @@ def mark_completed(
             result.append(task)
 
     if not found:
-        raise BacklogValidationError(
-            f"Task '{task_id}' not found in backlog"
-        )
+        raise BacklogValidationError(f"Task '{task_id}' not found in backlog")
     return result

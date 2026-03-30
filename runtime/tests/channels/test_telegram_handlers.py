@@ -7,8 +7,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from runtime.channels.telegram.config import TelegramConfig
 from runtime.channels.telegram import handlers
+from runtime.channels.telegram.config import TelegramConfig
 from runtime.orchestration.coo.parser import ParseError
 
 
@@ -58,7 +58,9 @@ async def _direct_to_thread(func, *args, **kwargs):
 
 
 @pytest.mark.asyncio
-async def test_handle_message_replies_with_buttons(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+async def test_handle_message_replies_with_buttons(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
     message = _FakeMessage(text="write a note")
     update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
@@ -151,7 +153,9 @@ async def test_send_typing_action_uses_bot_chat_action() -> None:
 
 
 @pytest.mark.asyncio
-async def test_handle_message_ignores_unauthorized_user(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+async def test_handle_message_ignores_unauthorized_user(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     config = TelegramConfig(bot_token="token", allow_from=frozenset({999}), mode="polling")
     message = _FakeMessage(text="write a note")
     update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
@@ -164,7 +168,9 @@ async def test_handle_message_ignores_unauthorized_user(monkeypatch: pytest.Monk
 
 
 @pytest.mark.asyncio
-async def test_handle_message_replies_on_parse_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+async def test_handle_message_replies_on_parse_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
     message = _FakeMessage(text="write a note")
     update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
@@ -190,7 +196,9 @@ async def test_handle_message_replies_on_parse_error(monkeypatch: pytest.MonkeyP
 
 
 @pytest.mark.asyncio
-async def test_handle_callback_approve_edits_message(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+async def test_handle_callback_approve_edits_message(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
     message = _FakeMessage(text="write a note")
     query = _FakeQuery(data="approve:OP-a1b2c3d4")
@@ -226,6 +234,7 @@ async def test_handle_message_writes_activity_status(
 ) -> None:
     """handle_message writes last_message_at, last_reply_at, last_latency_ms."""
     import json as _json
+
     config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
     message = _FakeMessage(text="write a note")
     update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
@@ -261,6 +270,7 @@ async def test_handle_callback_writes_last_callback_at(
 ) -> None:
     """handle_callback writes last_callback_at after processing."""
     import json as _json
+
     config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
     message = _FakeMessage(text="write a note")
     query = _FakeQuery(data="approve:OP-a1b2c3d4")
@@ -290,6 +300,7 @@ async def test_handle_callback_writes_last_callback_at(
     data = _json.loads(status_path.read_text())
     assert "last_callback_at" in data
 
+
 @pytest.mark.asyncio
 async def test_handle_message_writes_last_error_on_exception(
     monkeypatch: pytest.MonkeyPatch,
@@ -297,6 +308,7 @@ async def test_handle_message_writes_last_error_on_exception(
 ) -> None:
     """handle_message writes last_error to status when COO invocation fails."""
     import json as _json
+
     config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
     message = _FakeMessage(text="do something")
     update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
@@ -321,6 +333,7 @@ async def test_handle_message_writes_last_error_on_exception(
 # Slash command tests
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_slash_help_replies_without_coo_call(
     monkeypatch: pytest.MonkeyPatch,
@@ -332,9 +345,7 @@ async def test_slash_help_replies_without_coo_call(
     update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
     coo_called = []
 
-    monkeypatch.setattr(
-        handlers.coo_service, "chat_message", lambda *a, **k: coo_called.append(1)
-    )
+    monkeypatch.setattr(handlers.coo_service, "chat_message", lambda *a, **k: coo_called.append(1))
 
     await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
 
@@ -413,7 +424,9 @@ async def test_slash_status_replies_without_typing(
             "by_status": {"pending": 2, "in_progress": 1, "completed": 0, "blocked": 0},
             "by_priority": {"P0": 1, "P1": 0, "P2": 0, "P3": 0},
             "dispatch": {
-                "inbox": 0, "active": 0, "completed_total": 0,
+                "inbox": 0,
+                "active": 0,
+                "completed_total": 0,
                 "escalations_pending": 0,
             },
             "generated_at": "2026-01-01T00:00:00+00:00",
@@ -445,7 +458,11 @@ async def test_slash_propose_returns_summary_no_buttons(
             "kind": "task_proposal",
             "payload": {
                 "proposals": [
-                    {"task_id": "T-001", "proposed_action": "dispatch", "rationale": "Top priority."},
+                    {
+                        "task_id": "T-001",
+                        "proposed_action": "dispatch",
+                        "rationale": "Top priority.",
+                    },
                 ]
             },
             "raw_output": "",
@@ -509,7 +526,11 @@ async def test_slash_direct_op_proposal_shows_buttons(
             "kind": "operation_proposal",
             "payload": {
                 "proposal_id": "OP-a1b2c3d4",
-                "proposal": {"title": "Write note", "rationale": "User asked.", "requires_approval": True},
+                "proposal": {
+                    "title": "Write note",
+                    "rationale": "User asked.",
+                    "requires_approval": True,
+                },
             },
             "raw_output": "",
             "run_id": "test",
@@ -640,13 +661,16 @@ async def test_slash_approve_actor_label_includes_user_id(
 
     def _fake_approve(identifier, repo_root, actor):
         captured_actor.append(actor)
-        return {"kind": "operation_receipt", "receipt": {
-            "proposal_id": "OP-a1b2c3d4",
-            "order_id": "OPR-abc",
-            "status": "executed",
-            "reason": None,
-            "error": None,
-        }}
+        return {
+            "kind": "operation_receipt",
+            "receipt": {
+                "proposal_id": "OP-a1b2c3d4",
+                "order_id": "OPR-abc",
+                "status": "executed",
+                "reason": None,
+                "error": None,
+            },
+        }
 
     monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
     monkeypatch.setattr(handlers.coo_service, "approve_item", _fake_approve)

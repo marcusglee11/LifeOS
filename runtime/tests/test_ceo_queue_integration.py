@@ -1,15 +1,16 @@
 """Integration tests for CEO Approval Queue."""
 
-import pytest
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import pytest
+
 from runtime.orchestration.ceo_queue import (
     CEOQueue,
     EscalationEntry,
-    EscalationType,
     EscalationStatus,
+    EscalationType,
 )
 from runtime.orchestration.missions.autonomous_build_cycle import (
     AutonomousBuildCycleMission,
@@ -37,7 +38,7 @@ def test_repo(tmp_path: Path) -> Path:
             "oscillation_window": 3,
         }
     }
-    with open(repo / "config" / "policy" / "loop_policy.json", 'w') as f:
+    with open(repo / "config" / "policy" / "loop_policy.json", "w") as f:
         json.dump(policy_config, f)
 
     return repo
@@ -67,15 +68,17 @@ class TestCEOQueueIntegration:
         queue = CEOQueue(db_path=test_repo / "artifacts" / "queue" / "escalations.db")
 
         # Create escalation
-        entry_id = queue.add_escalation(EscalationEntry(
-            type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
-            context={
-                "path": "docs/01_governance/test.md",
-                "action": "modify",
-                "summary": "Attempted to modify governance document",
-            },
-            run_id="test-run-001",
-        ))
+        entry_id = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
+                context={
+                    "path": "docs/01_governance/test.md",
+                    "action": "modify",
+                    "summary": "Attempted to modify governance document",
+                },
+                run_id="test-run-001",
+            )
+        )
 
         # Verify it's pending
         pending = queue.get_pending()
@@ -106,14 +109,16 @@ class TestCEOQueueIntegration:
         queue = CEOQueue(db_path=test_repo / "artifacts" / "queue" / "escalations.db")
 
         # Create escalation
-        entry_id = queue.add_escalation(EscalationEntry(
-            type=EscalationType.BUDGET_ESCALATION,
-            context={
-                "tokens_requested": 1000000,
-                "reason": "Large refactoring task",
-            },
-            run_id="test-run-002",
-        ))
+        entry_id = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.BUDGET_ESCALATION,
+                context={
+                    "tokens_requested": 1000000,
+                    "reason": "Large refactoring task",
+                },
+                run_id="test-run-002",
+            )
+        )
 
         # Reject
         result = queue.reject(entry_id, "Budget too high", "CEO")
@@ -131,11 +136,13 @@ class TestCEOQueueIntegration:
         # Create multiple escalations
         ids = []
         for i in range(3):
-            entry_id = queue.add_escalation(EscalationEntry(
-                type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
-                context={"index": i},
-                run_id=f"test-run-{i:03d}",
-            ))
+            entry_id = queue.add_escalation(
+                EscalationEntry(
+                    type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
+                    context={"index": i},
+                    run_id=f"test-run-{i:03d}",
+                )
+            )
             ids.append(entry_id)
 
         # Get pending - should be in order
@@ -188,11 +195,13 @@ class TestCEOQueueIntegration:
 
         # Create first queue instance
         queue1 = CEOQueue(db_path=db_path)
-        entry_id = queue1.add_escalation(EscalationEntry(
-            type=EscalationType.POLICY_VIOLATION,
-            context={"violation": "test"},
-            run_id="test-run-persist",
-        ))
+        entry_id = queue1.add_escalation(
+            EscalationEntry(
+                type=EscalationType.POLICY_VIOLATION,
+                context={"violation": "test"},
+                run_id="test-run-persist",
+            )
+        )
         del queue1
 
         # Create second queue instance
@@ -229,11 +238,13 @@ class TestCEOQueueIntegration:
             },
         }
 
-        entry_id = queue.add_escalation(EscalationEntry(
-            type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
-            context=complex_context,
-            run_id="test-run-context",
-        ))
+        entry_id = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.GOVERNANCE_SURFACE_TOUCH,
+                context=complex_context,
+                run_id="test-run-context",
+            )
+        )
 
         # Retrieve and verify context
         entry = queue.get_by_id(entry_id)
@@ -245,11 +256,13 @@ class TestCEOQueueIntegration:
         """CEO can approve with conditional notes."""
         queue = CEOQueue(db_path=test_repo / "artifacts" / "queue" / "escalations.db")
 
-        entry_id = queue.add_escalation(EscalationEntry(
-            type=EscalationType.BUDGET_ESCALATION,
-            context={"tokens": 50000},
-            run_id="test-run-conditional",
-        ))
+        entry_id = queue.add_escalation(
+            EscalationEntry(
+                type=EscalationType.BUDGET_ESCALATION,
+                context={"tokens": 50000},
+                run_id="test-run-conditional",
+            )
+        )
 
         # Approve with conditions
         condition = "Approved only for P0 tasks. Revert if tests fail."
@@ -274,11 +287,13 @@ class TestCEOQueueIntegration:
 
         created_ids = []
         for esc_type in types_to_test:
-            entry_id = queue.add_escalation(EscalationEntry(
-                type=esc_type,
-                context={"type": esc_type.value},
-                run_id=f"test-run-{esc_type.value}",
-            ))
+            entry_id = queue.add_escalation(
+                EscalationEntry(
+                    type=esc_type,
+                    context={"type": esc_type.value},
+                    run_id=f"test-run-{esc_type.value}",
+                )
+            )
             created_ids.append((entry_id, esc_type))
 
         # Verify all created

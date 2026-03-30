@@ -3,15 +3,15 @@
 Follows the proven workspace_lock.py pattern (atomic O_CREAT|O_EXCL, PID liveness,
 stale-lock recovery). Lock file lives at artifacts/locks/run.lock.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
 import os
-from pathlib import Path
 import time
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict
-
 
 LOCK_RELATIVE_PATH = Path("artifacts/locks/run.lock")
 DEFAULT_TTL = 21600  # 6 hours
@@ -86,6 +86,7 @@ def acquire_run_lock(
     now = int(time.time())
 
     from datetime import datetime, timezone
+
     start_ts = datetime.now(timezone.utc).isoformat()
 
     payload = {
@@ -104,7 +105,9 @@ def acquire_run_lock(
             fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             try:
                 with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
-                    json.dump(payload, handle, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+                    json.dump(
+                        payload, handle, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+                    )
                     handle.write("\n")
             except Exception:
                 try:
@@ -120,7 +123,9 @@ def acquire_run_lock(
             age_seconds = now - created_at_epoch if created_at_epoch else ttl_seconds + 1
             existing_pid_ns = existing.get("pid_namespace")
             current_pid_ns = _get_pid_namespace()
-            pid_verifiable = bool(existing_pid_ns) and bool(current_pid_ns) and existing_pid_ns == current_pid_ns
+            pid_verifiable = (
+                bool(existing_pid_ns) and bool(current_pid_ns) and existing_pid_ns == current_pid_ns
+            )
             pid_alive = _is_pid_alive(existing_pid) if pid_verifiable else False
             stale = (
                 not existing_pid

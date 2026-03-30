@@ -5,7 +5,6 @@ import argparse
 import copy
 import json
 import os
-import stat
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Mapping
@@ -29,7 +28,10 @@ def ensure_dir_0700(path: Path) -> None:
 
 
 def write_json_0600(path: Path, payload: Dict[str, Any]) -> None:
-    path.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
     os.chmod(path, 0o600)
 
 
@@ -88,7 +90,9 @@ def validate_env(mode: str, env: Mapping[str, str]) -> Dict[str, bool]:
     return presence
 
 
-def generate_overlay_config(base_cfg: Mapping[str, Any], mode: str, env: Mapping[str, str]) -> Dict[str, Any]:
+def generate_overlay_config(
+    base_cfg: Mapping[str, Any], mode: str, env: Mapping[str, str]
+) -> Dict[str, Any]:
     cfg = copy.deepcopy(dict(base_cfg))
     channels = cfg.get("channels")
     if not isinstance(channels, dict):
@@ -167,11 +171,22 @@ def generate_overlay_files(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate Slack-enabled OpenClaw overlay config from env-only secrets.")
-    parser.add_argument("--base-config", default=os.environ.get("OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")))
+    parser = argparse.ArgumentParser(
+        description="Generate Slack-enabled OpenClaw overlay config from env-only secrets."
+    )
+    parser.add_argument(
+        "--base-config",
+        default=os.environ.get(
+            "OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")
+        ),
+    )
     parser.add_argument("--output-dir")
     parser.add_argument("--mode", choices=[MODE_SOCKET, MODE_HTTP], default=None)
-    parser.add_argument("--check-base", action="store_true", help="Check base Slack posture only and print redacted-safe summary.")
+    parser.add_argument(
+        "--check-base",
+        action="store_true",
+        help="Check base Slack posture only and print redacted-safe summary.",
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
@@ -194,7 +209,9 @@ def main() -> int:
         return 0
 
     try:
-        result = generate_overlay_files(base_config_path, output_dir, mode, os.environ, created_utc=ts)
+        result = generate_overlay_files(
+            base_config_path, output_dir, mode, os.environ, created_utc=ts
+        )
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1
@@ -209,4 +226,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

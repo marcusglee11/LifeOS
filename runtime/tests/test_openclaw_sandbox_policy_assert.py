@@ -18,7 +18,9 @@ def _profile() -> dict[str, object]:
     }
 
 
-def _payload(mode: str = "all", *, session_is_sandboxed: bool = True, elevated_enabled: bool = False) -> dict[str, object]:
+def _payload(
+    mode: str = "all", *, session_is_sandboxed: bool = True, elevated_enabled: bool = False
+) -> dict[str, object]:
     return {
         "sandbox": {
             "mode": mode,

@@ -32,15 +32,18 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
     coo_dst = tools_dir / "coo_worktree.sh"
     shutil.copy2(coo_src, coo_dst)
     coo_dst.chmod(coo_dst.stat().st_mode | stat.S_IEXEC)
-    shutil.copy2(source_repo / "runtime" / "tools" / "openclaw_distill_lane.py", tools_dir / "openclaw_distill_lane.py")
+    shutil.copy2(
+        source_repo / "runtime" / "tools" / "openclaw_distill_lane.py",
+        tools_dir / "openclaw_distill_lane.py",
+    )
 
     _write_exec(
         tools_dir / "openclaw_gateway_ensure.sh",
-        "#!/usr/bin/env bash\nset -euo pipefail\nexit \"${STUB_GATEWAY_RC:-0}\"\n",
+        '#!/usr/bin/env bash\nset -euo pipefail\nexit "${STUB_GATEWAY_RC:-0}"\n',
     )
     _write_exec(
         tools_dir / "openclaw_models_preflight.sh",
-        "#!/usr/bin/env bash\nset -euo pipefail\nexit \"${STUB_PREFLIGHT_RC:-0}\"\n",
+        '#!/usr/bin/env bash\nset -euo pipefail\nexit "${STUB_PREFLIGHT_RC:-0}"\n',
     )
     _write_exec(
         tools_dir / "openclaw_verify_surface.sh",
@@ -48,9 +51,9 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
             [
                 "#!/usr/bin/env bash",
                 "set -euo pipefail",
-                "state_dir=\"${OPENCLAW_STATE_DIR:-$HOME/.openclaw}\"",
-                "gate_status_path=\"${OPENCLAW_GATE_STATUS_PATH:-$state_dir/runtime/gates/gate_status.json}\"",
-                "mkdir -p \"$(dirname \"$gate_status_path\")\"",
+                'state_dir="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"',
+                'gate_status_path="${OPENCLAW_GATE_STATUS_PATH:-$state_dir/runtime/gates/gate_status.json}"',
+                'mkdir -p "$(dirname "$gate_status_path")"',
                 "python3 - <<'PY' \"$gate_status_path\"",
                 "import json",
                 "import os",
@@ -65,8 +68,8 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
                 "    obj = {'pass': True, 'blocking_reasons': []}",
                 "out.write_text(json.dumps(obj, ensure_ascii=True) + '\\n', encoding='utf-8')",
                 "PY",
-                "echo \"PASS gate_status=$gate_status_path\"",
-                "exit \"${STUB_VERIFY_RC:-0}\"",
+                'echo "PASS gate_status=$gate_status_path"',
+                'exit "${STUB_VERIFY_RC:-0}"',
             ]
         )
         + "\n",
@@ -79,7 +82,7 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
                 "import os",
                 "import sys",
                 "",
-                "print(os.environ.get('STUB_MODEL_POLICY_JSON', '{\"policy_ok\":true,\"violations\":[],\"ladders\":{}}'))",
+                'print(os.environ.get(\'STUB_MODEL_POLICY_JSON\', \'{"policy_ok":true,"violations":[],"ladders":{}}\'))',
                 "raise SystemExit(int(os.environ.get('STUB_MODEL_POLICY_RC', '0')))",
             ]
         )
@@ -113,7 +116,10 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
                     "interfaces_policy_failed": {"severity": "drift", "drift_bypassable": True},
                     "cron_delivery_guard_failed": {"severity": "drift", "drift_bypassable": True},
                     "sandbox_mode_disallowed": {"severity": "hard", "drift_bypassable": False},
-                    "sandbox_session_not_sandboxed": {"severity": "hard", "drift_bypassable": False},
+                    "sandbox_session_not_sandboxed": {
+                        "severity": "hard",
+                        "drift_bypassable": False,
+                    },
                     "sandbox_explain_parse_failed": {"severity": "hard", "drift_bypassable": False},
                     "sandbox_elevated_enabled": {"severity": "hard", "drift_bypassable": False},
                     "leak_scan_failed": {"severity": "hard", "drift_bypassable": False},
@@ -142,43 +148,43 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
             [
                 "#!/usr/bin/env bash",
                 "set -euo pipefail",
-                "if [ \"${1:-}\" = \"agent\" ] && [ \"${2:-}\" = \"--local\" ] && [ \"${3:-}\" = \"--agent\" ] && [ \"${4:-}\" = \"quick\" ]; then",
-                "  if [ \"${STUB_QUICK_FAIL:-0}\" = \"1\" ]; then",
+                'if [ "${1:-}" = "agent" ] && [ "${2:-}" = "--local" ] && [ "${3:-}" = "--agent" ] && [ "${4:-}" = "quick" ]; then',
+                '  if [ "${STUB_QUICK_FAIL:-0}" = "1" ]; then',
                 "    echo 'quick unavailable' >&2",
                 "    exit 1",
                 "  fi",
-                "  if [ \"${9:-}\" = \"Reply READY\" ]; then",
-                "    echo '{\"payloads\":[{\"text\":\"READY\"}]}'",
+                '  if [ "${9:-}" = "Reply READY" ]; then',
+                '    echo \'{"payloads":[{"text":"READY"}]}\'',
                 "    exit 0",
                 "  fi",
-                "  if [ -n \"${STUB_DISTILL_JSON:-}\" ]; then",
-                "    echo \"${STUB_DISTILL_JSON}\"",
+                '  if [ -n "${STUB_DISTILL_JSON:-}" ]; then',
+                '    echo "${STUB_DISTILL_JSON}"',
                 "  else",
-                "    echo '{\"payloads\":[{\"text\":\"{\\\"status\\\":\\\"ok\\\",\\\"template_id\\\":\\\"actionable_faults\\\",\\\"summary\\\":[\\\"fallback\\\"],\\\"key_entities\\\":[\\\"openclaw\\\"],\\\"raw_payload_sha256\\\":\\\"missing\\\",\\\"traffic_class\\\":\\\"repo_scans\\\",\\\"source_command\\\":\\\"openclaw models status\\\",\\\"bypass_reason\\\":null}\"}]}'",
+                '    echo \'{"payloads":[{"text":"{\\"status\\":\\"ok\\",\\"template_id\\":\\"actionable_faults\\",\\"summary\\":[\\"fallback\\"],\\"key_entities\\":[\\"openclaw\\"],\\"raw_payload_sha256\\":\\"missing\\",\\"traffic_class\\":\\"repo_scans\\",\\"source_command\\":\\"openclaw models status\\",\\"bypass_reason\\":null}"}]}\'',
                 "  fi",
                 "  exit 0",
                 "fi",
-                "if [ \"${1:-}\" = \"--version\" ]; then",
-                "  echo \"${STUB_OPENCLAW_VERSION:-openclaw 1.2.3}\"",
+                'if [ "${1:-}" = "--version" ]; then',
+                '  echo "${STUB_OPENCLAW_VERSION:-openclaw 1.2.3}"',
                 "  exit 0",
                 "fi",
-                "if [ \"${1:-}\" = \"models\" ] && [ \"${2:-}\" = \"status\" ]; then",
+                'if [ "${1:-}" = "models" ] && [ "${2:-}" = "status" ]; then',
                 "  printf '%s' \"${STUB_MODELS_STATUS:-openai-codex/gpt-5.3-codex text yes configured}\"",
                 "  exit 0",
                 "fi",
-                "if [ \"${1:-}\" = \"status\" ] && [ \"${2:-}\" = \"--usage\" ]; then",
+                'if [ "${1:-}" = "status" ] && [ "${2:-}" = "--usage" ]; then',
                 "  printf '%s' \"${STUB_STATUS_USAGE:-openai usage visible}\"",
                 "  exit 0",
                 "fi",
-                "if [ \"${1:-}\" = \"status\" ] && [ \"${2:-}\" = \"--all\" ] && [ \"${3:-}\" = \"--usage\" ]; then",
+                'if [ "${1:-}" = "status" ] && [ "${2:-}" = "--all" ] && [ "${3:-}" = "--usage" ]; then',
                 "  printf '%s' \"${STUB_STATUS_ALL_USAGE:-- openai-codex usage: 90% left}\"",
                 "  exit 0",
                 "fi",
-                "if [ \"${1:-}\" = \"dashboard\" ]; then",
-                "  echo \"Dashboard URL: http://127.0.0.1:18789/#token=test-token\"",
+                'if [ "${1:-}" = "dashboard" ]; then',
+                '  echo "Dashboard URL: http://127.0.0.1:18789/#token=test-token"',
                 "  exit 0",
                 "fi",
-                "echo \"{}\"",
+                'echo "{}"',
                 "exit 0",
             ]
         )
@@ -236,7 +242,9 @@ def _write_active_health_receipt(state_dir: Path, env: dict[str, str]) -> None:
     )
 
 
-def _run_start(repo_dir: Path, env: dict[str, str], *extra: str) -> subprocess.CompletedProcess[str]:
+def _run_start(
+    repo_dir: Path, env: dict[str, str], *extra: str
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "start", *extra],
         cwd=repo_dir,
@@ -388,7 +396,9 @@ def test_models_status_parses_policy_json(tmp_path: Path) -> None:
     assert "WARNING: Top rung (openai-codex/gpt-5.3-codex) not authenticated" in proc.stdout
 
 
-def test_openclaw_models_status_distill_shadow_preserves_raw_output_and_writes_audit(tmp_path: Path) -> None:
+def test_openclaw_models_status_distill_shadow_preserves_raw_output_and_writes_audit(
+    tmp_path: Path,
+) -> None:
     repo_dir, env, state_dir = _prepare_repo(tmp_path)
     env["LIFEOS_DISTILL_ENABLE"] = "1"
     env["LIFEOS_DISTILL_MODE"] = "shadow"
@@ -416,7 +426,13 @@ def test_openclaw_models_status_distill_shadow_preserves_raw_output_and_writes_a
     env["STUB_DISTILL_JSON"] = json.dumps(distill_payload)
 
     proc = subprocess.run(
-        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "openclaw", "--", "models", "status"],
+        [
+            str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"),
+            "openclaw",
+            "--",
+            "models",
+            "status",
+        ],
         cwd=repo_dir,
         env=env,
         check=False,
@@ -434,7 +450,14 @@ def test_openclaw_sandbox_explain_does_not_require_training_worktree(tmp_path: P
     repo_dir, env, _ = _prepare_repo(tmp_path)
 
     proc = subprocess.run(
-        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "openclaw", "--", "sandbox", "explain", "--json"],
+        [
+            str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"),
+            "openclaw",
+            "--",
+            "sandbox",
+            "explain",
+            "--json",
+        ],
         cwd=repo_dir,
         env=env,
         check=False,
@@ -475,7 +498,13 @@ def test_openclaw_models_status_distill_active_replaces_output(tmp_path: Path) -
     env["STUB_DISTILL_JSON"] = json.dumps(distill_payload)
 
     proc = subprocess.run(
-        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "openclaw", "--", "models", "status"],
+        [
+            str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"),
+            "openclaw",
+            "--",
+            "models",
+            "status",
+        ],
         cwd=repo_dir,
         env=env,
         check=False,
@@ -517,7 +546,14 @@ def test_openclaw_status_all_usage_active_never_replaces_output(tmp_path: Path) 
     env["STUB_DISTILL_JSON"] = json.dumps(distill_payload)
 
     proc = subprocess.run(
-        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "openclaw", "--", "status", "--all", "--usage"],
+        [
+            str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"),
+            "openclaw",
+            "--",
+            "status",
+            "--all",
+            "--usage",
+        ],
         cwd=repo_dir,
         env=env,
         check=False,
@@ -529,7 +565,9 @@ def test_openclaw_status_all_usage_active_never_replaces_output(tmp_path: Path) 
     assert "DISTILL_STATUS=ok" not in proc.stdout
 
 
-def test_openclaw_models_status_active_without_health_receipt_bypasses_to_raw(tmp_path: Path) -> None:
+def test_openclaw_models_status_active_without_health_receipt_bypasses_to_raw(
+    tmp_path: Path,
+) -> None:
     repo_dir, env, state_dir = _prepare_repo(tmp_path)
     env["LIFEOS_DISTILL_ENABLE"] = "1"
     env["LIFEOS_DISTILL_MODE"] = "active"
@@ -537,7 +575,13 @@ def test_openclaw_models_status_active_without_health_receipt_bypasses_to_raw(tm
     env["STUB_MODELS_STATUS"] = raw
 
     proc = subprocess.run(
-        [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "openclaw", "--", "models", "status"],
+        [
+            str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"),
+            "openclaw",
+            "--",
+            "models",
+            "status",
+        ],
         cwd=repo_dir,
         env=env,
         check=False,
@@ -548,7 +592,9 @@ def test_openclaw_models_status_active_without_health_receipt_bypasses_to_raw(tm
     assert "openai-codex/gpt-5.3-codex text yes configured" in proc.stdout
     audit_entries = [
         json.loads(line)
-        for line in (state_dir / "runtime" / "gates" / "distill" / "audit.jsonl").read_text(encoding="utf-8").splitlines()
+        for line in (state_dir / "runtime" / "gates" / "distill" / "audit.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
     ]
     attempts = [entry for entry in audit_entries if entry.get("event_type") == "attempt"]
     assert attempts[-1]["bypass_reason"] == "health_state_invalid"

@@ -1,4 +1,5 @@
 """CLI tests for 'lifeos dispatch submit' and 'lifeos dispatch status' commands."""
+
 from __future__ import annotations
 
 import argparse
@@ -12,7 +13,6 @@ import yaml
 from runtime.cli import cmd_dispatch_status, cmd_dispatch_submit
 from runtime.orchestration.dispatch.engine import DispatchResult
 from runtime.orchestration.dispatch.order import ORDER_SCHEMA_VERSION
-
 
 MINIMAL_ORDER = {
     "schema_version": ORDER_SCHEMA_VERSION,

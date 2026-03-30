@@ -6,6 +6,7 @@ when loop retries can proceed without Plan approval.
 """
 
 import pytest
+
 from runtime.orchestration.loop.configurable_policy import ConfigurableLoopPolicy
 from runtime.orchestration.loop.ledger import AttemptLedger, AttemptRecord
 from runtime.orchestration.loop.taxonomy import FailureClass
@@ -335,8 +336,15 @@ class TestBudgetEnforcement:
             [
                 _mk_record(attempt_id=1, failure_class="lint_error", applied=False),
                 _mk_record(attempt_id=2, failure_class="lint_error", applied=True),
-                _mk_record(attempt_id=3, failure_class="lint_error", applied=True, plan_bypass_info=None),
-                _mk_record(attempt_id=4, failure_class="lint_error", applied=True, plan_bypass_info="bad-shape"),
+                _mk_record(
+                    attempt_id=3, failure_class="lint_error", applied=True, plan_bypass_info=None
+                ),
+                _mk_record(
+                    attempt_id=4,
+                    failure_class="lint_error",
+                    applied=True,
+                    plan_bypass_info="bad-shape",
+                ),
             ],
         )
         decision = policy_with_bypass.evaluate_plan_bypass(

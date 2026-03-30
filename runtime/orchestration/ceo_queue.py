@@ -7,7 +7,7 @@ CEO approval before the autonomous loop can proceed.
 import json
 import logging
 import sqlite3
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -25,6 +25,7 @@ def _utc_now() -> str:
 
 class EscalationStatus(str, Enum):
     """Status of an escalation entry."""
+
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -33,6 +34,7 @@ class EscalationStatus(str, Enum):
 
 class EscalationType(str, Enum):
     """Type of escalation requiring CEO approval."""
+
     GOVERNANCE_SURFACE_TOUCH = "governance_surface_touch"
     BUDGET_ESCALATION = "budget_escalation"
     BUDGET_ABOVE_THRESHOLD = "budget_above_threshold"
@@ -45,6 +47,7 @@ class EscalationType(str, Enum):
 @dataclass
 class EscalationEntry:
     """An escalation entry in the CEO queue."""
+
     type: EscalationType
     context: Dict[str, Any]
     run_id: str
@@ -94,9 +97,7 @@ class CEOQueue:
             A unique escalation ID
         """
         with sqlite3.connect(self._db_path) as conn:
-            cursor = conn.execute(
-                "SELECT COUNT(*) FROM escalations"
-            )
+            cursor = conn.execute("SELECT COUNT(*) FROM escalations")
             count = cursor.fetchone()[0]
         return f"ESC-{count + 1:04d}"
 
@@ -207,9 +208,7 @@ class CEOQueue:
 
         return self._row_to_entry(row)
 
-    def approve(
-        self, escalation_id: str, note: str, resolver: str
-    ) -> bool:
+    def approve(self, escalation_id: str, note: str, resolver: str) -> bool:
         """Approve an escalation.
 
         Args:
@@ -261,9 +260,7 @@ class CEOQueue:
 
         return True
 
-    def reject(
-        self, escalation_id: str, reason: str, resolver: str
-    ) -> bool:
+    def reject(self, escalation_id: str, reason: str, resolver: str) -> bool:
         """Reject an escalation.
 
         Args:
@@ -364,9 +361,7 @@ class CEOQueue:
             run_id=row["run_id"],
             created_at=datetime.fromisoformat(row["created_at"]),
             resolved_at=(
-                datetime.fromisoformat(row["resolved_at"])
-                if row["resolved_at"]
-                else None
+                datetime.fromisoformat(row["resolved_at"]) if row["resolved_at"] else None
             ),
             resolution_note=row["resolution_note"],
             resolver=row["resolver"],

@@ -8,6 +8,7 @@ Generates 26-character Crockford base32 ULIDs:
 Alphabet: 0123456789ABCDEFGHJKMNPQRSTVWXYZ (no I, L, O, U)
 Pattern: ^[0-9A-HJKMNP-TV-Z]{26}$
 """
+
 from __future__ import annotations
 
 import os

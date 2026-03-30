@@ -7,6 +7,7 @@ Implements spec sections 8.3 and 9.3:
 - material_issue triggers rework once; persistent issue forces Revise
 - Bounded retries on Challenger schema validation (max 2)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -41,23 +42,39 @@ class ChallengerResult:
     ledger_completeness_ok: bool | None = None
     missing_disagreements: list[str] = field(default_factory=list)
 
-    VALID_ISSUE_CLASSES: frozenset = field(default=frozenset({
-        "unsupported_verdict",
-        "missing_contradiction_ledger",
-        "evidence_misuse",
-        "coverage_gap",
-        "other",
-        "none",
-    }), init=False, repr=False, compare=False)
+    VALID_ISSUE_CLASSES: frozenset = field(
+        default=frozenset(
+            {
+                "unsupported_verdict",
+                "missing_contradiction_ledger",
+                "evidence_misuse",
+                "coverage_gap",
+                "other",
+                "none",
+            }
+        ),
+        init=False,
+        repr=False,
+        compare=False,
+    )
 
-    VALID_SEVERITIES: frozenset = field(default=frozenset({"p0", "p1", "p2"}), init=False, repr=False, compare=False)
+    VALID_SEVERITIES: frozenset = field(
+        default=frozenset({"p0", "p1", "p2"}), init=False, repr=False, compare=False
+    )
 
-    VALID_ACTIONS: frozenset = field(default=frozenset({
-        "rework_synthesis",
-        "downgrade_verdict",
-        "block",
-        "none",
-    }), init=False, repr=False, compare=False)
+    VALID_ACTIONS: frozenset = field(
+        default=frozenset(
+            {
+                "rework_synthesis",
+                "downgrade_verdict",
+                "block",
+                "none",
+            }
+        ),
+        init=False,
+        repr=False,
+        compare=False,
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -112,7 +129,10 @@ def evaluate_challenger(
         CouncilBlockedError: if validation is exhausted after max_retries.
     """
     core = plan.core
-    context: dict[str, Any] = {"lens_results": lens_results or [], "rework_count": synthesis_rework_count}
+    context: dict[str, Any] = {
+        "lens_results": lens_results or [],
+        "rework_count": synthesis_rework_count,
+    }
 
     errors: list[str] = []
     normalized: dict[str, Any] | None = None

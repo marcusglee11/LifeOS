@@ -101,7 +101,12 @@ def test_map_spine_result_rejects_ambiguous_inputs() -> None:
         map_spine_artifacts_to_openclaw_result(
             job_id="JOB-001",
             terminal_packet={"run_id": "r", "timestamp": "t", "outcome": "PASS", "reason": "pass"},
-            checkpoint_packet={"run_id": "r", "timestamp": "t", "trigger": "x", "checkpoint_id": "cp"},
+            checkpoint_packet={
+                "run_id": "r",
+                "timestamp": "t",
+                "trigger": "x",
+                "checkpoint_id": "cp",
+            },
         )
 
 
@@ -121,8 +126,12 @@ def test_write_and_verify_openclaw_evidence_contract(tmp_path: Path) -> None:
     evidence_dir = Path(written["evidence_dir"])
     assert evidence_dir == tmp_path / "artifacts" / "evidence" / "openclaw" / "jobs" / "JOB-777"
 
-    packet_refs_payload = json.loads((evidence_dir / "packet_refs.json").read_text(encoding="utf-8"))
-    ledger_refs_payload = json.loads((evidence_dir / "ledger_refs.json").read_text(encoding="utf-8"))
+    packet_refs_payload = json.loads(
+        (evidence_dir / "packet_refs.json").read_text(encoding="utf-8")
+    )
+    ledger_refs_payload = json.loads(
+        (evidence_dir / "ledger_refs.json").read_text(encoding="utf-8")
+    )
     assert packet_refs_payload["packet_refs"] == ["artifacts/terminal/TP_run-777.yaml"]
     assert ledger_refs_payload["ledger_refs"] == ["artifacts/loop_state/attempt_ledger.jsonl"]
 
@@ -196,7 +205,9 @@ def _sample_openclaw_job_payload() -> dict[str, object]:
     }
 
 
-def test_execute_openclaw_job_terminal_success(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_execute_openclaw_job_terminal_success(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     repo_root = tmp_path
     (repo_root / "artifacts" / "terminal").mkdir(parents=True)
     (repo_root / "artifacts" / "loop_state").mkdir(parents=True)
@@ -215,7 +226,7 @@ def test_execute_openclaw_job_terminal_success(monkeypatch: pytest.MonkeyPatch, 
         encoding="utf-8",
     )
     (repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl").write_text(
-        "{\"attempt_id\": 1}\n",
+        '{"attempt_id": 1}\n',
         encoding="utf-8",
     )
 
@@ -224,7 +235,9 @@ def test_execute_openclaw_job_terminal_success(monkeypatch: pytest.MonkeyPatch, 
             assert repo_root == tmp_path.resolve()
             assert use_worktree is True
 
-        def run(self, *, task_spec: dict[str, object], resume_from: object | None = None) -> dict[str, object]:
+        def run(
+            self, *, task_spec: dict[str, object], resume_from: object | None = None
+        ) -> dict[str, object]:
             assert isinstance(task_spec, dict)
             assert resume_from is None
             return {"state": "TERMINAL", "outcome": "PASS", "run_id": "run_900"}
@@ -243,7 +256,10 @@ def test_execute_openclaw_job_terminal_success(monkeypatch: pytest.MonkeyPatch, 
     assert result["terminal_packet_ref"] == "artifacts/terminal/TP_run_900.yaml"
     assert result["packet_refs"] == ["artifacts/terminal/TP_run_900.yaml"]
     assert result["ledger_refs"] == ["artifacts/loop_state/attempt_ledger.jsonl"]
-    assert result["hash_manifest_ref"] == "artifacts/evidence/openclaw/jobs/JOB-900/hash_manifest.sha256"
+    assert (
+        result["hash_manifest_ref"]
+        == "artifacts/evidence/openclaw/jobs/JOB-900/hash_manifest.sha256"
+    )
 
     evidence_dir = repo_root / "artifacts" / "evidence" / "openclaw" / "jobs" / "JOB-900"
     ok, errors = verify_openclaw_evidence_contract(evidence_dir)
@@ -251,7 +267,9 @@ def test_execute_openclaw_job_terminal_success(monkeypatch: pytest.MonkeyPatch, 
     assert errors == []
 
 
-def test_execute_openclaw_job_checkpoint_success(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_execute_openclaw_job_checkpoint_success(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     repo_root = tmp_path
     (repo_root / "artifacts" / "checkpoints").mkdir(parents=True)
     (repo_root / "artifacts" / "loop_state").mkdir(parents=True)
@@ -270,7 +288,7 @@ def test_execute_openclaw_job_checkpoint_success(monkeypatch: pytest.MonkeyPatch
         encoding="utf-8",
     )
     (repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl").write_text(
-        "{\"attempt_id\": 1}\n",
+        '{"attempt_id": 1}\n',
         encoding="utf-8",
     )
 
@@ -278,7 +296,9 @@ def test_execute_openclaw_job_checkpoint_success(monkeypatch: pytest.MonkeyPatch
         def __init__(self, **_: object):
             pass
 
-        def run(self, *, task_spec: dict[str, object], resume_from: object | None = None) -> dict[str, object]:
+        def run(
+            self, *, task_spec: dict[str, object], resume_from: object | None = None
+        ) -> dict[str, object]:
             assert isinstance(task_spec, dict)
             assert resume_from is None
             return {
@@ -309,7 +329,9 @@ def test_execute_openclaw_job_blocks_when_terminal_packet_missing(
         def __init__(self, **_: object):
             pass
 
-        def run(self, *, task_spec: dict[str, object], resume_from: object | None = None) -> dict[str, object]:
+        def run(
+            self, *, task_spec: dict[str, object], resume_from: object | None = None
+        ) -> dict[str, object]:
             assert isinstance(task_spec, dict)
             assert resume_from is None
             return {"state": "TERMINAL", "outcome": "PASS", "run_id": "run_missing"}

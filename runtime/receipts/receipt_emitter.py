@@ -3,6 +3,7 @@ Acceptance receipt, blocked report, and review summary emitter.
 
 Builds v2.4 schema-compliant receipts, validates before return.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone

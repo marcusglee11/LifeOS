@@ -4,6 +4,7 @@ RunManifest — append-only JSONL canonical manifest.
 Per v2.1 § Storage Policy: artifacts/manifests/run_log.jsonl is the canonical run manifest.
 Each line is a JSON object with a compact summary of one dispatch execution.
 """
+
 from __future__ import annotations
 
 import json

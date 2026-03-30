@@ -7,6 +7,7 @@ Provides:
 - compute_gate_rollup: compute overall status from gate results
 - make_artefact_ref: build an artefact reference dict
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -18,6 +19,7 @@ _VALID_GATE_STATUSES = {"PASS", "FAIL", "WARN", "BLOCKED", "SKIP"}
 @dataclass(frozen=True)
 class GateCheck:
     """A single gate check result."""
+
     gate_id: str
     status: str  # PASS, FAIL, WARN, BLOCKED, SKIP
     blocking: bool

@@ -5,13 +5,14 @@ Pure-function architecture — no side effects, fully testable without mocking
 the COO. Checks COO output text for unsupported execution claims by comparing
 against durable evidence sources.
 """
+
 from __future__ import annotations
 
 import re
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 import yaml
 
@@ -79,17 +80,17 @@ def collect_evidence(repo_root: Path) -> EvidenceSnapshot:
     active_dir = dispatch_base / "active"
     completed_dir = dispatch_base / "completed"
 
-    inbox_orders = [
-        f.stem
-        for f in inbox_dir.glob("*.yaml")
-        if not f.name.endswith(".tmp")
-    ] if inbox_dir.exists() else []
+    inbox_orders = (
+        [f.stem for f in inbox_dir.glob("*.yaml") if not f.name.endswith(".tmp")]
+        if inbox_dir.exists()
+        else []
+    )
 
-    active_orders = [
-        f.stem
-        for f in active_dir.glob("*.yaml")
-        if not f.name.endswith(".tmp")
-    ] if active_dir.exists() else []
+    active_orders = (
+        [f.stem for f in active_dir.glob("*.yaml") if not f.name.endswith(".tmp")]
+        if active_dir.exists()
+        else []
+    )
 
     completed_orders: dict[str, str] = {}
     if completed_dir.exists():
@@ -102,9 +103,7 @@ def collect_evidence(repo_root: Path) -> EvidenceSnapshot:
                 if isinstance(raw, dict):
                     dr = raw.get("dispatch_result", {})
                     if isinstance(dr, dict) and dr.get("order_id"):
-                        completed_orders[str(dr["order_id"])] = str(
-                            dr.get("outcome", "UNKNOWN")
-                        )
+                        completed_orders[str(dr["order_id"])] = str(dr.get("outcome", "UNKNOWN"))
             except Exception:
                 pass
 
@@ -112,6 +111,7 @@ def collect_evidence(repo_root: Path) -> EvidenceSnapshot:
     manifest_path = repo_root / "artifacts" / "dispatch" / "run_log.jsonl"
     if manifest_path.exists():
         import json
+
         try:
             for line in manifest_path.read_text(encoding="utf-8").splitlines():
                 line = line.strip()
@@ -126,6 +126,7 @@ def collect_evidence(repo_root: Path) -> EvidenceSnapshot:
     escalation_ids: list[str] = []
     try:
         from runtime.orchestration.ceo_queue import CEOQueue
+
         queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
         entries = queue.get_pending()
         escalation_ids = [str(e.id) for e in entries]
@@ -199,7 +200,9 @@ def verify_claims(
     # Check "T-XXX completed/finished/done" patterns
     for match in _COMPLETED_RE.finditer(coo_output):
         # Extract task_id from either group position
-        task_id = match.group(1) if match.group(1) and match.group(1).startswith("T-") else match.group(4)
+        task_id = (
+            match.group(1) if match.group(1) and match.group(1).startswith("T-") else match.group(4)
+        )
         if task_id is None:
             continue
         # Check if there's a SUCCESS completed order for this task
@@ -257,10 +260,7 @@ def verify_claims(
     push_match = _PUSH_RE.search(coo_output)
     if push_match:
         # Require matching manifest entry or completed order
-        has_evidence = (
-            len(evidence.completed_orders) > 0
-            or len(evidence.manifest_entries) > 0
-        )
+        has_evidence = len(evidence.completed_orders) > 0 or len(evidence.manifest_entries) > 0
         if not has_evidence:
             violations.append(
                 ClaimViolation(
@@ -275,8 +275,7 @@ def verify_claims(
     ci_match = _CI_RE.search(coo_output)
     if ci_match:
         has_evidence = any(
-            entry.get("repo_clean_verified") is True
-            for entry in evidence.manifest_entries
+            entry.get("repo_clean_verified") is True for entry in evidence.manifest_entries
         )
         if not has_evidence:
             # Also check completed orders for repo_clean_verified
@@ -322,9 +321,7 @@ def verify_claims(
     return deduped
 
 
-def verify_progress_obligation(
-    coo_output: str, evidence: EvidenceSnapshot
-) -> Optional[str]:
+def verify_progress_obligation(coo_output: str, evidence: EvidenceSnapshot) -> Optional[str]:
     """If COO declines to proceed, verify it provides a concrete blocker.
 
     Returns None if obligation met, or error string if violated.
@@ -338,9 +335,7 @@ def verify_progress_obligation(
         r"nothing actionable",
         r"no tasks to",
     ]
-    has_decline = any(
-        re.search(p, coo_output, re.IGNORECASE) for p in decline_patterns
-    )
+    has_decline = any(re.search(p, coo_output, re.IGNORECASE) for p in decline_patterns)
     if not has_decline:
         return None
 

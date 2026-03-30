@@ -7,40 +7,41 @@ Validates that Designer outputs conform to the expected YAML schema:
 - No markdown code fences
 - Valid YAML syntax
 """
+
 from __future__ import annotations
 
 import sys
+
 import yaml
-from typing import Any
 
 
 def validate_designer_output(content: str) -> tuple[bool, list[str]]:
     """
     Validate Designer output against schema requirements.
-    
+
     Args:
         content: Raw YAML content from Designer
-        
+
     Returns:
         Tuple of (is_valid, error_messages)
     """
     errors: list[str] = []
-    
+
     # Check for markdown code fences
     if "```" in content:
         errors.append("Output contains markdown code fences - must be pure YAML")
-    
+
     # Parse YAML
     try:
         data = yaml.safe_load(content)
     except yaml.YAMLError as e:
         errors.append(f"Invalid YAML syntax: {e}")
         return False, errors
-    
+
     if not isinstance(data, dict):
         errors.append("Output must be a YAML dictionary")
         return False, errors
-    
+
     # Check required top-level fields
     required_fields = [
         "goal",
@@ -49,13 +50,13 @@ def validate_designer_output(content: str) -> tuple[bool, list[str]]:
         "deliverables",
         "constraints",
         "verification",
-        "dependencies"
+        "dependencies",
     ]
-    
+
     for field in required_fields:
         if field not in data:
             errors.append(f"Missing required field: {field}")
-    
+
     # Validate deliverables structure
     if "deliverables" in data:
         deliverables = data["deliverables"]
@@ -66,50 +67,41 @@ def validate_designer_output(content: str) -> tuple[bool, list[str]]:
                 if not isinstance(item, dict):
                     errors.append(f"Deliverable {idx} must be a dictionary")
                     continue
-                
+
                 required_deliverable_fields = ["file", "action", "description"]
                 for field in required_deliverable_fields:
                     if field not in item:
-                        errors.append(
-                            f"Deliverable {idx} missing required field: {field}"
-                        )
-                
+                        errors.append(f"Deliverable {idx} missing required field: {field}")
+
                 # Validate action values
-                if "action" in item and item["action"] not in [
-                    "create",
-                    "modify",
-                    "delete"
-                ]:
-                    errors.append(
-                        f"Deliverable {idx} has invalid action: {item['action']}"
-                    )
-    
+                if "action" in item and item["action"] not in ["create", "modify", "delete"]:
+                    errors.append(f"Deliverable {idx} has invalid action: {item['action']}")
+
     # Validate design_type
     if "design_type" in data:
         valid_types = [
             "implementation_plan",
             "architecture_design",
             "api_specification",
-            "data_model"
+            "data_model",
         ]
         if data["design_type"] not in valid_types:
             errors.append(
-                f"Invalid design_type: {data['design_type']}. "
-                f"Must be one of {valid_types}"
+                f"Invalid design_type: {data['design_type']}. Must be one of {valid_types}"
             )
-    
+
     return len(errors) == 0, errors
 
 
 def run_tests() -> int:
     """
     Run validation tests on sample Designer outputs.
-    
+
     Returns:
         Exit code: 0 for success, 1 for failure
     """
     print("Running Designer output validation tests...")
-    
+
     # Test 1: Valid output
     valid_output = """
 goal: Create a test module
@@ -126,7 +118,7 @@ verification:
 dependencies:
   - sys
 """
-    
+
     is_valid, errors = validate_designer_output(valid_output)
     if not is_valid:
         print("FAIL: Valid output rejected")
@@ -134,7 +126,7 @@ dependencies:
             print(f"  - {error}")
         return 1
     print("PASS: Valid output accepted")
-    
+
     # Test 2: Output with markdown fences (truncated — incomplete spine output)
     markdown_output = """\
 ```yaml

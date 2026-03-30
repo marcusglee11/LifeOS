@@ -91,7 +91,9 @@ def test_full_promotion_guard_pass(tmp_path: Path) -> None:
     (tmp_path / "docs" / "01_governance").mkdir(parents=True)
     envelope_path = tmp_path / "config" / "governance" / "delegation_envelope.yaml"
     envelope_path.write_text(yaml.safe_dump(_envelope(), sort_keys=False), encoding="utf-8")
-    profile_path = tmp_path / "config" / "openclaw" / "instance_profiles" / "coo_unsandboxed_prod_l3.json"
+    profile_path = (
+        tmp_path / "config" / "openclaw" / "instance_profiles" / "coo_unsandboxed_prod_l3.json"
+    )
     profile_path.write_text("{}", encoding="utf-8")
     ruling_path = tmp_path / "docs" / "01_governance" / "ruling.md"
     ruling_path.write_text("**Decision**: RATIFIED\n", encoding="utf-8")
@@ -103,16 +105,19 @@ def test_full_promotion_guard_pass(tmp_path: Path) -> None:
         "autonomy_ceiling": {"active_levels": ["L0", "L3", "L4"], "trust_tier": "burn-in"},
         "approval": {"council_ruling_ref": "docs/01_governance/ruling.md"},
     }
-    (tmp_path / "config" / "openclaw" / "profile_approvals" / "coo_unsandboxed_prod_l3.yaml").write_text(
-        yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
-    )
+    (
+        tmp_path / "config" / "openclaw" / "profile_approvals" / "coo_unsandboxed_prod_l3.yaml"
+    ).write_text(yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8")
     result = full_promotion_guard(tmp_path)
     assert result["pass"] is True
 
 
 def test_verify_delegation_ceiling_order_independent(tmp_path: Path) -> None:
     """sorted() normalization: [L3, L0, L4] should still pass."""
-    assert verify_delegation_ceiling({"active_levels": ["L3", "L0", "L4"], "trust_tier": "burn-in"}) == []
+    assert (
+        verify_delegation_ceiling({"active_levels": ["L3", "L0", "L4"], "trust_tier": "burn-in"})
+        == []
+    )
 
 
 def test_verify_approval_manifest_ruling_ref_missing_file(tmp_path: Path) -> None:
@@ -150,7 +155,9 @@ def test_verify_surface_profile_name_consistency() -> None:
     for unsandboxed posture it must block (fail-closed, no governance bypass).
     Invalid-format PROFILE_NAME must also block.
     """
-    script = Path(__file__).resolve().parents[4] / "runtime" / "tools" / "openclaw_verify_surface.sh"
+    script = (
+        Path(__file__).resolve().parents[4] / "runtime" / "tools" / "openclaw_verify_surface.sh"
+    )
     text = script.read_text(encoding="utf-8")
     # Must extract target_posture alongside profile_name
     assert "PROFILE_TARGET_POSTURE" in text, "missing posture-aware PROFILE_TARGET_POSTURE variable"
@@ -159,9 +166,13 @@ def test_verify_surface_profile_name_consistency() -> None:
         "missing blocking reason for unsandboxed+empty profile_name"
     )
     # Invalid format must add a blocking reason (no silent skip)
-    assert "approval_manifest_profile_name_invalid_format" in text, "missing blocking reason for invalid PROFILE_NAME format"
+    assert "approval_manifest_profile_name_invalid_format" in text, (
+        "missing blocking reason for invalid PROFILE_NAME format"
+    )
     # CHECK_APPROVAL_MANIFEST must be false for unsandboxed without profile_name
-    assert '"unsandboxed"' in text, "missing unsandboxed posture guard in CHECK_APPROVAL_MANIFEST block"
+    assert '"unsandboxed"' in text, (
+        "missing unsandboxed posture guard in CHECK_APPROVAL_MANIFEST block"
+    )
 
 
 def test_gate3_ruling_requires_structured_marker(tmp_path: Path) -> None:

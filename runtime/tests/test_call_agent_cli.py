@@ -5,23 +5,27 @@ Validates routing logic (CLI vs API fallback), AgentResponse wrapping,
 hash chain logging, and error handling.
 """
 
-import hashlib
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
-
-from runtime.agents.api import call_agent, call_agent_cli, AgentCall, AgentResponse, AgentAPIError, DelegatedDispatchError
+from runtime.agents.api import (
+    AgentAPIError,
+    AgentCall,
+    AgentResponse,
+    DelegatedDispatchError,
+    call_agent,
+    call_agent_cli,
+)
 from runtime.agents.cli_dispatch import (
-    CLIProvider,
-    CLIDispatchConfig,
     CLIDispatchResult,
+    CLIProvider,
     CLIProviderNotFound,
 )
 from runtime.agents.models import (
-    ModelConfig,
     AgentConfig,
     CLIProviderConfig,
+    ModelConfig,
 )
 
 
@@ -81,9 +85,13 @@ class TestCallAgentCLIRouting:
     def test_falls_back_to_api_when_not_cli_dispatch(self, mock_call_agent):
         """Roles with dispatch_mode='api' should fall back to call_agent()."""
         mock_call_agent.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="steward",
-            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
-            content="ok", packet=None,
+            call_id="test",
+            call_id_audit="test",
+            role="steward",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="ok",
+            packet=None,
         )
         config = _make_cli_config()
         call = AgentCall(role="steward", packet={"task": "test"})
@@ -96,17 +104,24 @@ class TestCallAgentCLIRouting:
     def test_falls_back_on_unknown_cli_provider(self, mock_call_agent):
         """Unknown cli_provider string should gracefully fall back to API."""
         mock_call_agent.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="council_reviewer",
-            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
-            content="ok", packet=None,
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="ok",
+            packet=None,
         )
         config = ModelConfig(
             default_chain=["claude-sonnet-4-5"],
             agents={
                 "council_reviewer": AgentConfig(
-                    provider="zen", model="claude-sonnet-4-5",
-                    endpoint="https://example.com", api_key_env="TEST_KEY",
-                    dispatch_mode="cli", cli_provider="unknown_provider",
+                    provider="zen",
+                    model="claude-sonnet-4-5",
+                    endpoint="https://example.com",
+                    api_key_env="TEST_KEY",
+                    dispatch_mode="cli",
+                    cli_provider="unknown_provider",
                 ),
             },
         )
@@ -194,14 +209,22 @@ class TestCallAgentCLIDispatch:
     def test_complete_failure_falls_back_to_api(self, mock_prompt, mock_dispatch, mock_call_agent):
         """Non-zero exit with no partial should fall back to API (not raise)."""
         mock_dispatch.return_value = CLIDispatchResult(
-            output="", exit_code=1, latency_ms=100,
-            provider=CLIProvider.CODEX, model="",
-            partial=False, errors=["Model not available"],
+            output="",
+            exit_code=1,
+            latency_ms=100,
+            provider=CLIProvider.CODEX,
+            model="",
+            partial=False,
+            errors=["Model not available"],
         )
         mock_call_agent.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="council_reviewer",
-            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
-            content="api fallback", packet=None,
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="api fallback",
+            packet=None,
         )
         config = _make_cli_config()
         call = AgentCall(role="council_reviewer", packet={"task": "review"})
@@ -215,26 +238,48 @@ class TestCallAgentCLIDispatch:
     @patch("runtime.agents.api._load_role_prompt", return_value=("system prompt", "sha256:abc"))
     def test_secondary_cli_fallback(self, mock_prompt, mock_dispatch, mock_call_agent):
         """When primary CLI fails, secondary CLI (cli_fallback) is tried."""
-        from runtime.agents.models import ModelConfig, AgentConfig, CLIProviderConfig
+        from runtime.agents.models import AgentConfig, CLIProviderConfig, ModelConfig
+
         # First call (primary codex) → non-zero exit; second call (gemini) → success
         mock_dispatch.side_effect = [
-            CLIDispatchResult(output="", exit_code=1, latency_ms=50,
-                              provider=CLIProvider.CODEX, model="", partial=False, errors=["fail"]),
-            CLIDispatchResult(output="gemini output", exit_code=0, latency_ms=2000,
-                              provider=CLIProvider.GEMINI, model="", partial=False),
+            CLIDispatchResult(
+                output="",
+                exit_code=1,
+                latency_ms=50,
+                provider=CLIProvider.CODEX,
+                model="",
+                partial=False,
+                errors=["fail"],
+            ),
+            CLIDispatchResult(
+                output="gemini output",
+                exit_code=0,
+                latency_ms=2000,
+                provider=CLIProvider.GEMINI,
+                model="",
+                partial=False,
+            ),
         ]
         config = ModelConfig(
             default_chain=["claude-sonnet-4-5"],
             agents={
                 "council_reviewer": AgentConfig(
-                    provider="zen", model="claude-sonnet-4-5",
-                    endpoint="https://example.com", api_key_env="TEST_KEY",
-                    dispatch_mode="cli", cli_provider="codex", cli_fallback="gemini",
+                    provider="zen",
+                    model="claude-sonnet-4-5",
+                    endpoint="https://example.com",
+                    api_key_env="TEST_KEY",
+                    dispatch_mode="cli",
+                    cli_provider="codex",
+                    cli_fallback="gemini",
                 ),
             },
             cli_providers={
-                "codex": CLIProviderConfig(binary="codex", enabled=True, timeout_seconds=600, sandbox=True),
-                "gemini": CLIProviderConfig(binary="gemini", enabled=True, timeout_seconds=600, sandbox=True),
+                "codex": CLIProviderConfig(
+                    binary="codex", enabled=True, timeout_seconds=600, sandbox=True
+                ),
+                "gemini": CLIProviderConfig(
+                    binary="gemini", enabled=True, timeout_seconds=600, sandbox=True
+                ),
             },
         )
         call = AgentCall(role="council_reviewer", packet={"task": "review"})
@@ -250,13 +295,22 @@ class TestCallAgentCLIFallback:
     """Test graceful fallback when CLI provider is not available."""
 
     @patch("runtime.agents.api.call_agent")
-    @patch("runtime.agents.cli_dispatch.dispatch_cli_agent", side_effect=CLIProviderNotFound("codex not found"))
+    @patch(
+        "runtime.agents.cli_dispatch.dispatch_cli_agent",
+        side_effect=CLIProviderNotFound("codex not found"),
+    )
     @patch("runtime.agents.api._load_role_prompt", return_value=("system prompt", "sha256:abc"))
-    def test_falls_back_to_api_on_provider_not_found(self, mock_prompt, mock_dispatch, mock_call_agent):
+    def test_falls_back_to_api_on_provider_not_found(
+        self, mock_prompt, mock_dispatch, mock_call_agent
+    ):
         mock_call_agent.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="council_reviewer",
-            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
-            content="api fallback", packet=None,
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="api fallback",
+            packet=None,
         )
         config = _make_cli_config()
         call = AgentCall(role="council_reviewer", packet={"task": "review"})
@@ -275,8 +329,11 @@ class TestCallAgentCLIHashChain:
         from runtime.agents.logging import AgentCallLogger
 
         mock_dispatch.return_value = CLIDispatchResult(
-            output="result", exit_code=0, latency_ms=1000,
-            provider=CLIProvider.CODEX, model="gpt-5.3-codex",
+            output="result",
+            exit_code=0,
+            latency_ms=1000,
+            provider=CLIProvider.CODEX,
+            model="gpt-5.3-codex",
         )
         logger_instance = AgentCallLogger()
         config = _make_cli_config()

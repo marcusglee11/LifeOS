@@ -10,10 +10,10 @@ Scenarios:
 4. Missing markdownlint dependency
 """
 
-import unittest
+import shutil
 import subprocess
 import tempfile
-import shutil
+import unittest
 from pathlib import Path
 
 import pytest
@@ -53,11 +53,15 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path)],
             cwd=str(repo_root),
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Assert exit code 0 (success with fixes)
-        self.assertEqual(result.returncode, 0, f"Expected exit 0, got {result.returncode}. stderr: {result.stderr}")
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"Expected exit 0, got {result.returncode}. stderr: {result.stderr}",
+        )
 
         # Assert file was modified (blank line added after heading)
         fixed_content = test_file.read_text()
@@ -65,8 +69,11 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         self.assertIn("# Test\n\n", fixed_content, "Blank line should be added after heading")
 
         # Assert stdout contains summary
-        self.assertIn("fixed", result.stdout.lower() or result.stderr.lower(),
-                     f"Output should mention fixes. stdout: {result.stdout}, stderr: {result.stderr}")
+        self.assertIn(
+            "fixed",
+            result.stdout.lower() or result.stderr.lower(),
+            f"Output should mention fixes. stdout: {result.stdout}, stderr: {result.stderr}",
+        )
 
     def test_lint_clean_files(self):
         """
@@ -89,11 +96,15 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path)],
             cwd=str(repo_root),
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Assert exit code 0
-        self.assertEqual(result.returncode, 0, f"Expected exit 0, got {result.returncode}. stderr: {result.stderr}")
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"Expected exit 0, got {result.returncode}. stderr: {result.stderr}",
+        )
 
         # Assert file unchanged
         final_content = test_file.read_text()
@@ -127,14 +138,17 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path)],
             cwd=str(repo_root),
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # For now, markdownlint --fix handles most issues, so we expect exit 0
         # If there were truly unfixable issues, we'd expect exit 1
         # This test validates the script handles both cases
-        self.assertIn(result.returncode, [0, 1],
-                     f"Expected exit 0 or 1, got {result.returncode}. stderr: {result.stderr}")
+        self.assertIn(
+            result.returncode,
+            [0, 1],
+            f"Expected exit 0 or 1, got {result.returncode}. stderr: {result.stderr}",
+        )
 
     @pytest.mark.skip(reason="LIFEOS_TODO[P2] markdownlint dependency path not yet implemented")
     def test_missing_markdownlint_dependency(self):
@@ -169,12 +183,15 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path), "--json"],
             cwd=str(repo_root),
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Should not crash
-        self.assertIn(result.returncode, [0, 1],
-                     f"Script should not crash with --json. stderr: {result.stderr}")
+        self.assertIn(
+            result.returncode,
+            [0, 1],
+            f"Script should not crash with --json. stderr: {result.stderr}",
+        )
 
     def test_dry_run_mode(self):
         """
@@ -192,13 +209,12 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path), "--dry-run"],
             cwd=str(repo_root),
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # File should remain unchanged
         final_content = test_file.read_text()
-        self.assertEqual(original_content, final_content,
-                        "Dry-run should not modify files")
+        self.assertEqual(original_content, final_content, "Dry-run should not modify files")
 
 
 if __name__ == "__main__":

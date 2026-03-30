@@ -12,18 +12,18 @@ One live test is skipped unless RUN_LIVE_STAGE2=1 is set.
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from runtime.agents.api import AgentResponse
-from runtime.orchestration.missions.design import DesignMission
 from runtime.orchestration.missions.base import MissionContext
-
+from runtime.orchestration.missions.design import DesignMission
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def ctx() -> MissionContext:
@@ -57,6 +57,7 @@ def _make_response(content: str, packet=None) -> AgentResponse:
 # ---------------------------------------------------------------------------
 # Unit tests for _extract_fallback_packet
 # ---------------------------------------------------------------------------
+
 
 class TestExtractFallbackPacket:
     """Unit tests for the three extraction strategies."""
@@ -108,6 +109,7 @@ scope: runtime/agents/models.py
 # Integration test: fallback wired into run()
 # ---------------------------------------------------------------------------
 
+
 class TestDesignMissionFallbackIntegration:
     """Verify fallback is used inside run() when packet is None."""
 
@@ -129,6 +131,7 @@ class TestDesignMissionFallbackIntegration:
 # Live integration test (skipped by default)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.skipif(
     __import__("os").environ.get("RUN_LIVE_STAGE2") != "1",
     reason="Set RUN_LIVE_STAGE2=1 to run live spine call",
@@ -136,10 +139,13 @@ class TestDesignMissionFallbackIntegration:
 def test_live_spine_design_step(ctx):
     """Live: run DesignMission against real API and confirm BUILD_PACKET produced."""
     import os
+
     os.environ.setdefault("OPENCLAW_MODELS_PREFLIGHT_SKIP", "1")
 
     mission = DesignMission()
-    result = mission.run(ctx, {"task_spec": "Add a docstring to clear_config_cache in runtime/agents/models.py"})
+    result = mission.run(
+        ctx, {"task_spec": "Add a docstring to clear_config_cache in runtime/agents/models.py"}
+    )
 
     assert result.success is True, f"Live design step failed: {result.error}"
     assert "build_packet" in result.outputs

@@ -4,15 +4,17 @@ Bypass monitor wiring integration tests for LoopSpine (Trusted Builder P1).
 Verifies that after each run, bypass utilization is checked, warnings are
 emitted at warn/alert level, and the terminal packet carries bypass_utilization.
 """
+
 from __future__ import annotations
 
 import logging
-import yaml
-import pytest
 from unittest.mock import patch
 
-from runtime.orchestration.loop.spine import LoopSpine, SpineState
+import pytest
+import yaml
+
 from runtime.orchestration.loop.bypass_monitor import BypassStatus
+from runtime.orchestration.loop.spine import LoopSpine
 
 
 @pytest.fixture
@@ -37,17 +39,23 @@ def test_bypass_warn_logged_and_in_terminal_packet(repo_root, caplog):
     warn_status = BypassStatus(level="warn", bypass_count=3, total_count=5, rate=0.6)
 
     with caplog.at_level(logging.WARNING, logger="runtime.orchestration.loop.spine"):
-        with patch("runtime.orchestration.loop.spine.verify_repo_clean"), \
-             patch.object(LoopSpine, "_get_current_policy_hash", return_value="test_hash"), \
-             patch.object(spine, "_run_chain_steps", return_value={
-                 "outcome": "PASS",
-                 "steps_executed": ["hydrate", "policy"],
-                 "commit_hash": "abc123",
-             }), \
-             patch(
-                 "runtime.orchestration.loop.spine.check_bypass_utilization",
-                 return_value=warn_status,
-             ):
+        with (
+            patch("runtime.orchestration.loop.spine.verify_repo_clean"),
+            patch.object(LoopSpine, "_get_current_policy_hash", return_value="test_hash"),
+            patch.object(
+                spine,
+                "_run_chain_steps",
+                return_value={
+                    "outcome": "PASS",
+                    "steps_executed": ["hydrate", "policy"],
+                    "commit_hash": "abc123",
+                },
+            ),
+            patch(
+                "runtime.orchestration.loop.spine.check_bypass_utilization",
+                return_value=warn_status,
+            ),
+        ):
             result = spine.run(task_spec={"task": "test"})
 
     assert result["outcome"] == "PASS"

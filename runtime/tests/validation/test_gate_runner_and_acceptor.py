@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
 import json
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -51,7 +51,7 @@ def _write(path: Path, content: str) -> None:
 def _write_light_evidence(evidence_root: Path) -> None:
     _write(evidence_root / "meta.json", "{}\n")
     _write(evidence_root / "exitcode.txt", "0\n")
-    _write(evidence_root / "commands.jsonl", "{\"cmd\":\"agent\"}\n")
+    _write(evidence_root / "commands.jsonl", '{"cmd":"agent"}\n')
     compute_manifest(evidence_root)
 
 
@@ -157,7 +157,7 @@ def test_validator_report_is_deterministic_for_same_failure(tmp_path: Path) -> N
     write_json_atomic(attempt_dir / "job_spec.json", _job_spec().to_dict())
     # Missing exitcode.txt intentionally; manifest includes only files present.
     _write(evidence_root / "meta.json", "{}\n")
-    _write(evidence_root / "commands.jsonl", "{\"cmd\":\"agent\"}\n")
+    _write(evidence_root / "commands.jsonl", '{"cmd":"agent"}\n')
     compute_manifest(evidence_root)
 
     gate_runner = GateRunner()

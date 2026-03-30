@@ -1,14 +1,11 @@
 """Tests for shadow agent capture."""
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from runtime.agents.shadow_capture import (
-    ShadowCaptureResult,
     capture_shadow_agent,
 )
 
@@ -63,12 +60,15 @@ def test_capture_with_available_provider(tmp_path):
     mock_result.exit_code = 0
     mock_result.latency_ms = 1500
 
-    with patch(
-        "runtime.agents.shadow_capture._check_provider_available",
-        return_value=(True, ""),
-    ), patch(
-        "runtime.agents.cli_dispatch.dispatch_cli_agent",
-        return_value=mock_result,
+    with (
+        patch(
+            "runtime.agents.shadow_capture._check_provider_available",
+            return_value=(True, ""),
+        ),
+        patch(
+            "runtime.agents.cli_dispatch.dispatch_cli_agent",
+            return_value=mock_result,
+        ),
     ):
         result = capture_shadow_agent(
             run_id="run_available",

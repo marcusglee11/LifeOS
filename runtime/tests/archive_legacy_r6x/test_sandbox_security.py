@@ -1,6 +1,8 @@
 import unittest
+
 from runtime.gates import GateKeeper
 from runtime.state_machine import RuntimeFSM
+
 
 class TestSandboxSecurity(unittest.TestCase):
     def setUp(self):
@@ -17,5 +19,6 @@ class TestSandboxSecurity(unittest.TestCase):
         # For now, just a placeholder test.
         pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

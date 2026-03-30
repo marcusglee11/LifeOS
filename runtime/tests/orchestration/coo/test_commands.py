@@ -1,4 +1,5 @@
 """Tests for COO CLI command handlers."""
+
 from __future__ import annotations
 
 import argparse
@@ -23,7 +24,6 @@ from runtime.orchestration.coo.commands import (
 )
 from runtime.orchestration.coo.invoke import InvocationError
 from runtime.orchestration.dispatch.order import parse_order
-
 
 _VALID_PROPOSAL_YAML = """\
 schema_version: task_proposal.v1
@@ -352,7 +352,9 @@ def test_coo_direct_operation_proposal_queued(tmp_path: Path, capsys, monkeypatc
     assert rc == 0
     out = capsys.readouterr().out
     assert out.strip() == "queued: OP-a1b2c3d4"
-    assert (tmp_path / "artifacts" / "coo" / "operations" / "proposals" / "OP-a1b2c3d4.yaml").exists()
+    assert (
+        tmp_path / "artifacts" / "coo" / "operations" / "proposals" / "OP-a1b2c3d4.yaml"
+    ).exists()
 
 
 def test_coo_direct_invocation_error(tmp_path: Path, capsys) -> None:
@@ -442,7 +444,9 @@ def test_coo_approve_operation_proposal_executes(tmp_path: Path, capsys, monkeyp
     assert rc == 0
     out = capsys.readouterr().out
     assert "approved: OP-a1b2c3d4 -> OPR-" in out
-    assert (tmp_path / "workspace" / "notes" / "example.md").read_text(encoding="utf-8") == "Hello from COO."
+    assert (tmp_path / "workspace" / "notes" / "example.md").read_text(
+        encoding="utf-8"
+    ) == "Hello from COO."
 
 
 def test_coo_propose_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
@@ -450,10 +454,7 @@ def test_coo_propose_prose_preamble_recovered(tmp_path: Path, capsys) -> None:
     _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
     _write_delegation(tmp_path)
 
-    prose_plus_yaml = (
-        "I reviewed the backlog and here is my proposal.\n\n"
-        + _VALID_PROPOSAL_YAML
-    )
+    prose_plus_yaml = "I reviewed the backlog and here is my proposal.\n\n" + _VALID_PROPOSAL_YAML
     with patch(
         "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=prose_plus_yaml,
@@ -472,8 +473,7 @@ def test_coo_propose_ntp_prose_preamble_recovered(tmp_path: Path, capsys) -> Non
     _write_delegation(tmp_path)
 
     prose_plus_ntp = (
-        "After careful analysis, I find nothing actionable right now.\n\n"
-        + _VALID_NTP_YAML
+        "After careful analysis, I find nothing actionable right now.\n\n" + _VALID_NTP_YAML
     )
     with patch(
         "runtime.orchestration.coo.service.invoke_coo_reasoning",
@@ -609,22 +609,25 @@ def test_propose_blocks_on_claim_violation(tmp_path: Path, capsys) -> None:
     _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
     _write_delegation(tmp_path)
 
-    with patch(
-        "runtime.orchestration.coo.service.invoke_coo_reasoning",
-        return_value=_PROPOSAL_WITH_CLAIM,
-    ), patch(
-        "runtime.orchestration.coo.service.verify_claims",
-        return_value=[
-            __import__(
-                "runtime.orchestration.coo.claim_verifier",
-                fromlist=["ClaimViolation"],
-            ).ClaimViolation(
-                claim_text="T-101 has been completed",
-                claim_type="execution_state",
-                required_evidence="order in completed/ with SUCCESS for task T-101",
-                found_evidence="none",
-            )
-        ],
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_PROPOSAL_WITH_CLAIM,
+        ),
+        patch(
+            "runtime.orchestration.coo.service.verify_claims",
+            return_value=[
+                __import__(
+                    "runtime.orchestration.coo.claim_verifier",
+                    fromlist=["ClaimViolation"],
+                ).ClaimViolation(
+                    claim_text="T-101 has been completed",
+                    claim_type="execution_state",
+                    required_evidence="order in completed/ with SUCCESS for task T-101",
+                    found_evidence="none",
+                )
+            ],
+        ),
     ):
         rc = cmd_coo_propose(
             argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
@@ -641,12 +644,15 @@ def test_propose_passes_clean_output(tmp_path: Path, capsys) -> None:
     _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
     _write_delegation(tmp_path)
 
-    with patch(
-        "runtime.orchestration.coo.service.invoke_coo_reasoning",
-        return_value=_VALID_PROPOSAL_YAML,
-    ), patch(
-        "runtime.orchestration.coo.service.verify_claims",
-        return_value=[],
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_VALID_PROPOSAL_YAML,
+        ),
+        patch(
+            "runtime.orchestration.coo.service.verify_claims",
+            return_value=[],
+        ),
     ):
         rc = cmd_coo_propose(
             argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
@@ -730,6 +736,7 @@ def test_status_json_includes_dispatch_state(tmp_path: Path, capsys) -> None:
 # coo telegram status
 # ---------------------------------------------------------------------------
 
+
 def test_telegram_status_no_file(tmp_path: Path, capsys) -> None:
     rc = cmd_coo_telegram_status(argparse.Namespace(json=False), tmp_path)
     assert rc == 0
@@ -750,15 +757,18 @@ def _write_telegram_status(tmp_path: Path, data: dict) -> None:
 
 
 def test_telegram_status_running_active(tmp_path: Path, capsys) -> None:
-    _write_telegram_status(tmp_path, {
-        "state": "running",
-        "mode": "polling",
-        "started_at": "2026-03-26T10:00:00+00:00",
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-        "last_message_at": "2026-03-26T10:01:00+00:00",
-        "last_reply_at": "2026-03-26T10:01:01+00:00",
-        "last_latency_ms": 950,
-    })
+    _write_telegram_status(
+        tmp_path,
+        {
+            "state": "running",
+            "mode": "polling",
+            "started_at": "2026-03-26T10:00:00+00:00",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "last_message_at": "2026-03-26T10:01:00+00:00",
+            "last_reply_at": "2026-03-26T10:01:01+00:00",
+            "last_latency_ms": 950,
+        },
+    )
     rc = cmd_coo_telegram_status(argparse.Namespace(json=False), tmp_path)
     assert rc == 0
     out = capsys.readouterr().out
@@ -768,13 +778,17 @@ def test_telegram_status_running_active(tmp_path: Path, capsys) -> None:
 
 def test_telegram_status_stale(tmp_path: Path, capsys) -> None:
     from datetime import timedelta
+
     stale_time = (datetime.now(timezone.utc) - timedelta(seconds=120)).isoformat()
-    _write_telegram_status(tmp_path, {
-        "state": "running",
-        "mode": "polling",
-        "started_at": "2026-03-26T10:00:00+00:00",
-        "updated_at": stale_time,
-    })
+    _write_telegram_status(
+        tmp_path,
+        {
+            "state": "running",
+            "mode": "polling",
+            "started_at": "2026-03-26T10:00:00+00:00",
+            "updated_at": stale_time,
+        },
+    )
     rc = cmd_coo_telegram_status(argparse.Namespace(json=False), tmp_path)
     assert rc == 0
     out = capsys.readouterr().out
@@ -783,12 +797,16 @@ def test_telegram_status_stale(tmp_path: Path, capsys) -> None:
 
 def test_telegram_status_stale_json(tmp_path: Path, capsys) -> None:
     from datetime import timedelta
+
     stale_time = (datetime.now(timezone.utc) - timedelta(seconds=120)).isoformat()
-    _write_telegram_status(tmp_path, {
-        "state": "running",
-        "mode": "polling",
-        "updated_at": stale_time,
-    })
+    _write_telegram_status(
+        tmp_path,
+        {
+            "state": "running",
+            "mode": "polling",
+            "updated_at": stale_time,
+        },
+    )
     rc = cmd_coo_telegram_status(argparse.Namespace(json=True), tmp_path)
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
@@ -796,13 +814,16 @@ def test_telegram_status_stale_json(tmp_path: Path, capsys) -> None:
 
 
 def test_telegram_status_error_state(tmp_path: Path, capsys) -> None:
-    _write_telegram_status(tmp_path, {
-        "state": "error",
-        "mode": "polling",
-        "started_at": "2026-03-26T10:00:00+00:00",
-        "updated_at": "2026-03-26T10:05:00+00:00",
-        "last_error": "gateway connection refused",
-    })
+    _write_telegram_status(
+        tmp_path,
+        {
+            "state": "error",
+            "mode": "polling",
+            "started_at": "2026-03-26T10:00:00+00:00",
+            "updated_at": "2026-03-26T10:05:00+00:00",
+            "last_error": "gateway connection refused",
+        },
+    )
     rc = cmd_coo_telegram_status(argparse.Namespace(json=False), tmp_path)
     assert rc == 0
     out = capsys.readouterr().out
@@ -814,18 +835,23 @@ def test_telegram_status_error_state(tmp_path: Path, capsys) -> None:
 # CLI regression: capture dump still fires after service refactor (Fix 4)
 # ---------------------------------------------------------------------------
 
+
 def test_propose_writes_capture_dump(tmp_path: Path) -> None:
     """cmd_coo_propose() writes a capture dump when LIFEOS_COO_CAPTURE_DIR is set."""
     import os
+
     _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1")])
     _write_delegation(tmp_path)
     capture_dir = tmp_path / "captures"
 
     env = {**os.environ, "LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}
-    with patch(
-        "runtime.orchestration.coo.service.invoke_coo_reasoning",
-        return_value=_VALID_PROPOSAL_YAML,
-    ), patch.dict(os.environ, {"LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}):
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_VALID_PROPOSAL_YAML,
+        ),
+        patch.dict(os.environ, {"LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}),
+    ):
         rc = cmd_coo_propose(
             argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
             tmp_path,
@@ -842,12 +868,16 @@ def test_propose_writes_capture_dump(tmp_path: Path) -> None:
 def test_direct_writes_capture_dump(tmp_path: Path) -> None:
     """cmd_coo_direct() writes a capture dump when LIFEOS_COO_CAPTURE_DIR is set."""
     import os
+
     capture_dir = tmp_path / "captures"
 
-    with patch(
-        "runtime.orchestration.coo.service.invoke_coo_reasoning",
-        return_value=_VALID_ESCALATION_YAML,
-    ), patch.dict(os.environ, {"LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}):
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_VALID_ESCALATION_YAML,
+        ),
+        patch.dict(os.environ, {"LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}),
+    ):
         rc = cmd_coo_direct(
             argparse.Namespace(intent="update protected governance doc"),
             tmp_path,
@@ -874,18 +904,23 @@ proposals:
     urgency_override: null
     suggested_owner: codex
 """
-    _write_backlog(tmp_path, [_task("T-101", status="pending", priority="P1", requires_approval=False)])
+    _write_backlog(
+        tmp_path, [_task("T-101", status="pending", priority="P1", requires_approval=False)]
+    )
     _write_delegation(tmp_path)
 
     # Write minimal template for "build"
     template_dir = tmp_path / "config" / "tasks" / "order_templates"
     template_dir.mkdir(parents=True, exist_ok=True)
     import yaml as _yaml
+
     (template_dir / "build.yaml").write_text(
-        _yaml.dump({
-            "steps": [{"id": "s1", "tool": "shell", "command": "echo ok"}],
-            "constraints": {"max_duration_seconds": 60},
-        }),
+        _yaml.dump(
+            {
+                "steps": [{"id": "s1", "tool": "shell", "command": "echo ok"}],
+                "constraints": {"max_duration_seconds": 60},
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -895,12 +930,15 @@ proposals:
         auto_dispatch_called.append(payload_dict)
         return {"any_dispatched": False, "failed_dispatches": []}
 
-    with patch(
-        "runtime.orchestration.coo.service.invoke_coo_reasoning",
-        return_value=_REQUIRES_NO_APPROVAL_YAML,
-    ), patch(
-        "runtime.orchestration.coo.commands._auto_execute_proposals",
-        side_effect=_fake_auto_execute,
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_REQUIRES_NO_APPROVAL_YAML,
+        ),
+        patch(
+            "runtime.orchestration.coo.commands._auto_execute_proposals",
+            side_effect=_fake_auto_execute,
+        ),
     ):
         rc = cmd_coo_propose(
             argparse.Namespace(json=False, yaml=False, format="yaml", execute=True),

@@ -8,23 +8,19 @@ and CLI routing — not the real chain steps themselves.
 
 DoD: "Resume proceeds from correct state with policy integrity checks."
 """
-import json
+
+from unittest.mock import patch
+
 import pytest
 import yaml
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 
-from runtime.orchestration.loop.spine import (
-    LoopSpine,
-    SpineState,
-    CheckpointPacket,
-    TerminalPacket,
-    SpineError,
-    PolicyChangedError,
-)
-from runtime.orchestration.run_controller import RepoDirtyError
 from runtime.cli import main
-
+from runtime.orchestration.loop.spine import (
+    CheckpointPacket,
+    LoopSpine,
+    PolicyChangedError,
+    SpineState,
+)
 
 # ── Fixtures (reused from test_loop_spine.py:25-63) ──────────────────────────
 
@@ -180,9 +176,7 @@ class TestCheckpointResumeE2ECycle:
         assert call_kwargs["start_from_step"] == 2
 
         # Verify terminal packet with ledger anchor
-        terminal_packets = list(
-            (clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml")
-        )
+        terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
         assert len(terminal_packets) >= 1
 
         with open(terminal_packets[-1]) as f:
@@ -195,6 +189,7 @@ class TestCheckpointResumeE2ECycle:
 
         # Verify anchor matches actual ledger state (chain continuity)
         from runtime.orchestration.loop.ledger import AttemptLedger
+
         ledger = AttemptLedger(
             clean_repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
         )
@@ -248,9 +243,7 @@ class TestPolicyChangeRejection:
             assert "hash_now_different" in str(exc_info.value)
 
         # BLOCKED terminal packet emitted
-        terminal_packets = list(
-            (clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml")
-        )
+        terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
         assert len(terminal_packets) == 1
 
         with open(terminal_packets[0]) as f:

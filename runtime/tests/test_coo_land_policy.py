@@ -7,7 +7,6 @@ import pytest
 
 from runtime.tools.coo_land_policy import (
     AllowlistError,
-    CleanCheckResult,
     _write_receipt,
     check_eol_config_compliance,
     check_repo_clean,
@@ -227,4 +226,3 @@ def test_write_receipt_emits_json(tmp_path: Path) -> None:
     assert len(data["head_sha"]) == 40
     assert "core_autocrlf_show_origin" in data
     assert "git_status_porcelain" in data
-

@@ -7,7 +7,9 @@ from runtime.orchestration.council.schema_gate import validate_seat_output
 def _valid_output() -> dict:
     return {
         "verdict": "Accept",
-        "key_findings": ["Deterministic behavior preserved REF: git:abc123:runtime/core.py#L10-L20"],
+        "key_findings": [
+            "Deterministic behavior preserved REF: git:abc123:runtime/core.py#L10-L20"
+        ],
         "risks": ["No major risk identified REF: git:abc123:runtime/core.py#L21-L30"],
         "fixes": ["Add one integration test REF: git:abc123:runtime/tests/test_core.py#L1-L20"],
         "confidence": "high",
@@ -125,7 +127,11 @@ def test_schema_gate_warns_p0_without_blocker_category():
     policy = load_council_policy()
     payload = _valid_output()
     payload["key_findings"] = [
-        {"claim": "Style issue REF: git:abc123:runtime/core.py#L31-L40", "priority": "P0", "category": "style"},
+        {
+            "claim": "Style issue REF: git:abc123:runtime/core.py#L31-L40",
+            "priority": "P0",
+            "category": "style",
+        },
     ]
     result = validate_seat_output(payload, policy)
     assert result.valid is True

@@ -10,21 +10,22 @@ Features:
 - Deterministic error messages via ConfigError
 - No I/O, network, or subprocess access
 """
+
 from __future__ import annotations
 
-from typing import Any, Dict, List, Mapping, Optional, Set, cast
+from typing import Any, List, Mapping, Optional, Set, cast
 
+from runtime.orchestration.expectations import (
+    ExpectationOp,
+    MissionExpectation,
+    SuiteExpectationsDefinition,
+)
 from runtime.orchestration.harness import (
     MissionCall,
     ScenarioDefinition,
 )
 from runtime.orchestration.suite import (
     ScenarioSuiteDefinition,
-)
-from runtime.orchestration.expectations import (
-    MissionExpectation,
-    SuiteExpectationsDefinition,
-    ExpectationOp,
 )
 
 
@@ -33,12 +34,14 @@ class ConfigError(ValueError):
     Raised when a configuration mapping is missing required fields
     or has invalid types/values.
     """
+
     pass
 
 
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def _require_field(cfg: Mapping[str, Any], field: str) -> Any:
     """Ensure a field exists in the mapping."""
@@ -88,7 +91,9 @@ def _require_op(cfg: Mapping[str, Any], field: str) -> ExpectationOp:
     val = _require_str(cfg, field)
     valid_ops: Set[str] = {"eq", "ne", "gt", "lt", "exists"}
     if val not in valid_ops:
-        raise ConfigError(f"Invalid value for '{field}': '{val}'. Must be one of {sorted(valid_ops)}")
+        raise ConfigError(
+            f"Invalid value for '{field}': '{val}'. Must be one of {sorted(valid_ops)}"
+        )
     return cast(ExpectationOp, val)
 
 
@@ -96,16 +101,17 @@ def _require_op(cfg: Mapping[str, Any], field: str) -> ExpectationOp:
 # Suite Parsing
 # =============================================================================
 
+
 def _parse_mission_call(cfg: Mapping[str, Any]) -> MissionCall:
     """Parse a single mission call configuration."""
     name = _require_str(cfg, "name")
     params = _optional_mapping(cfg, "params")
-    
+
     # params is Mapping, but MissionCall expects Dict | None explicitly in signature?
     # MissionCall: params: Dict[str, Any] | None
     # We convert Mapping to Dict safely if needed (dataclass usually handles it, but explicit is better)
     params_dict = dict(params) if params is not None else None
-    
+
     return MissionCall(name=name, params=params_dict)
 
 
@@ -114,44 +120,40 @@ def _parse_scenario_def(cfg: Mapping[str, Any]) -> ScenarioDefinition:
     scenario_name = _require_str(cfg, "scenario_name")
     initial_state_map = _require_mapping(cfg, "initial_state")
     missions_list = _require_list(cfg, "missions")
-    
+
     missions = tuple(_parse_mission_call(m_cfg) for m_cfg in missions_list)
     initial_state = dict(initial_state_map)
-    
+
     return ScenarioDefinition(
-        scenario_name=scenario_name,
-        initial_state=initial_state,
-        missions=missions
+        scenario_name=scenario_name, initial_state=initial_state, missions=missions
     )
 
 
 def parse_suite_definition(cfg: Mapping[str, Any]) -> ScenarioSuiteDefinition:
     """
     Parse a Mapping into a ScenarioSuiteDefinition.
-    
+
     Expected schema:
     {
         "suite_name": str,
         "scenarios": [
-            { "scenario_name": str, "initial_state": dict, "missions": [...] }, 
+            { "scenario_name": str, "initial_state": dict, "missions": [...] },
             ...
         ]
     }
     """
     suite_name = _require_str(cfg, "suite_name")
     scenarios_list = _require_list(cfg, "scenarios")
-    
+
     scenarios = tuple(_parse_scenario_def(s_cfg) for s_cfg in scenarios_list)
-    
-    return ScenarioSuiteDefinition(
-        suite_name=suite_name,
-        scenarios=scenarios
-    )
+
+    return ScenarioSuiteDefinition(suite_name=suite_name, scenarios=scenarios)
 
 
 # =============================================================================
 # Expectations Parsing
 # =============================================================================
+
 
 def _parse_mission_expectation(cfg: Mapping[str, Any]) -> MissionExpectation:
     """Parse a single expectation configuration."""
@@ -160,24 +162,24 @@ def _parse_mission_expectation(cfg: Mapping[str, Any]) -> MissionExpectation:
     mission_name = _require_str(cfg, "mission_name")
     path = _require_str(cfg, "path")
     op = _require_op(cfg, "op")
-    
+
     # expected is optional, defaults to None
     expected = cfg.get("expected")
-    
+
     return MissionExpectation(
         id=id_,
         scenario_name=scenario_name,
         mission_name=mission_name,
         path=path,
         op=op,
-        expected=expected
+        expected=expected,
     )
 
 
 def parse_expectations_definition(cfg: Mapping[str, Any]) -> SuiteExpectationsDefinition:
     """
     Parse a Mapping into a SuiteExpectationsDefinition.
-    
+
     Expected schema:
     {
         "expectations": [
@@ -187,7 +189,7 @@ def parse_expectations_definition(cfg: Mapping[str, Any]) -> SuiteExpectationsDe
     }
     """
     expectations_list = _require_list(cfg, "expectations")
-    
+
     expectations = [_parse_mission_expectation(e_cfg) for e_cfg in expectations_list]
-    
+
     return SuiteExpectationsDefinition(expectations=expectations)

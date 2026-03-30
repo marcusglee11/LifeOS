@@ -3,7 +3,7 @@ Base transform registry and interfaces for Phase 3 packet routing.
 """
 
 import hashlib
-from typing import Callable, Dict, Tuple, Any
+from typing import Any, Callable, Dict, Tuple
 
 _TRANSFORM_REGISTRY: Dict[str, Dict[str, Any]] = {}
 
@@ -15,6 +15,7 @@ def register_transform(name: str, version: str):
             "version": version,
         }
         return fn
+
     return decorator
 
 

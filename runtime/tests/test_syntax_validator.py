@@ -9,21 +9,20 @@ Coverage:
 - Fail-closed behavior
 """
 
-import pytest
 from runtime.governance.syntax_validator import (
     SyntaxValidator,
     ValidationResult,
-    validate_python,
-    validate_yaml,
-    validate_json,
     detect_language,
+    validate_json,
+    validate_python,
     validate_syntax,
+    validate_yaml,
 )
-
 
 # =============================================================================
 # Python Validation Tests
 # =============================================================================
+
 
 class TestPythonValidation:
     """Tests for Python syntax validation."""
@@ -89,6 +88,7 @@ def foo():
 # YAML Validation Tests
 # =============================================================================
 
+
 class TestYAMLValidation:
     """Tests for YAML syntax validation."""
 
@@ -152,6 +152,7 @@ key: value2
 # JSON Validation Tests
 # =============================================================================
 
+
 class TestJSONValidation:
     """Tests for JSON syntax validation."""
 
@@ -166,7 +167,7 @@ class TestJSONValidation:
 
     def test_json_valid_complex(self):
         """Valid complex JSON passes."""
-        json_content = '''
+        json_content = """
 {
   "name": "test",
   "version": "1.0.0",
@@ -176,7 +177,7 @@ class TestJSONValidation:
     "null": null
   }
 }
-'''
+"""
         result = validate_json(json_content)
         assert result.valid is True
 
@@ -213,6 +214,7 @@ class TestJSONValidation:
 # Language Detection Tests
 # =============================================================================
 
+
 class TestLanguageDetection:
     """Tests for language detection from file paths."""
 
@@ -242,6 +244,7 @@ class TestLanguageDetection:
 # =============================================================================
 # SyntaxValidator Class Tests
 # =============================================================================
+
 
 class TestSyntaxValidatorClass:
     """Tests for the SyntaxValidator class interface."""
@@ -300,6 +303,7 @@ class TestSyntaxValidatorClass:
 # Convenience Function Tests
 # =============================================================================
 
+
 class TestConvenienceFunctions:
     """Tests for convenience functions."""
 
@@ -315,6 +319,7 @@ class TestConvenienceFunctions:
 # =============================================================================
 # Fail-Closed Behavior Tests
 # =============================================================================
+
 
 class TestFailClosedBehavior:
     """Tests for fail-closed behavior in edge cases."""
@@ -347,6 +352,7 @@ class TestFailClosedBehavior:
 # =============================================================================
 # Integration Tests
 # =============================================================================
+
 
 class TestSyntaxValidatorIntegration:
     """Integration tests for syntax validator."""

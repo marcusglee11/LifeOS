@@ -7,9 +7,7 @@ Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.1
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
-import os
 import time
 import uuid
 import warnings
@@ -18,13 +16,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-import httpx
 import yaml
 
-from .models import load_model_config, resolve_model_auto, ModelConfig
 from runtime.errors import EnvelopeViolation
 from runtime.receipts.invocation_receipt import record_invocation_receipt
 from runtime.util.canonical import canonical_json
+
+from .models import ModelConfig, load_model_config, resolve_model_auto
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -96,8 +94,8 @@ class AgentCall:
 class AgentResponse:
     """Response from an LLM call. Per v0.3 spec §5.1."""
 
-    call_id: str                 # Deterministic ID
-    call_id_audit: str           # UUID for audit (metadata only)
+    call_id: str  # Deterministic ID
+    call_id_audit: str  # UUID for audit (metadata only)
     role: str
     model_used: str
     model_version: str
@@ -105,21 +103,24 @@ class AgentResponse:
     packet: Optional[dict]
     usage: dict = field(default_factory=dict)
     latency_ms: int = 0
-    timestamp: str = ""          # Metadata only
+    timestamp: str = ""  # Metadata only
 
 
 class AgentAPIError(Exception):
     """Base exception for Agent API errors."""
+
     pass
 
 
 class AgentTimeoutError(AgentAPIError):
     """Call exceeded timeout."""
+
     pass
 
 
 class AgentResponseInvalid(AgentAPIError):
     """Response failed packet schema validation."""
+
     pass
 
 
@@ -128,6 +129,7 @@ class DelegatedDispatchError(AgentAPIError):
     Raised when a role configured as delegated dispatch is called directly.
     These roles must be routed via provider_overrides through the lens executor.
     """
+
     pass
 
 
@@ -144,7 +146,9 @@ def _normalize_usage(usage: Any) -> dict[str, int]:
         return None
 
     input_tokens = _pick_int("input_tokens", "prompt_tokens", "promptTokenCount", "inputTokenCount")
-    output_tokens = _pick_int("output_tokens", "completion_tokens", "candidatesTokenCount", "outputTokenCount")
+    output_tokens = _pick_int(
+        "output_tokens", "completion_tokens", "candidatesTokenCount", "outputTokenCount"
+    )
     total_tokens = _pick_int("total_tokens", "totalTokenCount")
 
     normalized: dict[str, int] = {}
@@ -238,16 +242,19 @@ def _write_replay_cache(call_id: str, content: str, model_version: str) -> None:
     Best-effort: failure is logged, not raised.
     """
     try:
-        import hashlib
         from pathlib import Path
+
         from runtime.util.atomic_write import atomic_write_json
 
         # Derive cache dir relative to repo root (best-effort detect)
         try:
             import subprocess
+
             result = subprocess.run(
                 ["git", "rev-parse", "--show-toplevel"],
-                capture_output=True, text=True, timeout=2,
+                capture_output=True,
+                text=True,
+                timeout=2,
             )
             repo_root = Path(result.stdout.strip()) if result.returncode == 0 else Path.cwd()
         except Exception:
@@ -258,11 +265,14 @@ def _write_replay_cache(call_id: str, content: str, model_version: str) -> None:
         cache_path = repo_root / "artifacts" / "replay_cache" / f"{safe_id}.json"
         cache_path.parent.mkdir(parents=True, exist_ok=True)
 
-        atomic_write_json(cache_path, {
-            "call_id": call_id,
-            "model_version": model_version,
-            "response_content": content,
-        })
+        atomic_write_json(
+            cache_path,
+            {
+                "call_id": call_id,
+                "model_version": model_version,
+                "response_content": content,
+            },
+        )
     except Exception:
         logger.debug("Replay cache write failed", exc_info=True)
 
@@ -368,7 +378,7 @@ def call_agent(
         EnvelopeViolation: If role not permitted or prompt missing
         AgentResponseInvalid: If response fails validation
     """
-    from .fixtures import is_replay_mode, get_cached_response, CachedResponse
+    from .fixtures import get_cached_response, is_replay_mode
     from .logging import AgentCallLogger
 
     invocation_start_ts = datetime.now(timezone.utc).isoformat()
@@ -380,6 +390,7 @@ def call_agent(
 
     # Delegated dispatch guard — delegated roles must go via lens executor
     from .models import get_agent_config as _get_agent_config
+
     if _get_agent_config(call.role, config).dispatch_mode == "delegated":
         raise DelegatedDispatchError(
             f"Role '{call.role}' is configured for delegated dispatch — "
@@ -447,13 +458,13 @@ def call_agent(
 
     # [HARDENING] Use OpenCodeClient for robust protocol and provider handling.
     # It handles both OpenRouter (OpenAI style) and Zen (Anthropic style) logic.
-    from .opencode_client import OpenCodeClient, LLMCall
+    from .opencode_client import LLMCall, OpenCodeClient
 
     # Build client with role for key selection
     client = OpenCodeClient(
         role=call.role,
         timeout=config.timeout_seconds,
-        log_calls=True, # Enable local logs for debugging
+        log_calls=True,  # Enable local logs for debugging
     )
 
     try:
@@ -464,10 +475,7 @@ def call_agent(
         # but LLMCall has a system_prompt field.
         prompt = yaml.safe_dump(call.packet, default_flow_style=False)
         llm_request = LLMCall(
-            prompt=prompt,
-            model=model,
-            system_prompt=system_prompt,
-            role=call.role
+            prompt=prompt, model=model, system_prompt=system_prompt, role=call.role
         )
 
         # Execute call via client (handles retry and fallback internally)
@@ -485,8 +493,7 @@ def call_agent(
         # Parse response as packet if possible
         packet = _parse_response_packet(content)
         output_packet_hash = (
-            f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}"
-            if packet else ""
+            f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}" if packet else ""
         )
 
         timestamp = datetime.now(timezone.utc).isoformat()
@@ -494,6 +501,7 @@ def call_agent(
         # Log to hash chain if logger provided
         if logger_instance is None:
             from .logging import AgentCallLogger
+
             logger_instance = AgentCallLogger()
 
         logger_instance.log_call(
@@ -568,10 +576,14 @@ def _try_cli_dispatch(
     run_id: str = "",
 ) -> Optional["CLIDispatchResult"]:
     """Try dispatching to a single CLI provider. Returns CLIDispatchResult or None."""
-    from .models import get_cli_provider_config
     from .cli_dispatch import (
-        CLIProvider, CLIDispatchConfig, CLIDispatchError, CLIProviderNotFound, dispatch_cli_agent,
+        CLIDispatchConfig,
+        CLIDispatchError,
+        CLIProvider,
+        CLIProviderNotFound,
+        dispatch_cli_agent,
     )
+    from .models import get_cli_provider_config
 
     cli_cfg = get_cli_provider_config(cli_provider_name, config)
     if not cli_cfg or not cli_cfg.enabled:
@@ -592,10 +604,14 @@ def _try_cli_dispatch(
     )
 
     try:
-        result = dispatch_cli_agent(prompt, dispatch_config, binary_override=cli_cfg.binary, run_id=run_id)
+        result = dispatch_cli_agent(
+            prompt, dispatch_config, binary_override=cli_cfg.binary, run_id=run_id
+        )
         if result.success or result.partial:
             return result
-        logger.warning("CLI provider %s returned exit=%d; trying next", cli_provider_name, result.exit_code)
+        logger.warning(
+            "CLI provider %s returned exit=%d; trying next", cli_provider_name, result.exit_code
+        )
         return None
     except CLIProviderNotFound:
         logger.warning("CLI binary for %s not found on PATH", cli_provider_name)
@@ -666,7 +682,9 @@ def call_agent_cli(
     packet_hash = f"sha256:{hashlib.sha256(canonical_json(call.packet)).hexdigest()}"
     call_id = compute_call_id_deterministic(
         run_id_deterministic=run_id or "no_run",
-        role=call.role, prompt_hash=prompt_hash, packet_hash=packet_hash,
+        role=call.role,
+        prompt_hash=prompt_hash,
+        packet_hash=packet_hash,
     )
     call_id_audit = str(uuid.uuid4())
     prompt = f"{system_prompt}\n\n---\n\n{yaml.safe_dump(call.packet, default_flow_style=False)}"
@@ -677,7 +695,9 @@ def call_agent_cli(
 
     # Try secondary CLI fallback if primary failed
     if result is None and agent_cfg.cli_fallback:
-        logger.info("Primary CLI %s failed; trying fallback %s", cli_provider_name, agent_cfg.cli_fallback)
+        logger.info(
+            "Primary CLI %s failed; trying fallback %s", cli_provider_name, agent_cfg.cli_fallback
+        )
         result = _try_cli_dispatch(prompt, agent_cfg.cli_fallback, config, run_id=run_id)
         used_provider = agent_cfg.cli_fallback
 
@@ -704,25 +724,43 @@ def call_agent_cli(
         logger_instance = AgentCallLogger()
 
     logger_instance.log_call(
-        call_id_deterministic=call_id, call_id_audit=call_id_audit,
-        role=call.role, model_requested=call.model,
-        model_used=model_used, model_version=model_version,
-        input_packet_hash=packet_hash, prompt_hash=prompt_hash,
-        input_tokens=0, output_tokens=0, latency_ms=result.latency_ms,
+        call_id_deterministic=call_id,
+        call_id_audit=call_id_audit,
+        role=call.role,
+        model_requested=call.model,
+        model_used=model_used,
+        model_version=model_version,
+        input_packet_hash=packet_hash,
+        prompt_hash=prompt_hash,
+        input_tokens=0,
+        output_tokens=0,
+        latency_ms=result.latency_ms,
         output_packet_hash=output_packet_hash,
         status="success" if result.success else "partial",
     )
 
     agent_response = AgentResponse(
-        call_id=call_id, call_id_audit=call_id_audit, role=call.role,
-        model_used=model_used, model_version=model_version,
-        content=content, packet=packet, usage={},
-        latency_ms=result.latency_ms, timestamp=timestamp,
+        call_id=call_id,
+        call_id_audit=call_id_audit,
+        role=call.role,
+        model_used=model_used,
+        model_version=model_version,
+        content=content,
+        packet=packet,
+        usage={},
+        latency_ms=result.latency_ms,
+        timestamp=timestamp,
     )
     _record_agent_receipt(
-        run_id=run_id, provider_id=used_provider, mode="cli", seat_id=call.role,
-        start_ts=invocation_start_ts, end_ts=timestamp, exit_status=result.exit_code,
-        output_content=content, schema_validation="pass" if packet is not None else "n/a",
+        run_id=run_id,
+        provider_id=used_provider,
+        mode="cli",
+        seat_id=call.role,
+        start_ts=invocation_start_ts,
+        end_ts=timestamp,
+        exit_status=result.exit_code,
+        output_content=content,
+        schema_validation="pass" if packet is not None else "n/a",
         truncation={"input_truncated": False, "output_truncated": bool(result.partial)},
     )
     return agent_response

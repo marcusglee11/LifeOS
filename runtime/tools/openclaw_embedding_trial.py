@@ -27,7 +27,9 @@ def _provider_model_key(provider: str) -> Tuple[str, str]:
     raise ValueError(f"unsupported provider: {provider}")
 
 
-def build_trial_config(base_cfg: Mapping[str, Any], provider: str, model: str | None) -> Dict[str, Any]:
+def build_trial_config(
+    base_cfg: Mapping[str, Any], provider: str, model: str | None
+) -> Dict[str, Any]:
     if provider not in SUPPORTED_PROVIDERS:
         raise ValueError(f"unsupported provider: {provider}")
 
@@ -86,7 +88,10 @@ def build_trial_config(base_cfg: Mapping[str, Any], provider: str, model: str | 
 
 
 def _write_json_0600(path: Path, payload: Mapping[str, Any]) -> None:
-    path.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
     os.chmod(path, 0o600)
 
 
@@ -181,7 +186,9 @@ def run_trial(
     )
 
     hits = _extract_hits(search_out.read_text(encoding="utf-8", errors="replace"))
-    passed = rc_status == 0 and rc_search == 0 and (not run_index or rc_index == 0) and len(hits) > 0
+    passed = (
+        rc_status == 0 and rc_search == 0 and (not run_index or rc_index == 0) and len(hits) > 0
+    )
 
     summary = {
         "ts_utc": utc_ts_compact(),
@@ -214,22 +221,36 @@ def run_trial(
             overlay_deleted = False
     summary["overlay_deleted"] = overlay_deleted
 
-    summary_out.write_text(json.dumps(summary, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n", encoding="utf-8")
+    summary_out.write_text(
+        json.dumps(summary, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
     summary["summary_out"] = str(summary_out)
 
     return (0 if passed else 1), summary
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run an opt-in OpenClaw memory embedding provider trial via temporary overlay config.")
+    parser = argparse.ArgumentParser(
+        description="Run an opt-in OpenClaw memory embedding provider trial via temporary overlay config."
+    )
     parser.add_argument("--provider", required=True, choices=SUPPORTED_PROVIDERS)
-    parser.add_argument("--model", default=None, help="Optional provider-specific embedding model identifier.")
+    parser.add_argument(
+        "--model", default=None, help="Optional provider-specific embedding model identifier."
+    )
     parser.add_argument("--agent", default="main")
     parser.add_argument("--query", default=DEFAULT_QUERY)
     parser.add_argument("--timeout-sec", type=int, default=25)
     parser.add_argument("--index", action="store_true", help="Also run memory index before search.")
-    parser.add_argument("--keep-overlay", action="store_true", help="Keep generated overlay config file.")
-    parser.add_argument("--base-config", default=os.environ.get("OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")))
+    parser.add_argument(
+        "--keep-overlay", action="store_true", help="Keep generated overlay config file."
+    )
+    parser.add_argument(
+        "--base-config",
+        default=os.environ.get(
+            "OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")
+        ),
+    )
     parser.add_argument("--out-dir", default=None)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -240,7 +261,11 @@ def main() -> int:
         return 1
 
     ts = utc_ts_compact()
-    default_out = Path(os.environ.get("OPENCLAW_STATE_DIR", str(Path.home() / ".openclaw"))) / "embedding-trials" / ts
+    default_out = (
+        Path(os.environ.get("OPENCLAW_STATE_DIR", str(Path.home() / ".openclaw")))
+        / "embedding-trials"
+        / ts
+    )
     out_dir = Path(args.out_dir).expanduser() if args.out_dir else default_out
 
     rc, summary = run_trial(
@@ -257,7 +282,9 @@ def main() -> int:
     if args.json:
         print(json.dumps(summary, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
     else:
-        print(f"trial_pass={str(summary['pass']).lower()} provider={summary['provider']} hit_count={summary['hit_count']} summary={summary['summary_out']}")
+        print(
+            f"trial_pass={str(summary['pass']).lower()} provider={summary['provider']} hit_count={summary['hit_count']} summary={summary['summary_out']}"
+        )
     return rc
 
 

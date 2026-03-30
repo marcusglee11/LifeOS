@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from runtime.tools.openclaw_slack_overlay import generate_overlay_files, slack_base_posture
+from runtime.tools.openclaw_slack_overlay import generate_overlay_files
 
 
 def _base_cfg() -> dict:
@@ -90,4 +90,3 @@ def test_cli_output_never_logs_token_values(tmp_path: Path):
     joined = proc.stdout + proc.stderr
     assert "xapp-TEST-DUMMY-TOKEN" not in joined
     assert "xoxb-TEST-DUMMY-TOKEN" not in joined
-

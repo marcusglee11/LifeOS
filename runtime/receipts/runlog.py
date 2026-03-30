@@ -5,13 +5,13 @@ Emits structured run log events with deterministic ordering based on
 PlanCore phase_order. Supports JSONL output and deterministic content
 (with timestamps stripped for comparison).
 """
+
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from .validator import assert_valid
 
@@ -19,6 +19,7 @@ from .validator import assert_valid
 @dataclass(frozen=True)
 class RunLogEvent:
     """A single run log event."""
+
     phase: str
     step_id: str
     attempt_num: int

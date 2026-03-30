@@ -9,9 +9,11 @@ Test Coverage:
 - Edge cases (empty, null, nested structures)
 """
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
+
 from runtime.config.loader import load_config
 
 
@@ -39,7 +41,7 @@ class TestYAMLParsing:
 
     def test_load_valid_yaml(self):
         """load_config successfully loads valid YAML."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("key: value\n")
             f.write("number: 42\n")
             temp_path = Path(f.name)
@@ -52,7 +54,7 @@ class TestYAMLParsing:
 
     def test_load_malformed_yaml(self):
         """load_config raises ValueError for malformed YAML."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("key: value\n")
             f.write("  bad indentation:\n")
             f.write("malformed\n")
@@ -67,7 +69,7 @@ class TestYAMLParsing:
 
     def test_load_invalid_yaml_syntax(self):
         """load_config raises ValueError for invalid YAML syntax."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("key: [unclosed list\n")
             temp_path = Path(f.name)
 
@@ -80,7 +82,7 @@ class TestYAMLParsing:
 
     def test_load_empty_file(self):
         """load_config returns empty dict for empty file."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             # Write nothing
             temp_path = Path(f.name)
 
@@ -92,7 +94,7 @@ class TestYAMLParsing:
 
     def test_load_yaml_with_comments(self):
         """load_config handles YAML comments correctly."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("# This is a comment\n")
             f.write("key: value  # inline comment\n")
             f.write("# Another comment\n")
@@ -111,7 +113,7 @@ class TestRootTypeValidation:
 
     def test_load_dict_root_valid(self):
         """load_config accepts dictionary root."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("key1: value1\n")
             f.write("key2: value2\n")
             temp_path = Path(f.name)
@@ -125,7 +127,7 @@ class TestRootTypeValidation:
 
     def test_load_list_root_invalid(self):
         """load_config rejects list root."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("- item1\n")
             f.write("- item2\n")
             temp_path = Path(f.name)
@@ -140,7 +142,7 @@ class TestRootTypeValidation:
 
     def test_load_string_root_invalid(self):
         """load_config rejects string root."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("just a string\n")
             temp_path = Path(f.name)
 
@@ -154,7 +156,7 @@ class TestRootTypeValidation:
 
     def test_load_number_root_invalid(self):
         """load_config rejects number root."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("42\n")
             temp_path = Path(f.name)
 
@@ -168,7 +170,7 @@ class TestRootTypeValidation:
 
     def test_load_bool_root_invalid(self):
         """load_config rejects boolean root."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("true\n")
             temp_path = Path(f.name)
 
@@ -182,7 +184,7 @@ class TestRootTypeValidation:
 
     def test_load_null_root_returns_empty_dict(self):
         """load_config returns empty dict for null/None root."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("null\n")
             temp_path = Path(f.name)
 
@@ -198,7 +200,7 @@ class TestKeyTypeValidation:
 
     def test_load_string_keys_valid(self):
         """load_config accepts string keys."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("string_key: value\n")
             f.write("another_key: value2\n")
             temp_path = Path(f.name)
@@ -212,7 +214,7 @@ class TestKeyTypeValidation:
 
     def test_load_integer_keys_invalid(self):
         """load_config rejects integer keys."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("123: value\n")
             temp_path = Path(f.name)
 
@@ -226,7 +228,7 @@ class TestKeyTypeValidation:
 
     def test_load_mixed_key_types_invalid(self):
         """load_config rejects mixed key types."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("valid_key: value1\n")
             f.write("123: value2\n")
             temp_path = Path(f.name)
@@ -244,7 +246,7 @@ class TestNestedStructures:
 
     def test_load_nested_dict(self):
         """load_config handles nested dictionaries."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("outer:\n")
             f.write("  inner:\n")
             f.write("    deep: value\n")
@@ -258,7 +260,7 @@ class TestNestedStructures:
 
     def test_load_dict_with_list_values(self):
         """load_config handles dictionaries with list values."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("items:\n")
             f.write("  - item1\n")
             f.write("  - item2\n")
@@ -273,7 +275,7 @@ class TestNestedStructures:
 
     def test_load_complex_nested_structure(self):
         """load_config handles complex nested structures."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("database:\n")
             f.write("  host: localhost\n")
             f.write("  port: 5432\n")
@@ -300,7 +302,9 @@ class TestEncoding:
 
     def test_load_utf8_encoding(self):
         """load_config handles UTF-8 encoded files."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, encoding='utf-8') as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".yaml", delete=False, encoding="utf-8"
+        ) as f:
             f.write("message: Hello 世界 🌍\n")
             temp_path = Path(f.name)
 
@@ -312,7 +316,9 @@ class TestEncoding:
 
     def test_load_special_characters(self):
         """load_config handles special characters."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False, encoding='utf-8') as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".yaml", delete=False, encoding="utf-8"
+        ) as f:
             # Use single quotes to avoid escape issues in YAML
             f.write("special: '@#$%^&*()_+-={}[]|:;<>?,./'\n")
             temp_path = Path(f.name)
@@ -329,7 +335,7 @@ class TestEdgeCases:
 
     def test_load_whitespace_only_file(self):
         """load_config handles whitespace-only files as empty."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             # Only use spaces, not tabs (tabs can cause YAML parsing errors)
             f.write("   \n  \n   \n")
             temp_path = Path(f.name)
@@ -342,7 +348,7 @@ class TestEdgeCases:
 
     def test_load_single_key_value(self):
         """load_config handles single key-value pair."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("single: value\n")
             temp_path = Path(f.name)
 
@@ -354,7 +360,7 @@ class TestEdgeCases:
 
     def test_load_various_value_types(self):
         """load_config preserves various value types."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("string: hello\n")
             f.write("integer: 42\n")
             f.write("float: 3.14\n")

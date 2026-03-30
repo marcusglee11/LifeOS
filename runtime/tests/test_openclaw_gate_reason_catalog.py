@@ -11,7 +11,9 @@ def test_load_catalog_and_classify(tmp_path: Path) -> None:
     )
 
     catalog = load_catalog(catalog_path)
-    bypassable, hard, unknown = classify_reasons(["policy_assert_failed", "leak_scan_failed"], catalog)
+    bypassable, hard, unknown = classify_reasons(
+        ["policy_assert_failed", "leak_scan_failed"], catalog
+    )
     assert bypassable == ["policy_assert_failed"]
     assert hard == ["leak_scan_failed"]
     assert unknown == []

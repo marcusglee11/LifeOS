@@ -1,12 +1,11 @@
 """Tests for COO auto-dispatch eligibility predicates."""
+
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 import yaml
 
 from runtime.orchestration.coo.auto_dispatch import (
@@ -16,7 +15,6 @@ from runtime.orchestration.coo.auto_dispatch import (
 )
 from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION, TaskEntry
 from runtime.orchestration.coo.commands import cmd_coo_propose
-
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -206,9 +204,7 @@ class TestIsFullyAutoDispatchable:
 
     def test_fails_on_scope_overlap(self) -> None:
         candidate = _make_task("T-010", scope_paths=["runtime/orchestration/"])
-        in_progress = _make_task(
-            "T-011", status="in_progress", scope_paths=["runtime/"]
-        )
+        in_progress = _make_task("T-011", status="in_progress", scope_paths=["runtime/"])
         eligible, reason = is_fully_auto_dispatchable(
             candidate, [candidate, in_progress], _ENVELOPE
         )
@@ -222,7 +218,6 @@ class TestIsFullyAutoDispatchable:
 def _write_backlog(repo_root: Path, tasks: list[dict]) -> None:
     backlog_path = repo_root / "config" / "tasks" / "backlog.yaml"
     backlog_path.parent.mkdir(parents=True, exist_ok=True)
-    from datetime import datetime, timezone
     backlog_path.write_text(
         yaml.dump(
             {"schema_version": BACKLOG_SCHEMA_VERSION, "tasks": tasks},
@@ -243,6 +238,7 @@ def _task_dict(
     scope_paths: list[str] | None = None,
 ) -> dict:
     from datetime import datetime, timezone
+
     return {
         "id": task_id,
         "title": f"Task {task_id}",
@@ -332,6 +328,7 @@ class TestProposExecuteFlag:
     def test_propose_execute_flag_registered(self, tmp_path: Path) -> None:
         """The --execute flag must be accepted by the CLI parser."""
         import argparse
+
         ns = argparse.Namespace(json=False, execute=True)
         assert getattr(ns, "execute", None) is True
 
@@ -345,17 +342,22 @@ class TestProposExecuteFlag:
         mock_dispatch_result.order_id = "ORD-T-auto-001-20260310"
         mock_dispatch_result.outcome = "SUCCESS"
 
-        with patch(
-            "runtime.orchestration.coo.service.invoke_coo_reasoning",
-            return_value=_ELIGIBLE_PROPOSAL_YAML,
-        ), patch(
-            "runtime.orchestration.coo.commands.verify_claims",
-            return_value=[],
-        ), patch(
-            "runtime.orchestration.coo.commands.collect_evidence",
-        ), patch(
-            "runtime.orchestration.dispatch.engine.DispatchEngine.execute",
-            return_value=mock_dispatch_result,
+        with (
+            patch(
+                "runtime.orchestration.coo.service.invoke_coo_reasoning",
+                return_value=_ELIGIBLE_PROPOSAL_YAML,
+            ),
+            patch(
+                "runtime.orchestration.coo.commands.verify_claims",
+                return_value=[],
+            ),
+            patch(
+                "runtime.orchestration.coo.commands.collect_evidence",
+            ),
+            patch(
+                "runtime.orchestration.dispatch.engine.DispatchEngine.execute",
+                return_value=mock_dispatch_result,
+            ),
         ):
             rc = cmd_coo_propose(argparse.Namespace(json=False, execute=True), tmp_path)
 
@@ -368,14 +370,18 @@ class TestProposExecuteFlag:
         _write_backlog(tmp_path, [_task_dict("T-needs-approval", requires_approval=True)])
         _write_delegation(tmp_path)
 
-        with patch(
-            "runtime.orchestration.coo.service.invoke_coo_reasoning",
-            return_value=_INELIGIBLE_PROPOSAL_YAML,
-        ), patch(
-            "runtime.orchestration.coo.commands.verify_claims",
-            return_value=[],
-        ), patch(
-            "runtime.orchestration.coo.commands.collect_evidence",
+        with (
+            patch(
+                "runtime.orchestration.coo.service.invoke_coo_reasoning",
+                return_value=_INELIGIBLE_PROPOSAL_YAML,
+            ),
+            patch(
+                "runtime.orchestration.coo.commands.verify_claims",
+                return_value=[],
+            ),
+            patch(
+                "runtime.orchestration.coo.commands.collect_evidence",
+            ),
         ):
             rc = cmd_coo_propose(argparse.Namespace(json=False, execute=True), tmp_path)
 
@@ -394,17 +400,22 @@ class TestProposExecuteFlag:
         mock_dispatch_result.outcome = "CLEAN_FAIL"
         mock_dispatch_result.reason = "repo dirty after execution"
 
-        with patch(
-            "runtime.orchestration.coo.service.invoke_coo_reasoning",
-            return_value=_ELIGIBLE_PROPOSAL_YAML,
-        ), patch(
-            "runtime.orchestration.coo.commands.verify_claims",
-            return_value=[],
-        ), patch(
-            "runtime.orchestration.coo.commands.collect_evidence",
-        ), patch(
-            "runtime.orchestration.dispatch.engine.DispatchEngine.execute",
-            return_value=mock_dispatch_result,
+        with (
+            patch(
+                "runtime.orchestration.coo.service.invoke_coo_reasoning",
+                return_value=_ELIGIBLE_PROPOSAL_YAML,
+            ),
+            patch(
+                "runtime.orchestration.coo.commands.verify_claims",
+                return_value=[],
+            ),
+            patch(
+                "runtime.orchestration.coo.commands.collect_evidence",
+            ),
+            patch(
+                "runtime.orchestration.dispatch.engine.DispatchEngine.execute",
+                return_value=mock_dispatch_result,
+            ),
         ):
             rc = cmd_coo_propose(argparse.Namespace(json=False, execute=True), tmp_path)
 
@@ -425,11 +436,14 @@ class TestProgressObligationIntegration:
             "recommended_follow_up: Suggest waiting for alignment.\n"
         )
 
-        with patch(
-            "runtime.orchestration.coo.service.invoke_coo_reasoning",
-            return_value=vague_ntp,
-        ), patch(
-            "runtime.orchestration.coo.commands.collect_evidence",
+        with (
+            patch(
+                "runtime.orchestration.coo.service.invoke_coo_reasoning",
+                return_value=vague_ntp,
+            ),
+            patch(
+                "runtime.orchestration.coo.commands.collect_evidence",
+            ),
         ):
             rc = cmd_coo_propose(argparse.Namespace(json=False, execute=False), tmp_path)
 
@@ -447,11 +461,14 @@ class TestProgressObligationIntegration:
             "reason: All tasks require L3 approval per policy. Nothing auto-eligible.\n"
         )
 
-        with patch(
-            "runtime.orchestration.coo.service.invoke_coo_reasoning",
-            return_value=specific_ntp,
-        ), patch(
-            "runtime.orchestration.coo.commands.collect_evidence",
+        with (
+            patch(
+                "runtime.orchestration.coo.service.invoke_coo_reasoning",
+                return_value=specific_ntp,
+            ),
+            patch(
+                "runtime.orchestration.coo.commands.collect_evidence",
+            ),
         ):
             rc = cmd_coo_propose(argparse.Namespace(json=False, execute=False), tmp_path)
 

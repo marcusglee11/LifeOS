@@ -10,12 +10,12 @@ Features:
 - Returns TestRunResult with stable metadata.
 - No I/O, network, or subprocess access.
 """
+
 from typing import Any, Mapping
 
 from runtime.orchestration.config_adapter import (
-    parse_suite_definition,
     parse_expectations_definition,
-    ConfigError,
+    parse_suite_definition,
 )
 from runtime.orchestration.test_run import (
     TestRunResult,
@@ -33,14 +33,14 @@ def run_test_run_from_config(
     - Executes full test run via run_test_run.
     - Returns TestRunResult.
     - Raises ConfigError on invalid configs.
-    
+
     Args:
         suite_cfg: Configuration mapping for the scenario suite.
         expectations_cfg: Configuration mapping for expectations.
-        
+
     Returns:
         TestRunResult with aggregated verdict and metadata.
-        
+
     Raises:
         ConfigError: If configuration validation fails.
     """
@@ -49,10 +49,10 @@ def run_test_run_from_config(
     # and ensures no mutation of input mappings.
     suite_def = parse_suite_definition(suite_cfg)
     expectations_def = parse_expectations_definition(expectations_cfg)
-    
+
     # 2. Execute Test Run
     # run_test_run handles execution, expectation evaluation, and
     # result aggregation with stable hashing.
     result = run_test_run(suite_def, expectations_def)
-    
+
     return result

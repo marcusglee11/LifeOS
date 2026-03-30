@@ -3,14 +3,14 @@
 Records each LLM/CLI agent invocation with timing, hashes, and validation status.
 Finalizes to an index.json under artifacts/receipts/<run_id>/.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
+import re
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List, Optional
-import re
+from typing import Dict, List, Optional
 
 from runtime.util.atomic_write import atomic_write_json
 from runtime.util.canonical import compute_sha256

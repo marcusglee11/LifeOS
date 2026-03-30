@@ -11,14 +11,12 @@ from runtime.orchestration.engine import (
     ExecutionContext,
     OrchestrationResult,
 )
-from runtime.orchestration import registry as reg
-
 
 # Public surface under test
 from runtime.orchestration.registry import (
     MISSION_REGISTRY,
-    run_mission,
     UnknownMissionError,
+    run_mission,
 )
 
 

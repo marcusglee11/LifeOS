@@ -1,15 +1,22 @@
 """Synchronous COO service helpers shared by CLI and chat adapters."""
+
 from __future__ import annotations
 
 import uuid
-import yaml
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from runtime.orchestration.coo.claim_verifier import collect_evidence, verify_claims
-from runtime.orchestration.coo.context import build_chat_context, build_direct_context, build_propose_context, build_status_context
-from runtime.orchestration.coo.invoke import InvocationError, invoke_coo_reasoning
+from runtime.orchestration.coo.context import (
+    build_chat_context,
+    build_direct_context,
+    build_propose_context,
+    build_status_context,
+)
+from runtime.orchestration.coo.invoke import invoke_coo_reasoning
 from runtime.orchestration.coo.parser import (
     OPERATION_PROPOSAL_SCHEMA_VERSION,
     ParseError,
@@ -29,7 +36,6 @@ from runtime.orchestration.ops.queue import (
     save_receipt,
 )
 from runtime.util.canonical import compute_sha256
-
 
 _PROMPT_CANONICAL_RELATIVE_PATH = Path("config") / "coo" / "prompt_canonical.md"
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
@@ -241,10 +247,15 @@ def approve_item(identifier: str, repo_root: Path, actor: str) -> dict[str, Any]
         try:
             template = load_template(task.task_type, repo_root)
         except Exception as exc:
-            return {"kind": "error", "message": f"failed to load template for {task.task_type!r}: {exc}"}
+            return {
+                "kind": "error",
+                "message": f"failed to load template for {task.task_type!r}: {exc}",
+            }
 
         created_at = datetime.now(timezone.utc).isoformat()
-        order_dict = instantiate_order(template, task.id, task.scope_paths, created_at=created_at, task=task)
+        order_dict = instantiate_order(
+            template, task.id, task.scope_paths, created_at=created_at, task=task
+        )
 
         try:
             parse_order(order_dict)
@@ -254,14 +265,19 @@ def approve_item(identifier: str, repo_root: Path, actor: str) -> dict[str, Any]
         order_id = str(order_dict["order_id"])
         order_path = inbox_dir / f"{order_id}.yaml"
         try:
-            payload_str = yaml.dump(order_dict, default_flow_style=False, allow_unicode=True, sort_keys=False)
+            payload_str = yaml.dump(
+                order_dict, default_flow_style=False, allow_unicode=True, sort_keys=False
+            )
             atomic_write_text(order_path, payload_str)
         except Exception as exc:
             return {"kind": "error", "message": f"failed writing order for {identifier}: {exc}"}
 
         return {"kind": "task_approval", "task_id": identifier, "order_id": order_id}
 
-    return {"kind": "error", "message": f"unknown identifier format: {identifier!r}. Expected T-... or OP-..."}
+    return {
+        "kind": "error",
+        "message": f"unknown identifier format: {identifier!r}. Expected T-... or OP-...",
+    }
 
 
 def reject_item(identifier: str, repo_root: Path, actor: str, reason: str) -> dict[str, Any]:
@@ -272,7 +288,10 @@ def reject_item(identifier: str, repo_root: Path, actor: str, reason: str) -> di
         {"kind": "error", "message": str}
     """
     if not identifier.startswith("OP-"):
-        return {"kind": "error", "message": f"cannot reject {identifier!r}: only OP-... proposals can be rejected"}
+        return {
+            "kind": "error",
+            "message": f"cannot reject {identifier!r}: only OP-... proposals can be rejected",
+        }
     try:
         receipt = reject_operation(identifier, repo_root, rejected_by=actor, reason=reason)
         return {"kind": "operation_receipt", "receipt": receipt}
@@ -346,7 +365,10 @@ def chat_message(
         _payload = _extract_yaml_payload(raw_output)
         try:
             _parsed = yaml.safe_load(_payload)
-            if isinstance(_parsed, dict) and _parsed.get("schema_version") == OPERATION_PROPOSAL_SCHEMA_VERSION:
+            if (
+                isinstance(_parsed, dict)
+                and _parsed.get("schema_version") == OPERATION_PROPOSAL_SCHEMA_VERSION
+            ):
                 raise
         except yaml.YAMLError:
             pass

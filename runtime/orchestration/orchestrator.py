@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import json
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import json
 from pathlib import Path
-from typing import Callable, Dict, Any, Optional
-import uuid
+from typing import Any, Callable, Dict, Optional
 
 from runtime.orchestration.workspace_lock import (
     WorkspaceLockError,
@@ -17,10 +17,15 @@ from runtime.orchestration.workspace_lock import (
 from runtime.validation.acceptor import AcceptanceTokenError, accept
 from runtime.validation.attempts import RetryState, evaluate_retry
 from runtime.validation.codes import get_code_spec
-from runtime.validation.core import AttemptContext, CheckResult, JobSpec, RetryCaps, ValidationReport
+from runtime.validation.core import (
+    AttemptContext,
+    CheckResult,
+    JobSpec,
+    RetryCaps,
+    ValidationReport,
+)
 from runtime.validation.gate_runner import GateRunner
 from runtime.validation.reporting import sha256_file, write_json_atomic, write_validator_report
-
 
 AgentRunner = Callable[[Path, JobSpec], None]
 
@@ -62,7 +67,9 @@ class ValidationOrchestrator:
         with open(path, "a", encoding="utf-8", newline="\n") as handle:
             handle.write(line + "\n")
 
-    def _build_attempt_context(self, job_spec: JobSpec, attempt_id: str, attempt_index: int, retry_state: RetryState) -> AttemptContext:
+    def _build_attempt_context(
+        self, job_spec: JobSpec, attempt_id: str, attempt_index: int, retry_state: RetryState
+    ) -> AttemptContext:
         return AttemptContext(
             run_id=job_spec.run_id,
             attempt_id=attempt_id,
@@ -157,7 +164,9 @@ class ValidationOrchestrator:
                 retry_caps=caps,
             )
             write_json_atomic(attempt_dir / "job_spec.json", bootstrap_job_spec.to_dict())
-            attempt_context = self._build_attempt_context(bootstrap_job_spec, attempt_id, 0, retry_state)
+            attempt_context = self._build_attempt_context(
+                bootstrap_job_spec, attempt_id, 0, retry_state
+            )
             report_path = self._emit_terminal_report(
                 attempt_dir=attempt_dir,
                 attempt_context=attempt_context,
@@ -207,7 +216,9 @@ class ValidationOrchestrator:
                 write_json_atomic(job_spec_path, job_spec.to_dict())
                 expected_job_spec_sha = sha256_file(job_spec_path)
 
-                attempt_context = self._build_attempt_context(job_spec, attempt_id, attempt_index, retry_state)
+                attempt_context = self._build_attempt_context(
+                    job_spec, attempt_id, attempt_index, retry_state
+                )
 
                 preflight = self.gate_runner.run_preflight(
                     workspace_root=self.workspace_root,
@@ -236,7 +247,9 @@ class ValidationOrchestrator:
                         attempt_id=attempt_id,
                         attempt_index=attempt_index,
                         message=f"Preflight failed: {preflight.code}",
-                        validator_report_path=str(preflight.report_path) if preflight.report_path else None,
+                        validator_report_path=str(preflight.report_path)
+                        if preflight.report_path
+                        else None,
                     )
 
                 # Untrusted boundary: agent executes exactly once per attempt.
@@ -378,7 +391,9 @@ class ValidationOrchestrator:
                         attempt_id=attempt_id,
                         attempt_index=attempt_index,
                         message=f"Terminal failure: {terminal_reason}",
-                        validator_report_path=str(postflight.report_path) if postflight.report_path else None,
+                        validator_report_path=str(postflight.report_path)
+                        if postflight.report_path
+                        else None,
                     )
 
             # Defensive fallback: should not be reachable due cap checks.

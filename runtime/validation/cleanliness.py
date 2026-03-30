@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import subprocess
+from pathlib import Path
 from typing import Dict
 
 
@@ -36,7 +36,9 @@ def _check_ignored(repo_root: Path, target_path: Path, code: str) -> str:
     if result.returncode == 0 and result.stdout.strip():
         return result.stdout.strip()
 
-    message = result.stderr.strip() if result.stderr.strip() else f"No ignore rule matched: {target}"
+    message = (
+        result.stderr.strip() if result.stderr.strip() else f"No ignore rule matched: {target}"
+    )
     raise CleanlinessError(code, message)
 
 

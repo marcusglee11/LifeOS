@@ -1,4 +1,5 @@
 """Tests for runtime/receipts/validator.py"""
+
 import pytest
 
 from runtime.receipts.validator import (
@@ -6,7 +7,6 @@ from runtime.receipts.validator import (
     assert_valid,
     validate_artefact,
 )
-
 
 VALID_RECEIPT = {
     "receipt_id": "01HZZZZZZZZZZZZZZZZZZZZZZZ",
@@ -59,7 +59,10 @@ def test_validate_conditional_reason_code():
     assert len(errors) > 0, "REJECTED without reason_code should fail"
 
     # REJECTED with reason_code should pass
-    good_rejected = {**VALID_RECEIPT, "decision": {"status": "REJECTED", "reason_code": "GATE_FAIL"}}
+    good_rejected = {
+        **VALID_RECEIPT,
+        "decision": {"status": "REJECTED", "reason_code": "GATE_FAIL"},
+    }
     errors = validate_artefact(good_rejected, "acceptance_receipt")
     assert errors == [], f"REJECTED with reason_code should pass, got: {errors}"
 

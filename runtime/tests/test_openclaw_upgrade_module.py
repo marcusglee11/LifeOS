@@ -6,7 +6,6 @@ import stat
 import subprocess
 from pathlib import Path
 
-
 SCRIPT = Path("runtime/tools/openclaw_upgrade_module.sh").resolve()
 
 
@@ -88,8 +87,14 @@ exit 1
     assert payload["health_gate"]["pass"] is False
     assert payload["needs_action"] is True
     assert payload["recommended_apply_command"] == "npm install -g openclaw@2026.2.25"
-    assert payload["recommended_verify_command_template"] == "runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>"
-    assert payload["recommended_record_command_template"] == "runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir>"
+    assert (
+        payload["recommended_verify_command_template"]
+        == "runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>"
+    )
+    assert (
+        payload["recommended_record_command_template"]
+        == "runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir>"
+    )
 
 
 def test_report_writes_status_file(tmp_path: Path) -> None:

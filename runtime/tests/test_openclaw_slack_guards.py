@@ -23,4 +23,3 @@ def test_base_posture_detects_enabled_slack():
     result = slack_base_posture(cfg)
     assert result["slack_base_enabled"] is True
     assert result["slack_base_disabled"] is False
-

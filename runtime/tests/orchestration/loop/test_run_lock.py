@@ -1,4 +1,5 @@
 """Tests for single-flight run lock mechanism."""
+
 from __future__ import annotations
 
 import json
@@ -8,13 +9,13 @@ import time
 import pytest
 
 from runtime.orchestration.loop.run_lock import (
+    DEFAULT_TTL,
+    LOCK_RELATIVE_PATH,
+    UNVERIFIABLE_LOCK_GRACE_SECONDS,
     RunLockError,
     RunLockHandle,
     acquire_run_lock,
     release_run_lock,
-    LOCK_RELATIVE_PATH,
-    DEFAULT_TTL,
-    UNVERIFIABLE_LOCK_GRACE_SECONDS,
 )
 
 

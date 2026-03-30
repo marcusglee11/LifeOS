@@ -88,6 +88,7 @@ def is_eol_only_worktree(repo: Path) -> bool:
 # Config-aware clean invariant
 # ---------------------------------------------------------------------------
 
+
 def get_effective_autocrlf(repo: Path) -> str:
     """Return the effective core.autocrlf value (local > global > system).
 
@@ -236,7 +237,9 @@ def _write_receipt(repo: Path, result: CleanCheckResult, receipt_path: Path) -> 
     # core.autocrlf --show-origin (captures provenance)
     ac_proc = subprocess.run(
         ["git", "-C", str(repo), "config", "--show-origin", "--get", "core.autocrlf"],
-        check=False, capture_output=True, text=True,
+        check=False,
+        capture_output=True,
+        text=True,
     )
     autocrlf_show_origin = ac_proc.stdout.strip() if ac_proc.returncode == 0 else "(unset)"
 
@@ -252,7 +255,8 @@ def _write_receipt(repo: Path, result: CleanCheckResult, receipt_path: Path) -> 
     }
     receipt_path.parent.mkdir(parents=True, exist_ok=True)
     receipt_path.write_text(
-        json.dumps(receipt, indent=2) + "\n", encoding="utf-8",
+        json.dumps(receipt, indent=2) + "\n",
+        encoding="utf-8",
     )
 
 

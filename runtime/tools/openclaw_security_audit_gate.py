@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
-import re
-
 
 _SUMMARY_RE = re.compile(
     r"Summary:\s*(?P<critical>\d+)\s+critical(?:\s*·\s*(?P<warn>\d+)\s+warn)?(?:\s*·\s*(?P<info>\d+)\s+info)?",

@@ -5,20 +5,21 @@ Tests for LLM Call Operation in Orchestration Engine
 Tests the llm_call operation handler using mocks (no real OpenCode server needed).
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from runtime.orchestration.engine import (
+    ExecutionContext,
     Orchestrator,
     StepSpec,
     WorkflowDefinition,
-    ExecutionContext,
 )
-
 
 # =============================================================================
 # FIXTURES
 # =============================================================================
+
 
 @pytest.fixture
 def orchestrator():
@@ -41,6 +42,7 @@ def mock_llm_response():
 # =============================================================================
 # TEST: llm_call stores result in state
 # =============================================================================
+
 
 class TestLLMCallStoresResult:
     """Tests that llm_call properly stores results in state."""
@@ -66,9 +68,9 @@ class TestLLMCallStoresResult:
                         "operation": "llm_call",
                         "prompt": "What is 2+2?",
                         "output_key": "answer",
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         ctx = ExecutionContext(initial_state={"input": "test"})
@@ -91,9 +93,7 @@ class TestLLMCallStoresResult:
         assert result.final_state["answer_metadata"]["latency_ms"] == 1500
 
     @patch("runtime.orchestration.engine.OpenCodeClient")
-    def test_llm_call_default_output_key(
-        self, mock_client_class, orchestrator, mock_llm_response
-    ):
+    def test_llm_call_default_output_key(self, mock_client_class, orchestrator, mock_llm_response):
         """llm_call should use 'llm_response' as default output_key."""
         mock_client = MagicMock()
         mock_client.call.return_value = mock_llm_response
@@ -109,9 +109,9 @@ class TestLLMCallStoresResult:
                         "operation": "llm_call",
                         "prompt": "Hello",
                         # No output_key specified
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         result = orchestrator.run_workflow(workflow, ExecutionContext())
@@ -124,6 +124,7 @@ class TestLLMCallStoresResult:
 # =============================================================================
 # TEST: llm_call with missing prompt fails
 # =============================================================================
+
 
 class TestLLMCallValidation:
     """Tests for llm_call input validation."""
@@ -140,9 +141,9 @@ class TestLLMCallValidation:
                         "operation": "llm_call",
                         # Missing "prompt" field
                         "output_key": "result",
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         result = orchestrator.run_workflow(workflow, ExecutionContext())
@@ -163,9 +164,9 @@ class TestLLMCallValidation:
                         "operation": "llm_call",
                         "prompt": "",  # Empty prompt
                         "output_key": "result",
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         result = orchestrator.run_workflow(workflow, ExecutionContext())
@@ -178,6 +179,7 @@ class TestLLMCallValidation:
 # =============================================================================
 # TEST: llm_call with custom output_key
 # =============================================================================
+
 
 class TestLLMCallCustomOutputKey:
     """Tests for custom output_key functionality."""
@@ -201,9 +203,9 @@ class TestLLMCallCustomOutputKey:
                         "operation": "llm_call",
                         "prompt": "Generate a name",
                         "output_key": "generated_name",
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         result = orchestrator.run_workflow(workflow, ExecutionContext())
@@ -214,9 +216,7 @@ class TestLLMCallCustomOutputKey:
         assert "generated_name_metadata" in result.final_state
 
     @patch("runtime.orchestration.engine.OpenCodeClient")
-    def test_multiple_llm_calls_different_keys(
-        self, mock_client_class, orchestrator
-    ):
+    def test_multiple_llm_calls_different_keys(self, mock_client_class, orchestrator):
         """Multiple llm_calls with different keys should all store results."""
         # Create responses with different content
         response1 = MagicMock()
@@ -247,7 +247,7 @@ class TestLLMCallCustomOutputKey:
                         "operation": "llm_call",
                         "prompt": "First prompt",
                         "output_key": "first_result",
-                    }
+                    },
                 ),
                 StepSpec(
                     id="step2",
@@ -256,9 +256,9 @@ class TestLLMCallCustomOutputKey:
                         "operation": "llm_call",
                         "prompt": "Second prompt",
                         "output_key": "second_result",
-                    }
+                    },
                 ),
-            ]
+            ],
         )
 
         result = orchestrator.run_workflow(workflow, ExecutionContext())
@@ -271,6 +271,7 @@ class TestLLMCallCustomOutputKey:
 # =============================================================================
 # TEST: Workflow with mixed operations
 # =============================================================================
+
 
 class TestMixedOperationWorkflows:
     """Tests for workflows combining different operation types."""
@@ -295,11 +296,11 @@ class TestMixedOperationWorkflows:
                         "operation": "llm_call",
                         "prompt": "Generate content",
                         "output_key": "content",
-                    }
+                    },
                 ),
                 StepSpec(id="review", kind="human", payload={}),
                 StepSpec(id="finalize", kind="runtime", payload={"operation": "noop"}),
-            ]
+            ],
         )
 
         ctx = ExecutionContext(initial_state={"status": "started"})
@@ -311,9 +312,7 @@ class TestMixedOperationWorkflows:
         assert result.final_state["status"] == "started"  # Original state preserved
 
     @patch("runtime.orchestration.engine.OpenCodeClient")
-    def test_noop_before_llm_call(
-        self, mock_client_class, orchestrator, mock_llm_response
-    ):
+    def test_noop_before_llm_call(self, mock_client_class, orchestrator, mock_llm_response):
         """noop operation should not interfere with subsequent llm_call."""
         mock_client = MagicMock()
         mock_client.call.return_value = mock_llm_response
@@ -331,9 +330,9 @@ class TestMixedOperationWorkflows:
                         "operation": "llm_call",
                         "prompt": "Final prompt",
                         "output_key": "final_output",
-                    }
+                    },
                 ),
-            ]
+            ],
         )
 
         result = orchestrator.run_workflow(workflow, ExecutionContext())
@@ -346,6 +345,7 @@ class TestMixedOperationWorkflows:
 # =============================================================================
 # TEST: Error handling
 # =============================================================================
+
 
 class TestLLMCallErrorHandling:
     """Tests for error handling in llm_call operation."""
@@ -368,9 +368,9 @@ class TestLLMCallErrorHandling:
                     payload={
                         "operation": "llm_call",
                         "prompt": "Test prompt",
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         result = orchestrator.run_workflow(workflow, ExecutionContext())
@@ -396,9 +396,9 @@ class TestLLMCallErrorHandling:
                     payload={
                         "operation": "llm_call",
                         "prompt": "Test prompt",
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         result = orchestrator.run_workflow(workflow, ExecutionContext())
@@ -412,6 +412,7 @@ class TestLLMCallErrorHandling:
 # TEST: Client lifecycle
 # =============================================================================
 
+
 class TestClientLifecycle:
     """Tests for LLM client lifecycle management."""
 
@@ -423,7 +424,7 @@ class TestClientLifecycle:
             id="test-no-llm",
             steps=[
                 StepSpec(id="step1", kind="runtime", payload={"operation": "noop"}),
-            ]
+            ],
         )
 
         orchestrator.run_workflow(workflow, ExecutionContext())
@@ -449,9 +450,9 @@ class TestClientLifecycle:
                     payload={
                         "operation": "llm_call",
                         "prompt": "Test",
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         orchestrator.run_workflow(workflow, ExecutionContext())
@@ -460,9 +461,7 @@ class TestClientLifecycle:
         mock_client.stop_server.assert_called_once()
 
     @patch("runtime.orchestration.engine.OpenCodeClient")
-    def test_client_reused_for_multiple_calls(
-        self, mock_client_class, orchestrator
-    ):
+    def test_client_reused_for_multiple_calls(self, mock_client_class, orchestrator):
         """Same client instance should be reused for multiple llm_calls."""
         response = MagicMock()
         response.content = "Response"
@@ -481,14 +480,14 @@ class TestClientLifecycle:
                 StepSpec(
                     id="step1",
                     kind="runtime",
-                    payload={"operation": "llm_call", "prompt": "P1", "output_key": "r1"}
+                    payload={"operation": "llm_call", "prompt": "P1", "output_key": "r1"},
                 ),
                 StepSpec(
                     id="step2",
                     kind="runtime",
-                    payload={"operation": "llm_call", "prompt": "P2", "output_key": "r2"}
+                    payload={"operation": "llm_call", "prompt": "P2", "output_key": "r2"},
                 ),
-            ]
+            ],
         )
 
         orchestrator.run_workflow(workflow, ExecutionContext())
@@ -502,6 +501,7 @@ class TestClientLifecycle:
 # =============================================================================
 # TEST: Custom model
 # =============================================================================
+
 
 class TestLLMCallCustomModel:
     """Tests for custom model specification."""
@@ -526,15 +526,12 @@ class TestLLMCallCustomModel:
                         "operation": "llm_call",
                         "prompt": "Test",
                         "model": "openrouter/openai/gpt-4",
-                    }
+                    },
                 )
-            ]
+            ],
         )
 
         orchestrator.run_workflow(workflow, ExecutionContext())
 
         # Verify LLMCall was created with custom model
-        mock_llm_call_class.assert_called_once_with(
-            prompt="Test",
-            model="openrouter/openai/gpt-4"
-        )
+        mock_llm_call_class.assert_called_once_with(prompt="Test", model="openrouter/openai/gpt-4")

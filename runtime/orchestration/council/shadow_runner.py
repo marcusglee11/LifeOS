@@ -3,9 +3,9 @@
 Runs the council runtime as a shadow to capture verdicts for comparison logging.
 All exceptions are caught — shadow never affects pipeline outcome.
 """
+
 from __future__ import annotations
 
-import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path

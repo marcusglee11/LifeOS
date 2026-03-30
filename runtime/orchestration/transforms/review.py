@@ -1,6 +1,6 @@
 """Review phase packet transform."""
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 from .base import register_transform
 
@@ -9,7 +9,7 @@ from .base import register_transform
 def to_review_packet(packet: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     """
     Transform build output + evidence into a REVIEW_PACKET.
-    
+
     Per v0.3 spec: REVIEW_PACKET with artifacts_produced, test_results, summary.
     """
     return {

@@ -4,24 +4,23 @@ Test Loop Spine (A1 Chain Controller)
 TDD acceptance tests for Phase 4A0 Loop Spine.
 Tests checkpoint/resume semantics, deterministic execution, and fail-closed behavior.
 """
-import pytest
-import json
-import hashlib
-import yaml
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime, timezone
 
+import hashlib
+import json
+from unittest.mock import MagicMock, patch
+
+import pytest
+import yaml
+
+from runtime.orchestration.loop.run_lock import RunLockError
 from runtime.orchestration.loop.spine import (
-    LoopSpine,
-    SpineState,
     CheckpointPacket,
-    TerminalPacket,
-    SpineError,
+    LoopSpine,
     PolicyChangedError,
+    SpineState,
+    TerminalPacket,
 )
 from runtime.orchestration.run_controller import RepoDirtyError
-from runtime.orchestration.loop.run_lock import RunLockError
 from runtime.orchestration.workflow_runtime import build_task_context, build_workflow_instance
 
 
@@ -68,7 +67,9 @@ def mock_policy_hash():
 class TestSingleChainExecution:
     """Test: Single chain execution to terminal (Scenario 1)"""
 
-    def test_single_chain_to_terminal_pass(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_single_chain_to_terminal_pass(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """
         Given a task spec is provided
         When the loop spine runs the chain
@@ -107,7 +108,9 @@ class TestSingleChainExecution:
             ledger_file = clean_repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
             assert ledger_file.exists()
 
-    def test_single_chain_to_terminal_blocked(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_single_chain_to_terminal_blocked(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """
         Test chain that ends in BLOCKED state (e.g., test failure exhausted retries)
         """
@@ -134,7 +137,9 @@ class TestSingleChainExecution:
                 assert packet_data["outcome"] == "BLOCKED"
                 assert packet_data["reason"] == "max_retries_exceeded"
 
-    def test_terminal_packet_hash_and_contract_fields(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_terminal_packet_hash_and_contract_fields(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """Terminal packet includes gate_results/receipt_index and verifiable packet_hash."""
         spine = LoopSpine(repo_root=clean_repo_root)
 
@@ -152,7 +157,9 @@ class TestSingleChainExecution:
         assert len(terminal_packets) == 1
         packet_data = yaml.safe_load(terminal_packets[0].read_text("utf-8"))
         assert isinstance(packet_data.get("gate_results"), list)
-        assert packet_data["receipt_index"] == f"artifacts/receipts/{packet_data['run_id']}/index.json"
+        assert (
+            packet_data["receipt_index"] == f"artifacts/receipts/{packet_data['run_id']}/index.json"
+        )
 
         receipt_index_path = clean_repo_root / packet_data["receipt_index"]
         assert receipt_index_path.exists()
@@ -160,10 +167,14 @@ class TestSingleChainExecution:
         packet_hash = packet_data["packet_hash"]
         packet_data["packet_hash"] = None
         serialized_without_hash = yaml.dump(packet_data, sort_keys=True, default_flow_style=False)
-        expected_hash = f"sha256:{hashlib.sha256(serialized_without_hash.encode('utf-8')).hexdigest()}"
+        expected_hash = (
+            f"sha256:{hashlib.sha256(serialized_without_hash.encode('utf-8')).hexdigest()}"
+        )
         assert packet_hash == expected_hash
 
-    def test_concurrent_run_emits_terminal_packet(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_concurrent_run_emits_terminal_packet(
+        self, clean_repo_root, task_spec, mock_run_controller
+    ):
         """Run-lock contention returns BLOCKED and emits a terminal packet."""
         spine = LoopSpine(repo_root=clean_repo_root)
         with patch("runtime.orchestration.loop.run_lock.acquire_run_lock") as mock_acquire:
@@ -186,7 +197,9 @@ class TestSingleChainExecution:
 class TestCheckpointPause:
     """Test: Checkpoint pauses execution (Scenario 2)"""
 
-    def test_checkpoint_pauses_on_escalation(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_checkpoint_pauses_on_escalation(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """
         Given a chain is running
         When a checkpoint trigger fires (e.g., ESCALATION_REQUESTED)
@@ -202,7 +215,7 @@ class TestCheckpointPause:
             mock_steps.side_effect = lambda *args, **kwargs: spine._trigger_checkpoint(
                 trigger="ESCALATION_REQUESTED",
                 step_index=2,
-                context={"current_step": "design", "task_spec": task_spec}
+                context={"current_step": "design", "task_spec": task_spec},
             )
 
             result = spine.run(task_spec=task_spec)
@@ -211,7 +224,9 @@ class TestCheckpointPause:
             assert result["checkpoint_id"] is not None
 
             # Verify checkpoint packet exists
-            checkpoint_packets = list((clean_repo_root / "artifacts" / "checkpoints").glob("CP_*.yaml"))
+            checkpoint_packets = list(
+                (clean_repo_root / "artifacts" / "checkpoints").glob("CP_*.yaml")
+            )
             assert len(checkpoint_packets) == 1
 
             # Verify checkpoint content
@@ -222,7 +237,9 @@ class TestCheckpointPause:
                 assert checkpoint_data["resolved"] is False
                 assert "policy_hash" in checkpoint_data
 
-    def test_checkpoint_packet_format(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_checkpoint_packet_format(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """Verify checkpoint packet has stable format with sorted keys."""
         spine = LoopSpine(repo_root=clean_repo_root)
 
@@ -250,7 +267,9 @@ class TestCheckpointPause:
             reloaded = yaml.safe_load(content)
             assert list(reloaded.keys())[0] == "checkpoint_id"  # First key alphabetically
 
-    def test_typed_review_checkpoint_propagates_to_spine_handler(self, clean_repo_root, mock_run_controller, mock_policy_hash):
+    def test_typed_review_checkpoint_propagates_to_spine_handler(
+        self, clean_repo_root, mock_run_controller, mock_policy_hash
+    ):
         spine = LoopSpine(repo_root=clean_repo_root)
         instance = build_workflow_instance(
             workflow_id="spec_creation.v1",
@@ -278,9 +297,10 @@ class TestCheckpointPause:
         mission = MagicMock()
         mission.run.return_value = review_result
 
-        with patch("runtime.orchestration.missions.get_mission_class", return_value=lambda: mission), patch(
-            "runtime.orchestration.loop.spine.ShadowCouncilRunner"
-        ) as mock_shadow:
+        with (
+            patch("runtime.orchestration.missions.get_mission_class", return_value=lambda: mission),
+            patch("runtime.orchestration.loop.spine.ShadowCouncilRunner") as mock_shadow,
+        ):
             mock_shadow.return_value.run_shadow.return_value = None
             result = spine.run(task_spec={"workflow_instance": instance.to_dict()})
 
@@ -293,7 +313,9 @@ class TestCheckpointPause:
 class TestResumeFromCheckpoint:
     """Test: Resume from checkpoint deterministically (Scenario 3)"""
 
-    def test_resume_from_checkpoint_continues_execution(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_resume_from_checkpoint_continues_execution(
+        self, clean_repo_root, task_spec, mock_run_controller
+    ):
         """
         Given a checkpoint exists from a previous run
         And the checkpoint has not been resolved
@@ -369,7 +391,9 @@ class TestResumeFromCheckpoint:
                 call_kwargs = mock_steps.call_args[1]
                 assert call_kwargs.get("start_from_step") == 3
 
-    def test_resume_acquires_and_releases_run_lock(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_resume_acquires_and_releases_run_lock(
+        self, clean_repo_root, task_spec, mock_run_controller
+    ):
         """resume() uses run lock with the checkpoint run_id and releases it."""
         spine = LoopSpine(repo_root=clean_repo_root)
         checkpoint_packet = CheckpointPacket(
@@ -391,9 +415,11 @@ class TestResumeFromCheckpoint:
                 "steps_executed": ["build", "review", "steward"],
                 "commit_hash": "def456",
             }
-            with patch.object(spine, "_get_current_policy_hash", return_value="current_policy_hash"), \
-                 patch("runtime.orchestration.loop.run_lock.acquire_run_lock") as mock_acquire, \
-                 patch("runtime.orchestration.loop.run_lock.release_run_lock") as mock_release:
+            with (
+                patch.object(spine, "_get_current_policy_hash", return_value="current_policy_hash"),
+                patch("runtime.orchestration.loop.run_lock.acquire_run_lock") as mock_acquire,
+                patch("runtime.orchestration.loop.run_lock.release_run_lock") as mock_release,
+            ):
                 mock_acquire.return_value = object()
                 result = spine.resume(checkpoint_id="CP_lock_resume")
 
@@ -405,7 +431,9 @@ class TestResumeFromCheckpoint:
 class TestResumePolicyChange:
     """Test: Resume fails if policy changed (Scenario 4)"""
 
-    def test_resume_fails_on_policy_hash_mismatch(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_resume_fails_on_policy_hash_mismatch(
+        self, clean_repo_root, task_spec, mock_run_controller
+    ):
         """
         Given a checkpoint exists with policy_hash "abc123"
         And the current policy_hash is "def456"
@@ -523,7 +551,9 @@ class TestDirtyRepoFailClosed:
             terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
             assert len(terminal_packets) == 0
 
-            checkpoint_packets = list((clean_repo_root / "artifacts" / "checkpoints").glob("CP_*.yaml"))
+            checkpoint_packets = list(
+                (clean_repo_root / "artifacts" / "checkpoints").glob("CP_*.yaml")
+            )
             assert len(checkpoint_packets) == 0
 
     def test_dirty_repo_no_execution(self, clean_repo_root, task_spec):
@@ -546,7 +576,9 @@ class TestDirtyRepoFailClosed:
 class TestCheckpointResolution:
     """Test: Checkpoint resolved triggers resume (Scenario 6)"""
 
-    def test_checkpoint_resolution_approved_resumes(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_checkpoint_resolution_approved_resumes(
+        self, clean_repo_root, task_spec, mock_run_controller
+    ):
         """
         Given a checkpoint is pending CEO resolution
         And the CEO has marked it resolved (approved)
@@ -576,7 +608,9 @@ class TestCheckpointResolution:
         assert is_resolved is True
         assert decision == "APPROVED"
 
-    def test_checkpoint_resolution_rejected_terminates(self, clean_repo_root, task_spec, mock_run_controller):
+    def test_checkpoint_resolution_rejected_terminates(
+        self, clean_repo_root, task_spec, mock_run_controller
+    ):
         """
         Given a checkpoint is pending CEO resolution
         And the CEO has marked it resolved (rejected)
@@ -642,7 +676,9 @@ class TestCheckpointResolution:
 class TestArtifactOutputContract:
     """Test: Artifact output contract (deterministic formatting)"""
 
-    def test_terminal_packet_sorted_keys(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_terminal_packet_sorted_keys(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """Verify terminal packet YAML has sorted keys for determinism."""
         spine = LoopSpine(repo_root=clean_repo_root)
 
@@ -690,7 +726,9 @@ class TestArtifactOutputContract:
 class TestTerminalPacketLedgerAnchor:
     """Test: Terminal packet includes ledger chain anchor fields (W7-T01)"""
 
-    def test_terminal_packet_includes_anchor_fields(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_terminal_packet_includes_anchor_fields(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """Terminal packet YAML contains ledger_chain_tip, ledger_attempt_count, ledger_schema_version."""
         spine = LoopSpine(repo_root=clean_repo_root)
 
@@ -721,7 +759,9 @@ class TestTerminalPacketLedgerAnchor:
             assert packet_data["ledger_attempt_count"] == 1  # One record written
             assert packet_data["ledger_schema_version"] == "v1.1"
 
-    def test_terminal_packet_anchor_matches_ledger_state(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_terminal_packet_anchor_matches_ledger_state(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """Terminal packet anchor values match actual ledger state at completion."""
         spine = LoopSpine(repo_root=clean_repo_root)
 
@@ -736,7 +776,10 @@ class TestTerminalPacketLedgerAnchor:
 
             # Read ledger directly
             from runtime.orchestration.loop.ledger import AttemptLedger
-            ledger = AttemptLedger(clean_repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl")
+
+            ledger = AttemptLedger(
+                clean_repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
+            )
             ledger.hydrate()
 
             # Read terminal packet
@@ -776,15 +819,19 @@ class TestShadowCouncilWiring:
             shadow_calls.append({"run_id": run_id, "ccp": ccp})
             return {"status": "shadow_ok"}
 
-        with patch(
-            "runtime.orchestration.missions.get_mission_class",
-            return_value=mock_mission,
-        ), patch(
-            "runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow",
-            side_effect=fake_run_shadow,
-        ), patch(
-            "subprocess.run",
-            return_value=MagicMock(returncode=0, stdout="deadbeef"),
+        with (
+            patch(
+                "runtime.orchestration.missions.get_mission_class",
+                return_value=mock_mission,
+            ),
+            patch(
+                "runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow",
+                side_effect=fake_run_shadow,
+            ),
+            patch(
+                "subprocess.run",
+                return_value=MagicMock(returncode=0, stdout="deadbeef"),
+            ),
         ):
             spine._run_chain_steps(task_spec)
 
@@ -806,15 +853,19 @@ class TestShadowCouncilWiring:
 
         shadow_calls = []
 
-        with patch(
-            "runtime.orchestration.missions.get_mission_class",
-            return_value=bad_mission,
-        ), patch(
-            "runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow",
-            side_effect=lambda **kw: shadow_calls.append(kw),
-        ), patch(
-            "subprocess.run",
-            return_value=MagicMock(returncode=0, stdout="deadbeef"),
+        with (
+            patch(
+                "runtime.orchestration.missions.get_mission_class",
+                return_value=bad_mission,
+            ),
+            patch(
+                "runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow",
+                side_effect=lambda **kw: shadow_calls.append(kw),
+            ),
+            patch(
+                "subprocess.run",
+                return_value=MagicMock(returncode=0, stdout="deadbeef"),
+            ),
         ):
             result = spine._run_chain_steps(task_spec)
 
@@ -843,9 +894,11 @@ class TestBatch2Fixes:
 
         mock_mission.return_value.run.side_effect = capture_run
 
-        with patch("runtime.orchestration.missions.get_mission_class", return_value=mock_mission), \
-             patch("runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow"), \
-             patch("subprocess.run", return_value=MagicMock(returncode=0, stdout="deadbeef")):
+        with (
+            patch("runtime.orchestration.missions.get_mission_class", return_value=mock_mission),
+            patch("runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow"),
+            patch("subprocess.run", return_value=MagicMock(returncode=0, stdout="deadbeef")),
+        ):
             spine._run_chain_steps(task_spec)
 
         # Steward inputs are identifiable by "review_packet" + "approval" keys
@@ -853,7 +906,9 @@ class TestBatch2Fixes:
         assert steward_inputs, "Steward inputs not captured"
         assert "max_diff_lines" in steward_inputs[0], f"max_diff_lines missing: {steward_inputs[0]}"
         assert steward_inputs[0]["max_diff_lines"] == 500
-        assert steward_inputs[0]["max_diff_lines"] >= 400, "default must cover Batch-1 Run-6 high-water mark (340 lines)"
+        assert steward_inputs[0]["max_diff_lines"] >= 400, (
+            "default must cover Batch-1 Run-6 high-water mark (340 lines)"
+        )
 
     def test_steward_inputs_max_diff_lines_from_task_spec(self, clean_repo_root, task_spec):
         """B2-F5: Task spec constraints.max_diff_lines overrides default 300."""
@@ -876,9 +931,11 @@ class TestBatch2Fixes:
 
         mock_mission.return_value.run.side_effect = capture_run
 
-        with patch("runtime.orchestration.missions.get_mission_class", return_value=mock_mission), \
-             patch("runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow"), \
-             patch("subprocess.run", return_value=MagicMock(returncode=0, stdout="deadbeef")):
+        with (
+            patch("runtime.orchestration.missions.get_mission_class", return_value=mock_mission),
+            patch("runtime.orchestration.council.shadow_runner.ShadowCouncilRunner.run_shadow"),
+            patch("subprocess.run", return_value=MagicMock(returncode=0, stdout="deadbeef")),
+        ):
             spine._run_chain_steps(task_spec_with_budget)
 
         steward_inputs = [i for i in all_inputs_seen if "approval" in i and "review_packet" in i]
@@ -899,7 +956,9 @@ class TestBatch2Fixes:
         assert "docs/**" in allowed, f"docs/** missing from defaults: {allowed}"
         assert "config/**" in allowed, f"config/** missing from defaults: {allowed}"
 
-    def test_ledger_autocommit_calls_git_commit(self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash):
+    def test_ledger_autocommit_calls_git_commit(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
         """B2-F3: After successful ledger write, spine calls git commit on the ledger file.
 
         Regression guard: the auto-commit block uses a local `import subprocess as _sp`
@@ -917,8 +976,10 @@ class TestBatch2Fixes:
             mock_result.stdout = b"ok"
             return mock_result
 
-        with patch.object(spine, "_run_chain_steps") as mock_steps, \
-             patch("subprocess.run", side_effect=capture_subprocess):
+        with (
+            patch.object(spine, "_run_chain_steps") as mock_steps,
+            patch("subprocess.run", side_effect=capture_subprocess),
+        ):
             mock_steps.return_value = {
                 "outcome": "PASS",
                 "steps_executed": ["hydrate", "policy", "design", "build", "review", "steward"],
@@ -932,7 +993,9 @@ class TestBatch2Fixes:
             f"got git calls: {git_commit_calls}"
         )
         # The commit message must reference the run_id
-        commit_msg_call = next((c for c in commit_calls if any("chore(ledger)" in str(a) for a in c)), None)
+        commit_msg_call = next(
+            (c for c in commit_calls if any("chore(ledger)" in str(a) for a in c)), None
+        )
         assert commit_msg_call is not None, (
             f"Expected 'chore(ledger)' in commit message, git commit calls: {commit_calls}"
         )

@@ -1,21 +1,20 @@
 """Policy-driven council runtime package."""
 
-from .compiler import compile_council_run_plan
-from .compiler import compile_council_run_plan_v2
+from .compiler import compile_council_run_plan, compile_council_run_plan_v2
+from .convergence import ConvergenceResult, compute_convergence
 from .fsm import CouncilFSM, CouncilFSMv2
 from .models import (
     CouncilBlockedError,
+    CouncilRunMeta,
     CouncilRunPlan,
     CouncilRunPlanCore,
-    CouncilRunMeta,
     CouncilRuntimeError,
     CouncilRuntimeResult,
     CouncilSeatResult,
     CouncilTransition,
 )
-from .policy import CouncilPolicy, evaluate_expression, load_council_policy, resolve_model_family
-from .convergence import ConvergenceResult, compute_convergence
 from .multi_provider import build_multi_provider_executor
+from .policy import CouncilPolicy, evaluate_expression, load_council_policy, resolve_model_family
 from .schema_gate import (
     SchemaGateResult,
     validate_challenger_output,

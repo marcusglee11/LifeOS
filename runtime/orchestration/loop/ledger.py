@@ -12,14 +12,12 @@ v1.0 ledgers remain hydratable for compatibility; append is blocked.
 
 See: docs/02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md
 """
+
 import json
-import os
-import hashlib
 import re
-from typing import List, Dict, Any, Optional, Tuple
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from .taxonomy import TerminalReason, FailureClass, TerminalOutcome
+from typing import Any, Dict, List, Optional, Tuple
 
 from runtime.api.governance_api import hash_json
 
@@ -42,13 +40,14 @@ class AttemptRecord:
     """
     Represents a single attempt in the build loop.
     """
+
     attempt_id: int
-    timestamp: str # ISO 8601
+    timestamp: str  # ISO 8601
     run_id: str
 
     # Hashes representing state
     policy_hash: str
-    input_hash: str # Handoff/Plan hash
+    input_hash: str  # Handoff/Plan hash
 
     # Execution details
     actions_taken: List[str]
@@ -56,15 +55,15 @@ class AttemptRecord:
     # Evidence
     diff_hash: Optional[str]
     changed_files: List[str]
-    evidence_hashes: Dict[str, str] # filename -> hash
+    evidence_hashes: Dict[str, str]  # filename -> hash
 
     # Outcome
     success: bool
-    failure_class: Optional[str] # FailureClass.value
-    terminal_reason: Optional[str] # TerminalReason.value (if terminal)
+    failure_class: Optional[str]  # FailureClass.value
+    terminal_reason: Optional[str]  # TerminalReason.value (if terminal)
 
     # Decision
-    next_action: str # LoopAction.value
+    next_action: str  # LoopAction.value
     rationale: str
 
     # Trusted Builder (C4)
@@ -79,14 +78,16 @@ class LedgerHeader:
     """
     First line of the ledger, containing immutable run context.
     """
+
     schema_version: str = "v1.1"
     policy_hash: str
     handoff_hash: str
     run_id: str
     header_hash: str
 
-    def __init__(self, policy_hash: str, handoff_hash: str, run_id: str,
-                 schema_version: str = "v1.1"):
+    def __init__(
+        self, policy_hash: str, handoff_hash: str, run_id: str, schema_version: str = "v1.1"
+    ):
         self.policy_hash = policy_hash
         self.handoff_hash = handoff_hash
         self.run_id = run_id
@@ -95,13 +96,15 @@ class LedgerHeader:
 
     def _compute_header_hash(self) -> str:
         """Deterministic hash over immutable header fields."""
-        return hash_json({
-            "type": "header",
-            "schema_version": self.schema_version,
-            "policy_hash": self.policy_hash,
-            "handoff_hash": self.handoff_hash,
-            "run_id": self.run_id,
-        })
+        return hash_json(
+            {
+                "type": "header",
+                "schema_version": self.schema_version,
+                "policy_hash": self.policy_hash,
+                "handoff_hash": self.handoff_hash,
+                "run_id": self.run_id,
+            }
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -113,11 +116,14 @@ class LedgerHeader:
             "header_hash": self.header_hash,
         }
 
+
 class LedgerError(Exception):
     pass
 
+
 class LedgerIntegrityError(LedgerError):
     pass
+
 
 class AttemptLedger:
     """
@@ -171,9 +177,9 @@ class AttemptLedger:
         if self.ledger_path.exists() and self.ledger_path.stat().st_size > 0:
             pass
 
-        with open(self.ledger_path, 'w', encoding='utf-8') as f:
+        with open(self.ledger_path, "w", encoding="utf-8") as f:
             json.dump(header.to_dict(), f)
-            f.write('\n')
+            f.write("\n")
         self.header = header.to_dict()
         self._chain_enabled = self._is_chain_required(header.schema_version)
 
@@ -189,7 +195,7 @@ class AttemptLedger:
             return False
 
         try:
-            with open(self.ledger_path, 'r', encoding='utf-8') as f:
+            with open(self.ledger_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             if not lines:
@@ -212,16 +218,16 @@ class AttemptLedger:
             if self._chain_enabled:
                 stored_hash = self.header.get("header_hash")
                 if not stored_hash:
-                    raise LedgerIntegrityError(
-                        "v1.1 ledger missing header_hash (fail-closed)"
-                    )
-                expected = hash_json({
-                    "type": "header",
-                    "schema_version": schema_ver,
-                    "policy_hash": self.header.get("policy_hash"),
-                    "handoff_hash": self.header.get("handoff_hash"),
-                    "run_id": self.header.get("run_id"),
-                })
+                    raise LedgerIntegrityError("v1.1 ledger missing header_hash (fail-closed)")
+                expected = hash_json(
+                    {
+                        "type": "header",
+                        "schema_version": schema_ver,
+                        "policy_hash": self.header.get("policy_hash"),
+                        "handoff_hash": self.header.get("handoff_hash"),
+                        "run_id": self.header.get("run_id"),
+                    }
+                )
                 if stored_hash != expected:
                     raise LedgerIntegrityError(
                         f"header_hash mismatch: stored={stored_hash}, expected={expected}"
@@ -229,7 +235,7 @@ class AttemptLedger:
 
             # Parse Records
             self.history = []
-            for i, line in enumerate(lines[1:], start=2): # 1-based line numbering for error msg
+            for i, line in enumerate(lines[1:], start=2):  # 1-based line numbering for error msg
                 line = line.strip()
                 if not line:
                     continue
@@ -257,9 +263,7 @@ class AttemptLedger:
 
         # Fail-closed: block legacy append
         if not chain_required:
-            raise LedgerError(
-                "append blocked for legacy v1.0 ledger; migrate first"
-            )
+            raise LedgerError("append blocked for legacy v1.0 ledger; migrate first")
         if not self._chain_enabled:
             raise LedgerIntegrityError(
                 "append blocked: schema requires hash-chain but chain state is disabled"
@@ -278,7 +282,7 @@ class AttemptLedger:
             if record.attempt_id != last_id + 1:
                 raise LedgerError(f"Sequence gap: last={last_id}, new={record.attempt_id}")
         elif record.attempt_id != 1:
-             pass
+            pass
 
         # Compute chain hashes for v1.1+
         if self._chain_enabled:
@@ -291,17 +295,15 @@ class AttemptLedger:
             else:
                 prev_hash = self.header.get("header_hash", "") if self.header else ""
                 if not prev_hash:
-                    raise LedgerIntegrityError(
-                        "append blocked: missing header_hash chain anchor"
-                    )
+                    raise LedgerIntegrityError("append blocked: missing header_hash chain anchor")
             record.prev_record_hash = prev_hash
 
             record_dict = asdict(record)
             record.record_hash = _compute_record_hash(record_dict, prev_hash)
 
-        with open(self.ledger_path, 'a', encoding='utf-8') as f:
+        with open(self.ledger_path, "a", encoding="utf-8") as f:
             json.dump(asdict(record), f)
-            f.write('\n')
+            f.write("\n")
 
         self.history.append(record)
 
@@ -329,13 +331,15 @@ class AttemptLedger:
         errors: List[str] = []
 
         # 1. Validate header hash
-        expected_header_hash = hash_json({
-            "type": "header",
-            "schema_version": self.header.get("schema_version"),
-            "policy_hash": self.header.get("policy_hash"),
-            "handoff_hash": self.header.get("handoff_hash"),
-            "run_id": self.header.get("run_id"),
-        })
+        expected_header_hash = hash_json(
+            {
+                "type": "header",
+                "schema_version": self.header.get("schema_version"),
+                "policy_hash": self.header.get("policy_hash"),
+                "handoff_hash": self.header.get("handoff_hash"),
+                "run_id": self.header.get("run_id"),
+            }
+        )
         stored_header_hash = self.header.get("header_hash", "")
         if stored_header_hash != expected_header_hash:
             errors.append(
@@ -368,22 +372,15 @@ class AttemptLedger:
 
         # 3. Tail-truncation checks (external commitment)
         if expected_tip is not None:
-            actual_tip = (
-                self.history[-1].record_hash if self.history
-                else stored_header_hash
-            )
+            actual_tip = self.history[-1].record_hash if self.history else stored_header_hash
             if actual_tip != expected_tip:
-                errors.append(
-                    f"chain tip mismatch: expected={expected_tip}, "
-                    f"actual={actual_tip}"
-                )
+                errors.append(f"chain tip mismatch: expected={expected_tip}, actual={actual_tip}")
 
         if expected_count is not None:
             actual_count = len(self.history)
             if actual_count != expected_count:
                 errors.append(
-                    f"record count mismatch: expected={expected_count}, "
-                    f"actual={actual_count}"
+                    f"record count mismatch: expected={expected_count}, actual={actual_count}"
                 )
 
         return (len(errors) == 0, errors)
@@ -401,16 +398,16 @@ class AttemptLedger:
                 expected_id = 1
                 for rec in self.history:
                     if rec.attempt_id != expected_id:
-                         raise LedgerIntegrityError(f"Sequence Error: expected {expected_id}, got {rec.attempt_id}")
+                        raise LedgerIntegrityError(
+                            f"Sequence Error: expected {expected_id}, got {rec.attempt_id}"
+                        )
                     expected_id += 1
 
             # Verify hash chain for v1.1+
             if self._chain_enabled:
                 valid, chain_errors = self.verify_chain()
                 if not valid:
-                    raise LedgerIntegrityError(
-                        f"Hash chain errors: {'; '.join(chain_errors)}"
-                    )
+                    raise LedgerIntegrityError(f"Hash chain errors: {'; '.join(chain_errors)}")
 
             return True
         except LedgerIntegrityError:

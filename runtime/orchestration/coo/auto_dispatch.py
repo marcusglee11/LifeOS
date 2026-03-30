@@ -4,6 +4,7 @@ Auto-dispatch eligibility predicate for COO orchestration.
 Pure function — no side effects. Checks whether a task qualifies for
 auto-dispatch without CEO approval based on the delegation envelope policy.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -15,9 +16,7 @@ from runtime.orchestration.coo.backlog import TaskEntry
 _ELIGIBLE_TASK_TYPES = frozenset({"build", "content", "hygiene"})
 
 
-def is_auto_dispatchable(
-    task: TaskEntry, envelope: dict[str, Any]
-) -> tuple[bool, str]:
+def is_auto_dispatchable(task: TaskEntry, envelope: dict[str, Any]) -> tuple[bool, str]:
     """Check if a task qualifies for auto-dispatch without CEO approval.
 
     Args:

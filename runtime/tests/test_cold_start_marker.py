@@ -1,13 +1,15 @@
 # Cold Start Test Marker Demo
-import pytest
 import time
+
+import pytest
+
 
 @pytest.mark.cold_start
 def test_cold_start_engine_init_time():
-    '''
+    """
     Example cold start test: measures time to initialize the main engine.
     Cold start assumes fresh process without warm cache.
-    '''
+    """
     start = time.time()
     # Simulate/import engine init - replace with actual init code
     # from runtime.engine import Engine

@@ -1,9 +1,8 @@
 """Tests for TerminalPacket v2.1 extensions."""
+
 from __future__ import annotations
 
 from dataclasses import asdict, fields
-
-import pytest
 
 from runtime.orchestration.loop.spine import TerminalPacket
 
@@ -11,9 +10,17 @@ from runtime.orchestration.loop.spine import TerminalPacket
 def test_terminal_packet_has_v21_fields():
     """TerminalPacket includes all v2.1 extension fields."""
     v21_fields = {
-        "status", "start_ts", "end_ts", "task_ref", "policy_hash",
-        "phase_outcomes", "gate_results", "receipt_index",
-        "clean_fail_reason", "repo_clean_verified", "orphan_check_passed",
+        "status",
+        "start_ts",
+        "end_ts",
+        "task_ref",
+        "policy_hash",
+        "phase_outcomes",
+        "gate_results",
+        "receipt_index",
+        "clean_fail_reason",
+        "repo_clean_verified",
+        "orphan_check_passed",
         "packet_hash",
     }
     actual_fields = {f.name for f in fields(TerminalPacket)}
@@ -23,6 +30,7 @@ def test_terminal_packet_has_v21_fields():
 def test_packet_hash_computed():
     """packet_hash field can hold a SHA-256 value."""
     from runtime.util.canonical import compute_sha256
+
     test_hash = compute_sha256({"test": "data"})
 
     packet = TerminalPacket(

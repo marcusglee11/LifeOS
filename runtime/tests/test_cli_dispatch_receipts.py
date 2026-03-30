@@ -1,4 +1,5 @@
 """Tests: CLI agent dispatch receipts (Phase 1B — Constitutional Compliance)."""
+
 from __future__ import annotations
 
 import subprocess
@@ -15,7 +16,6 @@ from runtime.receipts.invocation_receipt import (
     get_or_create_collector,
     reset_invocation_receipt_collectors,
 )
-
 
 _RUN_ID = "test-1b-dispatch"
 
@@ -43,6 +43,7 @@ def _config(provider=CLIProvider.CODEX, timeout=10):
 # 1B-1: Successful dispatch produces receipt
 # ---------------------------------------------------------------------------
 
+
 def test_success_produces_receipt():
     with (
         patch("runtime.agents.cli_dispatch._resolve_binary", return_value="/usr/bin/codex"),
@@ -65,6 +66,7 @@ def test_success_produces_receipt():
 # 1B-2: Non-zero exit code records receipt with error
 # ---------------------------------------------------------------------------
 
+
 def test_failure_produces_receipt_with_error():
     with (
         patch("runtime.agents.cli_dispatch._resolve_binary", return_value="/usr/bin/codex"),
@@ -82,6 +84,7 @@ def test_failure_produces_receipt_with_error():
 # ---------------------------------------------------------------------------
 # 1B-3: Timeout produces receipt with exit_status=-1
 # ---------------------------------------------------------------------------
+
 
 def test_timeout_produces_receipt():
     with (
@@ -102,6 +105,7 @@ def test_timeout_produces_receipt():
 # 1B-4: Empty run_id → no receipt
 # ---------------------------------------------------------------------------
 
+
 def test_empty_run_id_no_receipt():
     with (
         patch("runtime.agents.cli_dispatch._resolve_binary", return_value="/usr/bin/codex"),
@@ -118,6 +122,7 @@ def test_empty_run_id_no_receipt():
 # ---------------------------------------------------------------------------
 # 1B-5: Provider value is stored in receipt
 # ---------------------------------------------------------------------------
+
 
 def test_provider_stored_in_receipt():
     with (

@@ -3,11 +3,11 @@
 Captures CLI agent output for comparison logging alongside the primary pipeline.
 When provider is unavailable, writes a stub manifest. Never raises to caller.
 """
+
 from __future__ import annotations
 
 import logging
 import shutil
-import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -69,6 +69,7 @@ def _check_provider_available(provider_name: str) -> tuple[bool, str]:
     """Check if CLI provider is enabled and binary exists."""
     try:
         from runtime.agents.models import get_cli_provider_config
+
         cli_cfg = get_cli_provider_config(provider_name)
         if cli_cfg is None:
             return False, f"provider '{provider_name}' not configured"
@@ -109,7 +110,9 @@ def capture_shadow_agent(
         available, reason = _check_provider_available(provider_name)
         if not available:
             _write_manifest(
-                output_dir, run_id, provider_name,
+                output_dir,
+                run_id,
+                provider_name,
                 stub=True,
                 reason=reason or "shadow agent not configured",
             )
@@ -126,8 +129,8 @@ def capture_shadow_agent(
 
         # Dispatch via CLI
         from runtime.agents.cli_dispatch import (
-            CLIProvider,
             CLIDispatchConfig,
+            CLIProvider,
             dispatch_cli_agent,
         )
 
@@ -146,7 +149,9 @@ def capture_shadow_agent(
         output_hash = compute_sha256(result.output)
 
         _write_manifest(
-            output_dir, run_id, provider_name,
+            output_dir,
+            run_id,
+            provider_name,
             exit_code=result.exit_code,
             output_hash=output_hash,
             latency_ms=result.latency_ms,
@@ -166,7 +171,9 @@ def capture_shadow_agent(
         logger.warning("Shadow agent capture failed (run_id=%s): %s", run_id, exc)
         try:
             _write_manifest(
-                output_dir, run_id, provider_name,
+                output_dir,
+                run_id,
+                provider_name,
                 stub=True,
                 reason="capture_error",
                 error=str(exc),

@@ -34,7 +34,9 @@ def _render_note_markdown(*, title: str, timestamp: str, tags: list[str], conten
         "timestamp": timestamp,
         "tags": tags,
     }
-    return f"---\n{yaml.safe_dump(frontmatter, sort_keys=False).strip()}\n---\n\n{content.rstrip()}\n"
+    return (
+        f"---\n{yaml.safe_dump(frontmatter, sort_keys=False).strip()}\n---\n\n{content.rstrip()}\n"
+    )
 
 
 def _execute_write(args: dict[str, Any]) -> dict[str, Any]:

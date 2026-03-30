@@ -1,11 +1,14 @@
 """
 Gate validation for mission and packet schemas.
 """
+
 from pathlib import Path
+
 import yaml
 from jsonschema import Draft7Validator
 
 SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "config" / "schemas"
+
 
 class GateValidationError(Exception):
     pass

@@ -15,24 +15,17 @@ Tests:
  7. Advisory synthesis passes validate without evidence_summary
  8. Coverage degraded / waived_lenses reflected in output
 """
+
 from __future__ import annotations
-
-import pytest
-from typing import Any
-
-from runtime.orchestration.council.models import (
-    CouncilRunPlanCore,
-    CouncilRunMeta,
-    compute_plan_core_hash,
-    VERDICT_ACCEPT,
-    VERDICT_REVISE,
-)
-from runtime.orchestration.council.policy import load_council_policy
-from runtime.orchestration.council.schema_gate import validate_synthesis_output
 
 # Module under test
 from runtime.orchestration.council.fsm import build_synthesis_output
-
+from runtime.orchestration.council.models import (
+    VERDICT_ACCEPT,
+    CouncilRunPlanCore,
+)
+from runtime.orchestration.council.policy import load_council_policy
+from runtime.orchestration.council.schema_gate import validate_synthesis_output
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -113,8 +106,16 @@ def test_synthesis_t1_has_required_fields():
         coverage_degraded=False,
         waived_lenses=[],
     )
-    for field in ("run_type", "tier", "verdict", "fix_plan", "complexity_budget",
-                  "operator_view", "coverage_degraded", "waived_lenses"):
+    for field in (
+        "run_type",
+        "tier",
+        "verdict",
+        "fix_plan",
+        "complexity_budget",
+        "operator_view",
+        "coverage_degraded",
+        "waived_lenses",
+    ):
         assert field in result, f"Missing field: {field}"
     assert result["tier"] == "T1"
     assert result["run_type"] == "review"

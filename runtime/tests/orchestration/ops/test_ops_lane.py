@@ -17,7 +17,6 @@ from runtime.orchestration.ops.queue import (
 from runtime.orchestration.ops.registry import (
     OperationValidationError,
     normalize_workspace_path,
-    validate_operation,
 )
 
 
@@ -40,19 +39,25 @@ def _proposal(**overrides: object) -> dict[str, object]:
     return base
 
 
-def test_normalize_workspace_path_accepts_workspace_alias(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_normalize_workspace_path_accepts_workspace_alias(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path))
     resolved = normalize_workspace_path("/workspace/notes/test.md")
     assert resolved == (tmp_path / "notes" / "test.md").resolve()
 
 
-def test_normalize_workspace_path_rejects_escape(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_normalize_workspace_path_rejects_escape(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path))
     with pytest.raises(OperationValidationError, match="escapes workspace root"):
         normalize_workspace_path("../outside.txt")
 
 
-def test_execute_operation_proposal_write_round_trip(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_execute_operation_proposal_write_round_trip(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
     repo_root = tmp_path / "repo"
     repo_root.mkdir()

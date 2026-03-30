@@ -1,15 +1,17 @@
 """Tests for runtime/receipts/store.py"""
+
 import json
+
 import pytest
 
-from runtime.receipts.store import ReceiptStore
+from runtime.receipts.plan_core import compute_plan_core_sha256
 from runtime.receipts.receipt_emitter import (
     build_acceptance_receipt,
     build_blocked_report,
     build_land_receipt,
     compute_decision,
 )
-from runtime.receipts.plan_core import compute_plan_core_sha256
+from runtime.receipts.store import ReceiptStore
 
 SAMPLE_PLAN_CORE = {
     "plan_id": "plan-test-001",
@@ -28,18 +30,24 @@ FAIL_ROLLUP = {"overall_status": "FAIL"}
 
 def make_acceptance_receipt(supersedes=None):
     from runtime.receipts.runlog import RunLogEmitter
+
     emitter = RunLogEmitter(phase_order=["init", "build"])
     decision = compute_decision(PASS_ROLLUP)
     return build_acceptance_receipt(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-        emitter, decision, PASS_ROLLUP,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_TREE_OID,
+        SAMPLE_PLAN_SHA,
+        emitter,
+        decision,
+        PASS_ROLLUP,
         supersedes=supersedes,
     )
 
 
 def make_blocked_report():
     return build_blocked_report(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_PLAN_SHA,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_PLAN_SHA,
         reason_code="GATE_FAIL",
         gate_rollup=FAIL_ROLLUP,
     )
@@ -47,9 +55,13 @@ def make_blocked_report():
 
 def test_write_creates_directory_structure(tmp_path):
     store = ReceiptStore(tmp_path / "store")
-    store.write_run_artefacts(SAMPLE_WORKSPACE_SHA, SAMPLE_PLAN_SHA, {
-        "plan_core.json": SAMPLE_PLAN_CORE,
-    })
+    store.write_run_artefacts(
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_PLAN_SHA,
+        {
+            "plan_core.json": SAMPLE_PLAN_CORE,
+        },
+    )
     run_dir = tmp_path / "store" / "artefacts" / SAMPLE_WORKSPACE_SHA / SAMPLE_PLAN_SHA
     assert run_dir.exists()
 
@@ -210,9 +222,13 @@ def test_write_run_artefacts_rejects_path_traversal(tmp_path):
 
 def test_write_run_artefacts_rejects_overwrite(tmp_path):
     store = ReceiptStore(tmp_path / "store")
-    store.write_run_artefacts(SAMPLE_WORKSPACE_SHA, SAMPLE_PLAN_SHA, {"plan_core.json": SAMPLE_PLAN_CORE})
+    store.write_run_artefacts(
+        SAMPLE_WORKSPACE_SHA, SAMPLE_PLAN_SHA, {"plan_core.json": SAMPLE_PLAN_CORE}
+    )
     with pytest.raises(ValueError, match="refuses overwrite"):
-        store.write_run_artefacts(SAMPLE_WORKSPACE_SHA, SAMPLE_PLAN_SHA, {"plan_core.json": SAMPLE_PLAN_CORE})
+        store.write_run_artefacts(
+            SAMPLE_WORKSPACE_SHA, SAMPLE_PLAN_SHA, {"plan_core.json": SAMPLE_PLAN_CORE}
+        )
 
 
 def test_query_ignores_index_path_traversal(tmp_path):

@@ -1,5 +1,6 @@
-from runtime.tools.openclaw_policy_assert import assert_policy
 from pathlib import Path
+
+from runtime.tools.openclaw_policy_assert import assert_policy
 
 
 def _base_cfg():
@@ -21,9 +22,27 @@ def _base_cfg():
                 },
             },
             "list": [
-                {"id": "main", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"]}},
-                {"id": "quick", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"]}},
-                {"id": "think", "model": {"primary": "openai-codex/gpt-5.3-codex", "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"]}},
+                {
+                    "id": "main",
+                    "model": {
+                        "primary": "openai-codex/gpt-5.3-codex",
+                        "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"],
+                    },
+                },
+                {
+                    "id": "quick",
+                    "model": {
+                        "primary": "openai-codex/gpt-5.3-codex",
+                        "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"],
+                    },
+                },
+                {
+                    "id": "think",
+                    "model": {
+                        "primary": "openai-codex/gpt-5.3-codex",
+                        "fallbacks": ["openai-codex/gpt-5.1", "openai-codex/gpt-5.1-codex-max"],
+                    },
+                },
             ],
         },
     }

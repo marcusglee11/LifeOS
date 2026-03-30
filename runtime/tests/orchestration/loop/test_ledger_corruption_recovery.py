@@ -6,15 +6,17 @@ and encoding errors in the Autonomous Build Loop ledger.
 
 Per Edge Case Testing Implementation Plan - Phase 1.2
 """
-import pytest
+
 import json
-from pathlib import Path
+
+import pytest
+
 from runtime.orchestration.loop.ledger import (
     AttemptLedger,
     AttemptRecord,
+    LedgerError,
     LedgerHeader,
     LedgerIntegrityError,
-    LedgerError,
 )
 
 
@@ -44,7 +46,7 @@ def valid_record():
         failure_class="test_failure",
         terminal_reason=None,
         next_action="retry",
-        rationale="test rationale"
+        rationale="test rationale",
     )
 
 
@@ -53,8 +55,10 @@ class TestJSONCorruption:
 
     def test_mid_line_json_corruption(self, ledger_path):
         """Mid-line JSON corruption triggers LedgerIntegrityError."""
-        with open(ledger_path, 'w') as f:
-            f.write('{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n')
+        with open(ledger_path, "w") as f:
+            f.write(
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+            )
             f.write('{"attempt_id": 1, "timestamp": "2026-01-01", CORRUPT_HERE\n')
 
         ledger = AttemptLedger(ledger_path)
@@ -65,9 +69,13 @@ class TestJSONCorruption:
 
     def test_partial_valid_json(self, ledger_path):
         """Partial valid JSON (cut off mid-object) triggers LedgerIntegrityError."""
-        with open(ledger_path, 'w') as f:
-            f.write('{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n')
-            f.write('{"attempt_id": 1, "timestamp": "2026-01-01", "run_id": "run1", "policy_hash": "abc", "input_hash')
+        with open(ledger_path, "w") as f:
+            f.write(
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+            )
+            f.write(
+                '{"attempt_id": 1, "timestamp": "2026-01-01", "run_id": "run1", "policy_hash": "abc", "input_hash'
+            )
 
         ledger = AttemptLedger(ledger_path)
         with pytest.raises(LedgerIntegrityError) as exc_info:
@@ -77,8 +85,8 @@ class TestJSONCorruption:
 
     def test_header_json_corrupt(self, ledger_path):
         """Corrupt header JSON triggers LedgerIntegrityError."""
-        with open(ledger_path, 'w') as f:
-            f.write('NOT_JSON\n')
+        with open(ledger_path, "w") as f:
+            f.write("NOT_JSON\n")
 
         ledger = AttemptLedger(ledger_path)
         with pytest.raises(LedgerIntegrityError) as exc_info:
@@ -92,8 +100,10 @@ class TestEncodingErrors:
 
     def test_invalid_utf8_in_ledger_line(self, ledger_path):
         """Invalid UTF-8 bytes in ledger line trigger error (UnicodeDecodeError or LedgerIntegrityError)."""
-        with open(ledger_path, 'wb') as f:
-            f.write(b'{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n')
+        with open(ledger_path, "wb") as f:
+            f.write(
+                b'{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+            )
             # Write invalid UTF-8 sequence
             f.write(b'{"attempt_id": 1, "invalid": "\xff\xfe"}\n')
 
@@ -112,33 +122,80 @@ class TestSequenceGaps:
         ledger.initialize(valid_header)
 
         r1 = AttemptRecord(
-            attempt_id=1, timestamp="", run_id="run1", policy_hash="", input_hash="",
-            actions_taken=[], diff_hash="", changed_files=[], evidence_hashes={},
-            success=False, failure_class="", terminal_reason=None, next_action="", rationale=""
+            attempt_id=1,
+            timestamp="",
+            run_id="run1",
+            policy_hash="",
+            input_hash="",
+            actions_taken=[],
+            diff_hash="",
+            changed_files=[],
+            evidence_hashes={},
+            success=False,
+            failure_class="",
+            terminal_reason=None,
+            next_action="",
+            rationale="",
         )
         r2 = AttemptRecord(
-            attempt_id=2, timestamp="", run_id="run1", policy_hash="", input_hash="",
-            actions_taken=[], diff_hash="", changed_files=[], evidence_hashes={},
-            success=False, failure_class="", terminal_reason=None, next_action="", rationale=""
+            attempt_id=2,
+            timestamp="",
+            run_id="run1",
+            policy_hash="",
+            input_hash="",
+            actions_taken=[],
+            diff_hash="",
+            changed_files=[],
+            evidence_hashes={},
+            success=False,
+            failure_class="",
+            terminal_reason=None,
+            next_action="",
+            rationale="",
         )
 
         ledger.append(r1)
         ledger.append(r2)
 
         # Manually write r5 to file to bypass append validation
-        with open(ledger_path, 'a') as f:
+        with open(ledger_path, "a") as f:
             r5 = AttemptRecord(
-                attempt_id=5, timestamp="", run_id="run1", policy_hash="", input_hash="",
-                actions_taken=[], diff_hash="", changed_files=[], evidence_hashes={},
-                success=False, failure_class="", terminal_reason=None, next_action="", rationale=""
+                attempt_id=5,
+                timestamp="",
+                run_id="run1",
+                policy_hash="",
+                input_hash="",
+                actions_taken=[],
+                diff_hash="",
+                changed_files=[],
+                evidence_hashes={},
+                success=False,
+                failure_class="",
+                terminal_reason=None,
+                next_action="",
+                rationale="",
             )
-            json.dump({
-                "attempt_id": 5, "timestamp": "", "run_id": "run1", "policy_hash": "",
-                "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [],
-                "evidence_hashes": {}, "success": False, "failure_class": "",
-                "terminal_reason": None, "next_action": "", "rationale": "", "plan_bypass_info": None
-            }, f)
-            f.write('\n')
+            json.dump(
+                {
+                    "attempt_id": 5,
+                    "timestamp": "",
+                    "run_id": "run1",
+                    "policy_hash": "",
+                    "input_hash": "",
+                    "actions_taken": [],
+                    "diff_hash": "",
+                    "changed_files": [],
+                    "evidence_hashes": {},
+                    "success": False,
+                    "failure_class": "",
+                    "terminal_reason": None,
+                    "next_action": "",
+                    "rationale": "",
+                    "plan_bypass_info": None,
+                },
+                f,
+            )
+            f.write("\n")
 
         # integrity_check should detect gap
         ledger2 = AttemptLedger(ledger_path)
@@ -152,14 +209,36 @@ class TestSequenceGaps:
         ledger.initialize(valid_header)
 
         r1 = AttemptRecord(
-            attempt_id=1, timestamp="", run_id="run1", policy_hash="", input_hash="",
-            actions_taken=[], diff_hash="", changed_files=[], evidence_hashes={},
-            success=False, failure_class="", terminal_reason=None, next_action="", rationale=""
+            attempt_id=1,
+            timestamp="",
+            run_id="run1",
+            policy_hash="",
+            input_hash="",
+            actions_taken=[],
+            diff_hash="",
+            changed_files=[],
+            evidence_hashes={},
+            success=False,
+            failure_class="",
+            terminal_reason=None,
+            next_action="",
+            rationale="",
         )
         r1_dup = AttemptRecord(
-            attempt_id=1, timestamp="", run_id="run1", policy_hash="", input_hash="",
-            actions_taken=[], diff_hash="", changed_files=[], evidence_hashes={},
-            success=False, failure_class="", terminal_reason=None, next_action="", rationale=""
+            attempt_id=1,
+            timestamp="",
+            run_id="run1",
+            policy_hash="",
+            input_hash="",
+            actions_taken=[],
+            diff_hash="",
+            changed_files=[],
+            evidence_hashes={},
+            success=False,
+            failure_class="",
+            terminal_reason=None,
+            next_action="",
+            rationale="",
         )
 
         ledger.append(r1)
@@ -171,9 +250,13 @@ class TestSequenceGaps:
 
     def test_negative_attempt_id(self, ledger_path):
         """Negative attempt_id in ledger file - integrity_check detects invalid sequence."""
-        with open(ledger_path, 'w') as f:
-            f.write('{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n')
-            f.write('{"attempt_id": -1, "timestamp": "", "run_id": "run1", "policy_hash": "", "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "", "terminal_reason": null, "next_action": "", "rationale": "", "plan_bypass_info": null}\n')
+        with open(ledger_path, "w") as f:
+            f.write(
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+            )
+            f.write(
+                '{"attempt_id": -1, "timestamp": "", "run_id": "run1", "policy_hash": "", "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "", "terminal_reason": null, "next_action": "", "rationale": "", "plan_bypass_info": null}\n'
+            )
 
         ledger = AttemptLedger(ledger_path)
         # Hydrate may succeed (no explicit validation for negative), but integrity_check should fail
@@ -189,8 +272,10 @@ class TestHeaderValidation:
 
     def test_missing_required_header_fields(self, ledger_path):
         """Missing required header fields trigger LedgerIntegrityError."""
-        with open(ledger_path, 'w') as f:
-            f.write('{"type": "header", "schema_version": "v1.0"}\n')  # Missing policy_hash, handoff_hash, run_id
+        with open(ledger_path, "w") as f:
+            f.write(
+                '{"type": "header", "schema_version": "v1.0"}\n'
+            )  # Missing policy_hash, handoff_hash, run_id
 
         ledger = AttemptLedger(ledger_path)
         # Hydrate accepts it, but operations may fail - this tests minimal header
@@ -199,9 +284,13 @@ class TestHeaderValidation:
 
     def test_multiple_headers_in_ledger(self, ledger_path):
         """Multiple headers in single ledger - second is treated as record and may fail."""
-        with open(ledger_path, 'w') as f:
-            f.write('{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n')
-            f.write('{"type": "header", "schema_version": "v1.0", "policy_hash": "xyz", "handoff_hash": "789", "run_id": "run2"}\n')
+        with open(ledger_path, "w") as f:
+            f.write(
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+            )
+            f.write(
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "xyz", "handoff_hash": "789", "run_id": "run2"}\n'
+            )
 
         ledger = AttemptLedger(ledger_path)
         # Second header line will be parsed as record and fail type check
@@ -210,9 +299,13 @@ class TestHeaderValidation:
 
     def test_header_not_first_line(self, ledger_path):
         """Header not being first line is caught - empty type triggers error."""
-        with open(ledger_path, 'w') as f:
-            f.write('{"attempt_id": 1, "timestamp": "", "run_id": "run1", "policy_hash": "", "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "", "terminal_reason": null, "next_action": "", "rationale": "", "plan_bypass_info": null}\n')
-            f.write('{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n')
+        with open(ledger_path, "w") as f:
+            f.write(
+                '{"attempt_id": 1, "timestamp": "", "run_id": "run1", "policy_hash": "", "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "", "terminal_reason": null, "next_action": "", "rationale": "", "plan_bypass_info": null}\n'
+            )
+            f.write(
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+            )
 
         ledger = AttemptLedger(ledger_path)
         with pytest.raises(LedgerIntegrityError) as exc_info:
@@ -230,18 +323,29 @@ class TestEmptyLines:
         ledger.initialize(valid_header)
 
         r1 = AttemptRecord(
-            attempt_id=1, timestamp="", run_id="run1", policy_hash="", input_hash="",
-            actions_taken=[], diff_hash="", changed_files=[], evidence_hashes={},
-            success=False, failure_class="", terminal_reason=None, next_action="", rationale=""
+            attempt_id=1,
+            timestamp="",
+            run_id="run1",
+            policy_hash="",
+            input_hash="",
+            actions_taken=[],
+            diff_hash="",
+            changed_files=[],
+            evidence_hashes={},
+            success=False,
+            failure_class="",
+            terminal_reason=None,
+            next_action="",
+            rationale="",
         )
 
         ledger.append(r1)
 
         # Manually add empty lines
-        with open(ledger_path, 'a') as f:
-            f.write('\n')
-            f.write('\n')
-            f.write('   \n')  # Whitespace-only line
+        with open(ledger_path, "a") as f:
+            f.write("\n")
+            f.write("\n")
+            f.write("   \n")  # Whitespace-only line
 
         # Hydrate should skip empty lines
         ledger2 = AttemptLedger(ledger_path)
@@ -270,7 +374,7 @@ class TestPartialWrites:
         ledger.initialize(valid_header)
 
         # Simulate partial write by appending incomplete JSON
-        with open(ledger_path, 'a') as f:
+        with open(ledger_path, "a") as f:
             f.write('{"attempt_id": 1, "timestamp":')  # Incomplete
 
         ledger2 = AttemptLedger(ledger_path)

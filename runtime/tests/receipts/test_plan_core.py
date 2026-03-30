@@ -1,4 +1,5 @@
 """Tests for runtime/receipts/plan_core.py"""
+
 import re
 
 import pytest
@@ -7,7 +8,6 @@ from runtime.receipts.plan_core import (
     assert_no_floats,
     canonicalize_plan_core,
     compute_plan_core_sha256,
-    resolve_tree_oid,
 )
 from runtime.util.canonical import canonical_json
 
@@ -59,6 +59,7 @@ def test_canonicalize_matches_canonical_json(sample_plan_core_dict):
 
 def test_resolve_tree_oid_returns_40_hex(monkeypatch):
     import subprocess
+
     import runtime.receipts.plan_core as pc
 
     fake_oid = "a" * 40
@@ -76,6 +77,7 @@ def test_resolve_tree_oid_returns_40_hex(monkeypatch):
 
 def test_resolve_tree_oid_fails_closed(monkeypatch):
     import subprocess
+
     import runtime.receipts.plan_core as pc
 
     class FakeResult:

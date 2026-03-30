@@ -3,45 +3,36 @@ v2.2.1 FSM tests: CouncilFSMv2 — 18 tests covering all 12 states,
 challenger rework loop, lens waiver, coverage degradation, closure gate,
 and deterministic log ordering.
 """
+
 from __future__ import annotations
-
-from typing import Any, Mapping
-
-import pytest
-
-from runtime.orchestration.council.fsm import CouncilFSMv2
-from runtime.orchestration.council.models import (
-    CouncilRunPlanCore,
-    CouncilRunMeta,
-    VERDICT_ACCEPT,
-    VERDICT_REVISE,
-    VERDICT_REJECT,
-    DECISION_STATUS_NORMAL,
-    DECISION_STATUS_DEGRADED_COVERAGE,
-    DECISION_STATUS_DEGRADED_CHALLENGER,
-)
-from runtime.orchestration.council.policy import load_council_policy
-
 
 # ---------------------------------------------------------------------------
 # State name constants (FSM internals — imported to verify transitions)
 # ---------------------------------------------------------------------------
-
 from runtime.orchestration.council.fsm import (
-    STATE_S0_ASSEMBLE,
-    STATE_S1_EXECUTE_LENSES,
-    STATE_S1_25_SCHEMA_GATE_LENSES,
     STATE_S1_5_COVERAGE_COMPLETE,
+    STATE_S1_25_SCHEMA_GATE_LENSES,
     STATE_S1_55_EXECUTION_FIDELITY,
-    STATE_S2_SYNTHESIS,
-    STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+    STATE_S1_EXECUTE_LENSES,
     STATE_S2_5_CHALLENGER_REVIEW,
+    STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+    STATE_S2_SYNTHESIS,
     STATE_S3_CLOSURE_GATE,
     STATE_S4_CLOSEOUT,
     STATE_TERMINAL_BLOCKED,
     STATE_TERMINAL_COMPLETE,
+    CouncilFSMv2,
 )
-
+from runtime.orchestration.council.models import (
+    DECISION_STATUS_DEGRADED_CHALLENGER,
+    DECISION_STATUS_DEGRADED_COVERAGE,
+    VERDICT_ACCEPT,
+    VERDICT_REJECT,
+    VERDICT_REVISE,
+    CouncilRunMeta,
+    CouncilRunPlanCore,
+)
+from runtime.orchestration.council.policy import load_council_policy
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -80,6 +71,7 @@ def _make_plan_core(**overrides) -> CouncilRunPlanCore:
 
 def _make_plan_meta(core: CouncilRunPlanCore) -> CouncilRunMeta:
     from runtime.orchestration.council.models import compute_plan_core_hash
+
     return CouncilRunMeta(
         run_id="council_test01",
         timestamp="2026-02-23T00:00:00+00:00",
@@ -252,8 +244,9 @@ def _last_states(result) -> list[str]:
 
 
 def test_fsm_t1_happy_path_complete():
-    core = _make_plan_core(tier="T1", required_lenses=(), challenger_required=True,
-                           closure_gate_required=True)
+    core = _make_plan_core(
+        tier="T1", required_lenses=(), challenger_required=True, closure_gate_required=True
+    )
     fsm = _make_fsm_with_plan(
         core,
         synthesis_fn=lambda lr, p, ccp: _valid_synthesis("T1"),
@@ -412,12 +405,19 @@ def test_fsm_t3_full_path():
     assert result.status == "complete"
     states = _last_states(result)
     # All S1 states
-    for state in (STATE_S1_EXECUTE_LENSES, STATE_S1_25_SCHEMA_GATE_LENSES,
-                  STATE_S1_5_COVERAGE_COMPLETE, STATE_S1_55_EXECUTION_FIDELITY):
+    for state in (
+        STATE_S1_EXECUTE_LENSES,
+        STATE_S1_25_SCHEMA_GATE_LENSES,
+        STATE_S1_5_COVERAGE_COMPLETE,
+        STATE_S1_55_EXECUTION_FIDELITY,
+    ):
         assert state in states, f"Missing state: {state}"
     # S2 states
-    for state in (STATE_S2_SYNTHESIS, STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
-                  STATE_S2_5_CHALLENGER_REVIEW):
+    for state in (
+        STATE_S2_SYNTHESIS,
+        STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+        STATE_S2_5_CHALLENGER_REVIEW,
+    ):
         assert state in states, f"Missing state: {state}"
     # Closure + complete
     assert STATE_S3_CLOSURE_GATE in states
@@ -785,10 +785,14 @@ def test_fsm_no_deadlock():
     scenarios = [
         # T0 minimal
         (
-            _make_plan_core(tier="T0", required_lenses=(), challenger_required=False,
-                            closure_gate_required=False,
-                            model_assignments={"Chair": "claude-sonnet-4-5"},
-                            lens_role_map={"Chair": "council_reviewer"}),
+            _make_plan_core(
+                tier="T0",
+                required_lenses=(),
+                challenger_required=False,
+                closure_gate_required=False,
+                model_assignments={"Chair": "claude-sonnet-4-5"},
+                lens_role_map={"Chair": "council_reviewer"},
+            ),
             _t0_ccp(),
             None,
             lambda lr, p, ccp: _valid_synthesis("T0"),

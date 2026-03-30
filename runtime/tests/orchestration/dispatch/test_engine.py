@@ -1,4 +1,5 @@
 """Tests for DispatchEngine — Phase 1 lifecycle and gates."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,9 +9,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-from runtime.orchestration.dispatch.engine import DispatchEngine, DispatchResult
-from runtime.orchestration.dispatch.manifest import MANIFEST_RELATIVE_PATH
-from runtime.orchestration.dispatch.order import ORDER_SCHEMA_VERSION, ExecutionOrder, parse_order
+from runtime.orchestration.dispatch.engine import DispatchEngine
+from runtime.orchestration.dispatch.order import ORDER_SCHEMA_VERSION, parse_order
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -81,7 +81,10 @@ def test_submit_to_inbox_validates_order(tmp_path):
 
     engine = _make_engine(tmp_path)
     bad_file = tmp_path / "bad.yaml"
-    bad_file.write_text("schema_version: bad_version\norder_id: x\ntask_ref: y\ncreated_at: z\nsteps: []\n", encoding="utf-8")
+    bad_file.write_text(
+        "schema_version: bad_version\norder_id: x\ntask_ref: y\ncreated_at: z\nsteps: []\n",
+        encoding="utf-8",
+    )
     with pytest.raises(OrderValidationError):
         engine.submit_to_inbox(bad_file)
 
@@ -249,8 +252,9 @@ def test_execute_preemptively_flips_to_worktree_on_isolation_required(tmp_path):
     raw = dict(MINIMAL_ORDER_RAW)
     raw["constraints"] = {"worktree": False}
 
-    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls, patch(
-        "runtime.orchestration.dispatch.engine._isolation_required", return_value=True
+    with (
+        patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls,
+        patch("runtime.orchestration.dispatch.engine._isolation_required", return_value=True),
     ):
         mock_spine = MagicMock()
         mock_spine.run.return_value = PASS_SPINE_RESULT
@@ -272,9 +276,10 @@ def test_repo_clean_gate_always_runs_on_pass(tmp_path):
     """repo_clean_verified must be populated even on successful runs."""
     engine = _make_engine(tmp_path)
 
-    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls, patch(
-        "runtime.orchestration.dispatch.engine._check_repo_clean"
-    ) as mock_clean:
+    with (
+        patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls,
+        patch("runtime.orchestration.dispatch.engine._check_repo_clean") as mock_clean,
+    ):
         mock_spine = MagicMock()
         mock_spine.run.return_value = PASS_SPINE_RESULT
         mock_spine_cls.return_value = mock_spine
@@ -291,9 +296,10 @@ def test_repo_clean_gate_always_runs_on_fail(tmp_path):
     """repo_clean_verified is checked even when spine fails."""
     engine = _make_engine(tmp_path)
 
-    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls, patch(
-        "runtime.orchestration.dispatch.engine._check_repo_clean"
-    ) as mock_clean:
+    with (
+        patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls,
+        patch("runtime.orchestration.dispatch.engine._check_repo_clean") as mock_clean,
+    ):
         mock_spine = MagicMock()
         mock_spine.run.return_value = FAIL_SPINE_RESULT
         mock_spine_cls.return_value = mock_spine
@@ -325,9 +331,10 @@ def test_gates_run_even_on_spine_exception(tmp_path):
     """Non-bypassable: gates run even when spine raises."""
     engine = _make_engine(tmp_path)
 
-    with patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls, patch(
-        "runtime.orchestration.dispatch.engine._check_repo_clean"
-    ) as mock_clean:
+    with (
+        patch("runtime.orchestration.loop.spine.LoopSpine") as mock_spine_cls,
+        patch("runtime.orchestration.dispatch.engine._check_repo_clean") as mock_clean,
+    ):
         mock_spine = MagicMock()
         mock_spine.run.side_effect = RuntimeError("spine crashed")
         mock_spine_cls.return_value = mock_spine
@@ -470,9 +477,11 @@ def test_status_counts(tmp_path):
 
 def _write_backlog(tmp_path: Path, task_id: str, status: str = "pending") -> Path:
     """Write a minimal backlog.yaml with one task."""
-    import yaml as _yaml
-    from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION
     from datetime import datetime, timezone
+
+    import yaml as _yaml
+
+    from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION
 
     backlog_dir = tmp_path / "config" / "tasks"
     backlog_dir.mkdir(parents=True, exist_ok=True)
@@ -532,6 +541,7 @@ def test_execute_syncs_backlog_in_progress(tmp_path):
 
     # After execution completes (SUCCESS) the backlog should be in completed state
     from runtime.orchestration.coo.backlog import load_backlog
+
     tasks = load_backlog(backlog_path)
     task = next(t for t in tasks if t.id == "T-sync-001")
     assert task.status == "completed"
@@ -552,6 +562,7 @@ def test_execute_success_syncs_backlog_completed(tmp_path):
         engine.execute(parse_order(raw))
 
     from runtime.orchestration.coo.backlog import load_backlog
+
     tasks = load_backlog(backlog_path)
     task = next(t for t in tasks if t.id == "T-sync-002")
     assert task.status == "completed"
@@ -573,6 +584,7 @@ def test_execute_fail_syncs_backlog_blocked(tmp_path):
         engine.execute(parse_order(raw))
 
     from runtime.orchestration.coo.backlog import load_backlog
+
     tasks = load_backlog(backlog_path)
     task = next(t for t in tasks if t.id == "T-sync-003")
     assert task.status == "blocked"
@@ -597,6 +609,7 @@ def test_crash_recovery_syncs_backlog_blocked(tmp_path):
     engine.recover_crashed_runs()
 
     from runtime.orchestration.coo.backlog import load_backlog
+
     tasks = load_backlog(backlog_path)
     task = next(t for t in tasks if t.id == "T-crash-001")
     assert task.status == "blocked"

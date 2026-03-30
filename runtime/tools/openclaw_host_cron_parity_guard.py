@@ -30,15 +30,12 @@ class ParsedEntry:
         return f"{self.instance_id}:{self.job_type}"
 
 
-
 def ts_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-
 def _safe_load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
-
 
 
 def _parse_cron_line(line: str) -> Optional[Tuple[str, str]]:
@@ -51,7 +48,6 @@ def _parse_cron_line(line: str) -> Optional[Tuple[str, str]]:
     schedule = " ".join(parts[:5])
     command = " ".join(parts[5:])
     return schedule, command
-
 
 
 def parse_managed_entries(crontab_text: str) -> Tuple[List[ParsedEntry], List[str]]:
@@ -112,10 +108,11 @@ def parse_managed_entries(crontab_text: str) -> Tuple[List[ParsedEntry], List[st
             active_lines.append((idx, line))
 
     if active_instance:
-        violations.append(f"managed_block_missing_end instance={active_instance} job={active_job} start={active_start}")
+        violations.append(
+            f"managed_block_missing_end instance={active_instance} job={active_job} start={active_start}"
+        )
 
     return entries, violations
-
 
 
 def _hash_file(path: Path) -> str:
@@ -124,7 +121,6 @@ def _hash_file(path: Path) -> str:
         for chunk in iter(lambda: f.read(65536), b""):
             h.update(chunk)
     return h.hexdigest()
-
 
 
 def evaluate(entries: List[ParsedEntry], profile: dict) -> dict:
@@ -171,7 +167,9 @@ def evaluate(entries: List[ParsedEntry], profile: dict) -> dict:
 
         expected_schedule = str(exp.get("schedule") or "").strip()
         if expected_schedule and entry.schedule != expected_schedule:
-            violations.append(f"schedule_mismatch key={key} expected={expected_schedule} got={entry.schedule}")
+            violations.append(
+                f"schedule_mismatch key={key} expected={expected_schedule} got={entry.schedule}"
+            )
 
         wrapper_path = str(exp.get("wrapper_path") or "").strip()
         if wrapper_path:
@@ -186,7 +184,9 @@ def evaluate(entries: List[ParsedEntry], profile: dict) -> dict:
                 else:
                     actual = _hash_file(p)
                     if actual != wrapper_sha:
-                        violations.append(f"wrapper_hash_mismatch key={key} expected={wrapper_sha} got={actual}")
+                        violations.append(
+                            f"wrapper_hash_mismatch key={key} expected={wrapper_sha} got={actual}"
+                        )
 
     expected_user = str(profile.get("run_user") or "").strip()
     current_user = getpass.getuser()
@@ -203,7 +203,6 @@ def evaluate(entries: List[ParsedEntry], profile: dict) -> dict:
     }
 
 
-
 def _read_crontab_text(crontab_file: str) -> Tuple[str, int, str]:
     if crontab_file:
         p = Path(crontab_file)
@@ -218,11 +217,12 @@ def _read_crontab_text(crontab_file: str) -> Tuple[str, int, str]:
     return proc.stdout or "", int(proc.returncode), (proc.stderr or "").strip()[:500]
 
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Fail-closed host cron parity guard.")
     parser.add_argument("--instance-profile", default="config/openclaw/instance_profiles/coo.json")
-    parser.add_argument("--crontab-file", default="", help="Optional test input file instead of `crontab -l`.")
+    parser.add_argument(
+        "--crontab-file", default="", help="Optional test input file instead of `crontab -l`."
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 

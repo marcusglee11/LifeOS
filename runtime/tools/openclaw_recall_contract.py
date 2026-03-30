@@ -81,7 +81,9 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.search_output_file:
-        search_output = open(args.search_output_file, "r", encoding="utf-8", errors="replace").read()
+        search_output = open(
+            args.search_output_file, "r", encoding="utf-8", errors="replace"
+        ).read()
     else:
         search_output = sys.stdin.read()
     result = build_contract_response(args.query, search_output)

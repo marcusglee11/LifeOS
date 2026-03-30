@@ -1,10 +1,10 @@
 import json
 import re
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List
 
 from runtime.util.canonical import sha256_file as _canonical_sha256_file
 
@@ -15,15 +15,18 @@ def _compute_sha256(path: Path) -> str:
         raise FileNotFoundError(f"evidence_capture missing file: {path.name}")
     return _canonical_sha256_file(path)
 
+
 class CaptureStatus(Enum):
     OK = "OK"
     NONZERO = "NONZERO"
     TIMEOUT = "TIMEOUT"
     EXEC_ERROR = "EXEC_ERROR"
 
+
 @dataclass
 class CaptureResult:
     """Result of command execution with evidence capture. Deterministic version (v0.1)."""
+
     command: List[str]
     status: CaptureStatus
     exit_code: int
@@ -35,18 +38,14 @@ class CaptureResult:
     exitcode_path: Path
     meta_sha256: str
     meta_path: Path
-    
+
 
 def run_command_capture(
-    step_name: str,
-    cmd: List[str],
-    cwd: Path,
-    evidence_dir: Path,
-    timeout: int = 300
+    step_name: str, cmd: List[str], cwd: Path, evidence_dir: Path, timeout: int = 300
 ) -> CaptureResult:
     """
     Execute command and capture all outputs to disk with cryptographic hashes.
-    
+
     Required behavior (fail-closed):
     - evidence_dir is created if missing.
     - step_name is deterministically sanitized to a safe filename token.
@@ -73,7 +72,9 @@ def run_command_capture(
     # 4. Collision Rule
     existing = [p for p in [stdout_path, stderr_path, exitcode_path, meta_path] if p.exists()]
     if existing:
-        raise ValueError(f"Collision error: Target evidence files already exist: {[p.name for p in existing]}")
+        raise ValueError(
+            f"Collision error: Target evidence files already exist: {[p.name for p in existing]}"
+        )
 
     status = CaptureStatus.OK
     exit_code = 0
@@ -89,7 +90,7 @@ def run_command_capture(
                     stdout=f_stdout,
                     stderr=f_stderr,
                     timeout=timeout,
-                    check=False
+                    check=False,
                 )
                 exit_code = proc.returncode
                 if exit_code != 0:
@@ -130,13 +131,13 @@ def run_command_capture(
         "filenames": {
             "stdout": stdout_path.name,
             "stderr": stderr_path.name,
-            "exitcode": exitcode_path.name
+            "exitcode": exitcode_path.name,
         },
         "stdout_sha256": stdout_sha,
         "stderr_sha256": stderr_sha,
-        "exitcode_sha256": exitcode_sha
+        "exitcode_sha256": exitcode_sha,
     }
-    
+
     with open(meta_path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(meta_data, f, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
@@ -154,5 +155,5 @@ def run_command_capture(
         stderr_path=stderr_path,
         exitcode_path=exitcode_path,
         meta_sha256=meta_sha,
-        meta_path=meta_path
+        meta_path=meta_path,
     )

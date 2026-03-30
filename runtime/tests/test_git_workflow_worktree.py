@@ -8,12 +8,14 @@ import sys
 from pathlib import Path
 
 import scripts.git_workflow as gw
-from scripts.workflow import start_build
 from scripts.workflow import closure_pack as cp
+from scripts.workflow import start_build
 
 
 def _load_new_build_guard():
-    hook_path = Path(__file__).resolve().parents[2] / ".claude" / "hooks" / "new-build-worktree-guard.py"
+    hook_path = (
+        Path(__file__).resolve().parents[2] / ".claude" / "hooks" / "new-build-worktree-guard.py"
+    )
     spec = importlib.util.spec_from_file_location("new_build_worktree_guard", hook_path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -146,7 +148,9 @@ def test_upsert_active_branch_record_closes_duplicate_active_rows(tmp_path, monk
     monkeypatch.setattr(gw, "load_active_branches", lambda repo_root=None: data)
     monkeypatch.setattr(gw, "save_active_branches", fake_save_active)
 
-    start_build._upsert_active_branch_record(primary, "build/auto-resolve", primary / ".worktrees" / "auto")
+    start_build._upsert_active_branch_record(
+        primary, "build/auto-resolve", primary / ".worktrees" / "auto"
+    )
 
     rows = saved["data"]["branches"]
     active_rows = [row for row in rows if row["status"] == "active"]
@@ -192,7 +196,9 @@ def test_resolve_primary_repo_falls_back_to_git_common_dir(tmp_path, monkeypatch
 def test_guard_fast_path_non_bash(monkeypatch) -> None:
     """Tool without a 'command' field (e.g. Write) is always allowed."""
     module = _load_new_build_guard()
-    result = _run_guard(module, {"tool_name": "Write", "tool_input": {"file_path": "runtime/foo.py"}})
+    result = _run_guard(
+        module, {"tool_name": "Write", "tool_input": {"file_path": "runtime/foo.py"}}
+    )
     assert result.get("decision") == "allow"
 
 
@@ -279,12 +285,23 @@ def test_closure_pack_regen_after_merge(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(
         cp,
         "check_doc_stewardship",
-        lambda *_args, **_kwargs: {"passed": True, "required": False, "auto_fixed": False, "errors": []},
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "required": False,
+            "auto_fixed": False,
+            "errors": [],
+        },
     )
     monkeypatch.setattr(
         cp,
         "run_quality_gates",
-        lambda *_args, **_kwargs: {"passed": True, "auto_fixed": False, "summary": "ok", "commands_run": [], "results": []},
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "auto_fixed": False,
+            "summary": "ok",
+            "commands_run": [],
+            "results": [],
+        },
     )
     monkeypatch.setattr(cp, "merge_to_main", fake_merge_to_main)
     monkeypatch.setattr(
@@ -308,7 +325,9 @@ def test_closure_pack_regen_after_merge(monkeypatch, tmp_path: Path) -> None:
         },
     )
     monkeypatch.setattr(cp.subprocess, "run", fake_subprocess_run)
-    monkeypatch.setattr(sys, "argv", ["closure_pack.py", "--repo-root", str(repo_root), "--no-state-update"])
+    monkeypatch.setattr(
+        sys, "argv", ["closure_pack.py", "--repo-root", str(repo_root), "--no-state-update"]
+    )
 
     rc = cp.main()
 
@@ -343,9 +362,7 @@ def test_closure_pack_blocks_primary_scoped_branch(monkeypatch, tmp_path: Path, 
     assert "--recover-primary" in output
 
 
-def test_closure_pack_plan_only_skips_post_merge_state_churn(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_closure_pack_plan_only_skips_post_merge_state_churn(monkeypatch, tmp_path: Path) -> None:
     repo_root = tmp_path / "repo"
     repo_root.mkdir(parents=True)
 
@@ -387,12 +404,23 @@ def test_closure_pack_plan_only_skips_post_merge_state_churn(
     monkeypatch.setattr(
         cp,
         "check_doc_stewardship",
-        lambda *_args, **_kwargs: {"passed": True, "required": False, "auto_fixed": False, "errors": []},
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "required": False,
+            "auto_fixed": False,
+            "errors": [],
+        },
     )
     monkeypatch.setattr(
         cp,
         "run_quality_gates",
-        lambda *_args, **_kwargs: {"passed": True, "auto_fixed": False, "summary": "ok", "commands_run": [], "results": []},
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "auto_fixed": False,
+            "summary": "ok",
+            "commands_run": [],
+            "results": [],
+        },
     )
     monkeypatch.setattr(cp, "merge_to_main", fake_merge_to_main)
     monkeypatch.setattr(

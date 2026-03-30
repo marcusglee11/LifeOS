@@ -13,43 +13,41 @@ Key Features:
 
 See: artifacts/plans/Phase_4A0_Loop_Spine.md
 """
+
 from __future__ import annotations
 
-import json
 import hashlib
-import yaml
-from dataclasses import dataclass, asdict
+import json
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from runtime.orchestration.run_controller import verify_repo_clean, check_kill_switch
+import yaml
+
+from runtime.api.governance_api import PolicyLoader, hash_json
+from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
+from runtime.orchestration.loop.bypass_monitor import check_bypass_utilization
 from runtime.orchestration.loop.ledger import (
     AttemptLedger,
     AttemptRecord,
     LedgerHeader,
 )
+from runtime.orchestration.loop.lifecycle_hooks import (
+    run_post_hooks,
+    run_pre_hooks,
+)
 from runtime.orchestration.loop.taxonomy import (
     FailureClass,
     LoopAction,
 )
-from runtime.api.governance_api import PolicyLoader, hash_json
-from runtime.orchestration.loop.lifecycle_hooks import (
-    run_pre_hooks,
-    run_post_hooks,
-)
 from runtime.orchestration.loop.worktree_dispatch import (
-    worktree_scope,
     WorktreeError,
     validate_worktree_clean,
+    worktree_scope,
 )
-from runtime.receipts.invocation_receipt import (
-    finalize_run_receipts,
-    get_or_create_collector,
-)
-from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
-from runtime.orchestration.loop.bypass_monitor import check_bypass_utilization
+from runtime.orchestration.run_controller import check_kill_switch, verify_repo_clean
 from runtime.orchestration.workflow_runtime import (
     REVIEW_DECISION_SCHEMA_VERSION,
     TERMINAL_WORKFLOW_STATES,
@@ -65,6 +63,10 @@ from runtime.orchestration.workflow_runtime import (
     translate_task_spec_to_workflow_instance,
     validate_resolution_packet,
 )
+from runtime.receipts.invocation_receipt import (
+    finalize_run_receipts,
+    get_or_create_collector,
+)
 
 
 class SpineState(Enum):
@@ -78,6 +80,7 @@ class SpineState(Enum):
     - RESUMED: Resumed from checkpoint
     - TERMINAL: Execution complete (PASS/BLOCKED)
     """
+
     INIT = "INIT"
     RUNNING = "RUNNING"
     CHECKPOINT = "CHECKPOINT"
@@ -92,6 +95,7 @@ class CheckpointPacket:
 
     Persisted to artifacts/checkpoints/CP_<run_id>_<step>.yaml
     """
+
     checkpoint_id: str
     run_id: str
     timestamp: str  # ISO 8601
@@ -110,6 +114,7 @@ class TerminalPacket:
 
     Persisted to artifacts/terminal/TP_<run_id>.yaml
     """
+
     run_id: str
     timestamp: str  # ISO 8601
     outcome: str  # "PASS" | "BLOCKED" | "WAIVER_REQUESTED" | "ESCALATION_REQUESTED"
@@ -133,11 +138,14 @@ class TerminalPacket:
     repo_clean_verified: bool = False
     orphan_check_passed: bool = False
     packet_hash: Optional[str] = None  # SHA-256, computed last
-    bypass_utilization: Optional[Dict[str, Any]] = None  # BypassStatus as dict; None if monitor failed
+    bypass_utilization: Optional[Dict[str, Any]] = (
+        None  # BypassStatus as dict; None if monitor failed
+    )
 
 
 class SpineError(Exception):
     """Base exception for Loop Spine errors."""
+
     pass
 
 
@@ -174,7 +182,14 @@ class LoopSpine:
         result = spine.resume(checkpoint_id="CP_...")
     """
 
-    def __init__(self, repo_root: Path, *, use_worktree: bool = False, pre_run_hooks=None, post_run_hooks=None):
+    def __init__(
+        self,
+        repo_root: Path,
+        *,
+        use_worktree: bool = False,
+        pre_run_hooks=None,
+        post_run_hooks=None,
+    ):
         self.repo_root = Path(repo_root)
         self.state = SpineState.INIT
         self.use_worktree = use_worktree
@@ -226,8 +241,11 @@ class LoopSpine:
 
         # Acquire run-lock (fail-closed on contention)
         from runtime.orchestration.loop.run_lock import (
-            acquire_run_lock, release_run_lock, RunLockError,
+            RunLockError,
+            acquire_run_lock,
+            release_run_lock,
         )
+
         if check_kill_switch(self.repo_root):
             return self._emit_blocked_terminal_result(
                 reason="kill_switch_active_pre_lock",
@@ -362,21 +380,32 @@ class LoopSpine:
             # (Finding B1-F3: ledger must be committed between runs; this makes it automatic.)
             if ledger_write_ok:
                 try:
-                    import subprocess as _sp
                     import logging as _log
+                    import subprocess as _sp
+
                     _add = _sp.run(
                         ["git", "add", str(self.ledger_path)],
-                        cwd=self.repo_root, capture_output=True, timeout=10,
+                        cwd=self.repo_root,
+                        capture_output=True,
+                        timeout=10,
                     )
                     _commit = _sp.run(
-                        ["git", "commit", "-m", f"chore(ledger): auto-commit attempt ledger [{self.run_id}]"],
-                        cwd=self.repo_root, capture_output=True, timeout=15,
+                        [
+                            "git",
+                            "commit",
+                            "-m",
+                            f"chore(ledger): auto-commit attempt ledger [{self.run_id}]",
+                        ],
+                        cwd=self.repo_root,
+                        capture_output=True,
+                        timeout=15,
                     )
                     if _add.returncode != 0 and _commit.returncode != 0:
                         _log.getLogger(__name__).warning(
                             "Ledger auto-commit failed (add=%s, commit=%s); "
                             "next run may fail repo-clean check",
-                            _add.returncode, _commit.returncode,
+                            _add.returncode,
+                            _commit.returncode,
                         )
                 except Exception:
                     pass  # Non-fatal; repo-clean check will flag it if needed
@@ -395,6 +424,7 @@ class LoopSpine:
                 _bypass_status = check_bypass_utilization(self.ledger_path)
                 if _bypass_status.level != "ok":
                     import logging as _log
+
                     _log.getLogger(__name__).warning(
                         "BYPASS_%s: %d/%d attempts in bypass window (rate=%.2f)",
                         _bypass_status.level.upper(),
@@ -424,7 +454,9 @@ class LoopSpine:
                 commit_hash=result.get("commit_hash"),
                 ledger_chain_tip=self.ledger.get_chain_tip(),
                 ledger_attempt_count=len(self.ledger.history),
-                ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+                ledger_schema_version=self.ledger.header.get("schema_version")
+                if self.ledger.header
+                else None,
                 status=status,
                 start_ts=start_ts,
                 end_ts=end_ts,
@@ -528,7 +560,9 @@ class LoopSpine:
         get_or_create_collector(self.run_id)
 
         from runtime.orchestration.loop.run_lock import (
-            acquire_run_lock, release_run_lock, RunLockError,
+            RunLockError,
+            acquire_run_lock,
+            release_run_lock,
         )
 
         if check_kill_switch(self.repo_root):
@@ -593,9 +627,7 @@ class LoopSpine:
                             phase="resume",
                             name="checkpoint_policy_hash",
                             passed=False,
-                            reason=(
-                                f"checkpoint={checkpoint.policy_hash} current={current_hash}"
-                            ),
+                            reason=(f"checkpoint={checkpoint.policy_hash} current={current_hash}"),
                         )
                     ],
                     task_ref=checkpoint.task_spec.get("task_ref"),
@@ -668,7 +700,11 @@ class LoopSpine:
                     terminal_reason=result.get("reason", "pass"),
                     actions_taken=result.get("steps_executed", []),
                     terminal_packet_path=terminal_file_path,
-                    checkpoint_path=str((self.checkpoint_dir / checkpoint_id).with_suffix('.yaml').relative_to(self.repo_root)),
+                    checkpoint_path=str(
+                        (self.checkpoint_dir / checkpoint_id)
+                        .with_suffix(".yaml")
+                        .relative_to(self.repo_root)
+                    ),
                     commit_hash=result.get("commit_hash"),
                 )
             except Exception:
@@ -678,21 +714,32 @@ class LoopSpine:
             # Mirror of run() path fix (T1-B: resume path had identical gap).
             if ledger_write_ok:
                 try:
-                    import subprocess as _sp
                     import logging as _log
+                    import subprocess as _sp
+
                     _add = _sp.run(
                         ["git", "add", str(self.ledger_path)],
-                        cwd=self.repo_root, capture_output=True, timeout=10,
+                        cwd=self.repo_root,
+                        capture_output=True,
+                        timeout=10,
                     )
                     _commit = _sp.run(
-                        ["git", "commit", "-m", f"chore(ledger): auto-commit attempt ledger [{self.run_id}]"],
-                        cwd=self.repo_root, capture_output=True, timeout=15,
+                        [
+                            "git",
+                            "commit",
+                            "-m",
+                            f"chore(ledger): auto-commit attempt ledger [{self.run_id}]",
+                        ],
+                        cwd=self.repo_root,
+                        capture_output=True,
+                        timeout=15,
                     )
                     if _add.returncode != 0 and _commit.returncode != 0:
                         _log.getLogger(__name__).warning(
                             "Ledger auto-commit failed (add=%s, commit=%s); "
                             "next run may fail repo-clean check",
-                            _add.returncode, _commit.returncode,
+                            _add.returncode,
+                            _commit.returncode,
                         )
                 except Exception:
                     pass  # Non-fatal; repo-clean check will flag it if needed
@@ -711,6 +758,7 @@ class LoopSpine:
                 _bypass_status = check_bypass_utilization(self.ledger_path)
                 if _bypass_status.level != "ok":
                     import logging as _log
+
                     _log.getLogger(__name__).warning(
                         "BYPASS_%s: %d/%d attempts in bypass window (rate=%.2f)",
                         _bypass_status.level.upper(),
@@ -751,7 +799,9 @@ class LoopSpine:
                 commit_hash=result.get("commit_hash"),
                 ledger_chain_tip=self.ledger.get_chain_tip(),
                 ledger_attempt_count=len(self.ledger.history),
-                ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+                ledger_schema_version=self.ledger.header.get("schema_version")
+                if self.ledger.header
+                else None,
                 status=status,
                 start_ts=start_ts,
                 end_ts=end_ts,
@@ -826,12 +876,16 @@ class LoopSpine:
             execution_root=execution_root,
         )
 
-    def _hydrate_workflow_instance(self, task_spec: Dict[str, Any], start_from_step: int) -> WorkflowInstance:
+    def _hydrate_workflow_instance(
+        self, task_spec: Dict[str, Any], start_from_step: int
+    ) -> WorkflowInstance:
         raw_instance = task_spec.get("workflow_instance")
         if isinstance(raw_instance, dict):
             instance = WorkflowInstance(**raw_instance)
         else:
-            instance = translate_task_spec_to_workflow_instance(task_spec, run_id=self.run_id or "run")
+            instance = translate_task_spec_to_workflow_instance(
+                task_spec, run_id=self.run_id or "run"
+            )
         definition = get_workflow_definition(instance.workflow_id)
         resolution_packet = task_spec.get("ceo_resolution")
         if instance.state == "CHECKPOINTED" or resolution_packet is not None:
@@ -857,7 +911,11 @@ class LoopSpine:
     def _build_design_inputs(self, instance: WorkflowInstance) -> Dict[str, Any]:
         task_context = instance.task_context.get("payload", {})
         objective = str(task_context.get("objective", "")).strip()
-        acceptance = [str(item) for item in list(task_context.get("acceptance_criteria") or []) if str(item).strip()]
+        acceptance = [
+            str(item)
+            for item in list(task_context.get("acceptance_criteria") or [])
+            if str(item).strip()
+        ]
         findings = []
         review_artifact = instance.artifact_refs.get(REVIEW_DECISION_SCHEMA_VERSION)
         if review_artifact:
@@ -897,22 +955,38 @@ class LoopSpine:
                     "severity": "p1" if verdict == "needs_revision" else "p0",
                     "blocking": verdict == "rejected",
                     "target_ref": subject_artifact.get("artifact_id"),
-                    "disposition": "must_fix" if verdict == "needs_revision" else ("escalate" if verdict == "escalate" else "info"),
-                    "recommended_next_action": "revise_spec" if verdict == "needs_revision" else verdict,
-                    "summary": str(outputs.get("council_decision", {}).get("synthesis") or outputs.get("rationale") or verdict),
+                    "disposition": "must_fix"
+                    if verdict == "needs_revision"
+                    else ("escalate" if verdict == "escalate" else "info"),
+                    "recommended_next_action": "revise_spec"
+                    if verdict == "needs_revision"
+                    else verdict,
+                    "summary": str(
+                        outputs.get("council_decision", {}).get("synthesis")
+                        or outputs.get("rationale")
+                        or verdict
+                    ),
                 }
             ]
         payload = {
             "subject_artifact_ref": subject_artifact.get("artifact_id"),
             "subject_artifact_type": subject_artifact.get("artifact_type"),
-            "review_policy_id": "spec_review.v1" if instance.workflow_id == "spec_creation.v1" else "legacy_build_review.v1",
+            "review_policy_id": "spec_review.v1"
+            if instance.workflow_id == "spec_creation.v1"
+            else "legacy_build_review.v1",
             "reviewer_role": reviewer_role,
             "verdict": verdict,
             "findings": findings,
             "revision_count": instance.revision_count,
-            "max_revision_attempts": get_workflow_definition(instance.workflow_id).max_revision_attempts,
+            "max_revision_attempts": get_workflow_definition(
+                instance.workflow_id
+            ).max_revision_attempts,
             "escalation_required": verdict == "escalate",
-            "rationale": str(outputs.get("council_decision", {}).get("synthesis") or outputs.get("rationale") or ""),
+            "rationale": str(
+                outputs.get("council_decision", {}).get("synthesis")
+                or outputs.get("rationale")
+                or ""
+            ),
             "concerns": list(outputs.get("concerns") or []),
             "recommendations": list(outputs.get("recommendations") or []),
         }
@@ -939,18 +1013,36 @@ class LoopSpine:
             instance.artifact_refs[produced_artifact.artifact_type] = produced_artifact.to_dict()
         instance.last_completed_step_id = step.step_id
         instance.current_step_id = next_step_id(definition, step.step_id)
-        instance.next_step_id = next_step_id(definition, instance.current_step_id) if instance.current_step_id else None
+        instance.next_step_id = (
+            next_step_id(definition, instance.current_step_id) if instance.current_step_id else None
+        )
         instance.state = "READY" if instance.current_step_id else "COMPLETED"
 
-    def _apply_review_transition(self, *, instance: WorkflowInstance, definition, step, decision: WorkflowArtifact, task_spec: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _apply_review_transition(
+        self,
+        *,
+        instance: WorkflowInstance,
+        definition,
+        step,
+        decision: WorkflowArtifact,
+        task_spec: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
         payload = decision.payload
         verdict = str(payload.get("verdict", "needs_revision"))
         instance.artifact_refs[decision.artifact_type] = decision.to_dict()
         instance.review_history.append(decision.to_dict())
         instance.last_completed_step_id = step.step_id
         if verdict == "approved":
-            instance.current_step_id = "package_spec" if instance.workflow_id == "spec_creation.v1" else next_step_id(definition, step.step_id)
-            instance.next_step_id = next_step_id(definition, instance.current_step_id) if instance.current_step_id else None
+            instance.current_step_id = (
+                "package_spec"
+                if instance.workflow_id == "spec_creation.v1"
+                else next_step_id(definition, step.step_id)
+            )
+            instance.next_step_id = (
+                next_step_id(definition, instance.current_step_id)
+                if instance.current_step_id
+                else None
+            )
             instance.state = "READY" if instance.current_step_id else "COMPLETED"
             return None
         if verdict == "needs_revision":
@@ -959,11 +1051,17 @@ class LoopSpine:
                 task_spec["workflow_instance"] = instance.to_dict()
                 self._trigger_checkpoint(
                     trigger="ESCALATION_REQUESTED",
-                    step_index=[idx for idx, item in enumerate(definition.steps) if item.step_id == step.step_id][0],
+                    step_index=[
+                        idx
+                        for idx, item in enumerate(definition.steps)
+                        if item.step_id == step.step_id
+                    ][0],
                     context={"task_spec": task_spec, "current_step": step.step_id},
                 )
             instance.revision_count += 1
-            instance.current_step_id = "revise_spec" if instance.workflow_id == "spec_creation.v1" else "design"
+            instance.current_step_id = (
+                "revise_spec" if instance.workflow_id == "spec_creation.v1" else "design"
+            )
             instance.next_step_id = next_step_id(definition, instance.current_step_id)
             instance.state = "READY"
             return None
@@ -976,7 +1074,9 @@ class LoopSpine:
             task_spec["workflow_instance"] = instance.to_dict()
             self._trigger_checkpoint(
                 trigger="ESCALATION_REQUESTED",
-                step_index=[idx for idx, item in enumerate(definition.steps) if item.step_id == step.step_id][0],
+                step_index=[
+                    idx for idx, item in enumerate(definition.steps) if item.step_id == step.step_id
+                ][0],
                 context={"task_spec": task_spec, "current_step": step.step_id},
             )
         instance.state = "BLOCKED"
@@ -988,9 +1088,10 @@ class LoopSpine:
         start_from_step: int = 0,
         execution_root: Optional[Path] = None,
     ) -> Dict[str, Any]:
-        from runtime.orchestration.missions.base import MissionContext, MissionEscalationRequired
-        from runtime.orchestration.missions import get_mission_class
         import subprocess
+
+        from runtime.orchestration.missions import get_mission_class
+        from runtime.orchestration.missions.base import MissionContext, MissionEscalationRequired
 
         instance = self._hydrate_workflow_instance(task_spec, start_from_step)
         definition = get_workflow_definition(instance.workflow_id)
@@ -1002,11 +1103,15 @@ class LoopSpine:
             try:
                 r = subprocess.run(
                     ["git", "rev-parse", "HEAD"],
-                    capture_output=True, text=True, timeout=2, cwd=effective_root,
+                    capture_output=True,
+                    text=True,
+                    timeout=2,
+                    cwd=effective_root,
                 )
                 return r.stdout.strip() if r.returncode == 0 else None
             except Exception:
                 return None
+
         try:
             cmd_result = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
@@ -1022,7 +1127,12 @@ class LoopSpine:
         while instance.current_step_id and instance.state not in TERMINAL_WORKFLOW_STATES:
             step = get_step(definition, instance.current_step_id)
             if step is None:
-                return {"outcome": "BLOCKED", "reason": f"unknown_step:{instance.current_step_id}", "steps_executed": steps_executed, "commit_hash": _head_now()}
+                return {
+                    "outcome": "BLOCKED",
+                    "reason": f"unknown_step:{instance.current_step_id}",
+                    "steps_executed": steps_executed,
+                    "commit_hash": _head_now(),
+                }
             instance.state = "RUNNING"
             context = MissionContext(
                 repo_root=effective_root,
@@ -1033,15 +1143,24 @@ class LoopSpine:
                 metadata={"spine_execution": True, "workflow_id": instance.workflow_id},
             )
             try:
-                invocation = record_invocation_start(instance, step_id=step.step_id, executor_identity=step.role)
+                invocation = record_invocation_start(
+                    instance, step_id=step.step_id, executor_identity=step.role
+                )
                 produced_artifact: Optional[WorkflowArtifact] = None
                 if step.step_kind == "metadata":
-                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=None)
+                    self._commit_step_success(
+                        instance=instance, definition=definition, step=step, produced_artifact=None
+                    )
                 elif step.step_kind in {"design", "revise"}:
                     mission = get_mission_class(step.mission_type)()
                     result = mission.run(context, self._build_design_inputs(instance))
                     if not getattr(result, "success", False):
-                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
+                        return {
+                            "outcome": "BLOCKED",
+                            "reason": "mission_failed",
+                            "steps_executed": steps_executed + [step.step_id],
+                            "commit_hash": _head_now(),
+                        }
                     payload = dict((getattr(result, "outputs", {}) or {}).get("build_packet") or {})
                     produced_artifact = WorkflowArtifact(
                         artifact_id=f"{instance.instance_id}:{step.produces}:{step.step_id}",
@@ -1051,16 +1170,34 @@ class LoopSpine:
                         workflow_instance_id=instance.instance_id,
                         created_at=self._get_timestamp(),
                         payload=payload,
-                        sha256=hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest(),
+                        sha256=hashlib.sha256(
+                            json.dumps(payload, sort_keys=True).encode("utf-8")
+                        ).hexdigest(),
                     )
-                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=produced_artifact)
+                    self._commit_step_success(
+                        instance=instance,
+                        definition=definition,
+                        step=step,
+                        produced_artifact=produced_artifact,
+                    )
                 elif step.step_kind == "build":
                     mission = get_mission_class(step.mission_type)()
-                    build_packet = (instance.artifact_refs.get("legacy_build_packet.v1") or {}).get("payload", {})
-                    result = mission.run(context, {"build_packet": build_packet, "approval": {"verdict": "approved"}})
+                    build_packet = (instance.artifact_refs.get("legacy_build_packet.v1") or {}).get(
+                        "payload", {}
+                    )
+                    result = mission.run(
+                        context, {"build_packet": build_packet, "approval": {"verdict": "approved"}}
+                    )
                     if not getattr(result, "success", False):
-                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
-                    payload = dict((getattr(result, "outputs", {}) or {}).get("review_packet") or {})
+                        return {
+                            "outcome": "BLOCKED",
+                            "reason": "mission_failed",
+                            "steps_executed": steps_executed + [step.step_id],
+                            "commit_hash": _head_now(),
+                        }
+                    payload = dict(
+                        (getattr(result, "outputs", {}) or {}).get("review_packet") or {}
+                    )
                     produced_artifact = WorkflowArtifact(
                         artifact_id=f"{instance.instance_id}:{step.produces}:{step.step_id}",
                         artifact_type=step.produces or "legacy_review_packet.v1",
@@ -1069,19 +1206,43 @@ class LoopSpine:
                         workflow_instance_id=instance.instance_id,
                         created_at=self._get_timestamp(),
                         payload=payload,
-                        sha256=hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest(),
+                        sha256=hashlib.sha256(
+                            json.dumps(payload, sort_keys=True).encode("utf-8")
+                        ).hexdigest(),
                     )
-                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=produced_artifact)
+                    self._commit_step_success(
+                        instance=instance,
+                        definition=definition,
+                        step=step,
+                        produced_artifact=produced_artifact,
+                    )
                 elif step.step_kind == "review":
                     mission = get_mission_class(step.mission_type)()
                     subject_type = step.consumes[0]
                     subject = instance.artifact_refs.get(subject_type)
                     if not subject:
-                        return {"outcome": "BLOCKED", "reason": f"missing_subject:{subject_type}", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
-                    review_type = "output_review" if instance.workflow_id == "spec_creation.v1" else "build_review"
-                    result = mission.run(context, {"subject_packet": subject.get("payload", {}), "review_type": review_type})
+                        return {
+                            "outcome": "BLOCKED",
+                            "reason": f"missing_subject:{subject_type}",
+                            "steps_executed": steps_executed + [step.step_id],
+                            "commit_hash": _head_now(),
+                        }
+                    review_type = (
+                        "output_review"
+                        if instance.workflow_id == "spec_creation.v1"
+                        else "build_review"
+                    )
+                    result = mission.run(
+                        context,
+                        {"subject_packet": subject.get("payload", {}), "review_type": review_type},
+                    )
                     if not getattr(result, "success", False):
-                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
+                        return {
+                            "outcome": "BLOCKED",
+                            "reason": "mission_failed",
+                            "steps_executed": steps_executed + [step.step_id],
+                            "commit_hash": _head_now(),
+                        }
                     decision = self._normalize_review_decision(
                         instance=instance,
                         step_id=step.step_id,
@@ -1096,9 +1257,13 @@ class LoopSpine:
                                 "run_id": self.run_id,
                                 "sections": {
                                     "review_packet": subject.get("payload", {}),
-                                    "reviewer_output": getattr(result, "outputs", {}).get("reviewer_packet_parsed"),
+                                    "reviewer_output": getattr(result, "outputs", {}).get(
+                                        "reviewer_packet_parsed"
+                                    ),
                                 },
-                                "task": instance.task_context.get("payload", {}).get("objective", ""),
+                                "task": instance.task_context.get("payload", {}).get(
+                                    "objective", ""
+                                ),
                             },
                         )
                     except Exception:
@@ -1111,45 +1276,93 @@ class LoopSpine:
                         task_spec=task_spec,
                     )
                     if transition:
-                        return {**transition, "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
+                        return {
+                            **transition,
+                            "steps_executed": steps_executed + [step.step_id],
+                            "commit_hash": _head_now(),
+                        }
                     produced_artifact = decision
                 elif step.step_kind == "package":
                     produced_artifact = materialize_packaged_spec(instance, producer_role=step.role)
-                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=produced_artifact)
+                    self._commit_step_success(
+                        instance=instance,
+                        definition=definition,
+                        step=step,
+                        produced_artifact=produced_artifact,
+                    )
                 elif step.step_kind == "steward" and step.mission_type:
                     mission = get_mission_class(step.mission_type)()
-                    review_packet = (instance.artifact_refs.get("legacy_review_packet.v1") or {}).get("payload", {})
-                    approval_artifact = instance.artifact_refs.get(REVIEW_DECISION_SCHEMA_VERSION, {})
-                    approval = {"verdict": approval_artifact.get("payload", {}).get("verdict", "approved")}
+                    review_packet = (
+                        instance.artifact_refs.get("legacy_review_packet.v1") or {}
+                    ).get("payload", {})
+                    approval_artifact = instance.artifact_refs.get(
+                        REVIEW_DECISION_SCHEMA_VERSION, {}
+                    )
+                    approval = {
+                        "verdict": approval_artifact.get("payload", {}).get("verdict", "approved")
+                    }
                     result = mission.run(
                         context,
                         {
                             "review_packet": review_packet,
                             "approval": approval,
                             "council_decision": {},
-                            "max_diff_lines": task_spec.get("constraints", {}).get("max_diff_lines", 500),
+                            "max_diff_lines": task_spec.get("constraints", {}).get(
+                                "max_diff_lines", 500
+                            ),
                         },
                     )
                     if not getattr(result, "success", False):
-                        return {"outcome": "BLOCKED", "reason": "mission_failed", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
-                    self._commit_step_success(instance=instance, definition=definition, step=step, produced_artifact=None)
+                        return {
+                            "outcome": "BLOCKED",
+                            "reason": "mission_failed",
+                            "steps_executed": steps_executed + [step.step_id],
+                            "commit_hash": _head_now(),
+                        }
+                    self._commit_step_success(
+                        instance=instance, definition=definition, step=step, produced_artifact=None
+                    )
                 else:
-                    return {"outcome": "BLOCKED", "reason": f"unsupported_step_kind:{step.step_kind}", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
-                record_invocation_finish(instance, invocation, result_ref=produced_artifact.artifact_id if produced_artifact else None, result_status="SUCCESS")
+                    return {
+                        "outcome": "BLOCKED",
+                        "reason": f"unsupported_step_kind:{step.step_kind}",
+                        "steps_executed": steps_executed + [step.step_id],
+                        "commit_hash": _head_now(),
+                    }
+                record_invocation_finish(
+                    instance,
+                    invocation,
+                    result_ref=produced_artifact.artifact_id if produced_artifact else None,
+                    result_status="SUCCESS",
+                )
                 steps_executed.append(step.step_id)
             except MissionEscalationRequired:
                 task_spec["workflow_instance"] = instance.to_dict()
                 self._trigger_checkpoint(
                     trigger="ESCALATION_REQUESTED",
-                    step_index=[idx for idx, item in enumerate(definition.steps) if item.step_id == step.step_id][0],
+                    step_index=[
+                        idx
+                        for idx, item in enumerate(definition.steps)
+                        if item.step_id == step.step_id
+                    ][0],
                     context={"task_spec": task_spec, "current_step": step.step_id},
                 )
             except CheckpointTriggered:
                 raise
             except WorkflowRuntimeError as exc:
-                return {"outcome": "BLOCKED", "reason": f"workflow_runtime_error:{exc}", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
+                return {
+                    "outcome": "BLOCKED",
+                    "reason": f"workflow_runtime_error:{exc}",
+                    "steps_executed": steps_executed + [step.step_id],
+                    "commit_hash": _head_now(),
+                }
             except Exception as exc:
-                return {"outcome": "BLOCKED", "reason": f"execution_error:{type(exc).__name__}", "steps_executed": steps_executed + [step.step_id], "commit_hash": _head_now()}
+                return {
+                    "outcome": "BLOCKED",
+                    "reason": f"execution_error:{type(exc).__name__}",
+                    "steps_executed": steps_executed + [step.step_id],
+                    "commit_hash": _head_now(),
+                }
 
         try:
             cmd_result = subprocess.run(
@@ -1223,7 +1436,7 @@ class LoopSpine:
         # Convert to dict and sort keys for determinism
         packet_dict = asdict(packet)
 
-        with open(checkpoint_file, 'w', encoding='utf-8') as f:
+        with open(checkpoint_file, "w", encoding="utf-8") as f:
             yaml.dump(packet_dict, f, sort_keys=True, default_flow_style=False)
 
         return checkpoint_file
@@ -1247,7 +1460,7 @@ class LoopSpine:
             raise SpineError(f"Checkpoint file not found: {checkpoint_file}")
 
         try:
-            with open(checkpoint_file, 'r', encoding='utf-8') as f:
+            with open(checkpoint_file, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
 
             return CheckpointPacket(**data)
@@ -1336,7 +1549,9 @@ class LoopSpine:
             steps_executed=steps_executed or [],
             ledger_chain_tip=self.ledger.get_chain_tip(),
             ledger_attempt_count=len(self.ledger.history),
-            ledger_schema_version=self.ledger.header.get("schema_version") if self.ledger.header else None,
+            ledger_schema_version=self.ledger.header.get("schema_version")
+            if self.ledger.header
+            else None,
             status="CLEAN_FAIL",
             start_ts=started,
             end_ts=ended,
@@ -1404,7 +1619,7 @@ class LoopSpine:
         """
         step_file = self.steps_dir / f"{run_id}_{step_name}.json"
 
-        with open(step_file, 'w', encoding='utf-8') as f:
+        with open(step_file, "w", encoding="utf-8") as f:
             json.dump(summary, f, sort_keys=True, indent=2)
 
         return step_file
@@ -1423,8 +1638,7 @@ class LoopSpine:
 
         if not policy_config_dir.exists():
             raise SpineError(
-                f"Policy directory not found: {policy_config_dir}. "
-                "Cannot compute policy hash."
+                f"Policy directory not found: {policy_config_dir}. Cannot compute policy hash."
             )
 
         try:
@@ -1445,7 +1659,9 @@ class LoopSpine:
             "policy_hash": self.current_policy_hash,
             "scope_paths": constraints.get("scope", []),
             "repo_root": self.repo_root,
-            "allowed_paths": constraints.get("allowed_paths", ["runtime/**", "tests/**", "artifacts/**", "docs/**", "config/**"]),
+            "allowed_paths": constraints.get(
+                "allowed_paths", ["runtime/**", "tests/**", "artifacts/**", "docs/**", "config/**"]
+            ),
             "denied_paths": constraints.get("denied_paths", []),
         }
 
@@ -1460,7 +1676,7 @@ class LoopSpine:
             SHA256 hex digest
         """
         s = json.dumps(obj, sort_keys=True, default=str)
-        return hashlib.sha256(s.encode('utf-8')).hexdigest()
+        return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
     def _generate_run_id(self) -> str:
         """
@@ -1476,6 +1692,7 @@ class LoopSpine:
         """Fire shadow agent capture. Non-gating, non-fatal."""
         try:
             from runtime.agents.shadow_capture import capture_shadow_agent
+
             capture_shadow_agent(
                 run_id=self.run_id,
                 task_payload=task_spec,
@@ -1526,19 +1743,20 @@ class LoopSpine:
         if terminal_packet_path:
             terminal_file = self.repo_root / terminal_packet_path
             if terminal_file.exists():
-                with open(terminal_file, 'rb') as f:
-                    evidence_hashes[terminal_packet_path] = self._compute_hash(f.read().decode('utf-8'))
+                with open(terminal_file, "rb") as f:
+                    evidence_hashes[terminal_packet_path] = self._compute_hash(
+                        f.read().decode("utf-8")
+                    )
         if checkpoint_path:
             checkpoint_file = self.repo_root / checkpoint_path
             if checkpoint_file.exists():
-                with open(checkpoint_file, 'rb') as f:
-                    evidence_hashes[checkpoint_path] = self._compute_hash(f.read().decode('utf-8'))
+                with open(checkpoint_file, "rb") as f:
+                    evidence_hashes[checkpoint_path] = self._compute_hash(f.read().decode("utf-8"))
 
         # Determine failure class
         failure_class = None if success else FailureClass.UNKNOWN.value
 
         # Determine next action
-        from runtime.orchestration.loop.taxonomy import LoopAction
         if checkpoint_path:
             next_action = LoopAction.ESCALATE.value
         elif success:

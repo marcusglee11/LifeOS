@@ -1,8 +1,8 @@
 """Tests for runtime/receipts/gate_check.py"""
+
 import pytest
 
 from runtime.receipts.gate_check import (
-    GateCheck,
     build_gate_results,
     compute_gate_rollup,
     make_artefact_ref,

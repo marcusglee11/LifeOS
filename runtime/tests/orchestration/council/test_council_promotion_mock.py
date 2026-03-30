@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from runtime.orchestration.council.compiler import compile_council_run_plan_v2
 from runtime.orchestration.council.fsm import CouncilFSMv2
 from runtime.orchestration.council.models import (
     DECISION_STATUS_NORMAL,
@@ -93,7 +92,8 @@ def test_promotion_packet_markdown_validates(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    import subprocess, sys
+    import subprocess
+    import sys
 
     proc = subprocess.run(
         [sys.executable, "scripts/validate_review_packet.py", str(packet)],

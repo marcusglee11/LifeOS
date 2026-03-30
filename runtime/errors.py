@@ -13,22 +13,24 @@ Exception Hierarchy:
 class AntiFailureViolation(Exception):
     """
     Raised when an operation violates Anti-Failure input contracts or boundaries.
-    
+
     Used for:
     - Step-count and human-step limit violations (orchestration)
     - Mission boundary validations (mission registry)
     - Input validation failures
     """
+
     pass
 
 
 class EnvelopeViolation(Exception):
     """
     Raised when an operation violates execution envelope constraints.
-    
+
     Used for:
     - Disallowed step kinds (only 'runtime' and 'human' permitted)
     - Forbidden I/O operations
     - Structural/governance constraint violations
     """
+
     pass

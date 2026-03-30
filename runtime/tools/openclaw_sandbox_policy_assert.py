@@ -4,8 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-from json import JSONDecodeError
-from json import JSONDecoder
+from json import JSONDecodeError, JSONDecoder
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
 
@@ -63,7 +62,9 @@ def _load_instance_policy(instance_profile: Dict[str, Any]) -> Dict[str, Any]:
 
 def _read_sandbox_payload(sandbox_explain_file: Path | None, openclaw_bin: str) -> Dict[str, Any]:
     if sandbox_explain_file is not None:
-        return extract_json_object(sandbox_explain_file.read_text(encoding="utf-8", errors="replace"))
+        return extract_json_object(
+            sandbox_explain_file.read_text(encoding="utf-8", errors="replace")
+        )
 
     proc = subprocess.run(
         [openclaw_bin, "sandbox", "explain", "--json"],
@@ -139,7 +140,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     config = _load_json(Path(args.config).expanduser())
     instance_profile = _load_json(Path(args.instance_profile).expanduser())
-    sandbox_file = Path(args.sandbox_explain_file).expanduser() if args.sandbox_explain_file else None
+    sandbox_file = (
+        Path(args.sandbox_explain_file).expanduser() if args.sandbox_explain_file else None
+    )
 
     try:
         sandbox_payload = _read_sandbox_payload(sandbox_file, args.openclaw_bin)

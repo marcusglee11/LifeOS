@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
@@ -47,7 +47,9 @@ def _verify_token_shape(token: Dict[str, Any]) -> None:
 
     missing = sorted(REQUIRED_TOKEN_FIELDS - set(token.keys()))
     if missing:
-        raise AcceptanceTokenError("ACCEPTANCE_TOKEN_INVALID", f"Token missing required fields: {missing}")
+        raise AcceptanceTokenError(
+            "ACCEPTANCE_TOKEN_INVALID", f"Token missing required fields: {missing}"
+        )
 
     if token.get("schema_version") != "acceptance_token_v1":
         raise AcceptanceTokenError("ACCEPTANCE_TOKEN_INVALID", "Unsupported token schema")
@@ -61,7 +63,9 @@ def _verify_token_shape(token: Dict[str, Any]) -> None:
 
     for key in ("manifest_path", "receipt_path", "attempt_dir"):
         if key not in provenance:
-            raise AcceptanceTokenError("ACCEPTANCE_TOKEN_INVALID", f"Token provenance missing {key}")
+            raise AcceptanceTokenError(
+                "ACCEPTANCE_TOKEN_INVALID", f"Token provenance missing {key}"
+            )
 
 
 def accept(
@@ -76,7 +80,9 @@ def accept(
     receipt_path = Path(provenance["receipt_path"])
 
     if not manifest_path.exists():
-        raise AcceptanceTokenError("ACCEPTANCE_TOKEN_INVALID", "Referenced manifest_path does not exist")
+        raise AcceptanceTokenError(
+            "ACCEPTANCE_TOKEN_INVALID", "Referenced manifest_path does not exist"
+        )
 
     manifest_sha = sha256_file(manifest_path)
     if manifest_sha != token["evidence_manifest_sha256"]:

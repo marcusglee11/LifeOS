@@ -1,21 +1,26 @@
 import pytest
-from runtime.orchestration.registry import MISSION_REGISTRY
+
 from runtime.orchestration.engine import WorkflowDefinition
+from runtime.orchestration.registry import MISSION_REGISTRY
+
 
 class TestPhase3DispatchWiring:
     """
     Verify that Phase 3 missions are wired correctly in the registry.
     """
-    
-    @pytest.mark.parametrize("mission_type", [
-        "echo",
-        "steward",
-        "build",
-        "review",
-        "design",
-        "autonomous_build_cycle",
-        "build_with_validation"
-    ])
+
+    @pytest.mark.parametrize(
+        "mission_type",
+        [
+            "echo",
+            "steward",
+            "build",
+            "review",
+            "design",
+            "autonomous_build_cycle",
+            "build_with_validation",
+        ],
+    )
     def test_mission_produces_dispatch_workflow(self, mission_type):
         """
         Phase 3 missions must produce a workflow with a single step
@@ -23,13 +28,13 @@ class TestPhase3DispatchWiring:
         """
         assert mission_type in MISSION_REGISTRY
         builder = MISSION_REGISTRY[mission_type]
-        
+
         params = {"test": "params"}
         workflow = builder(params)
-        
+
         assert isinstance(workflow, WorkflowDefinition)
         assert len(workflow.steps) == 1
-        
+
         step = workflow.steps[0]
         assert step.kind == "runtime"
         assert step.payload["operation"] == "mission"
@@ -47,12 +52,12 @@ class TestPhase3DispatchWiring:
         # We just verify it doesn't look like a Phase 3 dispatch wrapper if it's not converted yet.
         # Actually daily_loop is likely still Tier-2 legacy so it might not use 'mission' op.
         # If it does, this test needs update. But per my knowledge it's legacy.
-        
+
         # Check first step (if any)
         if workflow.steps:
             step = workflow.steps[0]
-            # It shouldn't be operation='mission' with mission_type='daily_loop' 
+            # It shouldn't be operation='mission' with mission_type='daily_loop'
             # unless daily_loop was also converted.
             if step.payload.get("operation") == "mission":
                 # If converted, that's fine, but let's know about it.
-                pass 
+                pass

@@ -29,14 +29,13 @@ Expected correct fix: use `policy.min_lenses_for_tier(tier)` or inspect
 assert that this is intentional (documented tier behavior), not a gap.
 ─────────────────────────────────────────────────────────────────────────────
 """
+
 from __future__ import annotations
 
 import pytest
-from pathlib import Path
 
 from runtime.orchestration.council.models import TIER_T0, TIER_T1, TIER_T2, TIER_T3
 from runtime.orchestration.council.policy import CouncilPolicy, load_council_policy
-
 
 ALL_TIERS = [TIER_T0, TIER_T1, TIER_T2, TIER_T3]
 
@@ -63,9 +62,7 @@ class TestCouncilV2LensCoverage:
         assert TIER_T3 == "T3"
 
     @pytest.mark.parametrize("tier", ALL_TIERS)
-    def test_tier_has_at_least_one_lens_in_catalog(
-        self, tier: str, policy: CouncilPolicy
-    ) -> None:
+    def test_tier_has_at_least_one_lens_in_catalog(self, tier: str, policy: CouncilPolicy) -> None:
         """
         Each tier has at least one lens available in the catalog.
 
@@ -117,8 +114,7 @@ class TestCouncilV2LensCoverage:
         catalog = list(policy.lens_catalog)
         unique = set(catalog)
         assert len(catalog) == len(unique), (
-            f"Duplicate lens names in catalog: "
-            f"{[l for l in catalog if catalog.count(l) > 1]}"
+            f"Duplicate lens names in catalog: {[l for l in catalog if catalog.count(l) > 1]}"
         )
 
     def test_t2_t3_mandatory_lenses_are_in_catalog(self, policy: CouncilPolicy) -> None:

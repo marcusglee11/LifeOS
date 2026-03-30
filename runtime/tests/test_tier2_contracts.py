@@ -1,14 +1,12 @@
 # runtime/tests/test_tier2_contracts.py
-from typing import Dict, Any
-
-import pytest
+from typing import Any, Dict
 
 from runtime.orchestration.engine import (
-    Orchestrator,
-    WorkflowDefinition,
-    StepSpec,
     ExecutionContext,
     OrchestrationResult,
+    Orchestrator,
+    StepSpec,
+    WorkflowDefinition,
 )
 
 

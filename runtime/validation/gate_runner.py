@@ -7,7 +7,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from runtime.validation.cleanliness import CleanlinessError, verify_output_roots_ignored, verify_repo_clean
+from runtime.validation.cleanliness import (
+    CleanlinessError,
+    verify_output_roots_ignored,
+    verify_repo_clean,
+)
 from runtime.validation.codes import get_code_spec
 from runtime.validation.core import AttemptContext, CheckResult, JobSpec, ValidationReport
 from runtime.validation.evidence import EvidenceError, enforce_evidence_tier, verify_manifest
@@ -96,12 +100,16 @@ class GateRunner:
                 code=exc.code,
                 message=str(exc),
                 attempt_context=attempt_context,
-                checks=[CheckResult(name="repo_clean_pre", code=exc.code, ok=False, message=str(exc))],
+                checks=[
+                    CheckResult(name="repo_clean_pre", code=exc.code, ok=False, message=str(exc))
+                ],
                 pointers=pointers,
             )
 
         try:
-            proofs = verify_output_roots_ignored(workspace_root, run_root, attempt_dir, evidence_root)
+            proofs = verify_output_roots_ignored(
+                workspace_root, run_root, attempt_dir, evidence_root
+            )
             pointers["ignore_proof"] = proofs
         except CleanlinessError as exc:
             return self._report_failure(
@@ -110,7 +118,11 @@ class GateRunner:
                 code=exc.code,
                 message=str(exc),
                 attempt_context=attempt_context,
-                checks=[CheckResult(name="output_roots_ignore", code=exc.code, ok=False, message=str(exc))],
+                checks=[
+                    CheckResult(
+                        name="output_roots_ignore", code=exc.code, ok=False, message=str(exc)
+                    )
+                ],
                 pointers=pointers,
             )
 
@@ -167,7 +179,9 @@ class GateRunner:
                 code=exc.code,
                 message=str(exc),
                 attempt_context=attempt_context,
-                checks=[CheckResult(name="repo_clean_post", code=exc.code, ok=False, message=str(exc))],
+                checks=[
+                    CheckResult(name="repo_clean_post", code=exc.code, ok=False, message=str(exc))
+                ],
                 pointers=pointers,
             )
 

@@ -14,8 +14,8 @@ from runtime.tools.workflow_pack import (
     is_plan_only_change,
     merge_to_main,
     read_active_work,
-    run_closure_tests,
     route_targeted_tests,
+    run_closure_tests,
     update_structured_backlog,
     write_active_work,
 )
@@ -171,10 +171,15 @@ def test_is_plan_only_change_true() -> None:
 
 
 def test_is_plan_only_change_false_for_mixed_changes() -> None:
-    assert is_plan_only_change([
-        "artifacts/plans/2026-03-05-coo-bootstrap-plan.md",
-        "runtime/tools/workflow_pack.py",
-    ]) is False
+    assert (
+        is_plan_only_change(
+            [
+                "artifacts/plans/2026-03-05-coo-bootstrap-plan.md",
+                "runtime/tools/workflow_pack.py",
+            ]
+        )
+        is False
+    )
 
 
 def test_route_targeted_tests_artifacts_handoffs() -> None:
@@ -184,10 +189,12 @@ def test_route_targeted_tests_artifacts_handoffs() -> None:
 
 def test_route_targeted_tests_coo_and_config_deduplicates() -> None:
     # Mixed coo + config/tasks change should not repeat the coo suite
-    commands = route_targeted_tests([
-        "runtime/orchestration/coo/backlog.py",
-        "config/tasks/backlog.yaml",
-    ])
+    commands = route_targeted_tests(
+        [
+            "runtime/orchestration/coo/backlog.py",
+            "config/tasks/backlog.yaml",
+        ]
+    )
     assert "pytest -q runtime/tests/orchestration/coo/" in commands
     assert "pytest -q runtime/tests/orchestration/coo/test_backlog.py" in commands
     assert len(commands) == 2  # no duplicates
@@ -200,7 +207,9 @@ def test_run_closure_tests_passes_on_zero_returncode(monkeypatch) -> None:
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
     result = run_closure_tests(Path("."), ["runtime/tools/workflow_pack.py"])
     assert result["passed"] is True
-    assert result["commands_run"] == ["pytest -q runtime/tests/test_workflow_pack.py runtime/tests/test_git_workflow_worktree.py"]
+    assert result["commands_run"] == [
+        "pytest -q runtime/tests/test_workflow_pack.py runtime/tests/test_git_workflow_worktree.py"
+    ]
 
 
 def test_run_closure_tests_fails_on_nonzero(monkeypatch) -> None:
@@ -338,7 +347,9 @@ def test_cleanup_after_merge_removes_worktree_before_branch(tmp_path: Path, monk
         cmd = args[0]
         commands.append(cmd)
         if cmd[-3:] == ["worktree", "list", "--porcelain"]:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout=worktree_list, stderr=""
+            )
         return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
@@ -356,21 +367,21 @@ def test_cleanup_after_merge_removes_worktree_before_branch(tmp_path: Path, monk
     assert result["branch_deleted"] is True
 
 
-def test_cleanup_after_merge_skips_remove_when_branch_maps_to_primary(tmp_path: Path, monkeypatch) -> None:
+def test_cleanup_after_merge_skips_remove_when_branch_maps_to_primary(
+    tmp_path: Path, monkeypatch
+) -> None:
     repo = tmp_path
     commands: list[list[str]] = []
 
-    worktree_list = (
-        f"worktree {repo}\n"
-        "branch refs/heads/main\n"
-        "branch refs/heads/build/feature\n"
-    )
+    worktree_list = f"worktree {repo}\nbranch refs/heads/main\nbranch refs/heads/build/feature\n"
 
     def fake_run(*args, **kwargs):
         cmd = args[0]
         commands.append(cmd)
         if cmd[-3:] == ["worktree", "list", "--porcelain"]:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout=worktree_list, stderr=""
+            )
         return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
@@ -421,7 +432,9 @@ def test_cleanup_after_merge_updates_active_branches_registry(tmp_path: Path, mo
     assert registry["last_updated"] != "2026-01-01T00:00:00"
 
 
-def test_cleanup_after_merge_skips_registry_when_branch_not_in_file(tmp_path: Path, monkeypatch) -> None:
+def test_cleanup_after_merge_skips_registry_when_branch_not_in_file(
+    tmp_path: Path, monkeypatch
+) -> None:
     registry_path = tmp_path / "artifacts" / "active_branches.json"
     registry_path.parent.mkdir(parents=True, exist_ok=True)
     registry_path.write_text(json.dumps({"branches": []}), encoding="utf-8")
@@ -458,7 +471,9 @@ def test_merge_to_main_includes_primary_repo(monkeypatch, tmp_path: Path) -> Non
         if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
         if cmd[-3:] == ["worktree", "list", "--porcelain"]:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout=worktree_list, stderr=""
+            )
         if cmd[-2:] == ["branch", "--show-current"]:
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
         if cmd[-1:] == ["HEAD"] and "rev-parse" in cmd:
@@ -495,7 +510,9 @@ def test_merge_to_main_blocks_on_untracked_files(monkeypatch, tmp_path: Path) ->
         if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
         if cmd[-3:] == ["worktree", "list", "--porcelain"]:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout=worktree_list, stderr=""
+            )
         if cmd[-2:] == ["branch", "--show-current"]:
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
         if "ls-files" in cmd and "--others" in cmd:
@@ -529,7 +546,9 @@ def test_merge_to_main_resets_index_on_commit_failure(monkeypatch, tmp_path: Pat
         if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
         if cmd[-3:] == ["worktree", "list", "--porcelain"]:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout=worktree_list, stderr=""
+            )
         if cmd[-2:] == ["branch", "--show-current"]:
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
         if "ls-files" in cmd and "--others" in cmd:
@@ -548,8 +567,7 @@ def test_merge_to_main_resets_index_on_commit_failure(monkeypatch, tmp_path: Pat
     # git reset HEAD must have been called before git checkout.
     reset_indices = [i for i, c in enumerate(call_log) if "reset" in c and "HEAD" in c]
     checkout_indices = [
-        i for i, c in enumerate(call_log)
-        if "checkout" in c and "build/feature" in c
+        i for i, c in enumerate(call_log) if "checkout" in c and "build/feature" in c
     ]
     assert len(reset_indices) == 1, f"Expected 1 git reset call, got {reset_indices}"
     assert len(checkout_indices) == 1, f"Expected 1 git checkout call, got {checkout_indices}"
@@ -569,7 +587,9 @@ def test_merge_to_main_reports_post_merge_dirt(monkeypatch, tmp_path: Path) -> N
         if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
         if cmd[-3:] == ["worktree", "list", "--porcelain"]:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=0, stdout=worktree_list, stderr=""
+            )
         if cmd[-2:] == ["branch", "--show-current"]:
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
         if "ls-files" in cmd and "--others" in cmd:
@@ -693,8 +713,8 @@ def test_update_lifeos_state_increments_revision(tmp_path: Path) -> None:
 
 def test_match_backlog_item_finds_match() -> None:
     """Test that BACKLOG item matching works with fuzzy similarity."""
-    from runtime.tools.workflow_pack import _match_backlog_item
     from recursive_kernel.backlog_parser import BacklogItem, ItemStatus, Priority
+    from runtime.tools.workflow_pack import _match_backlog_item
 
     # Create mock backlog items
     items = [
@@ -738,8 +758,8 @@ def test_match_backlog_item_finds_match() -> None:
 
 def test_match_backlog_item_no_match_below_threshold() -> None:
     """Test that no match is returned if similarity is below threshold."""
-    from runtime.tools.workflow_pack import _match_backlog_item
     from recursive_kernel.backlog_parser import BacklogItem, ItemStatus, Priority
+    from runtime.tools.workflow_pack import _match_backlog_item
 
     items = [
         BacklogItem(

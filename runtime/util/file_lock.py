@@ -1,6 +1,7 @@
+import contextlib
 import os
 import time
-import contextlib
+
 
 class FileLock:
     """
@@ -8,6 +9,7 @@ class FileLock:
     Not robust against crashes leaving stale locks (needs TTL or manual cleanup),
     but sufficient for single-run/short-lived contention tests.
     """
+
     def __init__(self, lock_path: str, timeout: float = 10.0, poll_interval: float = 0.1):
         self.lock_path = lock_path
         self.timeout = timeout
@@ -35,7 +37,7 @@ class FileLock:
             try:
                 os.remove(self.lock_path)
             except OSError:
-                pass # Already gone?
+                pass  # Already gone?
             self._acquired = False
 
     @contextlib.contextmanager

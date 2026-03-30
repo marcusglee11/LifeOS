@@ -14,10 +14,9 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import yaml
-
 
 # =============================================================================
 # CONFIG-DRIVEN DEFAULTS (Single Source of Truth: config/models.yaml)
@@ -134,6 +133,7 @@ def clear_config_cache() -> None:
 @dataclass
 class CLIProviderConfig:
     """Configuration for a CLI agent provider (codex, gemini, claude_code)."""
+
     binary: str
     default_model: str = ""
     timeout_seconds: int = 600
@@ -144,12 +144,15 @@ class CLIProviderConfig:
 @dataclass
 class AgentConfig:
     """Configuration for a specific agent."""
+
     provider: str
     model: str
     endpoint: str
     api_key_env: str
     fallback: List[Dict[str, str]] = field(default_factory=list)
-    dispatch_mode: str = "api"  # "api" (REST) | "cli" (subprocess) | "delegated" (lens executor authority)
+    dispatch_mode: str = (
+        "api"  # "api" (REST) | "cli" (subprocess) | "delegated" (lens executor authority)
+    )
     cli_provider: str = ""  # e.g. "codex", "gemini", "claude_code"
     cli_fallback: str = ""  # secondary CLI provider name for fallback
 
@@ -195,9 +198,9 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
         # Also try git root if available
         try:
             import subprocess
+
             result = subprocess.run(
-                ["git", "rev-parse", "--show-toplevel"],
-                capture_output=True, text=True, timeout=5
+                ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, timeout=5
             )
             if result.returncode == 0:
                 git_root = Path(result.stdout.strip())
@@ -206,7 +209,9 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
             pass
 
         # Fallback: use module location to find repo root (for tests in temp dirs)
-        module_root = Path(__file__).parent.parent.parent  # models.py -> agents -> runtime -> repo_root
+        module_root = Path(
+            __file__
+        ).parent.parent.parent  # models.py -> agents -> runtime -> repo_root
         candidates.append(module_root / "config" / "models.yaml")
 
         path = None

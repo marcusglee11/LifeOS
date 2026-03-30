@@ -5,21 +5,17 @@ TDD Tests for Tier-2 Daily Loop Runner.
 These tests define the contract for the daily loop runner that composes
 the Workflow Builder and Orchestrator into a single deterministic entrypoint.
 """
-import hashlib
-import json
-import hashlib
-import json
+
 import copy
+import hashlib
+import json
 from typing import Any
 
-import pytest
-
+from runtime.orchestration.daily_loop import run_daily_loop
 from runtime.orchestration.engine import (
     ExecutionContext,
     OrchestrationResult,
-    AntiFailureViolation,
 )
-from runtime.orchestration.daily_loop import run_daily_loop
 
 
 def _stable_hash(obj: Any) -> str:
@@ -34,6 +30,7 @@ def _stable_hash(obj: Any) -> str:
 # =============================================================================
 # Basic Contract Tests
 # =============================================================================
+
 
 def test_daily_loop_basic_contract():
     """
@@ -75,6 +72,7 @@ def test_daily_loop_with_empty_params():
 # Determinism Tests
 # =============================================================================
 
+
 def test_daily_loop_is_deterministic():
     """
     Given identical ctx.initial_state and params, output must be identical across runs.
@@ -103,8 +101,7 @@ def test_daily_loop_deterministic_across_multiple_runs():
     hashes = []
     for _ in range(5):
         result = run_daily_loop(
-            ExecutionContext(initial_state=dict(ctx.initial_state)),
-            params=params
+            ExecutionContext(initial_state=dict(ctx.initial_state)), params=params
         )
         hashes.append(_stable_hash(result.to_dict()))
 
@@ -116,6 +113,7 @@ def test_daily_loop_deterministic_across_multiple_runs():
 # Anti-Failure Compliance Tests
 # =============================================================================
 
+
 def test_daily_loop_respects_anti_failure_limits():
     """
     Daily loop must not trigger AntiFailureViolation and stays within limits.
@@ -126,7 +124,7 @@ def test_daily_loop_respects_anti_failure_limits():
     result = run_daily_loop(ctx, params={"mode": "default"})
 
     assert len(result.executed_steps) <= 5, "Must have at most 5 steps"
-    
+
     human_steps = [s for s in result.executed_steps if getattr(s, "kind", None) == "human"]
     assert len(human_steps) <= 2, "Must have at most 2 human steps"
 
@@ -146,6 +144,7 @@ def test_daily_loop_uses_only_allowed_step_kinds():
 # =============================================================================
 # Receipt and Lineage Tests
 # =============================================================================
+
 
 def test_daily_loop_receipt_mentions_human_steps_if_present():
     """
@@ -192,6 +191,7 @@ def test_daily_loop_receipt_contains_all_executed_steps():
 # Integration Tests
 # =============================================================================
 
+
 def test_daily_loop_does_not_mutate_input_context():
     """
     Daily loop must not mutate the input context's initial_state.
@@ -213,9 +213,9 @@ def test_daily_loop_does_not_mutate_params():
     ctx = ExecutionContext(initial_state={})
     params = {"mode": "default", "extra": [1, 2, 3]}
     params_copy = copy.deepcopy(params)
-    
+
     _ = run_daily_loop(ctx, params=params)
-    
+
     assert params == params_copy, "Params input must be preserved (immutability check)"
 
 

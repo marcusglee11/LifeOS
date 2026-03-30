@@ -18,14 +18,18 @@ if str(REPO_ROOT) not in sys.path:
 
 from runtime.tools.schemas import AuthHealthResult
 
-COOLDOWN_RE = re.compile(r"(in cooldown|all profiles unavailable|profiles are unavailable)", re.IGNORECASE)
+COOLDOWN_RE = re.compile(
+    r"(in cooldown|all profiles unavailable|profiles are unavailable)", re.IGNORECASE
+)
 INVALID_MISSING_RE = re.compile(
     r"(expired|missing|invalid|unauthorized|not authenticated|authentication required|token has been invalidated)",
     re.IGNORECASE,
 )
 EXPIRING_RE = re.compile(r"(expiring soon|expires in\s*[0-9]+(?:m|h))", re.IGNORECASE)
 PROVIDER_RE = re.compile(r"\bprovider\s+([a-z0-9._-]+)\b", re.IGNORECASE)
-PROVIDER_COOLDOWN_RE = re.compile(r"\bprovider\s+([a-z0-9._-]+)\s+is\s+in\s+cooldown\b", re.IGNORECASE)
+PROVIDER_COOLDOWN_RE = re.compile(
+    r"\bprovider\s+([a-z0-9._-]+)\s+is\s+in\s+cooldown\b", re.IGNORECASE
+)
 
 
 def ts_utc() -> str:
@@ -136,9 +140,13 @@ def run_auth_health_check(openclaw_bin: str, timeout_s: int) -> Tuple[int, str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Classify OpenClaw auth health from models status checks.")
+    parser = argparse.ArgumentParser(
+        description="Classify OpenClaw auth health from models status checks."
+    )
     parser.add_argument("--openclaw-bin", default=os.environ.get("OPENCLAW_BIN", "openclaw"))
-    parser.add_argument("--state-dir", default=os.environ.get("OPENCLAW_STATE_DIR", str(Path.home() / ".openclaw")))
+    parser.add_argument(
+        "--state-dir", default=os.environ.get("OPENCLAW_STATE_DIR", str(Path.home() / ".openclaw"))
+    )
     parser.add_argument("--timeout-sec", type=int, default=30)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -158,7 +166,9 @@ def main() -> int:
             "ts_utc": result.ts_utc,
         }
         if args.json:
-            print(json.dumps(error_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+            print(
+                json.dumps(error_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+            )
         else:
             print(
                 f"state={error_payload['state']} reason_code={error_payload['reason_code']} "

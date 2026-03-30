@@ -9,17 +9,17 @@ Provides:
 - SupervisorPort, CuratorPort: Protocol interfaces for future COO Agent integration
 """
 
-from runtime.orchestration.dispatch.engine import DispatchEngine, DispatchConfig, DispatchResult
+from runtime.orchestration.dispatch.engine import DispatchConfig, DispatchEngine, DispatchResult
 from runtime.orchestration.dispatch.manifest import RunManifest
 from runtime.orchestration.dispatch.order import (
     ExecutionOrder,
+    OrderValidationError,
     StepSpec,
     load_order,
     parse_order,
-    OrderValidationError,
 )
-from runtime.orchestration.dispatch.ports import SupervisorPort, CuratorPort
-from runtime.orchestration.dispatch.provider_pool import ProviderPool, ProviderHealth
+from runtime.orchestration.dispatch.ports import CuratorPort, SupervisorPort
+from runtime.orchestration.dispatch.provider_pool import ProviderHealth, ProviderPool
 
 __all__ = [
     "DispatchEngine",

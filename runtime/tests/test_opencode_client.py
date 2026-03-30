@@ -6,29 +6,24 @@ Unit tests that don't require a real OpenCode server.
 Tests client instantiation, dataclasses, and error classes.
 """
 
-import os
-import json
-import tempfile
 import pytest
-from datetime import datetime
-
-from runtime.agents.opencode_client import (
-    OpenCodeClient,
-    LLMCall,
-    LLMResponse,
-    OpenCodeError,
-    OpenCodeServerError,
-    OpenCodeTimeoutError,
-    OpenCodeSessionError,
-)
 
 # Import canonical default from single source of truth
 from runtime.agents.models import DEFAULT_MODEL
-
+from runtime.agents.opencode_client import (
+    LLMCall,
+    LLMResponse,
+    OpenCodeClient,
+    OpenCodeError,
+    OpenCodeServerError,
+    OpenCodeSessionError,
+    OpenCodeTimeoutError,
+)
 
 # ============================================================================
 # DATACLASS TESTS
 # ============================================================================
+
 
 class TestLLMCall:
     """Tests for LLMCall dataclass."""
@@ -45,7 +40,7 @@ class TestLLMCall:
         call = LLMCall(
             prompt="Test prompt",
             model="openrouter/openai/gpt-4",
-            system_prompt="You are a helpful assistant."
+            system_prompt="You are a helpful assistant.",
         )
         assert call.prompt == "Test prompt"
         assert call.model == "openrouter/openai/gpt-4"
@@ -67,7 +62,7 @@ class TestLLMResponse:
             content="Hello, world!",
             model_used="claude-3-opus",
             latency_ms=1500,
-            timestamp="2026-01-08T12:00:00Z"
+            timestamp="2026-01-08T12:00:00Z",
         )
         assert response.call_id == "abc123"
         assert response.content == "Hello, world!"
@@ -82,7 +77,7 @@ class TestLLMResponse:
             content="",
             model_used="test-model",
             latency_ms=0,
-            timestamp="2026-01-08T00:00:00Z"
+            timestamp="2026-01-08T00:00:00Z",
         )
         assert response.content == ""
 
@@ -90,6 +85,7 @@ class TestLLMResponse:
 # ============================================================================
 # ERROR CLASS TESTS
 # ============================================================================
+
 
 class TestExceptions:
     """Tests for custom exception classes."""
@@ -129,6 +125,7 @@ class TestExceptions:
 # ============================================================================
 # CLIENT INSTANTIATION TESTS
 # ============================================================================
+
 
 class TestClientInstantiation:
     """Tests for OpenCodeClient instantiation."""
@@ -177,6 +174,7 @@ class TestClientInstantiation:
 # LOG DIRECTORY TESTS
 # ============================================================================
 
+
 class TestLogDirectory:
     """Tests for log directory creation."""
 
@@ -208,10 +206,9 @@ class TestLogDirectory:
 # SERVER STATE TESTS (Without Real Server)
 # ============================================================================
 
+
 class TestServerState:
     """Tests for server state management without real server."""
-
-
 
     def test_start_without_api_key_raises(self, monkeypatch):
         """Starting server without API key should raise error."""
@@ -249,19 +246,18 @@ class TestServerState:
 # IMPORT TESTS
 # ============================================================================
 
+
 class TestImports:
     """Tests for module imports."""
 
     def test_import_from_agents_package(self):
         """Should be able to import from runtime.agents."""
         from runtime.agents import (
-            OpenCodeClient,
             LLMCall,
             LLMResponse,
-            OpenCodeError,
-            OpenCodeServerError,
-            OpenCodeTimeoutError,
+            OpenCodeClient,
         )
+
         assert OpenCodeClient is not None
         assert LLMCall is not None
         assert LLMResponse is not None
@@ -269,6 +265,7 @@ class TestImports:
     def test_all_exports(self):
         """__all__ should export expected symbols."""
         from runtime import agents
+
         expected = [
             "OpenCodeClient",
             "LLMCall",
@@ -284,6 +281,7 @@ class TestImports:
 # ============================================================================
 # DETERMINISM TESTS
 # ============================================================================
+
 
 class TestDeterminism:
     """Tests for deterministic behavior."""
@@ -301,13 +299,13 @@ class TestDeterminism:
             content="hello",
             model_used="model",
             latency_ms=100,
-            timestamp="2026-01-08T00:00:00Z"
+            timestamp="2026-01-08T00:00:00Z",
         )
         resp2 = LLMResponse(
             call_id="abc",
             content="hello",
             model_used="model",
             latency_ms=100,
-            timestamp="2026-01-08T00:00:00Z"
+            timestamp="2026-01-08T00:00:00Z",
         )
         assert resp1 == resp2

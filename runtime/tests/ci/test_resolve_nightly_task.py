@@ -1,7 +1,7 @@
 """Tests for scripts/ci/resolve_nightly_task.py."""
+
 from __future__ import annotations
 
-import textwrap
 from pathlib import Path
 
 import pytest
@@ -18,7 +18,9 @@ def fake_repo(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def _write_order(path: Path, order_id: str = "test-order-001", task_ref: str = "BACKLOG-42") -> None:
+def _write_order(
+    path: Path, order_id: str = "test-order-001", task_ref: str = "BACKLOG-42"
+) -> None:
     order = {
         "schema_version": ORDER_SCHEMA_VERSION,
         "order_id": order_id,
@@ -34,14 +36,15 @@ def _write_order(path: Path, order_id: str = "test-order-001", task_ref: str = "
 
 def _write_queue(repo_root: Path, entries: list[dict]) -> None:
     queue_path = repo_root / "artifacts" / "dispatch" / "nightly_queue.yaml"
-    queue_path.write_text(yaml.dump(entries, default_flow_style=False, sort_keys=False), encoding="utf-8")
+    queue_path.write_text(
+        yaml.dump(entries, default_flow_style=False, sort_keys=False), encoding="utf-8"
+    )
 
 
 # --- import resolve helpers ---
 def _import_resolve():
     """Import the resolve module from scripts/ci/."""
     import importlib.util
-    import os
 
     script_path = Path(__file__).resolve().parents[3] / "scripts" / "ci" / "resolve_nightly_task.py"
     spec = importlib.util.spec_from_file_location("resolve_nightly_task", script_path)

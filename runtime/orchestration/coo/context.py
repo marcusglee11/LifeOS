@@ -1,6 +1,7 @@
 """
 Context builders for COO proposal/status/report flows.
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict
@@ -11,7 +12,6 @@ from typing import Any
 import yaml
 
 from runtime.orchestration.coo.backlog import TaskEntry, filter_actionable, load_backlog
-
 
 _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
 _DELEGATION_RELATIVE_PATH = Path("config/governance/delegation_envelope.yaml")
@@ -46,9 +46,7 @@ def _load_yaml_mapping(path: Path) -> dict[str, Any]:
         raw = yaml.safe_load(handle)
 
     if not isinstance(raw, dict):
-        raise ValueError(
-            f"Expected YAML mapping in {path}, got {type(raw).__name__}"
-        )
+        raise ValueError(f"Expected YAML mapping in {path}, got {type(raw).__name__}")
     return raw
 
 
@@ -177,13 +175,17 @@ def _collect_dispatch_state(repo_root: Path) -> dict[str, Any]:
     active_dir = dispatch_base / "active"
     completed_dir = dispatch_base / "completed"
 
-    inbox_orders = [
-        f.stem for f in inbox_dir.glob("*.yaml") if not f.name.endswith(".tmp")
-    ] if inbox_dir.exists() else []
+    inbox_orders = (
+        [f.stem for f in inbox_dir.glob("*.yaml") if not f.name.endswith(".tmp")]
+        if inbox_dir.exists()
+        else []
+    )
 
-    active_orders = [
-        f.stem for f in active_dir.glob("*.yaml") if not f.name.endswith(".tmp")
-    ] if active_dir.exists() else []
+    active_orders = (
+        [f.stem for f in active_dir.glob("*.yaml") if not f.name.endswith(".tmp")]
+        if active_dir.exists()
+        else []
+    )
 
     completed_success = 0
     completed_fail = 0
@@ -207,6 +209,7 @@ def _collect_dispatch_state(repo_root: Path) -> dict[str, Any]:
     escalation_count = 0
     try:
         from runtime.orchestration.ceo_queue import CEOQueue
+
         queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
         escalation_count = len(queue.get_pending())
     except Exception:
@@ -266,7 +269,9 @@ def build_report_context(repo_root: Path) -> dict[str, Any]:
     }
 
 
-def build_direct_context(repo_root: Path, intent: str, source: str = "coo_direct") -> dict[str, Any]:
+def build_direct_context(
+    repo_root: Path, intent: str, source: str = "coo_direct"
+) -> dict[str, Any]:
     return {
         "intent": intent,
         "source": source,

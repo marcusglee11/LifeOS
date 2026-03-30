@@ -7,15 +7,14 @@ Tests the integration of pytest execution with the build mission:
 - Test timeout handling
 """
 
-import pytest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-import tempfile
 
+import pytest
+
+from runtime.orchestration.loop.taxonomy import FailureClass
 from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
 from runtime.orchestration.missions.base import MissionContext
 from runtime.orchestration.test_executor import PytestResult
-from runtime.orchestration.loop.taxonomy import FailureClass
 
 
 class TestBuildTestIntegration:
@@ -34,9 +33,11 @@ class TestBuildTestIntegration:
         context.run_id = "test-run-123"
         return context
 
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
-    def test_run_verification_tests_success(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope")
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor")
+    def test_run_verification_tests_success(
+        self, mock_executor_class, mock_scope, mission, mock_context, tmp_path
+    ):
         """Verification tests run successfully on passing tests."""
         # Mock scope check to allow
         mock_scope.return_value = (True, "Allowed")
@@ -63,9 +64,11 @@ class TestBuildTestIntegration:
         assert result["evidence"]["status"] == "PASS"
         assert result["error"] is None
 
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
-    def test_run_verification_tests_failure(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope")
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor")
+    def test_run_verification_tests_failure(
+        self, mock_executor_class, mock_scope, mission, mock_context, tmp_path
+    ):
         """Verification tests detect test failures."""
         # Mock scope check to allow
         mock_scope.return_value = (True, "Allowed")
@@ -98,18 +101,22 @@ class TestBuildTestIntegration:
         # Try to run tests outside allowed scope
         result = mission._run_verification_tests(
             mock_context,
-            target="/etc/passwd"  # Not allowed
+            target="/etc/passwd",  # Not allowed
         )
 
         assert result["success"] is False
         assert "Test scope denied" in result["error"]
         # Hardened pytest validation rejects absolute paths first
-        assert ("PATH_OUTSIDE_ALLOWED_SCOPE" in result["error"] or
-                "ABSOLUTE_PATH_DENIED" in result["error"])
+        assert (
+            "PATH_OUTSIDE_ALLOWED_SCOPE" in result["error"]
+            or "ABSOLUTE_PATH_DENIED" in result["error"]
+        )
 
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
-    def test_verification_timeout_handling(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope")
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor")
+    def test_verification_timeout_handling(
+        self, mock_executor_class, mock_scope, mission, mock_context, tmp_path
+    ):
         """Long-running tests are terminated with timeout."""
         # Mock scope check to allow
         mock_scope.return_value = (True, "Allowed")
@@ -131,7 +138,7 @@ class TestBuildTestIntegration:
         result = mission._run_verification_tests(
             mock_context,
             target="runtime/tests",
-            timeout=2  # 2 second timeout
+            timeout=2,  # 2 second timeout
         )
 
         assert result["success"] is False
@@ -222,9 +229,11 @@ class TestBuildTestIntegration:
         assert context["failure_class"] == FailureClass.TEST_TIMEOUT.value
         assert "timeout" in context["suggestion"].lower()
 
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
-    def test_evidence_captured_in_verification(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope")
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor")
+    def test_evidence_captured_in_verification(
+        self, mock_executor_class, mock_scope, mission, mock_context, tmp_path
+    ):
         """Test evidence is properly captured and truncated."""
         # Mock scope check to allow
         mock_scope.return_value = (True, "Allowed")
@@ -268,9 +277,11 @@ class TestBuildTestIntegration:
             assert isinstance(suggestion, str)
             assert len(suggestion) > 0
 
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope')
-    @patch('runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor')
-    def test_verification_with_mixed_results(self, mock_executor_class, mock_scope, mission, mock_context, tmp_path):
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.check_pytest_scope")
+    @patch("runtime.orchestration.missions.autonomous_build_cycle.PytestExecutor")
+    def test_verification_with_mixed_results(
+        self, mock_executor_class, mock_scope, mission, mock_context, tmp_path
+    ):
         """Verification handles mixed pass/fail test results."""
         # Mock scope check to allow
         mock_scope.return_value = (True, "Allowed")

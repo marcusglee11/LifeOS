@@ -1,6 +1,6 @@
 """Council context pack transform."""
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 from .base import register_transform
 
@@ -9,11 +9,11 @@ from .base import register_transform
 def to_council_context_pack(packet: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     """
     Transform BUILD_PACKET or REVIEW_PACKET into COUNCIL_CONTEXT_PACK.
-    
+
     Per v0.3 spec: COUNCIL_CONTEXT_PACK with subject, context, review_type fields.
     """
     packet_type = packet.get("packet_type", "UNKNOWN")
-    
+
     return {
         "packet_type": "COUNCIL_CONTEXT_PACK",
         "subject_ref": packet.get("subject_ref", context.get("subject_ref", "")),

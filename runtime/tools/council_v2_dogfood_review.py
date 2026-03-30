@@ -23,28 +23,37 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from runtime.tools.council_v2_dogfood_common import (
-    load_env as _load_env,
-    parse_dotenv as _parse_dotenv,
-    repo_root as _repo_root,
-    run_cmd as _run_cmd,
-    sha256_file as _sha256_file,
-    utc_stamp as _utc_stamp,
-    write_json as _write_json,
-)
 from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType
 from runtime.orchestration.council.fsm import CouncilFSM
 from runtime.orchestration.council.policy import load_council_policy
-
+from runtime.tools.council_v2_dogfood_common import (
+    load_env as _load_env,
+)
+from runtime.tools.council_v2_dogfood_common import (
+    parse_dotenv as _parse_dotenv,  # noqa: F401 - re-exported for tests
+)
+from runtime.tools.council_v2_dogfood_common import (
+    repo_root as _repo_root,
+)
+from runtime.tools.council_v2_dogfood_common import (
+    run_cmd as _run_cmd,
+)
+from runtime.tools.council_v2_dogfood_common import (
+    sha256_file as _sha256_file,
+)
+from runtime.tools.council_v2_dogfood_common import (
+    utc_stamp as _utc_stamp,
+)
+from runtime.tools.council_v2_dogfood_common import (
+    write_json as _write_json,
+)
 
 MOCK_NODE = (
     "runtime/tests/orchestration/council/test_council_dogfood_mock.py"
     "::test_council_dogfood_mock_m1_coo_dispatcher"
 )
-PACKET_PATH = (
-    "artifacts/review_packets/"
-    "Review_Packet_Council_V2_Dogfood_COO_Dispatcher_v1.0.md"
-)
+PACKET_PATH = "artifacts/review_packets/Review_Packet_Council_V2_Dogfood_COO_Dispatcher_v1.0.md"
+
 
 def _coo_dispatcher_ccp_m1() -> dict[str, Any]:
     return {
@@ -155,9 +164,9 @@ def _terminal_outcome(mock_ok: bool, live_ok: bool, packet_ok: bool) -> str:
 
 def _run_live_m1(out_path: Path) -> int:
     try:
+        import runtime.agents.models as agent_models
         from runtime.agents.api import AgentCall, call_agent
         from runtime.agents.models import AgentConfig, load_model_config
-        import runtime.agents.models as agent_models
 
         policy = load_council_policy()
 
@@ -279,7 +288,14 @@ def _run(args: argparse.Namespace) -> int:
     mock_ok = mock_proc.returncode == 0
 
     live_proc = _run_cmd(
-        [sys.executable, "-m", "runtime.tools.council_v2_dogfood_review", "live-m1", "--out", str(live_result)],
+        [
+            sys.executable,
+            "-m",
+            "runtime.tools.council_v2_dogfood_review",
+            "live-m1",
+            "--out",
+            str(live_result),
+        ],
         env=env,
         cwd=repo_root,
     )
@@ -440,7 +456,11 @@ def _build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     run_p = sub.add_parser("run", help="Run mock + live + review packet + queue flow.")
-    run_p.add_argument("--auto-approve", action="store_true", help="Approve created queue escalation automatically.")
+    run_p.add_argument(
+        "--auto-approve",
+        action="store_true",
+        help="Approve created queue escalation automatically.",
+    )
 
     live_p = sub.add_parser("live-m1", help="Run one live M1 council review and write JSON result.")
     live_p.add_argument("--out", required=True, help="Output path for live result JSON.")

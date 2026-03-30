@@ -1,18 +1,16 @@
 """Tests for ProviderPool health-aware routing."""
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from runtime.orchestration.dispatch.provider_pool import (
     COST_TIER_ORDER,
-    ProviderHealth,
     ProviderPool,
 )
 
 
 def _pool(providers: dict, tmp_path=None):
-    from pathlib import Path
     import tempfile
+    from pathlib import Path
 
     root = tmp_path or Path(tempfile.mkdtemp())
     return ProviderPool(repo_root=root, providers=providers)

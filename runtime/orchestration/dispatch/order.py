@@ -4,6 +4,7 @@ ExecutionOrder schema and validation.
 The stable contract between the COO Agent (or any order source) and the Dispatch Engine.
 Any source can produce an ExecutionOrder YAML file and place it in dispatch/inbox/.
 """
+
 from __future__ import annotations
 
 import re
@@ -85,9 +86,7 @@ def load_order(path: Path) -> ExecutionOrder:
         raise OrderValidationError(f"Invalid YAML in {path}: {exc}")
 
     if not isinstance(raw, dict):
-        raise OrderValidationError(
-            f"Order file must be a YAML mapping, got {type(raw).__name__}"
-        )
+        raise OrderValidationError(f"Order file must be a YAML mapping, got {type(raw).__name__}")
 
     return parse_order(raw)
 
@@ -137,11 +136,17 @@ def parse_order(raw: Dict[str, Any]) -> ExecutionOrder:
                 mode=str(s.get("mode", "blocking")),
                 lens_providers=dict(s.get("lens_providers") or {}),
                 step_id=str(s.get("step_id")).strip() if s.get("step_id") is not None else None,
-                step_kind=str(s.get("step_kind")).strip() if s.get("step_kind") is not None else None,
-                mission_type=str(s.get("mission_type")).strip() if s.get("mission_type") is not None else None,
+                step_kind=str(s.get("step_kind")).strip()
+                if s.get("step_kind") is not None
+                else None,
+                mission_type=str(s.get("mission_type")).strip()
+                if s.get("mission_type") is not None
+                else None,
                 consumes=[str(item) for item in list(s.get("consumes") or [])],
                 produces=str(s.get("produces")).strip() if s.get("produces") is not None else None,
-                mutation_class=str(s.get("mutation_class")).strip() if s.get("mutation_class") is not None else None,
+                mutation_class=str(s.get("mutation_class")).strip()
+                if s.get("mutation_class") is not None
+                else None,
             )
         )
 
@@ -173,10 +178,18 @@ def parse_order(raw: Dict[str, Any]) -> ExecutionOrder:
         task_ref=task_ref,
         created_at=created_at,
         steps=steps,
-        workflow_id=str(raw.get("workflow_id")).strip() if raw.get("workflow_id") is not None else None,
-        workflow_version=str(raw.get("workflow_version")).strip() if raw.get("workflow_version") is not None else None,
-        review_policy_id=str(raw.get("review_policy_id")).strip() if raw.get("review_policy_id") is not None else None,
-        mutation_policy_id=str(raw.get("mutation_policy_id")).strip() if raw.get("mutation_policy_id") is not None else None,
+        workflow_id=str(raw.get("workflow_id")).strip()
+        if raw.get("workflow_id") is not None
+        else None,
+        workflow_version=str(raw.get("workflow_version")).strip()
+        if raw.get("workflow_version") is not None
+        else None,
+        review_policy_id=str(raw.get("review_policy_id")).strip()
+        if raw.get("review_policy_id") is not None
+        else None,
+        mutation_policy_id=str(raw.get("mutation_policy_id")).strip()
+        if raw.get("mutation_policy_id") is not None
+        else None,
         task_context=dict(raw.get("task_context") or {}) or None,
         constraints=constraints,
         shadow=shadow,

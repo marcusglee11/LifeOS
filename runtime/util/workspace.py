@@ -19,7 +19,6 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-
 # =============================================================================
 # Module-level cache (with reset mechanism for testing)
 # =============================================================================
@@ -42,6 +41,7 @@ def clear_workspace_cache() -> None:
 # =============================================================================
 # Workspace Root Resolution
 # =============================================================================
+
 
 def resolve_workspace_root(use_cache: bool = True) -> Path:
     """
@@ -82,7 +82,7 @@ def resolve_workspace_root(use_cache: bool = True) -> Path:
             capture_output=True,
             text=True,
             timeout=5,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         if result.returncode == 0:
             git_root = Path(result.stdout.strip())
@@ -104,6 +104,7 @@ def resolve_workspace_root(use_cache: bool = True) -> Path:
 # =============================================================================
 # Sandbox Root Resolution
 # =============================================================================
+
 
 def _has_symlink_in_path(path: Path) -> bool:
     """
@@ -164,33 +165,25 @@ def resolve_sandbox_root(use_cache: bool = True) -> Path:
     raw = os.environ.get("LIFEOS_SANDBOX_ROOT")
 
     if not raw:
-        raise RuntimeError(
-            "LIFEOS_SANDBOX_ROOT environment variable not set"
-        )
+        raise RuntimeError("LIFEOS_SANDBOX_ROOT environment variable not set")
 
     raw_path = Path(raw)
 
     # Check if raw path exists before resolving
     if not raw_path.exists():
-        raise RuntimeError(
-            f"Sandbox root does not exist: {raw}"
-        )
+        raise RuntimeError(f"Sandbox root does not exist: {raw}")
 
     # Check for symlinks in the path components BEFORE resolving
     # This is the root symlink denial policy
     if _has_symlink_in_path(raw_path):
-        raise RuntimeError(
-            f"Sandbox root path contains symlink (denied): {raw}"
-        )
+        raise RuntimeError(f"Sandbox root path contains symlink (denied): {raw}")
 
     # Canonicalize via resolve() which calls realpath
     root = raw_path.resolve()
 
     # Verify it's a directory
     if not root.is_dir():
-        raise RuntimeError(
-            f"Sandbox root is not a directory: {root}"
-        )
+        raise RuntimeError(f"Sandbox root is not a directory: {root}")
 
     _SANDBOX_ROOT = root
     return root
@@ -199,6 +192,7 @@ def resolve_sandbox_root(use_cache: bool = True) -> Path:
 # =============================================================================
 # Convenience Functions
 # =============================================================================
+
 
 def get_config_dir() -> Path:
     """Get the config directory path (workspace_root / config)."""

@@ -1,6 +1,8 @@
 """Tests for COO structured backlog schema and CRUD functions."""
+
 from __future__ import annotations
 
+import subprocess as _subprocess
 from pathlib import Path
 
 import pytest
@@ -18,17 +20,19 @@ from runtime.orchestration.coo.backlog import (
     save_backlog,
 )
 
-import subprocess as _subprocess
 
 def _find_repo_root() -> Path:
     result = _subprocess.run(
         ["git", "rev-parse", "--show-toplevel"],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
         cwd=str(Path(__file__).parent),
     )
     if result.returncode == 0:
         return Path(result.stdout.strip())
     return Path(__file__).resolve().parents[4]
+
 
 REPO_ROOT = _find_repo_root()
 
@@ -78,9 +82,7 @@ class TestLoadBacklog:
 
     def test_wrong_schema_version_raises(self, tmp_path: Path) -> None:
         path = tmp_path / "backlog.yaml"
-        path.write_text(
-            yaml.dump({"schema_version": "backlog.v99", "tasks": [MINIMAL_VALID_TASK]})
-        )
+        path.write_text(yaml.dump({"schema_version": "backlog.v99", "tasks": [MINIMAL_VALID_TASK]}))
         with pytest.raises(BacklogValidationError, match="schema_version"):
             load_backlog(path)
 

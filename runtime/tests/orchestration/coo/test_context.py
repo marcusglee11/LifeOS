@@ -1,6 +1,8 @@
 """Tests for COO context builders."""
+
 from __future__ import annotations
 
+import subprocess as _subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,8 +19,6 @@ from runtime.orchestration.coo.context import (
     build_report_context,
     build_status_context,
 )
-
-import subprocess as _subprocess
 
 
 def _find_repo_root() -> Path:
@@ -179,6 +179,7 @@ def test_build_report_context_returns_all_tasks(tmp_path: Path) -> None:
 # Repo map injection tests
 # ---------------------------------------------------------------------------
 
+
 def _write_repo_map(repo_root: Path, content: str) -> Path:
     map_path = repo_root / ".context" / "REPO_MAP.md"
     map_path.parent.mkdir(parents=True, exist_ok=True)
@@ -252,7 +253,9 @@ def test_output_schema_examples_match_authoritative_markdown() -> None:
     coo_prompt = (REPO_ROOT / "config" / "agent_roles" / "coo.md").read_text(encoding="utf-8")
 
     assert "artifacts/coo/schemas.md" in coo_prompt
-    assert _top_level_fields_from_yaml(_PROPOSE_OUTPUT_SCHEMA_EXAMPLE) == _extract_markdown_yaml_fields(
+    assert _top_level_fields_from_yaml(
+        _PROPOSE_OUTPUT_SCHEMA_EXAMPLE
+    ) == _extract_markdown_yaml_fields(
         schema_doc,
         "task_proposal.v1",
     )
@@ -260,11 +263,15 @@ def test_output_schema_examples_match_authoritative_markdown() -> None:
         schema_doc,
         "nothing_to_propose.v1",
     )
-    assert _top_level_fields_from_yaml(_OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE) == _extract_markdown_yaml_fields(
+    assert _top_level_fields_from_yaml(
+        _OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE
+    ) == _extract_markdown_yaml_fields(
         schema_doc,
         "operation_proposal.v1",
     )
-    assert _top_level_fields_from_yaml(_ESCALATION_OUTPUT_SCHEMA_EXAMPLE) == _extract_markdown_yaml_fields(
+    assert _top_level_fields_from_yaml(
+        _ESCALATION_OUTPUT_SCHEMA_EXAMPLE
+    ) == _extract_markdown_yaml_fields(
         schema_doc,
         "escalation_packet.v1",
     )
@@ -273,6 +280,7 @@ def test_output_schema_examples_match_authoritative_markdown() -> None:
 # ---------------------------------------------------------------------------
 # Fix 1 regression: escalation count uses get_pending() (not list_pending)
 # ---------------------------------------------------------------------------
+
 
 def test_build_status_context_escalation_count_with_pending(tmp_path: Path) -> None:
     """Escalation count reflects real pending entries — tests the get_pending() fix at source."""

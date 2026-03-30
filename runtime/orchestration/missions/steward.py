@@ -8,14 +8,15 @@ CRITICAL: This mission guarantees "repo clean on exit" per architecture §5.3.
 HARDENED: Deterministic repo-clean evidence; no print-only paths.
 REAL GIT OPS: Performs real git commits with governance guards and diff size validation.
 """
+
 from __future__ import annotations
 
 import json
 import subprocess
 import sys
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from runtime.api.governance_api import SelfModProtector
 from runtime.orchestration.missions.base import (
     BaseMission,
     MissionContext,
@@ -23,8 +24,6 @@ from runtime.orchestration.missions.base import (
     MissionType,
     MissionValidationError,
 )
-from runtime.api.governance_api import SelfModProtector
-
 
 SYSTEM_ARTIFACT_PREFIXES = (
     "artifacts/loop_state/",
@@ -68,11 +67,11 @@ class StewardMission(BaseMission):
 
     REAL GIT OPS: Performs real git operations with governance guards.
     """
-    
+
     @property
     def mission_type(self) -> MissionType:
         return MissionType.STEWARD
-    
+
     def validate_inputs(self, inputs: Dict[str, Any]) -> None:
         """
         Validate steward mission inputs.
@@ -96,9 +95,7 @@ class StewardMission(BaseMission):
         # Verify approval verdict
         verdict = approval.get("verdict")
         if verdict != "approved":
-            raise MissionValidationError(
-                f"Steward requires approved verdict, got: '{verdict}'"
-            )
+            raise MissionValidationError(f"Steward requires approved verdict, got: '{verdict}'")
 
     def _classify_path(self, path: str) -> str:
         """
@@ -163,11 +160,13 @@ class StewardMission(BaseMission):
         for artifact_path in artifacts:
             result = protector.validate(artifact_path, agent_role="steward", operation="modify")
             if not result.allowed:
-                blocked.append({
-                    "path": artifact_path,
-                    "reason": result.reason,
-                    "evidence": result.evidence,
-                })
+                blocked.append(
+                    {
+                        "path": artifact_path,
+                        "reason": result.reason,
+                        "evidence": result.evidence,
+                    }
+                )
 
         if blocked:
             blocked_paths = [b["path"] for b in blocked]
@@ -318,14 +317,14 @@ class StewardMission(BaseMission):
                 cwd=context.repo_root,
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
             if result.returncode != 0:
                 return (False, f"git status failed: {result.stderr}")
 
             # Filter out system artifacts that are modified during loop execution
             dirty_files = []
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if not line:
                     continue
                 # Extract file path: git status --porcelain format is "XY filename"
@@ -422,13 +421,13 @@ class StewardMission(BaseMission):
             )
 
         return (True, post_commit_hash, evidence)
-    
+
     def _commit_code_changes(
         self, context: MissionContext, artifacts: List[str], message: str
     ) -> Tuple[bool, Optional[str]]:
         """
         Execute real git commit for code changes.
-        
+
         Per Architecture §5.3: Includes stage, commit, and hash retrieval.
         """
         try:
@@ -439,7 +438,8 @@ class StewardMission(BaseMission):
             # 1.5. Check if anything is actually staged (builder may write identical content)
             diff_check = subprocess.run(
                 ["git", "diff", "--cached", "--quiet"],
-                cwd=context.repo_root, capture_output=True,
+                cwd=context.repo_root,
+                capture_output=True,
             )
             if diff_check.returncode == 0:
                 # Nothing staged — content identical to HEAD; no new commit made.
@@ -451,10 +451,12 @@ class StewardMission(BaseMission):
             # This also bypasses potential Unicode issues in manual pre-commit hooks on Windows.
             commit_cmd = ["git", "commit", "--no-verify", "-m", message]
             subprocess.run(commit_cmd, cwd=context.repo_root, check=True, capture_output=True)
-            
+
             # 3. Get hash
             hash_cmd = ["git", "rev-parse", "HEAD"]
-            result = subprocess.run(hash_cmd, cwd=context.repo_root, check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                hash_cmd, cwd=context.repo_root, check=True, capture_output=True, text=True
+            )
             commit_hash = result.stdout.strip()
 
             # 4. Push (conditional on metadata.push flag)
@@ -678,7 +680,7 @@ class StewardMission(BaseMission):
                     context, classified_paths["code"], commit_message
                 )
                 executed_steps.append("commit_code_changes")
-                
+
                 if not success:
                     return self._make_result(
                         success=False,
@@ -718,7 +720,9 @@ class StewardMission(BaseMission):
                 )
 
             # Success path for code or mixed changes
-            final_hash = evidence.get("code_commit_hash", evidence.get("opencode_commit", "success"))
+            final_hash = evidence.get(
+                "code_commit_hash", evidence.get("opencode_commit", "success")
+            )
 
             return self._make_result(
                 success=True,

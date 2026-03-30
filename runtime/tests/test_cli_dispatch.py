@@ -6,26 +6,24 @@ and provider command construction — all with mocked subprocesses.
 """
 
 import subprocess
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
 from runtime.agents.cli_dispatch import (
-    CLIProvider,
     CLIDispatchConfig,
     CLIDispatchResult,
-    CLIDispatchError,
+    CLIProvider,
     CLIProviderNotFound,
-    CLIDispatchTimeout,
-    dispatch_cli_agent,
     _build_command,
     _resolve_binary,
+    dispatch_cli_agent,
 )
-
 
 # ---------------------------------------------------------------------------
 # CLIProvider enum
 # ---------------------------------------------------------------------------
+
 
 class TestCLIProvider:
     def test_values(self):
@@ -40,6 +38,7 @@ class TestCLIProvider:
 # ---------------------------------------------------------------------------
 # CLIDispatchConfig
 # ---------------------------------------------------------------------------
+
 
 class TestCLIDispatchConfig:
     def test_defaults(self):
@@ -75,25 +74,36 @@ class TestCLIDispatchConfig:
 # CLIDispatchResult
 # ---------------------------------------------------------------------------
 
+
 class TestCLIDispatchResult:
     def test_success_property(self):
         result = CLIDispatchResult(
-            output="done", exit_code=0, latency_ms=100,
-            provider=CLIProvider.CODEX, model="gpt-5.3-codex",
+            output="done",
+            exit_code=0,
+            latency_ms=100,
+            provider=CLIProvider.CODEX,
+            model="gpt-5.3-codex",
         )
         assert result.success is True
 
     def test_failure_exit_code(self):
         result = CLIDispatchResult(
-            output="", exit_code=1, latency_ms=50,
-            provider=CLIProvider.CODEX, model="",
+            output="",
+            exit_code=1,
+            latency_ms=50,
+            provider=CLIProvider.CODEX,
+            model="",
         )
         assert result.success is False
 
     def test_partial_not_success(self):
         result = CLIDispatchResult(
-            output="partial", exit_code=0, latency_ms=300000,
-            provider=CLIProvider.CODEX, model="", partial=True,
+            output="partial",
+            exit_code=0,
+            latency_ms=300000,
+            provider=CLIProvider.CODEX,
+            model="",
+            partial=True,
         )
         assert result.success is False
 
@@ -101,6 +111,7 @@ class TestCLIDispatchResult:
 # ---------------------------------------------------------------------------
 # _resolve_binary
 # ---------------------------------------------------------------------------
+
 
 class TestResolveBinary:
     @patch("shutil.which", return_value="/usr/bin/codex")
@@ -127,6 +138,7 @@ class TestResolveBinary:
 # ---------------------------------------------------------------------------
 # _build_command
 # ---------------------------------------------------------------------------
+
 
 class TestBuildCommand:
     def test_codex_basic(self):
@@ -180,12 +192,14 @@ class TestBuildCommand:
 # dispatch_cli_agent (mocked subprocess)
 # ---------------------------------------------------------------------------
 
+
 class TestDispatchCLIAgent:
     @patch("runtime.agents.cli_dispatch._resolve_binary", return_value="/usr/bin/codex")
     @patch("subprocess.run")
     def test_successful_dispatch(self, mock_run, mock_resolve):
         mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0,
+            args=[],
+            returncode=0,
             stdout="Analysis complete:\n- File has 3 functions",
             stderr="",
         )
@@ -204,8 +218,10 @@ class TestDispatchCLIAgent:
     @patch("subprocess.run")
     def test_nonzero_exit_captures_stderr(self, mock_run, mock_resolve):
         mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=1,
-            stdout="", stderr="Error: model not available",
+            args=[],
+            returncode=1,
+            stdout="",
+            stderr="Error: model not available",
         )
         cfg = CLIDispatchConfig(provider=CLIProvider.CODEX)
         result = dispatch_cli_agent("bad prompt", cfg)
@@ -251,8 +267,10 @@ class TestDispatchCLIAgent:
     @patch("subprocess.run")
     def test_gemini_dispatch(self, mock_run, mock_resolve):
         mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0,
-            stdout="Security review: no issues found", stderr="",
+            args=[],
+            returncode=0,
+            stdout="Security review: no issues found",
+            stderr="",
         )
         cfg = CLIDispatchConfig(provider=CLIProvider.GEMINI, model="gemini-3-pro")
         result = dispatch_cli_agent("security review", cfg)
@@ -265,8 +283,10 @@ class TestDispatchCLIAgent:
     @patch("subprocess.run")
     def test_claude_code_dispatch(self, mock_run, mock_resolve):
         mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0,
-            stdout="Synthesis complete", stderr="",
+            args=[],
+            returncode=0,
+            stdout="Synthesis complete",
+            stderr="",
         )
         cfg = CLIDispatchConfig(provider=CLIProvider.CLAUDE_CODE, model="claude-opus-4-6")
         result = dispatch_cli_agent("synthesize findings", cfg)
@@ -278,7 +298,10 @@ class TestDispatchCLIAgent:
     @patch("subprocess.run")
     def test_cwd_passed_to_subprocess(self, mock_run, mock_resolve):
         mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0, stdout="ok", stderr="",
+            args=[],
+            returncode=0,
+            stdout="ok",
+            stderr="",
         )
         cfg = CLIDispatchConfig(provider=CLIProvider.CODEX)
         dispatch_cli_agent("task", cfg, cwd="/some/path")
@@ -290,7 +313,10 @@ class TestDispatchCLIAgent:
     @patch("subprocess.run")
     def test_env_passed_to_subprocess(self, mock_run, mock_resolve):
         mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0, stdout="ok", stderr="",
+            args=[],
+            returncode=0,
+            stdout="ok",
+            stderr="",
         )
         cfg = CLIDispatchConfig(provider=CLIProvider.CODEX)
         custom_env = {"MY_KEY": "value"}

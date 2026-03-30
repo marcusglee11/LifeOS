@@ -8,19 +8,18 @@ Covers:
 - C4: Ledger Schema
 - C5: Review Packet Annotation
 """
-import pytest
-import shutil
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+
 from dataclasses import asdict
+from unittest.mock import MagicMock
+
+import pytest
 
 from runtime.orchestration.loop.configurable_policy import ConfigurableLoopPolicy
+from runtime.orchestration.loop.ledger import AttemptRecord
 from runtime.orchestration.loop.taxonomy import FailureClass
-from runtime.orchestration.loop.ledger import AttemptRecord, AttemptLedger
-from runtime.api.governance_api import PROTECTED_PATHS
+
 
 class TestTrustedBuilderCompliance:
-
     @pytest.fixture
     def policy(self):
         config = {
@@ -28,7 +27,7 @@ class TestTrustedBuilderCompliance:
                 "lint_error": {
                     "plan_bypass_eligible": True,
                     "scope_limit": {"max_lines": 10, "max_files": 1},
-                    "mode": "patchful"
+                    "mode": "patchful",
                 }
             }
         }
@@ -43,7 +42,7 @@ class TestTrustedBuilderCompliance:
         assert policy.normalize_failure_class(FailureClass.LINT_ERROR) == "lint_error"
         # Test 3: Already normalized
         assert policy.normalize_failure_class("lint_error") == "lint_error"
-        
+
         # Test Routing Match independent of input case
         # Config has "lint_error". Input "LINT_ERROR" should match.
         normalized = policy.normalize_failure_class("LINT_ERROR")
@@ -60,14 +59,14 @@ class TestTrustedBuilderCompliance:
             "total_line_delta": 5,
             "added_lines": 3,
             "deleted_lines": 2,
-            "files": ["src/script.py"]
+            "files": ["src/script.py"],
         }
-        
+
         decision = policy.evaluate_plan_bypass(
             failure_class_key="lint_error",
             proposed_patch=patch_stats,
             protected_path_registry=[],
-            ledger=MagicMock()
+            ledger=MagicMock(),
         )
         assert decision["eligible"] is True
         assert decision["scope"]["total_line_delta"] == 5
@@ -78,7 +77,7 @@ class TestTrustedBuilderCompliance:
             failure_class_key="lint_error",
             proposed_patch=None,
             protected_path_registry=[],
-            ledger=MagicMock()
+            ledger=MagicMock(),
         )
         assert decision["eligible"] is False
         assert "Proposed Patch missing" in decision["decision_reason"]
@@ -88,20 +87,20 @@ class TestTrustedBuilderCompliance:
         """Verify protected path detection using registry."""
         # Mock registry with a pattern
         registry = ["docs/00_foundations/*"]
-        
+
         patch_stats = {
             "files_touched": 1,
             "total_line_delta": 2,
             "added_lines": 1,
             "deleted_lines": 1,
-            "files": ["docs/00_foundations/Constitution.md"]
+            "files": ["docs/00_foundations/Constitution.md"],
         }
-        
+
         decision = policy.evaluate_plan_bypass(
             failure_class_key="lint_error",
             proposed_patch=patch_stats,
             protected_path_registry=registry,
-            ledger=MagicMock()
+            ledger=MagicMock(),
         )
         assert decision["eligible"] is False
         assert "Protected path hit" in decision["decision_reason"]
@@ -114,14 +113,14 @@ class TestTrustedBuilderCompliance:
             "total_line_delta": 2,
             "added_lines": 1,
             "deleted_lines": 1,
-            "files": ["src/safe.py"]
+            "files": ["src/safe.py"],
         }
-        
+
         decision = policy.evaluate_plan_bypass(
             failure_class_key="lint_error",
             proposed_patch=patch_stats,
-            protected_path_registry=None, # Simulate failure
-            ledger=MagicMock()
+            protected_path_registry=None,  # Simulate failure
+            ledger=MagicMock(),
         )
         assert decision["eligible"] is False
         assert "Protected path registry unavailable" in decision["decision_reason"]
@@ -139,9 +138,9 @@ class TestTrustedBuilderCompliance:
             "protected_paths_hit": [],
             "budget": {"per_class_remaining": 2, "global_remaining": 4},
             "mode": "patchful",
-            "proposed_patch": {"present": True}
+            "proposed_patch": {"present": True},
         }
-        
+
         record = AttemptRecord(
             attempt_id=1,
             timestamp="2026-01-26T00:00:00Z",
@@ -157,9 +156,9 @@ class TestTrustedBuilderCompliance:
             terminal_reason=None,
             next_action="retry",
             rationale="test",
-            plan_bypass_info=bypass_info
+            plan_bypass_info=bypass_info,
         )
-        
+
         # Serialization check
         d = asdict(record)
         assert d["plan_bypass_info"] == bypass_info
@@ -168,17 +167,13 @@ class TestTrustedBuilderCompliance:
     def test_c5_packet_annotation_logic(self):
         """Verify logic to inject bypass info into packet."""
         # This logic usually lives in the loop controller, so we test the structure builder
-        bypass_decision = {
-            "applied": True,
-            "scope": {"total_line_delta": 5}
-        }
-        
+        bypass_decision = {"applied": True, "scope": {"total_line_delta": 5}}
+
         packet_payload = {
             "summary": "Review",
             "plan_bypass_applied": bypass_decision["applied"],
-            "plan_bypass": bypass_decision
+            "plan_bypass": bypass_decision,
         }
-        
+
         assert packet_payload["plan_bypass_applied"] is True
         assert packet_payload["plan_bypass"]["scope"]["total_line_delta"] == 5
-

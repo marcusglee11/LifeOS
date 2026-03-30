@@ -1,12 +1,10 @@
 """Tests for RunManifest append-only JSONL canonical manifest."""
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-import pytest
-
-from runtime.orchestration.dispatch.manifest import RunManifest, MANIFEST_RELATIVE_PATH
+from runtime.orchestration.dispatch.manifest import MANIFEST_RELATIVE_PATH, RunManifest
 
 
 def test_append_and_read(tmp_path):

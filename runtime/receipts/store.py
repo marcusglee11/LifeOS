@@ -21,13 +21,14 @@ Store layout:
         review_summary.md
     index.jsonl                    # append-only query index
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
 from typing import Any
 
-from runtime.util.atomic_write import atomic_write_text, atomic_write_json, atomic_write_bytes
+from runtime.util.atomic_write import atomic_write_bytes, atomic_write_json, atomic_write_text
 from runtime.util.canonical import canonical_json_str
 
 
@@ -281,7 +282,8 @@ class ReceiptStore:
             Land receipt dict, or None if not found.
         """
         entries = [
-            e for e in self._read_index_entries(entry_type="land")
+            e
+            for e in self._read_index_entries(entry_type="land")
             if e.get("landed_sha") == landed_sha
         ]
         if not entries:
@@ -314,10 +316,7 @@ class ReceiptStore:
             lineage = data.get("acceptance_lineage", {})
             if lineage.get("workspace_sha") != workspace_sha:
                 continue
-            if (
-                plan_core_sha256 is not None
-                and lineage.get("plan_core_sha256") != plan_core_sha256
-            ):
+            if plan_core_sha256 is not None and lineage.get("plan_core_sha256") != plan_core_sha256:
                 continue
             results.append(data)
         return results

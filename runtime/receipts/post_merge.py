@@ -4,19 +4,22 @@ Phase C post-merge land gate (§10.2 land receipt emission).
 After a successful merge, emit a land receipt binding landed_tree_oid
 to workspace_tree_oid (tree equivalence proof). Fail-closed.
 """
+
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from runtime.receipts.store import ReceiptStore
 from runtime.receipts import plan_core as _pc
 from runtime.receipts.receipt_emitter import build_land_receipt
+from runtime.receipts.store import ReceiptStore
 
 
 @dataclass(frozen=True)
 class PostMergeLandResult:
     """Result of the post-merge land gate."""
+
     emitted: bool
     land_receipt: dict[str, Any] | None
     error_code: str | None
@@ -52,8 +55,10 @@ def run_post_merge_land_gate(
         store = ReceiptStore(store_root)
     except Exception as exc:
         return PostMergeLandResult(
-            emitted=False, land_receipt=None,
-            error_code="GATE_ERROR", detail=f"Failed to open store: {exc}",
+            emitted=False,
+            land_receipt=None,
+            error_code="GATE_ERROR",
+            detail=f"Failed to open store: {exc}",
         )
 
     # Step 1: Look up acceptance receipt
@@ -61,12 +66,15 @@ def run_post_merge_land_gate(
         acceptance = store.query_acceptance_by_id(acceptance_receipt_id)
     except Exception as exc:
         return PostMergeLandResult(
-            emitted=False, land_receipt=None,
-            error_code="GATE_ERROR", detail=f"Store query error: {exc}",
+            emitted=False,
+            land_receipt=None,
+            error_code="GATE_ERROR",
+            detail=f"Store query error: {exc}",
         )
     if acceptance is None:
         return PostMergeLandResult(
-            emitted=False, land_receipt=None,
+            emitted=False,
+            land_receipt=None,
             error_code="ACCEPTANCE_RECEIPT_NOT_FOUND",
             detail=f"Acceptance receipt {acceptance_receipt_id!r} not found in store",
         )
@@ -91,7 +99,8 @@ def run_post_merge_land_gate(
         landed_tree_oid = _pc.resolve_tree_oid(landed_sha, repo_root=repo_root)
     except Exception as exc:
         return PostMergeLandResult(
-            emitted=False, land_receipt=None,
+            emitted=False,
+            land_receipt=None,
             error_code="GATE_ERROR",
             detail=f"Failed to resolve tree OID for landed_sha={landed_sha!r}: {exc}",
         )
@@ -113,8 +122,10 @@ def run_post_merge_land_gate(
         )
     except Exception as exc:
         return PostMergeLandResult(
-            emitted=False, land_receipt=None,
-            error_code="GATE_ERROR", detail=f"Failed to build land receipt: {exc}",
+            emitted=False,
+            land_receipt=None,
+            error_code="GATE_ERROR",
+            detail=f"Failed to build land receipt: {exc}",
         )
 
     # Step 4: Write to store
@@ -122,11 +133,15 @@ def run_post_merge_land_gate(
         store.write_land_receipt(receipt)
     except Exception as exc:
         return PostMergeLandResult(
-            emitted=False, land_receipt=receipt,
-            error_code="GATE_ERROR", detail=f"Failed to write land receipt: {exc}",
+            emitted=False,
+            land_receipt=receipt,
+            error_code="GATE_ERROR",
+            detail=f"Failed to write land receipt: {exc}",
         )
 
     return PostMergeLandResult(
-        emitted=True, land_receipt=receipt, error_code=None,
+        emitted=True,
+        land_receipt=receipt,
+        error_code=None,
         detail=f"Land receipt {receipt['receipt_id']!r} emitted; tree_match={receipt['tree_equivalence']['match']}",
     )

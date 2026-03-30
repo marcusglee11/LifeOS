@@ -12,7 +12,6 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Iterable, Optional, Sequence
 
-
 REASON_CODES = {
     "recursive_call_blocked",
     "protected_path",
@@ -137,7 +136,10 @@ def _read_text(path: Path) -> str:
 def _write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n", encoding="utf-8")
+    tmp.write_text(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
     tmp.replace(path)
 
 
@@ -165,7 +167,9 @@ def _normalize_argv(argv: Sequence[str]) -> tuple[str, ...]:
     return tuple(_norm_token(item) for item in argv if str(item).strip())
 
 
-def _rule_matches(rule: MatchRule, executable: str, argv: tuple[str, ...], wrapper_command: str) -> bool:
+def _rule_matches(
+    rule: MatchRule, executable: str, argv: tuple[str, ...], wrapper_command: str
+) -> bool:
     if executable != rule.executable:
         return False
     if len(argv) < len(rule.argv_prefix):
@@ -175,7 +179,9 @@ def _rule_matches(rule: MatchRule, executable: str, argv: tuple[str, ...], wrapp
     return wrapper_command in rule.wrapper_commands
 
 
-def _match_rules(rules: Iterable[MatchRule], executable: str, argv: tuple[str, ...], wrapper_command: str) -> bool:
+def _match_rules(
+    rules: Iterable[MatchRule], executable: str, argv: tuple[str, ...], wrapper_command: str
+) -> bool:
     return any(_rule_matches(rule, executable, argv, wrapper_command) for rule in rules)
 
 
@@ -184,7 +190,9 @@ def _path_is_protected(source_path: str) -> bool:
     return any(normalized.startswith(root) for root in PROTECTED_ROOTS)
 
 
-def _validate_output_schema(payload: Any, *, template_id: str, raw_payload_sha256: str) -> tuple[bool, str]:
+def _validate_output_schema(
+    payload: Any, *, template_id: str, raw_payload_sha256: str
+) -> tuple[bool, str]:
     if not isinstance(payload, dict):
         return False, "schema_failure"
     if payload.get("status") not in ALLOWED_STATUS:
@@ -193,9 +201,17 @@ def _validate_output_schema(payload: Any, *, template_id: str, raw_payload_sha25
         return False, "schema_failure"
     summary = payload.get("summary")
     entities = payload.get("key_entities")
-    if not isinstance(summary, list) or len(summary) > 5 or not all(isinstance(item, str) for item in summary):
+    if (
+        not isinstance(summary, list)
+        or len(summary) > 5
+        or not all(isinstance(item, str) for item in summary)
+    ):
         return False, "schema_failure"
-    if not isinstance(entities, list) or len(entities) > 12 or not all(isinstance(item, str) for item in entities):
+    if (
+        not isinstance(entities, list)
+        or len(entities) > 12
+        or not all(isinstance(item, str) for item in entities)
+    ):
         return False, "schema_failure"
     if payload.get("raw_payload_sha256") != raw_payload_sha256:
         return False, "schema_failure"
@@ -205,7 +221,15 @@ def _validate_output_schema(payload: Any, *, template_id: str, raw_payload_sha25
     return True, ""
 
 
-def build_prompt(*, template_id: str, payload: str, question: str, raw_payload_sha256: str, traffic_class: str, source_command: str) -> str:
+def build_prompt(
+    *,
+    template_id: str,
+    payload: str,
+    question: str,
+    raw_payload_sha256: str,
+    traffic_class: str,
+    source_command: str,
+) -> str:
     if template_id == "actionable_faults":
         instruction = (
             "Summarise only the actionable faults from this artefact in at most 5 bullets. "
@@ -268,13 +292,17 @@ def _extract_json_object(raw_text: str) -> Optional[dict[str, Any]]:
 
 def _run(cmd: Sequence[str], *, env: dict[str, str], timeout_s: int = 30) -> tuple[int, str, str]:
     try:
-        proc = subprocess.run(list(cmd), capture_output=True, text=True, timeout=timeout_s, check=False, env=env)
+        proc = subprocess.run(
+            list(cmd), capture_output=True, text=True, timeout=timeout_s, check=False, env=env
+        )
         return int(proc.returncode), proc.stdout or "", proc.stderr or ""
     except Exception as exc:
         return 1, "", f"{type(exc).__name__}:{exc}"
 
 
-def _run_openclaw(cmd_tail: Sequence[str], *, openclaw_bin: str, profile: str, env: dict[str, str], timeout_s: int) -> tuple[int, str, str]:
+def _run_openclaw(
+    cmd_tail: Sequence[str], *, openclaw_bin: str, profile: str, env: dict[str, str], timeout_s: int
+) -> tuple[int, str, str]:
     cmd: list[str] = [openclaw_bin]
     if profile:
         cmd.extend(["--profile", profile])
@@ -283,19 +311,35 @@ def _run_openclaw(cmd_tail: Sequence[str], *, openclaw_bin: str, profile: str, e
 
 
 def _probe_openclaw_version(*, openclaw_bin: str, profile: str, env: dict[str, str]) -> str:
-    rc, stdout, _stderr = _run_openclaw(["--version"], openclaw_bin=openclaw_bin, profile=profile, env=env, timeout_s=CHEAP_LANE_PROBE_TIMEOUT_S)
+    rc, stdout, _stderr = _run_openclaw(
+        ["--version"],
+        openclaw_bin=openclaw_bin,
+        profile=profile,
+        env=env,
+        timeout_s=CHEAP_LANE_PROBE_TIMEOUT_S,
+    )
     if rc != 0:
         return UNKNOWN_SENTINEL
     first = (stdout.strip().splitlines() or [UNKNOWN_SENTINEL])[0]
     return _normalize_fingerprint_field(first)
 
 
-def build_runtime_context(*, openclaw_bin: str, profile: str, env: dict[str, str]) -> dict[str, str]:
+def build_runtime_context(
+    *, openclaw_bin: str, profile: str, env: dict[str, str]
+) -> dict[str, str]:
     return {
-        "openclaw_version": _probe_openclaw_version(openclaw_bin=openclaw_bin, profile=profile, env=env),
-        "channel_if_known": _normalize_fingerprint_field(env.get("OPENCLAW_CHANNEL") or env.get("OPENCLAW_UPDATE_CHANNEL")),
-        "cheap_lane_id": _normalize_fingerprint_field(env.get("LIFEOS_DISTILL_CHEAP_LANE") or CHEAP_LANE_ID),
-        "cheap_model_target": _normalize_fingerprint_field(env.get("LIFEOS_DISTILL_CHEAP_MODEL") or CHEAP_MODEL_TARGET),
+        "openclaw_version": _probe_openclaw_version(
+            openclaw_bin=openclaw_bin, profile=profile, env=env
+        ),
+        "channel_if_known": _normalize_fingerprint_field(
+            env.get("OPENCLAW_CHANNEL") or env.get("OPENCLAW_UPDATE_CHANNEL")
+        ),
+        "cheap_lane_id": _normalize_fingerprint_field(
+            env.get("LIFEOS_DISTILL_CHEAP_LANE") or CHEAP_LANE_ID
+        ),
+        "cheap_model_target": _normalize_fingerprint_field(
+            env.get("LIFEOS_DISTILL_CHEAP_MODEL") or CHEAP_MODEL_TARGET
+        ),
         "wrapper_schema_version": WRAPPER_SCHEMA_VERSION,
     }
 
@@ -306,7 +350,9 @@ def build_compatibility_fingerprint(context: dict[str, str]) -> tuple[str, dict[
         "channel_if_known": _normalize_fingerprint_field(context.get("channel_if_known")),
         "cheap_lane_id": _normalize_fingerprint_field(context.get("cheap_lane_id")),
         "cheap_model_target": _normalize_fingerprint_field(context.get("cheap_model_target")),
-        "wrapper_schema_version": _normalize_fingerprint_field(context.get("wrapper_schema_version")),
+        "wrapper_schema_version": _normalize_fingerprint_field(
+            context.get("wrapper_schema_version")
+        ),
     }
     serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return _compute_sha256(serialized), payload
@@ -385,7 +431,9 @@ def _preflight_is_fresh(health_receipt: dict[str, Any]) -> bool:
     return age_s <= HEALTH_CHECK_CADENCE_S
 
 
-def _receipt_matches_fingerprint(receipt: dict[str, Any] | None, *, fingerprint: str, approval_field: str) -> bool:
+def _receipt_matches_fingerprint(
+    receipt: dict[str, Any] | None, *, fingerprint: str, approval_field: str
+) -> bool:
     if not isinstance(receipt, dict):
         return False
     if receipt.get(approval_field) is not True:
@@ -411,7 +459,9 @@ def preflight_quick_lane(*, openclaw_bin: str, profile: str, env: dict[str, str]
     }
 
 
-def probe_usage_visibility(*, openclaw_bin: str, profile: str, env: dict[str, str]) -> dict[str, Any]:
+def probe_usage_visibility(
+    *, openclaw_bin: str, profile: str, env: dict[str, str]
+) -> dict[str, Any]:
     rc, stdout, stderr = _run_openclaw(
         ["status", "--usage"],
         openclaw_bin=openclaw_bin,
@@ -427,7 +477,9 @@ def probe_usage_visibility(*, openclaw_bin: str, profile: str, env: dict[str, st
     }
 
 
-def run_distill(*, openclaw_bin: str, profile: str, env: dict[str, str], prompt: str, timeout_s: int) -> tuple[int, dict[str, Any] | None, str]:
+def run_distill(
+    *, openclaw_bin: str, profile: str, env: dict[str, str], prompt: str, timeout_s: int
+) -> tuple[int, dict[str, Any] | None, str]:
     distill_env = dict(env)
     distill_env["DISTILL_LANE"] = "1"
     rc, stdout, stderr = _run_openclaw(
@@ -462,7 +514,9 @@ def _preflight_accepts(payload: dict[str, Any] | None, *, raw_payload_sha256: st
     return True
 
 
-def run_health_preflight(*, state_dir: Path, openclaw_bin: str, profile: str, env: dict[str, str], requested_mode: str) -> dict[str, Any]:
+def run_health_preflight(
+    *, state_dir: Path, openclaw_bin: str, profile: str, env: dict[str, str], requested_mode: str
+) -> dict[str, Any]:
     state_dir.mkdir(parents=True, exist_ok=True)
     context = build_runtime_context(openclaw_bin=openclaw_bin, profile=profile, env=env)
     fingerprint, fingerprint_payload = build_compatibility_fingerprint(context)
@@ -488,7 +542,11 @@ def run_health_preflight(*, state_dir: Path, openclaw_bin: str, profile: str, en
             prompt=prompt,
             timeout_s=PREFLIGHT_DISTILL_TIMEOUT_S,
         )
-    preflight_ok = cheap_lane_probe["ok"] and usage_probe["ok"] and _preflight_accepts(distilled, raw_payload_sha256=preflight_hash)
+    preflight_ok = (
+        cheap_lane_probe["ok"]
+        and usage_probe["ok"]
+        and _preflight_accepts(distilled, raw_payload_sha256=preflight_hash)
+    )
     receipt = {
         "ts_utc": _utc_now(),
         "requested_mode": requested_mode,
@@ -549,11 +607,17 @@ def classify_payload(
 ) -> dict[str, Any]:
     executable = _norm_token(Path(source_executable or (argv[0] if argv else "")).name)
     normalized_argv = _normalize_argv(argv)
-    normalized_wrapper = " ".join(_norm_token(part) for part in wrapper_command.split() if part.strip())
+    normalized_wrapper = " ".join(
+        _norm_token(part) for part in wrapper_command.split() if part.strip()
+    )
     seen_path = audit_root_for_state(state_dir) / SEEN_HASHES_FILENAME
     seen_hashes = _load_json(seen_path, {})
     if os.environ.get("DISTILL_LANE") == "1":
-        return {"decision": "bypass", "reason": "recursive_call_blocked", "replacement_allowed": False}
+        return {
+            "decision": "bypass",
+            "reason": "recursive_call_blocked",
+            "replacement_allowed": False,
+        }
     if isinstance(seen_hashes, dict) and raw_payload_sha256 in seen_hashes:
         return {"decision": "bypass", "reason": "duplicate_raw_hash", "replacement_allowed": False}
     if source_path and _path_is_protected(source_path):
@@ -563,17 +627,27 @@ def classify_payload(
     if traffic_class in FORBIDDEN_CLASSES:
         return {"decision": "bypass", "reason": "forbidden_class", "replacement_allowed": False}
     if not text_like or payload_bytes < MIN_ELIGIBLE_BYTES:
-        return {"decision": "bypass", "reason": "unclassified_or_below_threshold", "replacement_allowed": False}
+        return {
+            "decision": "bypass",
+            "reason": "unclassified_or_below_threshold",
+            "replacement_allowed": False,
+        }
     if payload_bytes > MAX_PAYLOAD_BYTES:
         return {"decision": "bypass", "reason": "payload_over_cap", "replacement_allowed": False}
     if _match_rules(ACTIVE_ALLOW_RULES, executable, normalized_argv, normalized_wrapper):
         return {"decision": "eligible_active", "reason": "", "replacement_allowed": True}
     if _match_rules(SHADOW_ONLY_RULES, executable, normalized_argv, normalized_wrapper):
         return {"decision": "eligible_shadow", "reason": "", "replacement_allowed": False}
-    return {"decision": "bypass", "reason": "unclassified_or_below_threshold", "replacement_allowed": False}
+    return {
+        "decision": "bypass",
+        "reason": "unclassified_or_below_threshold",
+        "replacement_allowed": False,
+    }
 
 
-def resolve_effective_mode(*, requested_mode: str, state_dir: Path, runtime_context: dict[str, str]) -> tuple[str, str, dict[str, Any] | None]:
+def resolve_effective_mode(
+    *, requested_mode: str, state_dir: Path, runtime_context: dict[str, str]
+) -> tuple[str, str, dict[str, Any] | None]:
     if requested_mode == "off":
         return "off", HEALTH_EVENT_CAUSE_REQUESTED_OFF, None
     health_receipt, health_valid = _read_health_receipt(state_dir)
@@ -589,14 +663,18 @@ def resolve_effective_mode(*, requested_mode: str, state_dir: Path, runtime_cont
     if requested_mode == "active":
         if not _preflight_is_fresh(health_receipt):
             return "shadow", HEALTH_EVENT_CAUSE_HEALTH_INVALID, health_receipt
-        shadow_success_receipt = _read_gate_receipt(shadow_success_receipt_path_for_state(state_dir))
+        shadow_success_receipt = _read_gate_receipt(
+            shadow_success_receipt_path_for_state(state_dir)
+        )
         if not _receipt_matches_fingerprint(
             shadow_success_receipt,
             fingerprint=fingerprint,
             approval_field="ceo_approved",
         ):
             return "shadow", HEALTH_EVENT_CAUSE_HEALTH_INVALID, health_receipt
-        forced_failure_receipt = _read_gate_receipt(forced_failure_receipt_path_for_state(state_dir))
+        forced_failure_receipt = _read_gate_receipt(
+            forced_failure_receipt_path_for_state(state_dir)
+        )
         if not _receipt_matches_fingerprint(
             forced_failure_receipt,
             fingerprint=fingerprint,
@@ -632,7 +710,9 @@ def process_payload(args: argparse.Namespace) -> dict[str, Any]:
     raw_payload_sha256 = _compute_sha256(payload_text)
     text_like = _is_text_like(payload_text)
     requested_mode = "off" if not args.enabled else args.mode
-    runtime_context = build_runtime_context(openclaw_bin=args.openclaw_bin, profile=args.openclaw_profile, env=os.environ.copy())
+    runtime_context = build_runtime_context(
+        openclaw_bin=args.openclaw_bin, profile=args.openclaw_profile, env=os.environ.copy()
+    )
     classification = classify_payload(
         source_path=args.source_path,
         source_executable=args.source_executable,
@@ -654,11 +734,21 @@ def process_payload(args: argparse.Namespace) -> dict[str, Any]:
     distilled: dict[str, Any] | None = None
     bypass_reason = classification.get("reason", "")
     latency_ms = 0
-    mode_transition = health_receipt is None or health_receipt.get("effective_mode") != effective_mode
+    mode_transition = (
+        health_receipt is None or health_receipt.get("effective_mode") != effective_mode
+    )
 
-    should_force_raw_on_health = requested_mode == "active" and effective_mode == "shadow" and mode_cause == HEALTH_EVENT_CAUSE_HEALTH_INVALID
+    should_force_raw_on_health = (
+        requested_mode == "active"
+        and effective_mode == "shadow"
+        and mode_cause == HEALTH_EVENT_CAUSE_HEALTH_INVALID
+    )
 
-    if classification["decision"].startswith("eligible") and effective_mode in {"shadow", "active"} and not should_force_raw_on_health:
+    if (
+        classification["decision"].startswith("eligible")
+        and effective_mode in {"shadow", "active"}
+        and not should_force_raw_on_health
+    ):
         cheap_lane_selected = True
         started = datetime.now(timezone.utc)
         prompt = build_prompt(
@@ -701,13 +791,17 @@ def process_payload(args: argparse.Namespace) -> dict[str, Any]:
         "source_command": args.source_command,
         "template_id": args.template_id,
         "classifier_decision": classification["decision"],
-        "replacement_allowed": classification["replacement_allowed"] and effective_mode == "active" and distilled is not None,
+        "replacement_allowed": classification["replacement_allowed"]
+        and effective_mode == "active"
+        and distilled is not None,
         "requested_mode": requested_mode,
         "effective_mode": effective_mode,
         "bypass_reason": bypass_reason or classification.get("reason", ""),
         "rendered_text": render_summary(distilled) if distilled is not None else "",
         "cheap_lane_selected": cheap_lane_selected,
-        "distilled_bytes": len(json.dumps(distilled, ensure_ascii=True).encode("utf-8")) if distilled is not None else 0,
+        "distilled_bytes": len(json.dumps(distilled, ensure_ascii=True).encode("utf-8"))
+        if distilled is not None
+        else 0,
         "status": "ok" if distilled is not None else "bypass",
         "health_check_cadence_s": HEALTH_CHECK_CADENCE_S,
         "cheap_lane_probe_timeout_s": CHEAP_LANE_PROBE_TIMEOUT_S,
@@ -735,7 +829,9 @@ def process_payload(args: argparse.Namespace) -> dict[str, Any]:
         "raw_payload_bytes": payload_bytes,
         "distilled_bytes": result["distilled_bytes"],
         "cheap_lane_selected": cheap_lane_selected,
-        "provider_hint": f"openclaw/{runtime_context['cheap_lane_id']}" if cheap_lane_selected else "",
+        "provider_hint": f"openclaw/{runtime_context['cheap_lane_id']}"
+        if cheap_lane_selected
+        else "",
         "latency_ms": latency_ms,
     }
     _emit_audit_event(state_dir, audit_record)
@@ -745,7 +841,9 @@ def process_payload(args: argparse.Namespace) -> dict[str, Any]:
             {
                 "event_type": "mode_transition",
                 "ts_utc": _utc_now(),
-                "from_mode": health_receipt.get("effective_mode", UNKNOWN_SENTINEL) if isinstance(health_receipt, dict) else UNKNOWN_SENTINEL,
+                "from_mode": health_receipt.get("effective_mode", UNKNOWN_SENTINEL)
+                if isinstance(health_receipt, dict)
+                else UNKNOWN_SENTINEL,
                 "to_mode": effective_mode,
                 "cause": mode_cause,
             },
@@ -753,7 +851,13 @@ def process_payload(args: argparse.Namespace) -> dict[str, Any]:
     should_refresh_health = (
         health_receipt is None
         or mode_transition
-        or result["bypass_reason"] in {"distill_lane_unavailable", "distill_call_failed", "schema_failure", "health_state_invalid"}
+        or result["bypass_reason"]
+        in {
+            "distill_lane_unavailable",
+            "distill_call_failed",
+            "schema_failure",
+            "health_state_invalid",
+        }
     )
     if should_refresh_health:
         fingerprint, fingerprint_payload = build_compatibility_fingerprint(runtime_context)

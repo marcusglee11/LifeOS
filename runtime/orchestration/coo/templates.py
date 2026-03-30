@@ -1,4 +1,5 @@
 """Template loading and instantiation for COO execution orders."""
+
 from __future__ import annotations
 
 from copy import deepcopy
@@ -9,7 +10,10 @@ from typing import Any
 import yaml
 
 from runtime.orchestration.coo.backlog import TaskEntry
-from runtime.orchestration.workflow_runtime import build_task_context, resolve_workflow_id_for_task_type
+from runtime.orchestration.workflow_runtime import (
+    build_task_context,
+    resolve_workflow_id_for_task_type,
+)
 
 TEMPLATE_SCHEMA_VERSION = "order_template.v1"
 
@@ -20,13 +24,7 @@ class TemplateValidationError(ValueError):
 
 def load_template(template_name: str, repo_root: Path) -> dict[str, Any]:
     """Load and validate an order template from config/tasks/order_templates/."""
-    path = (
-        repo_root
-        / "config"
-        / "tasks"
-        / "order_templates"
-        / f"{template_name}.yaml"
-    )
+    path = repo_root / "config" / "tasks" / "order_templates" / f"{template_name}.yaml"
 
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -42,8 +40,7 @@ def load_template(template_name: str, repo_root: Path) -> dict[str, Any]:
     schema_version = str(raw.get("schema_version", "")).strip()
     if schema_version != TEMPLATE_SCHEMA_VERSION:
         raise TemplateValidationError(
-            "Unsupported schema_version: "
-            f"{schema_version!r}. Expected {TEMPLATE_SCHEMA_VERSION!r}"
+            f"Unsupported schema_version: {schema_version!r}. Expected {TEMPLATE_SCHEMA_VERSION!r}"
         )
 
     declared_name = str(raw.get("template_name", "")).strip()
@@ -88,7 +85,9 @@ def instantiate_order(
         "created_at": created_at,
         "workflow_id": workflow_id,
         "workflow_version": "workflow_runtime.v1" if workflow_id else None,
-        "review_policy_id": "spec_review.v1" if workflow_id == "spec_creation.v1" else "legacy_build_review.v1",
+        "review_policy_id": "spec_review.v1"
+        if workflow_id == "spec_creation.v1"
+        else "legacy_build_review.v1",
         "mutation_policy_id": "mutation_authority.v1" if workflow_id else None,
         "task_context": task_context,
         "steps": deepcopy(template["steps"]),
@@ -108,7 +107,5 @@ def instantiate_order(
                 },
             )
         ),
-        "supervision": deepcopy(
-            template.get("supervision", {"per_cycle_check": False})
-        ),
+        "supervision": deepcopy(template.get("supervision", {"per_cycle_check": False})),
     }

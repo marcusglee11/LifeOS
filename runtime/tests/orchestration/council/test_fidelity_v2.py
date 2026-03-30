@@ -11,19 +11,21 @@ Tests:
  4. Emergency CEO override bypasses MUST-block
  5. No lenses (T1) -> fidelity state still reached via transitions, no block
 """
+
 from __future__ import annotations
 
-import pytest
-
-from runtime.orchestration.council.fsm import CouncilFSMv2, STATE_S1_55_EXECUTION_FIDELITY, STATE_TERMINAL_BLOCKED
+from runtime.orchestration.council.fsm import (
+    STATE_S1_55_EXECUTION_FIDELITY,
+    STATE_TERMINAL_BLOCKED,
+    CouncilFSMv2,
+)
 from runtime.orchestration.council.models import (
-    CouncilRunPlanCore,
-    CouncilRunMeta,
-    compute_plan_core_hash,
     VERDICT_ACCEPT,
+    CouncilRunMeta,
+    CouncilRunPlanCore,
+    compute_plan_core_hash,
 )
 from runtime.orchestration.council.policy import load_council_policy
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -46,8 +48,11 @@ def _make_core(**overrides) -> CouncilRunPlanCore:
             "Chair": "claude-sonnet-4-5",
             "Challenger": "claude-sonnet-4-5",
         },
-        lens_role_map={"Risk": "council_reviewer", "Chair": "council_reviewer",
-                       "Challenger": "council_reviewer"},
+        lens_role_map={
+            "Risk": "council_reviewer",
+            "Chair": "council_reviewer",
+            "Challenger": "council_reviewer",
+        },
         independence_required="none",
         independence_satisfied=True,
         independent_lenses=(),
@@ -160,6 +165,7 @@ def test_fidelity_match_passes():
         independence_satisfied=True,
         independent_lenses=("Risk",),
     )
+
     # Executor returns the planned model
     def lens_fn(name, ccp, plan, retry):
         model = plan.model_assignments.get(name, "")

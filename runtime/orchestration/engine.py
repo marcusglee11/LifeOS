@@ -8,17 +8,16 @@ Implements the Tier-2 orchestrator for multi-step workflows with:
 - Immutability guarantees for inputs
 - LLM call operations via OpenCode HTTP REST API
 """
+
 from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-
 # =============================================================================
 # Exceptions (imported from shared module to avoid cross-tier coupling)
 # =============================================================================
-
 from runtime.errors import AntiFailureViolation, EnvelopeViolation
 
 # =============================================================================
@@ -28,10 +27,11 @@ from runtime.errors import AntiFailureViolation, EnvelopeViolation
 # Import OpenCode client for LLM calls
 try:
     from runtime.agents.opencode_client import (
-        OpenCodeClient,
         LLMCall,
+        OpenCodeClient,
         OpenCodeError,
     )
+
     _HAS_OPENCODE_CLIENT = True
 except ImportError:
     _HAS_OPENCODE_CLIENT = False
@@ -41,7 +41,8 @@ except ImportError:
 
 # Import model config for default model resolution
 try:
-    from runtime.agents.models import load_model_config, resolve_model_auto
+    from runtime.agents.models import load_model_config
+
     _HAS_MODEL_CONFIG = True
 except ImportError:
     _HAS_MODEL_CONFIG = False
@@ -50,6 +51,7 @@ except ImportError:
         """Fallback if models module unavailable."""
         return "openrouter/x-ai/grok-4.1-fast"
 else:
+
     def _get_default_model() -> str:
         """Get default model from config/models.yaml."""
         try:
@@ -60,6 +62,7 @@ else:
             pass
         return "openrouter/x-ai/grok-4.1-fast"
 
+
 # Re-export for backwards compatibility
 __all_exceptions__ = ["AntiFailureViolation", "EnvelopeViolation"]
 
@@ -68,20 +71,22 @@ __all_exceptions__ = ["AntiFailureViolation", "EnvelopeViolation"]
 # Data Structures
 # =============================================================================
 
+
 @dataclass
 class StepSpec:
     """
     Specification for a single workflow step.
-    
+
     Attributes:
         id: Unique identifier for the step.
         kind: Type of step ('runtime' or 'human').
         payload: Step-specific configuration data.
     """
+
     id: str
     kind: str
     payload: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to JSON-serializable dict with stable key ordering."""
         return {
@@ -95,18 +100,19 @@ class StepSpec:
 class WorkflowDefinition:
     """
     Definition of a multi-step workflow.
-    
+
     Attributes:
         id: Unique identifier for the workflow.
         steps: Ordered list of steps to execute.
         metadata: Additional workflow metadata.
         name: Alias for id (for compatibility).
     """
+
     id: str = ""
     steps: List[StepSpec] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     name: str = ""  # Alias for id
-    
+
     def __post_init__(self):
         # Enforce consistency between 'id' and 'name'
         if self.id and not self.name:
@@ -115,7 +121,7 @@ class WorkflowDefinition:
             self.id = self.name
         elif self.id and self.name and self.id != self.name:
             raise ValueError(f"WorkflowDefinition id/name mismatch: '{self.id}' vs '{self.name}'")
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to JSON-serializable dict with stable key ordering."""
         return {
@@ -125,16 +131,16 @@ class WorkflowDefinition:
         }
 
 
-
 @dataclass
 class ExecutionContext:
     """
     Context for workflow execution.
-    
+
     Attributes:
         initial_state: Starting state for the workflow.
         metadata: Optional execution metadata.
     """
+
     initial_state: Dict[str, Any] = field(default_factory=dict)
     metadata: Optional[Dict[str, Any]] = None
 
@@ -155,6 +161,7 @@ class OrchestrationResult:
         receipt: Execution receipt for attestation.
         state_snapshots: Pre-step state snapshots for reversibility.
     """
+
     id: str
     success: bool
     executed_steps: List[StepSpec]
@@ -208,6 +215,7 @@ class OrchestrationResult:
 # Orchestrator
 # =============================================================================
 
+
 class Orchestrator:
     """
     Tier-2 Orchestrator for executing multi-step workflows.
@@ -250,8 +258,7 @@ class Orchestrator:
         """
         if not _HAS_OPENCODE_CLIENT:
             raise RuntimeError(
-                "OpenCode client not available. "
-                "Install runtime.agents package or check imports."
+                "OpenCode client not available. Install runtime.agents package or check imports."
             )
 
         if self._llm_client is None:
@@ -270,9 +277,7 @@ class Orchestrator:
             self._llm_client = None
 
     def _execute_llm_call(
-        self,
-        step: StepSpec,
-        state: Dict[str, Any]
+        self, step: StepSpec, state: Dict[str, Any]
     ) -> tuple[bool, Optional[str]]:
         """
         Execute an llm_call operation.
@@ -322,7 +327,9 @@ class Orchestrator:
             repo_map_path = payload.get("repo_map_path")
             if repo_map_path:
                 from pathlib import Path as _Path
+
                 from runtime.util.canonical import sha256_file
+
                 rmp = _Path(repo_map_path)
                 if rmp.exists():
                     metadata["repo_map_hash"] = sha256_file(rmp)
@@ -357,10 +364,7 @@ class Orchestrator:
         repo_root = Path.cwd()
         try:
             result = subprocess.run(
-                ["git", "rev-parse", "--show-toplevel"],
-                capture_output=True,
-                text=True,
-                timeout=2
+                ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, timeout=2
             )
             if result.returncode == 0:
                 repo_root = Path(result.stdout.strip())
@@ -376,7 +380,7 @@ class Orchestrator:
                 capture_output=True,
                 text=True,
                 timeout=2,
-                cwd=repo_root
+                cwd=repo_root,
             )
             if result.returncode == 0:
                 baseline_commit = result.stdout.strip()
@@ -386,10 +390,7 @@ class Orchestrator:
         return repo_root, baseline_commit
 
     def _execute_mission(
-        self,
-        step: StepSpec,
-        state: Dict[str, Any],
-        ctx: ExecutionContext
+        self, step: StepSpec, state: Dict[str, Any], ctx: ExecutionContext
     ) -> tuple:
         """
         Execute a mission operation with tolerant interface.
@@ -422,10 +423,10 @@ class Orchestrator:
             inputs = {}
 
         # Get git context from ctx.metadata if available (preferred for CLI/External callers)
-        metadata = getattr(ctx, 'metadata', {}) or {}
+        metadata = getattr(ctx, "metadata", {}) or {}
         repo_root_str = metadata.get("repo_root")
         baseline_commit = metadata.get("baseline_commit")
-        
+
         if repo_root_str:
             repo_root = Path(repo_root_str)
         else:
@@ -433,7 +434,7 @@ class Orchestrator:
             repo_root, baseline_commit = self._detect_git_context()
 
         # Update metadata back if it was missing
-        if hasattr(ctx, 'metadata'):
+        if hasattr(ctx, "metadata"):
             if ctx.metadata is None:
                 ctx.metadata = {}
             ctx.metadata["repo_root"] = str(repo_root)
@@ -447,22 +448,24 @@ class Orchestrator:
         try:
             if use_direct_path:
                 # Fallback path: Direct mission instantiation
-                from runtime.orchestration.missions import get_mission_class, MissionContext
-                from runtime.util.canonical import canonical_json, compute_sha256
+                from runtime.orchestration.missions import MissionContext, get_mission_class
+                from runtime.util.canonical import compute_sha256
 
                 mission_class = get_mission_class(mission_type)
                 mission = mission_class()
 
                 # Optional validation (tolerant interface)
-                if hasattr(mission, 'validate_inputs'):
+                if hasattr(mission, "validate_inputs"):
                     mission.validate_inputs(inputs)
 
                 # Deterministic run_id: content-addressable from mission type + step + inputs
-                mission_run_id = compute_sha256({
-                    "mission_type": mission_type,
-                    "step_id": step.id,
-                    "inputs": inputs,
-                })
+                mission_run_id = compute_sha256(
+                    {
+                        "mission_type": mission_type,
+                        "step_id": step.id,
+                        "inputs": inputs,
+                    }
+                )
 
                 # CRITICAL: Missions may expect MissionContext, not ExecutionContext
                 # Build MissionContext from git context
@@ -472,7 +475,7 @@ class Orchestrator:
                     run_id=mission_run_id,
                     operation_executor=None,
                     journal=None,
-                    metadata={"step_id": step.id}
+                    metadata={"step_id": step.id},
                 )
 
                 # Execute mission with MissionContext
@@ -483,24 +486,24 @@ class Orchestrator:
                 result = registry.run_mission(mission_type, ctx, inputs)
 
             # Normalize result to dict (uniform handling regardless of dispatch path)
-            if hasattr(result, 'to_dict'):
+            if hasattr(result, "to_dict"):
                 result_dict = result.to_dict()
             elif isinstance(result, dict):
                 result_dict = result
             else:
                 # Minimal dict from attributes
                 result_dict = {
-                    'success': bool(getattr(result, 'success', False)),
-                    'status': getattr(result, 'status', None),
-                    'output': getattr(result, 'output', None),
-                    'error': getattr(result, 'error', None)
+                    "success": bool(getattr(result, "success", False)),
+                    "status": getattr(result, "status", None),
+                    "output": getattr(result, "output", None),
+                    "error": getattr(result, "error", None),
                 }
 
             # Determine success (uniform logic)
-            if 'success' in result_dict:
-                success = bool(result_dict['success'])
-            elif result_dict.get('status') is not None:
-                success = (result_dict['status'] == 'success')
+            if "success" in result_dict:
+                success = bool(result_dict["success"])
+            elif result_dict.get("status") is not None:
+                success = result_dict["status"] == "success"
             else:
                 success = False
 
@@ -510,7 +513,7 @@ class Orchestrator:
 
             # Check success
             if not success:
-                error = result_dict.get('error') or "Mission failed without error message"
+                error = result_dict.get("error") or "Mission failed without error message"
                 return False, f"Mission '{mission_type}' failed: {error}", mission_context, result
 
             return True, None, mission_context, result
@@ -543,6 +546,7 @@ class Orchestrator:
         Failures are logged, not re-raised, to avoid masking the original workflow error.
         """
         import logging
+
         _log = logging.getLogger(__name__)
         if step_execution_data is None:
             step_execution_data = {}
@@ -556,6 +560,7 @@ class Orchestrator:
             try:
                 from runtime.orchestration.missions import get_mission_class
                 from runtime.orchestration.missions.base import CompensableMission
+
                 mission_class = get_mission_class(mission_type)
                 if not issubclass(mission_class, CompensableMission):
                     continue
@@ -567,11 +572,15 @@ class Orchestrator:
                     mission_ctx, mission_result = stored
                 else:
                     # Execution did not reach mission.run() — build minimal fallback
-                    from runtime.orchestration.missions.base import (
-                        MissionContext, MissionResult, MissionType,
-                    )
                     from pathlib import Path
-                    repo_root_str = (getattr(ctx, 'metadata', None) or {}).get("repo_root", "")
+
+                    from runtime.orchestration.missions.base import (
+                        MissionContext,
+                        MissionResult,
+                        MissionType,
+                    )
+
+                    repo_root_str = (getattr(ctx, "metadata", None) or {}).get("repo_root", "")
                     mission_ctx = MissionContext(
                         repo_root=Path(repo_root_str) if repo_root_str else Path.cwd(),
                         baseline_commit=None,
@@ -601,20 +610,18 @@ class Orchestrator:
                 )
 
     def run_workflow(
-        self,
-        workflow: WorkflowDefinition,
-        ctx: ExecutionContext
+        self, workflow: WorkflowDefinition, ctx: ExecutionContext
     ) -> OrchestrationResult:
         """
         Execute a workflow within Tier-2 constraints.
-        
+
         Args:
             workflow: The workflow definition to execute.
             ctx: Execution context with initial state.
-            
+
         Returns:
             OrchestrationResult with execution details.
-            
+
         Raises:
             AntiFailureViolation: If workflow exceeds step limits.
             EnvelopeViolation: If workflow uses disallowed step kinds.
@@ -622,7 +629,7 @@ class Orchestrator:
         # =================================================================
         # Pre-execution validation (before any step runs)
         # =================================================================
-        
+
         # Check envelope constraints first
         for step in workflow.steps:
             if step.kind not in self.ALLOWED_KINDS:
@@ -630,20 +637,20 @@ class Orchestrator:
                     f"Step '{step.id}' has disallowed kind '{step.kind}'. "
                     f"Allowed kinds: {sorted(self.ALLOWED_KINDS)}"
                 )
-        
+
         # Check Anti-Failure constraints
         total_steps = len(workflow.steps)
         if total_steps > self.MAX_TOTAL_STEPS:
             raise AntiFailureViolation(
                 f"Workflow has {total_steps} steps, exceeds maximum of {self.MAX_TOTAL_STEPS}"
             )
-        
+
         human_steps = sum(1 for s in workflow.steps if s.kind == "human")
         if human_steps > self.MAX_HUMAN_STEPS:
             raise AntiFailureViolation(
                 f"Workflow has {human_steps} human steps, exceeds maximum of {self.MAX_HUMAN_STEPS}"
             )
-        
+
         # =================================================================
         # Execution (immutable inputs)
         # =================================================================
@@ -690,7 +697,9 @@ class Orchestrator:
 
                     elif operation == "mission":
                         # CRITICAL: Pass ctx to helper (reuse existing ExecutionContext)
-                        op_success, op_error, m_ctx, m_result = self._execute_mission(step, state, ctx)
+                        op_success, op_error, m_ctx, m_result = self._execute_mission(
+                            step, state, ctx
+                        )
                         if m_ctx is not None:
                             step_execution_data[step.id] = (m_ctx, m_result)
                         if not op_success:
@@ -725,6 +734,7 @@ class Orchestrator:
 
         # Build lineage (deterministic) — include snapshot hashes for auditability
         from runtime.util.canonical import compute_sha256
+
         snapshot_hashes = [compute_sha256(snap) for snap in state_snapshots]
         lineage = {
             "executed_step_ids": [s.id for s in executed_steps],

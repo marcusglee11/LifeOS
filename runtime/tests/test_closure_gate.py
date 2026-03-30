@@ -10,10 +10,15 @@ from scripts.workflow.closure_gate import run_gate
 
 def _make_fake_run(returncode: int = 0, stdout: str = "", stderr: str = ""):
     """Return a fake subprocess.run that returns fixed results."""
+
     def fake_run(*args, **kwargs):
         return subprocess.CompletedProcess(
-            args=args[0], returncode=returncode, stdout=stdout, stderr=stderr,
+            args=args[0],
+            returncode=returncode,
+            stdout=stdout,
+            stderr=stderr,
         )
+
     return fake_run
 
 
@@ -39,21 +44,31 @@ def test_test_gate_fails(monkeypatch) -> None:
         # git diff probes for discover_changed_files
         if "git" in cmd_str and "diff" in cmd_str:
             return subprocess.CompletedProcess(
-                args=cmd, returncode=0, stdout="runtime/engine.py\n", stderr="",
+                args=cmd,
+                returncode=0,
+                stdout="runtime/engine.py\n",
+                stderr="",
             )
 
         # Test command fails
         if "pytest" in cmd_str:
             return subprocess.CompletedProcess(
-                args=cmd, returncode=1, stdout="", stderr="FAILED test_foo.py",
+                args=cmd,
+                returncode=1,
+                stdout="",
+                stderr="FAILED test_foo.py",
             )
 
         return subprocess.CompletedProcess(
-            args=cmd, returncode=0, stdout="", stderr="",
+            args=cmd,
+            returncode=0,
+            stdout="",
+            stderr="",
         )
 
     monkeypatch.setattr(
-        "runtime.tools.workflow_pack.subprocess.run", sequenced_run,
+        "runtime.tools.workflow_pack.subprocess.run",
+        sequenced_run,
     )
     verdict = run_gate(Path("."))
     assert verdict["passed"] is False
@@ -72,13 +87,19 @@ def test_doc_gate_fails(monkeypatch) -> None:
         # discover_changed_files: return docs path on first git diff probe
         if "git" in cmd_str and "diff" in cmd_str:
             return subprocess.CompletedProcess(
-                args=cmd, returncode=0, stdout="docs/INDEX.md\n", stderr="",
+                args=cmd,
+                returncode=0,
+                stdout="docs/INDEX.md\n",
+                stderr="",
             )
 
         # Test commands pass
         if "pytest" in cmd_str:
             return subprocess.CompletedProcess(
-                args=cmd, returncode=0, stdout="ok", stderr="",
+                args=cmd,
+                returncode=0,
+                stdout="ok",
+                stderr="",
             )
 
         # Doc stewardship gate fails
@@ -91,11 +112,15 @@ def test_doc_gate_fails(monkeypatch) -> None:
             )
 
         return subprocess.CompletedProcess(
-            args=cmd, returncode=0, stdout="", stderr="",
+            args=cmd,
+            returncode=0,
+            stdout="",
+            stderr="",
         )
 
     monkeypatch.setattr(
-        "runtime.tools.workflow_pack.subprocess.run", sequenced_run,
+        "runtime.tools.workflow_pack.subprocess.run",
+        sequenced_run,
     )
     verdict = run_gate(Path("."))
     assert verdict["passed"] is False
@@ -114,16 +139,23 @@ def test_no_docs_changed_summary_mentions_skipped(monkeypatch) -> None:
         # discover_changed_files: return non-docs path
         if "git" in cmd_str and "diff" in cmd_str:
             return subprocess.CompletedProcess(
-                args=cmd, returncode=0, stdout="runtime/engine.py\n", stderr="",
+                args=cmd,
+                returncode=0,
+                stdout="runtime/engine.py\n",
+                stderr="",
             )
 
         # All test commands pass
         return subprocess.CompletedProcess(
-            args=cmd, returncode=0, stdout="ok", stderr="",
+            args=cmd,
+            returncode=0,
+            stdout="ok",
+            stderr="",
         )
 
     monkeypatch.setattr(
-        "runtime.tools.workflow_pack.subprocess.run", sequenced_run,
+        "runtime.tools.workflow_pack.subprocess.run",
+        sequenced_run,
     )
     verdict = run_gate(Path("."))
     assert verdict["passed"] is True
@@ -139,21 +171,33 @@ def test_quality_gate_fails(monkeypatch) -> None:
 
         if "git" in cmd_str and "diff" in cmd_str:
             return subprocess.CompletedProcess(
-                args=cmd, returncode=0, stdout="runtime/tools/workflow_pack.py\n", stderr="",
+                args=cmd,
+                returncode=0,
+                stdout="runtime/tools/workflow_pack.py\n",
+                stderr="",
             )
 
         if "pytest" in cmd_str:
             return subprocess.CompletedProcess(
-                args=cmd, returncode=0, stdout="ok", stderr="",
+                args=cmd,
+                returncode=0,
+                stdout="ok",
+                stderr="",
             )
 
         if cmd[:2] == ["ruff", "check"]:
             return subprocess.CompletedProcess(
-                args=cmd, returncode=1, stdout="", stderr="unused import",
+                args=cmd,
+                returncode=1,
+                stdout="",
+                stderr="unused import",
             )
 
         return subprocess.CompletedProcess(
-            args=cmd, returncode=0, stdout="", stderr="",
+            args=cmd,
+            returncode=0,
+            stdout="",
+            stderr="",
         )
 
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", sequenced_run)

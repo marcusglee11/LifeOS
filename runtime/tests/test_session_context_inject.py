@@ -5,7 +5,9 @@ from pathlib import Path
 
 
 def _load_module():
-    hook_path = Path(__file__).resolve().parents[2] / ".claude" / "hooks" / "session-context-inject.py"
+    hook_path = (
+        Path(__file__).resolve().parents[2] / ".claude" / "hooks" / "session-context-inject.py"
+    )
     spec = importlib.util.spec_from_file_location("session_context_inject", hook_path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)

@@ -6,6 +6,7 @@ Classifies pytest test failures into structured taxonomy:
 - TEST_FLAKE: Test that failed but passed in previous run
 - TEST_TIMEOUT: Test execution exceeded timeout threshold
 """
+
 from __future__ import annotations
 
 from typing import List, Optional
@@ -15,8 +16,7 @@ from runtime.orchestration.test_executor import PytestResult
 
 
 def classify_test_failure(
-    result: PytestResult,
-    previous_results: Optional[List[PytestResult]] = None
+    result: PytestResult, previous_results: Optional[List[PytestResult]] = None
 ) -> FailureClass:
     """
     Classify a pytest failure into FailureClass.

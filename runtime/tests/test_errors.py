@@ -8,6 +8,7 @@ Test Coverage:
 """
 
 import pytest
+
 from runtime.errors import AntiFailureViolation, EnvelopeViolation
 
 
@@ -54,6 +55,7 @@ class TestAntiFailureViolation:
 
     def test_subclassing(self):
         """AntiFailureViolation can be subclassed."""
+
         class CustomAntiFailureViolation(AntiFailureViolation):
             pass
 
@@ -122,6 +124,7 @@ class TestEnvelopeViolation:
 
     def test_subclassing(self):
         """EnvelopeViolation can be subclassed."""
+
         class CustomEnvelopeViolation(EnvelopeViolation):
             pass
 

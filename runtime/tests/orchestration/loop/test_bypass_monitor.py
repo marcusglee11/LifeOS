@@ -13,18 +13,17 @@ Tests check_bypass_utilization() with:
 - Malformed JSON line (fail-closed)
 - I/O error simulation
 """
+
 from __future__ import annotations
 
 import json
-import pytest
 from pathlib import Path
+
+import pytest
 
 from runtime.orchestration.loop.bypass_monitor import (
     BypassStatus,
     check_bypass_utilization,
-    DEFAULT_WINDOW_SIZE,
-    WARN_THRESHOLD,
-    ALERT_THRESHOLD,
 )
 
 
@@ -182,9 +181,9 @@ class TestCheckBypassUtilization:
         records = [
             _make_record(bypass=False),  # idx 0 - outside window
             _make_record(bypass=False),  # idx 1 - outside window
-            _make_record(bypass=True),   # idx 2 - in window
-            _make_record(bypass=True),   # idx 3 - in window
-            _make_record(bypass=True),   # idx 4 - in window
+            _make_record(bypass=True),  # idx 2 - in window
+            _make_record(bypass=True),  # idx 3 - in window
+            _make_record(bypass=True),  # idx 4 - in window
         ]
         ledger = _write_ledger(tmp_path, records)
         result = check_bypass_utilization(ledger, window_size=3)

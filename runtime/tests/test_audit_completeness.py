@@ -1,18 +1,19 @@
 """Tests: Audit completeness (Phase 4A+4B+4C — Constitutional Compliance)."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
 import pytest
 
-from runtime.receipts.invocation_receipt import (
-    get_or_create_collector,
-    reset_invocation_receipt_collectors,
-)
 from runtime.orchestration.ceo_queue import (
     CEOQueue,
     EscalationEntry,
     EscalationType,
+)
+from runtime.receipts.invocation_receipt import (
+    get_or_create_collector,
+    reset_invocation_receipt_collectors,
 )
 
 
@@ -27,11 +28,13 @@ def _reset():
 # Phase 4A: input_hash field on InvocationReceipt
 # ===========================================================================
 
+
 def test_receipt_has_input_hash_field():
     from runtime.receipts.invocation_receipt import InvocationReceiptCollector
 
     collector = InvocationReceiptCollector(run_id="test-4a")
     from datetime import datetime, timezone
+
     ts = datetime.now(timezone.utc).isoformat()
     r = collector.record(
         provider_id="test",
@@ -47,8 +50,9 @@ def test_receipt_has_input_hash_field():
 
 
 def test_receipt_input_hash_defaults_to_none():
-    from runtime.receipts.invocation_receipt import InvocationReceiptCollector
     from datetime import datetime, timezone
+
+    from runtime.receipts.invocation_receipt import InvocationReceiptCollector
 
     collector = InvocationReceiptCollector(run_id="test-4a-none")
     ts = datetime.now(timezone.utc).isoformat()
@@ -67,9 +71,9 @@ def test_receipt_input_hash_defaults_to_none():
 def test_receipt_serializes_input_hash(tmp_path: Path):
     """input_hash survives finalize → JSON round-trip."""
     import json
-    from dataclasses import asdict
-    from runtime.receipts.invocation_receipt import InvocationReceiptCollector
     from datetime import datetime, timezone
+
+    from runtime.receipts.invocation_receipt import InvocationReceiptCollector
 
     collector = InvocationReceiptCollector(run_id="test-4a-serial")
     ts = datetime.now(timezone.utc).isoformat()
@@ -92,12 +96,17 @@ def test_receipt_serializes_input_hash(tmp_path: Path):
 # Phase 4B: repo_map_hash in llm_call metadata
 # ===========================================================================
 
+
 def test_engine_stores_repo_map_hash_when_path_provided(tmp_path: Path):
     """When repo_map_path is in payload and exists, hash stored in metadata."""
+    from unittest.mock import MagicMock, patch
+
     from runtime.orchestration.engine import (
-        Orchestrator, ExecutionContext, WorkflowDefinition, StepSpec,
+        ExecutionContext,
+        Orchestrator,
+        StepSpec,
+        WorkflowDefinition,
     )
-    from unittest.mock import patch, MagicMock
 
     repo_map_file = tmp_path / "REPO_MAP.md"
     repo_map_file.write_text("# map content")
@@ -135,6 +144,7 @@ def test_engine_stores_repo_map_hash_when_path_provided(tmp_path: Path):
 # ===========================================================================
 # Phase 4C: CEO queue emits receipts on add_escalation and approve/reject
 # ===========================================================================
+
 
 def test_add_escalation_emits_receipt(tmp_path: Path):
     """add_escalation emits an invocation receipt."""

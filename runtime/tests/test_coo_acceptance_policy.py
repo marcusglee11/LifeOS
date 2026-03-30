@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 """Tests for coo_acceptance_policy — Acceptance & Closure validator."""
 
-import textwrap
-
 import pytest
 
 from runtime.tools.coo_acceptance_policy import (
+    REQUIRED_KEYS,
     parse_acceptance_note,
     validate_acceptance_note,
     validate_clean_proofs,
     validate_main_head,
-    REQUIRED_KEYS,
-    OPTIONAL_KEYS,
 )
 
 
@@ -137,9 +134,7 @@ class TestValidateAcceptanceNote:
     def test_missing_required_key_fails(self):
         # Remove TITLE line
         text = _make_valid_note()
-        text = "\n".join(
-            line for line in text.splitlines() if not line.startswith("TITLE=")
-        )
+        text = "\n".join(line for line in text.splitlines() if not line.startswith("TITLE="))
         result = validate_acceptance_note(text)
         assert result.valid is False
         assert any("missing required key 'TITLE'" in e for e in result.errors)
@@ -192,9 +187,7 @@ class TestValidateAcceptanceNote:
         # Remove CLEAN_PROOF_POST line
         text = _make_valid_note()
         text = "\n".join(
-            line
-            for line in text.splitlines()
-            if not line.startswith("CLEAN_PROOF_POST=")
+            line for line in text.splitlines() if not line.startswith("CLEAN_PROOF_POST=")
         )
         result = validate_acceptance_note(text)
         assert result.valid is False

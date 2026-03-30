@@ -17,8 +17,7 @@ This module is advisory — the FSM decides whether to act on convergence.
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping, Optional
-
+from typing import Any, Mapping
 
 # Default convergence threshold (80% agreement)
 DEFAULT_THRESHOLD = 0.80
@@ -74,11 +73,7 @@ def compute_convergence(
         ConvergenceResult with score, convergent flag, and pairwise details.
     """
     # Filter out None/waived results
-    active = {
-        name: output
-        for name, output in lens_results.items()
-        if output is not None
-    }
+    active = {name: output for name, output in lens_results.items() if output is not None}
 
     if len(active) < 2:
         return ConvergenceResult(

@@ -6,7 +6,9 @@ from pathlib import Path
 from runtime.tools import openclaw_distill_lane as lane
 
 
-def _write_health_receipt(tmp_path: Path, *, fingerprint: str, effective_mode: str = "active") -> Path:
+def _write_health_receipt(
+    tmp_path: Path, *, fingerprint: str, effective_mode: str = "active"
+) -> Path:
     path = lane.health_path_for_state(tmp_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -230,7 +232,9 @@ def test_health_path_uses_health_state_filename_and_reads_legacy_receipt(tmp_pat
     assert receipt["compatibility_fingerprint"] == "legacy-fingerprint"
 
 
-def test_process_payload_active_without_health_receipt_bypasses_raw(monkeypatch, tmp_path: Path) -> None:
+def test_process_payload_active_without_health_receipt_bypasses_raw(
+    monkeypatch, tmp_path: Path
+) -> None:
     payload_path = tmp_path / "payload.txt"
     payload_path.write_text("x" * 9000, encoding="utf-8")
     monkeypatch.setattr(
@@ -277,7 +281,9 @@ def test_process_payload_active_without_health_receipt_bypasses_raw(monkeypatch,
     assert result["bypass_reason"] == "health_state_invalid"
 
 
-def test_process_payload_active_with_current_health_receipt_allows_replacement(monkeypatch, tmp_path: Path) -> None:
+def test_process_payload_active_with_current_health_receipt_allows_replacement(
+    monkeypatch, tmp_path: Path
+) -> None:
     payload = "x" * 9000
     payload_path = tmp_path / "payload.txt"
     payload_path.write_text(payload, encoding="utf-8")
@@ -342,7 +348,9 @@ def test_process_payload_active_with_current_health_receipt_allows_replacement(m
     assert result["status"] == "ok"
 
 
-def test_process_payload_active_requires_shadow_receipt_and_forced_failure_drill(monkeypatch, tmp_path: Path) -> None:
+def test_process_payload_active_requires_shadow_receipt_and_forced_failure_drill(
+    monkeypatch, tmp_path: Path
+) -> None:
     payload = "x" * 9000
     payload_path = tmp_path / "payload.txt"
     payload_path.write_text(payload, encoding="utf-8")
@@ -448,8 +456,16 @@ def test_run_health_preflight_writes_health_receipt(monkeypatch, tmp_path: Path)
             "wrapper_schema_version": lane.WRAPPER_SCHEMA_VERSION,
         },
     )
-    monkeypatch.setattr(lane, "preflight_quick_lane", lambda **_: {"ok": True, "rc": 0, "stderr": "", "stdout": "READY"})
-    monkeypatch.setattr(lane, "probe_usage_visibility", lambda **_: {"ok": True, "rc": 0, "stderr": "", "stdout": "usage ok"})
+    monkeypatch.setattr(
+        lane,
+        "preflight_quick_lane",
+        lambda **_: {"ok": True, "rc": 0, "stderr": "", "stdout": "READY"},
+    )
+    monkeypatch.setattr(
+        lane,
+        "probe_usage_visibility",
+        lambda **_: {"ok": True, "rc": 0, "stderr": "", "stdout": "usage ok"},
+    )
     monkeypatch.setattr(
         lane,
         "run_distill",
@@ -493,8 +509,16 @@ def test_preflight_requires_distill_success_not_bypass(monkeypatch, tmp_path: Pa
             "wrapper_schema_version": lane.WRAPPER_SCHEMA_VERSION,
         },
     )
-    monkeypatch.setattr(lane, "preflight_quick_lane", lambda **_: {"ok": True, "rc": 0, "stderr": "", "stdout": "READY"})
-    monkeypatch.setattr(lane, "probe_usage_visibility", lambda **_: {"ok": True, "rc": 0, "stderr": "", "stdout": "usage ok"})
+    monkeypatch.setattr(
+        lane,
+        "preflight_quick_lane",
+        lambda **_: {"ok": True, "rc": 0, "stderr": "", "stdout": "READY"},
+    )
+    monkeypatch.setattr(
+        lane,
+        "probe_usage_visibility",
+        lambda **_: {"ok": True, "rc": 0, "stderr": "", "stdout": "usage ok"},
+    )
     monkeypatch.setattr(
         lane,
         "run_distill",
@@ -585,7 +609,9 @@ def test_process_payload_emits_mode_transition_audit(monkeypatch, tmp_path: Path
     lane.process_payload(args)
     audit_entries = [
         json.loads(line)
-        for line in (tmp_path / "runtime" / "gates" / "distill" / lane.AUDIT_FILENAME).read_text(encoding="utf-8").splitlines()
+        for line in (tmp_path / "runtime" / "gates" / "distill" / lane.AUDIT_FILENAME)
+        .read_text(encoding="utf-8")
+        .splitlines()
     ]
     transitions = [entry for entry in audit_entries if entry["event_type"] == "mode_transition"]
     assert transitions[-1]["from_mode"] == "shadow"

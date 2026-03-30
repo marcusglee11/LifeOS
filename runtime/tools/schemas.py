@@ -6,62 +6,62 @@ Per Plan_Tool_Invoke_MVP_v0.2 and Agent Instruction Block.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+import json
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-import json
-
 
 # =============================================================================
 # Request Schema
 # =============================================================================
 
+
 @dataclass
 class ToolInvokeRequest:
     """
     Request schema for tool invocation.
-    
+
     All fields validated before dispatch.
     Supports both 'args' and 'arguments' for payload - both map to internal args dict.
-    
+
     Construction paths:
     - ToolInvokeRequest(tool="x", action="y", args={...})
     - ToolInvokeRequest.from_dict({"tool": "x", "action": "y", "arguments": {...}})
     """
+
     tool: str
     action: str
     args: Dict[str, Any] = field(default_factory=dict)
     meta: Optional[Dict[str, Any]] = None
-    
+
     @classmethod
     def from_dict(cls, payload: Dict[str, Any]) -> "ToolInvokeRequest":
         """
         Factory for constructing from a dict payload.
-        
+
         Handles both 'args' and 'arguments' keys for backward compatibility.
         If both are present and differ, raises ValueError.
-        
+
         Args:
             payload: Dict with tool, action, and args/arguments
-            
+
         Returns:
             ToolInvokeRequest instance
-            
+
         Raises:
             ValueError: If both args and arguments present with different values
         """
         tool = payload.get("tool", "")
         action = payload.get("action", "")
         meta = payload.get("meta")
-        
+
         has_args = "args" in payload
         has_arguments = "arguments" in payload
-        
+
         if has_args and has_arguments:
             if payload["args"] != payload["arguments"]:
                 raise ValueError(
-                    "Both 'args' and 'arguments' present with different values. "
-                    "Use only one."
+                    "Both 'args' and 'arguments' present with different values. Use only one."
                 )
             args = payload["args"]
         elif has_arguments:
@@ -70,53 +70,51 @@ class ToolInvokeRequest:
             args = payload["args"]
         else:
             args = {}
-        
+
         return cls(tool=tool, action=action, args=args, meta=meta)
-    
+
     @property
     def arguments(self) -> Dict[str, Any]:
         """Alias for args - provides backward compatibility."""
         return self.args
-    
+
     def get_request_id(self) -> Optional[str]:
         """Extract request_id from meta if present."""
         if self.meta:
             return self.meta.get("request_id")
         return None
-    
+
     def get_path(self) -> Optional[str]:
         """Extract path from args for filesystem operations."""
         return self.args.get("path")
-    
+
     def validate(self) -> "SchemaValidationResult":
         """
         Validate request fields.
-        
+
         Returns validation result with ok=True if valid.
         """
         errors = []
-        
+
         if not self.tool or not isinstance(self.tool, str):
             errors.append("tool must be a non-empty string")
-        
+
         if not self.action or not isinstance(self.action, str):
             errors.append("action must be a non-empty string")
-        
+
         if not isinstance(self.args, dict):
             errors.append("args must be a dictionary")
-        
+
         if self.meta is not None and not isinstance(self.meta, dict):
             errors.append("meta must be a dictionary if provided")
-        
-        return SchemaValidationResult(
-            ok=len(errors) == 0,
-            errors=errors
-        )
+
+        return SchemaValidationResult(ok=len(errors) == 0, errors=errors)
 
 
 @dataclass
 class SchemaValidationResult:
     """Result of schema validation."""
+
     ok: bool
     errors: List[str] = field(default_factory=list)
 
@@ -153,17 +151,19 @@ class AuthHealthResult:
 # Policy Decision
 # =============================================================================
 
+
 @dataclass
 class PolicyDecision:
     """
     Policy gate decision.
-    
+
     Per spec: allowed, decision_reason, matched_rules (optional).
     """
+
     allowed: bool
     decision_reason: str
     matched_rules: Optional[List[str]] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary, omitting None values."""
         result = {
@@ -179,17 +179,19 @@ class PolicyDecision:
 # Effect Records
 # =============================================================================
 
+
 @dataclass
 class FileEffect:
     """
     Record of a file operation effect.
-    
+
     Per spec: size_bytes (int, not bytes), sha256 (full, not truncated).
     """
+
     path: str
     size_bytes: int
     sha256: str
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "path": self.path,
@@ -202,13 +204,14 @@ class FileEffect:
 class ProcessEffect:
     """
     Record of a process execution effect.
-    
+
     Per spec: cmd, exit_code, duration_ms.
     """
+
     cmd: List[str]
     exit_code: int
     duration_ms: int
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "cmd": self.cmd,
@@ -221,13 +224,14 @@ class ProcessEffect:
 class Effects:
     """
     Container for all effect records.
-    
+
     Optional sections omitted if empty.
     """
+
     files_written: Optional[List[FileEffect]] = None
     files_read: Optional[List[FileEffect]] = None
     process: Optional[ProcessEffect] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         result = {}
         if self.files_written:
@@ -246,18 +250,20 @@ class Effects:
 # Output cap: 64KB combined stdout+stderr
 OUTPUT_CAP_BYTES = 65536
 
+
 @dataclass
 class ToolOutput:
     """
     Captured output from tool execution.
-    
+
     Per spec: stdout, stderr, truncated.
     Truncation semantics: stdout filled first, then stderr with remaining budget.
     """
+
     stdout: str
     stderr: str
     truncated: bool
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "stdout": self.stdout,
@@ -269,33 +275,33 @@ class ToolOutput:
 def truncate_output(stdout: str, stderr: str, cap: int = OUTPUT_CAP_BYTES) -> ToolOutput:
     """
     Deterministic truncation of output.
-    
+
     Allocation rule: stdout filled first, then stderr with remaining budget.
     This is deterministic and documented per spec.
-    
+
     Args:
         stdout: Raw stdout content
         stderr: Raw stderr content
         cap: Maximum combined bytes (default 64KB)
-    
+
     Returns:
         ToolOutput with truncated flag set appropriately
     """
     stdout_bytes = stdout.encode("utf-8", errors="replace")
     stderr_bytes = stderr.encode("utf-8", errors="replace")
-    
+
     total_size = len(stdout_bytes) + len(stderr_bytes)
-    
+
     if total_size <= cap:
         return ToolOutput(stdout=stdout, stderr=stderr, truncated=False)
-    
+
     # Deterministic allocation: stdout first, stderr with remainder
     stdout_budget = min(len(stdout_bytes), cap)
     stderr_budget = cap - stdout_budget
-    
+
     truncated_stdout = stdout_bytes[:stdout_budget].decode("utf-8", errors="replace")
     truncated_stderr = stderr_bytes[:stderr_budget].decode("utf-8", errors="replace")
-    
+
     return ToolOutput(stdout=truncated_stdout, stderr=truncated_stderr, truncated=True)
 
 
@@ -303,8 +309,10 @@ def truncate_output(stdout: str, stderr: str, cap: int = OUTPUT_CAP_BYTES) -> To
 # Error Types
 # =============================================================================
 
+
 class ToolErrorType:
     """Canonical error type constants."""
+
     POLICY_DENIED = "PolicyDenied"
     GOVERNANCE_UNAVAILABLE = "GovernanceUnavailable"
     SCHEMA_ERROR = "SchemaError"
@@ -319,13 +327,14 @@ class ToolErrorType:
 class ToolError:
     """
     Error record for failed tool invocations.
-    
+
     Per spec: type, message, details (optional/bounded).
     """
+
     type: str
     message: str
     details: Optional[Dict[str, Any]] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         result = {
             "type": self.type,
@@ -340,11 +349,12 @@ class ToolError:
 # Result Schema
 # =============================================================================
 
+
 @dataclass
 class ToolInvokeResult:
     """
     Result schema for tool invocation.
-    
+
     Per spec: ALL required fields must exist when applicable.
     - ok: bool (always present)
     - tool, action: str (always present)
@@ -355,6 +365,7 @@ class ToolInvokeResult:
     - error: ToolError (only if ok=false)
     - request_id: str (echoed back if present in request)
     """
+
     ok: bool
     tool: str
     action: str
@@ -364,7 +375,7 @@ class ToolInvokeResult:
     effects: Optional[Effects] = None
     error: Optional[ToolError] = None
     request_id: Optional[str] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         result = {
@@ -375,20 +386,20 @@ class ToolInvokeResult:
             "policy": self.policy.to_dict(),
             "output": self.output.to_dict(),
         }
-        
+
         if self.request_id is not None:
             result["request_id"] = self.request_id
-        
+
         if self.effects is not None:
             effects_dict = self.effects.to_dict()
             if effects_dict:  # Only include if non-empty
                 result["effects"] = effects_dict
-        
+
         if self.error is not None:
             result["error"] = self.error.to_dict()
-        
+
         return result
-    
+
     def to_json(self, indent: int = 2) -> str:
         """Serialize to JSON."""
         return json.dumps(self.to_dict(), indent=indent, sort_keys=True)
@@ -411,7 +422,7 @@ def make_error_result(
 ) -> ToolInvokeResult:
     """
     Factory for error results.
-    
+
     Ensures all required fields are present.
     """
     return ToolInvokeResult(
@@ -440,7 +451,7 @@ def make_success_result(
 ) -> ToolInvokeResult:
     """
     Factory for success results.
-    
+
     Ensures all required fields are present.
     """
     return ToolInvokeResult(

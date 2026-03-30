@@ -28,14 +28,12 @@ if os.path.exists(_env_path):
                 k, v = line.split("=", 1)
                 os.environ.setdefault(k.strip(), v.strip())
 
-from runtime.agents.api import AgentCall, call_agent, AgentAPIError
-from runtime.agents.models import load_model_config, clear_config_cache
-
+from runtime.agents.api import AgentAPIError, AgentCall, call_agent
+from runtime.agents.models import clear_config_cache, load_model_config
 
 # Skip if no API key or explicit skip
 pytestmark = pytest.mark.skipif(
-    os.environ.get("SKIP_LIVE_ZEN") == "1"
-    or not os.environ.get("ZEN_BUILDER_KEY"),
+    os.environ.get("SKIP_LIVE_ZEN") == "1" or not os.environ.get("ZEN_BUILDER_KEY"),
     reason="Live Zen tests require ZEN_BUILDER_KEY and SKIP_LIVE_ZEN!=1",
 )
 
@@ -113,7 +111,7 @@ class TestZenModelComparison:
         assert response.model_used, f"{model_id} did not report model_used"
 
         # Report results
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Model: {model_id}")
         print(f"  model_used: {response.model_used}")
         print(f"  latency_ms: {elapsed_ms}")
@@ -123,7 +121,7 @@ class TestZenModelComparison:
         if response.packet:
             print(f"  packet_keys: {list(response.packet.keys())}")
         print(f"  first 200 chars: {response.content[:200]}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
     @pytest.mark.parametrize("model_id", MODELS_TO_TEST)
     def test_model_produces_parseable_yaml(self, model_id: str):

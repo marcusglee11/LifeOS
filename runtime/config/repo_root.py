@@ -1,22 +1,23 @@
 import os
 from pathlib import Path
 
+
 def detect_repo_root(start_path: Path | None = None, max_depth: int = 20) -> Path:
     """
     Detect repo root by walking up to find .git directory or file.
-    
+
     Args:
         start_path: Path to start searching from (default: CWD)
         max_depth: Maximum levels to walk up before failing closed
-        
+
     Returns:
         Absolute Path to repo root
-        
+
     Raises:
         RuntimeError: If repo root cannot be found or detection is ambiguous
     """
     current = Path(start_path or os.getcwd()).resolve()
-    
+
     for _ in range(max_depth):
         git_marker = current / ".git"
         if git_marker.exists():
@@ -31,14 +32,17 @@ def detect_repo_root(start_path: Path | None = None, max_depth: int = 20) -> Pat
                         return current
                 except Exception:
                     pass
-        
+
         # Walk up
         parent = current.parent
-        if parent == current: # Reached filesystem root
+        if parent == current:  # Reached filesystem root
             break
         current = parent
-        
-    raise RuntimeError(f"Fail-closed: Repo root not found from {start_path or os.getcwd()} (max_depth={max_depth})")
+
+    raise RuntimeError(
+        f"Fail-closed: Repo root not found from {start_path or os.getcwd()} (max_depth={max_depth})"
+    )
+
 
 def verify_containment(path: Path, repo_root: Path) -> bool:
     """

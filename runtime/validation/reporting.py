@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-import json
 import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from typing import Any, Dict, Mapping
 
-from runtime.util.canonical import canonical_json_str, sha256_file
+from runtime.util.canonical import (  # noqa: F401 - re-exported for callers
+    canonical_json_str,
+    sha256_file,
+)
 
 
 def write_json_atomic(path: Path, payload: Mapping[str, Any]) -> None:

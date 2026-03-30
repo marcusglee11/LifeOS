@@ -1,9 +1,10 @@
 """Tests for runtime/receipts/receipt_emitter.py"""
+
 import re
+
 import pytest
 
 from runtime.receipts.receipt_emitter import (
-    PILOT_POLICY,
     build_acceptance_receipt,
     build_blocked_report,
     build_review_summary,
@@ -42,8 +43,12 @@ def blocked_rollup():
 def test_acceptance_receipt_valid_schema(sample_emitter, pass_rollup):
     decision = compute_decision(pass_rollup)
     receipt = build_acceptance_receipt(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-        sample_emitter, decision, pass_rollup,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_TREE_OID,
+        SAMPLE_PLAN_SHA,
+        sample_emitter,
+        decision,
+        pass_rollup,
     )
     errors = validate_artefact(receipt, "acceptance_receipt")
     assert errors == [], f"Expected valid receipt, got: {errors}"
@@ -52,8 +57,12 @@ def test_acceptance_receipt_valid_schema(sample_emitter, pass_rollup):
 def test_acceptance_receipt_has_tree_oid(sample_emitter, pass_rollup):
     decision = compute_decision(pass_rollup)
     receipt = build_acceptance_receipt(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-        sample_emitter, decision, pass_rollup,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_TREE_OID,
+        SAMPLE_PLAN_SHA,
+        sample_emitter,
+        decision,
+        pass_rollup,
     )
     assert receipt["workspace_tree_oid"] == SAMPLE_TREE_OID
 
@@ -61,8 +70,12 @@ def test_acceptance_receipt_has_tree_oid(sample_emitter, pass_rollup):
 def test_acceptance_receipt_has_id_and_timestamp(sample_emitter, pass_rollup):
     decision = compute_decision(pass_rollup)
     receipt = build_acceptance_receipt(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-        sample_emitter, decision, pass_rollup,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_TREE_OID,
+        SAMPLE_PLAN_SHA,
+        sample_emitter,
+        decision,
+        pass_rollup,
     )
     assert ULID_PATTERN.match(receipt["receipt_id"])
     assert receipt["issued_at"].endswith("+00:00") or receipt["issued_at"].endswith("Z")
@@ -73,8 +86,12 @@ def test_acceptance_receipt_accepted_has_no_reason(sample_emitter, pass_rollup):
     assert decision["status"] == "ACCEPTED"
     assert "reason_code" not in decision
     receipt = build_acceptance_receipt(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-        sample_emitter, decision, pass_rollup,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_TREE_OID,
+        SAMPLE_PLAN_SHA,
+        sample_emitter,
+        decision,
+        pass_rollup,
     )
     assert "reason_code" not in receipt["decision"]
 
@@ -82,8 +99,12 @@ def test_acceptance_receipt_accepted_has_no_reason(sample_emitter, pass_rollup):
 def test_acceptance_receipt_decision_from_fail_rollup(sample_emitter, fail_rollup):
     decision = compute_decision(fail_rollup)
     receipt = build_acceptance_receipt(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-        sample_emitter, decision, fail_rollup,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_TREE_OID,
+        SAMPLE_PLAN_SHA,
+        sample_emitter,
+        decision,
+        fail_rollup,
     )
     assert receipt["decision"]["status"] == "REJECTED"
     assert receipt["decision"]["reason_code"] == "GATE_FAIL"
@@ -109,7 +130,8 @@ def test_compute_decision_blocked_from_blocked(blocked_rollup):
 
 def test_blocked_report_valid_schema():
     report = build_blocked_report(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_PLAN_SHA,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_PLAN_SHA,
         reason_code="PREREQ_FAIL",
     )
     errors = validate_artefact(report, "blocked_report")
@@ -118,7 +140,8 @@ def test_blocked_report_valid_schema():
 
 def test_blocked_report_has_required_fields():
     report = build_blocked_report(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_PLAN_SHA,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_PLAN_SHA,
         reason_code="PREREQ_FAIL",
     )
     assert ULID_PATTERN.match(report["report_id"])
@@ -130,13 +153,21 @@ def test_acceptance_receipt_with_supersedes(sample_emitter, pass_rollup):
     decision = compute_decision(pass_rollup)
     # First receipt
     r1 = build_acceptance_receipt(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-        sample_emitter, decision, pass_rollup,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_TREE_OID,
+        SAMPLE_PLAN_SHA,
+        sample_emitter,
+        decision,
+        pass_rollup,
     )
     # Second supersedes first
     r2 = build_acceptance_receipt(
-        SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-        sample_emitter, decision, pass_rollup,
+        SAMPLE_WORKSPACE_SHA,
+        SAMPLE_TREE_OID,
+        SAMPLE_PLAN_SHA,
+        sample_emitter,
+        decision,
+        pass_rollup,
         supersedes=r1["receipt_id"],
     )
     assert r2["supersedes"] == r1["receipt_id"]
@@ -159,7 +190,11 @@ def test_acceptance_receipt_does_not_fallback_invalid_policy_pack(sample_emitter
     decision = compute_decision(pass_rollup)
     with pytest.raises(ReceiptValidationError):
         build_acceptance_receipt(
-            SAMPLE_WORKSPACE_SHA, SAMPLE_TREE_OID, SAMPLE_PLAN_SHA,
-            sample_emitter, decision, pass_rollup,
+            SAMPLE_WORKSPACE_SHA,
+            SAMPLE_TREE_OID,
+            SAMPLE_PLAN_SHA,
+            sample_emitter,
+            decision,
+            pass_rollup,
             policy_pack={},
         )

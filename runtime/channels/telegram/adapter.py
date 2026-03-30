@@ -33,12 +33,8 @@ def run_polling(config: TelegramConfig, repo_root: Path) -> None:
     async def _callback_handler(update, context) -> None:
         await handle_callback(update, context, repo_root=repo_root, config=config)
 
-    application.add_handler(
-        MessageHandler(filters.ALL, _message_handler)
-    )
-    application.add_handler(
-        CallbackQueryHandler(_callback_handler, pattern=r"^(approve|reject):")
-    )
+    application.add_handler(MessageHandler(filters.ALL, _message_handler))
+    application.add_handler(CallbackQueryHandler(_callback_handler, pattern=r"^(approve|reject):"))
     _ensure_event_loop()
     write_status(repo_root, state="running")
     try:

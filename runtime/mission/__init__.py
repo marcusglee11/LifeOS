@@ -10,28 +10,28 @@ Public API:
     - MissionBoundaryViolation, MissionNotFoundError, MissionConflictError (exceptions)
     - MissionBoundaryConfig (validation configuration)
     - canonical_json, state_hash (canonicalization functions)
-    
+
     v0.2:
     - MissionSynthesisRequest (structured synthesis input)
     - synthesize_mission (synthesis entrypoint)
     - validate_mission_definition_v0_2 (explicit validation entrypoint)
 """
-from runtime.api import TIER3_MISSION_REGISTRY_VERSION
 
+from runtime.api import TIER3_MISSION_REGISTRY_VERSION
+from runtime.mission.boundaries import (
+    MissionBoundaryConfig,
+    MissionBoundaryViolation,
+    MissionConflictError,
+    MissionNotFoundError,
+    validate_mission_definition,
+    validate_mission_id,
+)
 from runtime.mission.interfaces import (
-    MissionId,
     MissionDefinition,
+    MissionId,
     MissionRegistryState,
     canonical_json,
     state_hash,
-)
-from runtime.mission.boundaries import (
-    MissionBoundaryViolation,
-    MissionNotFoundError,
-    MissionConflictError,
-    MissionBoundaryConfig,
-    validate_mission_id,
-    validate_mission_definition,
 )
 from runtime.mission.registry import MissionRegistry
 
@@ -71,4 +71,3 @@ __all__ = [
     "synthesize_mission",
     "validate_mission_definition_v0_2",
 ]
-

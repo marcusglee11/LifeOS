@@ -5,8 +5,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import pytest
-
 # Ensure repo root is importable
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS_DIR = REPO_ROOT / "scripts"
@@ -21,7 +19,6 @@ from generate_repo_map import (
     scan_dependency_edges,
     scan_runtime_packages,
     scan_source_test_mapping,
-    scan_top_level_dirs,
 )
 
 FIXED_TS = "2026-01-01T00:00:00Z"

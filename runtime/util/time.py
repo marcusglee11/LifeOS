@@ -15,6 +15,7 @@ Usage pattern:
     from runtime.util.time import audit_timestamp
     ts = audit_timestamp()   # OK in receipts, logs, human-readable output
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -51,7 +52,5 @@ def deterministic_timestamp(pinned: str) -> str:
     try:
         datetime.fromisoformat(pinned.strip())
     except ValueError as exc:
-        raise ValueError(
-            f"deterministic_timestamp: invalid ISO 8601 value: {pinned!r}"
-        ) from exc
+        raise ValueError(f"deterministic_timestamp: invalid ISO 8601 value: {pinned!r}") from exc
     return pinned.strip()

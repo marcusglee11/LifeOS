@@ -39,7 +39,6 @@ class LockedParityState:
             self._fh.close()
 
 
-
 def _atomic_write_json(path: Path, payload: Dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
@@ -48,7 +47,6 @@ def _atomic_write_json(path: Path, payload: Dict[str, Any]) -> None:
         fh.flush()
         os.fsync(fh.fileno())
     tmp.replace(path)
-
 
 
 def _read_json(path: Path, default: Dict[str, Any]) -> Dict[str, Any]:
@@ -63,7 +61,6 @@ def _read_json(path: Path, default: Dict[str, Any]) -> Dict[str, Any]:
     return payload
 
 
-
 def _git_head() -> str:
     proc = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=False)
     if proc.returncode != 0:
@@ -73,6 +70,7 @@ def _git_head() -> str:
 
 def _normalize_version(raw: str) -> str:
     import re
+
     raw = raw.strip()
     m = re.search(r"(\d+(?:\.\d+)+(?:-[A-Za-z0-9._+-]+)?)", raw)
     return m.group(1) if m else raw
@@ -80,7 +78,9 @@ def _normalize_version(raw: str) -> str:
 
 def _current_openclaw_version() -> str:
     try:
-        proc = subprocess.run(["openclaw", "--version"], capture_output=True, text=True, check=False, timeout=10)
+        proc = subprocess.run(
+            ["openclaw", "--version"], capture_output=True, text=True, check=False, timeout=10
+        )
     except subprocess.TimeoutExpired:
         return ""
     if proc.returncode != 0:
@@ -96,13 +96,16 @@ def _current_openclaw_version() -> str:
     return ""
 
 
-
 def _is_ancestor(base: str, target: str) -> bool:
     if not base or not target:
         return False
-    proc = subprocess.run(["git", "merge-base", "--is-ancestor", base, target], capture_output=True, text=True, check=False)
+    proc = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", base, target],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     return proc.returncode == 0
-
 
 
 def _sha256_file(path: Path) -> str:
@@ -113,10 +116,8 @@ def _sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-
 def _load_packet(packet_dir: Path) -> Dict[str, Any]:
     return json.loads((packet_dir / "promotion_packet.json").read_text(encoding="utf-8"))
-
 
 
 def verify_packet(packet_dir: Path, staleness_hours: int) -> VerifyResult:
@@ -124,7 +125,9 @@ def verify_packet(packet_dir: Path, staleness_hours: int) -> VerifyResult:
     try:
         packet = _load_packet(packet_dir)
     except Exception as exc:
-        return VerifyResult(ok=False, errors=[f"packet_read_failed:{type(exc).__name__}"], packet={})
+        return VerifyResult(
+            ok=False, errors=[f"packet_read_failed:{type(exc).__name__}"], packet={}
+        )
 
     ticket = packet.get("ticket")
     if not isinstance(ticket, dict):
@@ -136,7 +139,14 @@ def verify_packet(packet_dir: Path, staleness_hours: int) -> VerifyResult:
         if not str(packet.get(key) or "").strip():
             errors.append(f"packet_field_missing:{key}")
 
-    required_ticket = ["ticket_id", "change_seq", "target_instance", "issued_at", "expires_at", "tip_at_issue"]
+    required_ticket = [
+        "ticket_id",
+        "change_seq",
+        "target_instance",
+        "issued_at",
+        "expires_at",
+        "tip_at_issue",
+    ]
     for key in required_ticket:
         if not str(ticket.get(key) or "").strip():
             errors.append(f"ticket_field_missing:{key}")
@@ -167,7 +177,6 @@ def verify_packet(packet_dir: Path, staleness_hours: int) -> VerifyResult:
     return VerifyResult(ok=len(errors) == 0, errors=errors, packet=packet)
 
 
-
 def cmd_seq_allocate(args: argparse.Namespace) -> int:
     state_root = Path(args.state_dir).expanduser()
     alloc_path = state_root / "sequence_allocator.json"
@@ -194,7 +203,6 @@ def cmd_seq_allocate(args: argparse.Namespace) -> int:
     return 0
 
 
-
 def cmd_verify(args: argparse.Namespace) -> int:
     result = verify_packet(Path(args.packet_dir), staleness_hours=int(args.staleness_hours))
     payload = {
@@ -205,27 +213,54 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return 0 if result.ok else 1
 
 
-
 def cmd_apply(args: argparse.Namespace) -> int:
     attestation = Path(args.attestation)
     if not attestation.exists():
-        print(json.dumps({"pass": False, "errors": ["attestation_missing"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+        print(
+            json.dumps(
+                {"pass": False, "errors": ["attestation_missing"]},
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            )
+        )
         return 1
 
     try:
         attest_obj = json.loads(attestation.read_text(encoding="utf-8"))
     except Exception:
-        print(json.dumps({"pass": False, "errors": ["attestation_invalid"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+        print(
+            json.dumps(
+                {"pass": False, "errors": ["attestation_invalid"]},
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            )
+        )
         return 1
 
     now = int(time.time())
     if int(attest_obj.get("expires_unix") or 0) < now:
-        print(json.dumps({"pass": False, "errors": ["attestation_expired"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+        print(
+            json.dumps(
+                {"pass": False, "errors": ["attestation_expired"]},
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            )
+        )
         return 1
 
     result = verify_packet(Path(args.packet_dir), staleness_hours=int(args.staleness_hours))
     if not result.ok:
-        print(json.dumps({"pass": False, "errors": result.errors}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+        print(
+            json.dumps(
+                {"pass": False, "errors": result.errors},
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            )
+        )
         return 1
 
     packet = result.packet
@@ -285,17 +320,39 @@ def cmd_apply(args: argparse.Namespace) -> int:
         floor = int(floors.get(instance) or 0)
 
         if ticket_id in used:
-            print(json.dumps({"pass": False, "errors": ["promotion_replay_detected"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+            print(
+                json.dumps(
+                    {"pass": False, "errors": ["promotion_replay_detected"]},
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    ensure_ascii=True,
+                )
+            )
             return 1
         if seq <= floor:
-            print(json.dumps({"pass": False, "errors": ["promotion_downgrade_detected"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+            print(
+                json.dumps(
+                    {"pass": False, "errors": ["promotion_downgrade_detected"]},
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    ensure_ascii=True,
+                )
+            )
             return 1
 
         journal = _read_json(journal_path, {"entries": []})
         entries = journal.get("entries")
         if not isinstance(entries, list):
             entries = []
-        entries.append({"tx_id": tx_id, "phase": "intent", "ticket_id": ticket_id, "change_seq": seq, "ts": now})
+        entries.append(
+            {
+                "tx_id": tx_id,
+                "phase": "intent",
+                "ticket_id": ticket_id,
+                "change_seq": seq,
+                "ts": now,
+            }
+        )
         journal["entries"] = entries
         _atomic_write_json(journal_path, journal)
 
@@ -306,7 +363,15 @@ def cmd_apply(args: argparse.Namespace) -> int:
         state["last_tx_id"] = tx_id
         _atomic_write_json(state_path, state)
 
-        entries.append({"tx_id": tx_id, "phase": "commit", "ticket_id": ticket_id, "change_seq": seq, "ts": int(time.time())})
+        entries.append(
+            {
+                "tx_id": tx_id,
+                "phase": "commit",
+                "ticket_id": ticket_id,
+                "change_seq": seq,
+                "ts": int(time.time()),
+            }
+        )
         journal["entries"] = entries
         _atomic_write_json(journal_path, journal)
 
@@ -321,9 +386,12 @@ def cmd_apply(args: argparse.Namespace) -> int:
         }
         _atomic_write_json(receipts_dir / f"{tx_id}.json", receipt)
 
-    print(json.dumps({"pass": True, "tx_id": tx_id}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+    print(
+        json.dumps(
+            {"pass": True, "tx_id": tx_id}, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+        )
+    )
     return 0
-
 
 
 def cmd_record(args: argparse.Namespace) -> int:
@@ -332,7 +400,14 @@ def cmd_record(args: argparse.Namespace) -> int:
     inbox.mkdir(parents=True, exist_ok=True)
     packet_path = Path(args.packet_dir) / "promotion_packet.json"
     if not packet_path.exists():
-        print(json.dumps({"pass": False, "errors": ["packet_missing"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+        print(
+            json.dumps(
+                {"pass": False, "errors": ["packet_missing"]},
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            )
+        )
         return 1
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
     packet_id = str(packet.get("packet_id") or uuid.uuid4())
@@ -344,14 +419,22 @@ def cmd_record(args: argparse.Namespace) -> int:
         "attestation": str(args.attestation or ""),
     }
     _atomic_write_json(out, payload)
-    print(json.dumps({"pass": True, "record": str(out)}, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+    print(
+        json.dumps(
+            {"pass": True, "record": str(out)},
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        )
+    )
     return 0
-
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="OpenClaw promotion runtime state operations.")
-    parser.add_argument("--state-dir", default=str(Path.home() / ".openclaw" / "runtime" / "parity"))
+    parser.add_argument(
+        "--state-dir", default=str(Path.home() / ".openclaw" / "runtime" / "parity")
+    )
 
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -377,7 +460,6 @@ def build_parser() -> argparse.ArgumentParser:
     p_record.set_defaults(func=cmd_record)
 
     return parser
-
 
 
 def main() -> int:

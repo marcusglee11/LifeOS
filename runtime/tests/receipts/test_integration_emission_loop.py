@@ -11,12 +11,8 @@ Exit criteria coverage:
 - EC4: Reconciliation smoke test (test_reconciliation_smoke_no_land_receipts)
 - EC5: Tree OID binding (test_tree_oid_binding)
 """
+
 from __future__ import annotations
-
-import json
-from pathlib import Path
-
-import pytest
 
 from runtime.receipts.gate_check import (
     build_gate_results,
@@ -93,7 +89,9 @@ def run_emission_loop(
 
     # Evidence manifest
     evidence_manifest = [
-        make_artefact_ref("store", f"artefacts/{WORKSPACE_SHA}/{plan_core_sha256}/gate_results.json"),
+        make_artefact_ref(
+            "store", f"artefacts/{WORKSPACE_SHA}/{plan_core_sha256}/gate_results.json"
+        ),
     ]
 
     # Review summary
@@ -109,7 +107,8 @@ def run_emission_loop(
     if decision["status"] in ("REJECTED", "BLOCKED"):
         # Blocked path
         report = build_blocked_report(
-            WORKSPACE_SHA, plan_core_sha256,
+            WORKSPACE_SHA,
+            plan_core_sha256,
             reason_code=decision.get("reason_code", "GATE_FAIL"),
             gate_rollup=gate_rollup,
         )
@@ -124,8 +123,12 @@ def run_emission_loop(
     else:
         # Acceptance path
         receipt = build_acceptance_receipt(
-            WORKSPACE_SHA, workspace_tree_oid, plan_core_sha256,
-            emitter, decision, gate_rollup,
+            WORKSPACE_SHA,
+            workspace_tree_oid,
+            plan_core_sha256,
+            emitter,
+            decision,
+            gate_rollup,
             refs=evidence_manifest,
             supersedes=supersedes,
         )

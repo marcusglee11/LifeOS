@@ -9,7 +9,6 @@ Tests that validate_return_packet_preflight.py correctly enforces:
 
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -19,10 +18,7 @@ import pytest
 def repo_root():
     """Get repository root."""
     result = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        capture_output=True,
-        text=True,
-        check=True
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
     )
     return Path(result.stdout.strip())
 
@@ -41,7 +37,7 @@ def safe_packet_dir(repo_root):
         cwd=repo_root,
         input=str(probe) + "\n",
         capture_output=True,
-        text=True
+        text=True,
     )
 
     if result.returncode != 0:
@@ -72,17 +68,13 @@ def test_packet_dir_unsafe_repo_root_fails(repo_root):
         "/tmp/stage_test",  # Won't be checked due to early failure
     ]
 
-    result = subprocess.run(
-        cmd,
-        cwd=repo_root,
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run(cmd, cwd=repo_root, capture_output=True, text=True)
 
     # Should FAIL
     assert result.returncode != 0, "Script should fail for unsafe packet_dir"
-    assert "isolation violation" in result.stderr.lower() or "not gitignored" in result.stderr.lower(), \
-        f"Should report isolation violation. stderr: {result.stderr}"
+    assert (
+        "isolation violation" in result.stderr.lower() or "not gitignored" in result.stderr.lower()
+    ), f"Should report isolation violation. stderr: {result.stderr}"
 
     # Verify NO report files created in repo root
     report_json = repo_root / "preflight_report.json"
@@ -132,24 +124,21 @@ def test_packet_dir_safe_ignored_succeeds(repo_root, safe_packet_dir, tmp_path):
         str(stage_dir),
     ]
 
-    result = subprocess.run(
-        cmd,
-        cwd=repo_root,
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run(cmd, cwd=repo_root, capture_output=True, text=True)
 
     # Should NOT fail due to isolation (may fail for other validation reasons)
     if result.returncode != 0:
         # If it failed, ensure it's NOT an isolation violation
-        assert "isolation violation" not in result.stderr.lower(), \
+        assert "isolation violation" not in result.stderr.lower(), (
             f"Should not fail on isolation for gitignored dir. stderr: {result.stderr}"
+        )
         # For this test, we accept validation failures (we're testing isolation, not full validation)
 
     # Check that report was written to packet_dir (regardless of pass/fail outcome)
     report_json = packet_test_dir / "preflight_report.json"
-    assert report_json.exists(), \
+    assert report_json.exists(), (
         f"Report JSON should be written to packet_dir. stderr: {result.stderr}"
+    )
 
 
 def test_packet_dir_outside_repo_succeeds(repo_root, tmp_path):
@@ -190,34 +179,30 @@ def test_packet_dir_outside_repo_succeeds(repo_root, tmp_path):
         str(stage_dir),
     ]
 
-    result = subprocess.run(
-        cmd,
-        cwd=repo_root,
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run(cmd, cwd=repo_root, capture_output=True, text=True)
 
     # Should NOT fail due to isolation
     if result.returncode != 0:
-        assert "isolation violation" not in result.stderr.lower(), \
+        assert "isolation violation" not in result.stderr.lower(), (
             f"Should not fail on isolation for outside-repo dir. stderr: {result.stderr}"
+        )
 
     # Report should exist in packet_dir
     report_json = packet_dir / "preflight_report.json"
-    assert report_json.exists(), \
+    assert report_json.exists(), (
         f"Report JSON should be written to packet_dir. stderr: {result.stderr}"
+    )
 
 
 def test_cleanliness_gate_check():
     """Test that cleanliness_gate.py check command works."""
     result = subprocess.run(
-        [sys.executable, "scripts/cleanliness_gate.py", "check"],
-        capture_output=True,
-        text=True
+        [sys.executable, "scripts/cleanliness_gate.py", "check"], capture_output=True, text=True
     )
 
     # Should exit cleanly (0 if clean, non-zero if dirty)
     # We don't assert on exit code since repo might be dirty during testing
     # Just verify the script runs without error
-    assert "Repository is clean" in result.stdout or "Repository is dirty" in result.stderr, \
+    assert "Repository is clean" in result.stdout or "Repository is dirty" in result.stderr, (
         f"Cleanliness gate should report status. stdout: {result.stdout}, stderr: {result.stderr}"
+    )

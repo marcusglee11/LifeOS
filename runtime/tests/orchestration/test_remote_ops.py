@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 
 from runtime.orchestration.remote_ops import load_queue, try_delete_remote_branch
@@ -158,7 +158,14 @@ def test_dns_backoff_caps_at_twenty_four_hours(tmp_path: Path, monkeypatch) -> N
     expected_next = datetime(2026, 2, 11, 12, 0, 0, tzinfo=timezone.utc).isoformat()
     assert attempted["next_attempt_at"] == expected_next
 
-    queue_path = workspace_root / "artifacts" / "validation_runs" / "manual" / "manual" / "remote_ops_queue.jsonl"
+    queue_path = (
+        workspace_root
+        / "artifacts"
+        / "validation_runs"
+        / "manual"
+        / "manual"
+        / "remote_ops_queue.jsonl"
+    )
     ops = load_queue(queue_path)
     assert len(ops) == 1
     assert ops[0].attempts == 5

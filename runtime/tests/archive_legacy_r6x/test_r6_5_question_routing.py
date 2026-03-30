@@ -1,10 +1,11 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from runtime.state_machine import RuntimeFSM, RuntimeState, GovernanceError
 from runtime.gates import GateKeeper
-from runtime.replay import ReplayEngine
 from runtime.migration import MigrationEngine
-from runtime.util.questions import QuestionType
+from runtime.replay import ReplayEngine
+from runtime.state_machine import GovernanceError, RuntimeFSM, RuntimeState
+
 
 class TestR65QuestionRouting:
     """
@@ -18,7 +19,7 @@ class TestR65QuestionRouting:
         fsm = RuntimeFSM()
         fsm._RuntimeFSM__current_state = RuntimeState.GATES
         gate_keeper = GateKeeper(fsm)
-        
+
         # Gate A: Missing COO root -> GATE_FAILURE
         with patch("os.path.exists", return_value=False):
             with pytest.raises(GovernanceError) as excinfo:
@@ -26,13 +27,15 @@ class TestR65QuestionRouting:
             assert "QUESTION_GATE_FAILURE" in str(excinfo.value)
 
         # Gate B: Forbidden Import -> MODE_VIOLATION
-        with patch("os.walk", return_value=[("/root", [], ["bad.py"])]), \
-             patch("builtins.open", MagicMock()), \
-             patch("ast.parse") as mock_parse:
-            
+        with (
+            patch("os.walk", return_value=[("/root", [], ["bad.py"])]),
+            patch("builtins.open", MagicMock()),
+            patch("ast.parse") as mock_parse,
+        ):
             # Mock AST with forbidden import
             import ast
-            mock_node = ast.Import(names=[ast.alias(name='random', asname=None)])
+
+            mock_node = ast.Import(names=[ast.alias(name="random", asname=None)])
             mock_parse.return_value = MagicMock(body=[mock_node])
             # We need to mock ast.walk to yield the node
             with patch("ast.walk", return_value=[mock_node]):
@@ -41,12 +44,13 @@ class TestR65QuestionRouting:
                 assert "QUESTION_MODE_VIOLATION" in str(excinfo.value)
 
         # Gate D: Sandbox SHA Mismatch -> SANDBOX_SECURITY
-        with patch("os.path.exists", return_value=True), \
-             patch("json.load", return_value={"image_sha256": "sha256:expected"}), \
-             patch("builtins.open", MagicMock()), \
-             patch("coo_runtime.util.amu0_utils.resolve_amu0_path", return_value="/amu0"), \
-             patch("coo_runtime.runtime.gates.run_pinned_subprocess") as mock_run:
-            
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("json.load", return_value={"image_sha256": "sha256:expected"}),
+            patch("builtins.open", MagicMock()),
+            patch("coo_runtime.util.amu0_utils.resolve_amu0_path", return_value="/amu0"),
+            patch("coo_runtime.runtime.gates.run_pinned_subprocess") as mock_run,
+        ):
             mock_run.return_value = MagicMock(stdout="sha256:actual")
             with pytest.raises(GovernanceError) as excinfo:
                 gate_keeper._gate_d_sandbox_security("/manifests")
@@ -59,13 +63,16 @@ class TestR65QuestionRouting:
         fsm = RuntimeFSM()
         fsm._RuntimeFSM__current_state = RuntimeState.GATES
         replay_engine = ReplayEngine(fsm)
-        
+
         # Output mismatch -> REPLAY_VERIFICATION
-        with patch("coo_runtime.runtime.replay.ReplayEngine._verify_reference_mission"), \
-             patch("coo_runtime.runtime.replay.initialize_runtime"), \
-             patch("coo_runtime.runtime.replay.ReplayEngine._run_mission", side_effect=["out1", "out2"]), \
-             patch("coo_runtime.runtime.replay.ReplayEngine._compare_outputs", return_value=False):
-            
+        with (
+            patch("coo_runtime.runtime.replay.ReplayEngine._verify_reference_mission"),
+            patch("coo_runtime.runtime.replay.initialize_runtime"),
+            patch(
+                "coo_runtime.runtime.replay.ReplayEngine._run_mission", side_effect=["out1", "out2"]
+            ),
+            patch("coo_runtime.runtime.replay.ReplayEngine._compare_outputs", return_value=False),
+        ):
             with pytest.raises(GovernanceError) as excinfo:
                 replay_engine.execute_replay("mission", "amu0")
             assert "QUESTION_REPLAY_VERIFICATION" in str(excinfo.value)
@@ -78,7 +85,7 @@ class TestR65QuestionRouting:
         rollback = MagicMock()
         migration_engine = MigrationEngine(fsm, rollback)
         fsm._RuntimeFSM__current_state = RuntimeState.MIGRATION_SEQUENCE
-        
+
         # Test runner missing -> MIGRATION_FAILURE
         # We need to mock _run_tests to raise the error, or call it directly.
         # Calling _run_tests directly is easier.
@@ -92,19 +99,22 @@ class TestR65QuestionRouting:
         Verify FSM errors route to QUESTION_FSM_STATE_ERROR / KEY_INTEGRITY.
         """
         fsm = RuntimeFSM()
-        
+
         # Invalid transition -> FSM_STATE_ERROR
         with pytest.raises(GovernanceError) as excinfo:
-            fsm.transition_to(RuntimeState.COMPLETE) # Invalid from INIT
+            fsm.transition_to(RuntimeState.COMPLETE)  # Invalid from INIT
         assert "QUESTION_FSM_STATE_ERROR" in str(excinfo.value)
-        
+
         # Checkpoint signing failure -> KEY_INTEGRITY
         fsm._RuntimeFSM__current_state = RuntimeState.GATES
-        with patch("os.path.exists", return_value=True), \
-             patch("builtins.open", MagicMock()), \
-             patch("json.load", return_value={"mock_time": "1000"}), \
-             patch("coo_runtime.util.crypto.Signature.sign_data", side_effect=Exception("Sign fail")):
-            
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", MagicMock()),
+            patch("json.load", return_value={"mock_time": "1000"}),
+            patch(
+                "coo_runtime.util.crypto.Signature.sign_data", side_effect=Exception("Sign fail")
+            ),
+        ):
             with pytest.raises(GovernanceError) as excinfo:
                 fsm.checkpoint_state("ckpt", "/amu0")
             assert "QUESTION_KEY_INTEGRITY" in str(excinfo.value)

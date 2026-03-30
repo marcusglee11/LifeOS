@@ -2,6 +2,7 @@
 Dead Code Hygiene Tests — verify unused imports are removed and
 deprecated shims are not used by new code.
 """
+
 import ast
 from pathlib import Path
 
@@ -56,8 +57,7 @@ class TestNoUnusedImports:
             "FileLock",
         ]:
             assert not (name in imported and name not in used), (
-                f"'{name}' is imported but never used in "
-                "autonomous_build_cycle.py"
+                f"'{name}' is imported but never used in autonomous_build_cycle.py"
             )
 
     def test_spine_no_unused(self):

@@ -184,6 +184,7 @@ def sha256_file(path: Union[str, "Path"]) -> str:
         FileNotFoundError: If the file does not exist
     """
     from pathlib import Path as _Path
+
     p = _Path(path)
     if not p.exists():
         raise FileNotFoundError(f"sha256_file: file not found: {p}")

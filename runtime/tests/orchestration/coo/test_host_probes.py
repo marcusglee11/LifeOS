@@ -4,7 +4,11 @@ from pathlib import Path
 
 import yaml
 
-from scripts.campaign.gate4_host_probes import delegation_ceiling, protected_path_block, run_all_probes
+from scripts.campaign.gate4_host_probes import (
+    delegation_ceiling,
+    protected_path_block,
+    run_all_probes,
+)
 
 
 def _write_envelope(tmp_path: Path, active_levels=None) -> None:
@@ -15,7 +19,11 @@ def _write_envelope(tmp_path: Path, active_levels=None) -> None:
                 "active_levels": active_levels or ["L0", "L3", "L4"],
                 "autonomy": {"L4": {"actions": ["unknown_action_category"]}},
                 "escalation": {"fail_closed": True},
-                "protected_paths": ["docs/00_foundations/", "docs/01_governance/", "config/governance/protected_artefacts.json"],
+                "protected_paths": [
+                    "docs/00_foundations/",
+                    "docs/01_governance/",
+                    "config/governance/protected_artefacts.json",
+                ],
             },
             sort_keys=False,
         ),

@@ -4,20 +4,21 @@ Ledger Hash-Chain Verification Tests (W7-T01)
 Tests for deterministic hash-chain linking, tamper detection,
 fail-closed v1.1 enforcement, and tail-truncation detection.
 """
-import pytest
+
 import json
-from pathlib import Path
 from dataclasses import asdict
 
+import pytest
+
+from runtime.governance.HASH_POLICY_v1 import hash_json
 from runtime.orchestration.loop.ledger import (
     AttemptLedger,
     AttemptRecord,
-    LedgerHeader,
     LedgerError,
+    LedgerHeader,
     LedgerIntegrityError,
     _compute_record_hash,
 )
-from runtime.governance.HASH_POLICY_v1 import hash_json
 
 
 @pytest.fixture
@@ -49,6 +50,7 @@ def _mk_record(attempt_id: int = 1, **overrides) -> AttemptRecord:
 
 # ── Test 1: Header hash is computed and persisted on initialize ──
 
+
 class TestHeaderHash:
     def test_header_hash_computed_on_initialize(self, ledger_path):
         ledger = AttemptLedger(ledger_path)
@@ -63,13 +65,15 @@ class TestHeaderHash:
         assert len(data["header_hash"]) == 64  # SHA-256 hex
 
         # Verify deterministic
-        expected = hash_json({
-            "type": "header",
-            "schema_version": "v1.1",
-            "policy_hash": "abc",
-            "handoff_hash": "123",
-            "run_id": "run1",
-        })
+        expected = hash_json(
+            {
+                "type": "header",
+                "schema_version": "v1.1",
+                "policy_hash": "abc",
+                "handoff_hash": "123",
+                "run_id": "run1",
+            }
+        )
         assert data["header_hash"] == expected
 
     def test_header_hash_deterministic(self):
@@ -84,6 +88,7 @@ class TestHeaderHash:
 
 
 # ── Test 2: 3-record append builds correct link chain ──
+
 
 class TestChainLinking:
     def test_three_record_chain(self, ledger_path):
@@ -114,6 +119,7 @@ class TestChainLinking:
 
 # ── Test 3: Record hash determinism ──
 
+
 class TestRecordHashDeterminism:
     def test_same_input_same_hash(self, ledger_path):
         """Same record data and prev_hash produce same record_hash."""
@@ -142,6 +148,7 @@ class TestRecordHashDeterminism:
 
 # ── Test 4: Tamper record field detected by verify_chain ──
 
+
 class TestTamperDetection:
     def test_tamper_record_field_detected(self, ledger_path):
         ledger = AttemptLedger(ledger_path)
@@ -159,6 +166,7 @@ class TestTamperDetection:
 
 
 # ── Test 5: Delete middle record detected ──
+
 
 class TestMiddleDeletion:
     def test_delete_middle_record_detected(self, ledger_path):
@@ -179,6 +187,7 @@ class TestMiddleDeletion:
 
 # ── Test 6: Tamper header field detected ──
 
+
 class TestHeaderTamper:
     def test_tamper_header_field_detected(self, ledger_path):
         ledger = AttemptLedger(ledger_path)
@@ -196,34 +205,41 @@ class TestHeaderTamper:
 
 # ── Test 7: v1.1 missing header_hash fails closed on hydrate ──
 
+
 class TestFailClosedMissingHeaderHash:
     def test_v11_missing_header_hash_fails(self, ledger_path):
-        with open(ledger_path, 'w') as f:
-            json.dump({
-                "type": "header",
-                "schema_version": "v1.1",
-                "policy_hash": "p",
-                "handoff_hash": "h",
-                "run_id": "r",
-                # header_hash intentionally omitted
-            }, f)
-            f.write('\n')
+        with open(ledger_path, "w") as f:
+            json.dump(
+                {
+                    "type": "header",
+                    "schema_version": "v1.1",
+                    "policy_hash": "p",
+                    "handoff_hash": "h",
+                    "run_id": "r",
+                    # header_hash intentionally omitted
+                },
+                f,
+            )
+            f.write("\n")
 
         ledger = AttemptLedger(ledger_path)
         with pytest.raises(LedgerIntegrityError, match="missing header_hash"):
             ledger.hydrate()
 
     def test_v11_invalid_header_hash_fails(self, ledger_path):
-        with open(ledger_path, 'w') as f:
-            json.dump({
-                "type": "header",
-                "schema_version": "v1.1",
-                "policy_hash": "p",
-                "handoff_hash": "h",
-                "run_id": "r",
-                "header_hash": "bad_hash_value",
-            }, f)
-            f.write('\n')
+        with open(ledger_path, "w") as f:
+            json.dump(
+                {
+                    "type": "header",
+                    "schema_version": "v1.1",
+                    "policy_hash": "p",
+                    "handoff_hash": "h",
+                    "run_id": "r",
+                    "header_hash": "bad_hash_value",
+                },
+                f,
+            )
+            f.write("\n")
 
         ledger = AttemptLedger(ledger_path)
         with pytest.raises(LedgerIntegrityError, match="header_hash mismatch"):
@@ -231,16 +247,19 @@ class TestFailClosedMissingHeaderHash:
 
     def test_unknown_schema_version_fails_closed(self, ledger_path):
         """Unknown schema versions fail closed and require header_hash."""
-        with open(ledger_path, 'w') as f:
-            json.dump({
-                "type": "header",
-                "schema_version": "legacy_mode",
-                "policy_hash": "p",
-                "handoff_hash": "h",
-                "run_id": "r",
-                # header_hash intentionally omitted
-            }, f)
-            f.write('\n')
+        with open(ledger_path, "w") as f:
+            json.dump(
+                {
+                    "type": "header",
+                    "schema_version": "legacy_mode",
+                    "policy_hash": "p",
+                    "handoff_hash": "h",
+                    "run_id": "r",
+                    # header_hash intentionally omitted
+                },
+                f,
+            )
+            f.write("\n")
 
         ledger = AttemptLedger(ledger_path)
         with pytest.raises(LedgerIntegrityError, match="missing header_hash"):
@@ -249,9 +268,7 @@ class TestFailClosedMissingHeaderHash:
     def test_schema_version_numeric_comparison_is_not_lexical(self, ledger_path):
         """v1.10 should be treated as chain-required (numeric comparison)."""
         ledger = AttemptLedger(ledger_path)
-        header = LedgerHeader(
-            policy_hash="p", handoff_hash="h", run_id="r", schema_version="v1.10"
-        )
+        header = LedgerHeader(policy_hash="p", handoff_hash="h", run_id="r", schema_version="v1.10")
         ledger.initialize(header)
 
         reloaded = AttemptLedger(ledger_path)
@@ -263,6 +280,7 @@ class TestFailClosedMissingHeaderHash:
 
 
 # ── Test 8 & 9: Tail truncation detection ──
+
 
 class TestTailTruncation:
     def test_truncated_chain_internally_valid(self, ledger_path):
@@ -299,15 +317,14 @@ class TestTailTruncation:
         # Truncate last record
         del ledger.history[-1]
 
-        valid, errors = ledger.verify_chain(
-            expected_tip=real_tip, expected_count=real_count
-        )
+        valid, errors = ledger.verify_chain(expected_tip=real_tip, expected_count=real_count)
         assert valid is False
         assert any("chain tip mismatch" in e for e in errors)
         assert any("record count mismatch" in e for e in errors)
 
 
 # ── Test 10: integrity_check returns False for tampered v1.1 ledger ──
+
 
 class TestIntegrityCheckWithChain:
     def test_integrity_check_false_on_tamper(self, ledger_path):
@@ -317,16 +334,16 @@ class TestIntegrityCheckWithChain:
         ledger.append(_mk_record(attempt_id=1))
 
         # Tamper the on-disk record (change success field)
-        with open(ledger_path, 'r') as f:
+        with open(ledger_path, "r") as f:
             lines = f.readlines()
 
         record_data = json.loads(lines[1])
         record_data["success"] = not record_data["success"]
 
-        with open(ledger_path, 'w') as f:
+        with open(ledger_path, "w") as f:
             f.write(lines[0])
             json.dump(record_data, f)
-            f.write('\n')
+            f.write("\n")
 
         ledger2 = AttemptLedger(ledger_path)
         assert ledger2.integrity_check() is False
@@ -346,28 +363,42 @@ class TestIntegrityCheckWithChain:
 
 # ── Test 11-13: Legacy v1.0 compatibility ──
 
+
 class TestLegacyV10:
     def test_hydrate_v10_ledger_succeeds(self, ledger_path):
         """v1.0 ledger hydrates without error (no chain validation)."""
-        with open(ledger_path, 'w') as f:
-            json.dump({
-                "type": "header",
-                "schema_version": "v1.0",
-                "policy_hash": "abc",
-                "handoff_hash": "123",
-                "run_id": "run1",
-            }, f)
-            f.write('\n')
-            json.dump({
-                "attempt_id": 1, "timestamp": "", "run_id": "run1",
-                "policy_hash": "abc", "input_hash": "123",
-                "actions_taken": [], "diff_hash": None,
-                "changed_files": [], "evidence_hashes": {},
-                "success": True, "failure_class": None,
-                "terminal_reason": None, "next_action": "terminate",
-                "rationale": "ok",
-            }, f)
-            f.write('\n')
+        with open(ledger_path, "w") as f:
+            json.dump(
+                {
+                    "type": "header",
+                    "schema_version": "v1.0",
+                    "policy_hash": "abc",
+                    "handoff_hash": "123",
+                    "run_id": "run1",
+                },
+                f,
+            )
+            f.write("\n")
+            json.dump(
+                {
+                    "attempt_id": 1,
+                    "timestamp": "",
+                    "run_id": "run1",
+                    "policy_hash": "abc",
+                    "input_hash": "123",
+                    "actions_taken": [],
+                    "diff_hash": None,
+                    "changed_files": [],
+                    "evidence_hashes": {},
+                    "success": True,
+                    "failure_class": None,
+                    "terminal_reason": None,
+                    "next_action": "terminate",
+                    "rationale": "ok",
+                },
+                f,
+            )
+            f.write("\n")
 
         ledger = AttemptLedger(ledger_path)
         assert ledger.hydrate() is True
@@ -376,15 +407,18 @@ class TestLegacyV10:
 
     def test_append_blocked_on_v10_ledger(self, ledger_path):
         """Append on hydrated v1.0 ledger raises LedgerError."""
-        with open(ledger_path, 'w') as f:
-            json.dump({
-                "type": "header",
-                "schema_version": "v1.0",
-                "policy_hash": "abc",
-                "handoff_hash": "123",
-                "run_id": "run1",
-            }, f)
-            f.write('\n')
+        with open(ledger_path, "w") as f:
+            json.dump(
+                {
+                    "type": "header",
+                    "schema_version": "v1.0",
+                    "policy_hash": "abc",
+                    "handoff_hash": "123",
+                    "run_id": "run1",
+                },
+                f,
+            )
+            f.write("\n")
 
         ledger = AttemptLedger(ledger_path)
         ledger.hydrate()
@@ -394,15 +428,18 @@ class TestLegacyV10:
 
     def test_v10_verify_chain_returns_true(self, ledger_path):
         """v1.0 ledger verify_chain returns (True, []) — no chain to verify."""
-        with open(ledger_path, 'w') as f:
-            json.dump({
-                "type": "header",
-                "schema_version": "v1.0",
-                "policy_hash": "abc",
-                "handoff_hash": "123",
-                "run_id": "run1",
-            }, f)
-            f.write('\n')
+        with open(ledger_path, "w") as f:
+            json.dump(
+                {
+                    "type": "header",
+                    "schema_version": "v1.0",
+                    "policy_hash": "abc",
+                    "handoff_hash": "123",
+                    "run_id": "run1",
+                },
+                f,
+            )
+            f.write("\n")
 
         ledger = AttemptLedger(ledger_path)
         ledger.hydrate()
@@ -414,12 +451,19 @@ class TestLegacyV10:
     def test_existing_record_compatible_with_optional_fields(self):
         """AttemptRecord(**data) remains compatible when new fields are absent."""
         data = {
-            "attempt_id": 1, "timestamp": "", "run_id": "run1",
-            "policy_hash": "abc", "input_hash": "123",
-            "actions_taken": [], "diff_hash": None,
-            "changed_files": [], "evidence_hashes": {},
-            "success": True, "failure_class": None,
-            "terminal_reason": None, "next_action": "terminate",
+            "attempt_id": 1,
+            "timestamp": "",
+            "run_id": "run1",
+            "policy_hash": "abc",
+            "input_hash": "123",
+            "actions_taken": [],
+            "diff_hash": None,
+            "changed_files": [],
+            "evidence_hashes": {},
+            "success": True,
+            "failure_class": None,
+            "terminal_reason": None,
+            "next_action": "terminate",
             "rationale": "ok",
         }
         # No prev_record_hash or record_hash — should still construct
@@ -429,6 +473,7 @@ class TestLegacyV10:
 
 
 # ── get_chain_tip convenience ──
+
 
 class TestGetChainTip:
     def test_chain_tip_after_appends(self, ledger_path):

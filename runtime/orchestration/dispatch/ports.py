@@ -5,6 +5,7 @@ These are file-based communication interfaces. The COO Agent implements them
 by reading/writing files in artifacts/supervision/ and artifacts/dispatch/.
 Python Protocols are used for type-safety and documentation only.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

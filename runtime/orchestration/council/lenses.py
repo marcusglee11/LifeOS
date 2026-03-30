@@ -8,6 +8,7 @@ Implements spec sections 5, 9.4, and 9.5:
 - Coverage degradation tracking
 - Results sorted deterministically by lens_name
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

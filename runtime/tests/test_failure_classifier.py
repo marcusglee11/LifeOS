@@ -6,9 +6,8 @@ Tests the classify_test_failure() function:
 - TEST_FLAKE detection when test passed previously
 - TEST_FAILURE for standard failures
 """
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from runtime.orchestration.loop.failure_classifier import classify_test_failure
 from runtime.orchestration.loop.taxonomy import FailureClass

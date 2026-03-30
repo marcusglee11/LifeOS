@@ -12,13 +12,13 @@ Thresholds (rolling window of last N entries):
 Fail-closed: malformed ledger data or I/O errors return alert-level status
 with reason indicating the failure mode.
 """
+
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-
 
 # Default rolling window size
 DEFAULT_WINDOW_SIZE = 10
@@ -145,10 +145,7 @@ def check_bypass_utilization(
     # Take the last `window_size` records
     window = records[-window_size:]
     total = len(window)
-    bypasses = sum(
-        1 for r in window
-        if r.get("plan_bypass_info") is not None
-    )
+    bypasses = sum(1 for r in window if r.get("plan_bypass_info") is not None)
 
     rate = bypasses / total if total > 0 else 0.0
     level = _classify_level(rate)

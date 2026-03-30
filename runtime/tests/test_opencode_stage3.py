@@ -9,6 +9,7 @@ Test tiers:
   2. Free-model live          — RUN_LIVE_STAGE3_FREE=1
   3. Paid-model live          — RUN_LIVE_STAGE3_PAID=1
 """
+
 from __future__ import annotations
 
 import json
@@ -17,7 +18,7 @@ import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -27,10 +28,10 @@ from runtime.orchestration.missions.build import BuildMission
 from runtime.orchestration.missions.review import ReviewMission
 from runtime.orchestration.missions.steward import StewardMission
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_agent_response(role: str, content: str, packet=None) -> AgentResponse:
     return AgentResponse(
@@ -59,6 +60,7 @@ def _head(cwd):
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def git_repo(tmp_path):
     """Real git repo with a Python file to modify."""
@@ -69,10 +71,7 @@ def git_repo(tmp_path):
     target_dir = tmp_path / "runtime" / "agents"
     target_dir.mkdir(parents=True, exist_ok=True)
     target = target_dir / "models.py"
-    target.write_text(
-        "def clear_config_cache():\n"
-        "    _cache.clear()\n"
-    )
+    target.write_text("def clear_config_cache():\n    _cache.clear()\n")
     _git(["git", "add", "."], cwd=tmp_path)
     _git(["git", "commit", "--no-verify", "-m", "Initial: add target file"], cwd=tmp_path)
     return tmp_path
@@ -93,6 +92,7 @@ def ctx(git_repo):
 # Tier 1: Mocked — no API calls
 # ---------------------------------------------------------------------------
 
+
 class TestBuildWritesFiles:
     """Verify _apply_build_packet writes files when call_agent returns a packet."""
 
@@ -111,10 +111,13 @@ class TestBuildWritesFiles:
         mission = BuildMission()
 
         with patch("runtime.agents.api.call_agent_cli", return_value=mock_response):
-            result = mission.run(ctx, {
-                "build_packet": {"goal": "Add helper utility"},
-                "approval": {"verdict": "approved"},
-            })
+            result = mission.run(
+                ctx,
+                {
+                    "build_packet": {"goal": "Add helper utility"},
+                    "approval": {"verdict": "approved"},
+                },
+            )
 
         assert result.success is True
         new_file = git_repo / "runtime" / "agents" / "new_util.py"
@@ -126,9 +129,7 @@ class TestBuildWritesFiles:
     def test_modify_file_from_packet(self, ctx, git_repo):
         """Build mission overwrites existing file with new content from packet."""
         modified_content = (
-            "def clear_config_cache():\n"
-            '    """Clear the config cache."""\n'
-            "    _cache.clear()\n"
+            'def clear_config_cache():\n    """Clear the config cache."""\n    _cache.clear()\n'
         )
         build_packet = {
             "files": [
@@ -143,10 +144,13 @@ class TestBuildWritesFiles:
         mission = BuildMission()
 
         with patch("runtime.agents.api.call_agent_cli", return_value=mock_response):
-            result = mission.run(ctx, {
-                "build_packet": {"goal": "Add docstring to clear_config_cache"},
-                "approval": {"verdict": "approved"},
-            })
+            result = mission.run(
+                ctx,
+                {
+                    "build_packet": {"goal": "Add docstring to clear_config_cache"},
+                    "approval": {"verdict": "approved"},
+                },
+            )
 
         assert result.success is True
         content = (git_repo / "runtime" / "agents" / "models.py").read_text()
@@ -164,9 +168,7 @@ class TestFullChainMocked:
 
         # --- Build ---
         modified_content = (
-            "def clear_config_cache():\n"
-            '    """Clear the config cache."""\n'
-            "    _cache.clear()\n"
+            'def clear_config_cache():\n    """Clear the config cache."""\n    _cache.clear()\n'
         )
         builder_packet = {
             "files": [
@@ -181,29 +183,34 @@ class TestFullChainMocked:
 
         build_mission = BuildMission()
         with patch("runtime.agents.api.call_agent_cli", return_value=builder_response):
-            build_result = build_mission.run(ctx, {
-                "build_packet": {"goal": "Add docstring to clear_config_cache"},
-                "approval": {"verdict": "approved"},
-            })
+            build_result = build_mission.run(
+                ctx,
+                {
+                    "build_packet": {"goal": "Add docstring to clear_config_cache"},
+                    "approval": {"verdict": "approved"},
+                },
+            )
 
         assert build_result.success is True
         review_packet = build_result.outputs["review_packet"]
         assert review_packet["payload"]["artifacts_produced"], "Build must detect changed files"
 
         # --- Review ---
-        reviewer_content = (
-            "verdict: approved\n"
-            "rationale: Docstring added correctly.\n"
-        )
+        reviewer_content = "verdict: approved\nrationale: Docstring added correctly.\n"
         reviewer_packet = {"verdict": "approved", "rationale": "Docstring added correctly."}
-        reviewer_response = _make_agent_response("reviewer_architect", reviewer_content, reviewer_packet)
+        reviewer_response = _make_agent_response(
+            "reviewer_architect", reviewer_content, reviewer_packet
+        )
 
         review_mission = ReviewMission()
         with patch("runtime.agents.api.call_agent", return_value=reviewer_response):
-            review_result = review_mission.run(ctx, {
-                "subject_packet": review_packet,
-                "review_type": "build_review",
-            })
+            review_result = review_mission.run(
+                ctx,
+                {
+                    "subject_packet": review_packet,
+                    "review_type": "build_review",
+                },
+            )
 
         assert review_result.success is True
         verdict = review_result.outputs["verdict"]
@@ -211,10 +218,13 @@ class TestFullChainMocked:
 
         # --- Steward ---
         steward_mission = StewardMission()
-        steward_result = steward_mission.run(ctx, {
-            "review_packet": review_packet,
-            "approval": {"verdict": verdict},
-        })
+        steward_result = steward_mission.run(
+            ctx,
+            {
+                "review_packet": review_packet,
+                "approval": {"verdict": verdict},
+            },
+        )
 
         assert steward_result.success is True, f"Steward failed: {steward_result.error}"
         commit_hash = steward_result.outputs.get("commit_hash")
@@ -225,8 +235,11 @@ class TestFullChainMocked:
 
         # Verify docstring is in the committed file
         file_at_head = subprocess.run(
-            ["git", "show", f"HEAD:runtime/agents/models.py"],
-            cwd=git_repo, capture_output=True, text=True, check=True
+            ["git", "show", "HEAD:runtime/agents/models.py"],
+            cwd=git_repo,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout
         assert "Clear the config cache" in file_at_head
 
@@ -332,9 +345,9 @@ def _ensure_invariants_undone(repo_root: Path) -> None:
     """
     # First restore the ledger (always needed between runs)
     subprocess.run(
-        ["git", "checkout", "HEAD", "--",
-         "artifacts/loop_state/attempt_ledger.jsonl"],
-        cwd=repo_root, capture_output=True,
+        ["git", "checkout", "HEAD", "--", "artifacts/loop_state/attempt_ledger.jsonl"],
+        cwd=repo_root,
+        capture_output=True,
     )
 
     invariants_path = repo_root / "runtime" / "invariants.py"
@@ -342,7 +355,9 @@ def _ensure_invariants_undone(repo_root: Path) -> None:
     # Check HEAD version
     head_result = subprocess.run(
         ["git", "show", "HEAD:runtime/invariants.py"],
-        cwd=repo_root, capture_output=True, text=True,
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
     )
     head_content = head_result.stdout if head_result.returncode == 0 else ""
 
@@ -350,19 +365,29 @@ def _ensure_invariants_undone(repo_root: Path) -> None:
         # HEAD is already undone — just restore any dirty worktree changes
         subprocess.run(
             ["git", "checkout", "HEAD", "--", "runtime/invariants.py"],
-            cwd=repo_root, capture_output=True,
+            cwd=repo_root,
+            capture_output=True,
         )
     else:
         # HEAD has docstrings (prior PASS) — write canonical and commit reset
         invariants_path.write_text(_INVARIANTS_CANONICAL, encoding="utf-8")
         subprocess.run(
             ["git", "add", "runtime/invariants.py"],
-            cwd=repo_root, check=True, capture_output=True,
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
         )
         subprocess.run(
-            ["git", "commit", "--no-verify", "-m",
-             "chore(test): restore invariants.py to undone state for live test"],
-            cwd=repo_root, check=True, capture_output=True,
+            [
+                "git",
+                "commit",
+                "--no-verify",
+                "-m",
+                "chore(test): restore invariants.py to undone state for live test",
+            ],
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
         )
 
 
@@ -403,6 +428,7 @@ def test_live_spine_free_models():
 # Tier 3: Paid-model live spine run (skipped unless RUN_LIVE_STAGE3_PAID=1)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.skipif(
     os.environ.get("RUN_LIVE_STAGE3_PAID") != "1",
     reason="Set RUN_LIVE_STAGE3_PAID=1 to run live test with paid models (costs $)",
@@ -419,8 +445,8 @@ def test_live_spine_paid_models():
     # Clear any leftover override so models.yaml is used
     os.environ.pop("LIFEOS_MODEL_OVERRIDE", None)
 
-    from runtime.orchestration.loop.spine import LoopSpine
     from runtime.agents.models import resolve_model_auto
+    from runtime.orchestration.loop.spine import LoopSpine
 
     repo_root = Path(__file__).parent.parent.parent
 
@@ -441,16 +467,18 @@ def test_live_spine_paid_models():
 
     _log_comparison_result(model_label, result, elapsed, repo_root)
 
-    print(f"\n[ZEN PAID] model={model_label_model} outcome={result['outcome']} elapsed={elapsed:.1f}s commit={result.get('commit_hash')}")
+    print(
+        f"\n[ZEN PAID] model={model_label_model} outcome={result['outcome']} elapsed={elapsed:.1f}s commit={result.get('commit_hash')}"
+    )
     assert result["outcome"] == "PASS", (
-        f"Paid-model spine failed: {result}\n"
-        f"Check artifacts/terminal/ for TP_*.yaml"
+        f"Paid-model spine failed: {result}\nCheck artifacts/terminal/ for TP_*.yaml"
     )
 
 
 # ---------------------------------------------------------------------------
 # Comparison logger
 # ---------------------------------------------------------------------------
+
 
 def _log_comparison_result(
     model_label: str,

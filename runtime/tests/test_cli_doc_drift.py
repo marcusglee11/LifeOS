@@ -2,7 +2,7 @@
 CLI Doc Drift Tests — verify that documented CLI commands either exist
 in runtime/cli.py or are explicitly marked as not-yet-implemented.
 """
-import re
+
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

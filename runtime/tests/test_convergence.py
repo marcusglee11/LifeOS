@@ -2,20 +2,16 @@
 Tests for council convergence detection.
 """
 
-import pytest
-
 from runtime.orchestration.council.convergence import (
-    ConvergenceResult,
     _extract_tokens,
     _jaccard_similarity,
     compute_convergence,
-    DEFAULT_THRESHOLD,
 )
-
 
 # ---------------------------------------------------------------------------
 # _extract_tokens
 # ---------------------------------------------------------------------------
+
 
 class TestExtractTokens:
     def test_string(self):
@@ -25,23 +21,27 @@ class TestExtractTokens:
         assert "secure" in tokens
 
     def test_dict(self):
-        tokens = _extract_tokens({
-            "verdict": "Accept",
-            "claims": [
-                {"text": "No security issues found"},
-                {"text": "Architecture follows patterns"},
-            ],
-        })
+        tokens = _extract_tokens(
+            {
+                "verdict": "Accept",
+                "claims": [
+                    {"text": "No security issues found"},
+                    {"text": "Architecture follows patterns"},
+                ],
+            }
+        )
         assert "accept" in tokens
         assert "security" in tokens
         assert "architecture" in tokens
 
     def test_skips_underscore_keys(self):
-        tokens = _extract_tokens({
-            "verdict": "Accept",
-            "_actual_model": "claude-sonnet-4-5",
-            "_internal": {"debug": "info"},
-        })
+        tokens = _extract_tokens(
+            {
+                "verdict": "Accept",
+                "_actual_model": "claude-sonnet-4-5",
+                "_internal": {"debug": "info"},
+            }
+        )
         assert "accept" in tokens
         assert "claude" not in tokens
         assert "debug" not in tokens
@@ -60,6 +60,7 @@ class TestExtractTokens:
 # ---------------------------------------------------------------------------
 # _jaccard_similarity
 # ---------------------------------------------------------------------------
+
 
 class TestJaccardSimilarity:
     def test_identical_sets(self):
@@ -85,6 +86,7 @@ class TestJaccardSimilarity:
 # ---------------------------------------------------------------------------
 # compute_convergence
 # ---------------------------------------------------------------------------
+
 
 class TestComputeConvergence:
     def test_identical_outputs(self):

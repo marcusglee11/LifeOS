@@ -5,14 +5,19 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-import yaml
-
 from runtime.orchestration.coo.claim_verifier import collect_evidence, verify_claims
-from runtime.orchestration.coo.commands import _parse_escalation_packet, _parse_ntp, cmd_coo_direct, cmd_coo_propose
+from runtime.orchestration.coo.commands import (
+    _parse_escalation_packet,
+    _parse_ntp,
+    cmd_coo_direct,
+    cmd_coo_propose,
+)
 from runtime.orchestration.coo.mirror import build_evaluation_row, diff_evidence
-from runtime.orchestration.coo.parser import _extract_yaml_payload_with_stage, parse_proposal_response
+from runtime.orchestration.coo.parser import (
+    _extract_yaml_payload_with_stage,
+    parse_proposal_response,
+)
 from runtime.tests.orchestration.coo.test_commands import _write_backlog, _write_delegation
-
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 FIXTURE_ROOT = REPO_ROOT / "artifacts" / "coo" / "promotion_campaign" / "fixtures"
@@ -21,16 +26,76 @@ STEP6_ROOT = REPO_ROOT / "artifacts" / "coo" / "step6_parity_pack"
 
 def _fixture_specs():
     return [
-        ("fixture_propose", STEP6_ROOT / "propose_context.json", STEP6_ROOT / "propose_expected.yaml", "propose", "task_proposal"),
-        ("fixture_ntp", STEP6_ROOT / "ntp_context.json", STEP6_ROOT / "ntp_expected.yaml", "propose", "nothing_to_propose"),
-        ("fixture_escalation", STEP6_ROOT / "escalation_context.json", STEP6_ROOT / "escalation_expected.yaml", "direct", "escalation_packet"),
-        ("fixture_ambiguous", STEP6_ROOT / "ambiguous_context.json", STEP6_ROOT / "ambiguous_expected.yaml", "direct", "escalation_packet"),
-        ("blocked_truth", FIXTURE_ROOT / "blocked_truth_context.json", FIXTURE_ROOT / "blocked_truth_expected.yaml", "propose", "nothing_to_propose"),
-        ("contradictory_truth", FIXTURE_ROOT / "contradictory_truth_context.json", FIXTURE_ROOT / "contradictory_truth_expected.yaml", "propose", "nothing_to_propose"),
-        ("repeated_propose", FIXTURE_ROOT / "repeated_propose_context.json", FIXTURE_ROOT / "repeated_propose_expected.yaml", "propose", "task_proposal"),
-        ("direct_governance", FIXTURE_ROOT / "direct_governance_context.json", FIXTURE_ROOT / "direct_governance_expected.yaml", "direct", "escalation_packet"),
-        ("direct_budget", FIXTURE_ROOT / "direct_budget_context.json", FIXTURE_ROOT / "direct_budget_expected.yaml", "direct", "escalation_packet"),
-        ("direct_unknown_category", FIXTURE_ROOT / "direct_unknown_category_context.json", FIXTURE_ROOT / "direct_unknown_category_expected.yaml", "direct", "escalation_packet"),
+        (
+            "fixture_propose",
+            STEP6_ROOT / "propose_context.json",
+            STEP6_ROOT / "propose_expected.yaml",
+            "propose",
+            "task_proposal",
+        ),
+        (
+            "fixture_ntp",
+            STEP6_ROOT / "ntp_context.json",
+            STEP6_ROOT / "ntp_expected.yaml",
+            "propose",
+            "nothing_to_propose",
+        ),
+        (
+            "fixture_escalation",
+            STEP6_ROOT / "escalation_context.json",
+            STEP6_ROOT / "escalation_expected.yaml",
+            "direct",
+            "escalation_packet",
+        ),
+        (
+            "fixture_ambiguous",
+            STEP6_ROOT / "ambiguous_context.json",
+            STEP6_ROOT / "ambiguous_expected.yaml",
+            "direct",
+            "escalation_packet",
+        ),
+        (
+            "blocked_truth",
+            FIXTURE_ROOT / "blocked_truth_context.json",
+            FIXTURE_ROOT / "blocked_truth_expected.yaml",
+            "propose",
+            "nothing_to_propose",
+        ),
+        (
+            "contradictory_truth",
+            FIXTURE_ROOT / "contradictory_truth_context.json",
+            FIXTURE_ROOT / "contradictory_truth_expected.yaml",
+            "propose",
+            "nothing_to_propose",
+        ),
+        (
+            "repeated_propose",
+            FIXTURE_ROOT / "repeated_propose_context.json",
+            FIXTURE_ROOT / "repeated_propose_expected.yaml",
+            "propose",
+            "task_proposal",
+        ),
+        (
+            "direct_governance",
+            FIXTURE_ROOT / "direct_governance_context.json",
+            FIXTURE_ROOT / "direct_governance_expected.yaml",
+            "direct",
+            "escalation_packet",
+        ),
+        (
+            "direct_budget",
+            FIXTURE_ROOT / "direct_budget_context.json",
+            FIXTURE_ROOT / "direct_budget_expected.yaml",
+            "direct",
+            "escalation_packet",
+        ),
+        (
+            "direct_unknown_category",
+            FIXTURE_ROOT / "direct_unknown_category_context.json",
+            FIXTURE_ROOT / "direct_unknown_category_expected.yaml",
+            "direct",
+            "escalation_packet",
+        ),
     ]
 
 
@@ -44,7 +109,9 @@ def test_all_promotion_fixtures() -> None:
         _write_delegation(tmp_path)
 
         before = collect_evidence(tmp_path)
-        with patch("runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml):
+        with patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml
+        ):
             if mode == "propose":
                 rc = cmd_coo_propose(
                     argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),

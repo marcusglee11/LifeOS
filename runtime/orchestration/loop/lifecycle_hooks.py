@@ -73,7 +73,9 @@ def check_envelope_constraints(
     from runtime.api.governance_api import EnvelopeEnforcer
 
     if not scope_paths:
-        return HookResult(name="envelope_constraints", passed=True, reason="no scope paths to validate")
+        return HookResult(
+            name="envelope_constraints", passed=True, reason="no scope paths to validate"
+        )
 
     enforcer = EnvelopeEnforcer(repo_root)
     violations: List[str] = []
@@ -159,7 +161,9 @@ def check_evidence_completeness(
 ) -> HookResult:
     """Tier enforcement via enforce_evidence_tier (when evidence_dir provided)."""
     if evidence_dir is None:
-        return HookResult(name="evidence_completeness", passed=True, reason="no evidence_dir, skipped")
+        return HookResult(
+            name="evidence_completeness", passed=True, reason="no evidence_dir, skipped"
+        )
 
     evidence_path = Path(evidence_dir)
     if not evidence_path.exists():
@@ -169,7 +173,7 @@ def check_evidence_completeness(
             reason=f"evidence_dir does not exist: {evidence_dir}",
         )
 
-    from runtime.validation.evidence import enforce_evidence_tier, EvidenceError
+    from runtime.validation.evidence import EvidenceError, enforce_evidence_tier
 
     try:
         enforce_evidence_tier(evidence_path, evidence_tier)
@@ -220,11 +224,15 @@ def run_hook_sequence(
     return seq
 
 
-def run_pre_hooks(kwargs: Dict[str, Any], *, hooks: Optional[List[HookFn]] = None) -> HookSequenceResult:
+def run_pre_hooks(
+    kwargs: Dict[str, Any], *, hooks: Optional[List[HookFn]] = None
+) -> HookSequenceResult:
     """Run pre-run governance hooks. Returns aggregated result."""
     return run_hook_sequence(hooks or DEFAULT_PRE_RUN_HOOKS, "pre_run", kwargs)
 
 
-def run_post_hooks(kwargs: Dict[str, Any], *, hooks: Optional[List[HookFn]] = None) -> HookSequenceResult:
+def run_post_hooks(
+    kwargs: Dict[str, Any], *, hooks: Optional[List[HookFn]] = None
+) -> HookSequenceResult:
     """Run post-run governance hooks. Returns aggregated result."""
     return run_hook_sequence(hooks or DEFAULT_POST_RUN_HOOKS, "post_run", kwargs)

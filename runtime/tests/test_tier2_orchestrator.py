@@ -3,20 +3,19 @@ import copy
 import hashlib
 import json
 import subprocess
-from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import Any, List
 
 import pytest
 
 # These imports define the Tier-2 orchestration interface you will implement.
 from runtime.orchestration.engine import (
-    Orchestrator,
-    WorkflowDefinition,
-    StepSpec,
-    ExecutionContext,
-    OrchestrationResult,
     AntiFailureViolation,
     EnvelopeViolation,
+    ExecutionContext,
+    OrchestrationResult,
+    Orchestrator,
+    StepSpec,
+    WorkflowDefinition,
 )
 
 
@@ -33,13 +32,22 @@ def temp_git_repo(tmp_path):
 
     # Initialize git
     subprocess.run(["git", "init"], cwd=repo_dir, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_dir, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo_dir, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_dir,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], cwd=repo_dir, check=True, capture_output=True
+    )
 
     # Create initial commit (required for baseline_commit detection)
     (repo_dir / "README.md").write_text("# Test")
     subprocess.run(["git", "add", "README.md"], cwd=repo_dir, check=True, capture_output=True)
-    subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=repo_dir, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], cwd=repo_dir, check=True, capture_output=True
+    )
 
     return repo_dir
 
@@ -221,7 +229,7 @@ def test_orchestrator_enforces_execution_envelope():
 
 def test_executed_steps_are_snapshotted() -> None:
     """
-    Ensure the orchestrator snapshots (deepcopies) executed steps so that 
+    Ensure the orchestrator snapshots (deepcopies) executed steps so that
     subsequent mutation of the input payload does not corrupt the history.
     """
     # Construct a workflow with a mutable payload in the StepSpec
@@ -273,11 +281,13 @@ def test_orchestrator_dispatches_mission_successfully(temp_git_repo, monkeypatch
     mission_available = False
     try:
         from runtime.orchestration import registry
-        if hasattr(registry, 'MISSION_REGISTRY') and 'echo' in registry.MISSION_REGISTRY:
+
+        if hasattr(registry, "MISSION_REGISTRY") and "echo" in registry.MISSION_REGISTRY:
             mission_available = True
     except ImportError:
         try:
             from runtime.orchestration.missions import get_mission_class
+
             get_mission_class("echo")
             mission_available = True
         except Exception:
@@ -286,7 +296,9 @@ def test_orchestrator_dispatches_mission_successfully(temp_git_repo, monkeypatch
 
     # ENFORCE: echo-or-skip (no fallback)
     if not mission_available:
-        pytest.skip("Echo mission not available; test requires echo for determinism (echo-or-skip rule)")
+        pytest.skip(
+            "Echo mission not available; test requires echo for determinism (echo-or-skip rule)"
+        )
 
     orchestrator = Orchestrator()
 
@@ -297,13 +309,9 @@ def test_orchestrator_dispatches_mission_successfully(temp_git_repo, monkeypatch
             StepSpec(
                 id="echo-step",
                 kind="runtime",
-                payload={
-                    "operation": "mission",
-                    "mission_type": "echo",
-                    "inputs": {}
-                }
+                payload={"operation": "mission", "mission_type": "echo", "inputs": {}},
             )
-        ]
+        ],
     )
 
     ctx = ExecutionContext(initial_state={})
@@ -336,16 +344,20 @@ def test_orchestrator_handles_unknown_mission_type():
                 payload={
                     "operation": "mission",
                     "mission_type": "nonexistent_type_xyz",
-                    "inputs": {}
-                }
+                    "inputs": {},
+                },
             )
-        ]
+        ],
     )
 
     result = orchestrator.run_workflow(workflow, ExecutionContext(initial_state={}))
 
     # REQUIRED ASSERTIONS (per instruction block E.P0.2)
     assert result.success is False, "Expected failure for unknown mission type"
-    assert result.failed_step_id == "unknown-step", f"Expected failed_step_id='unknown-step', got {result.failed_step_id}"
+    assert result.failed_step_id == "unknown-step", (
+        f"Expected failed_step_id='unknown-step', got {result.failed_step_id}"
+    )
     # Check error message contains mission type (flexible matching - avoid exact phrases)
-    assert "nonexistent_type_xyz" in result.error_message, f"Error message should mention mission type: {result.error_message}"
+    assert "nonexistent_type_xyz" in result.error_message, (
+        f"Error message should mention mission type: {result.error_message}"
+    )

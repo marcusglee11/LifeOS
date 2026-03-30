@@ -5,27 +5,27 @@ Mock types (CouncilRunPlanCore, CouncilRunMeta, CouncilRunPlan) are defined here
 because the A2 models module has not yet merged. Real CouncilBlockedError and
 SchemaGateResult come from the existing council package.
 """
+
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import pytest
-from dataclasses import dataclass, field
-from typing import Any
+
+# The module under test
+from runtime.orchestration.council.lenses import (
+    LensDispatchResult,
+    dispatch_lenses,
+)
 
 # Real imports from the council package
 from runtime.orchestration.council.models import CouncilBlockedError
 from runtime.orchestration.council.schema_gate import SchemaGateResult
 
-# The module under test
-from runtime.orchestration.council.lenses import (
-    dispatch_lenses,
-    LensResult,
-    LensDispatchResult,
-)
-
-
 # ---------------------------------------------------------------------------
 # Mock plan types (A2 has not merged yet; these mirror the real spec shapes)
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class CouncilRunPlanCore:
@@ -54,6 +54,7 @@ class CouncilRunPlan:
 # Helper factories
 # ---------------------------------------------------------------------------
 
+
 def _make_plan(
     required_lenses: tuple = ("Risk",),
     model_assignments: dict | None = None,
@@ -68,7 +69,9 @@ def _make_plan(
         required_lenses=required_lenses,
         model_assignments=model_assignments or {l: "model-x" for l in required_lenses},
         mandatory_lenses=mandatory_lenses if mandatory_lenses is not None else frozenset(),
-        waivable_lenses=waivable_lenses if waivable_lenses is not None else frozenset(required_lenses),
+        waivable_lenses=waivable_lenses
+        if waivable_lenses is not None
+        else frozenset(required_lenses),
     )
     meta = CouncilRunMeta(
         run_id="run-a5-test",
@@ -102,11 +105,15 @@ def _always_valid_executor(lens_name: str, model: str, context: dict) -> dict:
     return {"output": f"{lens_name}_ok"}
 
 
-def _always_valid_validator(raw: dict, lens_name: str, run_type: str, tier: str) -> SchemaGateResult:
+def _always_valid_validator(
+    raw: dict, lens_name: str, run_type: str, tier: str
+) -> SchemaGateResult:
     return _valid_gate_result()
 
 
-def _always_invalid_validator(raw: dict, lens_name: str, run_type: str, tier: str) -> SchemaGateResult:
+def _always_invalid_validator(
+    raw: dict, lens_name: str, run_type: str, tier: str
+) -> SchemaGateResult:
     return _invalid_gate_result()
 
 
@@ -114,9 +121,14 @@ def _always_invalid_validator(raw: dict, lens_name: str, run_type: str, tier: st
 # Test 1: single lens happy path
 # ---------------------------------------------------------------------------
 
+
 def test_dispatch_single_lens_success():
-    plan = _make_plan(required_lenses=("Risk",), mandatory_lenses=frozenset(), waivable_lenses=frozenset({"Risk"}))
-    result = dispatch_lenses(plan=plan, executor=_always_valid_executor, validator=_always_valid_validator)
+    plan = _make_plan(
+        required_lenses=("Risk",), mandatory_lenses=frozenset(), waivable_lenses=frozenset({"Risk"})
+    )
+    result = dispatch_lenses(
+        plan=plan, executor=_always_valid_executor, validator=_always_valid_validator
+    )
 
     assert isinstance(result, LensDispatchResult)
     assert result.all_passed is True
@@ -135,6 +147,7 @@ def test_dispatch_single_lens_success():
 # Test 2: multiple lenses -- results sorted deterministically by lens_name
 # ---------------------------------------------------------------------------
 
+
 def test_dispatch_multiple_lenses_sorted_by_name():
     lenses = ("Risk", "Governance", "Architecture")
     plan = _make_plan(
@@ -143,7 +156,9 @@ def test_dispatch_multiple_lenses_sorted_by_name():
         mandatory_lenses=frozenset(),
         waivable_lenses=frozenset(lenses),
     )
-    result = dispatch_lenses(plan=plan, executor=_always_valid_executor, validator=_always_valid_validator)
+    result = dispatch_lenses(
+        plan=plan, executor=_always_valid_executor, validator=_always_valid_validator
+    )
 
     names = [lr.lens_name for lr in result.lens_results]
     assert names == sorted(names), "results must be sorted by lens_name"
@@ -154,6 +169,7 @@ def test_dispatch_multiple_lenses_sorted_by_name():
 # ---------------------------------------------------------------------------
 # Test 3: retry then success (validator fails on first call, succeeds on second)
 # ---------------------------------------------------------------------------
+
 
 def test_dispatch_lens_retry_then_success():
     call_counts: dict[str, int] = {"n": 0}
@@ -169,7 +185,9 @@ def test_dispatch_lens_retry_then_success():
         mandatory_lenses=frozenset(),
         waivable_lenses=frozenset({"Risk"}),
     )
-    result = dispatch_lenses(plan=plan, executor=_always_valid_executor, validator=counting_validator, max_retries=2)
+    result = dispatch_lenses(
+        plan=plan, executor=_always_valid_executor, validator=counting_validator, max_retries=2
+    )
 
     assert result.all_passed is True
     assert len(result.lens_results) == 1
@@ -181,6 +199,7 @@ def test_dispatch_lens_retry_then_success():
 # ---------------------------------------------------------------------------
 # Test 4: retries exhausted, lens is waivable -> waived, coverage_degraded
 # ---------------------------------------------------------------------------
+
 
 def test_dispatch_lens_retry_exhausted_waivable():
     plan = _make_plan(
@@ -209,6 +228,7 @@ def test_dispatch_lens_retry_exhausted_waivable():
 # Test 5: retries exhausted, lens is mandatory -> CouncilBlockedError raised
 # ---------------------------------------------------------------------------
 
+
 def test_dispatch_lens_retry_exhausted_mandatory_blocks():
     plan = _make_plan(
         required_lenses=("Risk",),
@@ -232,6 +252,7 @@ def test_dispatch_lens_retry_exhausted_mandatory_blocks():
 # Test 6: mixed results -- one success, one waived -> coverage_degraded
 # ---------------------------------------------------------------------------
 
+
 def test_dispatch_mixed_results_coverage_degraded():
     lenses = ("Alpha", "Beta")
     call_counts: dict[str, int] = {}
@@ -249,7 +270,9 @@ def test_dispatch_mixed_results_coverage_degraded():
         mandatory_lenses=frozenset(),
         waivable_lenses=frozenset({"Beta"}),
     )
-    result = dispatch_lenses(plan=plan, executor=_always_valid_executor, validator=mixed_validator, max_retries=2)
+    result = dispatch_lenses(
+        plan=plan, executor=_always_valid_executor, validator=mixed_validator, max_retries=2
+    )
 
     assert result.coverage_degraded is True
     assert result.all_passed is False
@@ -264,6 +287,7 @@ def test_dispatch_mixed_results_coverage_degraded():
 # Test 7: empty required_lenses (T1 fast path) -> all_passed, no coverage degradation
 # ---------------------------------------------------------------------------
 
+
 def test_dispatch_no_lenses_t1():
     plan = _make_plan(
         required_lenses=(),
@@ -272,7 +296,9 @@ def test_dispatch_no_lenses_t1():
         waivable_lenses=frozenset(),
         tier="T1",
     )
-    result = dispatch_lenses(plan=plan, executor=_always_valid_executor, validator=_always_valid_validator)
+    result = dispatch_lenses(
+        plan=plan, executor=_always_valid_executor, validator=_always_valid_validator
+    )
 
     assert isinstance(result, LensDispatchResult)
     assert result.lens_results == []
@@ -285,6 +311,7 @@ def test_dispatch_no_lenses_t1():
 # ---------------------------------------------------------------------------
 # Test 8: executor raises exception -> counts as failure; waivable -> waived
 # ---------------------------------------------------------------------------
+
 
 def test_dispatch_executor_exception_counts_as_failure():
     def raising_executor(lens_name: str, model: str, context: dict) -> dict:

@@ -12,25 +12,26 @@ Tests load_guardrails_config() and check_diff() with:
 - Diff flagged for excessive symbol renames
 - Cross-concern flag fires on multi-extension diff
 """
+
 from __future__ import annotations
 
 import textwrap
-import pytest
 from pathlib import Path
 
+import pytest
+
 from runtime.orchestration.loop.semantic_guardrails import (
-    GuardrailsConfig,
     DiffStats,
-    GuardrailResult,
+    GuardrailsConfig,
     SemanticGuardrailsConfigError,
     check_diff,
     load_guardrails_config,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_config(**overrides: object) -> GuardrailsConfig:
     """Build a minimal valid GuardrailsConfig with optional overrides."""
@@ -64,6 +65,7 @@ def _make_diff(**overrides: object) -> DiffStats:
 # ---------------------------------------------------------------------------
 # Config loading tests
 # ---------------------------------------------------------------------------
+
 
 class TestLoadGuardrailsConfig:
     """Tests for load_guardrails_config()."""
@@ -115,13 +117,15 @@ class TestLoadGuardrailsConfig:
     def test_valid_minimal_config(self, tmp_path: Path) -> None:
         """Minimal valid YAML loads without error."""
         minimal = tmp_path / "minimal.yaml"
-        minimal.write_text(textwrap.dedent("""\
+        minimal.write_text(
+            textwrap.dedent("""\
             min_line_change_for_semantic_review: 5
             max_symbol_renames_per_cycle: 10
             require_test_for_new_functions: true
             require_test_for_deleted_functions: false
             docstring_required_for_public_api: false
-        """))
+        """)
+        )
         config = load_guardrails_config(minimal)
         assert config.min_line_change_for_semantic_review == 5
         assert config.max_symbol_renames_per_cycle == 10
@@ -134,26 +138,30 @@ class TestLoadGuardrailsConfig:
     def test_string_bool_values_are_rejected(self, tmp_path: Path) -> None:
         """Quoted boolean-like strings are rejected (strict bool required)."""
         bad_types = tmp_path / "bad_types.yaml"
-        bad_types.write_text(textwrap.dedent("""\
+        bad_types.write_text(
+            textwrap.dedent("""\
             min_line_change_for_semantic_review: 5
             max_symbol_renames_per_cycle: 10
             require_test_for_new_functions: "false"
             require_test_for_deleted_functions: true
             docstring_required_for_public_api: false
-        """))
+        """)
+        )
         with pytest.raises(SemanticGuardrailsConfigError, match="must be bool"):
             load_guardrails_config(bad_types)
 
     def test_bool_for_integer_field_is_rejected(self, tmp_path: Path) -> None:
         """Boolean values are rejected for integer fields."""
         bad_types = tmp_path / "bool_for_int.yaml"
-        bad_types.write_text(textwrap.dedent("""\
+        bad_types.write_text(
+            textwrap.dedent("""\
             min_line_change_for_semantic_review: true
             max_symbol_renames_per_cycle: 10
             require_test_for_new_functions: true
             require_test_for_deleted_functions: true
             docstring_required_for_public_api: false
-        """))
+        """)
+        )
         with pytest.raises(SemanticGuardrailsConfigError, match="must be int"):
             load_guardrails_config(bad_types)
 
@@ -161,6 +169,7 @@ class TestLoadGuardrailsConfig:
 # ---------------------------------------------------------------------------
 # check_diff heuristic tests
 # ---------------------------------------------------------------------------
+
 
 class TestCheckDiff:
     """Tests for check_diff()."""

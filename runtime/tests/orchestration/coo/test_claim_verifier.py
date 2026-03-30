@@ -1,14 +1,12 @@
 """Tests for COO claim verifier module."""
+
 from __future__ import annotations
 
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from runtime.orchestration.coo.backlog import TaskEntry
 from runtime.orchestration.coo.claim_verifier import (
-    ClaimViolation,
     EvidenceSnapshot,
     collect_evidence,
     verify_claims,
@@ -96,7 +94,8 @@ class TestVerifyClaimsCompletedPatterns:
         output = "T-009 completed successfully."
         violations = verify_claims(output, snapshot)
         execution_violations = [
-            v for v in violations
+            v
+            for v in violations
             if "T-009" in (v.required_evidence or "") and v.claim_type == "execution_state"
         ]
         assert execution_violations == []

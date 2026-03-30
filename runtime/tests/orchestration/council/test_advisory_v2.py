@@ -15,25 +15,26 @@ Tests:
  5. Advisory FSM run skips closure gate (S3 not in states)
  6. Advisory synthesis passes without evidence_summary
 """
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from runtime.orchestration.council.compiler import compile_council_run_plan_v2
 from runtime.orchestration.council.fsm import (
-    CouncilFSMv2,
     STATE_S3_CLOSURE_GATE,
     STATE_TERMINAL_COMPLETE,
+    CouncilFSMv2,
 )
 from runtime.orchestration.council.models import (
-    CouncilRunPlanCore,
-    CouncilRunMeta,
-    compute_plan_core_hash,
     VERDICT_ACCEPT,
+    CouncilRunMeta,
+    CouncilRunPlanCore,
+    compute_plan_core_hash,
 )
 from runtime.orchestration.council.policy import load_council_policy
-from runtime.orchestration.council.schema_gate import validate_lens_output, validate_synthesis_output
-
+from runtime.orchestration.council.schema_gate import (
+    validate_lens_output,
+    validate_synthesis_output,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -97,7 +98,12 @@ def _valid_advisory_lens(lens_name: str = "Risk") -> dict:
         "notes": "Advisory assessment.",
         "evidence_status": "evidenced",
         "recommendations": [
-            {"action": "proceed_with_caution", "rationale": "low risk", "expected_impact": "low", "confidence": "high"}
+            {
+                "action": "proceed_with_caution",
+                "rationale": "low risk",
+                "expected_impact": "low",
+                "confidence": "high",
+            }
         ],
     }
 
@@ -156,8 +162,14 @@ def _make_core(**overrides) -> CouncilRunPlanCore:
     return CouncilRunPlanCore(**defaults)
 
 
-def _make_fsm(core: CouncilRunPlanCore, synth_fn=None, chal_fn=None, lens_fn=None,
-              closure_builder=None, closure_validator=None):
+def _make_fsm(
+    core: CouncilRunPlanCore,
+    synth_fn=None,
+    chal_fn=None,
+    lens_fn=None,
+    closure_builder=None,
+    closure_validator=None,
+):
     policy = _policy()
     meta = CouncilRunMeta(
         run_id="advisory-test-01",

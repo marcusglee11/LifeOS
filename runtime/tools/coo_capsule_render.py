@@ -7,7 +7,6 @@ import argparse
 import sys
 from pathlib import Path
 
-
 MINI_BEGIN = "COO_E2E_MINI_CAPSULE_BEGIN"
 MINI_END = "COO_E2E_MINI_CAPSULE_END"
 DEFAULT_KEYS = [

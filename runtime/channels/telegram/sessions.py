@@ -3,6 +3,7 @@
 Separate from status.py (bot-level heartbeat). This module manages user-scoped
 session state, keyed by chat_id. v1 stubs only — wires in future session_id storage.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

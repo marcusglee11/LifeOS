@@ -5,14 +5,14 @@ Tests the eligibility checker, Review Packet gate, doc stewardship gate,
 and session completion orchestrator.
 """
 
-import pytest
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
-import shutil
 from pathlib import Path
-from datetime import datetime
+
+import pytest
 
 
 @pytest.fixture
@@ -23,7 +23,9 @@ def temp_repo():
 
         # Initialize git repo
         subprocess.run(["git", "init"], cwd=repo_root, check=True, capture_output=True)
-        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_root, check=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@example.com"], cwd=repo_root, check=True
+        )
         subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo_root, check=True)
 
         # Create directory structure
@@ -35,13 +37,14 @@ def temp_repo():
 
         # Create minimal governance baseline
         baseline = {
-            'artifacts': [
-                {'path': 'docs/00_foundations/protected.md', 'sha256': 'abc123'},
-                {'path': 'docs/01_governance/ruling.md', 'sha256': 'def456'}
+            "artifacts": [
+                {"path": "docs/00_foundations/protected.md", "sha256": "abc123"},
+                {"path": "docs/01_governance/ruling.md", "sha256": "def456"},
             ]
         }
         import yaml
-        with open(repo_root / "config" / "governance_baseline.yaml", 'w') as f:
+
+        with open(repo_root / "config" / "governance_baseline.yaml", "w") as f:
             yaml.dump(baseline, f)
 
         # Create minimal INDEX.md
@@ -56,7 +59,12 @@ Last Updated: 2025-01-01
 
         # Initial commit
         subprocess.run(["git", "add", "."], cwd=repo_root, check=True)
-        subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=repo_root, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "Initial commit"],
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
+        )
 
         yield repo_root
 
@@ -75,7 +83,12 @@ class TestSessionChecker:
 
         # Commit checker script (test infrastructure, not test subject)
         subprocess.run(["git", "add", "scripts/"], cwd=temp_repo, check=True, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "Add checker script"], cwd=temp_repo, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "Add checker script"],
+            cwd=temp_repo,
+            check=True,
+            capture_output=True,
+        )
 
         # Modify 3 files (non-governance) - this is what we're testing
         (temp_repo / "file1.txt").write_text("content")
@@ -87,13 +100,13 @@ class TestSessionChecker:
             [sys.executable, "scripts/claude_session_checker.py"],
             cwd=temp_repo,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 0  # Eligible
         output = json.loads(result.stdout)
-        assert output['eligible'] is True
-        assert output['stats']['file_count'] == 3
+        assert output["eligible"] is True
+        assert output["stats"]["file_count"] == 3
 
     def test_lightweight_blocked_too_many_files(self, temp_repo):
         """Lightweight eligibility BLOCKED by >5 files."""
@@ -114,13 +127,13 @@ class TestSessionChecker:
             [sys.executable, "scripts/claude_session_checker.py"],
             cwd=temp_repo,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 1  # NOT eligible
         output = json.loads(result.stdout)
-        assert output['eligible'] is False
-        assert any('Too many files' in v for v in output['violations'])
+        assert output["eligible"] is False
+        assert any("Too many files" in v for v in output["violations"])
 
     def test_lightweight_blocked_governance_path(self, temp_repo):
         """Lightweight eligibility BLOCKED by governance path."""
@@ -141,13 +154,13 @@ class TestSessionChecker:
             [sys.executable, "scripts/claude_session_checker.py"],
             cwd=temp_repo,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 1  # NOT eligible
         output = json.loads(result.stdout)
-        assert output['eligible'] is False
-        assert any('Governance-controlled' in v for v in output['violations'])
+        assert output["eligible"] is False
+        assert any("Governance-controlled" in v for v in output["violations"])
 
 
 class TestReviewPacketGate:
@@ -166,13 +179,13 @@ class TestReviewPacketGate:
             [sys.executable, "scripts/claude_review_packet_gate.py"],
             cwd=temp_repo,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 1  # Failed
         output = json.loads(result.stdout)
-        assert output['passed'] is False
-        assert any('No Review Packet found' in e for e in output['errors'])
+        assert output["passed"] is False
+        assert any("No Review Packet found" in e for e in output["errors"])
 
     def test_packet_gate_finds_recent_packet(self, temp_repo):
         """Review Packet gate finds recent packet in root."""
@@ -212,12 +225,12 @@ Test appendix.
             [sys.executable, "scripts/claude_review_packet_gate.py", "--lightweight"],
             cwd=temp_repo,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # May pass or fail depending on validation, but should find the packet
         output = json.loads(result.stdout)
-        assert output['review_packet_path'] is not None
+        assert output["review_packet_path"] is not None
 
 
 class TestDocStewardshipGate:
@@ -238,13 +251,13 @@ class TestDocStewardshipGate:
             [sys.executable, "scripts/claude_doc_stewardship_gate.py"],
             cwd=temp_repo,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 1  # Failed (INDEX.md not updated)
         output = json.loads(result.stdout)
-        assert output['docs_modified'] is True
-        assert not output['passed']
+        assert output["docs_modified"] is True
+        assert not output["passed"]
 
     def test_doc_gate_passes_no_docs_changes(self, temp_repo):
         """Doc stewardship gate passes when no docs/ changes."""
@@ -261,13 +274,13 @@ class TestDocStewardshipGate:
             [sys.executable, "scripts/claude_doc_stewardship_gate.py"],
             cwd=temp_repo,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 0  # Passed
         output = json.loads(result.stdout)
-        assert output['docs_modified'] is False
-        assert output['passed'] is True
+        assert output["docs_modified"] is False
+        assert output["passed"] is True
 
 
 class TestSessionComplete:
@@ -281,7 +294,7 @@ class TestSessionComplete:
             "claude_review_packet_gate.py",
             "claude_doc_stewardship_gate.py",
             "claude_session_complete.py",
-            "validate_review_packet.py"
+            "validate_review_packet.py",
         ]
 
         for script in scripts:
@@ -320,8 +333,10 @@ Test.
             cwd=temp_repo,
             capture_output=True,
             text=True,
-            input="n\n"  # Say no to any prompts
+            input="n\n",  # Say no to any prompts
         )
 
         # Check that it ran (exit code may vary)
-        assert "Gate 1: Eligibility Check" in result.stdout or "Claude Code Session" in result.stdout
+        assert (
+            "Gate 1: Eligibility Check" in result.stdout or "Claude Code Session" in result.stdout
+        )

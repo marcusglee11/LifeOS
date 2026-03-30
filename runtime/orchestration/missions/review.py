@@ -4,6 +4,7 @@ Phase 3 Mission Types - Review Mission
 Runs council review on a packet (BUILD_PACKET or REVIEW_PACKET).
 Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.3 - Mission: review
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -12,6 +13,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from runtime.orchestration.council import CouncilFSMv2, load_council_policy
 from runtime.orchestration.missions.base import (
     BaseMission,
     MissionContext,
@@ -19,8 +21,6 @@ from runtime.orchestration.missions.base import (
     MissionType,
     MissionValidationError,
 )
-from runtime.orchestration.council import CouncilFSMv2, load_council_policy
-
 
 # Valid review verdicts per Council Protocol
 VALID_VERDICTS = frozenset({"approved", "rejected", "needs_revision", "escalate"})
@@ -57,16 +57,17 @@ class ReviewMission(BaseMission):
     def __init__(self) -> None:
         super().__init__()
         from runtime.agents.models import load_model_config
+
         self._model_config = load_model_config()
 
     @property
     def mission_type(self) -> MissionType:
         return MissionType.REVIEW
-    
+
     def validate_inputs(self, inputs: Dict[str, Any]) -> None:
         """
         Validate review mission inputs.
-        
+
         Required: subject_packet (dict), review_type (string)
         """
         # Check subject_packet
@@ -75,14 +76,14 @@ class ReviewMission(BaseMission):
             raise MissionValidationError("subject_packet is required")
         if not isinstance(subject_packet, dict):
             raise MissionValidationError("subject_packet must be a dict")
-        
+
         # Check review_type
         review_type = inputs.get("review_type")
         if not review_type:
             raise MissionValidationError("review_type is required")
         if not isinstance(review_type, str):
             raise MissionValidationError("review_type must be a string")
-        
+
         valid_review_types = ("build_review", "output_review", "governance_review")
         if review_type not in valid_review_types:
             raise MissionValidationError(
@@ -94,7 +95,7 @@ class ReviewMission(BaseMission):
             raise MissionValidationError("run_type must be a string when provided")
         if run_type not in {"review", "advisory"}:
             raise MissionValidationError("run_type must be 'review' or 'advisory'")
-    
+
     def run(
         self,
         context: MissionContext,
@@ -138,6 +139,7 @@ class ReviewMission(BaseMission):
         """Fire shadow council V2. Strictly non-gating — never raises."""
         try:
             from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
+
             runner = ShadowCouncilRunner(context.repo_root)
             ccp = self._build_ccp(context, inputs)
             runner.run_shadow(run_id=context.run_id, ccp=ccp)
@@ -151,13 +153,13 @@ class ReviewMission(BaseMission):
         executed_steps: List[str],
     ) -> MissionResult:
         """Preserve existing single-seat behavior for compatibility."""
-        from runtime.agents.api import call_agent, AgentCall
+        from runtime.agents.api import AgentCall, call_agent
 
         call = AgentCall(
             role="reviewer_architect",
             packet={
                 "subject_packet": inputs["subject_packet"],
-                "review_type": inputs["review_type"]
+                "review_type": inputs["review_type"],
             },
             model="auto",
         )
@@ -252,7 +254,9 @@ class ReviewMission(BaseMission):
             "aur_type": inputs.get("aur_type", "code"),
             "blast_radius": inputs.get("blast_radius", "module"),
             "change_class": inputs.get("change_class", "amend"),
-            "closure_gate_required": bool(inputs.get("closure_gate_required", review_type == "output_review")),
+            "closure_gate_required": bool(
+                inputs.get("closure_gate_required", review_type == "output_review")
+            ),
             "model_plan_v1": inputs.get("model_plan_v1", {}),
             "override": inputs.get("override", {}),
             "reversibility": inputs.get("reversibility", "moderate"),
@@ -308,6 +312,7 @@ class ReviewMission(BaseMission):
         _lens_executor = None
         if self._model_config.council_provider_overrides:
             from runtime.orchestration.council.multi_provider import build_multi_provider_executor
+
             _lens_executor = build_multi_provider_executor(
                 config=self._model_config,
                 provider_overrides=self._model_config.council_provider_overrides,

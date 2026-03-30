@@ -7,6 +7,7 @@ Provides:
 - compute_plan_core_sha256: bare 64-char hex SHA-256 of canonical bytes
 - resolve_tree_oid: git tree object ID for a given commit SHA
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -25,7 +26,9 @@ def assert_no_floats(obj: Any, _path: str = "") -> None:
         ValueError: If any float is found, with the path to the offending value.
     """
     if isinstance(obj, float):
-        raise ValueError(f"Float value not allowed in canonical data (at {_path or 'root'}): {obj!r}")
+        raise ValueError(
+            f"Float value not allowed in canonical data (at {_path or 'root'}): {obj!r}"
+        )
     elif isinstance(obj, dict):
         for k, v in obj.items():
             assert_no_floats(v, f"{_path}.{k}" if _path else k)
@@ -100,9 +103,7 @@ def resolve_tree_oid(sha: str, repo_root: str | Path | None = None) -> str:
         raise ValueError(f"git not found: {e}") from e
 
     if result.returncode != 0:
-        raise ValueError(
-            f"git show failed for SHA {sha!r}: {result.stderr.strip()}"
-        )
+        raise ValueError(f"git show failed for SHA {sha!r}: {result.stderr.strip()}")
 
     oid = result.stdout.strip()
     if not oid:

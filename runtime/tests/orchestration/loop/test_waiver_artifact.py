@@ -9,6 +9,7 @@ Tests cover:
 - Error handling for missing/malformed data
 - Path determinism
 """
+
 from __future__ import annotations
 
 import json
@@ -27,7 +28,6 @@ from runtime.orchestration.loop.waiver_artifact import (
     read,
     write,
 )
-
 
 _CTX: Dict[str, Any] = {"failure_class": "test_failure", "path": "runtime/foo.py"}
 _NOW = datetime(2024, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
@@ -129,16 +129,20 @@ def test_read_missing_required_field(tmp_path: Path):
     """Write JSON missing 'reason' field, verify read() raises WaiverValidationError."""
     waiver_file = tmp_path / "missing_field.json"
 
-    waiver_file.write_text(json.dumps({
-        "schema_version": "1.0",
-        "context": {"k": "v"},
-        "granted_by": "user",
-        "granted_at": "2024-01-15T12:00:00+00:00",
-        "expires_at": "2024-01-15T13:00:00+00:00",
-        "ttl_seconds": 3600,
-        "waiver_id": "abc123",
-        # 'reason' intentionally missing
-    }))
+    waiver_file.write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "context": {"k": "v"},
+                "granted_by": "user",
+                "granted_at": "2024-01-15T12:00:00+00:00",
+                "expires_at": "2024-01-15T13:00:00+00:00",
+                "ttl_seconds": 3600,
+                "waiver_id": "abc123",
+                # 'reason' intentionally missing
+            }
+        )
+    )
 
     with pytest.raises(WaiverValidationError, match="Missing required field"):
         read(waiver_file)
@@ -148,16 +152,20 @@ def test_read_schema_version_mismatch(tmp_path: Path):
     """Write JSON with schema_version='99.0', verify read() raises WaiverValidationError."""
     waiver_file = tmp_path / "wrong_schema.json"
 
-    waiver_file.write_text(json.dumps({
-        "schema_version": "99.0",
-        "context": {"k": "v"},
-        "reason": "test",
-        "granted_by": "user",
-        "granted_at": "2024-01-15T12:00:00+00:00",
-        "expires_at": "2024-01-15T13:00:00+00:00",
-        "ttl_seconds": 3600,
-        "waiver_id": "abc123",
-    }))
+    waiver_file.write_text(
+        json.dumps(
+            {
+                "schema_version": "99.0",
+                "context": {"k": "v"},
+                "reason": "test",
+                "granted_by": "user",
+                "granted_at": "2024-01-15T12:00:00+00:00",
+                "expires_at": "2024-01-15T13:00:00+00:00",
+                "ttl_seconds": 3600,
+                "waiver_id": "abc123",
+            }
+        )
+    )
 
     with pytest.raises(WaiverValidationError, match="Schema version mismatch"):
         read(waiver_file)

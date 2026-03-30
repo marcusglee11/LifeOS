@@ -1,21 +1,24 @@
 import argparse
-import sys
 import json
-from pathlib import Path
-from datetime import datetime
 import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict
 
 from runtime.config import detect_repo_root, load_config
 from runtime.orchestration.ceo_queue import CEOQueue
 from runtime.orchestration.dispatch.engine import DispatchEngine
 from runtime.orchestration.orchestrator import OrchestrationResult, ValidationOrchestrator
+from runtime.util.canonical import canonical_json_str as _canonical_json
 from runtime.validation.core import JobSpec
 from runtime.validation.evidence import compute_manifest
 from runtime.validation.reporting import sha256_file
-from runtime.util.canonical import canonical_json_str as _canonical_json
 
-def cmd_status(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
+
+def cmd_status(
+    args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None
+) -> int:
     """Print status of repo root, config, and validation."""
     print(f"repo_root: {repo_root}")
     if config_path:
@@ -26,34 +29,41 @@ def cmd_status(args: argparse.Namespace, repo_root: Path, config: dict | None, c
         print("config_validation: N/A")
     return 0
 
-def cmd_config_validate(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
+
+def cmd_config_validate(
+    args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None
+) -> int:
     """Validate the configuration and exit 0/1."""
     if not config_path:
         print("Error: No config file provided. Use --config <path>")
         return 1
-    
+
     # If we reached here, load_config already passed in main()
     print("VALID")
     return 0
 
-def cmd_config_show(args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None) -> int:
+
+def cmd_config_show(
+    args: argparse.Namespace, repo_root: Path, config: dict | None, config_path: Path | None
+) -> int:
     """Show the configuration in canonical JSON format."""
     if config is None:
         if config_path:
-             # This shouldn't happen if main loaded it, but for safety:
-             try:
-                 config = load_config(config_path)
-             except Exception as e:
-                 print(f"Error: {e}")
-                 return 1
+            # This shouldn't happen if main loaded it, but for safety:
+            try:
+                config = load_config(config_path)
+            except Exception as e:
+                print(f"Error: {e}")
+                return 1
         else:
             print("{}")
             return 0
-            
+
     # Canonical JSON: sort_keys=True, no spaces in separators, no ASCII escape
     output = json.dumps(config, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     print(output)
     return 0
+
 
 def cmd_mission_list(args: argparse.Namespace) -> int:
     """List all available mission types in sorted JSON."""
@@ -62,13 +72,15 @@ def cmd_mission_list(args: argparse.Namespace) -> int:
     # Get mission types from canonical registry (prefer registry keys over enum)
     try:
         from runtime.orchestration import registry
-        if hasattr(registry, 'MISSION_REGISTRY'):
+
+        if hasattr(registry, "MISSION_REGISTRY"):
             mission_types = sorted(registry.MISSION_REGISTRY.keys())
         else:
             raise AttributeError
     except (ImportError, AttributeError):
         # Fallback: use MissionType enum
         from runtime.orchestration.missions.base import MissionType
+
         mission_types = sorted([mt.value for mt in MissionType])
 
     # Output canonical JSON (indent=2, sort_keys=True)
@@ -91,7 +103,6 @@ def cmd_certify_pipeline(args: argparse.Namespace, repo_root: Path) -> int:
     if result.stderr:
         print(result.stderr, file=sys.stderr, end="")
     return result.returncode
-
 
 
 def _baseline_commit(repo_root: Path) -> str | None:
@@ -222,13 +233,16 @@ def _write_mission_attempt_evidence(
         "inputs_keys": sorted(mission_inputs.keys()),
     }
     (evidence_root / "commands.jsonl").write_text(
-        json.dumps(command_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n",
+        json.dumps(command_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        + "\n",
         encoding="utf-8",
     )
     compute_manifest(evidence_root)
 
 
-def _verify_acceptance_proof(orchestration: OrchestrationResult) -> tuple[Dict[str, str | None], str | None]:
+def _verify_acceptance_proof(
+    orchestration: OrchestrationResult,
+) -> tuple[Dict[str, str | None], str | None]:
     proof: Dict[str, str | None] = {
         "acceptance_token_path": None,
         "acceptance_record_path": None,
@@ -456,7 +470,10 @@ def _emit_mission_result(
         print(f"Mission '{mission_type}' succeeded.")
         print(f"Acceptance record: {payload.get('acceptance_record_path')}")
     else:
-        print(f"Mission '{mission_type}' failed: {payload.get('error', 'Unknown error')}", file=sys.stderr)
+        print(
+            f"Mission '{mission_type}' failed: {payload.get('error', 'Unknown error')}",
+            file=sys.stderr,
+        )
     return 0 if success else 1
 
 
@@ -691,6 +708,7 @@ def cmd_run_mission(args: argparse.Namespace, repo_root: Path) -> int:
         header_lines=header_lines,
     )
 
+
 def cmd_queue_list(args: argparse.Namespace, repo_root: Path) -> int:
     """List pending escalations in JSON format."""
     queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
@@ -739,7 +757,7 @@ def cmd_queue_show(args: argparse.Namespace, repo_root: Path) -> int:
 def cmd_queue_approve(args: argparse.Namespace, repo_root: Path) -> int:
     """Approve an escalation."""
     queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
-    note = args.note if hasattr(args, 'note') and args.note else "Approved via CLI"
+    note = args.note if hasattr(args, "note") and args.note else "Approved via CLI"
 
     result = queue.approve(args.escalation_id, note=note, resolver="CEO")
 
@@ -797,6 +815,7 @@ def cmd_dispatch_submit(args: argparse.Namespace, repo_root: Path) -> int:
 
     if args.json:
         import dataclasses
+
         print(json.dumps(dataclasses.asdict(result), indent=2, sort_keys=True))
     else:
         print(f"order_id:             {result.order_id}")
@@ -847,14 +866,14 @@ def cmd_spine_run(args: argparse.Namespace, repo_root: Path) -> int:
     # Parse task spec (JSON file or inline JSON)
     task_spec_path = Path(args.task_spec)
     if task_spec_path.exists():
-        with open(task_spec_path, 'r') as f:
+        with open(task_spec_path, "r") as f:
             task_spec = json.load(f)
     else:
         # Try parsing as inline JSON
         try:
             task_spec = json.loads(args.task_spec)
         except json.JSONDecodeError:
-            print(f"Error: task_spec must be a JSON file path or valid JSON string")
+            print("Error: task_spec must be a JSON file path or valid JSON string")
             return 1
 
     # Create spine instance
@@ -872,11 +891,11 @@ def cmd_spine_run(args: argparse.Namespace, repo_root: Path) -> int:
             print(f"State: {result['state']}")
             print(f"Outcome: {result.get('outcome', 'N/A')}")
 
-            if result['state'] == 'CHECKPOINT':
+            if result["state"] == "CHECKPOINT":
                 print(f"Checkpoint: {result.get('checkpoint_id')}")
                 print("Execution paused. Use 'lifeos spine resume' to continue.")
                 return 2
-            elif result.get('outcome') == 'PASS':
+            elif result.get("outcome") == "PASS":
                 print(f"Commit: {result.get('commit_hash', 'N/A')}")
                 return 0
             else:
@@ -884,7 +903,7 @@ def cmd_spine_run(args: argparse.Namespace, repo_root: Path) -> int:
                 return 1
 
     except RepoDirtyError as e:
-        print(f"Error: Repository is dirty. Cannot proceed.", file=sys.stderr)
+        print("Error: Repository is dirty. Cannot proceed.", file=sys.stderr)
         print(str(e), file=sys.stderr)
         return 1
     except Exception as e:
@@ -898,7 +917,7 @@ def cmd_spine_run_openclaw_job(args: argparse.Namespace, repo_root: Path) -> int
 
     payload_path = Path(args.job_payload)
     if payload_path.exists():
-        with open(payload_path, 'r', encoding='utf-8') as f:
+        with open(payload_path, "r", encoding="utf-8") as f:
             job_payload = json.load(f)
     else:
         try:
@@ -967,21 +986,21 @@ def cmd_spine_resume(args: argparse.Namespace, repo_root: Path) -> int:
             print(f"State: {result['state']}")
             print(f"Outcome: {result.get('outcome', 'N/A')}")
 
-            if result.get('outcome') == 'PASS':
+            if result.get("outcome") == "PASS":
                 print(f"Commit: {result.get('commit_hash', 'N/A')}")
                 return 0
-            elif result.get('outcome') == 'BLOCKED':
+            elif result.get("outcome") == "BLOCKED":
                 print(f"Reason: {result.get('reason')}")
                 return 1
             else:
                 return 1
 
     except PolicyChangedError as e:
-        print(f"Error: Policy changed mid-run. Cannot resume.", file=sys.stderr)
+        print("Error: Policy changed mid-run. Cannot resume.", file=sys.stderr)
         print(str(e), file=sys.stderr)
         return 1
     except RepoDirtyError as e:
-        print(f"Error: Repository is dirty. Cannot proceed.", file=sys.stderr)
+        print("Error: Repository is dirty. Cannot proceed.", file=sys.stderr)
         print(str(e), file=sys.stderr)
         return 1
     except SpineError as e:
@@ -996,23 +1015,21 @@ def main() -> int:
     # Use a custom parser that handles global options before subcommands
     # This is achieved by defining them on the main parser.
     parser = argparse.ArgumentParser(
-        prog="lifeos",
-        description="LifeOS Runtime Tier-3 CLI",
-        add_help=True
+        prog="lifeos", description="LifeOS Runtime Tier-3 CLI", add_help=True
     )
-    
+
     # Global --config flag
     parser.add_argument("--config", type=Path, help="Path to YAML config file")
-    
+
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
-    
+
     # status command
     subparsers.add_parser("status", help="Show runtime status")
-    
+
     # config group
     p_config = subparsers.add_parser("config", help="Configuration commands")
     config_subparsers = p_config.add_subparsers(dest="config_command", required=True)
-    
+
     config_subparsers.add_parser("validate", help="Validate config file")
     config_subparsers.add_parser("show", help="Show config in canonical JSON")
 
@@ -1052,7 +1069,9 @@ def main() -> int:
     # run-mission command
     p_run = subparsers.add_parser("run-mission", help="Run a mission from backlog")
     p_run.add_argument("--from-backlog", required=True, help="Task ID from backlog to execute")
-    p_run.add_argument("--backlog", type=str, help="Path to backlog file (default: config/backlog.yaml)")
+    p_run.add_argument(
+        "--backlog", type=str, help="Path to backlog file (default: config/backlog.yaml)"
+    )
     p_run.add_argument("--mission-type", type=str, help="Mission type override (default: steward)")
     p_run.add_argument("--json", action="store_true", help="Output results as JSON")
 
@@ -1107,9 +1126,7 @@ def main() -> int:
         help="Auto-dispatch eligible proposals (requires_approval=false, risk=low)",
     )
 
-    p_coo_approve = coo_subs.add_parser(
-        "approve", help="Approve COO task or operation proposals"
-    )
+    p_coo_approve = coo_subs.add_parser("approve", help="Approve COO task or operation proposals")
     p_coo_approve.add_argument(
         "task_ids", nargs="+", help="IDs to approve (e.g. T-003 OP-a1b2c3d4)"
     )
@@ -1117,9 +1134,7 @@ def main() -> int:
 
     coo_subs.add_parser("report", help="Print COO report context as JSON")
 
-    p_coo_direct = coo_subs.add_parser(
-        "direct", help="Send a CEO directive to the approval queue"
-    )
+    p_coo_direct = coo_subs.add_parser("direct", help="Send a CEO directive to the approval queue")
     p_coo_direct.add_argument("intent", help="Directive text")
     p_coo_direct.add_argument(
         "--execute",
@@ -1137,9 +1152,7 @@ def main() -> int:
         help="Execute immediately if the extracted operation proposal does not require approval",
     )
 
-    p_coo_reject = coo_subs.add_parser(
-        "reject", help="Reject a COO operation proposal"
-    )
+    p_coo_reject = coo_subs.add_parser("reject", help="Reject a COO operation proposal")
     p_coo_reject.add_argument("proposal_id", help="Operation proposal ID (e.g. OP-a1b2c3d4)")
     p_coo_reject.add_argument(
         "--reason",
@@ -1159,7 +1172,8 @@ def main() -> int:
     p_coo_telegram_status.add_argument("--json", action="store_true", help="Output as JSON")
 
     p_coo_prompt_status = coo_subs.add_parser(
-        "prompt-status", help="Compare canonical COO prompt hash to the live OpenClaw workspace prompt"
+        "prompt-status",
+        help="Compare canonical COO prompt hash to the live OpenClaw workspace prompt",
     )
     p_coo_prompt_status.add_argument("--json", action="store_true", help="Output as JSON")
 
@@ -1198,20 +1212,20 @@ def main() -> int:
     # Parse args
     # Note: argparse by default allows flags before subcommands
     args = parser.parse_args()
-    
+
     try:
         # P0.2 & P0.4 - Repo root detection
         repo_root = detect_repo_root()
-        
+
         # Config loading
         config = None
         if args.config:
             config = load_config(args.config)
-            
+
         # Dispatch
         if args.subcommand == "status":
             return cmd_status(args, repo_root, config, args.config)
-        
+
         if args.subcommand == "config":
             if args.config_command == "validate":
                 return cmd_config_validate(args, repo_root, config, args.config)
@@ -1283,8 +1297,9 @@ def main() -> int:
     except Exception as e:
         print(f"Error: {e}")
         return 1
-        
+
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

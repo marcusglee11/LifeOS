@@ -7,7 +7,6 @@ from typing import Dict, List, Optional
 
 from runtime.validation.core import RetryCaps
 
-
 IMMEDIATE_TERMINAL_CODES = {
     "DIRTY_REPO_PRE",
     "EVIDENCE_ROOT_NOT_IGNORED",

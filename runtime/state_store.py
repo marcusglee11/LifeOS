@@ -7,10 +7,11 @@ into StateStoreError. Callers can rely on deterministic error handling.
 
 See: docs/02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md
 """
+
+import hashlib
 import json
 import os
-import hashlib
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class StateStoreError(Exception):
@@ -22,6 +23,7 @@ class StateStoreError(Exception):
 
     See: docs/02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md
     """
+
     pass
 
 
@@ -33,6 +35,7 @@ class StateStoreNotFound(StateStoreError, FileNotFoundError):
     and FileNotFoundError (for backwards compatibility with code expecting
     FileNotFoundError).
     """
+
     pass
 
 

@@ -12,32 +12,32 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
-from runtime.agents.models import (
-    load_model_config,
-    resolve_model_auto,
-    get_model_chain,
-    clear_config_cache,
-    ModelConfig,
-)
 from runtime.agents.api import (
-    _load_role_prompt,
-    EnvelopeViolation,
     AgentCall,
+    EnvelopeViolation,
+    _load_role_prompt,
     call_agent,
 )
 from runtime.agents.logging import (
     HASH_CHAIN_GENESIS,
     AgentCallLogger,
 )
-
+from runtime.agents.models import (
+    ModelConfig,
+    clear_config_cache,
+    get_model_chain,
+    load_model_config,
+    resolve_model_auto,
+)
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def _clear_model_cache():
@@ -56,6 +56,7 @@ def config() -> ModelConfig:
 # ---------------------------------------------------------------------------
 # Test 1: Model Resolution — correct Zen model per role
 # ---------------------------------------------------------------------------
+
 
 class TestModelResolution:
     """Verify resolve_model_auto reads config/models.yaml and returns correct model per role."""
@@ -109,6 +110,7 @@ class TestModelResolution:
 # Test 2: Fallback Chain — glm-5-free present, correct ordering
 # ---------------------------------------------------------------------------
 
+
 class TestFallbackChain:
     """Verify fallback chains have paid primary + free fallbacks."""
 
@@ -140,22 +142,19 @@ class TestFallbackChain:
     def test_all_role_override_chains_include_glm5(self, config: ModelConfig):
         """Every role_overrides chain should include glm-5-free."""
         for role, chain in config.role_overrides.items():
-            assert "opencode/glm-5-free" in chain, (
-                f"Role override '{role}' missing glm-5-free"
-            )
+            assert "opencode/glm-5-free" in chain, f"Role override '{role}' missing glm-5-free"
 
     def test_fallback_chain_length_for_agents(self, config: ModelConfig):
         """Each agent should have primary + fallbacks totaling at least 3 models."""
         for role, agent in config.agents.items():
             chain = get_model_chain(role, config)
-            assert len(chain) >= 3, (
-                f"Agent '{role}' has only {len(chain)} models in chain"
-            )
+            assert len(chain) >= 3, f"Agent '{role}' has only {len(chain)} models in chain"
 
 
 # ---------------------------------------------------------------------------
 # Test 3: Call Logging — deterministic log entry with hash chain
 # ---------------------------------------------------------------------------
+
 
 class TestCallLogging:
     """Verify call_agent produces deterministic log entries with hash chain integrity."""
@@ -239,6 +238,7 @@ class TestCallLogging:
 # Test 4: Envelope Violation — nonexistent role
 # ---------------------------------------------------------------------------
 
+
 class TestEnvelopeViolation:
     """Verify EnvelopeViolation raised for invalid roles."""
 
@@ -268,6 +268,7 @@ class TestEnvelopeViolation:
 # Test 5: Role Prompt Loading — content loads and hashes match
 # ---------------------------------------------------------------------------
 
+
 class TestRolePromptLoading:
     """Verify role prompt files load correctly with deterministic hashes."""
 
@@ -284,20 +285,14 @@ class TestRolePromptLoading:
         for role in self.EXPECTED_ROLES:
             content, prompt_hash = _load_role_prompt(role)
             assert content, f"Role {role} returned empty content"
-            assert prompt_hash.startswith("sha256:"), (
-                f"Role {role} hash should start with sha256:"
-            )
+            assert prompt_hash.startswith("sha256:"), f"Role {role} hash should start with sha256:"
 
     def test_role_prompt_hash_matches_file_content(self):
         """Hash from _load_role_prompt should match manual sha256 of file content."""
         for role in self.EXPECTED_ROLES:
             content, prompt_hash = _load_role_prompt(role)
-            expected_hash = (
-                f"sha256:{hashlib.sha256(content.encode('utf-8')).hexdigest()}"
-            )
-            assert prompt_hash == expected_hash, (
-                f"Role {role} hash mismatch"
-            )
+            expected_hash = f"sha256:{hashlib.sha256(content.encode('utf-8')).hexdigest()}"
+            assert prompt_hash == expected_hash, f"Role {role} hash mismatch"
 
     def test_role_prompt_hash_is_stable(self):
         """Loading the same role twice should produce identical hashes."""

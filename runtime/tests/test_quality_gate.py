@@ -40,7 +40,11 @@ def test_route_quality_tools_config_only_markdown_change_runs_docs(monkeypatch) 
 def test_route_quality_tools_config_only_yaml_change_runs_yaml(monkeypatch) -> None:
     monkeypatch.setattr(
         "runtime.tools.workflow_pack._git_tracked_files",
-        lambda repo_root: [".github/workflows/ci.yml", "config/quality/manifest.yaml", "docs/02_protocols/example.md"],
+        lambda repo_root: [
+            ".github/workflows/ci.yml",
+            "config/quality/manifest.yaml",
+            "docs/02_protocols/example.md",
+        ],
     )
     routed = route_quality_tools(Path("."), [".yamllint.yml"], scope="changed")
     assert routed["yamllint"] == [".github/workflows/ci.yml", "config/quality/manifest.yaml"]
@@ -50,26 +54,35 @@ def test_run_quality_gates_blocks_on_blocking_failure(monkeypatch) -> None:
     def fake_run(*args, **kwargs):
         cmd = args[0]
         if cmd[:2] == ["ruff", "check"]:
-            return subprocess.CompletedProcess(args=cmd, returncode=1, stdout="", stderr="unused import")
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=1, stdout="", stderr="unused import"
+            )
         return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
     result = run_quality_gates(Path("."), ["runtime/tools/workflow_pack.py"], scope="changed")
     assert result["passed"] is False
-    assert any(row["tool"] == "ruff_check" and row["mode"] == "blocking" for row in result["results"])
+    assert any(
+        row["tool"] == "ruff_check" and row["mode"] == "blocking" for row in result["results"]
+    )
 
 
 def test_run_quality_gates_allows_advisory_failure(monkeypatch) -> None:
     def fake_run(*args, **kwargs):
         cmd = args[0]
         if cmd and cmd[0] == "yamllint":
-            return subprocess.CompletedProcess(args=cmd, returncode=1, stdout="", stderr="bad indent")
+            return subprocess.CompletedProcess(
+                args=cmd, returncode=1, stdout="", stderr="bad indent"
+            )
         return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
     result = run_quality_gates(Path("."), ["config/quality/manifest.yaml"], scope="changed")
     assert result["passed"] is True
-    assert any(row["tool"] == "yamllint" and row["mode"] == "advisory" and not row["passed"] for row in result["results"])
+    assert any(
+        row["tool"] == "yamllint" and row["mode"] == "advisory" and not row["passed"]
+        for row in result["results"]
+    )
 
 
 def test_run_quality_gates_missing_blocking_tool_is_advisory(monkeypatch) -> None:
@@ -83,7 +96,9 @@ def test_run_quality_gates_missing_blocking_tool_is_advisory(monkeypatch) -> Non
     result = run_quality_gates(Path("."), ["runtime/tools/workflow_pack.py"], scope="changed")
     assert result["passed"] is True
     assert any(
-        row["tool"] == "ruff_check" and row["mode"] == "advisory" and row["waiver_reason"] == "tool_unavailable_locally"
+        row["tool"] == "ruff_check"
+        and row["mode"] == "advisory"
+        and row["waiver_reason"] == "tool_unavailable_locally"
         for row in result["results"]
     )
 
@@ -98,7 +113,9 @@ def test_run_quality_gates_missing_blocking_tool_stays_blocking_in_repo_scope(mo
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
     result = run_quality_gates(Path("."), ["runtime/tools/workflow_pack.py"], scope="repo")
     assert result["passed"] is False
-    assert any(row["tool"] == "ruff_check" and row["mode"] == "blocking" for row in result["results"])
+    assert any(
+        row["tool"] == "ruff_check" and row["mode"] == "blocking" for row in result["results"]
+    )
 
 
 def test_run_quality_gates_waiver_downgrades_blocking_failure(monkeypatch) -> None:
@@ -125,14 +142,20 @@ def test_run_quality_gates_waiver_downgrades_blocking_failure(monkeypatch) -> No
 
     def fake_run(*args, **kwargs):
         cmd = args[0]
-        return subprocess.CompletedProcess(args=cmd, returncode=1, stdout="", stderr="unused import")
+        return subprocess.CompletedProcess(
+            args=cmd, returncode=1, stdout="", stderr="unused import"
+        )
 
-    monkeypatch.setattr("runtime.tools.workflow_pack.load_quality_manifest", lambda repo_root: manifest)
+    monkeypatch.setattr(
+        "runtime.tools.workflow_pack.load_quality_manifest", lambda repo_root: manifest
+    )
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
     result = run_quality_gates(Path("."), ["runtime/tools/workflow_pack.py"], scope="changed")
     assert result["passed"] is True
     assert any(
-        row["tool"] == "ruff_check" and row["mode"] == "advisory" and row["waiver_reason"] == "temporary waiver"
+        row["tool"] == "ruff_check"
+        and row["mode"] == "advisory"
+        and row["waiver_reason"] == "temporary waiver"
         for row in result["results"]
     )
 
@@ -158,9 +181,17 @@ def test_quality_gate_main_check_json(monkeypatch, capsys) -> None:
         "auto_fixed": False,
     }
 
-    monkeypatch.setattr("scripts.workflow.quality_gate.load_quality_manifest", lambda repo_root: {"tools": {}})
-    monkeypatch.setattr("scripts.workflow.quality_gate.run_quality_gates", lambda *args, **kwargs: payload)
-    monkeypatch.setattr(sys, "argv", ["quality_gate.py", "check", "--json", "--changed-file", "runtime/tools/workflow_pack.py"])
+    monkeypatch.setattr(
+        "scripts.workflow.quality_gate.load_quality_manifest", lambda repo_root: {"tools": {}}
+    )
+    monkeypatch.setattr(
+        "scripts.workflow.quality_gate.run_quality_gates", lambda *args, **kwargs: payload
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["quality_gate.py", "check", "--json", "--changed-file", "runtime/tools/workflow_pack.py"],
+    )
 
     rc = quality_gate.main()
     out = capsys.readouterr().out

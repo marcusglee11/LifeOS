@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -42,7 +42,9 @@ def test_verify_repo_clean_detects_dirty_repo(git_repo: Path) -> None:
 
 
 def test_verify_evidence_root_ignore_proof(git_repo: Path) -> None:
-    evidence_root = git_repo / "artifacts" / "validation_runs" / "run-1" / "attempt-0001" / "evidence"
+    evidence_root = (
+        git_repo / "artifacts" / "validation_runs" / "run-1" / "attempt-0001" / "evidence"
+    )
     evidence_root.mkdir(parents=True, exist_ok=True)
 
     proof = verify_evidence_root_ignored(git_repo, evidence_root)

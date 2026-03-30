@@ -6,6 +6,7 @@ Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.3 - Mission: design
 
 HARDENED: Fail-closed output validation - no success without valid BUILD_PACKET.
 """
+
 from __future__ import annotations
 
 import re
@@ -19,43 +20,49 @@ from runtime.orchestration.missions.base import (
     MissionValidationError,
 )
 
-
 # Minimal MVP BUILD_PACKET schema - required keys for valid packet
 BUILD_PACKET_REQUIRED_KEYS = ["goal"]
 BUILD_PACKET_OPTIONAL_KEYS = [
-    "scope", "deliverables", "constraints", "acceptance_criteria",
-    "build_type", "proposed_changes", "verification_plan", "risks", "assumptions",
+    "scope",
+    "deliverables",
+    "constraints",
+    "acceptance_criteria",
+    "build_type",
+    "proposed_changes",
+    "verification_plan",
+    "risks",
+    "assumptions",
 ]
 
 
 class DesignMission(BaseMission):
     """
     Design mission: Transform task spec into BUILD_PACKET.
-    
+
     Inputs:
         - task_spec (str): Description of the task to design
         - context_refs (list[str], optional): Paths to context files
-        
+
     Outputs:
         - build_packet (dict): The generated BUILD_PACKET
-        
+
     Steps:
         1. validate_inputs: Validate mission inputs
         2. gather_context: Read context files (if provided)
         3. design_llm_call: Generate BUILD_PACKET via LLM
         4. validate_output: Validate output against BUILD_PACKET schema (FAIL-CLOSED)
-        
+
     HARDENED: This mission returns success=False if output validation fails.
     """
-    
+
     @property
     def mission_type(self) -> MissionType:
         return MissionType.DESIGN
-    
+
     def validate_inputs(self, inputs: Dict[str, Any]) -> None:
         """
         Validate design mission inputs.
-        
+
         Required: task_spec (non-empty string)
         Optional: context_refs (list of strings)
         """
@@ -65,7 +72,7 @@ class DesignMission(BaseMission):
             raise MissionValidationError("task_spec is required and must be non-empty")
         if not isinstance(task_spec, str):
             raise MissionValidationError("task_spec must be a string")
-        
+
         # Check optional field
         context_refs = inputs.get("context_refs")
         if context_refs is not None:
@@ -76,46 +83,44 @@ class DesignMission(BaseMission):
                     raise MissionValidationError(
                         f"context_refs[{i}] must be a string, got {type(ref).__name__}"
                     )
-    
+
     def _validate_build_packet(self, packet: Any) -> Tuple[bool, List[str]]:
         """
         Validate BUILD_PACKET against minimal MVP schema.
-        
+
         FAIL-CLOSED: Returns (False, errors) if packet is invalid.
         Errors are deterministically ordered (sorted).
-        
+
         Args:
             packet: The packet to validate (may be None or any type).
-            
+
         Returns:
             (valid: bool, errors: List[str]) - sorted error list for determinism.
         """
         errors: List[str] = []
-        
+
         # Check packet exists and is dict
         if packet is None:
             errors.append("BUILD_PACKET is missing (response.packet is None)")
             return (False, errors)
-        
+
         if not isinstance(packet, dict):
             errors.append(f"BUILD_PACKET must be a dict, got {type(packet).__name__}")
             return (False, errors)
-        
+
         # Check required keys
         for key in sorted(BUILD_PACKET_REQUIRED_KEYS):
             if key not in packet:
                 errors.append(f"BUILD_PACKET missing required key: '{key}'")
             elif not packet[key]:
                 errors.append(f"BUILD_PACKET.{key} is empty")
-        
+
         # Sort errors for determinism
         errors.sort()
 
         return (len(errors) == 0, errors)
 
-    def _extract_fallback_packet(
-        self, content: str, task_spec: str
-    ) -> Optional[Dict[str, Any]]:
+    def _extract_fallback_packet(self, content: str, task_spec: str) -> Optional[Dict[str, Any]]:
         """
         Attempt to extract a BUILD_PACKET from raw LLM content.
 
@@ -147,9 +152,7 @@ class DesignMission(BaseMission):
                 pass
 
         # Strategy 2: Bare goal: field in content
-        goal_match = re.search(
-            r"^goal:\s*(.+)$", content, re.MULTILINE | re.IGNORECASE
-        )
+        goal_match = re.search(r"^goal:\s*(.+)$", content, re.MULTILINE | re.IGNORECASE)
         if goal_match:
             goal_text = goal_match.group(1).strip().strip("\"'")
             if goal_text:
@@ -164,8 +167,13 @@ class DesignMission(BaseMission):
 
         # Strategy 3: Content indicates model did the work directly
         did_work_indicators = [
-            r"\bdone\b", r"\badded\b", r"\bcreated\b", r"\bupdated\b",
-            r"\bmodified\b", r"\bimplemented\b", r"\bcompleted\b",
+            r"\bdone\b",
+            r"\badded\b",
+            r"\bcreated\b",
+            r"\bupdated\b",
+            r"\bmodified\b",
+            r"\bimplemented\b",
+            r"\bcompleted\b",
         ]
         content_lower = content.lower()
         if any(re.search(ind, content_lower) for ind in did_work_indicators):
@@ -184,21 +192,22 @@ class DesignMission(BaseMission):
     ) -> MissionResult:
         executed_steps: List[str] = []
         evidence: Dict[str, Any] = {"stubbed": False}  # Real LLM call, not stubbed
-        
+
         try:
             # Step 1: Validate inputs
             self.validate_inputs(inputs)
             executed_steps.append("validate_inputs")
-            
+
             # Step 2: Gather context
             # Auto-populate context_refs from files mentioned in the task spec so the
             # designer knows the actual function signatures and avoids hallucinating them.
             from pathlib import Path as _Path
+
             provided_refs = inputs.get("context_refs", [])
             auto_refs: List[Dict[str, Any]] = []
             if not provided_refs and isinstance(inputs.get("task_spec"), str):
                 provided_paths = {r.get("path") for r in provided_refs if isinstance(r, dict)}
-                file_pattern = re.compile(r'\b([\w][/\w.-]*\.py)\b')
+                file_pattern = re.compile(r"\b([\w][/\w.-]*\.py)\b")
                 for fpath in file_pattern.findall(inputs["task_spec"]):
                     fpath = fpath.replace("\\", "/").lstrip("/")
                     if ".." in fpath.split("/") or fpath in provided_paths:
@@ -206,10 +215,12 @@ class DesignMission(BaseMission):
                     full = _Path(context.repo_root) / fpath
                     if full.exists():
                         try:
-                            auto_refs.append({
-                                "path": fpath,
-                                "current_content": full.read_text(encoding="utf-8"),
-                            })
+                            auto_refs.append(
+                                {
+                                    "path": fpath,
+                                    "current_content": full.read_text(encoding="utf-8"),
+                                }
+                            )
                         except Exception:
                             pass
 
@@ -220,9 +231,9 @@ class DesignMission(BaseMission):
             }
             executed_steps.append("gather_context")
             evidence["context_refs_count"] = len(context_data["context_refs"])
-            
+
             # Step 3: Call Agent API with designer role
-            from runtime.agents.api import call_agent_cli, AgentCall
+            from runtime.agents.api import AgentCall, call_agent_cli
 
             call = AgentCall(
                 role="designer",
@@ -232,13 +243,13 @@ class DesignMission(BaseMission):
 
             response = call_agent_cli(call, run_id=context.run_id)
             executed_steps.append("design_llm_call")
-            
+
             # Capture LLM evidence
             evidence["call_id"] = response.call_id
             evidence["model_used"] = response.model_used
             evidence["latency_ms"] = response.latency_ms
-            evidence["usage"] = response.usage # Expose for budgeting
-            
+            evidence["usage"] = response.usage  # Expose for budgeting
+
             # Step 4: Validate output (FAIL-CLOSED)
             # This step is ALWAYS recorded when we reach this point
             valid, validation_errors = self._validate_build_packet(response.packet)
@@ -278,7 +289,7 @@ class DesignMission(BaseMission):
                 executed_steps=executed_steps,
                 evidence=evidence,
             )
-            
+
         except Exception as e:
             return self._make_result(
                 success=False,

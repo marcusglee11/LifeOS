@@ -1,7 +1,9 @@
 """Tests for COO proposal parsing and execution-order generation."""
+
 from __future__ import annotations
 
 import re
+import subprocess as _subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -18,8 +20,6 @@ from runtime.orchestration.coo.parser import (
     parse_operation_proposal,
     parse_proposal_response,
 )
-
-import subprocess as _subprocess
 
 
 def _find_repo_root() -> Path:
@@ -174,9 +174,7 @@ def test_parse_execution_order_structure() -> None:
     )
     task = _make_task("T-003")
     template_data = {
-        "steps": [
-            {"name": "build", "role": "builder", "provider": "codex", "mode": "blocking"}
-        ],
+        "steps": [{"name": "build", "role": "builder", "provider": "codex", "mode": "blocking"}],
         "constraints": {"worktree": True, "max_duration_seconds": 900},
         "shadow": {"enabled": True, "provider": "claude-code", "receives": "full_task_payload"},
         "supervision": {"per_cycle_check": True, "batch_id": "B-1", "cycle_number": 2},
@@ -236,6 +234,7 @@ def test_parse_execution_order_invalid_task_id_raises_parse_error() -> None:
 # Prose-preamble extraction tests (OUTPUT_CONTRACT_DRIFT fix)
 # ---------------------------------------------------------------------------
 
+
 def test_extract_yaml_payload_prose_preamble() -> None:
     text = (
         "I reviewed the backlog and here is my recommendation.\n\n"
@@ -260,7 +259,7 @@ def test_extract_yaml_payload_indented_schema_version() -> None:
         "    rationale: test\n"
         "    proposed_action: defer\n"
         "    urgency_override: null\n"
-        "    suggested_owner: \"\"\n"
+        '    suggested_owner: ""\n'
     )
     result = _extract_yaml_payload(text)
     assert result.startswith("schema_version: task_proposal.v1")
@@ -268,45 +267,28 @@ def test_extract_yaml_payload_indented_schema_version() -> None:
 
 def test_extract_yaml_payload_valid_yaml_schema_not_first_not_truncated() -> None:
     """Valid YAML where schema_version is not the first key must not be truncated."""
-    text = (
-        "proposals:\n"
-        "  - task_id: T-020\n"
-        "schema_version: task_proposal.v1\n"
-    )
+    text = "proposals:\n  - task_id: T-020\nschema_version: task_proposal.v1\n"
     result = _extract_yaml_payload(text)
     assert "proposals" in result
     assert "schema_version" in result
 
 
 def test_extract_yaml_payload_with_stage_fence_recovery() -> None:
-    text = (
-        "Operator note.\n\n"
-        "```yaml\n"
-        "schema_version: task_proposal.v1\n"
-        "proposals: []\n"
-        "```\n"
-    )
+    text = "Operator note.\n\n```yaml\nschema_version: task_proposal.v1\nproposals: []\n```\n"
     result, stage = _extract_yaml_payload_with_stage(text)
     assert result.startswith("schema_version: task_proposal.v1")
     assert stage == "fence_recovery"
 
 
 def test_extract_yaml_payload_with_stage_schema_block_recovery() -> None:
-    text = (
-        "Intro prose.\n\n"
-        "schema_version: task_proposal.v1\n"
-        "proposals: []\n"
-    )
+    text = "Intro prose.\n\nschema_version: task_proposal.v1\nproposals: []\n"
     result, stage = _extract_yaml_payload_with_stage(text)
     assert result.startswith("schema_version: task_proposal.v1")
     assert stage == "schema_block_recovery"
 
 
 def test_extract_yaml_payload_with_stage_direct() -> None:
-    text = (
-        "schema_version: task_proposal.v1\n"
-        "proposals: []\n"
-    )
+    text = "schema_version: task_proposal.v1\nproposals: []\n"
     result, stage = _extract_yaml_payload_with_stage(text)
     assert result.startswith("schema_version: task_proposal.v1")
     assert stage == "direct"

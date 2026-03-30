@@ -1,5 +1,6 @@
 import hashlib
 
+
 class Signature:
     @staticmethod
     def sign_data(data: bytes) -> bytes:

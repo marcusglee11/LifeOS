@@ -2,27 +2,25 @@
 Tests for provider health monitoring.
 """
 
-from unittest.mock import patch, MagicMock
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from runtime.agents.health import (
-    ProviderStatus,
     HealthReport,
     LatencyTracker,
-    check_cli_provider,
-    check_api_provider,
+    ProviderStatus,
     check_all_providers,
+    check_api_provider,
+    check_cli_provider,
 )
 from runtime.agents.models import (
-    ModelConfig,
     CLIProviderConfig,
+    ModelConfig,
 )
-
 
 # ---------------------------------------------------------------------------
 # ProviderStatus / HealthReport
 # ---------------------------------------------------------------------------
+
 
 class TestProviderStatus:
     def test_available(self):
@@ -62,6 +60,7 @@ class TestHealthReport:
 # ---------------------------------------------------------------------------
 # LatencyTracker
 # ---------------------------------------------------------------------------
+
 
 class TestLatencyTracker:
     def test_record_and_average(self):
@@ -105,6 +104,7 @@ class TestLatencyTracker:
 # check_cli_provider
 # ---------------------------------------------------------------------------
 
+
 class TestCheckCLIProvider:
     @patch("shutil.which", return_value="/usr/bin/codex")
     def test_available(self, mock_which):
@@ -125,6 +125,7 @@ class TestCheckCLIProvider:
 # ---------------------------------------------------------------------------
 # check_api_provider
 # ---------------------------------------------------------------------------
+
 
 class TestCheckAPIProvider:
     @patch("httpx.Client")
@@ -155,6 +156,7 @@ class TestCheckAPIProvider:
 # ---------------------------------------------------------------------------
 # check_all_providers
 # ---------------------------------------------------------------------------
+
 
 class TestCheckAllProviders:
     @patch("runtime.agents.health.check_api_provider")

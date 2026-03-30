@@ -69,7 +69,7 @@ def test_apply_rejects_replay_ticket(tmp_path: Path) -> None:
     }
     (packet_dir / "promotion_packet.json").write_text(json.dumps(packet) + "\n", encoding="utf-8")
     (bin_dir / "openclaw").write_text(
-        "#!/usr/bin/env bash\nif [ \"$1\" = \"--version\" ]; then\n  echo \"1.0.0\"\n  exit 0\nfi\nexit 1\n",
+        '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  echo "1.0.0"\n  exit 0\nfi\nexit 1\n',
         encoding="utf-8",
     )
     (bin_dir / "openclaw").chmod(0o755)
@@ -101,8 +101,12 @@ def test_apply_rejects_replay_ticket(tmp_path: Path) -> None:
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
 
-    first = subprocess.run(apply_cmd, cwd=repo, check=False, capture_output=True, text=True, env=env)
-    second = subprocess.run(apply_cmd, cwd=repo, check=False, capture_output=True, text=True, env=env)
+    first = subprocess.run(
+        apply_cmd, cwd=repo, check=False, capture_output=True, text=True, env=env
+    )
+    second = subprocess.run(
+        apply_cmd, cwd=repo, check=False, capture_output=True, text=True, env=env
+    )
 
     assert first.returncode == 0, first.stderr
     assert json.loads(first.stdout)["pass"] is True
@@ -136,7 +140,10 @@ def test_apply_accepts_prefixed_version_output(tmp_path: Path) -> None:
 
     head_sha = subprocess.run(
         ["git", "rev-parse", "HEAD"],
-        cwd=repo, check=True, capture_output=True, text=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout.strip()
 
     now = int(time.time())
@@ -166,15 +173,21 @@ def test_apply_accepts_prefixed_version_output(tmp_path: Path) -> None:
 
     attestation = tmp_path / "attestation.json"
     attestation.write_text(
-        json.dumps({"attestation_type": "preclose", "issued_unix": now, "expires_unix": now + 600}) + "\n",
+        json.dumps({"attestation_type": "preclose", "issued_unix": now, "expires_unix": now + 600})
+        + "\n",
         encoding="utf-8",
     )
 
     apply_cmd = [
-        "python3", "runtime/tools/openclaw_promotion_state.py",
-        "--state-dir", str(state_dir),
-        "apply", "--packet-dir", str(packet_dir),
-        "--attestation", str(attestation),
+        "python3",
+        "runtime/tools/openclaw_promotion_state.py",
+        "--state-dir",
+        str(state_dir),
+        "apply",
+        "--packet-dir",
+        str(packet_dir),
+        "--attestation",
+        str(attestation),
     ]
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
@@ -220,7 +233,7 @@ def test_apply_rejects_when_installed_version_does_not_match_packet(tmp_path: Pa
     }
     (packet_dir / "promotion_packet.json").write_text(json.dumps(packet) + "\n", encoding="utf-8")
     (bin_dir / "openclaw").write_text(
-        "#!/usr/bin/env bash\nif [ \"$1\" = \"--version\" ]; then\n  echo \"2026.3.2\"\n  exit 0\nfi\nexit 1\n",
+        '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  echo "2026.3.2"\n  exit 0\nfi\nexit 1\n',
         encoding="utf-8",
     )
     (bin_dir / "openclaw").chmod(0o755)

@@ -5,6 +5,7 @@ TDD Tests for Tier-2 Config-Driven Test Run Entrypoint.
 These tests define the contract for the high-level entrypoint that
 processes config dicts into a full test run.
 """
+
 import copy
 import hashlib
 import json
@@ -13,8 +14,8 @@ from typing import Any, Dict
 import pytest
 
 from runtime.orchestration.config_adapter import ConfigError
-from runtime.orchestration.test_run import TestRunResult
 from runtime.orchestration.config_test_run import run_test_run_from_config
+from runtime.orchestration.test_run import TestRunResult
 
 
 def _stable_hash(obj: Any) -> str:
@@ -43,14 +44,9 @@ def valid_suite_cfg() -> Dict[str, Any]:
             {
                 "scenario_name": "s1",
                 "initial_state": {"count": 10},
-                "missions": [
-                    {
-                        "name": "daily_loop",
-                        "params": None
-                    }
-                ]
+                "missions": [{"name": "daily_loop", "params": None}],
             }
-        ]
+        ],
     }
 
 
@@ -64,7 +60,7 @@ def valid_expectations_cfg() -> Dict[str, Any]:
                 "mission_name": "daily_loop",
                 "path": "success",
                 "op": "eq",
-                "expected": True
+                "expected": True,
             }
         ]
     }
@@ -74,12 +70,13 @@ def valid_expectations_cfg() -> Dict[str, Any]:
 # Happy Path
 # =============================================================================
 
+
 def test_happy_path(valid_suite_cfg, valid_expectations_cfg):
     """
     Verify successful execution from valid config.
     """
     result = run_test_run_from_config(valid_suite_cfg, valid_expectations_cfg)
-    
+
     assert isinstance(result, TestRunResult)
     assert result.passed is True
     assert result.suite_result.suite_name == "basic_suite"
@@ -89,6 +86,7 @@ def test_happy_path(valid_suite_cfg, valid_expectations_cfg):
 # =============================================================================
 # Failing Expectations
 # =============================================================================
+
 
 def test_failing_expectations(valid_suite_cfg):
     """
@@ -102,13 +100,13 @@ def test_failing_expectations(valid_suite_cfg):
                 "mission_name": "daily_loop",
                 "path": "success",
                 "op": "eq",
-                "expected": False  # daily_loop succeeds by default
+                "expected": False,  # daily_loop succeeds by default
             }
         ]
     }
-    
+
     result = run_test_run_from_config(valid_suite_cfg, failing_exp_cfg)
-    
+
     assert result.passed is False
     assert result.expectations_result.passed is False
     assert result.expectations_result.expectation_results["must_fail"].passed is False
@@ -118,20 +116,21 @@ def test_failing_expectations(valid_suite_cfg):
 # Determinism & Non-Mutation
 # =============================================================================
 
+
 def test_determinism_and_immutability(valid_suite_cfg, valid_expectations_cfg):
     """
     Verify results are deterministic and inputs unmutated.
     """
     suite_copy = copy.deepcopy(valid_suite_cfg)
     exp_copy = copy.deepcopy(valid_expectations_cfg)
-    
+
     res1 = run_test_run_from_config(valid_suite_cfg, valid_expectations_cfg)
     res2 = run_test_run_from_config(valid_suite_cfg, valid_expectations_cfg)
-    
+
     # Check identity
     assert _stable_hash(_serialise_test_run(res1)) == _stable_hash(_serialise_test_run(res2))
     assert res1.metadata["test_run_hash"] == res2.metadata["test_run_hash"]
-    
+
     # Check immutability
     assert valid_suite_cfg == suite_copy
     assert valid_expectations_cfg == exp_copy
@@ -141,6 +140,7 @@ def test_determinism_and_immutability(valid_suite_cfg, valid_expectations_cfg):
 # Error Behaviour
 # =============================================================================
 
+
 def test_config_errors(valid_suite_cfg, valid_expectations_cfg):
     """
     Verify ConfigError is raised on invalid inputs.
@@ -148,13 +148,13 @@ def test_config_errors(valid_suite_cfg, valid_expectations_cfg):
     # Invalid suite config (missing field)
     bad_suite = copy.deepcopy(valid_suite_cfg)
     del bad_suite["suite_name"]
-    
+
     with pytest.raises(ConfigError):
         run_test_run_from_config(bad_suite, valid_expectations_cfg)
-        
+
     # Invalid expectations config (invalid op)
     bad_exp = copy.deepcopy(valid_expectations_cfg)
     bad_exp["expectations"][0]["op"] = "invalid_op"
-    
+
     with pytest.raises(ConfigError):
         run_test_run_from_config(valid_suite_cfg, bad_exp)

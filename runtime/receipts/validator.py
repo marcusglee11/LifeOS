@@ -3,6 +3,7 @@ Schema validation harness for LifeOS receipts artefacts.
 
 Uses jsonschema Draft202012Validator for allOf/if/then/const features.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -10,9 +11,8 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-from . import schemas as _schemas
 from . import invocation_schema as _inv_schemas
-
+from . import schemas as _schemas
 
 # Map schema name -> schema dict
 _SCHEMA_MAP: dict[str, dict] = {

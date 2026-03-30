@@ -1,4 +1,5 @@
 """Tests for COO order templates and template instantiation."""
+
 from __future__ import annotations
 
 from pathlib import Path

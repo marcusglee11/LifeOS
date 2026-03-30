@@ -44,7 +44,7 @@ def _collect_model_ids_from_config(cfg: Dict[str, Any]) -> List[str]:
     if isinstance(defaults_models, dict):
         out.extend([str(k) for k in defaults_models.keys()])
 
-    for agent in ((cfg.get("agents") or {}).get("list") or []):
+    for agent in (cfg.get("agents") or {}).get("list") or []:
         if not isinstance(agent, dict):
             continue
         model = agent.get("model") or {}
@@ -99,7 +99,7 @@ def _discover_kimi_id(cfg_ids: Sequence[str], list_ids: Sequence[str]) -> Option
 
 
 def _agent_ladder(cfg: Dict[str, Any], agent_id: str) -> List[str]:
-    for agent in ((cfg.get("agents") or {}).get("list") or []):
+    for agent in (cfg.get("agents") or {}).get("list") or []:
         if not isinstance(agent, dict):
             continue
         if str(agent.get("id") or "") != agent_id:
@@ -122,7 +122,9 @@ def _provider_of(model_id: str) -> str:
     return model_id.split("/", 1)[0].strip().lower() if "/" in model_id else "unknown"
 
 
-def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]], kimi_id: Optional[str]) -> Dict[str, Any]:
+def assert_policy(
+    cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]], kimi_id: Optional[str]
+) -> Dict[str, Any]:
     del kimi_id  # Optional Kimi rung is no longer part of the burn-in baseline policy.
 
     violations: List[str] = []
@@ -145,11 +147,15 @@ def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]],
             violations.append(f"{agent_id}: primary must be {REQUIRED_PREFIX[0]}, got {actual[0]}")
 
         if len(actual) < len(REQUIRED_PREFIX):
-            violations.append(f"{agent_id}: ladder must include subscription-first prefix {REQUIRED_PREFIX}")
+            violations.append(
+                f"{agent_id}: ladder must include subscription-first prefix {REQUIRED_PREFIX}"
+            )
         else:
             prefix = actual[: len(REQUIRED_PREFIX)]
             if prefix != REQUIRED_PREFIX:
-                violations.append(f"{agent_id}: ladder prefix mismatch with policy {REQUIRED_PREFIX}")
+                violations.append(
+                    f"{agent_id}: ladder prefix mismatch with policy {REQUIRED_PREFIX}"
+                )
 
         for model_id in actual:
             if not MODEL_ID_RE.match(model_id):
@@ -161,7 +167,9 @@ def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]],
             if QUARANTINED_PROVIDER_RE.search(fb):
                 violations.append(f"{agent_id}: quarantined provider fallback disallowed: {fb}")
 
-        working_models = [m for m in actual if bool((models_status.get(m) or {}).get("working", False))]
+        working_models = [
+            m for m in actual if bool((models_status.get(m) or {}).get("working", False))
+        ]
         working_count = len(working_models)
         if working_count < 1:
             violations.append(f"{agent_id}: no working model detected in configured ladder")
@@ -185,18 +193,30 @@ def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]],
     validate("think")
 
     think_agent = None
-    for item in ((cfg.get("agents") or {}).get("list") or []):
+    for item in (cfg.get("agents") or {}).get("list") or []:
         if isinstance(item, dict) and str(item.get("id") or "") == "think":
             think_agent = item
             break
     if isinstance(think_agent, dict):
-        think_level = think_agent.get("thinking") if "thinking" in think_agent else think_agent.get("thinkingDefault")
-        if think_level is not None and str(think_level).lower() not in {"extra_high", "extra-high", "very_high"}:
-            violations.append(f"think: thinking tier should be extra_high when configured, got {think_level}")
+        think_level = (
+            think_agent.get("thinking")
+            if "thinking" in think_agent
+            else think_agent.get("thinkingDefault")
+        )
+        if think_level is not None and str(think_level).lower() not in {
+            "extra_high",
+            "extra-high",
+            "very_high",
+        }:
+            violations.append(
+                f"think: thinking tier should be extra_high when configured, got {think_level}"
+            )
 
     all_model_ids: List[str] = []
     for aid in ("main", "quick", "think"):
-        all_model_ids.extend([m for m in (ladders.get(aid) or {}).get("actual", []) if isinstance(m, str)])
+        all_model_ids.extend(
+            [m for m in (ladders.get(aid) or {}).get("actual", []) if isinstance(m, str)]
+        )
 
     providers = sorted({_provider_of(m) for m in all_model_ids if "/" in m})
     auth_missing_providers = sorted(
@@ -219,8 +239,15 @@ def assert_policy(cfg: Dict[str, Any], models_status: Dict[str, Dict[str, Any]],
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Assert OpenClaw model policy for COO UX preflight.")
-    parser.add_argument("--config", default=os.environ.get("OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")))
+    parser = argparse.ArgumentParser(
+        description="Assert OpenClaw model policy for COO UX preflight."
+    )
+    parser.add_argument(
+        "--config",
+        default=os.environ.get(
+            "OPENCLAW_CONFIG_PATH", str(Path.home() / ".openclaw" / "openclaw.json")
+        ),
+    )
     parser.add_argument("--models-list-file", default="")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -240,7 +267,11 @@ def main() -> int:
                 "auth_missing_providers": [],
             }
             if args.json:
-                print(json.dumps(error_result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+                print(
+                    json.dumps(
+                        error_result, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+                    )
+                )
             else:
                 print("policy_ok=false violations=1 error=config_not_found")
             return 1
@@ -263,9 +294,18 @@ def main() -> int:
         if args.json:
             print(json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
         else:
-            print(f"policy_ok={'true' if result['policy_ok'] else 'false'} violations={len(result['violations'])}")
+            print(
+                f"policy_ok={'true' if result['policy_ok'] else 'false'} violations={len(result['violations'])}"
+            )
         return 0 if result["policy_ok"] else 1
-    except (FileNotFoundError, json.JSONDecodeError, KeyError, ValueError, IndexError, TypeError) as e:
+    except (
+        FileNotFoundError,
+        json.JSONDecodeError,
+        KeyError,
+        ValueError,
+        IndexError,
+        TypeError,
+    ) as e:
         error_result = {
             "policy_ok": False,
             "error": type(e).__name__.lower(),
@@ -278,7 +318,9 @@ def main() -> int:
             "auth_missing_providers": [],
         }
         if args.json:
-            print(json.dumps(error_result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+            print(
+                json.dumps(error_result, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+            )
         else:
             print(f"policy_ok=false violations=1 error={type(e).__name__.lower()}")
         return 1

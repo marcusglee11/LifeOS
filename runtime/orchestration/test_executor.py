@@ -6,15 +6,15 @@ Phase 3a capability for autonomous test execution within strict bounds:
 - Output capture and truncation (50KB limit)
 - Structured result with exit code, status, and evidence
 """
+
 from __future__ import annotations
 
 import os
-import subprocess
 import signal
+import subprocess
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, Set
 from pathlib import Path
-
+from typing import Any, Dict, Optional, Set
 
 # Maximum output size before truncation (50KB as per Phase 3a spec)
 MAX_OUTPUT_SIZE = 50 * 1024  # 50KB
@@ -40,6 +40,7 @@ class PytestResult:
         counts: dict with test counts (passed, failed, skipped)
         error_messages: list of error messages from failures
     """
+
     status: str
     exit_code: int
     stdout: str
@@ -85,7 +86,6 @@ class PytestExecutor:
             PytestResult with captured output and status
         """
         import time
-        import os
 
         start_time = time.time()
 
@@ -257,6 +257,7 @@ class PytestExecutor:
             if "passed" in line or "failed" in line or "skipped" in line:
                 # Try to extract counts
                 import re
+
                 passed_match = re.search(r"(\d+) passed", line)
                 failed_match = re.search(r"(\d+) failed", line)
                 skipped_match = re.search(r"(\d+) skipped", line)
@@ -272,6 +273,7 @@ class PytestExecutor:
             if "FAILED" in line:
                 # Extract test name from lines like "FAILED test_file.py::test_name"
                 import re
+
                 match = re.search(r"FAILED\s+(\S+)", line)
                 if match:
                     failed_tests.add(match.group(1))
@@ -279,6 +281,7 @@ class PytestExecutor:
             # Capture PASSED lines
             if "PASSED" in line:
                 import re
+
                 match = re.search(r"PASSED\s+(\S+)", line)
                 if match:
                     passed_tests.add(match.group(1))

@@ -42,9 +42,7 @@ def _install_fake_telegram(
     builder = _FakeBuilder(application)
     fake_ext = types.ModuleType("telegram.ext")
     fake_ext.ApplicationBuilder = lambda: builder
-    fake_ext.CallbackQueryHandler = (
-        lambda callback, pattern=None: ("callback", pattern, callback)
-    )
+    fake_ext.CallbackQueryHandler = lambda callback, pattern=None: ("callback", pattern, callback)
     fake_ext.MessageHandler = lambda filter_value, callback: (
         "message",
         filter_value,

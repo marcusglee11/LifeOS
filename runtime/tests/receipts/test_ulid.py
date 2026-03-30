@@ -1,7 +1,6 @@
 """Tests for runtime/receipts/ulid.py"""
-import re
 
-import pytest
+import re
 
 from runtime.receipts.ulid import generate_ulid
 
@@ -21,6 +20,7 @@ def test_ulid_uniqueness():
 
 def test_ulid_time_sortable():
     import time
+
     ulid1 = generate_ulid()
     time.sleep(0.002)  # ensure ms tick
     ulid2 = generate_ulid()

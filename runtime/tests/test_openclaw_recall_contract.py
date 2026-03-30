@@ -34,4 +34,7 @@ def test_contract_response_fails_closed_for_no_hits():
     result = build_contract_response("what did we decide last week?", "")
     assert result["recall_intent"] is True
     assert result["hit_count"] == 0
-    assert result["response"] == "No grounded memory found. Which timeframe or document should I check?"
+    assert (
+        result["response"]
+        == "No grounded memory found. Which timeframe or document should I check?"
+    )

@@ -21,7 +21,7 @@ import subprocess
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 
 from runtime.receipts.invocation_receipt import record_invocation_receipt
 
@@ -34,6 +34,7 @@ def _utc_now() -> str:
 
 class CLIProvider(enum.Enum):
     """Supported CLI agent providers."""
+
     CODEX = "codex"
     GEMINI = "gemini"
     CLAUDE_CODE = "claude_code"
@@ -41,22 +42,26 @@ class CLIProvider(enum.Enum):
 
 class CLIDispatchError(Exception):
     """Base exception for CLI dispatch failures."""
+
     pass
 
 
 class CLIProviderNotFound(CLIDispatchError):
     """CLI binary not found on PATH."""
+
     pass
 
 
 class CLIDispatchTimeout(CLIDispatchError):
     """CLI agent exceeded timeout."""
+
     pass
 
 
 @dataclass(frozen=True)
 class CLIDispatchConfig:
     """Configuration for a CLI agent dispatch."""
+
     provider: CLIProvider
     timeout_seconds: int = 300
     sandbox: bool = True
@@ -71,6 +76,7 @@ class CLIDispatchConfig:
 @dataclass
 class CLIDispatchResult:
     """Result from a CLI agent execution."""
+
     output: str
     exit_code: int
     latency_ms: int
@@ -231,7 +237,11 @@ def dispatch_cli_agent(
         # Recover partial output if available
         partial_output = ""
         if exc.stdout:
-            partial_output = exc.stdout if isinstance(exc.stdout, str) else exc.stdout.decode("utf-8", errors="replace")
+            partial_output = (
+                exc.stdout
+                if isinstance(exc.stdout, str)
+                else exc.stdout.decode("utf-8", errors="replace")
+            )
         errors.append(f"Timeout after {config.timeout_seconds}s")
 
         record_invocation_receipt(
@@ -257,12 +267,8 @@ def dispatch_cli_agent(
         )
 
     except FileNotFoundError:
-        raise CLIProviderNotFound(
-            f"CLI binary '{binary}' disappeared between resolve and exec"
-        )
+        raise CLIProviderNotFound(f"CLI binary '{binary}' disappeared between resolve and exec")
 
     except OSError as exc:
         elapsed_ms = int((time.monotonic() - start) * 1000)
-        raise CLIDispatchError(
-            f"OS error spawning {config.provider.value}: {exc}"
-        ) from exc
+        raise CLIDispatchError(f"OS error spawning {config.provider.value}: {exc}") from exc

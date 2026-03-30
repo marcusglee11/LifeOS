@@ -20,6 +20,7 @@ from typing import Optional
 
 try:
     import yaml
+
     YAML_AVAILABLE = True
 except ImportError:
     YAML_AVAILABLE = False
@@ -28,6 +29,7 @@ except ImportError:
 # =============================================================================
 # Data Structures
 # =============================================================================
+
 
 @dataclass
 class ValidationResult:
@@ -39,6 +41,7 @@ class ValidationResult:
         error: Error message if invalid (None if valid)
         language: Language that was validated
     """
+
     valid: bool
     error: Optional[str] = None
     language: Optional[str] = None
@@ -51,6 +54,7 @@ class ValidationResult:
 # =============================================================================
 # Language Detection
 # =============================================================================
+
 
 def detect_language(path: str) -> Optional[str]:
     """
@@ -78,6 +82,7 @@ def detect_language(path: str) -> Optional[str]:
 # Validators
 # =============================================================================
 
+
 def validate_python(content: str) -> ValidationResult:
     """
     Validate Python syntax using AST parsing.
@@ -93,17 +98,11 @@ def validate_python(content: str) -> ValidationResult:
         return ValidationResult(valid=True, language="python")
     except SyntaxError as e:
         error_msg = f"SyntaxError at line {e.lineno}: {e.msg}"
-        return ValidationResult(
-            valid=False,
-            error=error_msg,
-            language="python"
-        )
+        return ValidationResult(valid=False, error=error_msg, language="python")
     except Exception as e:
         # Catch unexpected parse errors (e.g., encoding issues)
         return ValidationResult(
-            valid=False,
-            error=f"Parse error: {type(e).__name__}: {e}",
-            language="python"
+            valid=False, error=f"Parse error: {type(e).__name__}: {e}", language="python"
         )
 
 
@@ -120,9 +119,7 @@ def validate_yaml(content: str) -> ValidationResult:
     if not YAML_AVAILABLE:
         # Fail-closed: if YAML library not available, we can't validate
         return ValidationResult(
-            valid=False,
-            error="YAML validation unavailable (PyYAML not installed)",
-            language="yaml"
+            valid=False, error="YAML validation unavailable (PyYAML not installed)", language="yaml"
         )
 
     try:
@@ -130,16 +127,10 @@ def validate_yaml(content: str) -> ValidationResult:
         return ValidationResult(valid=True, language="yaml")
     except yaml.YAMLError as e:
         error_msg = f"YAML parse error: {e}"
-        return ValidationResult(
-            valid=False,
-            error=error_msg,
-            language="yaml"
-        )
+        return ValidationResult(valid=False, error=error_msg, language="yaml")
     except Exception as e:
         return ValidationResult(
-            valid=False,
-            error=f"Parse error: {type(e).__name__}: {e}",
-            language="yaml"
+            valid=False, error=f"Parse error: {type(e).__name__}: {e}", language="yaml"
         )
 
 
@@ -158,22 +149,17 @@ def validate_json(content: str) -> ValidationResult:
         return ValidationResult(valid=True, language="json")
     except json.JSONDecodeError as e:
         error_msg = f"JSON parse error at line {e.lineno}, column {e.colno}: {e.msg}"
-        return ValidationResult(
-            valid=False,
-            error=error_msg,
-            language="json"
-        )
+        return ValidationResult(valid=False, error=error_msg, language="json")
     except Exception as e:
         return ValidationResult(
-            valid=False,
-            error=f"Parse error: {type(e).__name__}: {e}",
-            language="json"
+            valid=False, error=f"Parse error: {type(e).__name__}: {e}", language="json"
         )
 
 
 # =============================================================================
 # Main Validator Interface
 # =============================================================================
+
 
 class SyntaxValidator:
     """
@@ -187,10 +173,7 @@ class SyntaxValidator:
     """
 
     def validate(
-        self,
-        content: str,
-        lang: Optional[str] = None,
-        path: Optional[str] = None
+        self, content: str, lang: Optional[str] = None, path: Optional[str] = None
     ) -> ValidationResult:
         """
         Validate syntax for the given content.
@@ -212,7 +195,7 @@ class SyntaxValidator:
             return ValidationResult(
                 valid=False,
                 error="Cannot validate: unknown language (no lang or path provided)",
-                language=None
+                language=None,
             )
 
         # Route to appropriate validator
@@ -227,9 +210,7 @@ class SyntaxValidator:
         else:
             # Fail-closed: unknown language
             return ValidationResult(
-                valid=False,
-                error=f"Cannot validate: unsupported language '{lang}'",
-                language=lang
+                valid=False, error=f"Cannot validate: unsupported language '{lang}'", language=lang
             )
 
     def validate_file(self, path: str) -> ValidationResult:
@@ -243,21 +224,19 @@ class SyntaxValidator:
             ValidationResult
         """
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             return self.validate(content, path=path)
         except FileNotFoundError:
             return ValidationResult(
-                valid=False,
-                error=f"File not found: {path}",
-                language=detect_language(path)
+                valid=False, error=f"File not found: {path}", language=detect_language(path)
             )
         except Exception as e:
             return ValidationResult(
                 valid=False,
                 error=f"Cannot read file: {type(e).__name__}: {e}",
-                language=detect_language(path)
+                language=detect_language(path),
             )
 
 
@@ -265,10 +244,9 @@ class SyntaxValidator:
 # Convenience Functions
 # =============================================================================
 
+
 def validate_syntax(
-    content: str,
-    lang: Optional[str] = None,
-    path: Optional[str] = None
+    content: str, lang: Optional[str] = None, path: Optional[str] = None
 ) -> ValidationResult:
     """
     Convenience function for syntax validation.

@@ -14,28 +14,29 @@ All missions:
 - Support rollback via compensation actions
 - Integrate with existing Tier-2 orchestration
 """
+
 from __future__ import annotations
 
+from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
 from runtime.orchestration.missions.base import (
-    MissionType,
-    MissionResult,
     MissionContext,
     MissionError,
+    MissionResult,
+    MissionType,
     MissionValidationError,
 )
-from runtime.orchestration.missions.design import DesignMission
-from runtime.orchestration.missions.review import ReviewMission
 from runtime.orchestration.missions.build import BuildMission
 from runtime.orchestration.missions.build_with_validation import BuildWithValidationMission
-from runtime.orchestration.missions.steward import StewardMission
-from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
+from runtime.orchestration.missions.design import DesignMission
 from runtime.orchestration.missions.echo import EchoMission
 from runtime.orchestration.missions.noop import NoopMission
+from runtime.orchestration.missions.review import ReviewMission
 from runtime.orchestration.missions.schema import (
-    validate_mission_definition,
-    load_mission_schema,
     MissionSchemaError,
+    load_mission_schema,
+    validate_mission_definition,
 )
+from runtime.orchestration.missions.steward import StewardMission
 
 # Mission type registry - maps type string to implementation class
 MISSION_TYPES = {
@@ -53,17 +54,14 @@ MISSION_TYPES = {
 def get_mission_class(mission_type: str):
     """
     Get mission implementation class by type string.
-    
+
     Fail-closed: Raises MissionError if type is unknown.
     """
     try:
         mt = MissionType(mission_type)
     except ValueError:
         valid = sorted([t.value for t in MissionType])
-        raise MissionError(
-            f"Unknown mission type: '{mission_type}'. "
-            f"Valid types: {valid}"
-        )
+        raise MissionError(f"Unknown mission type: '{mission_type}'. Valid types: {valid}")
     return MISSION_TYPES[mt]
 
 

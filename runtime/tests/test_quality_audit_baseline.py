@@ -50,7 +50,10 @@ def test_representative_examples_limits_output() -> None:
 
 
 def test_classify_disposition_marks_opencode_governance_for_rescope() -> None:
-    assert classify_disposition("ruff_check", "opencode_governance", 1, "packaged_but_not_in_manifest") == "exclude_or_rescope"
+    assert (
+        classify_disposition("ruff_check", "opencode_governance", 1, "packaged_but_not_in_manifest")
+        == "exclude_or_rescope"
+    )
 
 
 def test_classify_disposition_marks_success_as_blocking_ready() -> None:

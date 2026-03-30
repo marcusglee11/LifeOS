@@ -1,11 +1,9 @@
 """Tests for Council V2 shadow runner."""
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
 
@@ -25,8 +23,10 @@ def test_shadow_produces_verdict(tmp_path):
     runner = ShadowCouncilRunner(tmp_path)
     mock_result = _make_mock_result()
 
-    with patch("runtime.orchestration.council.CouncilFSMv2") as MockFSM, \
-         patch("runtime.orchestration.council.load_council_policy") as mock_policy:
+    with (
+        patch("runtime.orchestration.council.CouncilFSMv2") as MockFSM,
+        patch("runtime.orchestration.council.load_council_policy") as mock_policy,
+    ):
         mock_policy.return_value = {}
         MockFSM.return_value.run.return_value = mock_result
 
@@ -49,8 +49,10 @@ def test_shadow_catches_fsm_error(tmp_path):
     """Shadow runner catches FSM errors and returns error verdict."""
     runner = ShadowCouncilRunner(tmp_path)
 
-    with patch("runtime.orchestration.council.CouncilFSMv2") as MockFSM, \
-         patch("runtime.orchestration.council.load_council_policy") as mock_policy:
+    with (
+        patch("runtime.orchestration.council.CouncilFSMv2") as MockFSM,
+        patch("runtime.orchestration.council.load_council_policy") as mock_policy,
+    ):
         mock_policy.return_value = {}
         MockFSM.return_value.run.side_effect = RuntimeError("FSM exploded")
 
@@ -70,8 +72,10 @@ def test_shadow_output_directory_structure(tmp_path):
     runner = ShadowCouncilRunner(tmp_path)
     mock_result = _make_mock_result()
 
-    with patch("runtime.orchestration.council.CouncilFSMv2") as MockFSM, \
-         patch("runtime.orchestration.council.load_council_policy") as mock_policy:
+    with (
+        patch("runtime.orchestration.council.CouncilFSMv2") as MockFSM,
+        patch("runtime.orchestration.council.load_council_policy") as mock_policy,
+    ):
         mock_policy.return_value = {}
         MockFSM.return_value.run.return_value = mock_result
 
@@ -88,13 +92,22 @@ def test_shadow_verdict_schema(tmp_path):
     decision = {"verdict": "Accept", "status": "COMPLETE", "tier": "T2"}
     mock_result = _make_mock_result(decision_payload=decision)
 
-    with patch("runtime.orchestration.council.CouncilFSMv2") as MockFSM, \
-         patch("runtime.orchestration.council.load_council_policy") as mock_policy:
+    with (
+        patch("runtime.orchestration.council.CouncilFSMv2") as MockFSM,
+        patch("runtime.orchestration.council.load_council_policy") as mock_policy,
+    ):
         mock_policy.return_value = {}
         MockFSM.return_value.run.return_value = mock_result
 
         verdict = runner.run_shadow(run_id="run_schema_001", ccp={})
 
-    required_keys = {"schema_version", "run_id", "timestamp", "status", "decision_payload", "verdict_hash"}
+    required_keys = {
+        "schema_version",
+        "run_id",
+        "timestamp",
+        "status",
+        "decision_payload",
+        "verdict_hash",
+    }
     assert required_keys.issubset(set(verdict.keys()))
     assert verdict["decision_payload"] == decision

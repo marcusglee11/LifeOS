@@ -20,14 +20,14 @@ def _write(path: Path, content: str) -> None:
 def _build_light_evidence(evidence_root: Path) -> None:
     _write(evidence_root / "meta.json", "{}\n")
     _write(evidence_root / "exitcode.txt", "0\n")
-    _write(evidence_root / "commands.jsonl", "{\"cmd\":\"true\"}\n")
+    _write(evidence_root / "commands.jsonl", '{"cmd":"true"}\n')
 
 
 def test_enforce_tier_missing_required_file(tmp_path: Path) -> None:
     evidence_root = tmp_path / "evidence"
     evidence_root.mkdir(parents=True, exist_ok=True)
     _write(evidence_root / "meta.json", "{}\n")
-    _write(evidence_root / "commands.jsonl", "{\"cmd\":\"true\"}\n")
+    _write(evidence_root / "commands.jsonl", '{"cmd":"true"}\n')
 
     with pytest.raises(EvidenceError) as exc:
         enforce_evidence_tier(evidence_root, "light")
@@ -56,7 +56,7 @@ def test_manifest_hash_mismatch_detected(tmp_path: Path) -> None:
     _build_light_evidence(evidence_root)
 
     compute_manifest(evidence_root)
-    _write(evidence_root / "meta.json", "{\"changed\":true}\n")
+    _write(evidence_root / "meta.json", '{"changed":true}\n')
 
     with pytest.raises(EvidenceError) as exc:
         verify_manifest(evidence_root)

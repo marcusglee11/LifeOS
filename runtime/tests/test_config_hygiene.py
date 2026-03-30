@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -43,6 +42,5 @@ class TestPyprojectIgnores:
     def test_e2e_smoke_timeout_not_ignored(self):
         content = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
         assert "test_e2e_smoke_timeout.py" not in content, (
-            "test_e2e_smoke_timeout.py is still ignored in pyproject.toml "
-            "but is expected to run."
+            "test_e2e_smoke_timeout.py is still ignored in pyproject.toml but is expected to run."
         )

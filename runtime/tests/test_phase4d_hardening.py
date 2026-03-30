@@ -9,20 +9,19 @@ Tests the hardening fixes for Phase 4D code autonomy:
 - P1.1: Unknown mutator fail-closed
 """
 
-import pytest
-from runtime.governance.tool_policy import check_code_autonomy_policy
 from runtime.governance.protected_paths import (
+    is_path_in_allowed_scope,
+    is_path_protected,
     normalize_rel_path,
     validate_write_path,
-    is_path_protected,
-    is_path_in_allowed_scope,
 )
+from runtime.governance.tool_policy import check_code_autonomy_policy
 from runtime.tools.schemas import ToolInvokeRequest
-
 
 # =============================================================================
 # P0.1: Path Normalization and Escape Prevention
 # =============================================================================
+
 
 class TestPathNormalization:
     """Tests for canonical path normalization (P0.1)."""
@@ -122,7 +121,9 @@ class TestPathTraversalDenial:
         allowed, reason = validate_write_path("runtime/../docs/01_governance/test.md")
         assert allowed is False
         # Should be caught either as invalid path, traversal, or protected
-        assert any(x in reason for x in ["INVALID_PATH", "PATH_TRAVERSAL", "PROTECTED", "GOVERNANCE"])
+        assert any(
+            x in reason for x in ["INVALID_PATH", "PATH_TRAVERSAL", "PROTECTED", "GOVERNANCE"]
+        )
 
     def test_write_blocked_for_deep_traversal(self):
         """Deep path traversal is blocked."""
@@ -170,6 +171,7 @@ class TestAbsolutePathDenial:
 # P0.2: Diff Budget Fail-Closed
 # =============================================================================
 
+
 class TestDiffBudgetFailClosed:
     """Tests for diff budget requirement (P0.2)."""
 
@@ -178,10 +180,7 @@ class TestDiffBudgetFailClosed:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/test.py",
-                "content": "x = 1\n"
-            }
+            args={"path": "runtime/test.py", "content": "x = 1\n"},
         )
 
         # Call with diff_lines=None (explicitly)
@@ -196,10 +195,7 @@ class TestDiffBudgetFailClosed:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/test.py",
-                "content": "x = 1\n"
-            }
+            args={"path": "runtime/test.py", "content": "x = 1\n"},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=0)
@@ -215,10 +211,7 @@ class TestDiffBudgetFailClosed:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/test.py",
-                "content": "x = 1\n"
-            }
+            args={"path": "runtime/test.py", "content": "x = 1\n"},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=100)
@@ -232,18 +225,14 @@ class TestDiffBudgetFailClosed:
 # P0.3: Empty Content Validation
 # =============================================================================
 
+
 class TestEmptyContentValidation:
     """Tests for empty content validation (P0.3)."""
 
     def test_empty_string_python_valid(self):
         """Empty Python file is valid (ast.parse('') succeeds)."""
         request = ToolInvokeRequest(
-            tool="filesystem",
-            action="write_file",
-            args={
-                "path": "runtime/empty.py",
-                "content": ""
-            }
+            tool="filesystem", action="write_file", args={"path": "runtime/empty.py", "content": ""}
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
@@ -256,10 +245,7 @@ class TestEmptyContentValidation:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/empty.json",
-                "content": ""
-            }
+            args={"path": "runtime/empty.json", "content": ""},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
@@ -272,6 +258,7 @@ class TestEmptyContentValidation:
 # =============================================================================
 # P0.4: Enforcement Surface Protection
 # =============================================================================
+
 
 class TestEnforcementSurfaceProtection:
     """Tests for protection of enforcement modules (P0.4)."""
@@ -287,10 +274,7 @@ class TestEnforcementSurfaceProtection:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/governance/syntax_validator.py",
-                "content": "# malicious code"
-            }
+            args={"path": "runtime/governance/syntax_validator.py", "content": "# malicious code"},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
@@ -317,6 +301,7 @@ class TestEnforcementSurfaceProtection:
 # P1.1: Unknown Mutator Fail-Closed
 # =============================================================================
 
+
 class TestUnknownMutatorFailClosed:
     """Tests for unknown mutator detection (P1.1)."""
 
@@ -325,10 +310,7 @@ class TestUnknownMutatorFailClosed:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/test.py",
-                "content": "x = 1"
-            }
+            args={"path": "runtime/test.py", "content": "x = 1"},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
@@ -341,9 +323,7 @@ class TestUnknownMutatorFailClosed:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="delete_file",  # Not in KNOWN_FILESYSTEM_MUTATORS
-            args={
-                "path": "runtime/test.py"
-            }
+            args={"path": "runtime/test.py"},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
@@ -355,22 +335,22 @@ class TestUnknownMutatorFailClosed:
     def test_read_operations_pass_through(self):
         """Read operations (non-mutators) pass through."""
         request = ToolInvokeRequest(
-            tool="filesystem",
-            action="read_file",
-            args={
-                "path": "runtime/test.py"
-            }
+            tool="filesystem", action="read_file", args={"path": "runtime/test.py"}
         )
 
         allowed, decision = check_code_autonomy_policy(request)
 
         assert allowed is True
-        assert "not_applicable" in decision.matched_rules or "Not a mutator" in decision.decision_reason
+        assert (
+            "not_applicable" in decision.matched_rules
+            or "Not a mutator" in decision.decision_reason
+        )
 
 
 # =============================================================================
 # Integration: Multiple Bypass Attempts
 # =============================================================================
+
 
 class TestMultipleBypassAttempts:
     """Tests combining multiple bypass techniques."""

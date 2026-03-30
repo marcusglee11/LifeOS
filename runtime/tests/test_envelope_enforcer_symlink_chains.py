@@ -6,12 +6,13 @@ and envelope containment edge cases.
 
 Per Edge Case Testing Implementation Plan - Phase 1.4
 """
-import pytest
+
 import os
-from pathlib import Path
+
+import pytest
+
 from runtime.governance.envelope_enforcer import (
     EnvelopeEnforcer,
-    EnvelopeViolation,
     ValidationResult,
 )
 
@@ -51,11 +52,7 @@ class TestSymlinkChains:
 
         # Attempt to access via link1
         result = enforcer.validate_path_access(
-            str(link1),
-            "read",
-            allowed_paths=["*"],
-            denied_paths=[],
-            reject_symlinks=True
+            str(link1), "read", allowed_paths=["*"], denied_paths=[], reject_symlinks=True
         )
 
         assert result.allowed is False
@@ -75,11 +72,7 @@ class TestSymlinkChains:
         # This is caught and returned as validation failure
         try:
             result = enforcer.validate_path_access(
-                str(link1),
-                "read",
-                allowed_paths=["*"],
-                denied_paths=[],
-                reject_symlinks=True
+                str(link1), "read", allowed_paths=["*"], denied_paths=[], reject_symlinks=True
             )
             # If result is returned, should be denied
             assert result.allowed is False
@@ -104,7 +97,7 @@ class TestSymlinkChains:
             "read",
             allowed_paths=["*"],
             denied_paths=[],
-            reject_symlinks=True
+            reject_symlinks=True,
         )
 
         assert result.allowed is False
@@ -119,11 +112,7 @@ class TestSymlinkChains:
         link.symlink_to(target)
 
         result = enforcer.validate_path_access(
-            str(link),
-            "read",
-            allowed_paths=["*"],
-            denied_paths=[],
-            reject_symlinks=False
+            str(link), "read", allowed_paths=["*"], denied_paths=[], reject_symlinks=False
         )
 
         # Should be allowed if symlink stays within repo and reject_symlinks=False
@@ -138,10 +127,7 @@ class TestPathEscapeAttempts:
     def test_dotdot_escape_blocked(self, repo_root, enforcer):
         """.. path escape attempt is blocked."""
         result = enforcer.validate_path_access(
-            "../outside.txt",
-            "read",
-            allowed_paths=["*"],
-            denied_paths=[]
+            "../outside.txt", "read", allowed_paths=["*"], denied_paths=[]
         )
 
         assert result.allowed is False
@@ -152,10 +138,7 @@ class TestPathEscapeAttempts:
         outside_path = repo_root.parent / "outside.txt"
 
         result = enforcer.validate_path_access(
-            str(outside_path),
-            "read",
-            allowed_paths=["*"],
-            denied_paths=[]
+            str(outside_path), "read", allowed_paths=["*"], denied_paths=[]
         )
 
         assert result.allowed is False
@@ -175,10 +158,7 @@ class TestPathEscapeAttempts:
         long_path = "/".join(path_parts) + "/file.txt"
 
         result = enforcer.validate_path_access(
-            long_path,
-            "read",
-            allowed_paths=["*"],
-            denied_paths=[]
+            long_path, "read", allowed_paths=["*"], denied_paths=[]
         )
 
         # Should either succeed or fail gracefully (not crash)
@@ -189,10 +169,7 @@ class TestPathEscapeAttempts:
         malicious_path = "file\x00.txt"
 
         result = enforcer.validate_path_access(
-            malicious_path,
-            "read",
-            allowed_paths=["*"],
-            denied_paths=[]
+            malicious_path, "read", allowed_paths=["*"], denied_paths=[]
         )
 
         # Should fail (null bytes in path)
@@ -204,10 +181,7 @@ class TestPathEscapeAttempts:
         valid_file.write_text("content")
 
         result = enforcer.validate_path_access(
-            "file.txt///",
-            "read",
-            allowed_paths=["*"],
-            denied_paths=[]
+            "file.txt///", "read", allowed_paths=["*"], denied_paths=[]
         )
 
         # Should normalize and validate
@@ -223,10 +197,7 @@ class TestAllowlistDenylistPatterns:
         test_file.write_text("secret")
 
         result = enforcer.validate_path_access(
-            "secret.txt",
-            "read",
-            allowed_paths=["*"],
-            denied_paths=["secret.txt"]
+            "secret.txt", "read", allowed_paths=["*"], denied_paths=["secret.txt"]
         )
 
         assert result.allowed is False
@@ -238,17 +209,11 @@ class TestAllowlistDenylistPatterns:
         allowed_file.write_text("content")
 
         result_allowed = enforcer.validate_path_access(
-            "allowed.txt",
-            "read",
-            allowed_paths=["*.txt"],
-            denied_paths=[]
+            "allowed.txt", "read", allowed_paths=["*.txt"], denied_paths=[]
         )
 
         result_denied = enforcer.validate_path_access(
-            "denied.py",
-            "read",
-            allowed_paths=["*.txt"],
-            denied_paths=[]
+            "denied.py", "read", allowed_paths=["*.txt"], denied_paths=[]
         )
 
         # Implementation may vary - test that pattern matching is applied
@@ -270,7 +235,7 @@ class TestAllowlistDenylistPatterns:
             "read",
             allowed_paths=["*"],
             denied_paths=["secret.txt"],
-            reject_symlinks=True
+            reject_symlinks=True,
         )
 
         # Should be rejected (symlink rejection takes precedence)
@@ -292,13 +257,10 @@ class TestUnicodeNormalization:
         nfc_file.write_text("content")
 
         # NFD version (decomposed)
-        nfd_name = unicodedata.normalize('NFD', nfc_name)
+        nfd_name = unicodedata.normalize("NFD", nfc_name)
 
         result = enforcer.validate_path_access(
-            nfd_name,
-            "read",
-            allowed_paths=["*"],
-            denied_paths=[]
+            nfd_name, "read", allowed_paths=["*"], denied_paths=[]
         )
 
         # Should handle normalization gracefully
@@ -321,7 +283,7 @@ class TestMixedPathSeparators:
             "subdir\\file.txt",  # Windows-style separator
             "read",
             allowed_paths=["*"],
-            denied_paths=[]
+            denied_paths=[],
         )
 
         # Should normalize and validate

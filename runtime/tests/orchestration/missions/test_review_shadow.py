@@ -1,13 +1,11 @@
 """Tests for shadow council wiring in ReviewMission."""
+
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from runtime.orchestration.missions.review import ReviewMission
 from runtime.orchestration.missions.base import MissionContext
+from runtime.orchestration.missions.review import ReviewMission
 
 
 def _make_context(tmp_path):
@@ -30,7 +28,12 @@ def _make_inputs():
 
 def _mock_agent_response():
     resp = MagicMock()
-    resp.packet = {"verdict": "approved", "rationale": "LGTM", "concerns": [], "recommendations": []}
+    resp.packet = {
+        "verdict": "approved",
+        "rationale": "LGTM",
+        "concerns": [],
+        "recommendations": [],
+    }
     resp.content = "approved"
     resp.call_id = "call_001"
     resp.model_used = "test-model"

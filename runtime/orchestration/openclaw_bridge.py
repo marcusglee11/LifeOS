@@ -12,9 +12,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
-from runtime.util.canonical import sha256_file as _sha256_file
-
 import yaml
+
+from runtime.util.canonical import sha256_file as _sha256_file
 
 OPENCLAW_JOB_KIND = "lifeos.job.v0.1"
 OPENCLAW_RESULT_KIND = "lifeos.result.v0.2"
@@ -226,8 +226,6 @@ def resolve_openclaw_job_evidence_dir(repo_root: Path, job_id: str) -> Path:
     return Path(repo_root) / OPENCLAW_EVIDENCE_ROOT / validated
 
 
-
-
 def write_openclaw_evidence_contract(
     *,
     repo_root: Path,
@@ -365,7 +363,9 @@ def execute_openclaw_job(
 ) -> dict[str, Any]:
     """Execute OpenClaw job via LoopSpine and return OpenClaw result payload."""
     fallback_job_id = _safe_result_id(job_payload.get("job_id"), fallback="unknown_job")
-    fallback_run_id = _safe_result_id(job_payload.get("run_id"), fallback=f"openclaw:{fallback_job_id}")
+    fallback_run_id = _safe_result_id(
+        job_payload.get("run_id"), fallback=f"openclaw:{fallback_job_id}"
+    )
     resolved_repo_root = Path(repo_root).resolve()
 
     try:
@@ -392,15 +392,21 @@ def execute_openclaw_job(
             checkpoint_id = spine_result.get("checkpoint_id")
             if not isinstance(checkpoint_id, str) or not checkpoint_id.strip():
                 raise OpenClawBridgeError("checkpoint state missing checkpoint_id")
-            checkpoint_path = resolved_repo_root / "artifacts" / "checkpoints" / f"{checkpoint_id}.yaml"
+            checkpoint_path = (
+                resolved_repo_root / "artifacts" / "checkpoints" / f"{checkpoint_id}.yaml"
+            )
             checkpoint_packet = _load_yaml_packet(checkpoint_path)
-            checkpoint_packet_ref = _repo_relative_path(repo_root=resolved_repo_root, path=checkpoint_path)
+            checkpoint_packet_ref = _repo_relative_path(
+                repo_root=resolved_repo_root, path=checkpoint_path
+            )
             packet_refs.append(checkpoint_packet_ref)
         else:
             terminal_path = resolved_repo_root / "artifacts" / "terminal" / f"TP_{run_id}.yaml"
             if terminal_path.exists():
                 terminal_packet = _load_yaml_packet(terminal_path)
-                terminal_packet_ref = _repo_relative_path(repo_root=resolved_repo_root, path=terminal_path)
+                terminal_packet_ref = _repo_relative_path(
+                    repo_root=resolved_repo_root, path=terminal_path
+                )
                 packet_refs.append(terminal_packet_ref)
             else:
                 return _blocked_result(
@@ -429,7 +435,9 @@ def execute_openclaw_job(
             Path(evidence_contract["evidence_dir"])
         )
         if not evidence_ok:
-            failure_reason = evidence_errors[0] if evidence_errors else "unknown evidence validation failure"
+            failure_reason = (
+                evidence_errors[0] if evidence_errors else "unknown evidence validation failure"
+            )
             return _blocked_result(
                 job_id=job_id,
                 run_id=run_id,

@@ -4,8 +4,10 @@ Phase C reconciliation job — audit mode (spec §10.2).
 Checks each landed_sha for a valid land receipt with tree_equivalence.match=True.
 Audit mode: log only, no blocking.
 """
+
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -15,12 +17,13 @@ from runtime.receipts.store import ReceiptStore
 @dataclass(frozen=True)
 class ReconciliationReport:
     """Result of a reconciliation run."""
+
     total_checked: int
-    compliant: int       # land receipt exists + match=True
-    bypasses: int        # no land receipt found
-    violations: int      # land receipt exists but match=False
+    compliant: int  # land receipt exists + match=True
+    bypasses: int  # no land receipt found
+    violations: int  # land receipt exists but match=False
     findings: list[dict[str, Any]]
-    mode: str            # "audit" | "alert" | "enforce"
+    mode: str  # "audit" | "alert" | "enforce"
 
 
 def run_reconciliation(
@@ -55,27 +58,34 @@ def run_reconciliation(
         receipt = store.query_land_receipt_by_landed_sha(sha)
         if receipt is None:
             bypasses += 1
-            findings.append({"landed_sha": sha, "status": "BYPASS", "detail": "No land receipt found"})
+            findings.append(
+                {"landed_sha": sha, "status": "BYPASS", "detail": "No land receipt found"}
+            )
         else:
             tree_match = receipt.get("tree_equivalence", {}).get("match")
             if tree_match is True:
                 compliant += 1
-                findings.append({
-                    "landed_sha": sha, "status": "COMPLIANT",
-                    "receipt_id": receipt.get("receipt_id"),
-                })
+                findings.append(
+                    {
+                        "landed_sha": sha,
+                        "status": "COMPLIANT",
+                        "receipt_id": receipt.get("receipt_id"),
+                    }
+                )
             else:
                 violations += 1
                 if tree_match is False:
                     detail = "tree_equivalence.match=False"
                 else:
                     detail = "tree_equivalence.match missing or invalid"
-                findings.append({
-                    "landed_sha": sha,
-                    "status": "VIOLATION",
-                    "receipt_id": receipt.get("receipt_id"),
-                    "detail": detail,
-                })
+                findings.append(
+                    {
+                        "landed_sha": sha,
+                        "status": "VIOLATION",
+                        "receipt_id": receipt.get("receipt_id"),
+                        "detail": detail,
+                    }
+                )
 
     return ReconciliationReport(
         total_checked=len(landed_shas),

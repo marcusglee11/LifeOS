@@ -43,9 +43,13 @@ def _assert_telegram(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
     reply_mode = str(telegram.get("replyToMode") or "")
     if reply_mode not in KNOWN_TELEGRAM_REPLY_MODES:
-        raise AssertionError(f"channels.telegram.replyToMode must be one of {sorted(KNOWN_TELEGRAM_REPLY_MODES)}")
+        raise AssertionError(
+            f"channels.telegram.replyToMode must be one of {sorted(KNOWN_TELEGRAM_REPLY_MODES)}"
+        )
     if reply_mode != "first":
-        raise AssertionError(f'channels.telegram.replyToMode must be "first" at P1.2, got {reply_mode}')
+        raise AssertionError(
+            f'channels.telegram.replyToMode must be "first" at P1.2, got {reply_mode}'
+        )
 
     agents = ((cfg.get("agents") or {}).get("list")) or []
     if not isinstance(agents, list) or not agents:
@@ -57,7 +61,9 @@ def _assert_telegram(cfg: Dict[str, Any]) -> Dict[str, Any]:
         group_chat = agent.get("groupChat") or {}
         patterns = group_chat.get("mentionPatterns")
         if not isinstance(patterns, list) or not [p for p in patterns if str(p).strip()]:
-            raise AssertionError(f"agents.list[{agent_id}].groupChat.mentionPatterns must be non-empty")
+            raise AssertionError(
+                f"agents.list[{agent_id}].groupChat.mentionPatterns must be non-empty"
+            )
 
     commands = cfg.get("commands") or {}
     if commands.get("useAccessGroups") is not True:
@@ -86,7 +92,9 @@ def _assert_slack(cfg: Dict[str, Any]) -> Dict[str, Any]:
     if mode == "http":
         webhook_path = str(slack.get("webhookPath") or "")
         if webhook_path != "/slack/events":
-            raise AssertionError('channels.slack.webhookPath must be "/slack/events" when mode=http')
+            raise AssertionError(
+                'channels.slack.webhookPath must be "/slack/events" when mode=http'
+            )
 
     for key in SLACK_SECRET_KEYS:
         if key in slack and str(slack.get(key) or "").strip():
@@ -102,7 +110,9 @@ def assert_interfaces_policy(cfg: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Assert OpenClaw interfaces hardening policy invariants.")
+    parser = argparse.ArgumentParser(
+        description="Assert OpenClaw interfaces hardening policy invariants."
+    )
     parser.add_argument("--config", default=str(Path.home() / ".openclaw" / "openclaw.json"))
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()

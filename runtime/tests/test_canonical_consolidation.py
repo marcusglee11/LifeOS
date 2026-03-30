@@ -2,9 +2,8 @@
 Canonical Consolidation Tests — verify all sha256/canonical_json go through
 runtime.util.canonical and produce consistent results.
 """
+
 import hashlib
-import json
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -12,7 +11,6 @@ import pytest
 from runtime.util.canonical import (
     canonical_json,
     canonical_json_str,
-    compute_sha256,
     sha256_file,  # NEW — does not exist yet
 )
 
@@ -93,6 +91,7 @@ class TestNoDuplicateImplementations:
     def test_agents_api_uses_canonical(self):
         """runtime/agents/api.py should import canonical_json from util."""
         import runtime.agents.api as api_mod
+
         source = Path(api_mod.__file__).read_text(encoding="utf-8")
         assert "from runtime.util.canonical import" in source, (
             "runtime/agents/api.py should import from runtime.util.canonical"
@@ -101,6 +100,7 @@ class TestNoDuplicateImplementations:
     def test_validation_reporting_uses_canonical(self):
         """runtime/validation/reporting.py should import from util."""
         import runtime.validation.reporting as rep_mod
+
         source = Path(rep_mod.__file__).read_text(encoding="utf-8")
         assert "from runtime.util.canonical import" in source, (
             "runtime/validation/reporting.py should import from runtime.util.canonical"
@@ -109,6 +109,7 @@ class TestNoDuplicateImplementations:
     def test_cli_uses_canonical(self):
         """runtime/cli.py should import from util.canonical."""
         import runtime.cli as cli_mod
+
         source = Path(cli_mod.__file__).read_text(encoding="utf-8")
         assert "from runtime.util.canonical import" in source, (
             "runtime/cli.py should import from runtime.util.canonical"

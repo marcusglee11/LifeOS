@@ -10,23 +10,17 @@ Phase 1 constraints:
 - execute() is blocking — no async/parallel
 - execute_async() is NOT available (raises NotImplementedError)
 """
+
 from __future__ import annotations
 
 import subprocess
-
-import yaml
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from runtime.orchestration.dispatch.manifest import RunManifest
-from runtime.orchestration.dispatch.order import (
-    ExecutionOrder,
-    OrderValidationError,
-    load_order,
-    parse_order,
-)
+import yaml
+
 from runtime.orchestration.coo.backlog import (
     TaskEntry,
     load_backlog,
@@ -34,6 +28,11 @@ from runtime.orchestration.coo.backlog import (
     mark_completed,
     mark_in_progress,
     save_backlog,
+)
+from runtime.orchestration.dispatch.manifest import RunManifest
+from runtime.orchestration.dispatch.order import (
+    ExecutionOrder,
+    load_order,
 )
 from runtime.orchestration.workflow_runtime import translate_order_to_workflow_instance
 from runtime.util.atomic_write import atomic_write_text
@@ -143,7 +142,8 @@ class DispatchEngine:
 
             # Sync backlog: mark task blocked with crash evidence
             _sync_backlog_blocked(
-                self.repo_root, order_id,
+                self.repo_root,
+                order_id,
                 task_ref=task_ref,
                 evidence=f"CLEAN_FAIL: CRASH_RECOVERY ({order_id})",
             )
@@ -243,7 +243,8 @@ class DispatchEngine:
 
         # Sync backlog: mark task in_progress now that order is active
         _sync_backlog_in_progress(
-            self.repo_root, order.order_id,
+            self.repo_root,
+            order.order_id,
             task_ref=order.task_ref,
             evidence=f"dispatched {order.order_id}",
         )
@@ -286,7 +287,11 @@ class DispatchEngine:
                 if spine_outcome in ("PASS",):
                     break
 
-                if (not use_worktree) and is_isolation_required and (not attempted_auto_remediation):
+                if (
+                    (not use_worktree)
+                    and is_isolation_required
+                    and (not attempted_auto_remediation)
+                ):
                     # Automatic recovery path: rerun once in isolated worktree.
                     attempted_auto_remediation = True
                     first_isolation_reason = spine_reason or spine_outcome
@@ -296,14 +301,10 @@ class DispatchEngine:
                 break
 
             if attempted_auto_remediation and spine_outcome in ("PASS",):
-                spine_reason = (
-                    (spine_reason or "spine_completed")
-                    + " [auto-remediated:isolation]"
-                )
+                spine_reason = (spine_reason or "spine_completed") + " [auto-remediated:isolation]"
             elif attempted_auto_remediation:
-                spine_reason = (
-                    "ISOLATION_AUTO_REMEDIATION_FAILED: "
-                    + (spine_reason or first_isolation_reason or spine_outcome or "unknown")
+                spine_reason = "ISOLATION_AUTO_REMEDIATION_FAILED: " + (
+                    spine_reason or first_isolation_reason or spine_outcome or "unknown"
                 )
 
             if spine_outcome in ("PASS",):
@@ -373,13 +374,15 @@ class DispatchEngine:
             # Step 6: Sync backlog with final outcome
             if outcome == "SUCCESS":
                 _sync_backlog_completed(
-                    self.repo_root, order.order_id,
+                    self.repo_root,
+                    order.order_id,
                     task_ref=order.task_ref,
                     evidence=f"completed {order.order_id}",
                 )
             else:
                 _sync_backlog_blocked(
-                    self.repo_root, order.order_id,
+                    self.repo_root,
+                    order.order_id,
                     task_ref=order.task_ref,
                     evidence=f"CLEAN_FAIL: {reason} ({order.order_id})",
                 )
@@ -406,9 +409,7 @@ class DispatchEngine:
     def status(self) -> Dict[str, Any]:
         """Return current dispatch engine status."""
         pending = self.poll_inbox()
-        active_orders = [
-            f for f in self.active.glob("*.yaml") if not f.name.endswith(".tmp")
-        ]
+        active_orders = [f for f in self.active.glob("*.yaml") if not f.name.endswith(".tmp")]
         completed_count = len(
             [f for f in self.completed.glob("*.yaml") if not f.name.endswith(".tmp")]
         )
@@ -477,7 +478,9 @@ def _load_task_for_order(repo_root: Path, task_ref: str) -> Optional[TaskEntry]:
     return next((task for task in tasks if task.id == task_ref), None)
 
 
-def _order_to_task_spec(order: ExecutionOrder, *, task: Optional[TaskEntry] = None) -> Dict[str, Any]:
+def _order_to_task_spec(
+    order: ExecutionOrder, *, task: Optional[TaskEntry] = None
+) -> Dict[str, Any]:
     """Convert ExecutionOrder to LoopSpine task_spec dict."""
     workflow_instance = translate_order_to_workflow_instance(order, task=task)
     return {

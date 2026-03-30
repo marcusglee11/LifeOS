@@ -7,14 +7,17 @@ import os
 import re
 import shlex
 import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 PROVIDER_RE = re.compile(r"\bprovider\s+([a-z0-9._-]+)\b", re.IGNORECASE)
-PROVIDER_COOLDOWN_RE = re.compile(r"\bprovider\s+([a-z0-9._-]+)\s+is\s+in\s+cooldown\b", re.IGNORECASE)
-COOLDOWN_RE = re.compile(r"(in cooldown|all profiles unavailable|profiles are unavailable)", re.IGNORECASE)
+PROVIDER_COOLDOWN_RE = re.compile(
+    r"\bprovider\s+([a-z0-9._-]+)\s+is\s+in\s+cooldown\b", re.IGNORECASE
+)
+COOLDOWN_RE = re.compile(
+    r"(in cooldown|all profiles unavailable|profiles are unavailable)", re.IGNORECASE
+)
 INVALID_MISSING_RE = re.compile(
     r"(expired|missing|invalid|unauthorized|not authenticated|authentication required|token has been invalidated)",
     re.IGNORECASE,
@@ -89,7 +92,9 @@ def _run(
         )
     except Exception as exc:
         return CommandResult(rc=1, out="", err=f"subprocess_error:{type(exc).__name__}:{exc}")
-    return CommandResult(rc=int(proc.returncode), out=(proc.stdout or "").strip(), err=(proc.stderr or "").strip())
+    return CommandResult(
+        rc=int(proc.returncode), out=(proc.stdout or "").strip(), err=(proc.stderr or "").strip()
+    )
 
 
 def _gcloud_env() -> dict[str, str]:
@@ -289,7 +294,9 @@ def _discover_instance_from_mig(
         list_res = _run(list_cmd, timeout_s=timeout_s, env=env)
         if list_res.rc != 0:
             continue
-        instance_name, instance_zone = _pick_running_instance(list_res.out, fallback_zone=mig.location)
+        instance_name, instance_zone = _pick_running_instance(
+            list_res.out, fallback_zone=mig.location
+        )
         if not instance_name or not instance_zone:
             continue
         return (
@@ -627,7 +634,9 @@ def _run_remote_probe(
     return obj, ""
 
 
-def _format_tunnel_cmd(project: str, instance: str, zone: str, local_port: int, gateway_port: int) -> str:
+def _format_tunnel_cmd(
+    project: str, instance: str, zone: str, local_port: int, gateway_port: int
+) -> str:
     return (
         f"gcloud compute ssh {shlex.quote(instance)} --project {shlex.quote(project)} "
         f"--zone {shlex.quote(zone)} -- -N -L {int(local_port)}:localhost:{int(gateway_port)}"
@@ -673,11 +682,21 @@ def main() -> int:
     )
     parser.add_argument("--project", help="GCP project ID (defaults to gcloud config project)")
     parser.add_argument("--mig", help="Managed instance group name override")
-    parser.add_argument("--instance", help="Instance name override (skips MIG discovery when used with --zone)")
+    parser.add_argument(
+        "--instance", help="Instance name override (skips MIG discovery when used with --zone)"
+    )
     parser.add_argument("--zone", help="Zone for --instance override")
-    parser.add_argument("--service-user", default=os.environ.get("OPENCLAW_SERVICE_USER", "garfieldlee11"))
-    parser.add_argument("--gateway-port", type=int, default=int(os.environ.get("OPENCLAW_GATEWAY_PORT", "18789")))
-    parser.add_argument("--local-port", type=int, default=int(os.environ.get("OPENCLAW_LOCAL_FORWARD_PORT", "28789")))
+    parser.add_argument(
+        "--service-user", default=os.environ.get("OPENCLAW_SERVICE_USER", "garfieldlee11")
+    )
+    parser.add_argument(
+        "--gateway-port", type=int, default=int(os.environ.get("OPENCLAW_GATEWAY_PORT", "18789"))
+    )
+    parser.add_argument(
+        "--local-port",
+        type=int,
+        default=int(os.environ.get("OPENCLAW_LOCAL_FORWARD_PORT", "28789")),
+    )
     parser.add_argument("--gcloud-bin", default=os.environ.get("GCLOUD_BIN", "gcloud"))
     parser.add_argument("--gcloud-timeout-sec", type=int, default=20)
     parser.add_argument("--ssh-timeout-sec", type=int, default=90)

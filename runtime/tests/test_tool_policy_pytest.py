@@ -8,36 +8,36 @@ Tests scope enforcement for pytest execution:
 - Output capture
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-import tempfile
 import time
 
+import pytest
+
 from runtime.governance.tool_policy import (
-    check_tool_action_allowed,
     check_pytest_scope,
-    reset_scope_roots,
+    check_tool_action_allowed,
 )
-from runtime.tools.schemas import ToolInvokeRequest, PolicyDecision
-from runtime.orchestration.test_executor import PytestExecutor, PytestResult
+from runtime.orchestration.test_executor import PytestExecutor
+from runtime.tools.schemas import ToolInvokeRequest
 
 
 class TestPytestScopeEnforcement:
     """Tests for pytest scope boundary enforcement."""
 
-    @pytest.mark.parametrize("target,expected_allowed", [
-        ("runtime/tests/test_foo.py", True),
-        ("runtime/tests/", True),
-        ("runtime/tests", True),
-        ("runtime/tests/subdir/test_bar.py", True),
-        ("tests/test_foo.py", False),  # Not runtime/tests
-        ("project_builder/tests/test_foo.py", False),
-        ("runtime/governance/test_policy.py", False),  # Not in tests dir
-        ("../escape.py", False),
-        ("/etc/passwd", False),
-        ("runtime/../docs/test.py", False),
-    ])
+    @pytest.mark.parametrize(
+        "target,expected_allowed",
+        [
+            ("runtime/tests/test_foo.py", True),
+            ("runtime/tests/", True),
+            ("runtime/tests", True),
+            ("runtime/tests/subdir/test_bar.py", True),
+            ("tests/test_foo.py", False),  # Not runtime/tests
+            ("project_builder/tests/test_foo.py", False),
+            ("runtime/governance/test_policy.py", False),  # Not in tests dir
+            ("../escape.py", False),
+            ("/etc/passwd", False),
+            ("runtime/../docs/test.py", False),
+        ],
+    )
     def test_scope_enforcement(self, target, expected_allowed):
         """Verify scope enforcement for various targets."""
         allowed, reason = check_pytest_scope(target)
@@ -151,9 +151,7 @@ class TestPytestToolPolicy:
     def test_pytest_allowed_on_runtime_tests_file(self):
         """pytest is allowed to run tests in runtime/tests/."""
         request = ToolInvokeRequest(
-            tool="pytest",
-            action="run",
-            args={"target": "runtime/tests/test_example.py"}
+            tool="pytest", action="run", args={"target": "runtime/tests/test_example.py"}
         )
         allowed, decision = check_tool_action_allowed(request)
 
@@ -163,11 +161,7 @@ class TestPytestToolPolicy:
 
     def test_pytest_allowed_on_runtime_tests_directory(self):
         """pytest is allowed to run entire runtime/tests directory."""
-        request = ToolInvokeRequest(
-            tool="pytest",
-            action="run",
-            args={"target": "runtime/tests"}
-        )
+        request = ToolInvokeRequest(tool="pytest", action="run", args={"target": "runtime/tests"})
         allowed, decision = check_tool_action_allowed(request)
 
         assert allowed is True
@@ -175,11 +169,7 @@ class TestPytestToolPolicy:
 
     def test_pytest_allowed_on_runtime_tests_with_trailing_slash(self):
         """pytest is allowed with trailing slash."""
-        request = ToolInvokeRequest(
-            tool="pytest",
-            action="run",
-            args={"target": "runtime/tests/"}
-        )
+        request = ToolInvokeRequest(tool="pytest", action="run", args={"target": "runtime/tests/"})
         allowed, decision = check_tool_action_allowed(request)
 
         assert allowed is True
@@ -197,28 +187,27 @@ class TestPytestToolPolicy:
         ]
 
         for target in blocked_targets:
-            request = ToolInvokeRequest(
-                tool="pytest",
-                action="run",
-                args={"target": target}
-            )
+            request = ToolInvokeRequest(tool="pytest", action="run", args={"target": target})
             allowed, decision = check_tool_action_allowed(request)
 
             assert allowed is False, f"Should block: {target}"
             # Hardened validation may reject for different reasons
             # (absolute path, path traversal, or out of scope)
-            assert any(x in decision.decision_reason for x in [
-                "PATH_OUTSIDE_ALLOWED_SCOPE",
-                "ABSOLUTE_PATH_DENIED",
-                "PATH_TRAVERSAL_DENIED"
-            ]), f"Unexpected denial reason for {target}: {decision.decision_reason}"
+            assert any(
+                x in decision.decision_reason
+                for x in [
+                    "PATH_OUTSIDE_ALLOWED_SCOPE",
+                    "ABSOLUTE_PATH_DENIED",
+                    "PATH_TRAVERSAL_DENIED",
+                ]
+            ), f"Unexpected denial reason for {target}: {decision.decision_reason}"
 
     def test_pytest_requires_target(self):
         """pytest.run requires target argument (fail-closed)."""
         request = ToolInvokeRequest(
             tool="pytest",
             action="run",
-            args={}  # Missing target
+            args={},  # Missing target
         )
         allowed, decision = check_tool_action_allowed(request)
 
@@ -232,14 +221,14 @@ class TestPytestToolPolicy:
         monkeypatch.delenv("PYTEST_EXECUTION_ENABLED", raising=False)
 
         request = ToolInvokeRequest(
-            tool="pytest",
-            action="run",
-            args={"target": "runtime/tests/test_example.py"}
+            tool="pytest", action="run", args={"target": "runtime/tests/test_example.py"}
         )
         allowed, decision = check_tool_action_allowed(request)
 
         assert allowed is False
-        assert "Council approval" in decision.decision_reason or "CR-3A-01" in decision.decision_reason
+        assert (
+            "Council approval" in decision.decision_reason or "CR-3A-01" in decision.decision_reason
+        )
         assert "pytest_council_approval_required" in decision.matched_rules
 
     def test_pytest_allowed_with_council_approval_flag(self, monkeypatch):
@@ -248,9 +237,7 @@ class TestPytestToolPolicy:
         monkeypatch.setenv("PYTEST_EXECUTION_ENABLED", "true")
 
         request = ToolInvokeRequest(
-            tool="pytest",
-            action="run",
-            args={"target": "runtime/tests/test_example.py"}
+            tool="pytest", action="run", args={"target": "runtime/tests/test_example.py"}
         )
         allowed, decision = check_tool_action_allowed(request)
 
@@ -266,9 +253,7 @@ class TestPytestToolPolicy:
             monkeypatch.setenv("PYTEST_EXECUTION_ENABLED", value)
 
             request = ToolInvokeRequest(
-                tool="pytest",
-                action="run",
-                args={"target": "runtime/tests/test_example.py"}
+                tool="pytest", action="run", args={"target": "runtime/tests/test_example.py"}
             )
             allowed, decision = check_tool_action_allowed(request)
 
@@ -282,9 +267,7 @@ class TestPytestToolPolicy:
             monkeypatch.setenv("PYTEST_EXECUTION_ENABLED", value)
 
             request = ToolInvokeRequest(
-                tool="pytest",
-                action="run",
-                args={"target": "runtime/tests/test_example.py"}
+                tool="pytest", action="run", args={"target": "runtime/tests/test_example.py"}
             )
             allowed, decision = check_tool_action_allowed(request)
 
@@ -470,8 +453,6 @@ def test_fail_2():
     def test_timeout_kills_child_processes_no_orphans(self, tmp_path):
         """P0-2: Timeout kills entire process tree, no orphaned children survive."""
         import os
-        import signal
-        import time
 
         # Create PID file to track child process
         pid_file = tmp_path / "child_pid.txt"
@@ -545,5 +526,9 @@ def test_with_child_process():
         proc_exists = os.path.exists(proc_path)
 
         # INVARIANT: Child process must be killed (no orphans)
-        assert child_killed, f"Child process {child_pid} still running after timeout (orphan detected!)"
-        assert not proc_exists, f"Child process {child_pid} still exists in /proc (orphan detected!)"
+        assert child_killed, (
+            f"Child process {child_pid} still running after timeout (orphan detected!)"
+        )
+        assert not proc_exists, (
+            f"Child process {child_pid} still exists in /proc (orphan detected!)"
+        )

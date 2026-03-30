@@ -9,15 +9,13 @@ import pytest
 
 from runtime.orchestration.loop.worktree_dispatch import (
     WorktreeError,
-    WorktreeHandle,
+    _worktree_dir_name,
     create_worktree,
     remove_worktree,
     validate_worktree_clean,
     validate_worktree_preconditions,
     worktree_scope,
-    _worktree_dir_name,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -30,18 +28,24 @@ def _init_repo(path: Path) -> Path:
     subprocess.run(["git", "init", str(path)], capture_output=True, check=True)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
-        capture_output=True, check=True, cwd=path,
+        capture_output=True,
+        check=True,
+        cwd=path,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test"],
-        capture_output=True, check=True, cwd=path,
+        capture_output=True,
+        check=True,
+        cwd=path,
     )
     # Need at least one commit for worktrees to work
     (path / "README.md").write_text("init")
     subprocess.run(["git", "add", "."], capture_output=True, check=True, cwd=path)
     subprocess.run(
         ["git", "commit", "-m", "init", "--no-gpg-sign"],
-        capture_output=True, check=True, cwd=path,
+        capture_output=True,
+        check=True,
+        cwd=path,
     )
     return path
 
@@ -78,7 +82,9 @@ class TestCreateWorktree:
             # Verify it's a real git worktree
             result = subprocess.run(
                 ["git", "rev-parse", "--is-inside-work-tree"],
-                capture_output=True, text=True, cwd=handle.worktree_path,
+                capture_output=True,
+                text=True,
+                cwd=handle.worktree_path,
             )
             assert result.returncode == 0
         finally:
@@ -155,11 +161,14 @@ class TestWorktreeScope:
         with worktree_scope(repo, "iso-run") as handle:
             (handle.worktree_path / "isolated.txt").write_text("only here")
             subprocess.run(
-                ["git", "add", "."], capture_output=True, cwd=handle.worktree_path,
+                ["git", "add", "."],
+                capture_output=True,
+                cwd=handle.worktree_path,
             )
             subprocess.run(
                 ["git", "commit", "-m", "isolated", "--no-gpg-sign"],
-                capture_output=True, cwd=handle.worktree_path,
+                capture_output=True,
+                cwd=handle.worktree_path,
             )
             assert not (repo / "isolated.txt").exists()
 

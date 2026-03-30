@@ -8,11 +8,13 @@ or trivial. Used by the build loop to flag questionable diffs for extra review.
 Fail-closed: missing or corrupt config raises SemanticGuardrailsConfigError.
 Never silently passes on config failure.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
 import yaml
 
 
@@ -120,21 +122,15 @@ def load_guardrails_config(config_path: Path) -> GuardrailsConfig:
         SemanticGuardrailsConfigError: If file missing, unreadable, or invalid.
     """
     if not config_path.exists():
-        raise SemanticGuardrailsConfigError(
-            f"Semantic guardrails config not found: {config_path}"
-        )
+        raise SemanticGuardrailsConfigError(f"Semantic guardrails config not found: {config_path}")
 
     try:
         with open(config_path, "r") as f:
             raw = yaml.safe_load(f)
     except OSError as e:
-        raise SemanticGuardrailsConfigError(
-            f"Failed to read guardrails config: {e}"
-        ) from e
+        raise SemanticGuardrailsConfigError(f"Failed to read guardrails config: {e}") from e
     except yaml.YAMLError as e:
-        raise SemanticGuardrailsConfigError(
-            f"Invalid YAML in guardrails config: {e}"
-        ) from e
+        raise SemanticGuardrailsConfigError(f"Invalid YAML in guardrails config: {e}") from e
 
     if not isinstance(raw, dict):
         raise SemanticGuardrailsConfigError(
@@ -185,9 +181,7 @@ def load_guardrails_config(config_path: Path) -> GuardrailsConfig:
             ),
         )
     except ValueError as e:
-        raise SemanticGuardrailsConfigError(
-            f"Invalid value in guardrails config: {e}"
-        ) from e
+        raise SemanticGuardrailsConfigError(f"Invalid value in guardrails config: {e}") from e
 
 
 def check_diff(config: GuardrailsConfig, diff: DiffStats) -> GuardrailResult:
@@ -219,7 +213,8 @@ def check_diff(config: GuardrailsConfig, diff: DiffStats) -> GuardrailResult:
     if config.require_test_for_new_functions and diff.new_functions > 0:
         test_ratio = (
             diff.test_lines_changed / diff.total_lines_changed
-            if diff.total_lines_changed > 0 else 0.0
+            if diff.total_lines_changed > 0
+            else 0.0
         )
         if test_ratio < config.min_test_ratio_for_production_change:
             flags.append("missing_tests_for_new_functions")

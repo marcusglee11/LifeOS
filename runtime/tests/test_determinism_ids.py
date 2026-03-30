@@ -3,19 +3,17 @@
 Verifies that identical inputs produce identical IDs across calls,
 replacing the former uuid.uuid4() randomness in engine.py and coo/commands.py.
 """
+
 from __future__ import annotations
 
 import json
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 from runtime.util.canonical import compute_sha256
-
 
 # ---------------------------------------------------------------------------
 # 2A-1: Engine mission run_id is deterministic for same inputs
 # ---------------------------------------------------------------------------
+
 
 def test_engine_mission_run_id_deterministic():
     """Same mission_type + step_id + inputs → same run_id each time."""
@@ -37,6 +35,7 @@ def test_engine_mission_run_id_differs_for_different_inputs():
 # ---------------------------------------------------------------------------
 # 2A-2: COO commands.py run_id is deterministic for same context
 # ---------------------------------------------------------------------------
+
 
 def test_coo_propose_run_id_deterministic():
     """Same context dict → same run_id in cmd_coo_propose."""
@@ -65,6 +64,7 @@ def test_coo_propose_vs_direct_differ():
 # ---------------------------------------------------------------------------
 # 2A-3: opencode_client call_id is deterministic for same model + prompt
 # ---------------------------------------------------------------------------
+
 
 def test_opencode_call_id_deterministic():
     """Same model + prompt → same call_id in OpenCodeClient._execute_attempt."""

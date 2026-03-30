@@ -4,6 +4,7 @@ Integration tests for StewardMission using real git operations.
 These tests use temporary git repositories to verify actual commit behavior,
 diff size validation, and push capabilities.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -12,7 +13,7 @@ from typing import Any, Dict
 
 import pytest
 
-from runtime.orchestration.missions.base import MissionContext, MissionType
+from runtime.orchestration.missions.base import MissionContext
 from runtime.orchestration.missions.steward import StewardMission
 
 
@@ -25,20 +26,20 @@ def tmp_git_repo(tmp_path: Path) -> Path:
     # Initialize git repo
     subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo, check=True, capture_output=True
+        ["git", "config", "user.name", "Test User"], cwd=repo, check=True, capture_output=True
     )
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
-        cwd=repo, check=True, capture_output=True
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
 
     # Create initial commit
     (repo / "README.md").write_text("# Test Repo\n")
     subprocess.run(["git", "add", "README.md"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
-        ["git", "commit", "-m", "Initial commit"],
-        cwd=repo, check=True, capture_output=True
+        ["git", "commit", "-m", "Initial commit"], cwd=repo, check=True, capture_output=True
     )
 
     # Create runtime/ subdirectory (allowed code path)
@@ -46,8 +47,7 @@ def tmp_git_repo(tmp_path: Path) -> Path:
     (repo / "runtime" / "__init__.py").write_text("")
     subprocess.run(["git", "add", "runtime/__init__.py"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
-        ["git", "commit", "-m", "Add runtime dir"],
-        cwd=repo, check=True, capture_output=True
+        ["git", "commit", "-m", "Add runtime dir"], cwd=repo, check=True, capture_output=True
     )
 
     return repo
@@ -58,11 +58,7 @@ def steward_context(tmp_git_repo: Path) -> MissionContext:
     """Create MissionContext pointing at temp repo."""
     # Get current HEAD as baseline
     result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=tmp_git_repo,
-        capture_output=True,
-        text=True,
-        check=True
+        ["git", "rev-parse", "HEAD"], cwd=tmp_git_repo, capture_output=True, text=True, check=True
     )
     baseline = result.stdout.strip()
 
@@ -81,25 +77,20 @@ def valid_review_packet() -> Dict[str, Any]:
     return {
         "mission_name": "test_mission",
         "summary": "Test changes",
-        "payload": {
-            "artifacts_produced": []
-        }
+        "payload": {"artifacts_produced": []},
     }
 
 
 @pytest.fixture
 def approved_decision() -> Dict[str, Any]:
     """Create an approved decision for testing."""
-    return {
-        "verdict": "approved",
-        "rationale": "Looks good"
-    }
+    return {"verdict": "approved", "rationale": "Looks good"}
 
 
 def test_real_commit_code_changes(
     steward_context: MissionContext,
     valid_review_packet: Dict[str, Any],
-    approved_decision: Dict[str, Any]
+    approved_decision: Dict[str, Any],
 ):
     """Verify steward creates real git commit for code changes."""
     # Create a new file in runtime/
@@ -115,7 +106,7 @@ def test_real_commit_code_changes(
         cwd=steward_context.repo_root,
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     pre_hash = pre_result.stdout.strip()
 
@@ -138,7 +129,7 @@ def test_real_commit_code_changes(
         cwd=steward_context.repo_root,
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     assert commit_hash[:7] in log_result.stdout
 
@@ -148,7 +139,7 @@ def test_real_commit_code_changes(
         cwd=steward_context.repo_root,
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     post_hash = post_result.stdout.strip()
     assert post_hash != pre_hash
@@ -158,7 +149,7 @@ def test_real_commit_code_changes(
 def test_diff_size_validation_blocks_oversized(
     steward_context: MissionContext,
     valid_review_packet: Dict[str, Any],
-    approved_decision: Dict[str, Any]
+    approved_decision: Dict[str, Any],
 ):
     """Verify steward rejects changes exceeding max_lines budget."""
     # Create a file with >300 lines of changes
@@ -187,7 +178,7 @@ def test_diff_size_validation_blocks_oversized(
 def test_diff_size_validation_allows_within_budget(
     steward_context: MissionContext,
     valid_review_packet: Dict[str, Any],
-    approved_decision: Dict[str, Any]
+    approved_decision: Dict[str, Any],
 ):
     """Verify steward allows changes within max_lines budget."""
     # Create a small file (<300 lines)
@@ -216,7 +207,7 @@ def test_diff_size_validation_allows_within_budget(
 def test_protected_path_blocked(
     steward_context: MissionContext,
     valid_review_packet: Dict[str, Any],
-    approved_decision: Dict[str, Any]
+    approved_decision: Dict[str, Any],
 ):
     """Verify steward blocks changes to protected paths."""
     # Create protected path directory structure
@@ -247,7 +238,7 @@ def test_protected_path_blocked(
 def test_disallowed_path_blocked(
     steward_context: MissionContext,
     valid_review_packet: Dict[str, Any],
-    approved_decision: Dict[str, Any]
+    approved_decision: Dict[str, Any],
 ):
     """Verify steward blocks changes to disallowed paths."""
     # Create a file outside allowed scope
@@ -274,7 +265,7 @@ def test_disallowed_path_blocked(
 def test_clean_repo_after_commit(
     steward_context: MissionContext,
     valid_review_packet: Dict[str, Any],
-    approved_decision: Dict[str, Any]
+    approved_decision: Dict[str, Any],
 ):
     """Verify repo is clean after successful commit."""
     # Create a new file in runtime/
@@ -301,15 +292,13 @@ def test_clean_repo_after_commit(
         cwd=steward_context.repo_root,
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     assert status_result.stdout.strip() == ""
 
 
 def test_push_to_remote(
-    tmp_path: Path,
-    valid_review_packet: Dict[str, Any],
-    approved_decision: Dict[str, Any]
+    tmp_path: Path, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
 ):
     """Verify git push works when push flag is set."""
     # Create bare repo as remote
@@ -322,47 +311,45 @@ def test_push_to_remote(
     work_repo.mkdir()
     subprocess.run(["git", "init"], cwd=work_repo, check=True, capture_output=True)
     subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=work_repo, check=True, capture_output=True
+        ["git", "config", "user.name", "Test User"], cwd=work_repo, check=True, capture_output=True
     )
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
-        cwd=work_repo, check=True, capture_output=True
+        cwd=work_repo,
+        check=True,
+        capture_output=True,
     )
 
     # Create initial commit and add remote
     (work_repo / "README.md").write_text("# Test\n")
     subprocess.run(["git", "add", "README.md"], cwd=work_repo, check=True, capture_output=True)
     subprocess.run(
-        ["git", "commit", "-m", "Initial"],
-        cwd=work_repo, check=True, capture_output=True
+        ["git", "commit", "-m", "Initial"], cwd=work_repo, check=True, capture_output=True
     )
     subprocess.run(
         ["git", "remote", "add", "origin", str(bare_repo)],
-        cwd=work_repo, check=True, capture_output=True
+        cwd=work_repo,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
-        ["git", "push", "-u", "origin", "master"],
-        cwd=work_repo, check=True, capture_output=True
+        ["git", "push", "-u", "origin", "master"], cwd=work_repo, check=True, capture_output=True
     )
 
     # Create runtime/ directory
     (work_repo / "runtime").mkdir()
     (work_repo / "runtime" / "__init__.py").write_text("")
-    subprocess.run(["git", "add", "runtime/__init__.py"], cwd=work_repo, check=True, capture_output=True)
     subprocess.run(
-        ["git", "commit", "-m", "Add runtime"],
-        cwd=work_repo, check=True, capture_output=True
+        ["git", "add", "runtime/__init__.py"], cwd=work_repo, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add runtime"], cwd=work_repo, check=True, capture_output=True
     )
     subprocess.run(["git", "push"], cwd=work_repo, check=True, capture_output=True)
 
     # Get baseline commit
     baseline_result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=work_repo,
-        capture_output=True,
-        text=True,
-        check=True
+        ["git", "rev-parse", "HEAD"], cwd=work_repo, capture_output=True, text=True, check=True
     )
     baseline = baseline_result.stdout.strip()
 
@@ -395,11 +382,7 @@ def test_push_to_remote(
 
     # Verify push happened by checking remote
     remote_log = subprocess.run(
-        ["git", "log", "--oneline"],
-        cwd=bare_repo,
-        capture_output=True,
-        text=True,
-        check=True
+        ["git", "log", "--oneline"], cwd=bare_repo, capture_output=True, text=True, check=True
     )
     assert "test_mission" in remote_log.stdout
 
@@ -407,7 +390,7 @@ def test_push_to_remote(
 def test_empty_artifacts_no_commit(
     steward_context: MissionContext,
     valid_review_packet: Dict[str, Any],
-    approved_decision: Dict[str, Any]
+    approved_decision: Dict[str, Any],
 ):
     """Verify steward returns success with no commit for empty artifact list."""
     # Empty artifact list
@@ -419,7 +402,7 @@ def test_empty_artifacts_no_commit(
         cwd=steward_context.repo_root,
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     pre_hash = pre_result.stdout.strip()
 
@@ -442,7 +425,7 @@ def test_empty_artifacts_no_commit(
         cwd=steward_context.repo_root,
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     post_hash = post_result.stdout.strip()
     assert post_hash == pre_hash

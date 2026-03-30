@@ -1,10 +1,8 @@
 """Tests for runtime/receipts/runlog.py"""
+
 import json
-import re
 
-import pytest
-
-from runtime.receipts.runlog import RunLogEmitter, RunLogEvent
+from runtime.receipts.runlog import RunLogEmitter
 
 
 def test_emit_auto_seq():
@@ -16,7 +14,6 @@ def test_emit_auto_seq():
 
 
 def test_emit_validates_required_fields():
-    from runtime.receipts.validator import ReceiptValidationError
     emitter = RunLogEmitter(phase_order=["init"])
     # This should not raise -- valid emit
     emitter.emit("init", "s1", "start")

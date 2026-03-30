@@ -1,4 +1,5 @@
 """Approval and delegation checks for COO production-profile promotion."""
+
 from __future__ import annotations
 
 import argparse
@@ -57,27 +58,19 @@ def verify_approval_manifest(
     if actual_profile_sha and manifest_profile_sha != actual_profile_sha:
         violations.append("approval_manifest_profile_sha_mismatch")
 
-    ruling_ref = str(
-        ((manifest.get("approval") or {}).get("council_ruling_ref")) or ""
-    ).strip()
+    ruling_ref = str(((manifest.get("approval") or {}).get("council_ruling_ref")) or "").strip()
     if not ruling_ref:
         violations.append("approval_manifest_missing_ruling_ref")
     elif repo_root is not None:
         ruling_path = (Path(repo_root) / ruling_ref).resolve()
         gov_root = (Path(repo_root) / "docs" / "01_governance").resolve()
         if not str(ruling_path).startswith(str(gov_root) + "/"):
-            violations.append(
-                f"approval_manifest_ruling_ref_outside_governance: {ruling_ref!r}"
-            )
+            violations.append(f"approval_manifest_ruling_ref_outside_governance: {ruling_ref!r}")
         elif not ruling_path.is_file():
-            violations.append(
-                f"approval_manifest_ruling_ref_missing: {ruling_ref!r}"
-            )
+            violations.append(f"approval_manifest_ruling_ref_missing: {ruling_ref!r}")
 
     approval_levels = ((manifest.get("autonomy_ceiling") or {}).get("active_levels")) or []
-    approval_tier = str(
-        ((manifest.get("autonomy_ceiling") or {}).get("trust_tier")) or ""
-    ).strip()
+    approval_tier = str(((manifest.get("autonomy_ceiling") or {}).get("trust_tier")) or "").strip()
     violations.extend(
         verify_delegation_ceiling(
             {
@@ -127,7 +120,9 @@ def full_promotion_guard(
         violations.append(f"profile_missing: {profile_path}")
 
     if envelope and manifest and profile_path.exists():
-        violations.extend(verify_approval_manifest(manifest, profile_path, envelope, repo_root=repo_root))
+        violations.extend(
+            verify_approval_manifest(manifest, profile_path, envelope, repo_root=repo_root)
+        )
         manifest_envelope_sha = str(manifest.get("delegation_envelope_sha256", "")).strip()
         if manifest_envelope_sha:
             actual_envelope_sha = sha256_file(envelope_path)

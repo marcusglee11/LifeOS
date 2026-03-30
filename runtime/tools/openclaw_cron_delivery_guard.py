@@ -5,11 +5,10 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
-
-import sys
+from typing import Any, Dict, List
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -44,10 +43,14 @@ def _job_enabled(job: Dict[str, Any]) -> bool:
 def _delivery_obj(job: Dict[str, Any]) -> Dict[str, Any]:
     candidates: List[Any] = [
         job.get("delivery"),
-        (job.get("request") or {}).get("delivery") if isinstance(job.get("request"), dict) else None,
+        (job.get("request") or {}).get("delivery")
+        if isinstance(job.get("request"), dict)
+        else None,
         (job.get("job") or {}).get("delivery") if isinstance(job.get("job"), dict) else None,
         (job.get("spec") or {}).get("delivery") if isinstance(job.get("spec"), dict) else None,
-        (job.get("schedule") or {}).get("delivery") if isinstance(job.get("schedule"), dict) else None,
+        (job.get("schedule") or {}).get("delivery")
+        if isinstance(job.get("schedule"), dict)
+        else None,
     ]
     for candidate in candidates:
         if isinstance(candidate, dict):
@@ -75,10 +78,19 @@ def _payload_hint(job: Dict[str, Any]) -> str:
     ]
     request = job.get("request")
     if isinstance(request, dict):
-        candidates.extend([request.get("message"), request.get("prompt"), request.get("template"), request.get("payload")])
+        candidates.extend(
+            [
+                request.get("message"),
+                request.get("prompt"),
+                request.get("template"),
+                request.get("payload"),
+            ]
+        )
         delivery = request.get("delivery")
         if isinstance(delivery, dict):
-            candidates.extend([delivery.get("message"), delivery.get("payload"), delivery.get("template")])
+            candidates.extend(
+                [delivery.get("message"), delivery.get("payload"), delivery.get("template")]
+            )
     delivery = _delivery_obj(job)
     candidates.extend([delivery.get("message"), delivery.get("payload"), delivery.get("template")])
 
@@ -87,7 +99,9 @@ def _payload_hint(job: Dict[str, Any]) -> str:
             return candidate.strip()
         if isinstance(candidate, dict):
             try:
-                return json.dumps(candidate, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+                return json.dumps(
+                    candidate, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+                )
             except Exception:
                 continue
     return ""
@@ -103,11 +117,15 @@ def evaluate_jobs(jobs: List[Dict[str, Any]], require_parked: bool) -> Dict[str,
         enabled = _job_enabled(job)
         mode = _delivery_mode(job)
         hint = _payload_hint(job)
-        classify = classify_payload_text(hint) if hint else {
-            "classification": "contentful",
-            "allowed_for_scheduled": False,
-            "reasons": ["payload_missing"],
-        }
+        classify = (
+            classify_payload_text(hint)
+            if hint
+            else {
+                "classification": "contentful",
+                "allowed_for_scheduled": False,
+                "reasons": ["payload_missing"],
+            }
+        )
 
         row = {
             "id": job_id,
@@ -123,7 +141,9 @@ def evaluate_jobs(jobs: List[Dict[str, Any]], require_parked: bool) -> Dict[str,
             continue
 
         if require_parked and mode != "none":
-            violations.append(f"{name}: enabled delivery.mode={mode} (must be none while cron egress is parked)")
+            violations.append(
+                f"{name}: enabled delivery.mode={mode} (must be none while cron egress is parked)"
+            )
         elif (not require_parked) and mode != "none" and not classify["allowed_for_scheduled"]:
             joined = ",".join(classify["reasons"]) if classify["reasons"] else "policy_rejected"
             violations.append(f"{name}: scheduled payload classified contentful ({joined})")
@@ -186,15 +206,23 @@ def main() -> int:
     default_state_dir = Path(os.environ.get("OPENCLAW_STATE_DIR", str(Path.home() / ".openclaw")))
     default_marker = default_state_dir / "runtime" / "gates" / "cron_egress_policy_ready.marker"
 
-    parser = argparse.ArgumentParser(description="Fail-closed cron delivery guard for OpenClaw COO startup.")
+    parser = argparse.ArgumentParser(
+        description="Fail-closed cron delivery guard for OpenClaw COO startup."
+    )
     parser.add_argument("--openclaw-bin", default=os.environ.get("OPENCLAW_BIN", "openclaw"))
     parser.add_argument("--marker-path", default=str(default_marker))
-    parser.add_argument("--ignore-marker", action="store_true", help="Always require delivery.mode=none even if marker exists.")
+    parser.add_argument(
+        "--ignore-marker",
+        action="store_true",
+        help="Always require delivery.mode=none even if marker exists.",
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
     marker_path = Path(args.marker_path).expanduser()
-    result = run_guard(args.openclaw_bin, marker_path=marker_path, ignore_marker=bool(args.ignore_marker))
+    result = run_guard(
+        args.openclaw_bin, marker_path=marker_path, ignore_marker=bool(args.ignore_marker)
+    )
 
     if args.json:
         print(json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))

@@ -1,4 +1,5 @@
 """Fixture-first mirror harness tests for COO propose/direct flows."""
+
 from __future__ import annotations
 
 import argparse
@@ -9,11 +10,18 @@ from unittest.mock import patch
 import yaml
 
 from runtime.orchestration.coo.claim_verifier import collect_evidence, verify_claims
-from runtime.orchestration.coo.commands import _parse_escalation_packet, _parse_ntp, cmd_coo_direct, cmd_coo_propose
+from runtime.orchestration.coo.commands import (
+    _parse_escalation_packet,
+    _parse_ntp,
+    cmd_coo_direct,
+    cmd_coo_propose,
+)
 from runtime.orchestration.coo.mirror import build_evaluation_row, diff_evidence
-from runtime.orchestration.coo.parser import _extract_yaml_payload_with_stage, parse_proposal_response
+from runtime.orchestration.coo.parser import (
+    _extract_yaml_payload_with_stage,
+    parse_proposal_response,
+)
 from runtime.tests.orchestration.coo.test_commands import _write_backlog, _write_delegation
-
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 PARITY_PACK = REPO_ROOT / "artifacts" / "coo" / "step6_parity_pack"
@@ -43,7 +51,9 @@ def test_mirror_propose_parity_row_no_side_effects(tmp_path: Path, capsys) -> No
     )
 
     before = collect_evidence(tmp_path)
-    with patch("runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml):
+    with patch(
+        "runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml
+    ):
         rc = cmd_coo_propose(
             argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
             tmp_path,
@@ -54,7 +64,9 @@ def test_mirror_propose_parity_row_no_side_effects(tmp_path: Path, capsys) -> No
     _, stage = _extract_yaml_payload_with_stage(expected_yaml)
     parsed_expected = parse_proposal_response(expected_yaml)
     parsed_actual = parse_proposal_response(capsys.readouterr().out)
-    assert [proposal.task_id for proposal in parsed_actual] == [proposal.task_id for proposal in parsed_expected]
+    assert [proposal.task_id for proposal in parsed_actual] == [
+        proposal.task_id for proposal in parsed_expected
+    ]
 
     diff = diff_evidence(before, after)
     violations = verify_claims(expected_yaml, before, repo_root=tmp_path)
@@ -93,7 +105,9 @@ def test_mirror_ntp_parity_row_no_side_effects(tmp_path: Path, capsys) -> None:
     )
 
     before = collect_evidence(tmp_path)
-    with patch("runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml):
+    with patch(
+        "runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml
+    ):
         rc = cmd_coo_propose(
             argparse.Namespace(json=False, yaml=False, format="yaml", execute=False),
             tmp_path,
@@ -135,7 +149,9 @@ def test_mirror_direct_escalation_parity_queues_side_effect(tmp_path: Path, caps
     _write_delegation(tmp_path)
 
     before = collect_evidence(tmp_path)
-    with patch("runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml):
+    with patch(
+        "runtime.orchestration.coo.service.invoke_coo_reasoning", return_value=expected_yaml
+    ):
         rc = cmd_coo_direct(argparse.Namespace(intent=escalation_context["intent"]), tmp_path)
     assert rc == 0
     after = collect_evidence(tmp_path)

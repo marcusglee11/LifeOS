@@ -3,6 +3,7 @@
 Verifies that run_workflow captures pre-step state snapshots, enabling
 rollback to pre-failure state.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -35,6 +36,7 @@ def _ctx(**initial) -> ExecutionContext:
 # 3A-1: Single-step workflow produces one snapshot (pre-step state)
 # ---------------------------------------------------------------------------
 
+
 def test_single_step_produces_one_snapshot():
     orch = Orchestrator()
     result = orch.run_workflow(_workflow(_noop()), _ctx(x=1))
@@ -46,6 +48,7 @@ def test_single_step_produces_one_snapshot():
 # 3A-2: N executed steps → N snapshots
 # ---------------------------------------------------------------------------
 
+
 def test_n_steps_produce_n_snapshots():
     steps = [_noop(f"s{i}") for i in range(3)]
     orch = Orchestrator()
@@ -56,6 +59,7 @@ def test_n_steps_produce_n_snapshots():
 # ---------------------------------------------------------------------------
 # 3A-3: Snapshot count = executed_steps count (including failing step)
 # ---------------------------------------------------------------------------
+
 
 def test_failed_step_still_captured():
     steps = [_noop("s1"), _fail("s2")]
@@ -70,6 +74,7 @@ def test_failed_step_still_captured():
 # 3A-4: rollback_to_step(0) returns pre-first-step state
 # ---------------------------------------------------------------------------
 
+
 def test_rollback_to_step_0_returns_initial_state():
     orch = Orchestrator()
     result = orch.run_workflow(_workflow(_noop()), _ctx(x=99))
@@ -80,6 +85,7 @@ def test_rollback_to_step_0_returns_initial_state():
 # ---------------------------------------------------------------------------
 # 3A-5: rollback_to_step returns deep copy (not aliased)
 # ---------------------------------------------------------------------------
+
 
 def test_rollback_returns_deep_copy():
     orch = Orchestrator()
@@ -94,6 +100,7 @@ def test_rollback_returns_deep_copy():
 # 3A-6: rollback_to_step out of range raises IndexError
 # ---------------------------------------------------------------------------
 
+
 def test_rollback_out_of_range():
     orch = Orchestrator()
     result = orch.run_workflow(_workflow(_noop()), _ctx())
@@ -104,6 +111,7 @@ def test_rollback_out_of_range():
 # ---------------------------------------------------------------------------
 # 3A-7: lineage includes snapshot_hashes
 # ---------------------------------------------------------------------------
+
 
 def test_lineage_includes_snapshot_hashes():
     orch = Orchestrator()
@@ -117,6 +125,7 @@ def test_lineage_includes_snapshot_hashes():
 # ---------------------------------------------------------------------------
 # 3A-8: Failed workflow final_state is the pre-failure state (not corrupted)
 # ---------------------------------------------------------------------------
+
 
 def test_failed_workflow_returns_pre_failure_state():
     """final_state after failure is the state from BEFORE the failing step."""

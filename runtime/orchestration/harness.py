@@ -11,6 +11,7 @@ Features:
 - Aggregated metadata with stable hashing
 - No I/O, network, subprocess, or time/date access
 """
+
 from __future__ import annotations
 
 import copy
@@ -23,20 +24,21 @@ from typing import Any, Dict, List, Mapping, Tuple
 from runtime.orchestration.engine import ExecutionContext, OrchestrationResult
 from runtime.orchestration.registry import run_mission
 
-
 # =============================================================================
 # Data Structures
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class MissionCall:
     """
     A single mission call specification.
-    
+
     Attributes:
         name: Mission name (must be registered in MISSION_REGISTRY).
         params: Optional mission parameters.
     """
+
     name: str
     params: Dict[str, Any] | None = None
 
@@ -45,16 +47,17 @@ class MissionCall:
 class ScenarioDefinition:
     """
     Declarative description of a Tier-2 scenario.
-    
+
     Attributes:
         scenario_name: Logical identifier for the scenario.
         initial_state: Immutable seed state for ExecutionContext.
         missions: Ordered list of mission calls to execute sequentially.
     """
+
     scenario_name: str
     initial_state: Mapping[str, Any]
     missions: Tuple[MissionCall, ...] = field(default_factory=tuple)
-    
+
     def __init__(
         self,
         scenario_name: str,
@@ -75,43 +78,33 @@ class ScenarioDefinition:
 class ScenarioResult:
     """
     Aggregated result of a scenario execution.
-    
+
     Attributes:
         scenario_name: Echoed from definition.
         mission_results: Mapping mission_name -> OrchestrationResult.
         metadata: Deterministic metadata (e.g. stable hashes).
     """
+
     scenario_name: str
     mission_results: Mapping[str, OrchestrationResult]
     metadata: Mapping[str, Any]
 
     def __post_init__(self) -> None:
         """Enforce strict read-only nature of mapping fields."""
-        object.__setattr__(
-            self, 
-            "mission_results", 
-            MappingProxyType(dict(self.mission_results))
-        )
-        object.__setattr__(
-            self, 
-            "metadata", 
-            MappingProxyType(dict(self.metadata))
-        )
+        object.__setattr__(self, "mission_results", MappingProxyType(dict(self.mission_results)))
+        object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert to JSON-serializable dict with stable key ordering.
-        
+
         Returns a dict with: 'scenario_name', 'mission_results', 'metadata'.
         Metadata is deep-copied to ensure immutability.
         """
         return {
             "schema_version": "scenario_result@1",
             "scenario_name": self.scenario_name,
-            "mission_results": {
-                name: res.to_dict()
-                for name, res in self.mission_results.items()
-            },
+            "mission_results": {name: res.to_dict() for name, res in self.mission_results.items()},
             "metadata": dict(self.metadata),
         }
 
@@ -119,6 +112,7 @@ class ScenarioResult:
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def _stable_hash(obj: Any) -> str:
     """
@@ -133,57 +127,56 @@ def _stable_hash(obj: Any) -> str:
 # Public API
 # =============================================================================
 
+
 def run_scenario(defn: ScenarioDefinition) -> ScenarioResult:
     """
     Execute a scenario by running all missions in order.
-    
+
     This function:
     - Constructs a fresh ExecutionContext from defn.initial_state
     - Executes defn.missions in order via run_mission
     - Aggregates results into a ScenarioResult
     - Does not mutate defn.initial_state or any caller-provided mappings
-    
+
     Args:
         defn: The scenario definition to execute.
-        
+
     Returns:
         ScenarioResult with mission results and deterministic metadata.
-        
+
     Raises:
         UnknownMissionError: If any mission name is not registered.
         Any other exceptions from run_mission propagate unchanged.
     """
     # Create a defensive copy of initial_state to ensure immutability
     initial_state_copy = dict(defn.initial_state)
-    
+
     # Execute missions in order
     mission_results: Dict[str, OrchestrationResult] = {}
-    
+
     for mission_call in defn.missions:
         # Create fresh ExecutionContext for each mission
         # (with a copy of initial state to ensure isolation)
         ctx = ExecutionContext(initial_state=copy.deepcopy(initial_state_copy))
-        
+
         # Create defensive copy of params
         params = dict(mission_call.params) if mission_call.params else None
-        
+
         # Execute the mission
         result = run_mission(mission_call.name, ctx, params=params)
-        
+
         # Store result (using mission name as key)
         mission_results[mission_call.name] = result
-    
+
     # Build deterministic metadata
-    serialised_results = {
-        name: result.to_dict() for name, result in mission_results.items()
-    }
+    serialised_results = {name: result.to_dict() for name, result in mission_results.items()}
     scenario_hash = _stable_hash(serialised_results)
-    
+
     metadata: Dict[str, Any] = {
         "scenario_name": defn.scenario_name,
         "scenario_hash": scenario_hash,
     }
-    
+
     return ScenarioResult(
         scenario_name=defn.scenario_name,
         mission_results=mission_results,

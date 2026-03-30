@@ -3,20 +3,20 @@ Integration tests for backlog-driven autonomous execution.
 
 Tests the full flow from BACKLOG.md parsing through task completion marking.
 """
-import json
-import pytest
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 
-from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
-from runtime.orchestration.missions.base import MissionContext, MissionResult
-from runtime.orchestration.task_spec import TaskSpec, TaskPriority
+import json
+from pathlib import Path
+from unittest.mock import patch
+
 from recursive_kernel.backlog_parser import (
-    parse_backlog,
-    select_eligible_item,
     get_uncompleted_tasks,
     mark_item_done_with_evidence,
+    parse_backlog,
+    select_eligible_item,
 )
+from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
+from runtime.orchestration.missions.base import MissionContext
+from runtime.orchestration.task_spec import TaskPriority, TaskSpec
 
 
 def setup_test_repo(root: Path) -> Path:
@@ -48,7 +48,7 @@ def create_test_context(repo_root: Path, run_id: str = "test-001") -> MissionCon
 
 def write_backlog(path: Path, content: str) -> None:
     """Write content to backlog file with UTF-8 encoding."""
-    path.write_text(content, encoding='utf-8')
+    path.write_text(content, encoding="utf-8")
 
 
 class TestBacklogDrivenExecution:
@@ -57,14 +57,17 @@ class TestBacklogDrivenExecution:
     def test_select_highest_priority_task(self, tmp_path):
         """Selection prefers P0 over P1."""
         backlog = tmp_path / "BACKLOG.md"
-        write_backlog(backlog, """### P1 (High)
+        write_backlog(
+            backlog,
+            """### P1 (High)
 
 - [ ] **P1 task** -- DoD: Done -- Owner: dev
 
 ### P0 (Critical)
 
 - [ ] **P0 task** -- DoD: Done -- Owner: dev
-""")
+""",
+        )
 
         items = parse_backlog(backlog)
         selected = select_eligible_item(items)
@@ -75,11 +78,14 @@ class TestBacklogDrivenExecution:
     def test_skip_completed_tasks(self, tmp_path):
         """Selection ignores completed items."""
         backlog = tmp_path / "BACKLOG.md"
-        write_backlog(backlog, """### P0 (Critical)
+        write_backlog(
+            backlog,
+            """### P0 (Critical)
 
 - [x] **Done task** -- DoD: Done -- Owner: dev
 - [ ] **Open task** -- DoD: Done -- Owner: dev
-""")
+""",
+        )
 
         items = parse_backlog(backlog)
         selected = select_eligible_item(items)
@@ -139,10 +145,13 @@ class TestBacklogDrivenExecution:
         backlog_in_structure = tmp_path / "docs" / "11_admin" / "BACKLOG.md"
         backlog_in_structure.parent.mkdir(parents=True, exist_ok=True)
 
-        write_backlog(backlog_in_structure, """### P0 (Critical)
+        write_backlog(
+            backlog_in_structure,
+            """### P0 (Critical)
 
 - [ ] **Test task** -- DoD: Done -- Owner: dev
-""")
+""",
+        )
 
         # Create artifacts directory at repo root
         artifacts_dir = tmp_path / "artifacts"
@@ -155,15 +164,10 @@ class TestBacklogDrivenExecution:
         }
 
         # P0.1 Fix: Pass repo_root explicitly
-        mark_item_done_with_evidence(
-            backlog_in_structure,
-            items[0],
-            evidence,
-            repo_root=tmp_path
-        )
+        mark_item_done_with_evidence(backlog_in_structure, items[0], evidence, repo_root=tmp_path)
 
         # Verify checkbox marked
-        new_content = backlog_in_structure.read_text(encoding='utf-8')
+        new_content = backlog_in_structure.read_text(encoding="utf-8")
         assert "[x] **Test task**" in new_content
         assert "[ ] **Test task**" not in new_content
 
@@ -172,7 +176,7 @@ class TestBacklogDrivenExecution:
         assert evidence_file.exists(), f"Evidence file not found at {evidence_file}"
 
         # Verify evidence content
-        with open(evidence_file, encoding='utf-8') as f:
+        with open(evidence_file, encoding="utf-8") as f:
             logged = json.loads(f.readline())
 
         assert logged["item_key"] == items[0].item_key
@@ -187,12 +191,15 @@ class TestBacklogDrivenExecution:
         backlog_path = repo_root / "docs" / "11_admin" / "BACKLOG.md"
 
         # All tasks completed or low priority
-        write_backlog(backlog_path, """### P0 (Critical)
+        write_backlog(
+            backlog_path,
+            """### P0 (Critical)
 - [x] **Done task** -- DoD: Done -- Owner: dev
 
 ### P2 (Normal)
 - [ ] **P2 task** -- DoD: Done -- Owner: dev
-""")
+""",
+        )
 
         mission = AutonomousBuildCycleMission()
 
@@ -208,15 +215,18 @@ class TestBacklogDrivenExecution:
         repo_root = setup_test_repo(tmp_path)
         backlog_path = repo_root / "docs" / "11_admin" / "BACKLOG.md"
 
-        write_backlog(backlog_path, """### P0 (Critical)
+        write_backlog(
+            backlog_path,
+            """### P0 (Critical)
 
 - [ ] **Test Feature** -- DoD: Feature works -- Owner: antigravity
-""")
+""",
+        )
 
         mission = AutonomousBuildCycleMission()
 
         # We need to mock the internal missions to avoid actual execution
-        with patch.object(mission, '_can_reset_workspace', return_value=True):
+        with patch.object(mission, "_can_reset_workspace", return_value=True):
             # Call validate_inputs to ensure from_backlog mode doesn't require task_spec
             try:
                 mission.validate_inputs({"from_backlog": True})
@@ -238,7 +248,9 @@ class TestBacklogDrivenExecution:
     def test_get_uncompleted_tasks_filters_correctly(self, tmp_path):
         """get_uncompleted_tasks returns only TODO P0/P1 items."""
         backlog = tmp_path / "BACKLOG.md"
-        write_backlog(backlog, """### P0 (Critical)
+        write_backlog(
+            backlog,
+            """### P0 (Critical)
 
 - [x] **Completed P0** -- DoD: Done -- Owner: dev
 - [ ] **Todo P0** -- DoD: Done -- Owner: dev
@@ -250,7 +262,8 @@ class TestBacklogDrivenExecution:
 ### P2 (Normal)
 
 - [ ] **Todo P2** -- DoD: Done -- Owner: dev
-""")
+""",
+        )
 
         items = parse_backlog(backlog)
         uncompleted = get_uncompleted_tasks(items)
@@ -283,15 +296,18 @@ class TestBacklogDrivenExecution:
         backlog_path = repo_root / "docs" / "11_admin" / "BACKLOG.md"
 
         # P0 blocked task followed by P0 unblocked task
-        write_backlog(backlog_path, """### P0 (Critical)
+        write_backlog(
+            backlog_path,
+            """### P0 (Critical)
 
 - [ ] **Blocked Task** -- DoD: Done -- Owner: dev -- Context: depends on T-99
 - [ ] **Unblocked Task** -- DoD: Done -- Owner: dev -- Context: Ready to start
-""")
+""",
+        )
 
         mission = AutonomousBuildCycleMission()
 
-        with patch.object(mission, '_can_reset_workspace', return_value=True):
+        with patch.object(mission, "_can_reset_workspace", return_value=True):
             context = create_test_context(repo_root)
             loaded_task = mission._load_task_from_backlog(context)
 
@@ -306,10 +322,13 @@ class TestBacklogDrivenExecution:
         # Do not create BACKLOG.md
 
         mission = AutonomousBuildCycleMission()
-        result = mission.run(create_test_context(repo_root), {
-            "from_backlog": True,
-            "handoff_schema_version": "v1.0",
-        })
+        result = mission.run(
+            create_test_context(repo_root),
+            {
+                "from_backlog": True,
+                "handoff_schema_version": "v1.0",
+            },
+        )
 
         assert result.success is False
         assert result.outputs["reason"] == "BACKLOG_MISSING"
@@ -318,10 +337,13 @@ class TestBacklogDrivenExecution:
     def test_why_now_used_as_dod(self, tmp_path):
         """P1.2: 'Why Now:' is accepted in place of 'DoD:' as acceptance criteria."""
         backlog = tmp_path / "BACKLOG.md"
-        write_backlog(backlog, """### P0 (Critical)
+        write_backlog(
+            backlog,
+            """### P0 (Critical)
 
 - [ ] **Urgent Fix** -- Why Now: Blocking production deployment -- Owner: dev
-""")
+""",
+        )
 
         items = parse_backlog(backlog)
 
@@ -336,21 +358,19 @@ class TestBacklogDrivenExecution:
         backlog_path = tmp_path / "docs" / "11_admin" / "BACKLOG.md"
         backlog_path.parent.mkdir(parents=True, exist_ok=True)
 
-        write_backlog(backlog_path, """### P0 (Critical)
+        write_backlog(
+            backlog_path,
+            """### P0 (Critical)
 
 - [ ] **Test Evidence Path** -- DoD: Done -- Owner: dev
-""")
+""",
+        )
 
         items = parse_backlog(backlog_path)
         evidence = {"commit_hash": "test123", "run_id": "run-001"}
 
         # Call with explicit repo_root
-        mark_item_done_with_evidence(
-            backlog_path,
-            items[0],
-            evidence,
-            repo_root=tmp_path
-        )
+        mark_item_done_with_evidence(backlog_path, items[0], evidence, repo_root=tmp_path)
 
         # Assert evidence file at repo root, not at docs/artifacts/
         evidence_file = tmp_path / "artifacts" / "backlog_evidence.jsonl"
@@ -367,20 +387,19 @@ class TestBacklogDrivenExecution:
         backlog_path = tmp_path / "docs" / "11_admin" / "BACKLOG.md"
         backlog_path.parent.mkdir(parents=True, exist_ok=True)
 
-        write_backlog(backlog_path, """### P0 (Critical)
+        write_backlog(
+            backlog_path,
+            """### P0 (Critical)
 
 - [ ] **Test Auto-Detect** -- DoD: Done -- Owner: dev
-""")
+""",
+        )
 
         items = parse_backlog(backlog_path)
         evidence = {"commit_hash": "auto123", "run_id": "run-002"}
 
         # Call WITHOUT repo_root - should auto-detect
-        mark_item_done_with_evidence(
-            backlog_path,
-            items[0],
-            evidence
-        )
+        mark_item_done_with_evidence(backlog_path, items[0], evidence)
 
         # Assert evidence file at repo root (auto-detected)
         evidence_file = tmp_path / "artifacts" / "backlog_evidence.jsonl"

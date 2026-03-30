@@ -11,9 +11,10 @@ Deterministic tie-break for "auto" resolution:
   4. cost_tier ASC (free < low < medium < high)
   5. name ASC (lexicographic — guarantees determinism on ties)
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional

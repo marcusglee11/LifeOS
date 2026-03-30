@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
 import json
 import time
+from pathlib import Path
 
 import pytest
 
@@ -16,11 +16,15 @@ from runtime.orchestration.workspace_lock import (
 
 def test_active_lock_detected(tmp_path: Path) -> None:
     workspace = tmp_path / "ws"
-    handle = acquire_workspace_lock(workspace, run_id="run-a", attempt_id="attempt-0001", ttl_seconds=60)
+    handle = acquire_workspace_lock(
+        workspace, run_id="run-a", attempt_id="attempt-0001", ttl_seconds=60
+    )
 
     try:
         with pytest.raises(WorkspaceLockError) as exc:
-            acquire_workspace_lock(workspace, run_id="run-b", attempt_id="attempt-0001", ttl_seconds=60)
+            acquire_workspace_lock(
+                workspace, run_id="run-b", attempt_id="attempt-0001", ttl_seconds=60
+            )
         assert exc.value.code == "CONCURRENT_RUN_DETECTED"
     finally:
         assert release_workspace_lock(handle)
@@ -40,7 +44,9 @@ def test_stale_lock_is_cleared(tmp_path: Path) -> None:
     }
     lock_path.write_text(json.dumps(stale_payload), encoding="utf-8")
 
-    handle = acquire_workspace_lock(workspace, run_id="fresh-run", attempt_id="attempt-0001", ttl_seconds=10)
+    handle = acquire_workspace_lock(
+        workspace, run_id="fresh-run", attempt_id="attempt-0001", ttl_seconds=10
+    )
     try:
         payload = json.loads(lock_path.read_text(encoding="utf-8"))
         assert payload["run_id"] == "fresh-run"
@@ -63,6 +69,8 @@ def test_dead_pid_within_ttl_still_blocks(tmp_path: Path) -> None:
     lock_path.write_text(json.dumps(payload), encoding="utf-8")
 
     with pytest.raises(WorkspaceLockError) as exc:
-        acquire_workspace_lock(workspace, run_id="run-new", attempt_id="attempt-0001", ttl_seconds=300)
+        acquire_workspace_lock(
+            workspace, run_id="run-new", attempt_id="attempt-0001", ttl_seconds=300
+        )
 
     assert exc.value.code == "CONCURRENT_RUN_DETECTED"

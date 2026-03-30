@@ -16,8 +16,7 @@ from runtime.orchestration.council.fsm import CouncilFSM
 from runtime.orchestration.council.policy import load_council_policy
 
 pytestmark = pytest.mark.skipif(
-    os.environ.get("SKIP_LIVE_COUNCIL") == "1"
-    or not os.environ.get("ZEN_REVIEWER_KEY"),
+    os.environ.get("SKIP_LIVE_COUNCIL") == "1" or not os.environ.get("ZEN_REVIEWER_KEY"),
     reason="Live council tests require ZEN_REVIEWER_KEY",
 )
 
@@ -111,7 +110,9 @@ def _coo_dispatcher_ccp_m0_paid() -> dict:
 def _format_seat_report(seat_outputs: dict) -> str:
     """Format per-seat results into a readable report."""
     lines = []
-    lines.append(f"{'Seat':<25} {'Model':<30} {'Status':<10} {'Retries':<8} {'Verdict':<18} {'Errors'}")
+    lines.append(
+        f"{'Seat':<25} {'Model':<30} {'Status':<10} {'Retries':<8} {'Verdict':<18} {'Errors'}"
+    )
     lines.append("-" * 120)
     for seat, data in sorted(seat_outputs.items()):
         model = data.get("model", "unknown")
@@ -143,7 +144,9 @@ def _format_model_comparison(seat_outputs: dict) -> str:
     lines.append("-" * 70)
     for family, counts in sorted(by_model.items()):
         rate = f"{counts['passed'] / counts['total'] * 100:.0f}%" if counts["total"] else "N/A"
-        lines.append(f"{family:<30} {counts['total']:<8} {counts['passed']:<8} {counts['failed']:<8} {rate}")
+        lines.append(
+            f"{family:<30} {counts['total']:<8} {counts['passed']:<8} {counts['failed']:<8} {rate}"
+        )
     return "\n".join(lines)
 
 
@@ -195,9 +198,7 @@ def test_live_m2_full_coo_dispatcher():
         assert result.decision_payload["verdict"] in ("Accept", "Revise", "Reject")
         assert result.run_log["execution"]["mode"] == "M2_FULL"
         # At least some seats should have produced output.
-        completed_seats = [
-            s for s, d in seat_outputs.items() if d.get("status") == "complete"
-        ]
+        completed_seats = [s for s, d in seat_outputs.items() if d.get("status") == "complete"]
         assert len(completed_seats) >= 2, f"Only {len(completed_seats)} seats completed"
 
 

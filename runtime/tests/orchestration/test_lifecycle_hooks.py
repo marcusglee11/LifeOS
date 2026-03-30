@@ -3,25 +3,22 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 from unittest.mock import patch
-
-import pytest
 
 from runtime.orchestration.loop.lifecycle_hooks import (
     HookResult,
     HookSequenceResult,
-    check_policy_hash_present,
     check_envelope_constraints,
+    check_evidence_completeness,
+    check_ledger_append_success,
+    check_policy_hash_present,
     check_protected_paths,
     check_terminal_packet_present,
-    check_ledger_append_success,
-    check_evidence_completeness,
     run_hook_sequence,
-    run_pre_hooks,
     run_post_hooks,
+    run_pre_hooks,
 )
-
 
 # ---------------------------------------------------------------------------
 # Pre-run hook unit tests
@@ -79,7 +76,9 @@ class TestProtectedPaths:
         assert result.passed
 
     def test_fails_on_protected_path(self) -> None:
-        result = check_protected_paths(scope_paths=["docs/00_foundations/LifeOS_Constitution_v2.0.md"])
+        result = check_protected_paths(
+            scope_paths=["docs/00_foundations/LifeOS_Constitution_v2.0.md"]
+        )
         assert not result.passed
         assert "protected path violations" in result.reason
 
@@ -218,9 +217,10 @@ class TestResumePostRunHooks:
 
     def test_resume_fires_post_hooks_on_pass(self, tmp_path: Path) -> None:
         """Post-run hooks should execute on resume() when outcome is PASS."""
-        from runtime.orchestration.loop.spine import LoopSpine
-        from runtime.api.governance_api import hash_json
         import yaml
+
+        from runtime.api.governance_api import hash_json
+        from runtime.orchestration.loop.spine import LoopSpine
 
         # Setup spine with custom post-run hooks
         repo = tmp_path / "repo"
@@ -294,9 +294,10 @@ class TestResumePostRunHooks:
 
     def test_resume_post_hooks_can_downgrade_pass_to_blocked(self, tmp_path: Path) -> None:
         """Post-run hooks should be able to downgrade PASS to BLOCKED on resume."""
-        from runtime.orchestration.loop.spine import LoopSpine
-        from runtime.api.governance_api import hash_json
         import yaml
+
+        from runtime.api.governance_api import hash_json
+        from runtime.orchestration.loop.spine import LoopSpine
 
         # Setup spine
         repo = tmp_path / "repo"
@@ -308,11 +309,7 @@ class TestResumePostRunHooks:
 
         # Failing hook
         def failing_post_hook(**kwargs: Any) -> HookResult:
-            return HookResult(
-                name="evidence_check",
-                passed=False,
-                reason="evidence incomplete"
-            )
+            return HookResult(name="evidence_check", passed=False, reason="evidence incomplete")
 
         spine = LoopSpine(
             repo_root=repo,

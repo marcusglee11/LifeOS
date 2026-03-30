@@ -4,14 +4,49 @@ Phase 3 Mission Types - Autonomous Build Cycle (Loop Controller)
 Refactored for Phase A: Convergent Builder Loop.
 Implements a deterministic, resumable, budget-bounded build loop.
 """
+
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import time
 from typing import Any, Dict, List, Optional
-from pathlib import Path
 
+# Backlog Integration
+from recursive_kernel.backlog_parser import (
+    BacklogItem,
+    mark_item_done_with_evidence,
+    parse_backlog,
+    select_next_task,
+)
+
+# Phase 3a: Test Execution
+from runtime.api.governance_api import PolicyLoader, check_pytest_scope
+
+# CEO Approval Queue
+from runtime.orchestration.ceo_queue import (
+    CEOQueue,
+    EscalationEntry,
+    EscalationStatus,
+    EscalationType,
+)
+from runtime.orchestration.loop.budgets import BudgetController
+from runtime.orchestration.loop.failure_classifier import classify_test_failure
+
+# Loop Infrastructure
+from runtime.orchestration.loop.ledger import (
+    AttemptLedger,
+    AttemptRecord,
+    LedgerHeader,
+    LedgerIntegrityError,
+)
+from runtime.orchestration.loop.policy import LoopPolicy
+from runtime.orchestration.loop.taxonomy import (
+    FailureClass,
+    LoopAction,
+    TerminalOutcome,
+    TerminalReason,
+)
 from runtime.orchestration.missions.base import (
     BaseMission,
     MissionContext,
@@ -19,59 +54,31 @@ from runtime.orchestration.missions.base import (
     MissionType,
     MissionValidationError,
 )
-from runtime.orchestration.missions.design import DesignMission
 from runtime.orchestration.missions.build import BuildMission
+from runtime.orchestration.missions.design import DesignMission
 from runtime.orchestration.missions.review import ReviewMission
 from runtime.orchestration.missions.steward import StewardMission
-
-# Backlog Integration
-from recursive_kernel.backlog_parser import (
-    parse_backlog,
-    select_next_task,
-    mark_item_done_with_evidence,
-    BacklogItem,
-)
-from runtime.orchestration.task_spec import TaskSpec
-
-# Loop Infrastructure
-from runtime.orchestration.loop.ledger import (
-    AttemptLedger, AttemptRecord, LedgerHeader, LedgerIntegrityError
-)
-from runtime.orchestration.loop.policy import LoopPolicy
-from runtime.orchestration.loop.budgets import BudgetController
-from runtime.orchestration.loop.taxonomy import (
-    TerminalOutcome, TerminalReason, FailureClass, LoopAction
-)
-from runtime.api.governance_api import PolicyLoader
-
-# CEO Approval Queue
-from runtime.orchestration.ceo_queue import (
-    CEOQueue, EscalationEntry, EscalationType, EscalationStatus
-)
-
-# Phase 3a: Test Execution
-from runtime.api.governance_api import check_pytest_scope
 from runtime.orchestration.test_executor import PytestExecutor, PytestResult
-from runtime.orchestration.loop.failure_classifier import classify_test_failure
+
 
 class AutonomousBuildCycleMission(BaseMission):
     """
     Autonomous Build Cycle: Convergent Builder Loop Controller.
-    
+
     Inputs:
         - task_spec (str): Task description
         - context_refs (list[str]): Context paths
         - handoff_schema_version (str, optional): Validation version
-        
+
     Outputs:
         - commit_hash (str): Final hash if PASS
         - loop_report (dict): Full execution report
     """
-    
+
     @property
     def mission_type(self) -> MissionType:
         return MissionType.AUTONOMOUS_BUILD_CYCLE
-    
+
     def validate_inputs(self, inputs: Dict[str, Any]) -> None:
         # from_backlog mode doesn't require task_spec (will be loaded from backlog)
         if inputs.get("from_backlog"):
@@ -82,12 +89,14 @@ class AutonomousBuildCycleMission(BaseMission):
             raise MissionValidationError("task_spec is required (or use from_backlog=True)")
 
         # P0: Handoff Schema Version Validation
-        req_version = "v1.0" # Hardcoded expectation for Phase A
+        req_version = "v1.0"  # Hardcoded expectation for Phase A
         if "handoff_schema_version" in inputs:
             if inputs["handoff_schema_version"] != req_version:
                 # We can't return a Result from validate_inputs, must raise.
                 # But strict fail-closed requires blocking.
-                raise MissionValidationError(f"Handoff version mismatch. Expected {req_version}, got {inputs['handoff_schema_version']}")
+                raise MissionValidationError(
+                    f"Handoff version mismatch. Expected {req_version}, got {inputs['handoff_schema_version']}"
+                )
 
     def _can_reset_workspace(self, context: MissionContext) -> bool:
         """
@@ -102,13 +111,13 @@ class AutonomousBuildCycleMission(BaseMission):
         # Or better, just rely on the 'clean' requirement.
         # If we can't implement reset, we return False.
         # Since I don't have a built-in resetter:
-        return True # Stub for MVP, implying "Assume Clean" for now? 
+        return True  # Stub for MVP, implying "Assume Clean" for now?
         # User constraint: "If a clean reset cannot be guaranteed... fail-closed: ESCALATION_REQUESTED reason WORKSPACE_RESET_UNAVAILABLE"
         # I will enforce this check at start of loop.
 
     def _compute_hash(self, obj: Any) -> str:
         s = json.dumps(obj, sort_keys=True, default=str)
-        return hashlib.sha256(s.encode('utf-8')).hexdigest()
+        return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
     def _extract_usage_tokens(self, evidence: Dict[str, Any]) -> Optional[int]:
         """Return normalized token usage total, or None when unavailable."""
@@ -139,7 +148,7 @@ class AutonomousBuildCycleMission(BaseMission):
     def _emit_packet(self, name: str, content: Dict[str, Any], context: MissionContext):
         """Emit a canonical packet to artifacts/"""
         path = context.repo_root / "artifacts" / name
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             # Markdown wrapper for readability + JSON/YAML payload
             f.write(f"# Packet: {name}\n\n")
             f.write("```json\n")
@@ -193,9 +202,7 @@ class AutonomousBuildCycleMission(BaseMission):
                 entry = queue.get_by_id(escalation_id)
         return entry
 
-    def _is_escalation_stale(
-        self, entry: EscalationEntry, hours: int = 24
-    ) -> bool:
+    def _is_escalation_stale(self, entry: EscalationEntry, hours: int = 24) -> bool:
         """Check if escalation exceeds timeout threshold.
 
         Args:
@@ -206,6 +213,7 @@ class AutonomousBuildCycleMission(BaseMission):
             True if stale, False otherwise
         """
         from datetime import datetime
+
         age = datetime.utcnow() - entry.created_at
         return age.total_seconds() > hours * 3600
 
@@ -230,6 +238,7 @@ class AutonomousBuildCycleMission(BaseMission):
 
         # First filter to uncompleted (TODO, P0/P1) tasks
         from recursive_kernel.backlog_parser import get_uncompleted_tasks
+
         uncompleted = get_uncompleted_tasks(items)
 
         # Then filter out blocked tasks before selection
@@ -246,9 +255,8 @@ class AutonomousBuildCycleMission(BaseMission):
     def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
         # Deprecated path guard: keep class for compatibility/historical replay/tests.
         # Block only CLI mission-run entrypoint for new autonomous runs.
-        if (
-            context.metadata.get("cli_command") == "mission run"
-            and not inputs.get("allow_deprecated_replay", False)
+        if context.metadata.get("cli_command") == "mission run" and not inputs.get(
+            "allow_deprecated_replay", False
         ):
             return self._make_result(
                 success=False,
@@ -298,9 +306,11 @@ class AutonomousBuildCycleMission(BaseMission):
 
         # P0: Workspace Semantics - Fail Closed if Reset Unavailable
         if not self._can_reset_workspace(context):
-             reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
-             self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-             return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+            reason = TerminalReason.WORKSPACE_RESET_UNAVAILABLE.value
+            self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+            return self._make_result(
+                success=False, escalation_reason=reason, executed_steps=executed_steps
+            )
 
         # 1. Setup Infrastructure
         ledger_path = context.repo_root / "artifacts" / "loop_state" / "attempt_ledger.jsonl"
@@ -310,18 +320,18 @@ class AutonomousBuildCycleMission(BaseMission):
         # CEO Approval Queue
         queue_path = context.repo_root / "artifacts" / "queue" / "escalations.db"
         queue = CEOQueue(db_path=queue_path)
-        
+
         # P0.1: Promotion to Authoritative Gating (Enabled per Council Pass)
         # Load policy config from repo canonical location
         policy_config_dir = context.repo_root / "config" / "policy"
         loader = PolicyLoader(config_dir=policy_config_dir, authoritative=True)
         effective_config = loader.load()
-        
+
         policy = LoopPolicy(effective_config=effective_config)
-        
+
         # P0: Policy Hash (Hardcoded for checking)
-        current_policy_hash = "phase_a_hardcoded_v1" 
-        
+        current_policy_hash = "phase_a_hardcoded_v1"
+
         # 2. Hydrate / Initialize Ledger
         try:
             is_resume = ledger.hydrate()
@@ -329,18 +339,22 @@ class AutonomousBuildCycleMission(BaseMission):
                 # P0: Policy Hash Guard
                 if ledger.header["policy_hash"] != current_policy_hash:
                     reason = TerminalReason.POLICY_CHANGED_MID_RUN.value
-                    self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
+                    self._emit_terminal(
+                        TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens
+                    )
                     return self._make_result(
                         success=False,
                         escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}",
-                        executed_steps=executed_steps
+                        executed_steps=executed_steps,
                     )
                 executed_steps.append("ledger_hydrated")
 
                 # Check for pending escalation on resume
-                escalation_state_path = context.repo_root / "artifacts" / "loop_state" / "escalation_state.json"
+                escalation_state_path = (
+                    context.repo_root / "artifacts" / "loop_state" / "escalation_state.json"
+                )
                 if escalation_state_path.exists():
-                    with open(escalation_state_path, 'r') as f:
+                    with open(escalation_state_path, "r") as f:
                         esc_state = json.load(f)
                     escalation_id = esc_state.get("escalation_id")
                     if escalation_id:
@@ -351,25 +365,27 @@ class AutonomousBuildCycleMission(BaseMission):
                                 success=False,
                                 escalation_reason=f"Escalation {escalation_id} still pending CEO approval",
                                 outputs={"escalation_id": escalation_id},
-                                executed_steps=executed_steps
+                                executed_steps=executed_steps,
                             )
                         elif entry and entry.status == EscalationStatus.REJECTED:
                             # Rejected, terminate
-                            reason = f"CEO rejected escalation {escalation_id}: {entry.resolution_note}"
-                            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+                            reason = (
+                                f"CEO rejected escalation {escalation_id}: {entry.resolution_note}"
+                            )
+                            self._emit_terminal(
+                                TerminalOutcome.BLOCKED, reason, context, total_tokens
+                            )
                             return self._make_result(
-                                success=False,
-                                error=reason,
-                                executed_steps=executed_steps
+                                success=False, error=reason, executed_steps=executed_steps
                             )
                         elif entry and entry.status == EscalationStatus.TIMEOUT:
                             # Timeout, terminate
                             reason = f"Escalation {escalation_id} timed out after 24 hours"
-                            self._emit_terminal(TerminalOutcome.BLOCKED, reason, context, total_tokens)
+                            self._emit_terminal(
+                                TerminalOutcome.BLOCKED, reason, context, total_tokens
+                            )
                             return self._make_result(
-                                success=False,
-                                error=reason,
-                                executed_steps=executed_steps
+                                success=False, error=reason, executed_steps=executed_steps
                             )
                         elif entry and entry.status == EscalationStatus.APPROVED:
                             # Approved, can continue - clear escalation state
@@ -381,16 +397,16 @@ class AutonomousBuildCycleMission(BaseMission):
                     LedgerHeader(
                         policy_hash=current_policy_hash,
                         handoff_hash=self._compute_hash(inputs),
-                        run_id=context.run_id
+                        run_id=context.run_id,
                     )
                 )
                 executed_steps.append("ledger_initialized")
-                
+
         except LedgerIntegrityError as e:
             return self._make_result(
                 success=False,
                 error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}",
-                executed_steps=executed_steps
+                executed_steps=executed_steps,
             )
 
         # 3. Design Phase (Attempt 0) - Simplified for Phase A
@@ -402,17 +418,21 @@ class AutonomousBuildCycleMission(BaseMission):
         executed_steps.append("design_phase")
 
         if not d_res.success:
-            return self._make_result(success=False, error=f"Design failed: {d_res.error}", executed_steps=executed_steps)
+            return self._make_result(
+                success=False, error=f"Design failed: {d_res.error}", executed_steps=executed_steps
+            )
 
         design_tokens = self._extract_usage_tokens(d_res.evidence)
         if design_tokens is None:
             reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
             self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-            return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+            return self._make_result(
+                success=False, escalation_reason=reason, executed_steps=executed_steps
+            )
         total_tokens += design_tokens
-            
+
         build_packet = d_res.outputs["build_packet"]
-        
+
         # Design Review
         review = ReviewMission()
         r_res = review.run(context, {"subject_packet": build_packet, "review_type": "build_review"})
@@ -422,38 +442,42 @@ class AutonomousBuildCycleMission(BaseMission):
         if review_tokens is None:
             reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
             self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-            return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+            return self._make_result(
+                success=False, escalation_reason=reason, executed_steps=executed_steps
+            )
         total_tokens += review_tokens
 
         if not r_res.success or r_res.outputs.get("verdict") != "approved":
-             return self._make_result(
-                 success=False,
-                 escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}",
-                 executed_steps=executed_steps
-             )
-             
+            return self._make_result(
+                success=False,
+                escalation_reason=f"Design rejected: {r_res.outputs.get('verdict')}",
+                executed_steps=executed_steps,
+            )
+
         design_approval = r_res.outputs.get("council_decision")
 
         # 4. Loop Execution
         loop_active = True
-        
+
         while loop_active:
             # Determine Attempt ID
             if ledger.history:
                 attempt_id = ledger.history[-1].attempt_id + 1
             else:
                 attempt_id = 1
-                
+
             # Budget Check
             is_over, budget_reason = budget.check_budget(attempt_id, total_tokens)
             if is_over:
                 # Emit Terminal Packet
                 self._emit_terminal(TerminalOutcome.BLOCKED, budget_reason, context, total_tokens)
-                return self._make_result(success=False, error=budget_reason, executed_steps=executed_steps) # Simplified return
-                
+                return self._make_result(
+                    success=False, error=budget_reason, executed_steps=executed_steps
+                )  # Simplified return
+
             # Policy Check (Deadlock/Oscillation/Resume-Action)
             action, reason = policy.decide_next_action(ledger)
-            
+
             if action == LoopAction.TERMINATE.value:
                 # If policy says terminate, we stop.
                 # Map reason to TerminalOutcome
@@ -462,20 +486,28 @@ class AutonomousBuildCycleMission(BaseMission):
                     outcome = TerminalOutcome.PASS
                 elif reason == TerminalReason.OSCILLATION_DETECTED.value:
                     outcome = TerminalOutcome.ESCALATION_REQUESTED
-                
+
                 self._emit_terminal(outcome, reason, context, total_tokens)
-                
+
                 if outcome == TerminalOutcome.PASS:
                     # Return success details with commit hash from steward
-                    return self._make_result(success=True, outputs={"commit_hash": final_commit_hash}, executed_steps=executed_steps)
+                    return self._make_result(
+                        success=True,
+                        outputs={"commit_hash": final_commit_hash},
+                        executed_steps=executed_steps,
+                    )
                 else:
-                    return self._make_result(success=False, error=reason, executed_steps=executed_steps)
+                    return self._make_result(
+                        success=False, error=reason, executed_steps=executed_steps
+                    )
 
             # Execution (RETRY or First Run)
             feedback = ""
             if ledger.history:
                 last = ledger.history[-1]
-                feedback = f"Previous attempt failed: {last.failure_class}. Rationale: {last.rationale}"
+                feedback = (
+                    f"Previous attempt failed: {last.failure_class}. Rationale: {last.rationale}"
+                )
                 # Inject feedback
                 build_packet["feedback_context"] = feedback
 
@@ -483,79 +515,115 @@ class AutonomousBuildCycleMission(BaseMission):
             build = BuildMission()
             b_res = build.run(context, {"build_packet": build_packet, "approval": design_approval})
             executed_steps.append(f"build_attempt_{attempt_id}")
-            
+
             build_tokens = self._extract_usage_tokens(b_res.evidence)
             if build_tokens is None:
                 # P0: Fail Closed on Token Accounting
                 reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
-                self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+                self._emit_terminal(
+                    TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens
+                )
+                return self._make_result(
+                    success=False, escalation_reason=reason, executed_steps=executed_steps
+                )
             total_tokens += build_tokens
 
             if not b_res.success:
                 # Internal mission error (crash?)
-                self._record_attempt(ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, "Build crashed")
+                self._record_attempt(
+                    ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, "Build crashed"
+                )
                 continue
 
             review_packet = b_res.outputs["review_packet"]
-            
+
             # P0: Diff Budget Check (BEFORE Apply/Review)
             # Extracted from review_packet payload
             content = review_packet.get("payload", {}).get("content", "")
-            lines = content.count('\n')
-            
+            lines = content.count("\n")
+
             # P0: Enforce limit (300 lines)
-            max_lines = 300 # Hardcoded P0 constraint
+            max_lines = 300  # Hardcoded P0 constraint
             over_diff, diff_reason = budget.check_diff_budget(lines, max_lines=max_lines)
-            
+
             if over_diff:
                 reason = TerminalReason.DIFF_BUDGET_EXCEEDED.value
-                # Evidence: Capture the rejected diff 
-                evidence_path = context.repo_root / "artifacts" / f"rejected_diff_attempt_{attempt_id}.txt"
-                with open(evidence_path, 'w', encoding='utf-8') as f:
+                # Evidence: Capture the rejected diff
+                evidence_path = (
+                    context.repo_root / "artifacts" / f"rejected_diff_attempt_{attempt_id}.txt"
+                )
+                with open(evidence_path, "w", encoding="utf-8") as f:
                     f.write(content)
-                
-                # Emit Terminal Packet with Evidence ref
-                self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens, diff_evidence=str(evidence_path))
-                
-                # Record Failure
-                self._record_attempt(ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, reason)
 
-                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+                # Emit Terminal Packet with Evidence ref
+                self._emit_terminal(
+                    TerminalOutcome.ESCALATION_REQUESTED,
+                    reason,
+                    context,
+                    total_tokens,
+                    diff_evidence=str(evidence_path),
+                )
+
+                # Record Failure
+                self._record_attempt(
+                    ledger, attempt_id, context, b_res, FailureClass.UNKNOWN, reason
+                )
+
+                return self._make_result(
+                    success=False, escalation_reason=reason, executed_steps=executed_steps
+                )
 
             # Output Review
             out_review = ReviewMission()
-            or_res = out_review.run(context, {"subject_packet": review_packet, "review_type": "output_review"})
+            or_res = out_review.run(
+                context, {"subject_packet": review_packet, "review_type": "output_review"}
+            )
             executed_steps.append(f"review_attempt_{attempt_id}")
             output_review_tokens = self._extract_usage_tokens(or_res.evidence)
             if output_review_tokens is None:
                 reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
-                self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-                return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+                self._emit_terminal(
+                    TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens
+                )
+                return self._make_result(
+                    success=False, escalation_reason=reason, executed_steps=executed_steps
+                )
             total_tokens += output_review_tokens
 
             # Classification
             success = False
             failure_class = None
             term_reason = None
-            
+
             verdict = or_res.outputs.get("verdict")
             if verdict == "approved":
                 success = True
                 failure_class = None
                 # Steward
                 steward = StewardMission()
-                s_res = steward.run(context, {"review_packet": review_packet, "approval": or_res.outputs.get("council_decision")})
+                s_res = steward.run(
+                    context,
+                    {
+                        "review_packet": review_packet,
+                        "approval": or_res.outputs.get("council_decision"),
+                    },
+                )
                 if s_res.success:
                     steward_tokens = self._extract_usage_tokens(s_res.evidence)
                     if steward_tokens is None:
                         reason = TerminalReason.TOKEN_ACCOUNTING_UNAVAILABLE.value
-                        self._emit_terminal(TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens)
-                        return self._make_result(success=False, escalation_reason=reason, executed_steps=executed_steps)
+                        self._emit_terminal(
+                            TerminalOutcome.ESCALATION_REQUESTED, reason, context, total_tokens
+                        )
+                        return self._make_result(
+                            success=False, escalation_reason=reason, executed_steps=executed_steps
+                        )
                     total_tokens += steward_tokens
 
                     # SUCCESS! Capture commit hash and add steward step
-                    final_commit_hash = s_res.outputs.get("commit_hash", s_res.outputs.get("simulated_commit_hash", "UNKNOWN"))
+                    final_commit_hash = s_res.outputs.get(
+                        "commit_hash", s_res.outputs.get("simulated_commit_hash", "UNKNOWN")
+                    )
                     executed_steps.append("steward")
 
                     # Mark backlog task complete if from_backlog mode
@@ -575,9 +643,17 @@ class AutonomousBuildCycleMission(BaseMission):
                         executed_steps.append("backlog_marked_complete")
 
                     # Record PASS
-                    self._record_attempt(ledger, attempt_id, context, b_res, None, "Attributes Approved", success=True)
+                    self._record_attempt(
+                        ledger,
+                        attempt_id,
+                        context,
+                        b_res,
+                        None,
+                        "Attributes Approved",
+                        success=True,
+                    )
                     # Loop will check policy next iter -> PASS
-                    continue 
+                    continue
                 else:
                     success = False
                     failure_class = FailureClass.UNKNOWN
@@ -585,40 +661,43 @@ class AutonomousBuildCycleMission(BaseMission):
                 # Map verdict to failure class
                 success = False
                 if verdict == "rejected":
-                     failure_class = FailureClass.REVIEW_REJECTION
+                    failure_class = FailureClass.REVIEW_REJECTION
                 else:
-                     failure_class = FailureClass.REVIEW_REJECTION # Needs revision etc
+                    failure_class = FailureClass.REVIEW_REJECTION  # Needs revision etc
 
             # Record Attempt
             reason_str = or_res.outputs.get("council_decision", {}).get("synthesis", "No rationale")
-            self._record_attempt(ledger, attempt_id, context, b_res, failure_class, reason_str, success=success)
-             
+            self._record_attempt(
+                ledger, attempt_id, context, b_res, failure_class, reason_str, success=success
+            )
+
             # Emit Review Packet
             self._emit_packet(f"Review_Packet_attempt_{attempt_id:04d}.md", review_packet, context)
 
-
-    def _record_attempt(self, ledger, attempt_id, context, build_res, f_class, rationale, success=False):
+    def _record_attempt(
+        self, ledger, attempt_id, context, build_res, f_class, rationale, success=False
+    ):
         # Compute hashes
         # diff_hash from review_packet content
         review_packet = build_res.outputs.get("review_packet")
         content = review_packet.get("payload", {}).get("content", "") if review_packet else ""
         d_hash = self._compute_hash(content)
-        
+
         rec = AttemptRecord(
             attempt_id=attempt_id,
             timestamp=str(time.time()),
             run_id=context.run_id,
             policy_hash="phase_a_hardcoded_v1",
-            input_hash="hash(inputs)", 
+            input_hash="hash(inputs)",
             actions_taken=build_res.executed_steps,
             diff_hash=d_hash,
-            changed_files=[], # Extract if possible
+            changed_files=[],  # Extract if possible
             evidence_hashes={},
             success=success,
             failure_class=f_class.value if f_class else None,
-            terminal_reason=None, # Filled if terminal
+            terminal_reason=None,  # Filled if terminal
             next_action="evaluated_next_tick",
-            rationale=rationale
+            rationale=rationale,
         )
         ledger.append(rec)
 
@@ -628,7 +707,7 @@ class AutonomousBuildCycleMission(BaseMission):
             "outcome": outcome.value,
             "reason": reason,
             "tokens_consumed": tokens,
-            "run_id": context.run_id
+            "run_id": context.run_id,
         }
         if diff_evidence:
             content["diff_evidence_path"] = diff_evidence
@@ -642,10 +721,7 @@ class AutonomousBuildCycleMission(BaseMission):
     # =========================================================================
 
     def _run_verification_tests(
-        self,
-        context: MissionContext,
-        target: str = "runtime/tests",
-        timeout: int = 60
+        self, context: MissionContext, target: str = "runtime/tests", timeout: int = 60
     ) -> Dict[str, Any]:
         """
         Run pytest on runtime/tests/ after build completes.
@@ -692,9 +768,7 @@ class AutonomousBuildCycleMission(BaseMission):
         }
 
     def _prepare_retry_context(
-        self,
-        verification: Dict[str, Any],
-        previous_results: Optional[List[PytestResult]] = None
+        self, verification: Dict[str, Any], previous_results: Optional[List[PytestResult]] = None
     ) -> Dict[str, Any]:
         """
         Prepare context for retry after test failure.
@@ -750,4 +824,6 @@ class AutonomousBuildCycleMission(BaseMission):
             FailureClass.TEST_FLAKE: "This test appears flaky (passed before, failed now). Consider investigating timing issues or test dependencies.",
             FailureClass.TEST_TIMEOUT: "Tests exceeded timeout limit. Consider optimizing slow tests or increasing timeout threshold.",
         }
-        return suggestions.get(failure_class, "Review the test output and fix the underlying issue.")
+        return suggestions.get(
+            failure_class, "Review the test output and fix the underlying issue."
+        )

@@ -4,6 +4,7 @@ State Hygiene Tests — verify canonical state docs are internally consistent.
 These tests read LIFEOS_STATE.md and LifeOS_Master_Execution_Plan_v1.1.md
 and assert that known-resolved items are not still listed as open blockers.
 """
+
 import re
 from pathlib import Path
 

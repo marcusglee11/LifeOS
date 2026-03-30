@@ -6,14 +6,16 @@ including boundary values, unicode, and special characters.
 
 Per Edge Case Testing Implementation Plan - Phase 1.3
 """
+
 import pytest
-from runtime.mission.interfaces import MissionId, MissionDefinition
+
 from runtime.mission.boundaries import (
-    validate_mission_id,
-    validate_mission_definition,
     MissionBoundaryConfig,
     MissionBoundaryViolation,
+    validate_mission_definition,
+    validate_mission_id,
 )
+from runtime.mission.interfaces import MissionDefinition, MissionId
 
 
 class TestMissionIdBoundaries:
@@ -56,11 +58,7 @@ class TestMissionNameBoundaries:
 
     def test_empty_mission_name(self):
         """Empty mission name triggers MissionBoundaryViolation."""
-        defn = MissionDefinition(
-            id=MissionId(value="M001"),
-            name="",
-            description="Test"
-        )
+        defn = MissionDefinition(id=MissionId(value="M001"), name="", description="Test")
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn)
 
@@ -68,11 +66,7 @@ class TestMissionNameBoundaries:
 
     def test_whitespace_only_mission_name(self):
         """Whitespace-only mission name triggers MissionBoundaryViolation."""
-        defn = MissionDefinition(
-            id=MissionId(value="M001"),
-            name="   ",
-            description="Test"
-        )
+        defn = MissionDefinition(id=MissionId(value="M001"), name="   ", description="Test")
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn)
 
@@ -84,7 +78,7 @@ class TestMissionNameBoundaries:
         defn = MissionDefinition(
             id=MissionId(value="M001"),
             name="x" * 100,  # Exactly 100 chars
-            description="Test"
+            description="Test",
         )
         validate_mission_definition(defn, config)  # Should not raise
 
@@ -94,7 +88,7 @@ class TestMissionNameBoundaries:
         defn = MissionDefinition(
             id=MissionId(value="M001"),
             name="x" * 101,  # 101 chars
-            description="Test"
+            description="Test",
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn, config)
@@ -111,7 +105,7 @@ class TestMissionDescriptionBoundaries:
         defn = MissionDefinition(
             id=MissionId(value="M001"),
             name="Test",
-            description="x" * 4000  # Exactly 4000 chars
+            description="x" * 4000,  # Exactly 4000 chars
         )
         validate_mission_definition(defn, config)  # Should not raise
 
@@ -121,7 +115,7 @@ class TestMissionDescriptionBoundaries:
         defn = MissionDefinition(
             id=MissionId(value="M001"),
             name="Test",
-            description="x" * 4001  # 4001 chars
+            description="x" * 4001,  # 4001 chars
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn, config)
@@ -139,7 +133,7 @@ class TestMissionTagsBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            tags=tuple(f"tag{i}" for i in range(25))  # Exactly 25 tags
+            tags=tuple(f"tag{i}" for i in range(25)),  # Exactly 25 tags
         )
         validate_mission_definition(defn, config)  # Should not raise
 
@@ -150,12 +144,16 @@ class TestMissionTagsBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            tags=tuple(f"tag{i}" for i in range(26))  # 26 tags
+            tags=tuple(f"tag{i}" for i in range(26)),  # 26 tags
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn, config)
 
-        assert "too many tags" in str(exc_info.value).lower() and "26" in str(exc_info.value) and "25" in str(exc_info.value)
+        assert (
+            "too many tags" in str(exc_info.value).lower()
+            and "26" in str(exc_info.value)
+            and "25" in str(exc_info.value)
+        )
 
     def test_whitespace_only_tag(self):
         """Whitespace-only tag triggers MissionBoundaryViolation."""
@@ -163,7 +161,7 @@ class TestMissionTagsBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            tags=("valid_tag", "   ")  # Second tag is whitespace-only
+            tags=("valid_tag", "   "),  # Second tag is whitespace-only
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn)
@@ -177,7 +175,7 @@ class TestMissionTagsBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            tags=("x" * 64,)  # Exactly 64 chars
+            tags=("x" * 64,),  # Exactly 64 chars
         )
         validate_mission_definition(defn, config)  # Should not raise
 
@@ -188,7 +186,7 @@ class TestMissionTagsBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            tags=("x" * 65,)  # 65 chars
+            tags=("x" * 65,),  # 65 chars
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn, config)
@@ -198,10 +196,7 @@ class TestMissionTagsBoundaries:
     def test_empty_tag(self):
         """Empty tag triggers MissionBoundaryViolation."""
         defn = MissionDefinition(
-            id=MissionId(value="M001"),
-            name="Test",
-            description="Test",
-            tags=("valid_tag", "")
+            id=MissionId(value="M001"), name="Test", description="Test", tags=("valid_tag", "")
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn)
@@ -219,7 +214,7 @@ class TestMissionMetadataBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            metadata=tuple((f"key{i}", f"value{i}") for i in range(50))  # Exactly 50 pairs
+            metadata=tuple((f"key{i}", f"value{i}") for i in range(50)),  # Exactly 50 pairs
         )
         validate_mission_definition(defn, config)  # Should not raise
 
@@ -230,12 +225,16 @@ class TestMissionMetadataBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            metadata=tuple((f"key{i}", f"value{i}") for i in range(51))  # 51 pairs
+            metadata=tuple((f"key{i}", f"value{i}") for i in range(51)),  # 51 pairs
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn, config)
 
-        assert "too many" in str(exc_info.value).lower() and "51" in str(exc_info.value) and "50" in str(exc_info.value)
+        assert (
+            "too many" in str(exc_info.value).lower()
+            and "51" in str(exc_info.value)
+            and "50" in str(exc_info.value)
+        )
 
     def test_empty_metadata_tuple_allowed(self):
         """Empty metadata tuple is valid canonical form."""
@@ -243,7 +242,7 @@ class TestMissionMetadataBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            metadata=()  # Empty tuple
+            metadata=(),  # Empty tuple
         )
         validate_mission_definition(defn)  # Should not raise
 
@@ -253,7 +252,7 @@ class TestMissionMetadataBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            metadata=(("   ", "value"),)
+            metadata=(("   ", "value"),),
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn)
@@ -267,7 +266,7 @@ class TestMissionMetadataBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            metadata=(("x" * 65, "value"),)  # Key is 65 chars
+            metadata=(("x" * 65, "value"),),  # Key is 65 chars
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn, config)
@@ -281,7 +280,7 @@ class TestMissionMetadataBoundaries:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            metadata=(("key", "x" * 1001),)  # Value is 1001 chars
+            metadata=(("key", "x" * 1001),),  # Value is 1001 chars
         )
         with pytest.raises(MissionBoundaryViolation) as exc_info:
             validate_mission_definition(defn, config)
@@ -297,7 +296,7 @@ class TestUnicodeAndSpecialCharacters:
         defn = MissionDefinition(
             id=MissionId(value="M001"),
             name="Test 🚀 Mission",  # Emoji within limit
-            description="Test"
+            description="Test",
         )
         validate_mission_definition(defn)  # Should not raise
 
@@ -308,14 +307,14 @@ class TestUnicodeAndSpecialCharacters:
         defn = MissionDefinition(
             id=MissionId(value="M001"),
             name="x" * 18 + "🚀🚀",  # 20 chars total
-            description="Test"
+            description="Test",
         )
         validate_mission_definition(defn, config)  # Should not raise (exactly 20)
 
         defn2 = MissionDefinition(
             id=MissionId(value="M001"),
             name="x" * 18 + "🚀🚀🚀",  # 21 chars total
-            description="Test"
+            description="Test",
         )
         with pytest.raises(MissionBoundaryViolation):
             validate_mission_definition(defn2, config)
@@ -326,6 +325,6 @@ class TestUnicodeAndSpecialCharacters:
             id=MissionId(value="M001"),
             name="Test",
             description="Test",
-            metadata=(("key", "line1\nline2\nline3"),)
+            metadata=(("key", "line1\nline2\nline3"),),
         )
         validate_mission_definition(defn)  # Should not raise

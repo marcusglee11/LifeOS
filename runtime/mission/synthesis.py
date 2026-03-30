@@ -15,35 +15,36 @@ Contract Decisions (locked by tests):
 
 Pattern follows reactive layer: validate → build → validate
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
-from runtime.mission.interfaces import (
-    MissionId,
-    MissionDefinition,
-)
 from runtime.mission.boundaries import (
-    MissionBoundaryViolation,
     MissionBoundaryConfig,
-    validate_mission_id,
+    MissionBoundaryViolation,
     validate_mission_definition,
+    validate_mission_id,
 )
-
+from runtime.mission.interfaces import (
+    MissionDefinition,
+    MissionId,
+)
 
 # =============================================================================
 # v0.2 Data Types
 # =============================================================================
 
+
 @dataclass(frozen=True)
 class MissionSynthesisRequest:
     """
     Structured request for mission synthesis.
-    
+
     All fields are explicit — no interpretation, no defaults from environment,
     no timestamps, no randomness.
-    
+
     Attributes:
         id: Mission identifier (required, non-empty, validated by MissionBoundaryConfig)
         name: Mission name (required, non-empty, validated by MissionBoundaryConfig)
@@ -51,6 +52,7 @@ class MissionSynthesisRequest:
         tags: Order-significant, case-sensitive tags
         metadata: Key-value pairs (sorted by key in output)
     """
+
     id: str
     name: str
     description: str = ""
@@ -62,58 +64,49 @@ class MissionSynthesisRequest:
 # v0.2 Validation
 # =============================================================================
 
+
 def _validate_request(
     request: MissionSynthesisRequest,
     config: MissionBoundaryConfig,
 ) -> None:
     """
     Validate a synthesis request before building.
-    
+
     Internal function. Raises MissionBoundaryViolation on failure.
     """
     # ID validation — delegate to shared validator via MissionId
     # This ensures consistent error messages with v0.1 boundaries module
     mid = MissionId(value=request.id)
     validate_mission_id(mid, config)
-    
+
     # Name validation
     if not request.name or len(request.name.strip()) == 0:
         raise MissionBoundaryViolation("Name must not be empty")
-    
+
     if len(request.name) > config.max_name_chars:
-        raise MissionBoundaryViolation(
-            f"Name exceeds {config.max_name_chars} chars"
-        )
-    
+        raise MissionBoundaryViolation(f"Name exceeds {config.max_name_chars} chars")
+
     # Description validation
     if len(request.description) > config.max_description_chars:
-        raise MissionBoundaryViolation(
-            f"Description exceeds {config.max_description_chars} chars"
-        )
-    
+        raise MissionBoundaryViolation(f"Description exceeds {config.max_description_chars} chars")
+
     # Tags validation
     if len(request.tags) > config.max_tags:
-        raise MissionBoundaryViolation(
-            f"Too many tags: {len(request.tags)} > {config.max_tags}"
-        )
-    
+        raise MissionBoundaryViolation(f"Too many tags: {len(request.tags)} > {config.max_tags}")
+
     for i, tag in enumerate(request.tags):
         if not isinstance(tag, str):
-            raise MissionBoundaryViolation(
-                f"Tag[{i}] must be str, got {type(tag).__name__}"
-            )
+            raise MissionBoundaryViolation(f"Tag[{i}] must be str, got {type(tag).__name__}")
         if len(tag) > config.max_tag_chars:
-            raise MissionBoundaryViolation(
-                f"Tag[{i}] exceeds {config.max_tag_chars} chars"
-            )
-    
+            raise MissionBoundaryViolation(f"Tag[{i}] exceeds {config.max_tag_chars} chars")
+
     # Metadata validation
     if request.metadata is not None:
         if len(request.metadata) > config.max_metadata_pairs:
             raise MissionBoundaryViolation(
                 f"Too many metadata pairs: {len(request.metadata)} > {config.max_metadata_pairs}"
             )
-        
+
         for key, value in request.metadata.items():
             if not isinstance(key, str):
                 raise MissionBoundaryViolation(
@@ -138,9 +131,9 @@ def _build_definition(
 ) -> MissionDefinition:
     """
     Build a MissionDefinition from a validated request.
-    
+
     Internal function. Does not validate — caller must validate first.
-    
+
     Metadata is sorted by key for canonical representation.
     """
     # Build sorted metadata tuple
@@ -148,7 +141,7 @@ def _build_definition(
     if request.metadata:
         sorted_items = sorted(request.metadata.items(), key=lambda x: x[0])
         metadata_tuple = tuple(sorted_items)
-    
+
     return MissionDefinition(
         id=MissionId(value=request.id),
         name=request.name,
@@ -162,37 +155,38 @@ def _build_definition(
 # v0.2 Public API
 # =============================================================================
 
+
 def synthesize_mission(
     request: MissionSynthesisRequest,
     config: Optional[MissionBoundaryConfig] = None,
 ) -> MissionDefinition:
     """
     THE SINGLE EXTERNAL ENTRYPOINT for v0.2 mission synthesis.
-    
+
     Chains: validate_request() → build_definition() → validate_definition()
-    
+
     Args:
         request: Structured synthesis request with explicit fields
         config: Optional boundary configuration (uses defaults if None)
-    
+
     Returns:
         Fully validated, immutable MissionDefinition
-    
+
     Raises:
         MissionBoundaryViolation: On any validation failure (fail-closed)
     """
     if config is None:
         config = MissionBoundaryConfig()
-    
+
     # Step 1: Validate request
     _validate_request(request, config)
-    
+
     # Step 2: Build definition
     defn = _build_definition(request)
-    
+
     # Step 3: Validate built definition (defense in depth)
     validate_mission_definition(defn, config)
-    
+
     return defn
 
 
@@ -202,22 +196,21 @@ def validate_mission_definition_v0_2(
 ) -> None:
     """
     Validate a mission definition — v0.2 explicit entrypoint.
-    
+
     Uses existing validation infrastructure from boundaries module.
     Specific, verbose name chosen to avoid ambiguity collision.
-    
+
     Args:
         defn: Mission definition to validate
         config: Optional boundary configuration (uses defaults if None)
-    
+
     Returns:
         None on success (validates successfully)
-    
+
     Raises:
         MissionBoundaryViolation: On any validation failure (fail-closed)
     """
     if config is None:
         config = MissionBoundaryConfig()
-    
-    validate_mission_definition(defn, config)
 
+    validate_mission_definition(defn, config)

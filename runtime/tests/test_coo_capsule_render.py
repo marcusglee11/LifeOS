@@ -6,7 +6,6 @@ import pytest
 
 from runtime.tools.coo_capsule_render import CapsuleRenderError, render_marker
 
-
 RENDER_KEYS = [
     "HEAD",
     "EVID",

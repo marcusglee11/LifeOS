@@ -8,12 +8,11 @@ Tests cover:
 - MissionContext field accessibility
 - Error result validation
 """
+
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict
-
-import pytest
 
 from runtime.orchestration.missions.base import (
     BaseMission,

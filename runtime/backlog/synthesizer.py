@@ -7,26 +7,28 @@ Deterministic, fail-closed, wires to orchestrator registry.
 
 Per Mission Synthesis Engine MVP.
 """
+
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import hashlib
-import uuid
+from typing import Any, Dict
 
-from runtime.backlog.parser import parse_backlog, get_task_by_id, TaskSpec
-from runtime.backlog.context_resolver import resolve_context, ResolvedContext
+from runtime.backlog.context_resolver import ResolvedContext, resolve_context
+from runtime.backlog.parser import TaskSpec, get_task_by_id, parse_backlog
 
 
 class SynthesisError(Exception):
     """Raised when mission synthesis fails."""
+
     pass
 
 
 @dataclass(frozen=True)
 class MissionPacket:
     """Synthesized mission packet ready for orchestrator."""
+
     packet_id: str
     task_id: str
     task_description: str
@@ -55,22 +57,22 @@ def synthesize_mission(
 ) -> MissionPacket:
     """
     Synthesize a mission packet from a backlog task.
-    
+
     Steps:
     1. Parse backlog, find task by ID
     2. Resolve context
     3. Generate mission packet
     4. Return packet ready for orchestrator
-    
+
     Args:
         task_id: Task identifier from backlog
         backlog_path: Path to backlog YAML file
         repo_root: Repository root
         mission_type: Mission type (default: steward for doc updates)
-        
+
     Returns:
         MissionPacket ready for orchestrator
-        
+
     Raises:
         SynthesisError: If synthesis fails
     """
@@ -79,15 +81,14 @@ def synthesize_mission(
         tasks = parse_backlog(backlog_path)
     except Exception as e:
         raise SynthesisError(f"Failed to parse backlog: {e}")
-    
+
     # Find task
     task = get_task_by_id(tasks, task_id)
     if task is None:
         raise SynthesisError(
-            f"Task '{task_id}' not found in backlog. "
-            f"Available: {[t.id for t in tasks]}"
+            f"Task '{task_id}' not found in backlog. Available: {[t.id for t in tasks]}"
         )
-    
+
     # Step 2: Resolve context
     try:
         context = resolve_context(
@@ -97,11 +98,11 @@ def synthesize_mission(
         )
     except Exception as e:
         raise SynthesisError(f"Failed to resolve context: {e}")
-    
+
     # Step 3: Generate packet
     all_context = context.resolved_paths + context.baseline_paths
     packet_id = _compute_packet_id(task, context)
-    
+
     return MissionPacket(
         packet_id=packet_id,
         task_id=task.id,
@@ -119,20 +120,20 @@ def execute_mission(
 ) -> Dict[str, Any]:
     """
     Execute a synthesized mission via orchestrator registry.
-    
+
     Args:
         packet: MissionPacket from synthesize_mission()
         repo_root: Repository root
-        
+
     Returns:
         Dict with execution results including orchestrator output
-        
+
     Raises:
         SynthesisError: If execution fails
     """
-    from runtime.orchestration.registry import run_mission, UnknownMissionError
     from runtime.orchestration.engine import ExecutionContext
-    
+    from runtime.orchestration.registry import UnknownMissionError, run_mission
+
     # Create execution context per engine.py interface:
     # ExecutionContext(initial_state, metadata) - no run_id
     ctx = ExecutionContext(
@@ -148,7 +149,7 @@ def execute_mission(
             "priority": packet.priority,
         },
     )
-    
+
     try:
         # Execute via registry
         result = run_mission(
@@ -159,14 +160,14 @@ def execute_mission(
                 "context_refs": list(packet.context_refs),
             },
         )
-        
+
         return {
             "success": result.success if hasattr(result, "success") else True,
             "packet_id": packet.packet_id,
             "mission_type": packet.mission_type,
             "result": result,
         }
-        
+
     except UnknownMissionError as e:
         raise SynthesisError(f"Unknown mission type '{packet.mission_type}': {e}")
     except Exception as e:

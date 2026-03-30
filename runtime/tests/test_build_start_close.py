@@ -107,7 +107,9 @@ def test_start_build_auto_recover_existing_primary_branch(monkeypatch, capsys) -
 
     monkeypatch.setattr(start_build.subprocess, "run", fake_run)
     monkeypatch.setattr(start_build, "_extract_worktree_path", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(start_build, "_should_auto_recover_existing_primary_branch", lambda _branch: True)
+    monkeypatch.setattr(
+        start_build, "_should_auto_recover_existing_primary_branch", lambda _branch: True
+    )
     monkeypatch.setattr(
         start_build,
         "recover_primary_branch",

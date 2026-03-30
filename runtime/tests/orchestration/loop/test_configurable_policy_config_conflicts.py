@@ -5,12 +5,12 @@ Tests for policy configuration edge cases, conflicts, and invalid YAML scenarios
 
 Per Edge Case Testing Implementation Plan - Phase 1.5
 """
+
 import pytest
 import yaml
-from pathlib import Path
-from runtime.orchestration.loop.configurable_policy import ConfigurableLoopPolicy
+
 from runtime.orchestration.loop.config_loader import PolicyConfigLoader
-from runtime.orchestration.loop.taxonomy import FailureClass
+from runtime.orchestration.loop.configurable_policy import ConfigurableLoopPolicy
 
 
 @pytest.fixture
@@ -108,7 +108,7 @@ class TestInvalidYAML:
     def test_yaml_tabs_vs_spaces(self, config_path):
         """Invalid YAML with mixed tabs and spaces triggers error."""
         # YAML spec forbids tabs for indentation
-        config_content = "schema_version: \"1.0\"\n\tpolicy_metadata:\n  version: \"test\""
+        config_content = 'schema_version: "1.0"\n\tpolicy_metadata:\n  version: "test"'
         config_path.write_text(config_content)
 
         loader = PolicyConfigLoader(config_path)
@@ -171,6 +171,7 @@ failure_routing: {}
     def test_missing_budgets_section(self, config_path):
         """Missing budgets section triggers PolicyConfigLoadError."""
         from runtime.orchestration.loop.config_loader import PolicyConfigLoadError
+
         config_content = """schema_version: "1.0"
 policy_metadata:
   version: "test_v1.0"
@@ -187,6 +188,7 @@ policy_metadata:
     def test_missing_failure_routing(self, config_path):
         """Missing failure_routing section triggers PolicyConfigLoadError."""
         from runtime.orchestration.loop.config_loader import PolicyConfigLoadError
+
         config_content = """schema_version: "1.0"
 budgets:
   max_attempts: 5
@@ -238,14 +240,7 @@ class TestFailureClassNormalization:
 
     def test_mixed_case_failure_class(self):
         """Mixed case failure class (TeSt_FaIlUrE) normalizes to test_failure."""
-        config = {
-            "budgets": {
-                "retry_limits": {
-                    "TeSt_FaIlUrE": 3
-                }
-            },
-            "failure_routing": {}
-        }
+        config = {"budgets": {"retry_limits": {"TeSt_FaIlUrE": 3}}, "failure_routing": {}}
 
         policy = ConfigurableLoopPolicy(config)
 
@@ -255,14 +250,7 @@ class TestFailureClassNormalization:
 
     def test_whitespace_in_failure_class(self):
         """Failure class with whitespace is stripped and normalized."""
-        config = {
-            "budgets": {
-                "retry_limits": {
-                    "  TEST_FAILURE  ": 3
-                }
-            },
-            "failure_routing": {}
-        }
+        config = {"budgets": {"retry_limits": {"  TEST_FAILURE  ": 3}}, "failure_routing": {}}
 
         policy = ConfigurableLoopPolicy(config)
 

@@ -4,6 +4,7 @@ Phase 3 Mission Types - Build Mission
 Invokes builder (OpenCode) with approved BUILD_PACKET.
 Per LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md §5.3 - Mission: build
 """
+
 from __future__ import annotations
 
 import logging
@@ -26,32 +27,32 @@ logger = logging.getLogger(__name__)
 class BuildMission(BaseMission):
     """
     Build mission: Invoke builder with approved BUILD_PACKET.
-    
+
     Inputs:
         - build_packet (dict): The approved BUILD_PACKET
         - approval (dict): Council approval decision
-        
+
     Outputs:
         - review_packet (dict): Package of build outputs for review
-        
+
     Preconditions:
         - approval.verdict == "approved"
-        
+
     Steps:
         1. check_envelope: Verify build is within envelope
         2. invoke_builder: Execute build (stubbed for MVP)
         3. collect_evidence: Gather build outputs
         4. package_output: Create REVIEW_PACKET
     """
-    
+
     @property
     def mission_type(self) -> MissionType:
         return MissionType.BUILD
-    
+
     def validate_inputs(self, inputs: Dict[str, Any]) -> None:
         """
         Validate build mission inputs.
-        
+
         Required: build_packet (dict), approval (dict with verdict="approved")
         """
         # Check build_packet
@@ -60,25 +61,23 @@ class BuildMission(BaseMission):
             raise MissionValidationError("build_packet is required")
         if not isinstance(build_packet, dict):
             raise MissionValidationError("build_packet must be a dict")
-        
+
         # Validate build_packet has required fields
         if not build_packet.get("goal"):
             raise MissionValidationError("build_packet.goal is required")
-        
+
         # Check approval
         approval = inputs.get("approval")
         if not approval:
             raise MissionValidationError("approval is required")
         if not isinstance(approval, dict):
             raise MissionValidationError("approval must be a dict")
-        
+
         # Verify approval verdict
         verdict = approval.get("verdict")
         if verdict != "approved":
-            raise MissionValidationError(
-                f"Build requires approved verdict, got: '{verdict}'"
-            )
-    
+            raise MissionValidationError(f"Build requires approved verdict, got: '{verdict}'")
+
     def _apply_build_packet(
         self, context: MissionContext, packet: dict
     ) -> Tuple[List[str], List[str]]:
@@ -111,9 +110,7 @@ class BuildMission(BaseMission):
                 continue
 
             if not isinstance(raw_path, str):
-                errors.append(
-                    f"BLOCKED: invalid path type {type(raw_path).__name__}"
-                )
+                errors.append(f"BLOCKED: invalid path type {type(raw_path).__name__}")
                 continue
 
             ok, rel_path, normalize_error = normalize_rel_path(raw_path)
@@ -121,16 +118,12 @@ class BuildMission(BaseMission):
                 if "PATH_TRAVERSAL_DENIED" in normalize_error:
                     errors.append(f"BLOCKED: path traversal in {raw_path}")
                 else:
-                    errors.append(
-                        f"BLOCKED: invalid path '{raw_path}': {normalize_error}"
-                    )
+                    errors.append(f"BLOCKED: invalid path '{raw_path}': {normalize_error}")
                 continue
 
             protected, protection_reason = is_path_protected(rel_path)
             if protected:
-                errors.append(
-                    f"BLOCKED: protected path '{rel_path}': {protection_reason}"
-                )
+                errors.append(f"BLOCKED: protected path '{rel_path}': {protection_reason}")
                 continue
 
             full_path = Path(context.repo_root) / rel_path
@@ -203,7 +196,7 @@ class BuildMission(BaseMission):
             build_packet = inputs["build_packet"]
 
             # Step 2: Invoke builder via Agent API
-            from runtime.agents.api import call_agent_cli, AgentCall
+            from runtime.agents.api import AgentCall, call_agent_cli
 
             # Read actual file contents so the builder can generate correct diffs.
             # Without this, the LLM guesses file structure and produces inapplicable patches.
@@ -215,10 +208,12 @@ class BuildMission(BaseMission):
                         full = Path(context.repo_root) / file_path
                         if full.exists():
                             try:
-                                context_refs.append({
-                                    "path": file_path,
-                                    "current_content": full.read_text(encoding="utf-8"),
-                                })
+                                context_refs.append(
+                                    {
+                                        "path": file_path,
+                                        "current_content": full.read_text(encoding="utf-8"),
+                                    }
+                                )
                             except Exception:
                                 pass
 
@@ -243,11 +238,11 @@ class BuildMission(BaseMission):
             # Step 2.5: Apply LLM packet to disk if available
             apply_errors = []
             if response.packet and isinstance(response.packet, dict):
-                applied_paths, apply_errors = self._apply_build_packet(
-                    context, response.packet
-                )
+                applied_paths, apply_errors = self._apply_build_packet(context, response.packet)
                 if applied_paths:
-                    logger.info("Applied %d file(s) from LLM packet: %s", len(applied_paths), applied_paths)
+                    logger.info(
+                        "Applied %d file(s) from LLM packet: %s", len(applied_paths), applied_paths
+                    )
                 if apply_errors:
                     logger.warning("Apply errors: %s", apply_errors)
             executed_steps.append("apply_build_output")
@@ -263,11 +258,11 @@ class BuildMission(BaseMission):
                     cwd=context.repo_root,
                     capture_output=True,
                     text=True,
-                    timeout=5
+                    timeout=5,
                 )
                 if status_result.returncode == 0 and status_result.stdout.strip():
                     all_changed = []
-                    for line in status_result.stdout.strip().split('\n'):
+                    for line in status_result.stdout.strip().split("\n"):
                         if not line.strip():
                             continue
                         # Format: "XY path" (XY are two-char status codes)
@@ -280,8 +275,11 @@ class BuildMission(BaseMission):
                             all_changed.append(file_path)
 
                     artifacts_produced = [
-                        f for f in all_changed
-                        if not f.startswith(('artifacts/loop_state/', 'artifacts/terminal/', 'logs/'))
+                        f
+                        for f in all_changed
+                        if not f.startswith(
+                            ("artifacts/loop_state/", "artifacts/terminal/", "logs/")
+                        )
                     ]
 
                     if not response.packet and artifacts_produced:
@@ -292,19 +290,21 @@ class BuildMission(BaseMission):
                                 cwd=context.repo_root,
                                 capture_output=True,
                                 text=True,
-                                timeout=5
+                                timeout=5,
                             )
                             if diff_cmd.returncode == 0:
-                                files_list.append({
-                                    "path": artifact,
-                                    "action": "modify",
-                                    "content": diff_cmd.stdout
-                                })
+                                files_list.append(
+                                    {
+                                        "path": artifact,
+                                        "action": "modify",
+                                        "content": diff_cmd.stdout,
+                                    }
+                                )
 
                         constructed_packet = {
                             "files": files_list,
                             "tests": [],
-                            "verification_commands": []
+                            "verification_commands": [],
                         }
             except Exception:
                 pass
@@ -324,7 +324,7 @@ class BuildMission(BaseMission):
                     "model_used": response.model_used,
                     "usage": response.usage,
                     "apply_errors": apply_errors,
-                }
+                },
             }
             executed_steps.append("package_output")
 

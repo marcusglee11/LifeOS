@@ -1,4 +1,5 @@
 """Typed workflow runtime contracts and compatibility translation."""
+
 from __future__ import annotations
 
 import hashlib
@@ -255,19 +256,27 @@ class CEOResolutionPacket:
             raise WorkflowRuntimeError(f"Unsupported resolution_action {self.resolution_action!r}")
 
 
-def build_task_context(task: Optional[TaskEntry], *, order: Optional[ExecutionOrder] = None, objective: Optional[str] = None) -> Dict[str, Any]:
+def build_task_context(
+    task: Optional[TaskEntry],
+    *,
+    order: Optional[ExecutionOrder] = None,
+    objective: Optional[str] = None,
+) -> Dict[str, Any]:
     """Build the structured control-plane task context."""
     requested_type = "spec_markdown" if task and task.task_type == "content" else "code_change"
     destination = task.scope_paths[0] if task and task.scope_paths else None
     payload = {
-        "objective": objective or (task.description if task and task.description else (order.task_ref if order else "")),
+        "objective": objective
+        or (task.description if task and task.description else (order.task_ref if order else "")),
         "requested_artifact": {
             "artifact_type": requested_type,
             "format": "markdown" if task and task.task_type == "content" else "yaml",
             "destination": destination,
         },
         "scope": {
-            "paths": list(task.scope_paths if task else (order.constraints.scope_paths if order else [])),
+            "paths": list(
+                task.scope_paths if task else (order.constraints.scope_paths if order else [])
+            ),
             "in_scope": list(task.scope_paths if task else []),
             "out_of_scope": [],
         },
@@ -338,12 +347,66 @@ def _spec_creation_definition() -> WorkflowDefinition:
         compat_mode="native",
         max_revision_attempts=2,
         steps=(
-            WorkflowStepDefinition("frame_request", "Frame Request", "metadata", "coo", None, (), TASK_CONTEXT_SCHEMA_VERSION, "framing"),
-            WorkflowStepDefinition("draft_spec", "Draft Spec", "design", "designer", "design", (TASK_CONTEXT_SCHEMA_VERSION,), "design_spec.v1", "substantive"),
-            WorkflowStepDefinition("architect_review", "Architect Review", "review", "reviewer_architect", "review", ("design_spec.v1",), REVIEW_DECISION_SCHEMA_VERSION, "review_control"),
-            WorkflowStepDefinition("revise_spec", "Revise Spec", "revise", "designer", "design", (TASK_CONTEXT_SCHEMA_VERSION, "design_spec.v1", REVIEW_DECISION_SCHEMA_VERSION), "design_spec.v1", "substantive"),
-            WorkflowStepDefinition("package_spec", "Package Spec", "package", "steward", None, ("design_spec.v1", REVIEW_DECISION_SCHEMA_VERSION), PACKAGED_SPEC_SCHEMA_VERSION, "packaging"),
-            WorkflowStepDefinition("close_spec", "Close Spec", "steward", "steward", None, (PACKAGED_SPEC_SCHEMA_VERSION,), None, "closure"),
+            WorkflowStepDefinition(
+                "frame_request",
+                "Frame Request",
+                "metadata",
+                "coo",
+                None,
+                (),
+                TASK_CONTEXT_SCHEMA_VERSION,
+                "framing",
+            ),
+            WorkflowStepDefinition(
+                "draft_spec",
+                "Draft Spec",
+                "design",
+                "designer",
+                "design",
+                (TASK_CONTEXT_SCHEMA_VERSION,),
+                "design_spec.v1",
+                "substantive",
+            ),
+            WorkflowStepDefinition(
+                "architect_review",
+                "Architect Review",
+                "review",
+                "reviewer_architect",
+                "review",
+                ("design_spec.v1",),
+                REVIEW_DECISION_SCHEMA_VERSION,
+                "review_control",
+            ),
+            WorkflowStepDefinition(
+                "revise_spec",
+                "Revise Spec",
+                "revise",
+                "designer",
+                "design",
+                (TASK_CONTEXT_SCHEMA_VERSION, "design_spec.v1", REVIEW_DECISION_SCHEMA_VERSION),
+                "design_spec.v1",
+                "substantive",
+            ),
+            WorkflowStepDefinition(
+                "package_spec",
+                "Package Spec",
+                "package",
+                "steward",
+                None,
+                ("design_spec.v1", REVIEW_DECISION_SCHEMA_VERSION),
+                PACKAGED_SPEC_SCHEMA_VERSION,
+                "packaging",
+            ),
+            WorkflowStepDefinition(
+                "close_spec",
+                "Close Spec",
+                "steward",
+                "steward",
+                None,
+                (PACKAGED_SPEC_SCHEMA_VERSION,),
+                None,
+                "closure",
+            ),
         ),
     )
 
@@ -358,12 +421,52 @@ def _legacy_code_change_definition() -> WorkflowDefinition:
         compat_mode="legacy_adapter",
         max_revision_attempts=2,
         steps=(
-            WorkflowStepDefinition("hydrate", "Hydrate", "metadata", "coo", None, (), None, "framing"),
-            WorkflowStepDefinition("policy", "Policy", "metadata", "coo", None, (), None, "framing"),
-            WorkflowStepDefinition("design", "Design", "design", "designer", "design", (TASK_CONTEXT_SCHEMA_VERSION,), "legacy_build_packet.v1", "substantive"),
-            WorkflowStepDefinition("build", "Build", "build", "builder", "build", ("legacy_build_packet.v1",), "legacy_review_packet.v1", "substantive"),
-            WorkflowStepDefinition("review", "Review", "review", "reviewer_architect", "review", ("legacy_review_packet.v1",), REVIEW_DECISION_SCHEMA_VERSION, "review_control"),
-            WorkflowStepDefinition("steward", "Steward", "steward", "steward", "steward", ("legacy_review_packet.v1", REVIEW_DECISION_SCHEMA_VERSION), None, "closure"),
+            WorkflowStepDefinition(
+                "hydrate", "Hydrate", "metadata", "coo", None, (), None, "framing"
+            ),
+            WorkflowStepDefinition(
+                "policy", "Policy", "metadata", "coo", None, (), None, "framing"
+            ),
+            WorkflowStepDefinition(
+                "design",
+                "Design",
+                "design",
+                "designer",
+                "design",
+                (TASK_CONTEXT_SCHEMA_VERSION,),
+                "legacy_build_packet.v1",
+                "substantive",
+            ),
+            WorkflowStepDefinition(
+                "build",
+                "Build",
+                "build",
+                "builder",
+                "build",
+                ("legacy_build_packet.v1",),
+                "legacy_review_packet.v1",
+                "substantive",
+            ),
+            WorkflowStepDefinition(
+                "review",
+                "Review",
+                "review",
+                "reviewer_architect",
+                "review",
+                ("legacy_review_packet.v1",),
+                REVIEW_DECISION_SCHEMA_VERSION,
+                "review_control",
+            ),
+            WorkflowStepDefinition(
+                "steward",
+                "Steward",
+                "steward",
+                "steward",
+                "steward",
+                ("legacy_review_packet.v1", REVIEW_DECISION_SCHEMA_VERSION),
+                None,
+                "closure",
+            ),
         ),
     )
 
@@ -421,7 +524,9 @@ def translate_order_to_workflow_instance(
     *,
     task: Optional[TaskEntry] = None,
 ) -> WorkflowInstance:
-    workflow_id = order.workflow_id or resolve_workflow_id_for_task_type(task.task_type if task else "build")
+    workflow_id = order.workflow_id or resolve_workflow_id_for_task_type(
+        task.task_type if task else "build"
+    )
     task_context = order.task_context or build_task_context(task, order=order)
     instance = build_workflow_instance(
         workflow_id=workflow_id,
@@ -455,7 +560,9 @@ def translate_order_to_workflow_instance(
     return instance
 
 
-def translate_task_spec_to_workflow_instance(task_spec: Dict[str, Any], *, run_id: str) -> WorkflowInstance:
+def translate_task_spec_to_workflow_instance(
+    task_spec: Dict[str, Any], *, run_id: str
+) -> WorkflowInstance:
     task_context = build_task_context(
         None,
         objective=str(task_spec.get("task", "")).strip(),
@@ -493,7 +600,9 @@ def compute_invocation_key(
     return _sha256_text(_canonical_json(payload))
 
 
-def record_invocation_start(instance: WorkflowInstance, *, step_id: str, executor_identity: str) -> StepInvocationRecord:
+def record_invocation_start(
+    instance: WorkflowInstance, *, step_id: str, executor_identity: str
+) -> StepInvocationRecord:
     invocation_key = compute_invocation_key(instance, step_id, executor_identity)
     existing = instance.invocation_records.get(invocation_key)
     if existing:
@@ -533,7 +642,9 @@ def record_invocation_finish(
     instance.invocation_records[record.invocation_key] = record.to_dict()
 
 
-def get_step(definition: WorkflowDefinition, step_id: Optional[str]) -> Optional[WorkflowStepDefinition]:
+def get_step(
+    definition: WorkflowDefinition, step_id: Optional[str]
+) -> Optional[WorkflowStepDefinition]:
     if step_id is None:
         return None
     for step in definition.steps:
@@ -553,7 +664,9 @@ def next_step_id(definition: WorkflowDefinition, step_id: str) -> Optional[str]:
     return ids[idx + 1]
 
 
-def materialize_packaged_spec(instance: WorkflowInstance, *, producer_role: str = "steward") -> WorkflowArtifact:
+def materialize_packaged_spec(
+    instance: WorkflowInstance, *, producer_role: str = "steward"
+) -> WorkflowArtifact:
     design = instance.artifact_refs.get("design_spec.v1")
     if not design:
         raise WorkflowRuntimeError("design_spec.v1 is required for package_spec")
@@ -580,7 +693,9 @@ def materialize_packaged_spec(instance: WorkflowInstance, *, producer_role: str 
     )
 
 
-def validate_resolution_packet(packet: Dict[str, Any], instance: WorkflowInstance) -> CEOResolutionPacket:
+def validate_resolution_packet(
+    packet: Dict[str, Any], instance: WorkflowInstance
+) -> CEOResolutionPacket:
     required = {
         "workflow_instance_ref",
         "expected_prior_state",

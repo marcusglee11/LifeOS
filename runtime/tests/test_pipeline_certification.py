@@ -91,7 +91,9 @@ def test_run_suite_handles_malformed_junit_xml(monkeypatch, tmp_path: Path):
         junit_path.write_text("<testsuite>", encoding="utf-8")
         return Mock(returncode=0, stdout="", stderr="")
 
-    monkeypatch.setattr("scripts.run_certification.tempfile.NamedTemporaryFile", fake_named_temporary_file)
+    monkeypatch.setattr(
+        "scripts.run_certification.tempfile.NamedTemporaryFile", fake_named_temporary_file
+    )
     monkeypatch.setattr("scripts.run_certification.subprocess.run", fake_subprocess_run)
 
     suite_result, counts, observed_skips, passed = run_suite(
@@ -115,5 +117,11 @@ def test_determine_state_transitions():
     assert determine_state("local", blocking=False, non_blocking=True) == "candidate"
     assert determine_state("local", blocking=False, non_blocking=False) == "prod_local"
     assert determine_state("ci", blocking=False, non_blocking=False) == "prod_ci"
-    assert determine_state("live", blocking=False, non_blocking=False, previous_state="prod_ci") == "prod_ci"
-    assert determine_state("live", blocking=False, non_blocking=False, previous_state=None) == "candidate"
+    assert (
+        determine_state("live", blocking=False, non_blocking=False, previous_state="prod_ci")
+        == "prod_ci"
+    )
+    assert (
+        determine_state("live", blocking=False, non_blocking=False, previous_state=None)
+        == "candidate"
+    )

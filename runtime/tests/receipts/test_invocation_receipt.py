@@ -1,4 +1,5 @@
 """Tests for per-invocation receipt collector and schema validation."""
+
 from __future__ import annotations
 
 import json
@@ -7,7 +8,6 @@ from datetime import datetime, timezone
 import pytest
 
 from runtime.receipts.invocation_receipt import (
-    InvocationReceipt,
     InvocationReceiptCollector,
     finalize_run_receipts,
     get_or_create_collector,
@@ -85,6 +85,7 @@ def test_receipt_schema_validation():
     )
 
     from dataclasses import asdict
+
     receipt_dict = asdict(collector.receipts[0])
     errors = validate_artefact(receipt_dict, "invocation_receipt")
     assert errors == [], f"Schema validation failed: {errors}"
@@ -116,14 +117,24 @@ def test_output_hash_deterministic():
     content = "identical output"
 
     r1 = collector.record(
-        provider_id="zen", mode="api", seat_id="a",
-        start_ts=_ts(), end_ts=_ts(), exit_status=0,
-        output_content=content, schema_validation="n/a",
+        provider_id="zen",
+        mode="api",
+        seat_id="a",
+        start_ts=_ts(),
+        end_ts=_ts(),
+        exit_status=0,
+        output_content=content,
+        schema_validation="n/a",
     )
     r2 = collector.record(
-        provider_id="zen", mode="api", seat_id="b",
-        start_ts=_ts(), end_ts=_ts(), exit_status=0,
-        output_content=content, schema_validation="n/a",
+        provider_id="zen",
+        mode="api",
+        seat_id="b",
+        start_ts=_ts(),
+        end_ts=_ts(),
+        exit_status=0,
+        output_content=content,
+        schema_validation="n/a",
     )
 
     assert r1.output_hash == r2.output_hash
@@ -136,9 +147,14 @@ def test_seq_monotonic():
 
     for i in range(5):
         collector.record(
-            provider_id="zen", mode="api", seat_id=f"seat_{i}",
-            start_ts=_ts(), end_ts=_ts(), exit_status=0,
-            output_content=f"output_{i}", schema_validation="n/a",
+            provider_id="zen",
+            mode="api",
+            seat_id=f"seat_{i}",
+            start_ts=_ts(),
+            end_ts=_ts(),
+            exit_status=0,
+            output_content=f"output_{i}",
+            schema_validation="n/a",
         )
 
     seqs = [r.seq for r in collector.receipts]

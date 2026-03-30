@@ -1,4 +1,5 @@
 """Tests: emit_dispatch_receipt.py produces valid receipt (Phase 1C)."""
+
 from __future__ import annotations
 
 import json
@@ -6,24 +7,28 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
-
 _SCRIPT = Path(__file__).parents[2] / "scripts" / "workflow" / "emit_dispatch_receipt.py"
 # Actual worktree/repo root where `runtime` package lives
 _PYTHON_ROOT = Path(__file__).parents[2]
 
 
-def _run(tmp_path: Path, topic: str = "test-topic", exit_code: int = 0) -> subprocess.CompletedProcess:
+def _run(
+    tmp_path: Path, topic: str = "test-topic", exit_code: int = 0
+) -> subprocess.CompletedProcess:
     return subprocess.run(
         [
             sys.executable,
             str(_SCRIPT),
-            "--topic", topic,
-            "--worktree", str(tmp_path / "worktrees" / topic),
-            "--exit-code", str(exit_code),
-            "--repo-root", str(tmp_path),
-            "--python-root", str(_PYTHON_ROOT),
+            "--topic",
+            topic,
+            "--worktree",
+            str(tmp_path / "worktrees" / topic),
+            "--exit-code",
+            str(exit_code),
+            "--repo-root",
+            str(tmp_path),
+            "--python-root",
+            str(_PYTHON_ROOT),
         ],
         capture_output=True,
         text=True,
@@ -34,6 +39,7 @@ def _run(tmp_path: Path, topic: str = "test-topic", exit_code: int = 0) -> subpr
 # ---------------------------------------------------------------------------
 # 1C-1: Successful run produces receipt index file
 # ---------------------------------------------------------------------------
+
 
 def test_emits_receipt_index(tmp_path: Path):
     result = _run(tmp_path)
@@ -54,6 +60,7 @@ def test_emits_receipt_index(tmp_path: Path):
 # 1C-2: Non-zero exit records error in receipt
 # ---------------------------------------------------------------------------
 
+
 def test_failure_exit_code_recorded(tmp_path: Path):
     result = _run(tmp_path, exit_code=1)
     assert result.returncode == 0, result.stderr  # script itself should succeed
@@ -69,6 +76,7 @@ def test_failure_exit_code_recorded(tmp_path: Path):
 # 1C-3: Receipt schema_version is consistent with invocation_index_v1
 # ---------------------------------------------------------------------------
 
+
 def test_receipt_schema_version(tmp_path: Path):
     _run(tmp_path)
     index_file = next((tmp_path / "artifacts" / "receipts").rglob("index.json"))
@@ -79,6 +87,7 @@ def test_receipt_schema_version(tmp_path: Path):
 # ---------------------------------------------------------------------------
 # 1C-4: seat_id encodes topic slug
 # ---------------------------------------------------------------------------
+
 
 def test_seat_id_encodes_topic(tmp_path: Path):
     _run(tmp_path, topic="my-feature")

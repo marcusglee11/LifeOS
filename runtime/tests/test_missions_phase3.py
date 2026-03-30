@@ -7,49 +7,56 @@ Comprehensive tests for mission modules per AGENT INSTRUCTION BLOCK:
 - Schema validation negative tests
 - Registry fail-closed tests
 """
-import pytest
-import sys
+
 import subprocess
 from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
+
+from runtime.orchestration.engine import ExecutionContext, OrchestrationResult
 from runtime.orchestration.missions import (
-    MissionType,
-    MissionResult,
+    AutonomousBuildCycleMission,
+    BuildMission,
+    DesignMission,
     MissionContext,
     MissionError,
-    MissionValidationError,
+    MissionResult,
     MissionSchemaError,
-    DesignMission,
+    MissionType,
+    MissionValidationError,
     ReviewMission,
-    BuildMission,
     StewardMission,
-    AutonomousBuildCycleMission,
     get_mission_class,
-    validate_mission_definition,
     load_mission_schema,
+    validate_mission_definition,
 )
 from runtime.orchestration.registry import (
-    MISSION_REGISTRY,
+    UnknownMissionError,
     list_mission_types,
     run_mission,
-    UnknownMissionError,
 )
-from runtime.orchestration.engine import ExecutionContext, OrchestrationResult
-
 
 # =============================================================================
 # Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def mock_context(tmp_path: Path) -> MissionContext:
     """Create a mock mission context for testing."""
     # Initialize as git repo (needed for git commands in steward)
     subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=tmp_path, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.name", "Test User"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], cwd=tmp_path, check=True, capture_output=True
+    )
 
     # Create artifacts directory (needed for packet emission)
     (tmp_path / "artifacts").mkdir(parents=True, exist_ok=True)
@@ -58,33 +65,31 @@ def mock_context(tmp_path: Path) -> MissionContext:
     (tmp_path / "config").mkdir(parents=True, exist_ok=True)
     (tmp_path / "config" / "policy").mkdir(parents=True, exist_ok=True)
     import yaml
-    baseline = {'artifacts': []}
-    with open(tmp_path / "config" / "governance_baseline.yaml", 'w') as f:
+
+    baseline = {"artifacts": []}
+    with open(tmp_path / "config" / "governance_baseline.yaml", "w") as f:
         yaml.dump(baseline, f)
 
     # Create minimal policy files (needed for autonomous build cycle)
     policy_rules = {
-        'includes': [],
-        'council_config': {
-            'seats': {},
-            'decision_criteria': {}
-        },
-        'loop_budgets': {
-            'max_outer_iterations': 5,
-            'max_tokens_per_session': 100000
-        },
-        'fallback_policies': {}
+        "includes": [],
+        "council_config": {"seats": {}, "decision_criteria": {}},
+        "loop_budgets": {"max_outer_iterations": 5, "max_tokens_per_session": 100000},
+        "fallback_policies": {},
     }
-    with open(tmp_path / "config" / "policy" / "policy_rules.yaml", 'w') as f:
+    with open(tmp_path / "config" / "policy" / "policy_rules.yaml", "w") as f:
         yaml.dump(policy_rules, f)
 
     # Create initial commit so HEAD exists
     (tmp_path / "README.md").write_text("Test repo")
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True, capture_output=True)
-    subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], cwd=tmp_path, check=True, capture_output=True
+    )
 
     # Create mock operation executor for token accounting
     from unittest.mock import MagicMock
+
     mock_executor = MagicMock()
     mock_executor.token_accounting_available.return_value = True
     mock_executor.get_total_tokens.return_value = 0
@@ -143,15 +148,25 @@ def approved_decision() -> Dict[str, Any]:
 # Test: MissionType Enum
 # =============================================================================
 
+
 class TestMissionType:
     """Tests for MissionType enumeration."""
-    
+
     def test_all_types_defined(self):
         """Verify all required mission types are defined."""
-        expected = {"design", "review", "build", "steward", "autonomous_build_cycle", "build_with_validation", "echo", "noop"}
+        expected = {
+            "design",
+            "review",
+            "build",
+            "steward",
+            "autonomous_build_cycle",
+            "build_with_validation",
+            "echo",
+            "noop",
+        }
         actual = {t.value for t in MissionType}
         assert actual == expected
-    
+
     def test_string_enum(self):
         """Verify MissionType is a string enum."""
         assert MissionType.DESIGN.value == "design"
@@ -162,15 +177,23 @@ class TestMissionType:
 # Test: Mission Registry
 # =============================================================================
 
+
 class TestMissionRegistry:
     """Tests for mission registry and routing."""
-    
+
     def test_contains_all_mission_types(self):
         """Verify registry contains all Phase 3 mission types."""
-        expected = {"design", "review", "build", "steward", "autonomous_build_cycle", "build_with_validation"}
+        expected = {
+            "design",
+            "review",
+            "build",
+            "steward",
+            "autonomous_build_cycle",
+            "build_with_validation",
+        }
         actual = set(list_mission_types())
         assert expected.issubset(actual)
-    
+
     def test_get_mission_class_valid(self):
         """Verify get_mission_class returns correct classes."""
         assert get_mission_class("design") == DesignMission
@@ -179,15 +202,16 @@ class TestMissionRegistry:
         assert get_mission_class("steward") == StewardMission
         assert get_mission_class("autonomous_build_cycle") == AutonomousBuildCycleMission
         from runtime.orchestration.missions.build_with_validation import BuildWithValidationMission
+
         assert get_mission_class("build_with_validation") == BuildWithValidationMission
-    
+
     def test_get_mission_class_unknown_fails_closed(self):
         """Verify get_mission_class fails closed on unknown type."""
         with pytest.raises(MissionError) as exc_info:
             get_mission_class("unknown_mission")
         assert "Unknown mission type" in str(exc_info.value)
         assert "unknown_mission" in str(exc_info.value)
-    
+
     def test_run_mission_unknown_fails_closed(self):
         """Verify run_mission fails closed on unknown mission."""
         ctx = ExecutionContext(initial_state={})
@@ -195,7 +219,7 @@ class TestMissionRegistry:
             run_mission("nonexistent_mission", ctx)
         assert "nonexistent_mission" in str(exc_info.value)
         assert "Available missions" in str(exc_info.value)
-    
+
     def test_list_mission_types_deterministic(self):
         """Verify list_mission_types returns sorted list."""
         types = list_mission_types()
@@ -206,16 +230,17 @@ class TestMissionRegistry:
 # Test: Schema Validation
 # =============================================================================
 
+
 class TestSchemaValidation:
     """Tests for mission definition schema validation."""
-    
+
     def test_load_schema_succeeds(self):
         """Verify mission schema can be loaded."""
         schema = load_mission_schema()
         assert schema is not None
         assert "$schema" in schema
         assert "properties" in schema
-    
+
     def test_valid_definition_passes(self):
         """Verify valid mission definition passes validation."""
         valid_def = {
@@ -226,7 +251,7 @@ class TestSchemaValidation:
         }
         # Should not raise
         validate_mission_definition(valid_def)
-    
+
     def test_missing_required_field_fails(self):
         """Verify missing required field fails validation."""
         invalid_def = {
@@ -237,7 +262,7 @@ class TestSchemaValidation:
         with pytest.raises(MissionSchemaError) as exc_info:
             validate_mission_definition(invalid_def)
         assert "id" in str(exc_info.value) or "steps" in str(exc_info.value)
-    
+
     def test_invalid_type_enum_fails(self):
         """Verify invalid type enum fails validation."""
         invalid_def = {
@@ -249,7 +274,7 @@ class TestSchemaValidation:
         with pytest.raises(MissionSchemaError) as exc_info:
             validate_mission_definition(invalid_def)
         assert "type" in str(exc_info.value)
-    
+
     def test_error_messages_sorted(self):
         """Verify error messages are deterministically ordered."""
         invalid_def = {}  # Missing all required fields
@@ -264,28 +289,29 @@ class TestSchemaValidation:
 # Test: Design Mission
 # =============================================================================
 
+
 class TestDesignMission:
     """Tests for design mission."""
-    
+
     def test_mission_type(self):
         """Verify mission type is correct."""
         mission = DesignMission()
         assert mission.mission_type == MissionType.DESIGN
-    
+
     def test_valid_inputs_pass(self, mock_context: MissionContext):
         """Verify valid inputs are accepted."""
         mission = DesignMission()
         inputs = {"task_spec": "Build feature X"}
         # Should not raise
         mission.validate_inputs(inputs)
-    
+
     def test_missing_task_spec_fails(self, mock_context: MissionContext):
         """Verify missing task_spec fails validation."""
         mission = DesignMission()
         with pytest.raises(MissionValidationError) as exc_info:
             mission.validate_inputs({})
         assert "task_spec" in str(exc_info.value)
-    
+
     @patch("runtime.agents.api.call_agent_cli")
     def test_run_succeeds(self, mock_call_agent, mock_context: MissionContext):
         """Verify design mission runs successfully with valid packet."""
@@ -302,7 +328,7 @@ class TestDesignMission:
         mission = DesignMission()
         inputs = {"task_spec": "Implement a new feature"}
         result = mission.run(mock_context, inputs)
-        
+
         assert result.success is True
         assert result.mission_type == MissionType.DESIGN
         assert "build_packet" in result.outputs
@@ -326,7 +352,7 @@ class TestDesignMission:
 
         mission = DesignMission()
         result = mission.run(mock_context, {"task_spec": "Test task"})
-        
+
         assert result.success is False  # FAIL-CLOSED
         assert "validate_output" in result.executed_steps  # Step still runs
         assert "BUILD_PACKET" in result.error  # Deterministic error
@@ -347,7 +373,7 @@ class TestDesignMission:
 
         mission = DesignMission()
         result = mission.run(mock_context, {"task_spec": "Test task"})
-        
+
         assert result.success is False  # FAIL-CLOSED
         assert "validate_output" in result.executed_steps
         assert "goal" in result.error  # Error mentions missing key
@@ -371,7 +397,7 @@ class TestDesignMission:
             "context_refs": ["docs/spec.md", "src/module.py"],
         }
         result = mission.run(mock_context, inputs)
-        
+
         assert result.success is True
         assert result.evidence.get("context_refs_count") == 2
 
@@ -380,14 +406,15 @@ class TestDesignMission:
 # Test: Review Mission
 # =============================================================================
 
+
 class TestReviewMission:
     """Tests for review mission."""
-    
+
     def test_mission_type(self):
         """Verify mission type is correct."""
         mission = ReviewMission()
         assert mission.mission_type == MissionType.REVIEW
-    
+
     def test_valid_inputs_pass(self, valid_build_packet: Dict[str, Any]):
         """Verify valid inputs are accepted."""
         mission = ReviewMission()
@@ -397,26 +424,30 @@ class TestReviewMission:
         }
         # Should not raise
         mission.validate_inputs(inputs)
-    
+
     def test_missing_subject_packet_fails(self):
         """Verify missing subject_packet fails validation."""
         mission = ReviewMission()
         with pytest.raises(MissionValidationError) as exc_info:
             mission.validate_inputs({"review_type": "build_review"})
         assert "subject_packet" in str(exc_info.value)
-    
+
     def test_invalid_review_type_fails(self, valid_build_packet: Dict[str, Any]):
         """Verify invalid review_type fails validation."""
         mission = ReviewMission()
         with pytest.raises(MissionValidationError) as exc_info:
-            mission.validate_inputs({
-                "subject_packet": valid_build_packet,
-                "review_type": "invalid_type",
-            })
+            mission.validate_inputs(
+                {
+                    "subject_packet": valid_build_packet,
+                    "review_type": "invalid_type",
+                }
+            )
         assert "review_type" in str(exc_info.value)
-    
+
     @patch("runtime.agents.api.call_agent")
-    def test_run_succeeds(self, mock_call_agent, mock_context: MissionContext, valid_build_packet: Dict[str, Any]):
+    def test_run_succeeds(
+        self, mock_call_agent, mock_context: MissionContext, valid_build_packet: Dict[str, Any]
+    ):
         """Verify review mission runs successfully."""
         # Setup mock
         mock_response = MagicMock()
@@ -432,7 +463,7 @@ class TestReviewMission:
             "review_type": "build_review",
         }
         result = mission.run(mock_context, inputs)
-        
+
         assert result.success is True
         assert result.mission_type == MissionType.REVIEW
         assert "verdict" in result.outputs
@@ -444,15 +475,18 @@ class TestReviewMission:
 # Test: Build Mission
 # =============================================================================
 
+
 class TestBuildMission:
     """Tests for build mission."""
-    
+
     def test_mission_type(self):
         """Verify mission type is correct."""
         mission = BuildMission()
         assert mission.mission_type == MissionType.BUILD
-    
-    def test_valid_inputs_pass(self, valid_build_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
+
+    def test_valid_inputs_pass(
+        self, valid_build_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+    ):
         """Verify valid inputs are accepted."""
         mission = BuildMission()
         inputs = {
@@ -461,19 +495,27 @@ class TestBuildMission:
         }
         # Should not raise
         mission.validate_inputs(inputs)
-    
+
     def test_unapproved_fails(self, valid_build_packet: Dict[str, Any]):
         """Verify unapproved build fails validation."""
         mission = BuildMission()
         with pytest.raises(MissionValidationError) as exc_info:
-            mission.validate_inputs({
-                "build_packet": valid_build_packet,
-                "approval": {"verdict": "rejected"},
-            })
+            mission.validate_inputs(
+                {
+                    "build_packet": valid_build_packet,
+                    "approval": {"verdict": "rejected"},
+                }
+            )
         assert "approved" in str(exc_info.value)
-    
+
     @patch("runtime.agents.api.call_agent_cli")
-    def test_run_succeeds(self, mock_call_agent_cli, mock_context: MissionContext, valid_build_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
+    def test_run_succeeds(
+        self,
+        mock_call_agent_cli,
+        mock_context: MissionContext,
+        valid_build_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any],
+    ):
         """Verify build mission runs successfully."""
         # Setup mock
         mock_response = MagicMock()
@@ -491,7 +533,7 @@ class TestBuildMission:
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         assert result.success is True
         assert result.mission_type == MissionType.BUILD
         assert "review_packet" in result.outputs
@@ -519,7 +561,9 @@ class TestBuildMission:
         applied, errors = mission._apply_build_packet(context, packet)
         assert applied == ["runtime/new_module.py"]
         assert errors == []
-        assert (tmp_path / "runtime" / "new_module.py").read_text() == "def hello():\n    return 'world'\n"
+        assert (
+            tmp_path / "runtime" / "new_module.py"
+        ).read_text() == "def hello():\n    return 'world'\n"
 
     def test_apply_build_packet_blocks_path_traversal(self, tmp_path):
         """Verify _apply_build_packet rejects path traversal."""
@@ -590,15 +634,18 @@ class TestBuildMission:
 # Test: Steward Mission
 # =============================================================================
 
+
 class TestStewardMission:
     """Tests for steward mission."""
-    
+
     def test_mission_type(self):
         """Verify mission type is correct."""
         mission = StewardMission()
         assert mission.mission_type == MissionType.STEWARD
-    
-    def test_valid_inputs_pass(self, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
+
+    def test_valid_inputs_pass(
+        self, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+    ):
         """Verify valid inputs are accepted."""
         mission = StewardMission()
         inputs = {
@@ -607,19 +654,27 @@ class TestStewardMission:
         }
         # Should not raise
         mission.validate_inputs(inputs)
-    
+
     def test_unapproved_fails(self, valid_review_packet: Dict[str, Any]):
         """Verify unapproved steward fails validation."""
         mission = StewardMission()
         with pytest.raises(MissionValidationError) as exc_info:
-            mission.validate_inputs({
-                "review_packet": valid_review_packet,
-                "approval": {"verdict": "needs_revision"},
-            })
+            mission.validate_inputs(
+                {
+                    "review_packet": valid_review_packet,
+                    "approval": {"verdict": "needs_revision"},
+                }
+            )
         assert "approved" in str(exc_info.value)
-    
+
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
-    def test_run_succeeds(self, mock_verify, mock_context: MissionContext, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
+    def test_run_succeeds(
+        self,
+        mock_verify,
+        mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any],
+    ):
         """Verify steward mission runs successfully with empty artifacts (no commit needed)."""
         mock_verify.return_value = None  # Success (no exception)
 
@@ -645,7 +700,15 @@ class TestStewardMission:
     @patch("runtime.orchestration.missions.steward.StewardMission._commit_code_changes")
     @patch("runtime.orchestration.missions.steward.StewardMission._validate_diff_size")
     @patch("runtime.orchestration.missions.steward.subprocess.run")
-    def test_run_fails_with_deterministic_error(self, mock_run, mock_diff_size, mock_commit, mock_context: MissionContext, valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]):
+    def test_run_fails_with_deterministic_error(
+        self,
+        mock_run,
+        mock_diff_size,
+        mock_commit,
+        mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any],
+    ):
         """HARDENING: Verify steward fails with deterministic error when repo not clean."""
         # Add a code artifact to test repo clean verification
         valid_review_packet["payload"]["artifacts_produced"] = ["runtime/test.py"]
@@ -665,7 +728,7 @@ class TestStewardMission:
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         assert result.success is False
         # HARDENING: Error includes deterministic reason
         assert "Repo clean on exit guarantee violated" in result.error
@@ -678,9 +741,10 @@ class TestStewardMission:
 # Test: Steward Target Validation (Fail-Closed Semantics)
 # =============================================================================
 
+
 class TestStewardTargetValidation:
     """Tests for steward target validation with fail-closed semantics.
-    
+
     Classification per P0.1:
         A) in_envelope: docs/**/*.md excluding protected roots → BLOCK (requires OpenCode)
         B) protected: docs/00_foundations/**, docs/01_governance/**, scripts/**, config/** → BLOCK
@@ -691,23 +755,25 @@ class TestStewardTargetValidation:
 
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_steward_blocks_protected_roots(
-        self, mock_verify, mock_context: MissionContext,
+        self,
+        mock_verify,
+        mock_context: MissionContext,
         valid_review_packet: Dict[str, Any],
-        approved_decision: Dict[str, Any]
+        approved_decision: Dict[str, Any],
     ):
         """Category B: Protected roots are BLOCKED unconditionally."""
         mock_verify.return_value = None
         valid_review_packet["payload"]["artifacts_produced"] = [
             "docs/01_governance/protected.md",
         ]
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         assert result.success is False
         assert "protected root" in result.error.lower()
         assert "docs/01_governance/protected.md" in result.error
@@ -718,23 +784,25 @@ class TestStewardTargetValidation:
 
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_steward_blocks_disallowed_paths(
-        self, mock_verify, mock_context: MissionContext,
+        self,
+        mock_verify,
+        mock_context: MissionContext,
         valid_review_packet: Dict[str, Any],
-        approved_decision: Dict[str, Any]
+        approved_decision: Dict[str, Any],
     ):
         """Category C: Non-doc/non-allowlisted paths are BLOCKED."""
         mock_verify.return_value = None
         valid_review_packet["payload"]["artifacts_produced"] = [
             "src/main.py",  # Disallowed path (not docs/, runtime/, or recursive_kernel/)
         ]
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         assert result.success is False
         assert "disallowed" in result.error.lower()
         assert "src/main.py" in result.error
@@ -744,21 +812,23 @@ class TestStewardTargetValidation:
 
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_steward_succeeds_with_empty_artifact_list(
-        self, mock_verify, mock_context: MissionContext,
+        self,
+        mock_verify,
+        mock_context: MissionContext,
         valid_review_packet: Dict[str, Any],
-        approved_decision: Dict[str, Any]
+        approved_decision: Dict[str, Any],
     ):
         """Only empty artifact list is explicitly allowed (no modifications)."""
         mock_verify.return_value = None
         valid_review_packet["payload"]["artifacts_produced"] = []
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         # Empty artifact list proceeds (stub commits nothing)
         assert result.success is True
         assert "classified_paths" in result.evidence
@@ -768,9 +838,11 @@ class TestStewardTargetValidation:
 
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_steward_rejects_payload_handler_override(
-        self, mock_verify, mock_context: MissionContext,
+        self,
+        mock_verify,
+        mock_context: MissionContext,
         valid_review_packet: Dict[str, Any],
-        approved_decision: Dict[str, Any]
+        approved_decision: Dict[str, Any],
     ):
         """No payload-driven handler override allowed - still blocked."""
         mock_verify.return_value = None
@@ -780,14 +852,14 @@ class TestStewardTargetValidation:
         valid_review_packet["payload"]["artifacts_produced"] = [
             "tests/test_some.py"  # Actually disallowed path
         ]
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         # Should FAIL - disallowed paths are blocked regardless of injection
         assert result.success is False
         assert "disallowed" in result.error.lower()
@@ -797,7 +869,7 @@ class TestStewardTargetValidation:
     def test_path_classification_all_categories(self, mock_context: MissionContext):
         """Verify path classification covers all A/B/C categories correctly."""
         mission = StewardMission()
-        
+
         # Category B: Protected roots
         protected = [
             ("docs/00_foundations/spec.md", "protected"),
@@ -807,7 +879,7 @@ class TestStewardTargetValidation:
         ]
         for path, expected in protected:
             assert mission._classify_path(path) == expected, f"{path} should be {expected}"
-        
+
         # Category A: In-envelope docs
         in_envelope = [
             ("docs/03_runtime/feature.md", "in_envelope"),
@@ -816,7 +888,7 @@ class TestStewardTargetValidation:
         ]
         for path, expected in in_envelope:
             assert mission._classify_path(path) == expected, f"{path} should be {expected}"
-        
+
         # Category D: Code paths (allowed)
         code = [
             ("runtime/engine.py", "code"),
@@ -839,21 +911,26 @@ class TestStewardTargetValidation:
 # Test: Steward Routing (P0 Implementation)
 # =============================================================================
 
+
 class TestStewardRouting:
     """Tests for Steward OpenCode routing integration (P0)."""
 
     @patch("runtime.orchestration.missions.steward.subprocess.run")
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_steward_routes_success(
-        self, mock_verify, mock_run, mock_context: MissionContext,
-        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+        self,
+        mock_verify,
+        mock_run,
+        mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any],
     ):
         """Verify successful routing to OpenCode runner."""
         mock_verify.return_value = None
         # Setup in-envelope artifact
         valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
-        
-        # Mock subprocess calls: 
+
+        # Mock subprocess calls:
         # 1. git pre-commit hash (pre-routing)
         # 2. opencode runner
         # 3. git post-commit hash (verification)
@@ -864,7 +941,7 @@ class TestStewardRouting:
             MagicMock(returncode=0, stdout="commit_hash_after", stderr=""),
             MagicMock(returncode=0, stdout="", stderr=""),
         ]
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,
@@ -873,12 +950,12 @@ class TestStewardRouting:
         # P0: Mock sys.executable for assertion
         with patch("sys.executable", "python_exe"):
             result = mission.run(mock_context, inputs)
-        
+
         assert result.success is True
         assert "invoke_opencode_steward" in result.executed_steps
         assert "opencode_result" in result.evidence
         assert result.evidence["opencode_result"]["exit_code"] == 0
-        
+
         # P0: Verify invocation args (check the opencode runner call - second call)
         # Doc-only changes return early at Step 3, before the final Step 4 cleanliness check.
         assert mock_run.call_count == 4  # git pre, opencode, git post, status-verify.
@@ -890,6 +967,7 @@ class TestStewardRouting:
         assert "--task" in cmd
         # cmd[3] is the JSON task string; verify it contains the artifact path
         import json as _json
+
         task_payload = _json.loads(cmd[3])
         assert "docs/03_runtime/test.md" in task_payload["files"]
 
@@ -901,8 +979,12 @@ class TestStewardRouting:
     @patch("runtime.orchestration.missions.steward.subprocess.run")
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_steward_routes_failure_exit_code(
-        self, mock_verify, mock_run, mock_context: MissionContext,
-        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+        self,
+        mock_verify,
+        mock_run,
+        mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any],
     ):
         """Verify fail-closed on non-zero exit code."""
         mock_verify.return_value = None
@@ -911,16 +993,18 @@ class TestStewardRouting:
         # Mock subprocess calls: git pre-commit succeeds, opencode fails
         mock_run.side_effect = [
             MagicMock(returncode=0, stdout="commit_hash_before", stderr=""),  # Pre-commit hash
-            MagicMock(returncode=1, stdout="Partial log", stderr="Validation failed"),  # OpenCode failure
+            MagicMock(
+                returncode=1, stdout="Partial log", stderr="Validation failed"
+            ),  # OpenCode failure
         ]
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         # Fail-closed
         assert result.success is False
         assert "OpenCode routing failed" in result.error
@@ -931,26 +1015,30 @@ class TestStewardRouting:
     @patch("runtime.orchestration.missions.steward.subprocess.run")
     @patch("runtime.orchestration.run_controller.verify_repo_clean")
     def test_steward_routes_timeout(
-        self, mock_verify, mock_run, mock_context: MissionContext,
-        valid_review_packet: Dict[str, Any], approved_decision: Dict[str, Any]
+        self,
+        mock_verify,
+        mock_run,
+        mock_context: MissionContext,
+        valid_review_packet: Dict[str, Any],
+        approved_decision: Dict[str, Any],
     ):
         """Verify fail-closed on timeout."""
         mock_verify.return_value = None
         valid_review_packet["payload"]["artifacts_produced"] = ["docs/03_runtime/test.md"]
-        
+
         # Mock timeout on second call (runner)
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="before", stderr=""), # Call 1: head-commit
-            subprocess.TimeoutExpired(cmd="runner", timeout=60), # Call 2: runner
+            MagicMock(returncode=0, stdout="before", stderr=""),  # Call 1: head-commit
+            subprocess.TimeoutExpired(cmd="runner", timeout=60),  # Call 2: runner
         ]
-        
+
         mission = StewardMission()
         inputs = {
             "review_packet": valid_review_packet,
             "approval": approved_decision,
         }
         result = mission.run(mock_context, inputs)
-        
+
         # Fail-closed
         assert result.success is False
         assert "OpenCode routing failed" in result.error
@@ -961,47 +1049,80 @@ class TestStewardRouting:
 # Test: Autonomous Build Cycle Mission
 # =============================================================================
 
+
 class TestAutonomousBuildCycleMission:
     """Tests for autonomous build cycle mission."""
-    
+
     def test_mission_type(self):
         """Verify mission type is correct."""
         mission = AutonomousBuildCycleMission()
         assert mission.mission_type == MissionType.AUTONOMOUS_BUILD_CYCLE
-    
+
     def test_valid_inputs_pass(self):
         """Verify valid inputs are accepted (same as design)."""
         mission = AutonomousBuildCycleMission()
         inputs = {"task_spec": "Build feature X"}
         # Should not raise
         mission.validate_inputs(inputs)
-    
+
     @patch("runtime.orchestration.missions.autonomous_build_cycle.PolicyLoader.load")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.DesignMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.ReviewMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.BuildMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.StewardMission.run")
-    def test_run_composes_correctly(self, mock_steward, mock_build, mock_review, mock_design, mock_policy_load, mock_context: MissionContext):
+    def test_run_composes_correctly(
+        self,
+        mock_steward,
+        mock_build,
+        mock_review,
+        mock_design,
+        mock_policy_load,
+        mock_context: MissionContext,
+    ):
         """Verify autonomous build cycle composes missions correctly."""
         # Mock policy loader
         mock_policy_load.return_value = {
-            'loop_budgets': {'max_outer_iterations': 5, 'max_tokens_per_session': 100000}
+            "loop_budgets": {"max_outer_iterations": 5, "max_tokens_per_session": 100000}
         }
         # Setup mocks
-        design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
-        review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
-        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {}}, executed_steps=["build"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
-        steward_result = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "abc"}, executed_steps=["commit"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
-        
+        design_result = MissionResult(
+            True,
+            MissionType.DESIGN,
+            outputs={"build_packet": {}},
+            executed_steps=["design"],
+            evidence={"usage": {"input_tokens": 10, "output_tokens": 10}},
+        )
+        review_result = MissionResult(
+            True,
+            MissionType.REVIEW,
+            outputs={"verdict": "approved", "council_decision": {}},
+            executed_steps=["review"],
+            evidence={"usage": {"input_tokens": 10, "output_tokens": 10}},
+        )
+        build_result = MissionResult(
+            True,
+            MissionType.BUILD,
+            outputs={"review_packet": {}},
+            executed_steps=["build"],
+            evidence={"usage": {"input_tokens": 10, "output_tokens": 10}},
+        )
+        steward_result = MissionResult(
+            True,
+            MissionType.STEWARD,
+            outputs={"commit_hash": "abc"},
+            executed_steps=["commit"],
+            evidence={"usage": {"input_tokens": 10, "output_tokens": 10}},
+        )
+
         mock_design.return_value = design_result
-        mock_review.return_value = review_result 
+        mock_review.return_value = review_result
         mock_build.return_value = build_result
         mock_steward.return_value = steward_result
-        
+
         mission = AutonomousBuildCycleMission()
         inputs = {"task_spec": "Implement end-to-end feature"}
         result = mission.run(mock_context, inputs)
-        
+
         # Check composition was executed
         assert result.mission_type == MissionType.AUTONOMOUS_BUILD_CYCLE
         assert "design_phase" in result.executed_steps  # Match production token
@@ -1012,27 +1133,59 @@ class TestAutonomousBuildCycleMission:
     @patch("runtime.orchestration.missions.autonomous_build_cycle.ReviewMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.BuildMission.run")
     @patch("runtime.orchestration.missions.autonomous_build_cycle.StewardMission.run")
-    def test_run_full_cycle_success(self, mock_steward, mock_build, mock_review, mock_design, mock_policy_load, mock_context: MissionContext):
+    def test_run_full_cycle_success(
+        self,
+        mock_steward,
+        mock_build,
+        mock_review,
+        mock_design,
+        mock_policy_load,
+        mock_context: MissionContext,
+    ):
         """Verify full cycle runs to completion (with stubbed implementations)."""
         # Mock policy loader
         mock_policy_load.return_value = {
-            'loop_budgets': {'max_outer_iterations': 5, 'max_tokens_per_session': 100000}
+            "loop_budgets": {"max_outer_iterations": 5, "max_tokens_per_session": 100000}
         }
         # Setup mocks
-        design_result = MissionResult(True, MissionType.DESIGN, outputs={"build_packet": {}}, executed_steps=["design"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
-        review_result = MissionResult(True, MissionType.REVIEW, outputs={"verdict": "approved", "council_decision": {}}, executed_steps=["review"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
-        build_result = MissionResult(True, MissionType.BUILD, outputs={"review_packet": {}}, executed_steps=["build"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
-        steward_result = MissionResult(True, MissionType.STEWARD, outputs={"commit_hash": "abc"}, executed_steps=["commit"], evidence={"usage": {"input_tokens": 10, "output_tokens": 10}})
-        
+        design_result = MissionResult(
+            True,
+            MissionType.DESIGN,
+            outputs={"build_packet": {}},
+            executed_steps=["design"],
+            evidence={"usage": {"input_tokens": 10, "output_tokens": 10}},
+        )
+        review_result = MissionResult(
+            True,
+            MissionType.REVIEW,
+            outputs={"verdict": "approved", "council_decision": {}},
+            executed_steps=["review"],
+            evidence={"usage": {"input_tokens": 10, "output_tokens": 10}},
+        )
+        build_result = MissionResult(
+            True,
+            MissionType.BUILD,
+            outputs={"review_packet": {}},
+            executed_steps=["build"],
+            evidence={"usage": {"input_tokens": 10, "output_tokens": 10}},
+        )
+        steward_result = MissionResult(
+            True,
+            MissionType.STEWARD,
+            outputs={"commit_hash": "abc"},
+            executed_steps=["commit"],
+            evidence={"usage": {"input_tokens": 10, "output_tokens": 10}},
+        )
+
         mock_design.return_value = design_result
-        mock_review.return_value = review_result 
+        mock_review.return_value = review_result
         mock_build.return_value = build_result
         mock_steward.return_value = steward_result
-        
+
         mission = AutonomousBuildCycleMission()
         inputs = {"task_spec": "Complete implementation"}
         result = mission.run(mock_context, inputs)
-        
+
         # With stubbed implementations, all reviews auto-approve
         # So the full cycle should complete
         assert result.success is True
@@ -1040,16 +1193,14 @@ class TestAutonomousBuildCycleMission:
         assert "steward" in result.executed_steps  # Production adds this on steward success
 
 
-
-
-
 # =============================================================================
 # Test: MissionResult Serialization
 # =============================================================================
 
+
 class TestMissionResultSerialization:
     """Tests for MissionResult deterministic serialization."""
-    
+
     def test_to_dict_deterministic(self):
         """Verify to_dict produces deterministic output."""
         result = MissionResult(
@@ -1059,23 +1210,23 @@ class TestMissionResultSerialization:
             executed_steps=["step1", "step2"],
             evidence={"z_ev": "z", "a_ev": "a"},
         )
-        
+
         d = result.to_dict()
-        
+
         # Check keys are present
         assert "success" in d
         assert "mission_type" in d
         assert "outputs" in d
         assert "executed_steps" in d
         assert "evidence" in d
-        
+
         # Check values are sorted
         output_keys = list(d["outputs"].keys())
         assert output_keys == sorted(output_keys)
-        
+
         evidence_keys = list(d["evidence"].keys())
         assert evidence_keys == sorted(evidence_keys)
-    
+
     def test_to_dict_consistent(self):
         """Verify multiple calls produce same output."""
         result = MissionResult(
@@ -1083,10 +1234,10 @@ class TestMissionResultSerialization:
             mission_type=MissionType.BUILD,
             outputs={"key": "value"},
         )
-        
+
         d1 = result.to_dict()
         d2 = result.to_dict()
-        
+
         assert d1 == d2
 
 
@@ -1094,9 +1245,10 @@ class TestMissionResultSerialization:
 # Test: Engine Mission Dispatch
 # =============================================================================
 
+
 class TestEngineMissionDispatch:
     """Tests for engine.py mission operation dispatch."""
-    
+
     def test_design_mission_via_registry(self, monkeypatch: pytest.MonkeyPatch):
         """Verify registry builds the expected workflow without invoking live agents."""
         captured: Dict[str, Any] = {}
@@ -1118,7 +1270,7 @@ class TestEngineMissionDispatch:
 
         ctx = ExecutionContext(initial_state={"task_spec": "Test task"})
         result = run_mission("design", ctx, params={"task_spec": "Test task"})
-        
+
         assert result.success is True
         assert captured["ctx"] is ctx
         assert captured["workflow"].id == "wf-design"
@@ -1126,7 +1278,7 @@ class TestEngineMissionDispatch:
         assert captured["workflow"].steps[0].payload["operation"] == "mission"
         assert captured["workflow"].steps[0].payload["mission_type"] == "design"
         assert captured["workflow"].steps[0].payload["params"] == {"task_spec": "Test task"}
-    
+
     def test_unknown_mission_fails_closed(self):
         """Verify unknown mission type fails closed."""
         ctx = ExecutionContext(initial_state={})

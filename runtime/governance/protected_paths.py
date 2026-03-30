@@ -10,8 +10,8 @@ v1.0: Initial implementation for Phase 4D
 v1.1: Hardening - canonical path normalization, escape prevention
 """
 
-from typing import Dict, Optional
 import posixpath
+from typing import Dict, Optional
 
 # =============================================================================
 # Protected Paths Registry
@@ -22,19 +22,16 @@ PROTECTED_PATHS: Dict[str, str] = {
     "docs/00_foundations/": "GOVERNANCE_FOUNDATION",
     "docs/01_governance/": "GOVERNANCE_RULINGS",
     "config/governance/": "GOVERNANCE_CONFIG",
-
     # Self-modification protection - Hardcoded
     "runtime/governance/self_mod_protection.py": "SELF_MOD_PROTECTION",
     "runtime/governance/envelope_enforcer.py": "ENVELOPE_ENFORCER",
     "runtime/governance/protected_paths.py": "PROTECTED_PATHS_REGISTRY",
     "runtime/governance/tool_policy.py": "TOOL_POLICY_GATE",
     "runtime/governance/syntax_validator.py": "SYNTAX_VALIDATOR",  # v1.1: Enforcement surface
-
     # Agent identity - Council-only
     "config/agent_roles/": "AGENT_IDENTITY",
     "config/models.yaml": "MODEL_CONFIG",
     "config/governance_baseline.yaml": "GOVERNANCE_BASELINE",
-
     # Build infrastructure - Self-protection
     "CLAUDE.md": "AGENT_INSTRUCTIONS",
     "GEMINI.md": "AGENT_INSTRUCTIONS",
@@ -71,6 +68,7 @@ RUNTIME_EXCLUSIONS = [
 # Path Normalization (v1.1 Hardening)
 # =============================================================================
 
+
 def normalize_rel_path(path: str) -> tuple[bool, str, str]:
     """
     Normalize and validate a relative path for security.
@@ -97,22 +95,22 @@ def normalize_rel_path(path: str) -> tuple[bool, str, str]:
         - reason: Error description if ok=False, empty string if ok=True
     """
     # Check for null bytes (security)
-    if '\x00' in path:
+    if "\x00" in path:
         return False, "", "PATH_CONTAINS_NULL_BYTE"
 
     # Replace backslashes with forward slashes
-    normalized = path.replace('\\', '/')
+    normalized = path.replace("\\", "/")
 
     # Reject absolute POSIX paths
-    if normalized.startswith('/'):
+    if normalized.startswith("/"):
         return False, "", "ABSOLUTE_PATH_DENIED (POSIX: starts with /)"
 
     # Reject Windows drive letters (C:/, D:/, etc.)
-    if len(normalized) >= 2 and normalized[1] == ':':
+    if len(normalized) >= 2 and normalized[1] == ":":
         return False, "", "ABSOLUTE_PATH_DENIED (Windows drive)"
 
     # Reject UNC paths (//server/share or \\server\share after normalization)
-    if normalized.startswith('//'):
+    if normalized.startswith("//"):
         return False, "", "ABSOLUTE_PATH_DENIED (UNC path)"
 
     # Normalize '.' and '..' using posixpath.normpath
@@ -124,11 +122,11 @@ def normalize_rel_path(path: str) -> tuple[bool, str, str]:
 
     # After normalization, reject paths that escape root
     # If normpath resulted in '..' at the start, it tried to escape
-    if collapsed.startswith('..'):
+    if collapsed.startswith(".."):
         return False, "", "PATH_TRAVERSAL_DENIED (escapes root)"
 
     # Reject '.' as a standalone path (ambiguous)
-    if collapsed == '.':
+    if collapsed == ".":
         return False, "", "PATH_IS_CURRENT_DIR"
 
     # Valid relative path
@@ -138,6 +136,7 @@ def normalize_rel_path(path: str) -> tuple[bool, str, str]:
 # =============================================================================
 # Path Validation
 # =============================================================================
+
 
 def is_path_protected(path: str) -> tuple[bool, Optional[str]]:
     """
@@ -170,7 +169,7 @@ def is_path_protected(path: str) -> tuple[bool, Optional[str]]:
             if normalized.startswith(protected_path):
                 return True, f"PROTECTED: {reason}"
             # Also check if normalized equals the directory name without trailing slash
-            if normalized == protected_path.rstrip('/'):
+            if normalized == protected_path.rstrip("/"):
                 return True, f"PROTECTED: {reason}"
 
     return False, None
@@ -198,7 +197,7 @@ def is_path_in_allowed_scope(path: str) -> tuple[bool, Optional[str]]:
         if normalized.startswith(allowed_prefix):
             return True, f"Within allowed scope: {allowed_prefix}"
         # Also check if normalized equals the directory name without trailing slash
-        if normalized == allowed_prefix.rstrip('/'):
+        if normalized == allowed_prefix.rstrip("/"):
             return True, f"Within allowed scope: {allowed_prefix}"
 
     return False, f"PATH_OUTSIDE_ALLOWED_SCOPE: {path}"

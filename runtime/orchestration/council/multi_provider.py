@@ -23,9 +23,7 @@ from typing import Any, Callable, Mapping, Optional
 from runtime.agents.api import AgentCall, AgentResponse, call_agent, call_agent_cli
 from runtime.agents.models import (
     AgentConfig,
-    CLIProviderConfig,
     ModelConfig,
-    get_agent_config,
     get_cli_provider_config,
     load_model_config,
 )
@@ -103,7 +101,8 @@ def build_multi_provider_executor(
             if cli_cfg and cli_cfg.enabled:
                 logger.info(
                     "Lens %s → CLI provider %s (override)",
-                    lens_name, cli_provider_name,
+                    lens_name,
+                    cli_provider_name,
                 )
                 # Inject into a shallow copy to avoid mutating shared config
                 temp_agent = AgentConfig(
@@ -127,7 +126,8 @@ def build_multi_provider_executor(
 
             logger.warning(
                 "CLI provider %s not available for lens %s; using API",
-                cli_provider_name, lens_name,
+                cli_provider_name,
+                lens_name,
             )
 
         # Standard API dispatch (default path)
@@ -171,12 +171,14 @@ def _normalize_v1_to_v2_lens(
                     token = part.split()[0] if part.split() else ""
                     if token:
                         evidence_refs.append(f"REF:{token}")
-            claims.append({
-                "claim_id": f"{category[0].upper()}{idx + 1}",
-                "statement": statement,
-                "evidence_refs": evidence_refs,
-                "category": category,
-            })
+            claims.append(
+                {
+                    "claim_id": f"{category[0].upper()}{idx + 1}",
+                    "statement": statement,
+                    "evidence_refs": evidence_refs,
+                    "category": category,
+                }
+            )
 
     op_view = output.get("operator_view", "")
     notes_text: str
@@ -197,8 +199,19 @@ def _normalize_v1_to_v2_lens(
         "claims": claims,
     }
     # Preserve non-conflicting extra fields (complexity_budget, assumptions, etc.)
-    skip = {"verdict", "key_findings", "risks", "fixes", "run_type", "lens_name",
-            "claims", "notes", "confidence", "operator_view", "verdict_recommendation"}
+    skip = {
+        "verdict",
+        "key_findings",
+        "risks",
+        "fixes",
+        "run_type",
+        "lens_name",
+        "claims",
+        "notes",
+        "confidence",
+        "operator_view",
+        "verdict_recommendation",
+    }
     for k, v in output.items():
         if k not in skip:
             normalized[k] = v

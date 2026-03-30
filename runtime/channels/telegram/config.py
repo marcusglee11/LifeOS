@@ -38,15 +38,11 @@ def load_config() -> TelegramConfig:
     if not token:
         raise TelegramConfigError("LIFEOS_COO_TELEGRAM_BOT_TOKEN is required")
 
-    allow_from = _parse_allowlist(
-        os.environ.get("LIFEOS_COO_TELEGRAM_ALLOW_FROM", "")
-    )
+    allow_from = _parse_allowlist(os.environ.get("LIFEOS_COO_TELEGRAM_ALLOW_FROM", ""))
 
     mode = os.environ.get("LIFEOS_COO_TELEGRAM_MODE", "polling").strip().lower()
     if mode != "polling":
-        raise TelegramConfigError(
-            "LIFEOS_COO_TELEGRAM_MODE must be exactly 'polling'"
-        )
+        raise TelegramConfigError("LIFEOS_COO_TELEGRAM_MODE must be exactly 'polling'")
 
     return TelegramConfig(
         bot_token=token,

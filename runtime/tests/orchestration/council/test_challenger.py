@@ -5,23 +5,23 @@ Mock types (CouncilRunPlanCore, CouncilRunMeta, CouncilRunPlan) are defined here
 because the A2 models module has not yet merged. Real CouncilBlockedError and
 SchemaGateResult come from the existing council package.
 """
+
 from __future__ import annotations
 
-import pytest
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
-# Real imports from the council package
-from runtime.orchestration.council.models import CouncilBlockedError
-from runtime.orchestration.council.schema_gate import SchemaGateResult
+import pytest
 
 # Module under test
 from runtime.orchestration.council.challenger import (
     ChallengerResult,
-    evaluate_challenger,
     apply_challenger_outcome,
+    evaluate_challenger,
 )
 
+# Real imports from the council package
+from runtime.orchestration.council.models import CouncilBlockedError
+from runtime.orchestration.council.schema_gate import SchemaGateResult
 
 # ---------------------------------------------------------------------------
 # Mock plan types (A2 has not merged yet)
@@ -134,6 +134,7 @@ def _missing_ledger_output() -> dict:
 def _make_executor(output: dict):
     def executor(synthesis: dict, context: dict) -> dict:
         return output
+
     return executor
 
 

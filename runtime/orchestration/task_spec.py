@@ -5,15 +5,17 @@ This module defines the canonical representation of a task passed between:
 - Backlog parser -> Loop controller
 - Loop controller -> Design phase
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
 from enum import Enum
+from typing import Any, Dict, List
 
 
 class TaskPriority(str, Enum):
     """Valid task priority levels."""
+
     P0 = "P0"
     P1 = "P1"
 
@@ -38,6 +40,7 @@ class TaskSpec:
         line_number: Line number in BACKLOG.md (default: 0)
         original_line: Original line text for mutation (default: empty)
     """
+
     item_key: str
     title: str
     priority: TaskPriority

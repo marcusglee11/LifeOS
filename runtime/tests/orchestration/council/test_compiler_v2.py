@@ -2,14 +2,14 @@
 v2.2.1 compiler tests: tier routing (A3) + lens selection (A3) + independence (A4).
 All 26 tests. Written BEFORE implementation (TDD).
 """
+
 from __future__ import annotations
 
 import pytest
 
 from runtime.orchestration.council.compiler import (
-    compile_council_run_plan_v2,
-    _resolve_tier,
     _select_lenses,
+    compile_council_run_plan_v2,
 )
 from runtime.orchestration.council.models import CouncilBlockedError
 from runtime.orchestration.council.policy import load_council_policy
@@ -183,6 +183,7 @@ def test_lens_padding_no_duplicates():
 
 def test_lens_catalog_exhaustion_blocks():
     from unittest.mock import patch
+
     policy = load_council_policy()
     with patch.object(type(policy), "lens_catalog", property(lambda self: ("Risk",))):
         with patch.object(type(policy), "padding_priority", property(lambda self: ("Risk",))):
@@ -219,6 +220,7 @@ def test_run_type_advisory_compiles():
 
 def test_same_ccp_same_plan_hash():
     from runtime.governance.HASH_POLICY_v1 import hash_json
+
     policy = load_council_policy()
     ccp = _make_ccp(touches=["runtime_core"])
     result1 = compile_council_run_plan_v2(ccp, policy)

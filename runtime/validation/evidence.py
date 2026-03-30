@@ -8,7 +8,6 @@ from typing import Any, Dict, Iterable, List, Set
 
 from runtime.validation.reporting import sha256_file, write_json_atomic
 
-
 REQUIRED_FILES_BY_TIER: Dict[str, Set[str]] = {
     "light": {
         "meta.json",
@@ -60,7 +59,9 @@ def _iter_files(root: Path, exclude_relpaths: Iterable[str]) -> Iterable[Path]:
 
 def required_files_for_tier(tier: str, extras: List[str] | None = None) -> Set[str]:
     if tier not in REQUIRED_FILES_BY_TIER:
-        raise EvidenceError("JOB_SPEC_INVALID", f"Unsupported evidence tier: {tier}", "HALT_SCHEMA_DRIFT")
+        raise EvidenceError(
+            "JOB_SPEC_INVALID", f"Unsupported evidence tier: {tier}", "HALT_SCHEMA_DRIFT"
+        )
     required = set(REQUIRED_FILES_BY_TIER[tier])
     if extras:
         required.update(extras)

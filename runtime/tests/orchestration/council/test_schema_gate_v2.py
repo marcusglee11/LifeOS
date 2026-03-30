@@ -2,17 +2,15 @@
 v2.2.1 schema gate validator tests: validate_lens_output, validate_synthesis_output,
 validate_challenger_output. 12 tests.
 """
+
 from __future__ import annotations
 
-import pytest
-
+from runtime.orchestration.council.policy import load_council_policy
 from runtime.orchestration.council.schema_gate import (
+    validate_challenger_output,
     validate_lens_output,
     validate_synthesis_output,
-    validate_challenger_output,
 )
-from runtime.orchestration.council.policy import load_council_policy
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -125,7 +123,12 @@ def test_lens_output_advisory_valid():
         "notes": "Some thoughts.",
         "claims": [],
         "recommendations": [
-            {"action": "monitor", "rationale": "r", "expected_impact": "low", "confidence": "medium"}
+            {
+                "action": "monitor",
+                "rationale": "r",
+                "expected_impact": "low",
+                "confidence": "medium",
+            }
         ],
         "evidence_status": "speculative",
     }
@@ -217,12 +220,14 @@ def test_contradiction_ledger_valid_entry():
     policy = make_policy()
     raw = make_valid_synthesis_t1()
     raw["tier"] = "T2"
-    raw["contradiction_ledger"] = [{
-        "topic": "scope",
-        "positions": {"Risk": "c1", "Governance": "c2"},
-        "resolution": {"decision": "accept", "rationale": "both valid"},
-        "status": "resolved",
-    }]
+    raw["contradiction_ledger"] = [
+        {
+            "topic": "scope",
+            "positions": {"Risk": "c1", "Governance": "c2"},
+            "resolution": {"decision": "accept", "rationale": "both valid"},
+            "status": "resolved",
+        }
+    ]
     result = validate_synthesis_output(raw, policy, "T2", "review")
     assert result.valid
 

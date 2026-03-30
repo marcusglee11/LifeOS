@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
-from runtime.agents.models import resolve_model_auto, load_model_config
+from runtime.agents.models import load_model_config, resolve_model_auto
 
 from .models import CouncilBlockedError, CouncilRunPlan, generate_run_id
 from .policy import CouncilPolicy, evaluate_expression, resolve_model_family
@@ -29,9 +29,7 @@ def _normalize_metadata(ccp: Mapping[str, Any]) -> dict[str, Any]:
     return meta
 
 
-def _validate_required_sections(
-    ccp: Mapping[str, Any], required_sections: tuple[str, ...]
-) -> None:
+def _validate_required_sections(ccp: Mapping[str, Any], required_sections: tuple[str, ...]) -> None:
     sections = ccp.get("sections", {})
     if not isinstance(sections, Mapping):
         sections = {}
@@ -86,7 +84,9 @@ def _resolve_mode(metadata: Mapping[str, Any], policy: CouncilPolicy) -> str:
     return policy.mode_default
 
 
-def _resolve_independence_required(metadata: Mapping[str, Any], mode: str, policy: CouncilPolicy) -> str:
+def _resolve_independence_required(
+    metadata: Mapping[str, Any], mode: str, policy: CouncilPolicy
+) -> str:
     must_triggered = any(
         evaluate_expression(expr, metadata) for expr in policy.independence_must_triggers()
     )
@@ -100,9 +100,7 @@ def _resolve_independence_required(metadata: Mapping[str, Any], mode: str, polic
     return "none"
 
 
-def _resolve_topology(
-    metadata: Mapping[str, Any], mode: str, independence_required: str
-) -> str:
+def _resolve_topology(metadata: Mapping[str, Any], mode: str, independence_required: str) -> str:
     override = metadata.get("override", {})
     if isinstance(override, Mapping) and override.get("topology"):
         return str(override.get("topology"))
@@ -171,7 +169,10 @@ def _assign_models(
                     assignments[seat] = primary_model
             continue
         # HYBRID
-        if seat in {"RiskAdversarial", "Governance"} and independence_required in {"must", "should"}:
+        if seat in {"RiskAdversarial", "Governance"} and independence_required in {
+            "must",
+            "should",
+        }:
             assignments[seat] = independent_model
         else:
             assignments[seat] = primary_model
@@ -194,7 +195,9 @@ def _resolve_independence(
         chair_model = assignments.get(required_seats[0], "")
     chair_family = resolve_model_family(chair_model or "", policy.model_families)
 
-    independent_candidates = [seat for seat in ("RiskAdversarial", "Governance") if seat in assignments]
+    independent_candidates = [
+        seat for seat in ("RiskAdversarial", "Governance") if seat in assignments
+    ]
     independent_seats = tuple(
         seat
         for seat in independent_candidates
@@ -258,9 +261,7 @@ def _enforce_bootstrap(metadata: Mapping[str, Any], policy: CouncilPolicy) -> di
         )
 
     safety_critical = bool(metadata.get("safety_critical", False))
-    requires_ceo = bool(
-        policy.bootstrap_policy.get("safety_critical_requires_ceo_approval", True)
-    )
+    requires_ceo = bool(policy.bootstrap_policy.get("safety_critical_requires_ceo_approval", True))
     if safety_critical and requires_ceo and not bool(bootstrap.get("ceo_approved", False)):
         raise CouncilBlockedError(
             "bootstrap_requires_ceo_approval",
@@ -300,8 +301,7 @@ def compile_council_run_plan(
         )
 
     seat_role_map = {
-        seat: policy.seat_role_map.get(seat, "reviewer_architect")
-        for seat in required_seats
+        seat: policy.seat_role_map.get(seat, "reviewer_architect") for seat in required_seats
     }
     model_assignments = _assign_models(
         required_seats=required_seats,
@@ -484,9 +484,7 @@ def _select_lenses(tier: str, policy: CouncilPolicy) -> dict[str, Any]:
     }
 
 
-def _check_t0_strictness(
-    metadata: Mapping[str, Any], tier: str, policy: CouncilPolicy
-) -> None:
+def _check_t0_strictness(metadata: Mapping[str, Any], tier: str, policy: CouncilPolicy) -> None:
     """T0 strictness: must have reversibility=easy."""
     if tier != "T0":
         return
@@ -518,9 +516,7 @@ def _resolve_independence_required_v2(
     return "none"
 
 
-def _resolve_topology_v2(
-    metadata: Mapping[str, Any], tier: str, independence_required: str
-) -> str:
+def _resolve_topology_v2(metadata: Mapping[str, Any], tier: str, independence_required: str) -> str:
     """Resolve topology for v2.2.1 tier-based routing."""
     override = metadata.get("override", {})
     if isinstance(override, Mapping) and override.get("topology"):
@@ -568,9 +564,7 @@ def compile_council_run_plan_v2(
 
     # Model assignments (v2: inject v2 default models to ensure independent family diversity)
     all_roles = required_roles + lens_info["required_lenses"]
-    seat_role_map = {
-        role: policy.seat_role_map.get(role, "council_reviewer") for role in all_roles
-    }
+    seat_role_map = {role: policy.seat_role_map.get(role, "council_reviewer") for role in all_roles}
     # Build v2 metadata with fallback independent model if no model_plan provided
     v2_primary, v2_independent = _resolve_default_models_v2()
     model_plan_key = "model_plan_v1" if "model_plan_v1" in metadata else "model_plan"
@@ -578,6 +572,7 @@ def compile_council_run_plan_v2(
     if not isinstance(existing_plan, Mapping) or not existing_plan:
         # No explicit model plan: inject v2 defaults into a copy of metadata
         import copy as _copy
+
         metadata = _copy.copy(dict(metadata))
         metadata["model_plan_v1"] = {"primary": v2_primary, "independent": v2_independent}
     model_assignments = _assign_models(

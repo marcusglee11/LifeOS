@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import pytest
 import yaml
-
 import yaml as _yaml
 
 from runtime.orchestration.coo.backlog import BACKLOG_SCHEMA_VERSION
@@ -19,7 +18,6 @@ from runtime.orchestration.coo.service import (
     reject_item,
     reject_operation,
 )
-
 
 _VALID_OPERATION_YAML = """\
 schema_version: operation_proposal.v1
@@ -95,14 +93,7 @@ def test_chat_message_persists_operation_proposal(tmp_path: Path, monkeypatch) -
 
     assert payload["has_proposal"] is True
     assert payload["proposal_id"] == "OP-a1b2c3d4"
-    proposal_path = (
-        tmp_path
-        / "artifacts"
-        / "coo"
-        / "operations"
-        / "proposals"
-        / "OP-a1b2c3d4.yaml"
-    )
+    proposal_path = tmp_path / "artifacts" / "coo" / "operations" / "proposals" / "OP-a1b2c3d4.yaml"
     assert proposal_path.exists()
 
 
@@ -138,7 +129,9 @@ def test_approve_operation_executes_and_writes_receipt(tmp_path: Path, monkeypat
 
     assert receipt["status"] == "executed"
     assert receipt["actor"] == "tester"
-    assert (tmp_path / "workspace" / "notes" / "example.md").read_text(encoding="utf-8") == "Hello from COO."
+    assert (tmp_path / "workspace" / "notes" / "example.md").read_text(
+        encoding="utf-8"
+    ) == "Hello from COO."
 
 
 def test_approve_operation_is_idempotent_after_execution(tmp_path: Path, monkeypatch) -> None:
@@ -271,6 +264,7 @@ def _write_delegation(repo_root: Path) -> None:
 # propose_coo
 # ---------------------------------------------------------------------------
 
+
 def test_propose_coo_returns_task_proposal_kind(tmp_path: Path) -> None:
     _write_backlog(tmp_path)
     _write_delegation(tmp_path)
@@ -323,16 +317,21 @@ def test_propose_coo_returns_dump_metadata(tmp_path: Path) -> None:
 # direct_coo
 # ---------------------------------------------------------------------------
 
+
 def test_direct_coo_requires_source_and_actor(tmp_path: Path) -> None:
     """direct_coo() must accept source and actor kwargs."""
-    with patch(
-        "runtime.orchestration.coo.service.invoke_coo_reasoning",
-        return_value=_VALID_OPERATION_YAML,
-    ), patch(
-        "runtime.orchestration.coo.service.verify_claims",
-        return_value=[],
-    ), patch(
-        "runtime.orchestration.ops.queue.persist_operation_proposal",
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_VALID_OPERATION_YAML,
+        ),
+        patch(
+            "runtime.orchestration.coo.service.verify_claims",
+            return_value=[],
+        ),
+        patch(
+            "runtime.orchestration.ops.queue.persist_operation_proposal",
+        ),
     ):
         result = direct_coo(
             "write a note",
@@ -352,12 +351,15 @@ def test_direct_coo_escalation_includes_source_and_actor(tmp_path: Path) -> None
 
     db_path = tmp_path / "artifacts" / "queue" / "escalations.db"
 
-    with patch(
-        "runtime.orchestration.coo.service.invoke_coo_reasoning",
-        return_value=_VALID_ESCALATION_YAML,
-    ), patch(
-        "runtime.orchestration.coo.service.verify_claims",
-        return_value=[],
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_VALID_ESCALATION_YAML,
+        ),
+        patch(
+            "runtime.orchestration.coo.service.verify_claims",
+            return_value=[],
+        ),
     ):
         result = direct_coo(
             "touch a protected path",
@@ -381,12 +383,15 @@ def test_direct_coo_cli_escalation_has_different_provenance(tmp_path: Path) -> N
     """CLI-originated escalations use different source/actor from Telegram ones."""
     from runtime.orchestration.ceo_queue import CEOQueue
 
-    with patch(
-        "runtime.orchestration.coo.service.invoke_coo_reasoning",
-        return_value=_VALID_ESCALATION_YAML,
-    ), patch(
-        "runtime.orchestration.coo.service.verify_claims",
-        return_value=[],
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_VALID_ESCALATION_YAML,
+        ),
+        patch(
+            "runtime.orchestration.coo.service.verify_claims",
+            return_value=[],
+        ),
     ):
         direct_coo(
             "touch a protected path",
@@ -405,6 +410,7 @@ def test_direct_coo_cli_escalation_has_different_provenance(tmp_path: Path) -> N
 # ---------------------------------------------------------------------------
 # approve_item — discriminated results
 # ---------------------------------------------------------------------------
+
 
 def test_approve_item_op_returns_operation_receipt(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
@@ -425,12 +431,14 @@ def test_approve_item_task_returns_task_approval(tmp_path: Path) -> None:
     template_dir = tmp_path / "config" / "tasks" / "order_templates"
     template_dir.mkdir(parents=True, exist_ok=True)
     (template_dir / "build.yaml").write_text(
-        _yaml.dump({
-            "schema_version": "order_template.v1",
-            "template_name": "build",
-            "steps": [{"name": "step1", "role": "codex"}],
-            "constraints": {"max_duration_seconds": 60},
-        }),
+        _yaml.dump(
+            {
+                "schema_version": "order_template.v1",
+                "template_name": "build",
+                "steps": [{"name": "step1", "role": "codex"}],
+                "constraints": {"max_duration_seconds": 60},
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -451,6 +459,7 @@ def test_approve_item_unknown_id_returns_error(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # reject_item
 # ---------------------------------------------------------------------------
+
 
 def test_reject_item_op_returns_operation_receipt(tmp_path: Path) -> None:
     proposal_dir = tmp_path / "artifacts" / "coo" / "operations" / "proposals"
@@ -473,6 +482,7 @@ def test_reject_item_non_op_returns_error(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # get_status_context — escalation count end-to-end via service wrapper
 # ---------------------------------------------------------------------------
+
 
 def test_get_status_context_escalation_count_via_service(tmp_path: Path) -> None:
     """get_status_context() reflects real pending escalations (Fix 1 end-to-end path)."""

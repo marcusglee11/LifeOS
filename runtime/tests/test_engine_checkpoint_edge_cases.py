@@ -6,12 +6,15 @@ and invalid state transition scenarios in RuntimeFSM.
 
 Per Edge Case Testing Implementation Plan - Phase 1.1
 """
-import pytest
-import os
+
 import json
+import os
 import tempfile
 from pathlib import Path
-from runtime.engine import RuntimeFSM, RuntimeState, GovernanceError
+
+import pytest
+
+from runtime.engine import GovernanceError, RuntimeFSM, RuntimeState
 
 
 class TestCheckpointCorruption:
@@ -38,10 +41,10 @@ class TestCheckpointCorruption:
             checkpoint_path = fsm.checkpoint_state("test", tmp_amu0)
 
             # Truncate checkpoint file
-            with open(checkpoint_path, 'rb') as f:
+            with open(checkpoint_path, "rb") as f:
                 data = f.read()
-            with open(checkpoint_path, 'wb') as f:
-                f.write(data[:len(data)//2])  # Write only half
+            with open(checkpoint_path, "wb") as f:
+                f.write(data[: len(data) // 2])  # Write only half
 
             # Try to load truncated checkpoint
             fsm2 = RuntimeFSM(strict_mode=True)
@@ -62,12 +65,12 @@ class TestCheckpointCorruption:
 
             # Write invalid JSON with bad escape
             checkpoint_path = os.path.join(checkpoints_dir, "fsm_checkpoint_bad.json")
-            with open(checkpoint_path, 'w') as f:
+            with open(checkpoint_path, "w") as f:
                 f.write('{"state": "INIT", "history": ["\\x"]}\n')
 
             # Create dummy signature
             sig_path = f"{checkpoint_path}.sig"
-            with open(sig_path, 'wb') as f:
+            with open(sig_path, "wb") as f:
                 f.write(b"dummy_sig")
 
             fsm = RuntimeFSM(strict_mode=True)
@@ -99,11 +102,11 @@ class TestCheckpointCorruption:
             os.makedirs(checkpoints_dir, exist_ok=True)
 
             checkpoint_path = os.path.join(checkpoints_dir, "fsm_checkpoint_braces.json")
-            with open(checkpoint_path, 'w') as f:
+            with open(checkpoint_path, "w") as f:
                 f.write('{"state": "INIT", "history": ["INIT"')  # Missing closing braces
 
             sig_path = f"{checkpoint_path}.sig"
-            with open(sig_path, 'wb') as f:
+            with open(sig_path, "wb") as f:
                 f.write(b"dummy_sig")
 
             fsm = RuntimeFSM(strict_mode=True)
@@ -161,10 +164,10 @@ class TestSignatureVerification:
             checkpoint_path = fsm.checkpoint_state("test", tmp_amu0)
 
             # Modify checkpoint after signature
-            with open(checkpoint_path, 'r') as f:
+            with open(checkpoint_path, "r") as f:
                 data = json.load(f)
-            data['tampered'] = True
-            with open(checkpoint_path, 'w') as f:
+            data["tampered"] = True
+            with open(checkpoint_path, "w") as f:
                 json.dump(data, f)
 
             fsm2 = RuntimeFSM(strict_mode=True)
@@ -193,7 +196,7 @@ class TestSignatureVerification:
 
             # Corrupt signature
             sig_path = f"{checkpoint_path}.sig"
-            with open(sig_path, 'wb') as f:
+            with open(sig_path, "wb") as f:
                 f.write(b"corrupted_signature_data_12345")
 
             fsm2 = RuntimeFSM(strict_mode=True)

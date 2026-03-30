@@ -5,7 +5,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 # Ensure repo root is importable when script is executed directly.
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -77,10 +77,14 @@ def assert_multiuser_posture(cfg: Dict[str, Any]) -> Dict[str, Any]:
                         violations.append(f"channels.telegram.groups.{group_id} must be object")
                         continue
                     if group_cfg.get("requireMention") is not True:
-                        violations.append(f"channels.telegram.groups.{group_id}.requireMention must be true")
+                        violations.append(
+                            f"channels.telegram.groups.{group_id}.requireMention must be true"
+                        )
                     grp_allow = _as_list(group_cfg.get("allowFrom"))
                     if grp_allow and _has_wildcard(grp_allow):
-                        violations.append(f'channels.telegram.groups.{group_id}.allowFrom must not contain "*"')
+                        violations.append(
+                            f'channels.telegram.groups.{group_id}.allowFrom must not contain "*"'
+                        )
 
             reply_mode = str(ch_cfg.get("replyToMode") or "")
             if reply_mode != "first":
@@ -96,7 +100,9 @@ def assert_multiuser_posture(cfg: Dict[str, Any]) -> Dict[str, Any]:
             agent_id = str(agent.get("id") or "<unknown>")
             patterns = ((agent.get("groupChat") or {}).get("mentionPatterns")) or []
             if not isinstance(patterns, list) or not [p for p in patterns if str(p).strip()]:
-                violations.append(f"agents.list[{agent_id}].groupChat.mentionPatterns must be non-empty")
+                violations.append(
+                    f"agents.list[{agent_id}].groupChat.mentionPatterns must be non-empty"
+                )
 
     if owner_allow:
         owner = owner_allow[0]

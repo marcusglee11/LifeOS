@@ -16,6 +16,7 @@ from typing import Any, Dict, List
 @dataclass
 class ValidationResult:
     """Result of self-modification check."""
+
     allowed: bool
     reason: str
     evidence: Dict[str, Any] = field(default_factory=dict)
@@ -47,36 +48,34 @@ PROTECTED_PATHS = [
 def is_protected(path: str) -> bool:
     """
     Check if path is a protected governance surface.
-    
+
     Per spec §2.4: These protections are hardcoded and cannot be overridden.
     """
     # Normalize to forward slashes
     norm_path = path.replace("\\", "/")
-    
+
     # Remove leading ./ if present
     if norm_path.startswith("./"):
         norm_path = norm_path[2:]
-    
+
     for pattern in PROTECTED_PATHS:
         if fnmatch.fnmatch(norm_path, pattern):
             return True
-    
+
     return False
 
 
 def check_self_modification(
-    path: str,
-    agent_role: str,
-    operation: str = "modify"
+    path: str, agent_role: str, operation: str = "modify"
 ) -> ValidationResult:
     """
     Check if agent is allowed to modify the path.
-    
+
     Per spec §2.4:
     - Builder/Steward agents CANNOT modify any artifact in §2.3
     - No agent may modify its own envelope definition
     - No agent may modify governance_baseline.yaml
-    
+
     Returns ValidationResult with allowed=False if modification is blocked.
     """
     evidence = {
@@ -85,7 +84,7 @@ def check_self_modification(
         "operation": operation,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-    
+
     # Check if path is protected
     if is_protected(path):
         return ValidationResult(
@@ -94,13 +93,15 @@ def check_self_modification(
             evidence={
                 **evidence,
                 "protection_rule": "hardcoded_denylist",
-                "matching_patterns": [p for p in PROTECTED_PATHS if fnmatch.fnmatch(path.replace("\\", "/"), p)],
+                "matching_patterns": [
+                    p for p in PROTECTED_PATHS if fnmatch.fnmatch(path.replace("\\", "/"), p)
+                ],
             },
         )
-    
+
     # Role-specific restrictions could be added here
     # For now, if not in PROTECTED_PATHS, allow
-    
+
     return ValidationResult(
         allowed=True,
         reason="Path is not a protected governance surface",
@@ -116,22 +117,17 @@ def get_protected_paths() -> List[str]:
 class SelfModProtector:
     """
     Enforcer for self-modification protection.
-    
+
     Per spec §2.4: Checked BEFORE any filesystem or git operation.
     """
-    
+
     def __init__(self, repo_root: Path):
         self.repo_root = repo_root
-    
-    def validate(
-        self,
-        path: str,
-        agent_role: str,
-        operation: str = "modify"
-    ) -> ValidationResult:
+
+    def validate(self, path: str, agent_role: str, operation: str = "modify") -> ValidationResult:
         """
         Validate that operation is allowed on path.
-        
+
         Raises no exception - returns ValidationResult.
         Caller must check allowed=False and escalate.
         """
@@ -149,7 +145,7 @@ class SelfModProtector:
                 )
         else:
             rel_path = p
-        
+
         return check_self_modification(
             path=str(rel_path).replace("\\", "/"),
             agent_role=agent_role,

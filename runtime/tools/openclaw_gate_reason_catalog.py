@@ -39,7 +39,9 @@ def load_catalog(path: Path) -> Dict[str, dict]:
     return normalized
 
 
-def classify_reasons(codes: Iterable[str], catalog: Dict[str, dict]) -> Tuple[List[str], List[str], List[str]]:
+def classify_reasons(
+    codes: Iterable[str], catalog: Dict[str, dict]
+) -> Tuple[List[str], List[str], List[str]]:
     bypassable: List[str] = []
     hard: List[str] = []
     unknown: List[str] = []
@@ -62,7 +64,9 @@ def classify_reasons(codes: Iterable[str], catalog: Dict[str, dict]) -> Tuple[Li
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Classify OpenClaw gate reasons against the canonical catalog.")
+    parser = argparse.ArgumentParser(
+        description="Classify OpenClaw gate reasons against the canonical catalog."
+    )
     parser.add_argument("--catalog", default=str(DEFAULT_CATALOG_PATH))
     parser.add_argument("--reasons", nargs="*", default=[])
     parser.add_argument("--reasons-file", default="")
@@ -73,7 +77,13 @@ def main() -> int:
     if args.reasons_file:
         rf = Path(args.reasons_file)
         if rf.exists():
-            reasons.extend([line.strip() for line in rf.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()])
+            reasons.extend(
+                [
+                    line.strip()
+                    for line in rf.read_text(encoding="utf-8", errors="replace").splitlines()
+                    if line.strip()
+                ]
+            )
 
     try:
         catalog = load_catalog(Path(args.catalog))

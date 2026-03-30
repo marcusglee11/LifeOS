@@ -1,6 +1,7 @@
 """
 Parser utilities for COO proposal responses and execution-order generation.
 """
+
 from __future__ import annotations
 
 import copy
@@ -70,7 +71,7 @@ def _extract_yaml_payload_with_stage(text: str) -> tuple[str, str]:
         except yaml.YAMLError:
             candidate = None
         if not isinstance(candidate, dict):
-            return stripped[schema_match.start():].strip(), "schema_block_recovery"
+            return stripped[schema_match.start() :].strip(), "schema_block_recovery"
 
     # 3. Return as-is
     return stripped, "direct"
@@ -84,15 +85,12 @@ def parse_proposal_response(text: str) -> list[TaskProposal]:
         raise ParseError(f"Failed to parse proposal YAML: {exc}") from exc
 
     if not isinstance(raw, dict):
-        raise ParseError(
-            f"Proposal payload must be a YAML mapping, got {type(raw).__name__}"
-        )
+        raise ParseError(f"Proposal payload must be a YAML mapping, got {type(raw).__name__}")
 
     schema_version = str(raw.get("schema_version", "")).strip()
     if schema_version != PROPOSAL_SCHEMA_VERSION:
         raise ParseError(
-            f"Unsupported schema_version: {schema_version!r}. "
-            f"Expected {PROPOSAL_SCHEMA_VERSION!r}"
+            f"Unsupported schema_version: {schema_version!r}. Expected {PROPOSAL_SCHEMA_VERSION!r}"
         )
 
     raw_proposals = raw.get("proposals")
@@ -119,8 +117,7 @@ def parse_proposal_response(text: str) -> list[TaskProposal]:
             missing_fields.append("proposed_action")
         if missing_fields:
             raise ParseError(
-                f"Proposal[{idx}] missing required field(s): "
-                f"{', '.join(missing_fields)}"
+                f"Proposal[{idx}] missing required field(s): {', '.join(missing_fields)}"
             )
 
         if proposed_action not in _VALID_ACTIONS:
@@ -187,9 +184,7 @@ def parse_operation_proposal(text: str) -> dict[str, Any]:
     )
     missing = [field for field in required_fields if field not in raw]
     if missing:
-        raise ParseError(
-            f"Operation proposal missing required field(s): {', '.join(missing)}"
-        )
+        raise ParseError(f"Operation proposal missing required field(s): {', '.join(missing)}")
 
     proposal_id = str(raw.get("proposal_id", "")).strip()
     if not _PROPOSAL_ID_RE.fullmatch(proposal_id):
@@ -246,8 +241,7 @@ def parse_ntp(raw_output: str) -> dict[str, Any]:
     schema_version = str(raw.get("schema_version", "")).strip()
     if schema_version != NTP_SCHEMA_VERSION:
         raise ParseError(
-            f"Unsupported schema_version: {schema_version!r}. "
-            f"Expected {NTP_SCHEMA_VERSION!r}"
+            f"Unsupported schema_version: {schema_version!r}. Expected {NTP_SCHEMA_VERSION!r}"
         )
     if not str(raw.get("reason", "")).strip():
         raise ParseError("NTP output missing required 'reason' field")
@@ -290,9 +284,7 @@ def parse_execution_order(
     timestamp = now.strftime("%Y%m%d%H%M%S")
     order_id = f"ORD-{proposal.task_id}-{timestamp}"
     if not _ORDER_ID_RE.match(order_id):
-        raise ParseError(
-            f"Generated order_id {order_id!r} is invalid — check task_id format"
-        )
+        raise ParseError(f"Generated order_id {order_id!r} is invalid — check task_id format")
 
     raw_constraints = template_data.get("constraints") or {}
     if not isinstance(raw_constraints, dict):

@@ -2,22 +2,23 @@
 v2.2.1 model tests: CouncilRunPlanCore, CouncilRunMeta, compute_plan_core_hash,
 ChallengerResult, ContradictionLedgerEntry, and new constants. 13 tests.
 """
+
 from __future__ import annotations
 
-import pytest
 from dataclasses import FrozenInstanceError
 
+import pytest
+
 from runtime.orchestration.council.models import (
-    CouncilRunPlanCore,
-    CouncilRunMeta,
+    VERDICT_ACCEPT,
+    VERDICT_REJECT,
+    VERDICT_REVISE,
     ChallengerResult,
     ContradictionLedgerEntry,
+    CouncilRunMeta,
+    CouncilRunPlanCore,
     compute_plan_core_hash,
-    VERDICT_ACCEPT,
-    VERDICT_REVISE,
-    VERDICT_REJECT,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -132,6 +133,7 @@ def test_verdict_revise_valid():
 
 def test_verdict_go_with_fixes_gone():
     import runtime.orchestration.council.models as m
+
     assert not hasattr(m, "VERDICT_GO_WITH_FIXES")
     assert "Go with Fixes" not in {VERDICT_ACCEPT, VERDICT_REVISE, VERDICT_REJECT}
 
@@ -152,8 +154,8 @@ def test_challenger_result_fields():
         notes="n",
     )
     assert r.material_issue is False
-    assert r.ledger_completeness_ok is None   # optional, defaults to None
-    assert r.missing_disagreements is None     # optional, defaults to None
+    assert r.ledger_completeness_ok is None  # optional, defaults to None
+    assert r.missing_disagreements is None  # optional, defaults to None
 
 
 def test_contradiction_ledger_entry_fields():

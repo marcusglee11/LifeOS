@@ -1,16 +1,13 @@
 """Tests for runtime/receipts/schemas.py"""
-import pytest
-from jsonschema import Draft202012Validator
-from jsonschema.exceptions import SchemaError
 
+from jsonschema import Draft202012Validator
 
 from runtime.receipts.schemas import (
     ACCEPTANCE_RECEIPT_SCHEMA,
     BLOCKED_REPORT_SCHEMA,
-    LAND_RECEIPT_SCHEMA,
     GATE_RESULT_SCHEMA,
+    LAND_RECEIPT_SCHEMA,
     RUNLOG_EVENT_SCHEMA,
-    REVIEW_SUMMARY_SCHEMA,
 )
 
 

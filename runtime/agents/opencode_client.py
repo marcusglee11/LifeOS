@@ -38,20 +38,18 @@ If you need to switch to a different model or provider, follow these steps:
 """
 
 import atexit
+import hashlib
 import json
 import logging
 import os
-import hashlib
-import json
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -64,11 +62,12 @@ except ImportError:
 # Import config-driven defaults from single source of truth
 try:
     from runtime.agents.models import (
-        get_default_endpoint,
-        get_api_key_fallback_chain,
         get_api_key,
+        get_api_key_fallback_chain,
+        get_default_endpoint,
         load_model_config,
     )
+
     _HAS_MODELS_MODULE = True
 except ImportError:
     _HAS_MODELS_MODULE = False
@@ -96,8 +95,10 @@ def _get_openrouter_base_url() -> str:
         try:
             config = load_model_config()
             # Check for openrouter config in the raw yaml
-            import yaml
             from pathlib import Path
+
+            import yaml
+
             config_path = Path("config/models.yaml")
             if config_path.exists():
                 with open(config_path, "r") as f:
@@ -118,29 +119,35 @@ def _get_openrouter_base_url() -> str:
 # EXCEPTIONS
 # ============================================================================
 
+
 class OpenCodeError(Exception):
     """Base exception for OpenCode client errors."""
+
     pass
 
 
 class OpenCodeServerError(OpenCodeError):
     """Server failed to start or respond."""
+
     pass
 
 
 class OpenCodeTimeoutError(OpenCodeError):
     """Request timed out."""
+
     pass
 
 
 class OpenCodeSessionError(OpenCodeError):
     """Failed to create session or send message."""
+
     pass
 
 
 # ============================================================================
 # DATA CLASSES
 # ============================================================================
+
 
 @dataclass
 class LLMCall:
@@ -153,6 +160,7 @@ class LLMCall:
         system_prompt: Optional system prompt (currently unused by OpenCode).
         role: Agent role making the call (for usage tracking).
     """
+
     prompt: str
     model: Optional[str] = "auto"  # "auto" triggers config-driven resolution
     system_prompt: Optional[str] = None
@@ -171,6 +179,7 @@ class LLMResponse:
         latency_ms: Time taken for the call in milliseconds.
         timestamp: ISO timestamp of when the call completed.
     """
+
     call_id: str
     content: str
     model_used: str
@@ -182,6 +191,7 @@ class LLMResponse:
 # ============================================================================
 # CLIENT
 # ============================================================================
+
 
 class OpenCodeClient:
     """
@@ -270,19 +280,22 @@ class OpenCodeClient:
         env_path = os.path.join(os.getcwd(), ".env")
         if not os.path.exists(env_path):
             return None
-            
+
         try:
             with open(env_path, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
-                    if not line or line.startswith("#"): continue
-                    
+                    if not line or line.startswith("#"):
+                        continue
+
                     if "=" in line:
                         k, v = line.split("=", 1)
                         if k.strip() == var_name:
                             v = v.strip()
                             # Handle quotes
-                            if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
+                            if (v.startswith('"') and v.endswith('"')) or (
+                                v.startswith("'") and v.endswith("'")
+                            ):
                                 v = v[1:-1]
                             return v
         except Exception:
@@ -292,7 +305,7 @@ class OpenCodeClient:
     def _load_api_key_for_role(self, role: str, provider: str = "openrouter") -> Optional[str]:
         """
         Load the API key for a specific role and provider.
-        
+
         Priority:
         1. os.environ[SPECIFIC_VAR]
         2. .env file [SPECIFIC_VAR]
@@ -303,6 +316,7 @@ class OpenCodeClient:
         env_var_name = None
         try:
             from runtime.agents.models import get_agent_config
+
             agent_config = get_agent_config(role)
             if agent_config:
                 if provider == "zen":
@@ -318,31 +332,33 @@ class OpenCodeClient:
 
         if not env_var_name:
             if provider == "zen":
-                 env_var_name = f"ZEN_{role.upper()}_KEY"
+                env_var_name = f"ZEN_{role.upper()}_KEY"
             else:
-                 env_var_name = f"OPENROUTER_{role.upper()}_KEY"
-        
+                env_var_name = f"OPENROUTER_{role.upper()}_KEY"
+
         # 2. Try Specific Key
         key = self._get_key_from_source(env_var_name)
-        if key: return key
+        if key:
+            return key
 
         # 3. Fallback to Generic
         if provider == "zen":
-             return self._get_key_from_source("ZEN_API_KEY")
+            return self._get_key_from_source("ZEN_API_KEY")
         else:
-             return self._get_key_from_source("OPENROUTER_API_KEY")
+            return self._get_key_from_source("OPENROUTER_API_KEY")
 
     def _get_key_from_source(self, env_var_name: str) -> Optional[str]:
         """Try os.environ then .env."""
-        if not env_var_name: return None
+        if not env_var_name:
+            return None
         val = os.environ.get(env_var_name)
-        if val and val.strip(): return val.strip()
+        if val and val.strip():
+            return val.strip()
         return self._get_key_from_env_file(env_var_name)
 
     def _load_api_key(self) -> Optional[str]:
         """Legacy method - calls _load_api_key_for_role with 'unknown'."""
         return self._load_api_key_for_role("unknown")
-
 
     # ========================================================================
     # SERVER LIFECYCLE
@@ -364,7 +380,7 @@ class OpenCodeClient:
         if self.api_key:
             auth_data = {
                 "zen": {"type": "api", "key": self.api_key},
-                "openrouter": {"type": "api", "key": self.api_key}
+                "openrouter": {"type": "api", "key": self.api_key},
             }
             with open(os.path.join(data_subdir, "auth.json"), "w") as f:
                 json.dump(auth_data, f, indent=2)
@@ -401,7 +417,9 @@ class OpenCodeClient:
 
         # Check API key first (more fundamental than model)
         if not self.api_key:
-            raise OpenCodeServerError("No API key configured (STEWARD_OPENROUTER_KEY or OPENROUTER_API_KEY required)")
+            raise OpenCodeServerError(
+                "No API key configured (STEWARD_OPENROUTER_KEY or OPENROUTER_API_KEY required)"
+            )
 
         # Determine model
         model = model or os.environ.get("STEWARD_MODEL")
@@ -426,7 +444,7 @@ class OpenCodeClient:
             # We'll set it anyway, but call() override is what matters.
             env["OPENROUTER_BASE_URL"] = self.upstream_base_url
             env["BASE_URL"] = self.upstream_base_url
-        
+
         # Block fallback to other providers
         env["OPENAI_API_KEY"] = ""
         env["ANTHROPIC_API_KEY"] = ""
@@ -487,7 +505,9 @@ class OpenCodeClient:
                 timeout=10,
             )
             if resp.status_code != 200:
-                raise OpenCodeSessionError(f"Session creation failed: {resp.status_code} - {resp.text}")
+                raise OpenCodeSessionError(
+                    f"Session creation failed: {resp.status_code} - {resp.text}"
+                )
             return resp.json()["id"]
         except requests.RequestException as e:
             raise OpenCodeSessionError(f"Session creation failed: {e}")
@@ -507,7 +527,9 @@ class OpenCodeClient:
             try:
                 data = resp.json()
             except json.JSONDecodeError:
-                raise OpenCodeSessionError(f"Message send failed: Invalid JSON response from server. Body: {resp.text[:500]}")
+                raise OpenCodeSessionError(
+                    f"Message send failed: Invalid JSON response from server. Body: {resp.text[:500]}"
+                )
             parts = data.get("parts", [])
             content = ""
             for part in parts:
@@ -540,6 +562,7 @@ class OpenCodeClient:
         primary_provider = None
         try:
             from runtime.agents.models import get_agent_config
+
             agent_config = get_agent_config(self.role)
             if agent_config:
                 primary_provider = agent_config.provider
@@ -551,13 +574,11 @@ class OpenCodeClient:
         # Add fallbacks from config
         try:
             from runtime.agents.models import get_agent_config
+
             agent_config = get_agent_config(self.role)
             if agent_config and agent_config.fallback:
                 for fb in agent_config.fallback:
-                    attempts.append({
-                        "model": fb.get("model"),
-                        "provider": fb.get("provider")
-                    })
+                    attempts.append({"model": fb.get("model"), "provider": fb.get("provider")})
         except ImportError:
             # If models module issue, allow pass
             pass
@@ -569,11 +590,13 @@ class OpenCodeClient:
         last_error = None
         for i, attempt in enumerate(attempts):
             model = attempt["model"]
-            is_fallback = (i > 0)
-            
+            is_fallback = i > 0
+
             # Trace log
             if "repro" in sys.argv[0] or "verify" in sys.argv[0]:
-                print(f"  [TRACE] Attempt {i+1}/{len(attempts)}: {model} {'(Fallback)' if is_fallback else '(Primary)'}")
+                print(
+                    f"  [TRACE] Attempt {i + 1}/{len(attempts)}: {model} {'(Fallback)' if is_fallback else '(Primary)'}"
+                )
 
             try:
                 return self._execute_attempt(model, request, provider=attempt.get("provider"))
@@ -582,14 +605,18 @@ class OpenCodeClient:
                 print(f"  [WARNING] Call to {model} failed: {e}")
                 last_error = e
                 continue
-        
+
         # If all failed
         raise last_error or OpenCodeError("All execution attempts failed")
 
-    def _execute_attempt(self, model: str, request: LLMCall, provider: Optional[str] = None) -> LLMResponse:
+    def _execute_attempt(
+        self, model: str, request: LLMCall, provider: Optional[str] = None
+    ) -> LLMResponse:
         """Execute a single LLM attempt with specific model and dynamic key swapping."""
         # Deterministic call_id: content-addressable from model + prompt
-        _call_payload = json.dumps({"model": model, "prompt": request.prompt}, sort_keys=True).encode()
+        _call_payload = json.dumps(
+            {"model": model, "prompt": request.prompt}, sort_keys=True
+        ).encode()
         call_id = "sha256:" + hashlib.sha256(_call_payload).hexdigest()
         start_time = time.time()
 
@@ -598,8 +625,18 @@ class OpenCodeClient:
                 return {}
             out: Dict[str, int] = {}
             field_map = {
-                "input_tokens": ("input_tokens", "prompt_tokens", "promptTokenCount", "inputTokenCount"),
-                "output_tokens": ("output_tokens", "completion_tokens", "candidatesTokenCount", "outputTokenCount"),
+                "input_tokens": (
+                    "input_tokens",
+                    "prompt_tokens",
+                    "promptTokenCount",
+                    "inputTokenCount",
+                ),
+                "output_tokens": (
+                    "output_tokens",
+                    "completion_tokens",
+                    "candidatesTokenCount",
+                    "outputTokenCount",
+                ),
                 "total_tokens": ("total_tokens", "totalTokenCount"),
             }
             for canonical_key, aliases in field_map.items():
@@ -609,23 +646,25 @@ class OpenCodeClient:
                         out[canonical_key] = value
                         break
             return out
-        
+
         # Build environment for this attempt
         env = os.environ.copy()
-        
+
         # Base Key Injection
         if self.api_key:
             env["OPENROUTER_API_KEY"] = self.api_key
             env["ZEN_API_KEY"] = self.api_key
             env["ANTHROPIC_API_KEY"] = self.api_key
-            
+
         # SWAP LOGIC: Determine correct key & provider for THIS model
         # Expanded for new OpenCode/Gemini models
         # P1: Option C - If provider is explicitly 'opencode-openai', treat as plugin (skip Zen REST)
         is_plugin = provider and "opencode-openai" in provider
-        is_zen_model = not is_plugin and any(k in model.lower() for k in ["minimax", "zen", "opencode", "gemini"])
+        is_zen_model = not is_plugin and any(
+            k in model.lower() for k in ["minimax", "zen", "opencode", "gemini"]
+        )
         key_status = "Using Primary Key"
-        
+
         if not is_zen_model:
             # Targeted swap to OpenRouter key if needed
             or_key = self._load_api_key_for_role(self.role, provider="openrouter")
@@ -634,39 +673,41 @@ class OpenCodeClient:
                     env["OPENROUTER_API_KEY"] = or_key
                     key_status = "SWAPPED to OpenRouter Key (***masked***)"
                 else:
-                     key_status = "Primary is already OpenRouter Key"
+                    key_status = "Primary is already OpenRouter Key"
             else:
                 key_status = "FAILED TO SWAP (No OpenRouter key found)"
-        
+
         # Verbose Trace
         if "repro" in sys.argv[0] or "verify" in sys.argv[0]:
             print(f"  [TRACE] Role: {self.role} | Model: {model} | {key_status}")
             if "SWAP" in key_status and "FAILED" not in key_status:
-                 print(f"  [TRACE] Injecting OPENROUTER_API_KEY into subprocess environment")
+                print("  [TRACE] Injecting OPENROUTER_API_KEY into subprocess environment")
 
         # 1. SPECIAL CASE: OpenRouter Direct REST (Standard OpenAI)
         # We use this because `opencode run` CLI ignores injected environment variables
         # if a local .env exists, which breaks multi-key support.
-        is_openrouter_model = model.startswith("openrouter/") or "openrouter" in self.upstream_base_url.lower()
-        
+        is_openrouter_model = (
+            model.startswith("openrouter/") or "openrouter" in self.upstream_base_url.lower()
+        )
+
         if is_openrouter_model:
             # Always attempt to load the specific key for this role first
             or_key = self._load_api_key_for_role(self.role, provider="openrouter")
-            
+
             # If not found or empty, check if we have a generic one in env
             # (But only if we didn't find a specific one)
             if not or_key and "OPENROUTER_API_KEY" in env:
                 or_key = env["OPENROUTER_API_KEY"]
-                
+
             if or_key:
                 or_key = or_key.strip()
                 headers = {
                     "Authorization": f"Bearer {or_key}",
                     "Content-Type": "application/json",
-                    "HTTP-Referer": "https://opencode.ai", # Required by OpenRouter for ranking
-                    "X-Title": "LifeOS OpenCode Client"
+                    "HTTP-Referer": "https://opencode.ai",  # Required by OpenRouter for ranking
+                    "X-Title": "LifeOS OpenCode Client",
                 }
-                
+
                 # Get OpenRouter endpoint from config (single source of truth)
                 or_url = _get_openrouter_base_url()
                 # Override if custom base URL provided
@@ -674,7 +715,7 @@ class OpenCodeClient:
                     or_url = self.upstream_base_url
                     if not or_url.endswith("/chat/completions"):
                         or_url = or_url.rstrip("/") + "/chat/completions"
-                
+
                 # Strip internal 'openrouter/' prefix for the raw API call
                 api_model = model
                 if api_model.startswith("openrouter/"):
@@ -686,14 +727,17 @@ class OpenCodeClient:
                 messages.append({"role": "user", "content": request.prompt})
 
                 payload = {
-                    "model": api_model, 
+                    "model": api_model,
                     "messages": messages,
                 }
-                
+
                 try:
                     import requests
-                    response = requests.post(or_url, headers=headers, json=payload, timeout=self.timeout)
-                    
+
+                    response = requests.post(
+                        or_url, headers=headers, json=payload, timeout=self.timeout
+                    )
+
                     if response.status_code == 200:
                         data = response.json()
                         text = ""
@@ -701,7 +745,7 @@ class OpenCodeClient:
                             delta = choice.get("message", {}).get("content", "")
                             if delta:
                                 text += delta
-                                
+
                         llm_response = LLMResponse(
                             call_id=call_id,
                             content=text,
@@ -710,16 +754,19 @@ class OpenCodeClient:
                             timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
                             usage=_normalize_usage(data.get("usage")),
                         )
-                        
+
                         # Log the call
                         if self.log_calls:
                             self._log_call(request, llm_response)
-                        
+
                         return llm_response
                     else:
-                         logger.debug(f"OpenRouter REST Failed: Status {response.status_code}, Body: {response.text[:200]}...")
+                        logger.debug(
+                            f"OpenRouter REST Failed: Status {response.status_code}, Body: {response.text[:200]}..."
+                        )
                 except Exception as e:
                     import traceback
+
                     logger.debug(f"OpenRouter REST Exception: {e}")
                     logger.debug(f"OpenRouter REST Traceback: {traceback.format_exc()}")
                     pass
@@ -729,149 +776,167 @@ class OpenCodeClient:
         # The is_zen_model heuristic only covers opencode/* / minimax / gemini names;
         # paid Claude models (claude-sonnet-4-5, claude-opus-4-6) don't match those
         # keywords but Zen accepts them natively with x-api-key auth.
-        is_zen_config_url = self.upstream_base_url and "opencode.ai/zen" in self.upstream_base_url.lower()
+        is_zen_config_url = (
+            self.upstream_base_url and "opencode.ai/zen" in self.upstream_base_url.lower()
+        )
 
         if is_zen_config_url and not is_openrouter_model:
-             # Load Zen API Key specific
-             zen_key = self._load_api_key_for_role(self.role, provider="zen")
-             if zen_key:
-                 zen_key = zen_key.strip()
-                 headers = {
+            # Load Zen API Key specific
+            zen_key = self._load_api_key_for_role(self.role, provider="zen")
+            if zen_key:
+                zen_key = zen_key.strip()
+                headers = {
                     "x-api-key": zen_key,
                     "Content-Type": "application/json",
-                    "anthropic-version": "2023-06-01"
-                 }
-                 # SPECIAL CASE: Gemini on Zen (Google Style)
-                 if "gemini" in model.lower():
-                     # Use Google Generative Language API format
-                     # Zen endpoint likely mirrors Google's requirement for key in query param or x-goog-api-key
-                     # Try removing :generateContent in case Zen appends it
-                     zen_url = f"https://opencode.ai/zen/v1/models/gemini-3-flash:generateContent?key={zen_key}"
-                     
-                     # Google payload format
-                     # user -> user, system -> (not robustly supported in v1beta/v1 for all models, passing as system_instruction if needed or prepending)
-                     # For Flash, system_instruction is supported but simplified here to prepending for robustness via Zen?
-                     # Let's try standard contents.
-                     
-                     contents = []
-                     if request.system_prompt:
-                         contents.append({"role": "user", "parts": [{"text": f"System: {request.system_prompt}"}]})
-                         contents.append({"role": "model", "parts": [{"text": "Understood."}]})
-                     
-                     contents.append({"role": "user", "parts": [{"text": request.prompt}]})
-                     
-                     payload = {
-                         "contents": contents,
-                         "generationConfig": {
-                             "temperature": 0.7,
-                             "maxOutputTokens": 4096
-                         }
-                     }
-                     
-                     # Headers: Send all variants to be safe
-                     headers = {
+                    "anthropic-version": "2023-06-01",
+                }
+                # SPECIAL CASE: Gemini on Zen (Google Style)
+                if "gemini" in model.lower():
+                    # Use Google Generative Language API format
+                    # Zen endpoint likely mirrors Google's requirement for key in query param or x-goog-api-key
+                    # Try removing :generateContent in case Zen appends it
+                    zen_url = f"https://opencode.ai/zen/v1/models/gemini-3-flash:generateContent?key={zen_key}"
+
+                    # Google payload format
+                    # user -> user, system -> (not robustly supported in v1beta/v1 for all models, passing as system_instruction if needed or prepending)
+                    # For Flash, system_instruction is supported but simplified here to prepending for robustness via Zen?
+                    # Let's try standard contents.
+
+                    contents = []
+                    if request.system_prompt:
+                        contents.append(
+                            {
+                                "role": "user",
+                                "parts": [{"text": f"System: {request.system_prompt}"}],
+                            }
+                        )
+                        contents.append({"role": "model", "parts": [{"text": "Understood."}]})
+
+                    contents.append({"role": "user", "parts": [{"text": request.prompt}]})
+
+                    payload = {
+                        "contents": contents,
+                        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 4096},
+                    }
+
+                    # Headers: Send all variants to be safe
+                    headers = {
                         "x-api-key": zen_key,
                         "x-goog-api-key": zen_key,
                         "Authorization": f"Bearer {zen_key}",
-                        "Content-Type": "application/json"
-                     }
+                        "Content-Type": "application/json",
+                    }
 
-                     try:
-                         import requests
-                         response = requests.post(zen_url, headers=headers, json=payload, timeout=self.timeout)
-                         
-                         if response.status_code == 200:
-                             data = response.json()
-                             # Parse Google response
-                             # candidates[0].content.parts[0].text
-                             text = ""
-                             candidates = data.get("candidates", [])
-                             if candidates:
-                                 parts = candidates[0].get("content", {}).get("parts", [])
-                                 for part in parts:
-                                     text += part.get("text", "")
-                             
-                             llm_response = LLMResponse(
-                                 call_id=call_id,
-                                 content=text,
-                                 model_used=f"ZEN:{model}",
-                                 latency_ms=int((time.time() - start_time) * 1000),
-                                 timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
-                                 usage=_normalize_usage(data.get("usageMetadata")),
-                             )
-                             if self.log_calls:
-                                 self._log_call(request, llm_response)
-                             return llm_response
-                         else:
-                             logger.debug(f"Zen/Gemini REST Failed: Status {response.status_code}, Body: {response.text[:200]}...")
-                     except Exception as e:
-                         import traceback
-                         logger.debug(f"Zen/Gemini REST Exception: {e}")
-                         logger.debug(f"Zen/Gemini REST Traceback: {traceback.format_exc()}")
-                         pass
+                    try:
+                        import requests
 
-                 else:
-                     # Standard Anthropic Style (Minimax/Claude)
-                     zen_model = model.replace("minimax/", "").replace("zen/", "").replace("opencode/", "")
-                     
-                     payload = {
-                        "model": zen_model, 
+                        response = requests.post(
+                            zen_url, headers=headers, json=payload, timeout=self.timeout
+                        )
+
+                        if response.status_code == 200:
+                            data = response.json()
+                            # Parse Google response
+                            # candidates[0].content.parts[0].text
+                            text = ""
+                            candidates = data.get("candidates", [])
+                            if candidates:
+                                parts = candidates[0].get("content", {}).get("parts", [])
+                                for part in parts:
+                                    text += part.get("text", "")
+
+                            llm_response = LLMResponse(
+                                call_id=call_id,
+                                content=text,
+                                model_used=f"ZEN:{model}",
+                                latency_ms=int((time.time() - start_time) * 1000),
+                                timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
+                                usage=_normalize_usage(data.get("usageMetadata")),
+                            )
+                            if self.log_calls:
+                                self._log_call(request, llm_response)
+                            return llm_response
+                        else:
+                            logger.debug(
+                                f"Zen/Gemini REST Failed: Status {response.status_code}, Body: {response.text[:200]}..."
+                            )
+                    except Exception as e:
+                        import traceback
+
+                        logger.debug(f"Zen/Gemini REST Exception: {e}")
+                        logger.debug(f"Zen/Gemini REST Traceback: {traceback.format_exc()}")
+                        pass
+
+                else:
+                    # Standard Anthropic Style (Minimax/Claude)
+                    zen_model = (
+                        model.replace("minimax/", "").replace("zen/", "").replace("opencode/", "")
+                    )
+
+                    payload = {
+                        "model": zen_model,
                         "messages": [{"role": "user", "content": request.prompt}],
                         "max_tokens": 4096,
-                        "temperature": 0.7
-                     }
-                     if request.system_prompt:
-                         payload["system"] = request.system_prompt
-                     
-                     try:
-                         import requests
-                         # Ensure URL is correct.
-                         zen_url = self.upstream_base_url
-                         if "/messages" not in zen_url and "/models/" not in zen_url:
-                             zen_url = zen_url.rstrip("/") + "/messages"
-                         
-                         response = requests.post(zen_url, headers=headers, json=payload, timeout=self.timeout)
-                         
-                         if response.status_code == 200:
-                             data = response.json()
-                             text = ""
-                             for content_part in data.get("content", []):
-                                 if content_part.get("type") == "text":
-                                     text += content_part.get("text")
-                             
-                             llm_response = LLMResponse(
-                                 call_id=call_id,
-                                 content=text,
-                                 model_used=f"ZEN:{data.get('model', model)}",
-                                 latency_ms=int((time.time() - start_time) * 1000),
-                                 timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
-                                 usage=_normalize_usage(data.get("usage")),
-                             )
-                             
-                             # Log the call
-                             if self.log_calls:
-                                 self._log_call(request, llm_response)
-                             
-                             return llm_response
-                         else:
-                             logger.debug(f"Zen REST Failed: Status {response.status_code}, Body: {response.text[:200]}...")
-                     except Exception as e:
-                         import traceback
-                         logger.debug(f"Zen REST Exception: {e}")
-                         logger.debug(f"Zen REST Traceback: {traceback.format_exc()}")
-                         pass
-        
+                        "temperature": 0.7,
+                    }
+                    if request.system_prompt:
+                        payload["system"] = request.system_prompt
+
+                    try:
+                        import requests
+
+                        # Ensure URL is correct.
+                        zen_url = self.upstream_base_url
+                        if "/messages" not in zen_url and "/models/" not in zen_url:
+                            zen_url = zen_url.rstrip("/") + "/messages"
+
+                        response = requests.post(
+                            zen_url, headers=headers, json=payload, timeout=self.timeout
+                        )
+
+                        if response.status_code == 200:
+                            data = response.json()
+                            text = ""
+                            for content_part in data.get("content", []):
+                                if content_part.get("type") == "text":
+                                    text += content_part.get("text")
+
+                            llm_response = LLMResponse(
+                                call_id=call_id,
+                                content=text,
+                                model_used=f"ZEN:{data.get('model', model)}",
+                                latency_ms=int((time.time() - start_time) * 1000),
+                                timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
+                                usage=_normalize_usage(data.get("usage")),
+                            )
+
+                            # Log the call
+                            if self.log_calls:
+                                self._log_call(request, llm_response)
+
+                            return llm_response
+                        else:
+                            logger.debug(
+                                f"Zen REST Failed: Status {response.status_code}, Body: {response.text[:200]}..."
+                            )
+                    except Exception as e:
+                        import traceback
+
+                        logger.debug(f"Zen REST Exception: {e}")
+                        logger.debug(f"Zen REST Traceback: {traceback.format_exc()}")
+                        pass
+
         # 2. Standard CLI Execution
         cmd = ["opencode", "run", "-m", model, request.prompt]
-        
+
         # Smart Base URL logic for CLI
         if self.upstream_base_url:
             is_zen_url = "opencode.ai/zen" in self.upstream_base_url.lower()
             if is_zen_url:
                 if is_zen_model:
-                     env["OPENROUTER_BASE_URL"] = self.upstream_base_url
-                     env["BASE_URL"] = self.upstream_base_url
-                     env["ANTHROPIC_BASE_URL"] = self.upstream_base_url
+                    env["OPENROUTER_BASE_URL"] = self.upstream_base_url
+                    env["BASE_URL"] = self.upstream_base_url
+                    env["ANTHROPIC_BASE_URL"] = self.upstream_base_url
                 else:
                     # Fallback clearing of Zen URL to avoid routing Grok to Zen
                     pass
@@ -885,27 +950,31 @@ class OpenCodeClient:
         try:
             # Simulate 'y' inputs for tool confirmation prompts (send multiple just in case)
             result = subprocess.run(
-                cmd, 
-                env=env, 
-                capture_output=True, 
-                text=True, 
-                input="y\ny\ny\ny\ny\n", # Auto-approve tool calls
+                cmd,
+                env=env,
+                capture_output=True,
+                text=True,
+                input="y\ny\ny\ny\ny\n",  # Auto-approve tool calls
                 timeout=self.timeout,
                 shell=(os.name == "nt"),
             )
-            
+
             if result.returncode != 0:
                 error_output = result.stderr or result.stdout
-                raise OpenCodeError(f"opencode run failed with exit code {result.returncode}: {error_output}")
+                raise OpenCodeError(
+                    f"opencode run failed with exit code {result.returncode}: {error_output}"
+                )
 
             content = result.stdout.strip()
             if not content:
-                 # Debugging info
+                # Debugging info
                 err_msg = result.stderr.strip() if result.stderr else "No stderr output"
                 # Check for known "UndefinedProviderError" signature in stderr just in case
                 if "UndefinedProviderError" in err_msg:
-                     raise OpenCodeError(f"CLI Provider Error: {err_msg}")
-                raise OpenCodeError(f"CLI returned empty content (Silent Failure). Stderr: {err_msg}")
+                    raise OpenCodeError(f"CLI Provider Error: {err_msg}")
+                raise OpenCodeError(
+                    f"CLI returned empty content (Silent Failure). Stderr: {err_msg}"
+                )
 
             # Calculate latency
             latency_ms = int((time.time() - start_time) * 1000)
@@ -955,7 +1024,9 @@ class OpenCodeClient:
         }
 
         # Use timestamp-based filename for chronological ordering
-        filename = f"{response.timestamp.replace(':', '-').replace('.', '-')}_{response.call_id[:8]}.json"
+        filename = (
+            f"{response.timestamp.replace(':', '-').replace('.', '-')}_{response.call_id[:8]}.json"
+        )
         filepath = os.path.join(self.LOG_DIR, filename)
 
         try:

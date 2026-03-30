@@ -14,10 +14,8 @@ from __future__ import annotations
 
 import argparse
 import re
-import sys
 from pathlib import Path
 from typing import NamedTuple
-
 
 REQUIRED_KEYS = [
     "TITLE",
@@ -63,9 +61,7 @@ def parse_acceptance_note(text: str) -> dict[str, str]:
         if m:
             key, value = m.group(1), m.group(2).strip()
             if key in result:
-                raise ValueError(
-                    f"line {line_no}: duplicate key '{key}'"
-                )
+                raise ValueError(f"line {line_no}: duplicate key '{key}'")
             result[key] = value
     return result
 
@@ -94,9 +90,7 @@ def validate_clean_proofs(note: dict[str, str]) -> list[str]:
         lower = value.lower()
         clean_markers = ("clean", "empty", "0 files", "0 files modified")
         if not any(marker in lower for marker in clean_markers):
-            errors.append(
-                f"{key} does not indicate clean state: '{value}'"
-            )
+            errors.append(f"{key} does not indicate clean state: '{value}'")
     return errors
 
 
@@ -144,9 +138,7 @@ def validate_acceptance_note(text: str) -> ValidationResult:
 def validate_file(path: Path) -> ValidationResult:
     """Validate an acceptance note file."""
     if not path.exists():
-        return ValidationResult(
-            valid=False, errors=[f"file not found: {path}"]
-        )
+        return ValidationResult(valid=False, errors=[f"file not found: {path}"])
     text = path.read_text(encoding="utf-8")
     return validate_acceptance_note(text)
 
@@ -182,20 +174,14 @@ def cli_skeleton(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Acceptance & Closure policy validator."
-    )
+    parser = argparse.ArgumentParser(description="Acceptance & Closure policy validator.")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    validate_parser = sub.add_parser(
-        "validate", help="Validate an acceptance note file."
-    )
+    validate_parser = sub.add_parser("validate", help="Validate an acceptance note file.")
     validate_parser.add_argument("path", help="Path to acceptance note.")
     validate_parser.set_defaults(func=cli_validate)
 
-    skeleton_parser = sub.add_parser(
-        "skeleton", help="Emit a skeleton acceptance note."
-    )
+    skeleton_parser = sub.add_parser("skeleton", help="Emit a skeleton acceptance note.")
     skeleton_parser.set_defaults(func=cli_skeleton)
 
     args = parser.parse_args()

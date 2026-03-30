@@ -7,8 +7,18 @@ def test_reconcile_closes_missing_branch_and_duplicate_active_rows() -> None:
     data = {
         "branches": [
             {"name": "build/missing", "status": "active", "worktree_path": "/gone"},
-            {"name": "build/live", "status": "active", "created": "2026-03-06T10:00:00", "worktree_path": "/live"},
-            {"name": "build/live", "status": "active", "created": "2026-03-06T09:00:00", "worktree_path": "/stale"},
+            {
+                "name": "build/live",
+                "status": "active",
+                "created": "2026-03-06T10:00:00",
+                "worktree_path": "/live",
+            },
+            {
+                "name": "build/live",
+                "status": "active",
+                "created": "2026-03-06T09:00:00",
+                "worktree_path": "/stale",
+            },
         ]
     }
 
@@ -33,7 +43,12 @@ def test_reconcile_closes_missing_branch_and_duplicate_active_rows() -> None:
 def test_reconcile_no_changes_when_already_clean() -> None:
     data = {
         "branches": [
-            {"name": "build/live", "status": "active", "created": "2026-03-06T10:00:00", "worktree_path": "/live"}
+            {
+                "name": "build/live",
+                "status": "active",
+                "created": "2026-03-06T10:00:00",
+                "worktree_path": "/live",
+            }
         ]
     }
 

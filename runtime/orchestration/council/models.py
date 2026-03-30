@@ -4,13 +4,12 @@ Typed models for the policy-driven council runtime.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Mapping
 import hashlib
 import json
 import uuid
-
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Mapping
 
 # ---------------------------------------------------------------------------
 # v2.2.1 Constants
@@ -253,8 +252,8 @@ class CouncilRunMeta:
 
 def compute_plan_core_hash(core: CouncilRunPlanCore) -> str:
     """Compute SHA-256 canonical hash of a CouncilRunPlanCore."""
-    canonical = json.dumps(core.to_dict(), sort_keys=True, separators=(',', ':'))
-    return hashlib.sha256(canonical.encode('utf-8')).hexdigest()
+    canonical = json.dumps(core.to_dict(), sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 @dataclass

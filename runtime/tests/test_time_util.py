@@ -1,17 +1,19 @@
 """Tests: runtime.util.time timestamp discipline (Phase 2B — Constitutional Compliance)."""
+
 from __future__ import annotations
 
 import pytest
 
 from runtime.util.time import audit_timestamp, deterministic_timestamp
 
-
 # ---------------------------------------------------------------------------
 # 2B-1: audit_timestamp returns valid ISO 8601
 # ---------------------------------------------------------------------------
 
+
 def test_audit_timestamp_is_valid_iso():
     from datetime import datetime
+
     ts = audit_timestamp()
     dt = datetime.fromisoformat(ts)  # raises if invalid
     assert dt is not None
@@ -25,6 +27,7 @@ def test_audit_timestamp_is_utc():
 # ---------------------------------------------------------------------------
 # 2B-2: deterministic_timestamp validates and returns the pinned value
 # ---------------------------------------------------------------------------
+
 
 def test_deterministic_timestamp_returns_pinned():
     pinned = "2026-01-01T00:00:00+00:00"
@@ -51,8 +54,10 @@ def test_deterministic_timestamp_rejects_invalid():
 # 2C: Envelope post-hoc check returns list (empty when clean)
 # ---------------------------------------------------------------------------
 
+
 def test_envelope_post_hoc_returns_list():
     from runtime.envelope.execution_envelope import ExecutionEnvelope
+
     envelope = ExecutionEnvelope()
     result = envelope.verify_network_restrictions_post_hoc()
     assert isinstance(result, list)

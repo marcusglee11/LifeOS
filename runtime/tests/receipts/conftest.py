@@ -1,6 +1,7 @@
 """
 Shared pytest fixtures for runtime/tests/receipts/.
 """
+
 from __future__ import annotations
 
 import pytest

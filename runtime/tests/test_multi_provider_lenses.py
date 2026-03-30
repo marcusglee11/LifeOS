@@ -5,20 +5,18 @@ Validates that the multi-provider executor routes lenses to different
 providers based on configuration and overrides.
 """
 
-from unittest.mock import patch, MagicMock
 from types import SimpleNamespace
+from unittest.mock import patch
 
-import pytest
-
-from runtime.orchestration.council.multi_provider import (
-    build_multi_provider_executor,
-    _response_to_dict,
-)
 from runtime.agents.api import AgentResponse
 from runtime.agents.models import (
-    ModelConfig,
     AgentConfig,
     CLIProviderConfig,
+    ModelConfig,
+)
+from runtime.orchestration.council.multi_provider import (
+    _response_to_dict,
+    build_multi_provider_executor,
 )
 
 
@@ -30,11 +28,13 @@ def _make_plan_core(
     """Create a minimal plan_core-like object for testing."""
     return SimpleNamespace(
         required_lenses=lenses,
-        model_assignments=model_assignments or {
+        model_assignments=model_assignments
+        or {
             "Architecture": "gpt-5.3-codex",
             "Security": "gemini-3-pro",
         },
-        lens_role_map=lens_role_map or {
+        lens_role_map=lens_role_map
+        or {
             "Architecture": "council_reviewer",
             "Security": "council_reviewer_security",
         },
@@ -48,22 +48,32 @@ def _make_config_with_cli():
         default_chain=["claude-sonnet-4-5"],
         agents={
             "council_reviewer": AgentConfig(
-                provider="zen", model="claude-sonnet-4-5",
-                endpoint="https://example.com", api_key_env="TEST_KEY",
+                provider="zen",
+                model="claude-sonnet-4-5",
+                endpoint="https://example.com",
+                api_key_env="TEST_KEY",
             ),
             "council_reviewer_security": AgentConfig(
-                provider="zen", model="claude-sonnet-4-5",
-                endpoint="https://example.com", api_key_env="TEST_KEY",
+                provider="zen",
+                model="claude-sonnet-4-5",
+                endpoint="https://example.com",
+                api_key_env="TEST_KEY",
             ),
         },
         cli_providers={
             "codex": CLIProviderConfig(
-                binary="codex", default_model="gpt-5.3-codex",
-                timeout_seconds=600, sandbox=True, enabled=True,
+                binary="codex",
+                default_model="gpt-5.3-codex",
+                timeout_seconds=600,
+                sandbox=True,
+                enabled=True,
             ),
             "gemini": CLIProviderConfig(
-                binary="gemini", default_model="gemini-3-pro",
-                timeout_seconds=600, sandbox=True, enabled=True,
+                binary="gemini",
+                default_model="gemini-3-pro",
+                timeout_seconds=600,
+                sandbox=True,
+                enabled=True,
             ),
         },
     )
@@ -81,9 +91,13 @@ class TestBuildMultiProviderExecutor:
     def test_default_routes_to_api(self, mock_call):
         """Without overrides, all lenses should use API dispatch."""
         mock_call.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="council_reviewer",
-            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
-            content="review complete", packet={"verdict": "Accept"},
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="review complete",
+            packet={"verdict": "Accept"},
         )
         config = _make_config_with_cli()
         executor = build_multi_provider_executor(config=config)
@@ -101,9 +115,13 @@ class TestBuildMultiProviderExecutor:
     def test_override_routes_to_cli(self, mock_cli_call):
         """Lens with CLI override should route to call_agent_cli."""
         mock_cli_call.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="council_reviewer",
-            model_used="gpt-5.3-codex", model_version="codex/gpt-5.3-codex",
-            content="architecture analysis", packet={"verdict": "Accept"},
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="gpt-5.3-codex",
+            model_version="codex/gpt-5.3-codex",
+            content="architecture analysis",
+            packet={"verdict": "Accept"},
         )
         config = _make_config_with_cli()
         executor = build_multi_provider_executor(
@@ -124,21 +142,28 @@ class TestBuildMultiProviderExecutor:
     def test_disabled_cli_falls_back_to_api(self, mock_call):
         """CLI provider that is disabled should fall back to API."""
         mock_call.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="council_reviewer",
-            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
-            content="ok", packet={"verdict": "Accept"},
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="ok",
+            packet={"verdict": "Accept"},
         )
         config = ModelConfig(
             default_chain=["claude-sonnet-4-5"],
             agents={
                 "council_reviewer": AgentConfig(
-                    provider="zen", model="claude-sonnet-4-5",
-                    endpoint="https://example.com", api_key_env="TEST_KEY",
+                    provider="zen",
+                    model="claude-sonnet-4-5",
+                    endpoint="https://example.com",
+                    api_key_env="TEST_KEY",
                 ),
             },
             cli_providers={
                 "codex": CLIProviderConfig(
-                    binary="codex", enabled=False,  # disabled
+                    binary="codex",
+                    enabled=False,  # disabled
                 ),
             },
         )
@@ -157,16 +182,22 @@ class TestBuildMultiProviderExecutor:
     def test_unconfigured_cli_falls_back_to_api(self, mock_call):
         """CLI provider not in config should fall back to API."""
         mock_call.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="council_reviewer",
-            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
-            content="ok", packet=None,
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="ok",
+            packet=None,
         )
         config = ModelConfig(
             default_chain=["claude-sonnet-4-5"],
             agents={
                 "council_reviewer": AgentConfig(
-                    provider="zen", model="claude-sonnet-4-5",
-                    endpoint="https://example.com", api_key_env="TEST_KEY",
+                    provider="zen",
+                    model="claude-sonnet-4-5",
+                    endpoint="https://example.com",
+                    api_key_env="TEST_KEY",
                 ),
             },
         )
@@ -189,14 +220,22 @@ class TestMultiProviderMixedRouting:
     def test_mixed_routing(self, mock_cli, mock_api):
         """Architecture→codex CLI, Security→API."""
         mock_cli.return_value = AgentResponse(
-            call_id="cli", call_id_audit="cli", role="council_reviewer",
-            model_used="gpt-5.3-codex", model_version="codex/gpt-5.3-codex",
-            content="arch analysis", packet={"lens": "Architecture", "verdict": "Accept"},
+            call_id="cli",
+            call_id_audit="cli",
+            role="council_reviewer",
+            model_used="gpt-5.3-codex",
+            model_version="codex/gpt-5.3-codex",
+            content="arch analysis",
+            packet={"lens": "Architecture", "verdict": "Accept"},
         )
         mock_api.return_value = AgentResponse(
-            call_id="api", call_id_audit="api", role="council_reviewer_security",
-            model_used="claude-sonnet-4-5", model_version="claude-sonnet-4-5",
-            content="security review", packet={"lens": "Security", "verdict": "Accept"},
+            call_id="api",
+            call_id_audit="api",
+            role="council_reviewer_security",
+            model_used="claude-sonnet-4-5",
+            model_version="claude-sonnet-4-5",
+            content="security review",
+            packet={"lens": "Security", "verdict": "Accept"},
         )
         config = _make_config_with_cli()
         executor = build_multi_provider_executor(
@@ -220,9 +259,13 @@ class TestMultiProviderMixedRouting:
 class TestResponseToDict:
     def test_with_packet(self):
         response = AgentResponse(
-            call_id="test", call_id_audit="test", role="reviewer",
-            model_used="claude", model_version="claude",
-            content="raw text", packet={"verdict": "Accept"},
+            call_id="test",
+            call_id_audit="test",
+            role="reviewer",
+            model_used="claude",
+            model_version="claude",
+            content="raw text",
+            packet={"verdict": "Accept"},
         )
         assert _response_to_dict(response, "Architecture") == {
             "verdict": "Accept",
@@ -232,9 +275,13 @@ class TestResponseToDict:
 
     def test_without_packet(self):
         response = AgentResponse(
-            call_id="test", call_id_audit="test", role="reviewer",
-            model_used="claude", model_version="claude",
-            content="raw analysis text", packet=None,
+            call_id="test",
+            call_id_audit="test",
+            role="reviewer",
+            model_used="claude",
+            model_version="claude",
+            content="raw analysis text",
+            packet=None,
         )
         result = _response_to_dict(response, "Architecture")
         assert result["lens_name"] == "Architecture"
@@ -249,24 +296,33 @@ class TestDelegatedRoleWithOverride:
     def test_delegated_role_with_override_routes_via_synthetic_config(self, mock_cli):
         """Delegated roles: multi_provider injects synthetic dispatch_mode='cli' — no DelegatedDispatchError raised."""
         mock_cli.return_value = AgentResponse(
-            call_id="test", call_id_audit="test", role="council_reviewer",
-            model_used="claude_code/default", model_version="claude_code/default",
-            content="architecture review complete", packet={"verdict": "Accept"},
+            call_id="test",
+            call_id_audit="test",
+            role="council_reviewer",
+            model_used="claude_code/default",
+            model_version="claude_code/default",
+            content="architecture review complete",
+            packet={"verdict": "Accept"},
         )
         # Config has council_reviewer.dispatch_mode="delegated", but override routes it via CLI
         config = ModelConfig(
             default_chain=["claude-sonnet-4-5"],
             agents={
                 "council_reviewer": AgentConfig(
-                    provider="zen", model="claude-sonnet-4-5",
-                    endpoint="https://example.com", api_key_env="TEST_KEY",
+                    provider="zen",
+                    model="claude-sonnet-4-5",
+                    endpoint="https://example.com",
+                    api_key_env="TEST_KEY",
                     dispatch_mode="delegated",
                 ),
             },
             cli_providers={
                 "claude_code": CLIProviderConfig(
-                    binary="claude", default_model="",
-                    timeout_seconds=600, sandbox=True, enabled=True,
+                    binary="claude",
+                    default_model="",
+                    timeout_seconds=600,
+                    sandbox=True,
+                    enabled=True,
                 ),
             },
         )
@@ -274,7 +330,9 @@ class TestDelegatedRoleWithOverride:
             config=config,
             provider_overrides={"Architecture": "claude_code"},
         )
-        plan = _make_plan_core(lenses=("Architecture",), lens_role_map={"Architecture": "council_reviewer"})
+        plan = _make_plan_core(
+            lenses=("Architecture",), lens_role_map={"Architecture": "council_reviewer"}
+        )
 
         # Should NOT raise DelegatedDispatchError — synthetic config overrides dispatch_mode to "cli"
         result = executor("Architecture", {"task": "review"}, plan, 0)

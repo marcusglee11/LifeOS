@@ -2,8 +2,10 @@
 FP-3.1: FSM Transition Tests
 Comprehensive legal/illegal transition coverage.
 """
+
 import unittest
-from runtime.engine import RuntimeFSM, RuntimeState, GovernanceError
+
+from runtime.engine import GovernanceError, RuntimeFSM, RuntimeState
 
 
 class TestFSMTransitions(unittest.TestCase):
@@ -185,7 +187,7 @@ class TestFSMTransitions(unittest.TestCase):
         self.fsm.transition_to(RuntimeState.AMENDMENT_PREP)
         with self.assertRaises(GovernanceError):
             self.fsm.transition_to(RuntimeState.COMPLETE)  # Force error
-        
+
         # Now try to transition again
         with self.assertRaises(GovernanceError):
             self.fsm.transition_to(RuntimeState.AMENDMENT_EXEC)
@@ -200,5 +202,5 @@ class TestFSMTransitions(unittest.TestCase):
             self.assertIn("COMPLETE", str(e))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

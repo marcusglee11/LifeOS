@@ -9,21 +9,20 @@ Coverage:
 - Self-modification protection
 """
 
-import pytest
-from runtime.governance.tool_policy import check_code_autonomy_policy
 from runtime.governance.protected_paths import (
-    validate_write_path,
-    validate_diff_budget,
-    is_path_protected,
-    is_path_in_allowed_scope,
     MAX_DIFF_LINES,
+    is_path_in_allowed_scope,
+    is_path_protected,
+    validate_diff_budget,
+    validate_write_path,
 )
+from runtime.governance.tool_policy import check_code_autonomy_policy
 from runtime.tools.schemas import ToolInvokeRequest
-
 
 # =============================================================================
 # Path Validation Tests
 # =============================================================================
+
 
 class TestPathValidation:
     """Tests for path validation against allowed/protected lists."""
@@ -86,25 +85,19 @@ class TestProtectedPaths:
 
     def test_protected_self_mod_protection_file(self):
         """Verify self_mod_protection.py is protected."""
-        protected, reason = is_path_protected(
-            "runtime/governance/self_mod_protection.py"
-        )
+        protected, reason = is_path_protected("runtime/governance/self_mod_protection.py")
         assert protected is True
         assert "SELF_MOD_PROTECTION" in reason
 
     def test_protected_envelope_enforcer(self):
         """Verify envelope_enforcer.py is protected."""
-        protected, reason = is_path_protected(
-            "runtime/governance/envelope_enforcer.py"
-        )
+        protected, reason = is_path_protected("runtime/governance/envelope_enforcer.py")
         assert protected is True
         assert "ENVELOPE_ENFORCER" in reason
 
     def test_protected_tool_policy(self):
         """Verify tool_policy.py is protected."""
-        protected, reason = is_path_protected(
-            "runtime/governance/tool_policy.py"
-        )
+        protected, reason = is_path_protected("runtime/governance/tool_policy.py")
         assert protected is True
         assert "TOOL_POLICY_GATE" in reason
 
@@ -145,9 +138,7 @@ class TestWritePathValidation:
 
     def test_write_blocked_self_modification(self):
         """Verify write blocked to self-mod protection files."""
-        allowed, reason = validate_write_path(
-            "runtime/governance/self_mod_protection.py"
-        )
+        allowed, reason = validate_write_path("runtime/governance/self_mod_protection.py")
         assert allowed is False
         assert "PROTECTED" in reason
         assert "SELF_MOD_PROTECTION" in reason
@@ -164,9 +155,7 @@ class TestWritePathValidation:
         Even though runtime/ is allowed, specific files within it can be protected.
         """
         # This file is in runtime/ (allowed) but explicitly protected
-        allowed, reason = validate_write_path(
-            "runtime/governance/envelope_enforcer.py"
-        )
+        allowed, reason = validate_write_path("runtime/governance/envelope_enforcer.py")
         assert allowed is False
         assert "PROTECTED" in reason
 
@@ -174,6 +163,7 @@ class TestWritePathValidation:
 # =============================================================================
 # Diff Budget Tests
 # =============================================================================
+
 
 class TestDiffBudget:
     """Tests for diff budget validation."""
@@ -206,6 +196,7 @@ class TestDiffBudget:
 # Code Autonomy Policy Integration Tests
 # =============================================================================
 
+
 class TestCodeAutonomyPolicy:
     """Tests for the integrated code autonomy policy check."""
 
@@ -214,10 +205,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/new_module.py",
-                "content": "def foo(): pass\n"
-            }
+            args={"path": "runtime/new_module.py", "content": "def foo(): pass\n"},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
@@ -231,10 +219,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "coo/utils/helper.py",
-                "content": "x = 1\n"
-            }
+            args={"path": "coo/utils/helper.py", "content": "x = 1\n"},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
@@ -247,10 +232,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "docs/01_governance/test.md",
-                "content": "# test"
-            }
+            args={"path": "docs/01_governance/test.md", "content": "# test"},
         )
 
         allowed, decision = check_code_autonomy_policy(request)
@@ -265,10 +247,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/governance/self_mod_protection.py",
-                "content": "# hack attempt"
-            }
+            args={"path": "runtime/governance/self_mod_protection.py", "content": "# hack attempt"},
         )
 
         allowed, decision = check_code_autonomy_policy(request)
@@ -284,10 +263,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/big.py",
-                "content": large_content
-            }
+            args={"path": "runtime/big.py", "content": large_content},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=400)
@@ -302,10 +278,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/bad.py",
-                "content": "def broken("
-            }
+            args={"path": "runtime/bad.py", "content": "def broken("},
         )
 
         # v1.1: diff_lines required
@@ -321,10 +294,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/config.yaml",
-                "content": "key: value\nlist:\n  - item"
-            }
+            args={"path": "runtime/config.yaml", "content": "key: value\nlist:\n  - item"},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=3)
@@ -337,10 +307,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/data.json",
-                "content": '{"key": "value"}'
-            }
+            args={"path": "runtime/data.json", "content": '{"key": "value"}'},
         )
 
         allowed, decision = check_code_autonomy_policy(request, diff_lines=1)
@@ -355,8 +322,8 @@ class TestCodeAutonomyPolicy:
             action="write_file",
             args={
                 "path": "runtime/bad.json",
-                "content": '{"key": value}'  # Missing quotes
-            }
+                "content": '{"key": value}',  # Missing quotes
+            },
         )
 
         # v1.1: diff_lines required
@@ -368,9 +335,7 @@ class TestCodeAutonomyPolicy:
     def test_non_write_operation_passes_through(self):
         """Verify non-write operations are not affected."""
         request = ToolInvokeRequest(
-            tool="filesystem",
-            action="read_file",
-            args={"path": "runtime/module.py"}
+            tool="filesystem", action="read_file", args={"path": "runtime/module.py"}
         )
 
         allowed, decision = check_code_autonomy_policy(request)
@@ -382,9 +347,7 @@ class TestCodeAutonomyPolicy:
     def test_write_without_path_blocked(self):
         """Verify write without path is blocked (fail-closed)."""
         request = ToolInvokeRequest(
-            tool="filesystem",
-            action="write_file",
-            args={"content": "test"}
+            tool="filesystem", action="write_file", args={"content": "test"}
         )
 
         allowed, decision = check_code_autonomy_policy(request)
@@ -397,10 +360,7 @@ class TestCodeAutonomyPolicy:
         request = ToolInvokeRequest(
             tool="filesystem",
             action="write_file",
-            args={
-                "path": "runtime/test.py",
-                "content": "x = 1\n"
-            }
+            args={"path": "runtime/test.py", "content": "x = 1\n"},
         )
 
         # v1.1: diff_lines is REQUIRED, None is denied (fail-closed)
@@ -413,6 +373,7 @@ class TestCodeAutonomyPolicy:
 # =============================================================================
 # Edge Cases and Cross-Platform Tests
 # =============================================================================
+
 
 class TestEdgeCases:
     """Tests for edge cases and cross-platform compatibility."""

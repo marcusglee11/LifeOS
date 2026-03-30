@@ -1,12 +1,10 @@
 """Tests: Mission compensation + LLM replay cache (Phase 3B+3C — Constitutional Compliance)."""
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import patch
-
-import pytest
 
 from runtime.orchestration.missions.base import (
     BaseMission,
@@ -15,7 +13,6 @@ from runtime.orchestration.missions.base import (
     MissionResult,
     MissionType,
 )
-
 
 # ===========================================================================
 # Phase 3B: CompensableMission interface
@@ -57,6 +54,7 @@ class _FailingCompensable(CompensableMission, _NoopMission):
 # 3B-1: CompensableMission default compensate() returns True (no-op)
 # ---------------------------------------------------------------------------
 
+
 def test_default_compensate_returns_true():
     mission = _NoopMission()
     # Verify BaseMission is NOT a CompensableMission by default
@@ -82,6 +80,7 @@ def test_compensable_mixin_compensate_called():
 # 3B-2: issubclass check works for CompensableMission detection
 # ---------------------------------------------------------------------------
 
+
 def test_issubclass_detection():
     assert issubclass(_CompensableNoop, CompensableMission)
     assert not issubclass(_NoopMission, CompensableMission)
@@ -90,6 +89,7 @@ def test_issubclass_detection():
 # ---------------------------------------------------------------------------
 # 3B-3: Compensation false return is handled gracefully
 # ---------------------------------------------------------------------------
+
 
 def test_failing_compensate_returns_false():
     mission = _FailingCompensable()

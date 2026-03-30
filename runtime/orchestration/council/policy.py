@@ -283,19 +283,11 @@ class CouncilPolicy:
         return tuple(str(seat) for seat in seats)
 
     def independence_must_triggers(self) -> tuple[str, ...]:
-        triggers = (
-            self.raw.get("independence", {})
-            .get("must_conditions", {})
-            .get("triggers", [])
-        )
+        triggers = self.raw.get("independence", {}).get("must_conditions", {}).get("triggers", [])
         return tuple(str(s) for s in triggers)
 
     def independence_should_triggers(self) -> tuple[str, ...]:
-        triggers = (
-            self.raw.get("independence", {})
-            .get("should_conditions", {})
-            .get("triggers", [])
-        )
+        triggers = self.raw.get("independence", {}).get("should_conditions", {}).get("triggers", [])
         return tuple(str(s) for s in triggers)
 
     @property

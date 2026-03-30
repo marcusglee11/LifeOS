@@ -11,29 +11,27 @@ from runtime.agents.api import AgentCall, call_agent
 
 from .compiler import compile_council_run_plan
 from .models import (
+    DECISION_STATUS_DEGRADED_CHALLENGER,
+    DECISION_STATUS_DEGRADED_COVERAGE,
+    DECISION_STATUS_NORMAL,
+    VERDICT_ACCEPT,
+    VERDICT_REJECT,
+    VERDICT_REVISE,
     CouncilBlockedError,
+    CouncilRunMeta,
     CouncilRunPlan,
+    CouncilRunPlanCore,
     CouncilRuntimeResult,
     CouncilSeatResult,
     CouncilTransition,
-    CouncilRunPlanCore,
-    CouncilRunMeta,
-    VERDICT_ACCEPT,
-    VERDICT_REVISE,
-    VERDICT_REJECT,
-    DECISION_STATUS_NORMAL,
-    DECISION_STATUS_DEGRADED_COVERAGE,
-    DECISION_STATUS_DEGRADED_CHALLENGER,
-    generate_run_id,
 )
 from .policy import CouncilPolicy, resolve_model_family
 from .schema_gate import (
-    validate_seat_output,
-    validate_lens_output,
-    validate_synthesis_output,
     validate_challenger_output,
+    validate_lens_output,
+    validate_seat_output,
+    validate_synthesis_output,
 )
-
 
 SeatExecutor = Callable[[str, Mapping[str, Any], CouncilRunPlan, int], dict[str, Any] | str]
 ClosureCallable = Callable[[Mapping[str, Any], CouncilRunPlan], tuple[bool, dict[str, Any]]]
@@ -114,7 +112,11 @@ def _default_closure_builder(
     """
     Default closure-build hook. Side-effect free unless caller injects a real hook.
     """
-    return True, {"builder": "noop", "run_id": plan.run_id, "synthesis_verdict": synthesis.get("verdict")}
+    return True, {
+        "builder": "noop",
+        "run_id": plan.run_id,
+        "synthesis_verdict": synthesis.get("verdict"),
+    }
 
 
 def _default_closure_validator(
@@ -123,7 +125,11 @@ def _default_closure_validator(
     """
     Default closure-validate hook. Side-effect free unless caller injects a real hook.
     """
-    return True, {"validator": "noop", "run_id": plan.run_id, "synthesis_verdict": synthesis.get("verdict")}
+    return True, {
+        "validator": "noop",
+        "run_id": plan.run_id,
+        "synthesis_verdict": synthesis.get("verdict"),
+    }
 
 
 class CouncilFSM:
@@ -259,7 +265,7 @@ class CouncilFSM:
         plan: CouncilRunPlan,
         ccp: Mapping[str, Any],
     ) -> dict[str, Any]:
-        chair_output = (seat_outputs.get("Chair") or seat_outputs.get("L1UnifiedReviewer"))
+        chair_output = seat_outputs.get("Chair") or seat_outputs.get("L1UnifiedReviewer")
         chair_payload = chair_output.normalized_output if chair_output else {}
         if not isinstance(chair_payload, Mapping):
             chair_payload = {}
@@ -322,7 +328,9 @@ class CouncilFSM:
             if not isinstance(ledger, list):
                 return False, "Contradiction Ledger missing from synthesis."
             if plan.topology == "MONO":
-                verified = bool(cochair.normalized_output.get("contradiction_ledger_verified", False))
+                verified = bool(
+                    cochair.normalized_output.get("contradiction_ledger_verified", False)
+                )
                 if not verified:
                     return False, "CoChair did not verify contradiction ledger completeness."
         return True, "cochair_challenge_passed"
@@ -364,7 +372,11 @@ class CouncilFSM:
                     "status": "blocked",
                     "state_transitions": [event.to_dict() for event in transitions],
                 },
-                decision_payload={"status": "BLOCKED", "reason": err.category, "detail": err.detail},
+                decision_payload={
+                    "status": "BLOCKED",
+                    "reason": err.category,
+                    "detail": err.detail,
+                },
                 block_report=block_report,
             )
 
@@ -385,7 +397,11 @@ class CouncilFSM:
                         "status": "blocked",
                         "state_transitions": [event.to_dict() for event in transitions],
                     },
-                    decision_payload={"status": "BLOCKED", "reason": "ccp_validation_failed", "detail": reason},
+                    decision_payload={
+                        "status": "BLOCKED",
+                        "reason": "ccp_validation_failed",
+                        "detail": reason,
+                    },
                     block_report={"category": "ccp_validation_failed", "detail": reason},
                 )
             self._transition(
@@ -446,9 +462,13 @@ class CouncilFSM:
                 STATE_S1_5_SEAT_COMPLETION,
                 "all_seats_processed",
                 {
-                    "seats_failed": sum(1 for item in seat_results.values() if item.status == "failed"),
+                    "seats_failed": sum(
+                        1 for item in seat_results.values() if item.status == "failed"
+                    ),
                     "seats_total": len(seat_results),
-                    "seats_waived": sum(1 for item in seat_results.values() if item.status == "waived"),
+                    "seats_waived": sum(
+                        1 for item in seat_results.values() if item.status == "waived"
+                    ),
                 },
             )
             state = STATE_S1_5_SEAT_COMPLETION
@@ -471,7 +491,9 @@ class CouncilFSM:
                     status="blocked",
                     run_log={
                         "execution": plan.to_dict(),
-                        "seat_outputs": {seat: result.to_dict() for seat, result in seat_results.items()},
+                        "seat_outputs": {
+                            seat: result.to_dict() for seat, result in seat_results.items()
+                        },
                         "status": "blocked",
                         "state_transitions": [event.to_dict() for event in transitions],
                     },
@@ -526,7 +548,9 @@ class CouncilFSM:
                         status="blocked",
                         run_log={
                             "execution": plan.to_dict(),
-                            "seat_outputs": {seat: result.to_dict() for seat, result in seat_results.items()},
+                            "seat_outputs": {
+                                seat: result.to_dict() for seat, result in seat_results.items()
+                            },
                             "status": "blocked",
                             "state_transitions": [event.to_dict() for event in transitions],
                             "synthesis": synthesis,
@@ -868,9 +892,8 @@ class CouncilFSMv2:
     def _default_plan_factory(
         self, ccp: Mapping[str, Any], policy: CouncilPolicy
     ) -> tuple[CouncilRunPlanCore, CouncilRunMeta]:
+
         from .compiler import compile_council_run_plan_v2
-        from .models import compute_plan_core_hash
-        from datetime import datetime, timezone
 
         result = compile_council_run_plan_v2(ccp=ccp, policy=policy)
         core_dict = result["core"]
@@ -936,12 +959,14 @@ class CouncilFSMv2:
         reason: str,
         details: dict[str, Any] | None = None,
     ) -> None:
-        transitions.append({
-            "from_state": from_state,
-            "to_state": to_state,
-            "reason": reason,
-            "details": details or {},
-        })
+        transitions.append(
+            {
+                "from_state": from_state,
+                "to_state": to_state,
+                "reason": reason,
+                "details": details or {},
+            }
+        )
 
     def _execute_lenses(
         self,
@@ -1049,13 +1074,20 @@ class CouncilFSMv2:
             core, meta = self.plan_factory(ccp, self.policy)
         except CouncilBlockedError as err:
             self._transition(
-                transitions, STATE_S0_ASSEMBLE, STATE_TERMINAL_BLOCKED,
-                "plan_blocked", {"category": err.category, "detail": err.detail},
+                transitions,
+                STATE_S0_ASSEMBLE,
+                STATE_TERMINAL_BLOCKED,
+                "plan_blocked",
+                {"category": err.category, "detail": err.detail},
             )
             return CouncilRuntimeResult(
                 status="blocked",
                 run_log={"status": "blocked", "state_transitions": transitions},
-                decision_payload={"status": "BLOCKED", "reason": err.category, "detail": err.detail},
+                decision_payload={
+                    "status": "BLOCKED",
+                    "reason": err.category,
+                    "detail": err.detail,
+                },
                 block_report={"category": err.category, "detail": err.detail},
             )
 
@@ -1069,69 +1101,101 @@ class CouncilFSMv2:
 
         if has_lenses:
             self._transition(
-                transitions, STATE_S0_ASSEMBLE, STATE_S1_EXECUTE_LENSES, "lenses_required",
+                transitions,
+                STATE_S0_ASSEMBLE,
+                STATE_S1_EXECUTE_LENSES,
+                "lenses_required",
             )
 
             lens_results, actual_models, coverage_degraded, blocked = self._execute_lenses(
-                plan=core, ccp=ccp, transitions=transitions,
+                plan=core,
+                ccp=ccp,
+                transitions=transitions,
             )
 
             if blocked:
                 self._transition(
-                    transitions, STATE_S1_25_SCHEMA_GATE_LENSES,
-                    STATE_TERMINAL_BLOCKED, "mandatory_lens_failed",
+                    transitions,
+                    STATE_S1_25_SCHEMA_GATE_LENSES,
+                    STATE_TERMINAL_BLOCKED,
+                    "mandatory_lens_failed",
                 )
                 return CouncilRuntimeResult(
                     status="blocked",
-                    run_log={"status": "blocked", "state_transitions": transitions,
-                             "lens_results": dict(sorted(lens_results.items()))},
+                    run_log={
+                        "status": "blocked",
+                        "state_transitions": transitions,
+                        "lens_results": dict(sorted(lens_results.items())),
+                    },
                     decision_payload={"status": "BLOCKED", "reason": "mandatory_lens_failed"},
-                    block_report={"category": "mandatory_lens_failed",
-                                  "detail": "A mandatory lens failed all retries."},
+                    block_report={
+                        "category": "mandatory_lens_failed",
+                        "detail": "A mandatory lens failed all retries.",
+                    },
                 )
 
             # S1_5_COVERAGE_COMPLETE
             self._transition(
-                transitions, STATE_S1_25_SCHEMA_GATE_LENSES,
-                STATE_S1_5_COVERAGE_COMPLETE, "lens_gate_complete",
+                transitions,
+                STATE_S1_25_SCHEMA_GATE_LENSES,
+                STATE_S1_5_COVERAGE_COMPLETE,
+                "lens_gate_complete",
                 {"coverage_degraded": coverage_degraded},
             )
 
             # S1_55_EXECUTION_FIDELITY
             self._transition(
-                transitions, STATE_S1_5_COVERAGE_COMPLETE,
-                STATE_S1_55_EXECUTION_FIDELITY, "coverage_check_ok",
+                transitions,
+                STATE_S1_5_COVERAGE_COMPLETE,
+                STATE_S1_55_EXECUTION_FIDELITY,
+                "coverage_check_ok",
             )
             fidelity_ok, fidelity_reason = self._check_execution_fidelity(actual_models, core)
             if not fidelity_ok:
                 self._transition(
-                    transitions, STATE_S1_55_EXECUTION_FIDELITY,
-                    STATE_TERMINAL_BLOCKED, "execution_fidelity_violation",
+                    transitions,
+                    STATE_S1_55_EXECUTION_FIDELITY,
+                    STATE_TERMINAL_BLOCKED,
+                    "execution_fidelity_violation",
                     {"reason": fidelity_reason},
                 )
                 return CouncilRuntimeResult(
                     status="blocked",
-                    run_log={"status": "blocked", "state_transitions": transitions,
-                             "lens_results": dict(sorted(lens_results.items()))},
-                    decision_payload={"status": "BLOCKED",
-                                      "reason": "execution_fidelity_violation",
-                                      "detail": fidelity_reason},
-                    block_report={"category": "execution_fidelity_violation",
-                                  "detail": fidelity_reason or ""},
+                    run_log={
+                        "status": "blocked",
+                        "state_transitions": transitions,
+                        "lens_results": dict(sorted(lens_results.items())),
+                    },
+                    decision_payload={
+                        "status": "BLOCKED",
+                        "reason": "execution_fidelity_violation",
+                        "detail": fidelity_reason,
+                    },
+                    block_report={
+                        "category": "execution_fidelity_violation",
+                        "detail": fidelity_reason or "",
+                    },
                 )
             self._transition(
-                transitions, STATE_S1_55_EXECUTION_FIDELITY,
-                STATE_S2_SYNTHESIS, "fidelity_check_ok",
+                transitions,
+                STATE_S1_55_EXECUTION_FIDELITY,
+                STATE_S2_SYNTHESIS,
+                "fidelity_check_ok",
             )
         else:
             self._transition(
-                transitions, STATE_S0_ASSEMBLE, STATE_S2_SYNTHESIS, "no_lenses",
+                transitions,
+                STATE_S0_ASSEMBLE,
+                STATE_S2_SYNTHESIS,
+                "no_lenses",
             )
 
         # --------------- S2: Synthesis ---------------
         self._transition(
-            transitions, STATE_S2_SYNTHESIS,
-            STATE_S2_25_SCHEMA_GATE_SYNTHESIS, "synthesis_started",
+            transitions,
+            STATE_S2_SYNTHESIS,
+            STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+            "synthesis_started",
         )
 
         synthesis_rework_count = 0
@@ -1148,16 +1212,20 @@ class CouncilFSMv2:
             if not synth_gate.valid:
                 # Synthesis schema gate failure — block
                 self._transition(
-                    transitions, STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
-                    STATE_TERMINAL_BLOCKED, "synthesis_schema_rejected",
+                    transitions,
+                    STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+                    STATE_TERMINAL_BLOCKED,
+                    "synthesis_schema_rejected",
                     {"errors": synth_gate.errors},
                 )
                 return CouncilRuntimeResult(
                     status="blocked",
                     run_log={"status": "blocked", "state_transitions": transitions},
                     decision_payload={"status": "BLOCKED", "reason": "synthesis_schema_rejected"},
-                    block_report={"category": "synthesis_schema_rejected",
-                                  "detail": str(synth_gate.errors)},
+                    block_report={
+                        "category": "synthesis_schema_rejected",
+                        "detail": str(synth_gate.errors),
+                    },
                 )
 
             synthesis = synth_gate.normalized_output or {}
@@ -1167,8 +1235,10 @@ class CouncilFSMv2:
                 break  # No challenger — exit loop
 
             self._transition(
-                transitions, STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
-                STATE_S2_5_CHALLENGER_REVIEW, "synthesis_schema_ok",
+                transitions,
+                STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+                STATE_S2_5_CHALLENGER_REVIEW,
+                "synthesis_schema_ok",
             )
 
             raw_challenger = self.challenger_executor(synthesis, lens_results, core)
@@ -1188,13 +1258,17 @@ class CouncilFSMv2:
                 # Rework synthesis (back to S2)
                 synthesis_rework_count += 1
                 self._transition(
-                    transitions, STATE_S2_5_CHALLENGER_REVIEW,
-                    STATE_S2_SYNTHESIS, "challenger_rework_triggered",
+                    transitions,
+                    STATE_S2_5_CHALLENGER_REVIEW,
+                    STATE_S2_SYNTHESIS,
+                    "challenger_rework_triggered",
                     {"rework_count": synthesis_rework_count},
                 )
                 self._transition(
-                    transitions, STATE_S2_SYNTHESIS,
-                    STATE_S2_25_SCHEMA_GATE_SYNTHESIS, "synthesis_restarted",
+                    transitions,
+                    STATE_S2_SYNTHESIS,
+                    STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+                    "synthesis_restarted",
                 )
                 continue  # Loop back
             else:
@@ -1224,20 +1298,26 @@ class CouncilFSMv2:
 
         if enter_closure:
             self._transition(
-                transitions, STATE_S2_5_CHALLENGER_REVIEW if has_challenger else STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
-                STATE_S3_CLOSURE_GATE, "entering_closure_gate",
+                transitions,
+                STATE_S2_5_CHALLENGER_REVIEW
+                if has_challenger
+                else STATE_S2_25_SCHEMA_GATE_SYNTHESIS,
+                STATE_S3_CLOSURE_GATE,
+                "entering_closure_gate",
             )
             closure_ok = False
             for cycle in range(_CLOSURE_MAX_CYCLES):
                 build_ok, build_details = self.closure_builder(synthesis, core)
                 validate_ok, validate_details = self.closure_validator(synthesis, core)
-                closure_events.append({
-                    "cycle": cycle,
-                    "build_ok": build_ok,
-                    "validate_ok": validate_ok,
-                    "build_details": build_details,
-                    "validate_details": validate_details,
-                })
+                closure_events.append(
+                    {
+                        "cycle": cycle,
+                        "build_ok": build_ok,
+                        "validate_ok": validate_ok,
+                        "build_details": build_details,
+                        "validate_details": validate_details,
+                    }
+                )
                 if build_ok and validate_ok:
                     closure_ok = True
                     break
@@ -1247,21 +1327,31 @@ class CouncilFSMv2:
                 synthesis["fix_plan"] = synthesis.get("fix_plan") or []
 
             self._transition(
-                transitions, STATE_S3_CLOSURE_GATE, STATE_S4_CLOSEOUT,
-                "closure_gate_complete", {"closure_ok": closure_ok},
+                transitions,
+                STATE_S3_CLOSURE_GATE,
+                STATE_S4_CLOSEOUT,
+                "closure_gate_complete",
+                {"closure_ok": closure_ok},
             )
         else:
             last_state = (
-                STATE_S2_5_CHALLENGER_REVIEW if has_challenger
+                STATE_S2_5_CHALLENGER_REVIEW
+                if has_challenger
                 else STATE_S2_25_SCHEMA_GATE_SYNTHESIS
             )
             self._transition(
-                transitions, last_state, STATE_S4_CLOSEOUT, "no_closure_gate",
+                transitions,
+                last_state,
+                STATE_S4_CLOSEOUT,
+                "no_closure_gate",
             )
 
         # --------------- S4_CLOSEOUT ---------------
         self._transition(
-            transitions, STATE_S4_CLOSEOUT, STATE_TERMINAL_COMPLETE, "run_complete",
+            transitions,
+            STATE_S4_CLOSEOUT,
+            STATE_TERMINAL_COMPLETE,
+            "run_complete",
         )
 
         # Build run log

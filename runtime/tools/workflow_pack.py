@@ -81,9 +81,7 @@ def build_active_work_payload(
         status = str(finding.get("status", "")).strip().lower()
         if not finding_id or not severity or not status:
             continue
-        normalized_findings.append(
-            {"id": finding_id, "severity": severity, "status": status}
-        )
+        normalized_findings.append({"id": finding_id, "severity": severity, "status": status})
 
     return {
         "version": "1.0",
@@ -197,7 +195,9 @@ def _resolve_quality_scope_files(
     return _filter_quality_scope_files(files, manifest)
 
 
-def route_quality_tools(repo_root: Path, changed_files: Sequence[str], scope: str = "changed") -> dict[str, list[str]]:
+def route_quality_tools(
+    repo_root: Path, changed_files: Sequence[str], scope: str = "changed"
+) -> dict[str, list[str]]:
     """Map files to quality tools using the canonical manifest-driven router."""
     manifest = load_quality_manifest(repo_root)
     files = _resolve_quality_scope_files(repo_root, changed_files, manifest, scope)
@@ -503,7 +503,9 @@ def run_quality_gates(
         "scope": scope,
         "summary": summary,
         "commands_run": commands_run,
-        "files_checked": _resolve_quality_scope_files(repo_root, effective_changed_files, manifest, scope),
+        "files_checked": _resolve_quality_scope_files(
+            repo_root, effective_changed_files, manifest, scope
+        ),
         "results": results,
         "auto_fixed": auto_fixed,
     }
@@ -581,9 +583,7 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
                 "tests/test_agent_api.py",
             ),
         ):
-            add(
-                "pytest -q runtime/tests/test_agent_api_usage_plumbing.py tests/test_agent_api.py"
-            )
+            add("pytest -q runtime/tests/test_agent_api_usage_plumbing.py tests/test_agent_api.py")
             continue
 
         if _matches(
@@ -595,7 +595,9 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
                 "scripts/workflow/",
             ),
         ):
-            add("pytest -q runtime/tests/test_workflow_pack.py runtime/tests/test_git_workflow_worktree.py")
+            add(
+                "pytest -q runtime/tests/test_workflow_pack.py runtime/tests/test_git_workflow_worktree.py"
+            )
             continue
 
         if _matches(
@@ -654,10 +656,7 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
             continue
 
         if _matches(file_path, ("docs/",)):
-            add(
-                "pytest -q runtime/tests/test_doc_hygiene.py "
-                "runtime/tests/test_backlog_parser.py"
-            )
+            add("pytest -q runtime/tests/test_doc_hygiene.py runtime/tests/test_backlog_parser.py")
             continue
 
         if _matches(
@@ -683,7 +682,9 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
                 "pytest.ini",
             ),
         ):
-            add("pytest -q runtime/tests/test_known_failures_gate.py runtime/tests/test_state_hygiene.py")
+            add(
+                "pytest -q runtime/tests/test_known_failures_gate.py runtime/tests/test_state_hygiene.py"
+            )
             continue
 
         if _matches(file_path, ("artifacts/status/",)):
@@ -743,11 +744,13 @@ def discover_changed_files(repo_root: Path, branch: str | None = None) -> list[s
     if branch:
         probes.append(["git", "-C", str(repo), "diff", "--name-only", f"main..{branch}"])
     probes.append(["git", "-C", str(repo), "status", "--short"])
-    probes.extend([
-        ["git", "-C", str(repo), "diff", "--name-only", "--cached"],
-        ["git", "-C", str(repo), "diff", "--name-only"],
-        ["git", "-C", str(repo), "diff", "--name-only", "HEAD~1..HEAD"],
-    ])
+    probes.extend(
+        [
+            ["git", "-C", str(repo), "diff", "--name-only", "--cached"],
+            ["git", "-C", str(repo), "diff", "--name-only"],
+            ["git", "-C", str(repo), "diff", "--name-only", "HEAD~1..HEAD"],
+        ]
+    )
     for cmd in probes:
         proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
         if proc.returncode != 0:
@@ -840,8 +843,7 @@ def check_doc_stewardship(
 
     # Check if docs/11_admin/ files changed -> run admin validators
     admin_changed = any(
-        path == "docs/11_admin" or path.startswith("docs/11_admin/")
-        for path in changed_files
+        path == "docs/11_admin" or path.startswith("docs/11_admin/") for path in changed_files
     )
 
     if admin_changed:
@@ -858,7 +860,13 @@ def check_doc_stewardship(
 
         # Admin archive link ban check (always blocking)
         admin_archive_proc = subprocess.run(
-            [sys.executable, "-m", "doc_steward.cli", "admin-archive-link-ban-check", str(repo_root)],
+            [
+                sys.executable,
+                "-m",
+                "doc_steward.cli",
+                "admin-archive-link-ban-check",
+                str(repo_root),
+            ],
             check=False,
             cwd=Path(repo_root),
             capture_output=True,
@@ -898,7 +906,15 @@ def check_doc_stewardship(
 
         # Artefact index check (always blocking)
         protocols_index_proc = subprocess.run(
-            [sys.executable, "-m", "doc_steward.cli", "artefact-index-check", str(repo_root), "--directory", "docs/02_protocols"],
+            [
+                sys.executable,
+                "-m",
+                "doc_steward.cli",
+                "artefact-index-check",
+                str(repo_root),
+                "--directory",
+                "docs/02_protocols",
+            ],
             check=False,
             cwd=Path(repo_root),
             capture_output=True,
@@ -909,7 +925,13 @@ def check_doc_stewardship(
 
         # Global archive link ban check (always blocking)
         protocols_link_proc = subprocess.run(
-            [sys.executable, "-m", "doc_steward.cli", "docs-archive-link-ban-check", str(repo_root)],
+            [
+                sys.executable,
+                "-m",
+                "doc_steward.cli",
+                "docs-archive-link-ban-check",
+                str(repo_root),
+            ],
             check=False,
             cwd=Path(repo_root),
             capture_output=True,
@@ -920,8 +942,7 @@ def check_doc_stewardship(
 
     # Check if docs/03_runtime/ files changed -> run runtime validators
     runtime_changed = any(
-        path == "docs/03_runtime" or path.startswith("docs/03_runtime/")
-        for path in changed_files
+        path == "docs/03_runtime" or path.startswith("docs/03_runtime/") for path in changed_files
     )
 
     if runtime_changed:
@@ -938,7 +959,15 @@ def check_doc_stewardship(
 
         # Artefact index check (always blocking)
         runtime_index_proc = subprocess.run(
-            [sys.executable, "-m", "doc_steward.cli", "artefact-index-check", str(repo_root), "--directory", "docs/03_runtime"],
+            [
+                sys.executable,
+                "-m",
+                "doc_steward.cli",
+                "artefact-index-check",
+                str(repo_root),
+                "--directory",
+                "docs/03_runtime",
+            ],
             check=False,
             cwd=Path(repo_root),
             capture_output=True,
@@ -949,7 +978,13 @@ def check_doc_stewardship(
 
         # Global archive link ban check (always blocking)
         runtime_link_proc = subprocess.run(
-            [sys.executable, "-m", "doc_steward.cli", "docs-archive-link-ban-check", str(repo_root)],
+            [
+                sys.executable,
+                "-m",
+                "doc_steward.cli",
+                "docs-archive-link-ban-check",
+                str(repo_root),
+            ],
             check=False,
             cwd=Path(repo_root),
             capture_output=True,
@@ -960,8 +995,7 @@ def check_doc_stewardship(
 
     # Check if docs/99_archive/ files changed -> run archive validators
     archive_changed = any(
-        path == "docs/99_archive" or path.startswith("docs/99_archive/")
-        for path in changed_files
+        path == "docs/99_archive" or path.startswith("docs/99_archive/") for path in changed_files
     )
 
     if archive_changed:
@@ -1061,7 +1095,9 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
     # Scanning git worktree list --porcelain to find the entry whose branch is main.
     _wt_proc = subprocess.run(
         ["git", "-C", str(repo), "worktree", "list", "--porcelain"],
-        check=False, capture_output=True, text=True,
+        check=False,
+        capture_output=True,
+        text=True,
     )
     primary_repo: Path = repo
     _candidate: Path = repo
@@ -1076,7 +1112,9 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
 
     _primary_head_proc = subprocess.run(
         ["git", "-C", str(primary_repo), "branch", "--show-current"],
-        check=False, capture_output=True, text=True,
+        check=False,
+        capture_output=True,
+        text=True,
     )
     _repo_already_on_main = _primary_head_proc.stdout.strip() in {"main", "master"}
 
@@ -1089,7 +1127,9 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
     if not allow_concurrent_wip:
         _untracked_proc = subprocess.run(
             ["git", "-C", str(primary_repo), "ls-files", "--others", "--exclude-standard"],
-            check=False, capture_output=True, text=True,
+            check=False,
+            capture_output=True,
+            text=True,
         )
         _untracked = _untracked_proc.stdout.strip()
         if _untracked:
@@ -1109,21 +1149,28 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
             }
 
     steps = [
-        *([("checkout main", ["git", "-C", str(primary_repo), "checkout", "main"])]
-          if not _repo_already_on_main else []),
+        *(
+            [("checkout main", ["git", "-C", str(primary_repo), "checkout", "main"])]
+            if not _repo_already_on_main
+            else []
+        ),
         ("pull --ff-only", ["git", "-C", str(primary_repo), "pull", "--ff-only"]),
         ("squash merge", ["git", "-C", str(primary_repo), "merge", "--squash", source_branch]),
         (
             "commit squash merge",
             [
-                "git", "-C", str(primary_repo), "commit",
+                "git",
+                "-C",
+                str(primary_repo),
+                "commit",
                 *(["--no-verify"] if allow_concurrent_wip else []),
                 "-m",
                 f"feat: Merge {source_branch} (squashed)"
                 + (
                     "\n\n--no-verify: Article XIX chicken-and-egg exemption. "
                     "Concurrent agent WIP present in primary repo (allow_concurrent_wip=True)."
-                    if allow_concurrent_wip else ""
+                    if allow_concurrent_wip
+                    else ""
                 ),
             ],
         ),
@@ -1198,7 +1245,9 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
     # Post-merge health check: verify primary repo is clean.
     _health_proc = subprocess.run(
         ["git", "-C", str(primary_repo), "status", "--porcelain"],
-        check=False, capture_output=True, text=True,
+        check=False,
+        capture_output=True,
+        text=True,
     )
     _health_output = _health_proc.stdout.strip()
     if _health_output:
@@ -1445,9 +1494,7 @@ def _update_lifeos_state(
         # Insert new win right after the section header
         insert_pos = match.end()
         updated_content = (
-            updated_content[:insert_pos]
-            + new_win_entry
-            + updated_content[insert_pos:]
+            updated_content[:insert_pos] + new_win_entry + updated_content[insert_pos:]
         )
     else:
         # Recent Wins section not found - skip win addition
@@ -1648,9 +1695,7 @@ def update_state_and_backlog(
         text=True,
     )
     if proc.returncode == 0:
-        commit_messages = [
-            line.strip() for line in proc.stdout.splitlines() if line.strip()
-        ]
+        commit_messages = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
 
     # Update STATE
     state_path = repo_root / "docs" / "11_admin" / "LIFEOS_STATE.md"
