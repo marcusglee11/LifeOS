@@ -4,127 +4,277 @@
     "policy_assert_failed": {
       "severity": "drift",
       "drift_bypassable": true,
-      "owner_system": "policy"
+      "owner_system": "policy",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Review runtime/tools/openclaw_policy_assert.py output and restore policy alignment."
+      }
     },
     "model_ladder_policy_failed": {
       "severity": "drift",
       "drift_bypassable": true,
-      "owner_system": "models"
+      "owner_system": "models",
+      "remediation": {
+        "auto_fixable": true,
+        "action_id": "models.fix",
+        "fix_command": "coo models fix",
+        "manual_hint": null
+      }
     },
     "multiuser_posture_failed": {
       "severity": "drift",
       "drift_bypassable": true,
-      "owner_system": "posture"
+      "owner_system": "posture",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Adjust multi-user posture settings to match the active instance profile."
+      }
     },
     "interfaces_policy_failed": {
       "severity": "drift",
       "drift_bypassable": true,
-      "owner_system": "interfaces"
+      "owner_system": "interfaces",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Review interface policy assertions and restore the expected channel posture."
+      }
     },
     "cron_delivery_guard_failed": {
       "severity": "drift",
       "drift_bypassable": true,
-      "owner_system": "cron"
+      "owner_system": "cron",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Cron delivery policy violation. Check openclaw cron list --all --json and set delivery.mode per policy."
+      }
     },
     "sandbox_mode_disallowed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "sandbox"
+      "owner_system": "sandbox",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Adjust sandbox policy; contact the operator if the active posture is unexpected."
+      }
     },
     "sandbox_session_not_sandboxed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "sandbox"
+      "owner_system": "sandbox",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Adjust sandbox policy; contact the operator if the active posture is unexpected."
+      }
     },
     "sandbox_explain_parse_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "sandbox"
+      "owner_system": "sandbox",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Inspect sandbox explain output and repair the sandbox policy surface before retrying startup."
+      }
     },
     "sandbox_elevated_enabled": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "sandbox"
+      "owner_system": "sandbox",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Disable elevated sandbox mode and retry once the configured posture matches policy."
+      }
     },
     "gateway_probe_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "gateway"
+      "owner_system": "gateway",
+      "remediation": {
+        "auto_fixable": true,
+        "action_id": "gateway.ensure",
+        "fix_command": "runtime/tools/openclaw_gateway_ensure.sh",
+        "manual_hint": "Gateway probe failed. Run coo doctor --apply-safe-fixes to attempt gateway restart, or run coo stop && coo start manually."
+      }
     },
     "receipt_generation_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "receipts"
+      "owner_system": "receipts",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Inspect runtime receipt generation paths and restore writable runtime storage before retrying."
+      }
     },
     "leak_scan_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "leak_scan"
+      "owner_system": "leak_scan",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Review leak scan output, redact sensitive material, and rerun verification."
+      }
     },
     "security_audit_deep_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "security"
+      "owner_system": "security",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Resolve the blocking security audit failure before startup can proceed."
+      }
     },
     "security_audit_fallback_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "security"
+      "owner_system": "security",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Resolve the blocking security audit failure before startup can proceed."
+      }
     },
     "security_audit_output_missing": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "security"
+      "owner_system": "security",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Re-run security verification and inspect the missing audit output path."
+      }
     },
     "security_audit_summary_not_clean": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "security"
+      "owner_system": "security",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Resolve the reported security audit findings before retrying startup."
+      }
     },
     "host_cron_parity_guard_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "parity_cron"
+      "owner_system": "parity_cron",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Repair the host cron parity mismatch so the managed cron entries match the approved profile."
+      }
     },
     "promotion_replay_detected": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "promotion"
+      "owner_system": "promotion",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Inspect promotion receipts and discard any replayed promotion packet before proceeding."
+      }
     },
     "promotion_downgrade_detected": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "promotion"
+      "owner_system": "promotion",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Review the proposed version change and restore the approved promotion order."
+      }
     },
     "bootstrap_token_invalid": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "bootstrap"
+      "owner_system": "bootstrap",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Regenerate a valid bootstrap token and retry with the approved bootstrap flow."
+      }
     },
     "bootstrap_token_expired": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "bootstrap"
+      "owner_system": "bootstrap",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Regenerate a fresh bootstrap token and retry with the approved bootstrap flow."
+      }
     },
     "bootstrap_clock_regressed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "bootstrap"
+      "owner_system": "bootstrap",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Correct the observed clock regression before rerunning bootstrap."
+      }
     },
     "parity_apply_rollback_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "parity_apply"
+      "owner_system": "parity_apply",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Repair the parity apply rollback path before proceeding with startup."
+      }
     },
     "gate_reason_unknown": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "gate_catalog"
+      "owner_system": "gate_catalog",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Update the gate reason catalog so the reported blocker can be classified safely."
+      }
     },
     "gate_reason_catalog_failed": {
       "severity": "hard",
       "drift_bypassable": false,
-      "owner_system": "gate_catalog"
+      "owner_system": "gate_catalog",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Repair config/openclaw/gate_reason_catalog.json before relying on breakglass or doctor flows."
+      }
     }
   }
 }

@@ -495,3 +495,44 @@ tasks:
   objective_ref: pipeline-readiness
   created_at: '2026-03-27T00:00:00Z'
   completed_at: null
+- id: T-024
+  title: run_doctor mktemp leak on Python subprocess failure
+  description: fix_actions_file created by mktemp in run_doctor is not cleaned up
+    if the Python diagnostics heredoc fails under set -e. Add trap or restructure
+    to ensure cleanup in error paths.
+  dod: fix_actions_file is always cleaned up; extraordinary-failure path tested
+  priority: P3
+  risk: low
+  scope_paths:
+  - runtime/tools/coo_worktree.sh
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: 'review finding fix/fool-proof-coo-startup 2026-03-30'
+  task_type: hygiene
+  tags:
+  - coo
+  - shell-hygiene
+  objective_ref: ''
+  created_at: '2026-03-30T00:00:00Z'
+  completed_at: null
+- id: T-025
+  title: ensure --json temp file leak on subshell failure
+  description: ensure_tmp created by mktemp in the ensure --json path is not cleaned
+    up if the (ensure_worktree; ...) subshell exits non-zero before python3 runs.
+  dod: ensure_tmp is cleaned up in failure path; coverage for subshell-failure case
+  priority: P3
+  risk: low
+  scope_paths:
+  - runtime/tools/coo_worktree.sh
+  status: pending
+  requires_approval: false
+  owner: ''
+  evidence: 'review finding fix/fool-proof-coo-startup 2026-03-30'
+  task_type: hygiene
+  tags:
+  - coo
+  - shell-hygiene
+  objective_ref: ''
+  created_at: '2026-03-30T00:00:00Z'
+  completed_at: null

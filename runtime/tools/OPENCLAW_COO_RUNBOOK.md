@@ -1,5 +1,24 @@
 # OpenClaw COO Runbook
 
+## Canonical Operator Flow
+
+Standard lifecycle for any session:
+
+```bash
+coo ensure
+coo doctor
+coo doctor --apply-safe-fixes
+coo app
+# or:
+coo tui
+coo stop
+```
+
+If `coo start`, `coo app`, or `coo tui` fail, run `coo doctor` first.
+
+`coo` is the wrapper-only surface (`runtime/tools/coo_worktree.sh`).
+Python orchestration for backlog/proposals/approvals lives under `lifeos coo ...`.
+
 ## Canonical Commands
 
 - OpenClaw operations: `coo openclaw -- <args>`

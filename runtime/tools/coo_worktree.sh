@@ -53,6 +53,73 @@ ensure_openclaw_surface() {
   export LIFEOS_DISTILL_MODE
 }
 
+ensure_coo_shim() {
+  local shim_path="$HOME/.local/bin/coo"
+  local real_path="$HOME/.local/bin/coo.real"
+  local wrapper="$BUILD_REPO/runtime/tools/coo_worktree.sh"
+  local current_repo_in_shim=""
+
+  mkdir -p "$HOME/.local/bin"
+
+  if [ ! -L "$real_path" ] || [ "$(readlink -f "$real_path" 2>/dev/null || true)" != "$wrapper" ]; then
+    ln -sf "$wrapper" "$real_path"
+    echo "SHIM_REAL_INSTALLED=$real_path"
+  else
+    echo "SHIM_REAL_OK=$real_path"
+  fi
+
+  if [ -f "$shim_path" ]; then
+    current_repo_in_shim="$(
+      sed -n 's/^export LIFEOS_BUILD_REPO=\(.*\)$/\1/p' "$shim_path" | head -n 1 | tr -d '"' | tr -d "'"
+    )"
+  fi
+
+  if [ ! -f "$shim_path" ] || [ "$current_repo_in_shim" != "$BUILD_REPO" ]; then
+    python3 - "$shim_path" "$BUILD_REPO" <<'PY'
+import json
+import stat
+import sys
+from pathlib import Path
+
+shim = Path(sys.argv[1])
+repo = sys.argv[2]
+shim.write_text(
+    "#!/usr/bin/env bash\n"
+    f"export LIFEOS_BUILD_REPO={json.dumps(repo)}\n"
+    'exec "$HOME/.local/bin/coo.real" "$@"\n',
+    encoding="utf-8",
+)
+shim.chmod(shim.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+PY
+    echo "SHIM_INSTALLED=$shim_path"
+  else
+    echo "SHIM_OK=$shim_path"
+  fi
+}
+
+ensure_windows_launchers() {
+  local win_dir="$BUILD_REPO/tools/windows"
+  local any_found=0
+  local cmd_file basename
+  if [ ! -d "$win_dir" ]; then
+    echo "WINDOWS_LAUNCHERS_DIR_MISSING=$win_dir"
+    return 0
+  fi
+  for cmd_file in "$win_dir"/*.cmd; do
+    [ -f "$cmd_file" ] || continue
+    any_found=1
+    basename="$(basename "$cmd_file")"
+    if grep -q "coo " "$cmd_file" 2>/dev/null; then
+      echo "WINDOWS_LAUNCHER_OK=$basename"
+    else
+      echo "WINDOWS_LAUNCHER_WARN=$basename"
+    fi
+  done
+  if [ "$any_found" -eq 0 ]; then
+    echo "WINDOWS_LAUNCHERS_NONE_FOUND=true"
+  fi
+}
+
 resolve_openclaw_bin() {
   if [ -n "$OPENCLAW_BIN" ] && [ -x "$OPENCLAW_BIN" ]; then
     return 0
@@ -621,6 +688,289 @@ render_capsule_marker() {
     2>"$err_file"
 }
 
+run_startup_probe_bundle() {
+  local quiet_mode="${1:-0}"
+  local gateway_mode="${2:-normal}"
+  local timeout_sec="${COO_STARTUP_TIMEOUT_SEC:-120}"
+  local rc
+
+  set +e
+  if [ "$quiet_mode" = "1" ]; then
+    timeout "$timeout_sec" bash -s -- "$BUILD_REPO" "$gateway_mode" >/dev/null 2>&1 <<'EOF'
+set -euo pipefail
+repo="$1"
+gateway_mode="$2"
+start_failed=0
+cd "$repo"
+if [ "$gateway_mode" = "check-only" ]; then
+  if ! runtime/tools/openclaw_gateway_ensure.sh --check-only; then
+    start_failed=1
+  fi
+else
+  if ! runtime/tools/openclaw_gateway_ensure.sh; then
+    start_failed=1
+  fi
+fi
+export COO_ENFORCEMENT_MODE=mission
+if ! runtime/tools/openclaw_models_preflight.sh; then
+  start_failed=1
+fi
+if ! runtime/tools/openclaw_verify_surface.sh; then
+  start_failed=1
+fi
+exit "$start_failed"
+EOF
+  else
+    timeout "$timeout_sec" bash -s -- "$BUILD_REPO" "$gateway_mode" <<'EOF'
+set -euo pipefail
+repo="$1"
+gateway_mode="$2"
+start_failed=0
+cd "$repo"
+if [ "$gateway_mode" = "check-only" ]; then
+  if ! runtime/tools/openclaw_gateway_ensure.sh --check-only; then
+    start_failed=1
+  fi
+else
+  if ! runtime/tools/openclaw_gateway_ensure.sh; then
+    start_failed=1
+  fi
+fi
+export COO_ENFORCEMENT_MODE=mission
+if ! runtime/tools/openclaw_models_preflight.sh; then
+  start_failed=1
+fi
+if ! runtime/tools/openclaw_verify_surface.sh; then
+  start_failed=1
+fi
+exit "$start_failed"
+EOF
+  fi
+  rc="$?"
+  set -e
+  return "$rc"
+}
+
+run_safe_remediation_action() {
+  local action_id="$1"
+  case "$action_id" in
+    gateway.ensure)
+      (
+        cd "$BUILD_REPO"
+        runtime/tools/openclaw_gateway_ensure.sh
+      )
+      ;;
+    models.fix)
+      (
+        cd "$BUILD_REPO"
+        python3 runtime/tools/openclaw_model_ladder_fix.py --config "$OPENCLAW_CONFIG_PATH"
+      )
+      ;;
+    *)
+      echo "DOCTOR_UNKNOWN_ACTION=$action_id" >&2
+      return 1
+      ;;
+  esac
+}
+
+run_doctor() {
+  local json_output="$1"
+  local apply_safe_fixes="$2"
+  local gate_status_path="${OPENCLAW_GATE_STATUS_PATH:-$OPENCLAW_STATE_DIR/runtime/gates/gate_status.json}"
+  local catalog_path="${OPENCLAW_GATE_REASON_CATALOG_PATH:-$BUILD_REPO/config/openclaw/gate_reason_catalog.json}"
+  local probe_rc=0
+  local rc=0
+  local fix_actions_file
+  local applied_fixes_file="${COO_DOCTOR_APPLIED_FIXES_FILE:-}"
+  local own_applied_file=0
+  local emit_initial_output=1
+
+  if [ -z "$applied_fixes_file" ]; then
+    applied_fixes_file="$(mktemp)"
+    own_applied_file=1
+  fi
+  fix_actions_file="$(mktemp)"
+  if [ "$apply_safe_fixes" -eq 1 ] && [ "$json_output" -eq 1 ]; then
+    emit_initial_output=0
+  fi
+
+  if run_startup_probe_bundle 1 check-only; then
+    probe_rc=0
+  else
+    probe_rc="$?"
+  fi
+
+  python3 - "$gate_status_path" "$catalog_path" "$probe_rc" "$json_output" "$fix_actions_file" "$applied_fixes_file" "${COO_STARTUP_TIMEOUT_SEC:-120}" "$emit_initial_output" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+gate_path = Path(sys.argv[1])
+catalog_path = Path(sys.argv[2])
+probe_rc = int(sys.argv[3])
+emit_json = sys.argv[4] == "1"
+fix_actions_path = Path(sys.argv[5])
+applied_fixes_path = Path(sys.argv[6])
+timeout_sec = sys.argv[7]
+emit_output = sys.argv[8] == "1"
+
+
+def _load_json(path: Path) -> dict:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+    return {}
+
+
+gate = _load_json(gate_path)
+catalog = _load_json(catalog_path).get("reasons", {})
+if not isinstance(catalog, dict):
+    catalog = {}
+
+blocking = gate.get("blocking_reasons") or []
+if not isinstance(blocking, list):
+    blocking = []
+blocking = [str(reason).strip() for reason in blocking if str(reason).strip()]
+
+if probe_rc != 0 and not blocking:
+    if probe_rc == 124:
+        blocking = ["startup_probe_timed_out"]
+    else:
+        blocking = ["startup_probe_failed"]
+
+applied = []
+if applied_fixes_path.exists():
+    applied = [line.strip() for line in applied_fixes_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+synthetic = {
+    "startup_probe_timed_out": {
+        "severity": "hard",
+        "remediation": {
+            "auto_fixable": False,
+            "action_id": None,
+            "fix_command": None,
+            "manual_hint": f"Startup health checks exceeded {timeout_sec}s. Run coo doctor again after the underlying gateway or verification issue is resolved.",
+        },
+    },
+    "startup_probe_failed": {
+        "severity": "hard",
+        "remediation": {
+            "auto_fixable": False,
+            "action_id": None,
+            "fix_command": None,
+            "manual_hint": "Startup health checks failed before a classified gate result was available. Re-run coo doctor and inspect the latest runtime gate artifacts.",
+        },
+    },
+}
+
+blockers = []
+action_lines = []
+seen_actions = set()
+for reason in blocking:
+    meta = catalog.get(reason) or synthetic.get(reason) or {}
+    remediation = meta.get("remediation")
+    if not isinstance(remediation, dict):
+        remediation = {}
+    action_id = remediation.get("action_id")
+    fix_command = remediation.get("fix_command")
+    blocker = {
+        "reason": reason,
+        "severity": str(meta.get("severity") or "unknown"),
+        "auto_fixable": bool(remediation.get("auto_fixable", False)),
+        "action_id": action_id if isinstance(action_id, str) and action_id else None,
+        "fix_command": fix_command if isinstance(fix_command, str) and fix_command else None,
+        "manual_hint": remediation.get("manual_hint") if isinstance(remediation.get("manual_hint"), str) else None,
+    }
+    blockers.append(blocker)
+    if blocker["auto_fixable"] and blocker["action_id"] and blocker["action_id"] not in seen_actions:
+      action_lines.append(f"{blocker['action_id']}|{blocker['fix_command'] or blocker['action_id']}")
+      seen_actions.add(blocker["action_id"])
+
+fix_actions_path.write_text("\n".join(action_lines) + ("\n" if action_lines else ""), encoding="utf-8")
+
+status = "ok" if not blockers else "blocked"
+payload = {
+    "status": status,
+    "probe_failed": probe_rc != 0,
+    "blockers": blockers,
+    "fix_commands_available": [item["fix_command"] for item in blockers if item.get("fix_command")],
+    "auto_fixes_applied": applied,
+}
+
+if emit_json and emit_output:
+    print(json.dumps(payload, indent=2, sort_keys=True))
+elif emit_output:
+    print(f"DOCTOR_STATUS={status}")
+    for blocker in blockers:
+        print(f"BLOCKER_REASON={blocker['reason']}")
+        print(f"BLOCKER_SEVERITY={blocker['severity']}")
+        print(f"BLOCKER_AUTO_FIXABLE={'true' if blocker['auto_fixable'] else 'false'}")
+        if blocker["fix_command"]:
+            print(f"BLOCKER_FIX_COMMAND={blocker['fix_command']}")
+        if blocker["manual_hint"]:
+            print(f"BLOCKER_MANUAL_HINT={blocker['manual_hint']}")
+    for applied_fix in applied:
+        print(f"DOCTOR_AUTO_FIX_APPLIED={applied_fix}")
+PY
+
+  if [ "$apply_safe_fixes" -eq 1 ]; then
+    while IFS='|' read -r action_id fix_command; do
+      [ -n "$action_id" ] || continue
+      if [ "$json_output" -eq 0 ]; then
+        echo "DOCTOR_APPLYING_FIX=${fix_command:-$action_id}"
+      fi
+      local _fix_ok=0
+      if [ "$json_output" -eq 1 ]; then
+        if run_safe_remediation_action "$action_id" >/dev/null; then _fix_ok=1; fi
+      else
+        if run_safe_remediation_action "$action_id"; then _fix_ok=1; fi
+      fi
+      if [ "$_fix_ok" -eq 1 ]; then
+        printf '%s\n' "${fix_command:-$action_id}" >>"$applied_fixes_file"
+      elif [ "$json_output" -eq 0 ]; then
+        echo "DOCTOR_FIX_FAILED=${fix_command:-$action_id}"
+      fi
+    done <"$fix_actions_file"
+    ensure_coo_shim >/dev/null
+    rm -f "$fix_actions_file"
+    if [ "$json_output" -eq 0 ]; then
+      echo "DOCTOR_REPROBE_BEGIN"
+    fi
+    COO_DOCTOR_APPLIED_FIXES_FILE="$applied_fixes_file" run_doctor "$json_output" 0
+    rc="$?"
+    if [ "$own_applied_file" -eq 1 ]; then
+      rm -f "$applied_fixes_file"
+    fi
+    return "$rc"
+  fi
+
+  rm -f "$fix_actions_file"
+  if [ "$own_applied_file" -eq 1 ]; then
+    rm -f "$applied_fixes_file"
+  fi
+
+  if [ "$probe_rc" -eq 0 ] && [ -f "$gate_status_path" ]; then
+    python3 - <<'PY' "$gate_status_path"
+import json
+import sys
+from pathlib import Path
+
+try:
+    payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+except Exception:
+    raise SystemExit(1)
+
+reasons = payload.get("blocking_reasons") or []
+raise SystemExit(0 if not reasons else 1)
+PY
+    return "$?"
+  fi
+  return 1
+}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -630,7 +980,8 @@ Usage:
   runtime/tools/coo_worktree.sh stop
   runtime/tools/coo_worktree.sh diag
   runtime/tools/coo_worktree.sh models {status|fix}
-  runtime/tools/coo_worktree.sh ensure
+  runtime/tools/coo_worktree.sh ensure [--json]
+  runtime/tools/coo_worktree.sh doctor [--json] [--apply-safe-fixes]
   runtime/tools/coo_worktree.sh path
   runtime/tools/coo_worktree.sh cd
   runtime/tools/coo_worktree.sh shell
@@ -645,6 +996,7 @@ Usage:
 
 Enforcement modes:
   - Default startup mode is fail-closed for security/model/posture gates.
+  - If startup fails, run 'coo doctor' before using break-glass.
   - Use --unsafe-allow-drift for local emergency bypass of policy drift checks only.
 EOF
 }
@@ -655,9 +1007,91 @@ case "$cmd" in
     usage
     ;;
   ensure)
-    ensure_worktree
-    ensure_openclaw_surface
-    print_header
+    shift || true
+    json_output=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --json)
+          json_output=1
+          shift
+          ;;
+        *)
+          echo "ERROR: unknown ensure argument: $1" >&2
+          exit 2
+          ;;
+      esac
+    done
+    if [ "$json_output" -eq 0 ]; then
+      ensure_worktree
+      ensure_openclaw_surface
+      ensure_coo_shim
+      ensure_windows_launchers
+      print_header
+    else
+      ensure_tmp="$(mktemp)"
+      (
+        ensure_worktree
+        ensure_openclaw_surface
+        ensure_coo_shim
+        ensure_windows_launchers
+        print_header
+      ) >"$ensure_tmp"
+      python3 - "$ensure_tmp" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = {
+    "status": "ok",
+    "shim": {},
+    "shim_real": {},
+    "windows_launchers": [],
+}
+
+for raw_line in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines():
+    if "=" not in raw_line:
+        continue
+    key, value = raw_line.split("=", 1)
+    if key == "SHIM_INSTALLED":
+        payload["shim"] = {"status": "installed", "path": value}
+    elif key == "SHIM_OK":
+        payload["shim"] = {"status": "ok", "path": value}
+    elif key == "SHIM_REAL_INSTALLED":
+        payload["shim_real"] = {"status": "installed", "path": value}
+    elif key == "SHIM_REAL_OK":
+        payload["shim_real"] = {"status": "ok", "path": value}
+    elif key in {"WINDOWS_LAUNCHER_OK", "WINDOWS_LAUNCHER_WARN"}:
+        payload["windows_launchers"].append(
+            {
+                "status": "ok" if key.endswith("_OK") else "warn",
+                "name": value,
+            }
+        )
+    elif key == "WINDOWS_LAUNCHERS_DIR_MISSING":
+        payload["windows_launchers"].append({"status": "missing_dir", "path": value})
+    elif key == "WINDOWS_LAUNCHERS_NONE_FOUND":
+        payload["windows_launchers"].append({"status": "none_found"})
+    elif key == "BUILD_REPO":
+        payload["build_repo"] = value
+    elif key == "TRAIN_WT":
+        payload["train_worktree"] = value
+    elif key == "TRAIN_BRANCH":
+        payload["train_branch"] = value
+    elif key == "OPENCLAW_PROFILE":
+        payload["openclaw_profile"] = value
+    elif key == "OPENCLAW_STATE_DIR":
+        payload["openclaw_state_dir"] = value
+    elif key == "OPENCLAW_CONFIG_PATH":
+        payload["openclaw_config_path"] = value
+    elif key == "OPENCLAW_POLICY_PHASE":
+        payload["openclaw_policy_phase"] = value
+    elif key == "OPENCLAW_BIN":
+        payload["openclaw_bin"] = value
+
+print(json.dumps(payload, indent=2, sort_keys=True))
+PY
+      rm -f "$ensure_tmp"
+    fi
     ;;
   start)
     shift || true
@@ -686,25 +1120,23 @@ case "$cmd" in
     ensure_openclaw_surface
     print_header
     start_failed=0
-    pushd "$BUILD_REPO" >/dev/null
-    if ! runtime/tools/openclaw_gateway_ensure.sh; then
+    startup_probe_rc=0
+    if run_startup_probe_bundle 0 normal; then
+      startup_probe_rc=0
+    else
+      startup_probe_rc="$?"
       start_failed=1
     fi
-    export COO_ENFORCEMENT_MODE=mission
-    if ! runtime/tools/openclaw_models_preflight.sh; then
-      start_failed=1
-    fi
-    if ! runtime/tools/openclaw_verify_surface.sh; then
-      start_failed=1
-    fi
-    popd >/dev/null
     gate_status_path="${OPENCLAW_GATE_STATUS_PATH:-$OPENCLAW_STATE_DIR/runtime/gates/gate_status.json}"
     break_glass_scope="policy_drift_only"
     if [ "$start_failed" -ne 0 ] && [ "$unsafe_allow_drift" -ne 1 ]; then
       annotate_gate_breakglass_status "$gate_status_path" "false" "$break_glass_scope" ""
       emit_gate_blocking_summary
+      if [ "$startup_probe_rc" -eq 124 ]; then
+        echo "ERROR: startup health checks timed out after ${COO_STARTUP_TIMEOUT_SEC:-120}s." >&2
+      fi
       echo "ERROR: startup blocked by fail-closed gate policy." >&2
-      echo "NEXT: fix blocking reasons above, or re-run with --unsafe-allow-drift for emergency local use only." >&2
+      echo "NEXT: run 'coo doctor' to diagnose and fix, or re-run with --unsafe-allow-drift for emergency local use only." >&2
       exit 1
     fi
     if [ "$start_failed" -ne 0 ] && [ "$unsafe_allow_drift" -eq 1 ]; then
@@ -724,7 +1156,11 @@ case "$cmd" in
         else
           echo "ERROR: --unsafe-allow-drift cannot classify gate failures safely; refusing bypass." >&2
         fi
+        if [ "$startup_probe_rc" -eq 124 ]; then
+          echo "ERROR: startup health checks timed out after ${COO_STARTUP_TIMEOUT_SEC:-120}s." >&2
+        fi
         echo "ERROR: startup blocked by fail-closed gate policy." >&2
+        echo "NEXT: run 'coo doctor' to diagnose and fix." >&2
         exit 1
       fi
     fi
@@ -838,6 +1274,32 @@ case "$cmd" in
       echo "MODEL_POLICY_ASSERT_END"
       echo "HINT=Run 'openclaw models status --probe' for deeper provider diagnostics."
     )
+    ;;
+  doctor)
+    shift || true
+    json_output=0
+    apply_safe_fixes=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --json)
+          json_output=1
+          shift
+          ;;
+        --apply-safe-fixes)
+          apply_safe_fixes=1
+          shift
+          ;;
+        *)
+          echo "ERROR: unknown doctor argument: $1" >&2
+          exit 2
+          ;;
+      esac
+    done
+    ensure_openclaw_surface
+    if [ "$json_output" -eq 0 ]; then
+      print_header
+    fi
+    run_doctor "$json_output" "$apply_safe_fixes"
     ;;
   models)
     shift || true
