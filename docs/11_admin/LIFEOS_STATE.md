@@ -1,5 +1,7 @@
 # LifeOS State
 
+<!-- markdownlint-disable MD013 MD032 MD037 MD060 -->
+
 ## Canonical Spine
 
 - **Canonical Sources:**
@@ -13,7 +15,7 @@
 
 **Current Focus:** COO unsandboxed promotion — COMPLETE
 **Active WIP:** none
-**Last Updated:** 2026-03-24 (rev32)
+**Last Updated:** 2026-03-31 (rev33)
 
 ---
 
@@ -86,6 +88,7 @@ None — all prior blockers resolved:
 
 ## 🟩 Recent Wins
 
+- **2026-03-31:** Phase 6 `prod_local` proof closure COMPLETE — `T-021` metadata reconciled after the proof-only follow-up: structured backlog marked done, durable proof receipt committed at `artifacts/evidence/T_021_prod_local_certification_proof.md`, and the 3-run local certification proof remains PASS (`prod_local` on all three runs, zero leaks).
 - **2026-03-24:** COO C4 Gate-6 UAT PASS — 5/5 prompts verified on gpt-5.3-codex, manifest activated (approved → active), surface verification PASS. Fixes applied: direct-mode schema example in invoke.py, fallback chain update (openai-codex OAuth re-auth), config permissions hardening. COO unsandboxed promotion COMPLETE.
 - **2026-03-24:** COO C3 PASS — Gate-5 soak complete (16 runs / 4 sessions / 2 calendar days); validator PASS (0 violations). invoke.py hardening merged (commit `5c82de02`): explicit schema mapping + `[MACHINE_API mode=...]` instruction blocks per mode. Advancing to C4 Gate-6 CEO UAT.
 - **2026-03-20:** COO Unsandboxed Promotion C2 PASS — Council V2 `Accept` verdict (all 4 lenses) at commit `45973858`. Wave fixes merged: PROFILE_NAME bypass (wave1), posture-aware check + ruling structured marker + profile exception_justification (wave2+3), gate validation / path containment / dead logic / artifact hygiene (wave4). Council ruling already in `docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md`. Escalation ESC-0004 queued. Next: C3 Gate-5 soak (16 runs / 4 sessions / 2 calendar days).

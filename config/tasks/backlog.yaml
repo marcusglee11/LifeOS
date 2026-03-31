@@ -434,17 +434,17 @@ tasks:
   - scripts/run_certification.py
   - runtime/cli.py
   - artifacts/status/
-  status: pending
+  status: completed
   requires_approval: false
   owner: ''
-  evidence: ''
+  evidence: artifacts/evidence/T_021_prod_local_certification_proof.md
   task_type: build
   tags:
   - production-hardening
   - readiness
   objective_ref: pipeline-readiness
   created_at: '2026-03-27T00:00:00Z'
-  completed_at: null
+  completed_at: '2026-03-31T00:00:00Z'
 - id: T-022
   title: Bring CI certification profile to prod_ci
   description: Stabilize and prove all ci-classified suites and certification substeps
