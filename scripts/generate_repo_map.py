@@ -68,7 +68,7 @@ def is_tree_dirty(repo: Path) -> bool:
     """Return True if working tree has uncommitted changes."""
     try:
         result = subprocess.run(
-            ["git", "-C", str(repo), "status", "--porcelain=v1"],
+            ["git", "-C", str(repo), "status", "--porcelain=v1", "--untracked-files=no"],
             capture_output=True, text=True, timeout=10,
         )
         return bool(result.stdout.strip())

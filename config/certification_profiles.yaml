@@ -21,13 +21,7 @@ suites:
   - path: runtime/tests/test_opencode_stage1_5_live.py
     profile: live
     reason: Requires ZEN_BUILDER_KEY
-skipped_tests:
-  - test: runtime/tests/orchestration/missions/test_bypass_dogfood.py::test_plan_bypass_activation
-    classification: wip
-    reason: LIFEOS_TODO[P1] bypass path not yet implemented
-  - test: runtime/tests/test_doc_hygiene.py::TestDocHygieneMarkdownLint::test_missing_markdownlint_dependency
-    classification: wip
-    reason: LIFEOS_TODO[P2] markdownlint dependency path not yet implemented
+skipped_tests: []
 skip_reason_patterns:
   - pattern: Symlinks not supported on this platform
     classification: platform

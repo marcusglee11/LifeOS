@@ -25,9 +25,27 @@ def test_autonomous_build_cycle_imports():
     assert AutonomousBuildCycleMission is not None
 
 
-@pytest.mark.skip(
-    reason="LIFEOS_TODO[P1] bypass path not yet implemented in autonomous_build_cycle.py"
-)
+def test_changed_files_falls_back_to_packet_paths():
+    mission = AutonomousBuildCycleMission()
+
+    review_packet = {
+        "payload": {
+            "artifacts_produced": [],
+            "packet": {
+                "files": [
+                    {"path": "runtime/foo.py"},
+                    {"path": "runtime/bar.py"},
+                ]
+            },
+        }
+    }
+
+    assert mission._changed_files_from_review_packet(review_packet) == [
+        "runtime/foo.py",
+        "runtime/bar.py",
+    ]
+
+
 def test_plan_bypass_activation(dogfood_context):
     """
     Controlled Dogfood Run:
@@ -40,15 +58,9 @@ def test_plan_bypass_activation(dogfood_context):
 
     # 1. Mock Infrastructure/Preconditions
     with (
-        patch(
-            "runtime.orchestration.missions.autonomous_build_cycle.verify_repo_clean"
-        ) as mock_clean,
         patch("runtime.orchestration.missions.autonomous_build_cycle.PolicyLoader") as mock_loader,
         patch("runtime.orchestration.missions.autonomous_build_cycle.run_git_command") as mock_git,
-        patch("runtime.orchestration.missions.autonomous_build_cycle.FileLock") as MockLock,
     ):
-        mock_clean.return_value = None
-
         # Policy: Allow REVIEW_REJECTION bypass
         mock_loader_instance = MagicMock()
         mock_loader_instance.load.return_value = {
@@ -85,9 +97,6 @@ def test_plan_bypass_activation(dogfood_context):
             return b""
 
         mock_git.side_effect = git_side_effect
-
-        # Mock Lock
-        MockLock.return_value.acquire_ctx.return_value.__enter__.return_value = True
 
         # 2. Mock Sub-Missions
         with (

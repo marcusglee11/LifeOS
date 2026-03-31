@@ -35,8 +35,7 @@ def test_classify_skip_matches_exact_test_nodeid():
         "LIFEOS_TODO[P1] bypass path not yet implemented in autonomous_build_cycle.py",
         config,
     )
-    assert classified is not None
-    assert classified["classification"] == "wip"
+    assert classified is None
 
 
 def test_classify_skip_matches_dotted_class_nodeid():
@@ -46,8 +45,7 @@ def test_classify_skip_matches_dotted_class_nodeid():
         "LIFEOS_TODO[P2] markdownlint dependency path not yet implemented",
         config,
     )
-    assert classified is not None
-    assert classified["classification"] == "wip"
+    assert classified is None
 
 
 def test_classify_skip_matches_reason_pattern():

@@ -21,7 +21,7 @@ from recursive_kernel.backlog_parser import (
 )
 
 # Phase 3a: Test Execution
-from runtime.api.governance_api import PolicyLoader, check_pytest_scope
+from runtime.api.governance_api import PROTECTED_PATHS, PolicyLoader, check_pytest_scope
 
 # CEO Approval Queue
 from runtime.orchestration.ceo_queue import (
@@ -58,6 +58,7 @@ from runtime.orchestration.missions.build import BuildMission
 from runtime.orchestration.missions.design import DesignMission
 from runtime.orchestration.missions.review import ReviewMission
 from runtime.orchestration.missions.steward import StewardMission
+from runtime.orchestration.run_controller import run_git_command
 from runtime.orchestration.test_executor import PytestExecutor, PytestResult
 
 
@@ -118,6 +119,68 @@ class AutonomousBuildCycleMission(BaseMission):
     def _compute_hash(self, obj: Any) -> str:
         s = json.dumps(obj, sort_keys=True, default=str)
         return hashlib.sha256(s.encode("utf-8")).hexdigest()
+
+    def _changed_files_from_review_packet(self, review_packet: Dict[str, Any] | None) -> List[str]:
+        """Extract changed files from the build review packet when available."""
+        if not isinstance(review_packet, dict):
+            return []
+
+        payload = review_packet.get("payload", {})
+        artifacts = payload.get("artifacts_produced", [])
+        if isinstance(artifacts, list):
+            changed = [str(path) for path in artifacts if isinstance(path, str)]
+            if changed:
+                return changed
+
+        packet = payload.get("packet", {})
+        if isinstance(packet, dict):
+            files = packet.get("files", [])
+            if isinstance(files, list):
+                return [
+                    str(entry.get("path"))
+                    for entry in files
+                    if isinstance(entry, dict) and isinstance(entry.get("path"), str)
+                ]
+
+        return []
+
+    def _collect_plan_bypass_patch(self, context: MissionContext) -> Optional[Dict[str, Any]]:
+        """Build patch stats for plan-bypass evaluation from the live workspace diff."""
+        try:
+            # Scope is measured against the full current workspace delta vs HEAD.
+            # In multi-attempt loops this accumulates earlier uncommitted edits, which
+            # intentionally biases bypass eligibility toward denial as the branch drifts.
+            numstat_output = run_git_command(
+                ["diff", "--numstat", "HEAD"], cwd=context.repo_root
+            ).decode("utf-8", errors="replace")
+            summary_output = run_git_command(
+                ["diff", "--summary", "HEAD"], cwd=context.repo_root
+            ).decode("utf-8", errors="replace")
+        except Exception:
+            return None
+
+        files: List[str] = []
+        total_line_delta = 0
+
+        for line in numstat_output.splitlines():
+            parts = line.split("\t")
+            if len(parts) < 3:
+                continue
+            added_raw, deleted_raw, file_path = parts[0], parts[1], parts[2].strip()
+            if " -> " in file_path:
+                file_path = file_path.split(" -> ")[-1].strip()
+            files.append(file_path)
+            if added_raw.isdigit():
+                total_line_delta += int(added_raw)
+            if deleted_raw.isdigit():
+                total_line_delta += int(deleted_raw)
+
+        return {
+            "files_touched": len(files),
+            "total_line_delta": total_line_delta,
+            "files": files,
+            "has_suspicious_modes": bool(summary_output.strip()),
+        }
 
     def _extract_usage_tokens(self, evidence: Dict[str, Any]) -> Optional[int]:
         """Return normalized token usage total, or None when unavailable."""
@@ -459,6 +522,8 @@ class AutonomousBuildCycleMission(BaseMission):
         # 4. Loop Execution
         loop_active = True
 
+        pending_plan_bypass_info: Optional[Dict[str, Any]] = None
+
         while loop_active:
             # Determine Attempt ID
             if ledger.history:
@@ -651,7 +716,10 @@ class AutonomousBuildCycleMission(BaseMission):
                         None,
                         "Attributes Approved",
                         success=True,
+                        changed_files=self._changed_files_from_review_packet(review_packet),
+                        plan_bypass_info=pending_plan_bypass_info,
                     )
+                    pending_plan_bypass_info = None
                     # Loop will check policy next iter -> PASS
                     continue
                 else:
@@ -665,23 +733,58 @@ class AutonomousBuildCycleMission(BaseMission):
                 else:
                     failure_class = FailureClass.REVIEW_REJECTION  # Needs revision etc
 
+            changed_files = self._changed_files_from_review_packet(review_packet)
+            plan_bypass_info = None
+            if failure_class == FailureClass.REVIEW_REJECTION:
+                evaluated_bypass = policy.evaluate_plan_bypass(
+                    failure_class_key=failure_class.value,
+                    proposed_patch=self._collect_plan_bypass_patch(context),
+                    protected_path_registry=PROTECTED_PATHS,
+                    ledger=ledger,
+                )
+                if evaluated_bypass.get("eligible"):
+                    plan_bypass_info = dict(evaluated_bypass)
+                    plan_bypass_info["applied"] = True
+                    pending_plan_bypass_info = plan_bypass_info
+                else:
+                    plan_bypass_info = evaluated_bypass
+                    pending_plan_bypass_info = None
+
             # Record Attempt
             reason_str = or_res.outputs.get("council_decision", {}).get("synthesis", "No rationale")
             self._record_attempt(
-                ledger, attempt_id, context, b_res, failure_class, reason_str, success=success
+                ledger,
+                attempt_id,
+                context,
+                b_res,
+                failure_class,
+                reason_str,
+                success=success,
+                changed_files=changed_files,
+                plan_bypass_info=plan_bypass_info,
             )
 
             # Emit Review Packet
             self._emit_packet(f"Review_Packet_attempt_{attempt_id:04d}.md", review_packet, context)
 
     def _record_attempt(
-        self, ledger, attempt_id, context, build_res, f_class, rationale, success=False
+        self,
+        ledger,
+        attempt_id,
+        context,
+        build_res,
+        f_class,
+        rationale,
+        success=False,
+        changed_files: Optional[List[str]] = None,
+        plan_bypass_info: Optional[Dict[str, Any]] = None,
     ):
         # Compute hashes
         # diff_hash from review_packet content
         review_packet = build_res.outputs.get("review_packet")
         content = review_packet.get("payload", {}).get("content", "") if review_packet else ""
         d_hash = self._compute_hash(content)
+        changed_files = changed_files or self._changed_files_from_review_packet(review_packet)
 
         rec = AttemptRecord(
             attempt_id=attempt_id,
@@ -691,13 +794,14 @@ class AutonomousBuildCycleMission(BaseMission):
             input_hash="hash(inputs)",
             actions_taken=build_res.executed_steps,
             diff_hash=d_hash,
-            changed_files=[],  # Extract if possible
+            changed_files=changed_files,
             evidence_hashes={},
             success=success,
             failure_class=f_class.value if f_class else None,
             terminal_reason=None,  # Filled if terminal
             next_action="evaluated_next_tick",
             rationale=rationale,
+            plan_bypass_info=plan_bypass_info,
         )
         ledger.append(rec)
 

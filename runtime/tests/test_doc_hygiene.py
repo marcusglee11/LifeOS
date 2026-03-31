@@ -14,7 +14,9 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -150,7 +152,6 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
             f"Expected exit 0 or 1, got {result.returncode}. stderr: {result.stderr}",
         )
 
-    @pytest.mark.skip(reason="LIFEOS_TODO[P2] markdownlint dependency path not yet implemented")
     def test_missing_markdownlint_dependency(self):
         """
         Scenario: Missing markdownlint dependency
@@ -163,10 +164,17 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         in the actual environment. The script should handle missing dependencies
         gracefully.
         """
-        # This test documents expected behavior but doesn't actively break the environment
-        # In actual implementation, the script should check for markdownlint availability
-        # and provide helpful error messages
-        pass
+        import scripts.doc_hygiene_markdown_lint as lint_script
+
+        with (
+            patch.object(lint_script, "check_markdownlint_available", return_value=False),
+            patch("sys.argv", ["doc_hygiene_markdown_lint.py", str(self.test_path)]),
+            patch("sys.stderr", new_callable=StringIO) as stderr,
+        ):
+            exit_code = lint_script.main()
+
+        self.assertEqual(exit_code, 127)
+        self.assertIn("markdownlint-cli is not installed", stderr.getvalue())
 
     def test_json_output_format(self):
         """

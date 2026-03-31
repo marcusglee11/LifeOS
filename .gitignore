@@ -171,6 +171,8 @@ artifacts/store/
 
 # Telegram bot runtime state (local ephemeral, not a repo deliverable)
 artifacts/status/coo_telegram_runtime.json
+artifacts/status/pipeline_readiness.json
+artifacts/status/certification_proof.json
 
 # Stale runtime artifacts (WSL/Windows filesystem side-effects)
 /nul
