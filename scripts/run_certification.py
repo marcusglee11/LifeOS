@@ -390,6 +390,16 @@ def certify(profile: str) -> dict[str, Any]:
                 if classified["classification"] in {"wip", "env_optional"}:
                     non_blocking = True
 
+    if not current_worktree_clean():
+        leaks.append(
+            {
+                "id": "worktree_cleanliness_post_run",
+                "severity": "blocking",
+                "detail": "git status --short is not empty after profile suites completed",
+            }
+        )
+        blocking = True
+
     if profile == "live":
         live_status = "fail" if blocking else "pass"
 

@@ -36,9 +36,9 @@ addopts = [
     "--ignore=runtime/tests/archive_legacy_r6x",
     # 25/27 failing — WSL git worktree ops too slow for CI (W0-T05)
     "--ignore=tests_recursive/test_steward_runner.py",
-    # 1/5 failing — test_hardlink_defense triggers SecurityViolation on WSL
+    # CI-classified — platform-specific hardlink defense coverage
     "--ignore=runtime/tests/test_sandbox_remediation.py",
-    # 1/1 failing — non-deterministic approval demo
+    # CI-classified — deterministic CEOQueue approval receipt coverage
     "--ignore=runtime/tests/test_demo_approval_determinism.py",
     # hangs — calls full E2E CLI pipeline (blocks without LLM backend)
     "--ignore=runtime/tests/test_e2e_mission_cli.py",

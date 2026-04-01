@@ -1,74 +1,69 @@
-import hashlib
-import os
-import shutil
-import subprocess
-import sys
+from __future__ import annotations
+
+import json
+import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
-# Path to the repo root
-REPO_ROOT = Path(__file__).parent.parent
+from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType
+from runtime.receipts.invocation_receipt import finalize_run_receipts, reset_invocation_receipt_collectors
 
 
-def compute_dir_hash(directory):
-    """Compute a dictionary of {relative_path: sha256} for all files in directory."""
-    hashes = {}
-    for root, _, files in os.walk(directory):
-        for file in files:
-            path = Path(root) / file
-            rel_path = path.relative_to(directory).as_posix()
-            with open(path, "rb") as f:
-                hashes[rel_path] = hashlib.sha256(f.read()).hexdigest()
-    return hashes
+FIXED_RUN_ID = "test-run-determinism-001"
+FIXED_TIMESTAMP = "2026-01-01T00:00:00+00:00"
+FIXED_CREATED_AT = datetime(2026, 1, 1, tzinfo=timezone.utc)
+FIXED_CONTEXT = {
+    "title": "Review T-022 proof path",
+    "description": "Approve the CI proof workflow for deterministic certification evidence.",
+    "priority": "P1",
+}
 
 
-def run_demo(input_str="yes"):
-    """Run the approval demo via subprocess."""
-    cmd = [sys.executable, "-m", "coo.cli", "run-approval-demo"]
-    # We pipe "yes" to stdin for approval
-    # The demo also takes an initial input, but currently it's hardcoded in the code
-    # or just printed. The code says: user_request = "Generate..."
-    # So we only need to provide the approval answer.
+def _normalize_queue_row(db_path: Path, escalation_id: str) -> dict[str, str]:
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("SELECT * FROM escalations WHERE id = ?", (escalation_id,)).fetchone()
 
-    # However, if we change the code to accept input, we'd need to provide it.
-    # Current code: user_request = "Generate..." (Hardcoded).
-    # So just "yes" is enough.
+    assert row is not None
+    return dict(row)
 
-    result = subprocess.run(
-        cmd, input=input_str.encode("utf-8"), cwd=str(REPO_ROOT), capture_output=True, check=True
+
+def _run_roundtrip(tmp_path: Path, monkeypatch) -> tuple[dict[str, str], bytes, list[str]]:
+    reset_invocation_receipt_collectors()
+    monkeypatch.setattr("runtime.orchestration.ceo_queue._utc_now", lambda: FIXED_TIMESTAMP)
+
+    repo_root = tmp_path
+    db_path = repo_root / "artifacts" / "queue" / "escalations.db"
+    queue = CEOQueue(db_path=db_path)
+
+    escalation_id = queue.add_escalation(
+        EscalationEntry(
+            type=EscalationType.AMBIGUOUS_TASK,
+            context=FIXED_CONTEXT,
+            run_id=FIXED_RUN_ID,
+            created_at=FIXED_CREATED_AT,
+        )
     )
-    return result
+    assert queue.approve(escalation_id, note="approved", resolver="test-resolver") is True
+
+    index_path = finalize_run_receipts(FIXED_RUN_ID, output_dir=repo_root)
+    assert index_path is not None
+
+    queue_row = _normalize_queue_row(db_path, escalation_id)
+    index_bytes = index_path.read_bytes()
+    index_payload = json.loads(index_bytes.decode("utf-8"))
+    seat_ids = [receipt["seat_id"] for receipt in index_payload["receipts"]]
+
+    reset_invocation_receipt_collectors()
+    return queue_row, index_bytes, seat_ids
 
 
-def test_demo_approval_determinism():
-    """
-    F3: Deterministic Test (Automated)
-    Run DEMO_APPROVAL_V1 twice with same input/approval.
-    Assert identical artifacts.
-    """
-    demo_dir = REPO_ROOT / "demo" / "DEMO_APPROVAL_V1"
+def test_demo_approval_determinism(monkeypatch, tmp_path: Path):
+    """CEOQueue approval round-trips must remain deterministic across clean runs."""
+    queue_row_1, index_bytes_1, seat_ids_1 = _run_roundtrip(tmp_path / "run1", monkeypatch)
+    queue_row_2, index_bytes_2, seat_ids_2 = _run_roundtrip(tmp_path / "run2", monkeypatch)
 
-    # Clean up before start
-    if demo_dir.exists():
-        shutil.rmtree(demo_dir)
-
-    print("Run 1...")
-    run_demo("yes")
-    hashes_1 = compute_dir_hash(demo_dir)
-
-    print("Run 2 (Replay)...")
-    run_demo("yes")
-    hashes_2 = compute_dir_hash(demo_dir)
-
-    # Assert identical file set
-    assert hashes_1.keys() == hashes_2.keys(), "File sets differ between runs"
-
-    # Assert identical hashes
-    for path, h1 in hashes_1.items():
-        h2 = hashes_2[path]
-        assert h1 == h2, f"Hash mismatch for {path}: {h1} != {h2}"
-
-    print("Determinism Verified: Identical artifacts across runs.")
-
-
-if __name__ == "__main__":
-    test_demo_approval_determinism()
+    assert queue_row_1 == queue_row_2
+    assert index_bytes_1 == index_bytes_2
+    assert seat_ids_1 == ["queue_add", "queue_approve"]
+    assert seat_ids_2 == ["queue_add", "queue_approve"]

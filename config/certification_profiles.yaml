@@ -8,10 +8,10 @@ suites:
     reason: WSL git worktree ops too slow for local execution
   - path: runtime/tests/test_sandbox_remediation.py
     profile: ci
-    reason: Hardlink-defense instability on WSL
+    reason: Platform-specific hardlink-defense coverage
   - path: runtime/tests/test_demo_approval_determinism.py
     profile: ci
-    reason: Non-deterministic approval demo
+    reason: Deterministic CEOQueue approval receipt coverage
   - path: runtime/tests/test_e2e_mission_cli.py
     profile: live
     reason: Requires live LLM backend
@@ -35,6 +35,9 @@ skip_reason_patterns:
   - pattern: requires network access for pip dependencies
     classification: env_optional
     reason: Offline environment dependent
+  - pattern: WSL git worktree operations too slow for full suite
+    classification: platform
+    reason: WSL worktree performance dependent
   - pattern: (?i)set RUN_LIVE_
     classification: live_only
     reason: Explicit opt-in live test

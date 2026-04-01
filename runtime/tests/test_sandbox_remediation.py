@@ -1,3 +1,4 @@
+import os
 import tempfile
 from pathlib import Path
 
@@ -57,19 +58,27 @@ def test_resource_limit_file_size():
             settings.MAX_FILE_SIZE_BYTES = original_limit
 
 
-def test_hardlink_defense():
-    """Test hardlink defense verification."""
+@pytest.mark.skipif(os.name == "nt", reason="POSIX only")
+def test_hardlink_defense_posix_same_device_fails():
+    """POSIX must reject workspace/output directories on the same device."""
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         ws = root / "workspace"
         out = root / "output"
 
-        # On Windows/Local, these are likely on same dev, so it should pass (warning only)
-        # or fail if we enforced strict check.
-        # The code currently passes on Windows.
-        verify_hardlink_defense(ws, out)
+        with pytest.raises(SecurityViolation, match="hardlink_defense_failure"):
+            verify_hardlink_defense(ws, out)
 
-        # If we were to mock different st_dev, we could test the failure case.
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows only")
+def test_hardlink_defense_windows_same_device_warns():
+    """Windows keeps the weaker same-device tolerance path for local dev."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
+        ws = root / "workspace"
+        out = root / "output"
+
+        verify_hardlink_defense(ws, out)
 
 
 def test_unicode_percent_rejection():

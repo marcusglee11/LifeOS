@@ -59,6 +59,17 @@ def test_classify_skip_matches_reason_pattern():
     assert classified["classification"] == "platform"
 
 
+def test_classify_skip_matches_wsl_reason_pattern():
+    config = load_profiles()
+    classified = classify_skip(
+        "tests_recursive/test_steward_runner.py::test_foo",
+        "WSL git worktree operations too slow for full suite (W0-T05)",
+        config,
+    )
+    assert classified is not None
+    assert classified["classification"] == "platform"
+
+
 def test_classify_skip_matches_case_insensitive_live_pattern():
     config = load_profiles()
     classified = classify_skip(

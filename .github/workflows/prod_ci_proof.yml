@@ -1,0 +1,62 @@
+name: Prod CI Proof
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prod-ci-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+          pip install -r requirements-dev.txt
+
+      - name: Configure git identity
+        run: |
+          git config user.name "LifeOS CI"
+          git config user.email "ci@lifeos.local"
+          git config core.autocrlf false
+
+      - name: Steward runner triage
+        run: pytest tests_recursive/test_steward_runner.py -q -o addopts= -ra
+
+      - name: Baseline CI certification
+        run: python3 -m runtime.cli certify pipeline --profile ci
+
+      - name: Generate prod_ci proof
+        run: |
+          python3 scripts/certification_proof.py \
+            --profile ci \
+            --evidence-output artifacts/evidence/T_022_prod_ci_certification_proof.md
+
+      - name: Commit proof artifact
+        run: |
+          git add -f artifacts/evidence/T_022_prod_ci_certification_proof.md
+          if git diff --cached --quiet; then
+            echo "No proof changes to commit"
+            exit 0
+          fi
+
+          git commit -m "docs: record T-022 prod_ci proof [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
