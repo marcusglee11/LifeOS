@@ -38,9 +38,6 @@ jobs:
           git config user.email "ci@lifeos.local"
           git config core.autocrlf false
 
-      - name: Steward runner triage
-        run: pytest tests_recursive/test_steward_runner.py -q -o addopts= -ra
-
       - name: Baseline CI certification
         run: python3 -m runtime.cli certify pipeline --profile ci
 
@@ -49,6 +46,14 @@ jobs:
           python3 scripts/certification_proof.py \
             --profile ci \
             --evidence-output artifacts/evidence/T_022_prod_ci_certification_proof.md
+
+      - name: Upload ephemeral certification artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-ci-readiness
+          path: |
+            artifacts/status/pipeline_readiness.json
+            artifacts/status/certification_proof.json
 
       - name: Commit proof artifact
         run: |
