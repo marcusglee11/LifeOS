@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 # Ensure repo root is importable
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -16,6 +18,7 @@ from generate_repo_map import (
     _is_boilerplate_docstring,
     compute_stats,
     generate_repo_map,
+    is_tree_dirty,
     scan_dependency_edges,
     scan_runtime_packages,
     scan_source_test_mapping,
@@ -59,6 +62,30 @@ def test_generated_at_is_injected_value() -> None:
 def test_working_tree_dirty_is_boolean_string() -> None:
     content = generate_repo_map(REPO_ROOT, generated_at=FIXED_TS)
     assert "working_tree_dirty: true" in content or "working_tree_dirty: false" in content
+
+
+def test_is_tree_dirty_retries_timeout(monkeypatch) -> None:
+    calls: list[int] = []
+
+    def fake_run(*args, **kwargs):
+        calls.append(kwargs["timeout"])
+        if len(calls) == 1:
+            raise subprocess.TimeoutExpired(cmd=args[0], timeout=kwargs["timeout"])
+        return SimpleNamespace(returncode=0, stdout="")
+
+    monkeypatch.setattr("generate_repo_map.subprocess.run", fake_run)
+
+    assert is_tree_dirty(REPO_ROOT) is False
+    assert calls == [10, 30]
+
+
+def test_is_tree_dirty_fails_closed_on_git_error(monkeypatch) -> None:
+    def fake_run(*args, **kwargs):
+        return SimpleNamespace(returncode=128, stdout="")
+
+    monkeypatch.setattr("generate_repo_map.subprocess.run", fake_run)
+
+    assert is_tree_dirty(REPO_ROOT) is True
 
 
 # ---------------------------------------------------------------------------
