@@ -1,139 +1,135 @@
-# Handoff Pack: Phase 7 prod_ci Engineering Certification
+# Handoff Pack: T-022 prod_ci Certification Claude Review
 
 ## Metadata
 - Reviewer target: Claude Code
 - Branch: `build/t-022-prod-ci-certification`
 - Worktree: `/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification`
-- Base: `main` (`728e49b33a73114b15169c2fc6d117071450f814`)
-- HEAD: `728e49b33a73114b15169c2fc6d117071450f814`
-- Commit state: uncommitted changes in worktree
+- Base: `main` (`a8a13218c7fd4aecca8a2aa83c7a5420b36f6f79`)
+- HEAD: `866413a2e876236bc3f7cf2f5a37f3f3af03f113`
+- Reviewed commits in scope:
+  - `5ea04af3` `fix prod-ci certification harness and shell entrypoints`
+  - `866413a2` `rewrite prod-ci certification harness`
+- Commit state: committed, clean worktree
 - Scope: Phase 7 / `T-022` implementation to promote CI certification to `prod_ci`
 
 ## Requested Review Focus
-Please review the in-place worktree changes for correctness, contract alignment, and CI workflow safety. Highest-sensitivity areas:
+Please review the committed branch for correctness, contract alignment, and merge risk. Highest-sensitivity areas:
 
-1. CI certification mechanics
-   - `scripts/run_certification.py`
-   - `scripts/certification_proof.py`
-   - `config/certification_profiles.yaml`
-   - `.github/workflows/prod_ci_proof.yml`
-2. Test replacement and platform coverage
-   - `runtime/tests/test_demo_approval_determinism.py`
-   - `runtime/tests/test_sandbox_remediation.py`
-   - `runtime/tests/test_pipeline_certification.py`
-3. CI classification / ignore consistency
-   - `pyproject.toml`
-   - `config/certification_profiles.yaml`
+1. Policy-harness rewrite
+   - [`scripts/run_certification_tests.py`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/scripts/run_certification_tests.py)
+   - [`scripts/opencode_gate_policy.py`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/scripts/opencode_gate_policy.py)
+2. CI skip classification and workflow safety
+   - [`config/certification_profiles.yaml`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/config/certification_profiles.yaml)
+   - [`prod_ci_proof.yml`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/.github/workflows/prod_ci_proof.yml)
+3. Shell entrypoint mode changes
+   - tracked `.sh` files promoted from `100644` to `100755`
+   - especially `runtime/tools/openclaw_coo_update_protocol.sh` and `runtime/tools/openclaw_upgrade_module.sh`
 
 ## Change Summary
 
-### Certification path updates
-- `scripts/run_certification.py`
-  - adds a post-run cleanliness check and records a blocking `worktree_cleanliness_post_run` leak if the repo is dirty after profile execution
-- `scripts/certification_proof.py`
-  - now supports `--profile local|ci`
-  - keeps writing transient JSON to `artifacts/status/certification_proof.json`
-  - can also write Markdown proof evidence via `--evidence-output`
-  - records per-run elapsed time, pytest summary, and leak count in the proof payload
+### Certification path changes
+- [`scripts/run_certification_tests.py`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/scripts/run_certification_tests.py)
+  - replaced the old `opencode serve` harness with a pure Python policy-layer harness
+  - uses a detached temp worktree instead of a server lifecycle
+  - directly exercises the `opencode_gate_policy` enforcement surface
+  - restores the canonical report artifact at `artifacts/evidence/opencode_steward_certification/CERTIFICATION_REPORT_v1_4.json`
+  - cleans up the detached temp worktree on success unless explicitly preserved
+- [`scripts/opencode_gate_policy.py`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/scripts/opencode_gate_policy.py)
+  - fixes `parse_git_status_z()` so local `git diff --name-status -z` records like `M\0path\0` parse correctly
 
-### CI-classified test fixes
-- `runtime/tests/test_sandbox_remediation.py`
-  - replaces the old same-device hardlink test with explicit POSIX-fail and Windows-tolerate cases
-- `runtime/tests/test_demo_approval_determinism.py`
-  - removes the dead `python -m coo.cli run-approval-demo` path
-  - replaces it with a deterministic `CEOQueue` round-trip over the real SQLite queue + JSON invocation receipt path
-  - freezes timestamp generation by monkeypatching `runtime.orchestration.ceo_queue._utc_now`
-- `runtime/tests/test_pipeline_certification.py`
-  - adds coverage for the new WSL skip classification pattern
+### CI classification and workflow changes
+- [`config/certification_profiles.yaml`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/config/certification_profiles.yaml)
+  - adds `platform` skip patterns for `POSIX only`, `Windows only`, and `Waived: governance/mission-registry-v0.1`
+- [`prod_ci_proof.yml`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/.github/workflows/prod_ci_proof.yml)
+  - removes the duplicate standalone steward-runner triage step
+  - uploads `artifacts/status/pipeline_readiness.json` and `artifacts/status/certification_proof.json` as ephemeral workflow artifacts
 
-### CI metadata and workflow
-- `config/certification_profiles.yaml`
-  - adds a `platform` skip-reason pattern for `WSL git worktree operations too slow for full suite`
-  - updates suite reasons for the repaired CI-classified tests
-- `pyproject.toml`
-  - updates inline ignore comments to match the new CI-classified intent
-- `.github/workflows/prod_ci_proof.yml`
-  - adds a dedicated manual-dispatch proof workflow on `ubuntu-latest`
-  - runs steward triage, baseline CI certification, proof generation, and auto-commits only the Markdown proof artifact
+### Shell entrypoint portability fix
+- The branch records execute bits for tracked shell entrypoints so direct `subprocess.run(["...sh", ...])` works in clean Linux checkouts.
+- This specifically closes the failure mode seen in clean worktrees for:
+  - [`runtime/tests/test_openclaw_coo_update_protocol_promotion.py`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/runtime/tests/test_openclaw_coo_update_protocol_promotion.py)
+  - [`runtime/tests/test_openclaw_upgrade_module.py`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/runtime/tests/test_openclaw_upgrade_module.py)
 
 ## Files In Scope
 - `.github/workflows/prod_ci_proof.yml`
 - `config/certification_profiles.yaml`
-- `pyproject.toml`
-- `runtime/tests/test_demo_approval_determinism.py`
-- `runtime/tests/test_pipeline_certification.py`
-- `runtime/tests/test_sandbox_remediation.py`
-- `scripts/certification_proof.py`
-- `scripts/run_certification.py`
+- `scripts/opencode_gate_policy.py`
+- `scripts/run_certification_tests.py`
+- tracked `.sh` entrypoints changed to `100755`, including:
+  - `runtime/tools/openclaw_coo_update_protocol.sh`
+  - `runtime/tools/openclaw_upgrade_module.sh`
+  - `runtime/tools/coo_worktree.sh`
+  - `scripts/workflow/dispatch_codex.sh`
 
 ## Review Findings Already Fixed In This Pass
 These issues were found and fixed before preparing this handoff:
 
-1. Certification proof CLI was missing `argparse` import after adding the new flags.
-   - Fix: added the import and verified `python3 scripts/certification_proof.py --help`
-2. CI classification metadata still described the repaired tests as old failing/dead cases.
-   - Fix: updated `config/certification_profiles.yaml` and `pyproject.toml` comments to reflect the new test intent
+1. Clean Linux worktrees failed direct shell-script execution with `PermissionError`.
+   - Fix: recorded executable mode for tracked shell entrypoints in git.
+2. The rewritten certification harness only wrote its report inside the detached temp worktree.
+   - Fix: mirrored the report back to the canonical repo artifact path.
+3. The rewritten harness leaked detached temp worktrees on successful runs.
+   - Fix: success path now removes the temp worktree unless `--preserve-isolation` is set.
+4. `parse_git_status_z()` mishandled simple `-z` local diff output.
+   - Fix: added the missing path-parsing branch in [`scripts/opencode_gate_policy.py`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/scripts/opencode_gate_policy.py).
 
 ## Reviewer Questions
 Please pay particular attention to these points:
 
-1. Is the new `CEOQueue` determinism test scoped at the right persistence boundary, or is there a better current-path artifact than SQLite row + `artifacts/receipts/<run_id>/index.json` byte equality?
-2. Is the unconditional post-run cleanliness leak in `scripts/run_certification.py` the right invariant, even though some CI-classified suites may intentionally exercise temp worktrees and venv setup?
-3. Does `scripts/certification_proof.py` now expose enough information in Markdown proof form for Phase 7 review, or is any important CI context still missing?
-4. Is the new `prod_ci_proof.yml` workflow safe to auto-commit with `[skip ci]`, or does it need one more guard before use on `main`?
-5. Should `test_isolated_smoke_test.py` remain unchanged for this phase, given that it still requires a clean worktree and networked environment to be meaningful?
+1. Is the new policy-harness coverage in [`scripts/run_certification_tests.py`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/scripts/run_certification_tests.py) sufficient to preserve the intended security contract from the old server-based harness?
+2. Is classifying the AT-12 waiver as `platform` in [`config/certification_profiles.yaml`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/config/certification_profiles.yaml) the right Phase 7 boundary, or do you see any contract drift there?
+3. Are the broader `.sh` mode changes acceptable as a repository metadata fix, or should the scope be narrowed before merge?
+4. Does [`prod_ci_proof.yml`](/mnt/c/users/cabra/projects/lifeos/.worktrees/t-022-prod-ci-certification/.github/workflows/prod_ci_proof.yml) have any merge-risk around artifact upload or proof-only commit behavior?
 
 ## Validation Evidence
 
-### Targeted tests
+### Targeted certification harness
+- Command:
+  - `python3 scripts/run_certification_tests.py`
+- Result:
+  - passed
+  - canonical report written at `artifacts/evidence/opencode_steward_certification/CERTIFICATION_REPORT_v1_4.json`
+
+### Targeted shell-script regression checks
 - Commands:
-  - `pytest runtime/tests/test_pipeline_certification.py -q -o addopts=`
-  - `pytest runtime/tests/test_sandbox_remediation.py -q -o addopts=`
-  - `pytest runtime/tests/test_demo_approval_determinism.py -q -o addopts=`
-  - `pytest runtime/tests/test_ceo_queue.py -q -o addopts=`
+  - `python3 -m pytest runtime/tests/test_openclaw_coo_update_protocol_promotion.py -q -o addopts=`
+  - `python3 -m pytest runtime/tests/test_openclaw_upgrade_module.py -q -o addopts=`
 - Result:
   - passed
 
-### Steward triage in this WSL worktree
+### Full runtime suite
 - Command:
-  - `pytest tests_recursive/test_steward_runner.py -q -o addopts= -ra`
+  - `python3 -m pytest runtime/tests -q`
 - Result:
-  - `27 skipped`
-  - all skips carried the expected `WSL git worktree operations too slow for full suite (W0-T05)` reason
+  - `2832 passed, 6 skipped, 6 warnings`
 
-### Proof CLI surface
+### Scoped quality gate
 - Command:
-  - `python3 scripts/certification_proof.py --help`
+  - `python3 scripts/workflow/quality_gate.py check --scope changed --json`
 - Result:
   - passed
+  - advisory-only tool-unavailable results for `ruff`, `mypy`, `biome`, `yamllint`, and `shellcheck`
 
-### Smoke-test caveat
+### CI certification
 - Command:
-  - `pytest runtime/tests/test_isolated_smoke_test.py -q -o addopts=`
+  - `python3 -m runtime.cli certify pipeline --profile ci`
 - Result:
-  - fails in the current worktree because the test asserts a completely clean repo and this review worktree contains uncommitted T-022 changes
-  - failure is not evidence of a smoke-path regression
-
-### Not run in this session
-- `python3 -m runtime.cli certify pipeline --profile ci`
-- `python3 scripts/certification_proof.py --profile ci --evidence-output artifacts/evidence/T_022_prod_ci_certification_proof.md`
-- `pytest runtime/tests -q`
-- `python3 scripts/workflow/quality_gate.py check --scope changed --json`
-
-These were not run here because the current session used a read-only command sandbox for command execution, and the full certification/proof path writes transient repo artifacts.
+  - `state: prod_ci`
+  - zero leaks
+  - readiness artifact written at `artifacts/status/pipeline_readiness.json`
 
 ## Suggested Claude Review Commands
 - `git status --short`
-- `git diff --stat`
-- `git diff -- scripts/certification_proof.py scripts/run_certification.py`
-- `git diff -- runtime/tests/test_demo_approval_determinism.py runtime/tests/test_sandbox_remediation.py runtime/tests/test_pipeline_certification.py`
-- `git diff -- config/certification_profiles.yaml pyproject.toml .github/workflows/prod_ci_proof.yml`
-- `pytest runtime/tests/test_pipeline_certification.py -q -o addopts=`
-- `pytest runtime/tests/test_demo_approval_determinism.py -q -o addopts=`
-- `pytest runtime/tests/test_sandbox_remediation.py -q -o addopts=`
-- `pytest runtime/tests/test_ceo_queue.py -q -o addopts=`
+- `git show --stat HEAD~2..HEAD`
+- `git diff a8a13218c7fd4aecca8a2aa83c7a5420b36f6f79..HEAD -- scripts/run_certification_tests.py scripts/opencode_gate_policy.py`
+- `git diff a8a13218c7fd4aecca8a2aa83c7a5420b36f6f79..HEAD -- config/certification_profiles.yaml .github/workflows/prod_ci_proof.yml`
+- `git diff --summary a8a13218c7fd4aecca8a2aa83c7a5420b36f6f79..HEAD`
+- `python3 scripts/run_certification_tests.py`
+- `python3 -m pytest runtime/tests/test_openclaw_upgrade_module.py -q -o addopts=`
+- `python3 -m pytest runtime/tests/test_openclaw_coo_update_protocol_promotion.py -q -o addopts=`
+- `python3 -m runtime.cli certify pipeline --profile ci`
 
 ## Notes
-- No protected governance paths were modified in this worktree.
-- The worktree is intentionally left uncommitted so review can happen before any landing/cleanup step.
-- The new proof workflow is manual-dispatch only; it does not change `ci.yml`.
+- No protected governance paths were modified in this branch.
+- The branch is in a reviewable committed state; this handoff adds context only.
+- I did not mark `T-022` complete in backlog/state docs yet, because the remaining closure step is the explicit 3-run proof and workflow proof.
