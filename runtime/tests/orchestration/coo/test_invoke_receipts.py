@@ -7,7 +7,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from runtime.orchestration.coo.invoke import InvocationError, invoke_coo_reasoning
+from runtime.orchestration.coo.invoke import (
+    InvocationError,
+    ProposalNormalizationError,
+    _normalize_proposal_indentation,
+    invoke_coo_reasoning,
+)
 from runtime.receipts.invocation_receipt import (
     get_or_create_collector,
     reset_invocation_receipt_collectors,
@@ -225,6 +230,59 @@ def test_json_decode_failure_produces_receipt():
     r = get_or_create_collector(_RUN_ID).receipts[0]
     assert r.schema_validation == "fail"
     assert "JSON decode" in (r.error or "")
+
+
+def test_normalize_proposal_indentation_recovers_all_task_fields() -> None:
+    raw = (
+        "schema_version: task_proposal.v1\n"
+        "proposals:\n"
+        "- task_id: T-020\n"
+        "rationale: Tighten parser recovery.\n"
+        "proposed_action: dispatch\n"
+        "urgency_override: P1\n"
+        "suggested_owner: codex\n"
+    )
+
+    normalized = _normalize_proposal_indentation(raw)
+
+    assert "  rationale: Tighten parser recovery." in normalized
+    assert "  proposed_action: dispatch" in normalized
+    assert "  urgency_override: P1" in normalized
+    assert "  suggested_owner: codex" in normalized
+
+
+def test_normalize_proposal_indentation_recovers_operation_fields() -> None:
+    raw = (
+        "schema_version: operation_proposal.v1\n"
+        "- proposal_id: OP-a1b2c3d4\n"
+        "title: Write workspace note\n"
+        "rationale: Safe workspace mutation.\n"
+        "operation_kind: mutation\n"
+        "action_id: workspace.file.write\n"
+        "args:\n"
+        "requires_approval: true\n"
+        "suggested_owner: lifeos\n"
+    )
+
+    normalized = _normalize_proposal_indentation(raw)
+
+    assert "  title: Write workspace note" in normalized
+    assert "  action_id: workspace.file.write" in normalized
+    assert "  requires_approval: true" in normalized
+    assert "  suggested_owner: lifeos" in normalized
+
+
+def test_normalize_proposal_indentation_rejects_unknown_key() -> None:
+    raw = (
+        "schema_version: task_proposal.v1\n"
+        "proposals:\n"
+        "- task_id: T-020\n"
+        "rationale: Tighten parser recovery.\n"
+        "unexpected_key: nope\n"
+    )
+
+    with pytest.raises(ProposalNormalizationError, match="Unknown COO proposal sub-key"):
+        _normalize_proposal_indentation(raw)
 
 
 # ---------------------------------------------------------------------------

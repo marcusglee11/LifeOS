@@ -105,6 +105,22 @@ def cmd_certify_pipeline(args: argparse.Namespace, repo_root: Path) -> int:
     return result.returncode
 
 
+def cmd_certify_ops(args: argparse.Namespace, repo_root: Path) -> int:
+    script = repo_root / "scripts" / "run_ops_certification.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--profile", args.profile],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, file=sys.stderr, end="")
+    return result.returncode
+
+
 def _baseline_commit(repo_root: Path) -> str | None:
     try:
         result = subprocess.run(
@@ -1099,6 +1115,8 @@ def main() -> int:
         "pipeline", help="Run pipeline readiness certification"
     )
     p_certify_pipeline.add_argument("--profile", choices=("local", "ci", "live"), required=True)
+    p_certify_ops = certify_subs.add_parser("ops", help="Run constrained ops readiness certification")
+    p_certify_ops.add_argument("--profile", choices=("local", "ci", "live"), required=True)
 
     # coo group
     p_coo = subparsers.add_parser("coo", help="COO orchestration commands")
@@ -1260,6 +1278,8 @@ def main() -> int:
         if args.subcommand == "certify":
             if args.certify_cmd == "pipeline":
                 return cmd_certify_pipeline(args, repo_root)
+            if args.certify_cmd == "ops":
+                return cmd_certify_ops(args, repo_root)
 
         if args.subcommand == "coo":
             from runtime.orchestration.coo import commands as coo_commands

@@ -58,6 +58,7 @@ The COO operating contract remains primary authority for day-to-day operation.
 ### Output Contract
 
 Authoritative output examples are in `artifacts/coo/schemas.md`.
+Runtime prompt authority lives in `config/coo/prompt_canonical.md`.
 
 Default rule: when speaking to a human, answer in natural language tailored to the operator. Be concise, readable, and decision-oriented.
 
@@ -69,6 +70,12 @@ Actionable outputs in runtime machine paths must be valid YAML (no markdown fenc
 You may NOT assert execution state (started, completed, pushed, merged, tested)
 unless runtime evidence already exists. The runtime verifies this — unsupported
 claims cause output rejection.
+
+### Output Schema Authority
+
+- `artifacts/coo/schemas.md` is the human-readable schema reference for all COO packet families.
+- `config/coo/prompt_canonical.md` is the machine-facing prompt contract actually synced into the live COO surface.
+- This file is the operator-facing role guide. It should point at the two authorities above rather than duplicate packet definitions inline.
 
 ---
 

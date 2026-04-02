@@ -16,19 +16,33 @@ class InvocationError(RuntimeError):
     """Raised when the OpenClaw subprocess fails, times out, or returns unusable output."""
 
 
-# Sub-keys that appear in proposals list items and must be indented 2 spaces.
-_PROPOSALS_SUB_KEYS = frozenset(
-    {
-        "title",
-        "rationale",
-        "operation_kind",
-        "action_id",
-        "args",
-        "requires_approval",
-        "proposed_action",
-        "urgency_override",
-        "suggested_owner",
-    }
+class ProposalNormalizationError(ValueError):
+    """Raised when proposal indentation recovery detects unknown or ambiguous structure."""
+
+
+_ITEM_KEYS = {
+    "task_id": frozenset(
+        {
+            "rationale",
+            "proposed_action",
+            "urgency_override",
+            "suggested_owner",
+        }
+    ),
+    "proposal_id": frozenset(
+        {
+            "title",
+            "rationale",
+            "operation_kind",
+            "action_id",
+            "args",
+            "requires_approval",
+            "suggested_owner",
+        }
+    ),
+}
+_ITEM_START_PREFIXES = tuple(f"- {key}:" for key in _ITEM_KEYS) + tuple(
+    f"-{key}:" for key in _ITEM_KEYS
 )
 
 
@@ -44,26 +58,34 @@ def _normalize_proposal_indentation(text: str) -> str:
     """
     lines = text.split("\n")
     result: list[str] = []
-    in_item = False
+    active_item_key: str | None = None
 
     for line in lines:
-        if (
-            line.startswith("- task_id:")
-            or line.startswith("-task_id:")
-            or line.startswith("- proposal_id:")
-            or line.startswith("-proposal_id:")
-        ):
-            in_item = True
+        stripped = line.strip()
+        if not line or not stripped:
             result.append(line)
             continue
 
-        if in_item and line and not line.startswith(" "):
-            key = line.split(":")[0].strip().lstrip("- ")
-            if key in _PROPOSALS_SUB_KEYS:
+        if line.startswith(_ITEM_START_PREFIXES):
+            active_item_key = stripped.split(":", 1)[0].lstrip("- ").strip()
+            result.append(line)
+            continue
+
+        if active_item_key is not None and not line.startswith(" "):
+            if ":" not in line:
+                raise ProposalNormalizationError(
+                    f"Malformed COO proposal line for {active_item_key}: {line!r}"
+                )
+            key = line.split(":", 1)[0].strip().lstrip("- ")
+            if key in _ITEM_KEYS[active_item_key]:
                 result.append("  " + line)
                 continue
+            if key in _ITEM_KEYS:
+                active_item_key = None
             else:
-                in_item = False
+                raise ProposalNormalizationError(
+                    f"Unknown COO proposal sub-key for {active_item_key}: {key!r}"
+                )
 
         result.append(line)
 
@@ -354,7 +376,22 @@ def invoke_coo_reasoning(
         )
         raise InvocationError(f"Unexpected openclaw output shape: {exc}") from exc
 
-    normalized = _normalize_proposal_indentation(raw_text)
+    try:
+        normalized = _normalize_proposal_indentation(raw_text)
+    except ProposalNormalizationError as exc:
+        record_invocation_receipt(
+            run_id=run_id,
+            provider_id="openclaw",
+            mode="cli",
+            seat_id=f"coo_{mode}",
+            start_ts=start_ts,
+            end_ts=end_ts,
+            exit_status=result.returncode,
+            output_content=raw_text,
+            schema_validation="fail",
+            error=f"proposal normalization failed: {exc}",
+        )
+        raise InvocationError(f"COO output normalization failed: {exc}") from exc
 
     record_invocation_receipt(
         run_id=run_id,

@@ -323,17 +323,17 @@ tasks:
   scope_paths:
   - artifacts/coo/step6_parity_pack/
   - runtime/tests/orchestration/coo/
-  status: pending
+  status: completed
   requires_approval: false
-  owner: ''
-  evidence: ''
+  owner: codex
+  evidence: artifacts/coo/promotion_campaign/gate6_result.json + runtime/orchestration/coo/commands.py + runtime/tests/orchestration/coo/test_commands.py
   task_type: build
   tags:
   - coo-step6
   - tech-debt
   objective_ref: coo-gaps
   created_at: '2026-03-09T00:00:00Z'
-  completed_at: null
+  completed_at: '2026-04-02T00:00:00Z'
 - id: T-017
   title: COO retry/backoff in invoke_coo_reasoning()
   description: invoke_coo_reasoning() has no retry logic. Gateway transient failures
@@ -380,19 +380,22 @@ tasks:
   completed_at: '2026-03-09T00:00:00Z'
 - id: T-019
   title: coo.md output schema section
-  description: Add explicit output schema section to config/agent_roles/coo.md documenting
-    task_proposal.v1 and escalation_packet.v1 YAML structure. COO currently infers
-    schema from inline example in context.py.
-  dod: coo.md has dedicated Output Schema section; schemas match context.py injection;
-    no functional change to invocation
+  description: Record explicit output-schema authority in config/agent_roles/coo.md
+    and point the live machine contract at config/coo/prompt_canonical.md while keeping
+    artifacts/coo/schemas.md authoritative for human-readable packet definitions.
+  dod: config/agent_roles/coo.md documents schema authority; config/coo/prompt_canonical.md
+    carries the runtime packet contract; artifacts/coo/schemas.md remains authoritative;
+    no functional change to invocation semantics
   priority: P2
   risk: low
   scope_paths:
   - config/agent_roles/coo.md
-  status: pending
+  - config/coo/prompt_canonical.md
+  - artifacts/coo/schemas.md
+  status: completed
   requires_approval: false
-  owner: ''
-  evidence: ''
+  owner: codex
+  evidence: config/agent_roles/coo.md + config/coo/prompt_canonical.md authority alignment (2026-04-02 rescope closure)
   task_type: build
   tags:
   - coo-step6
@@ -400,7 +403,7 @@ tasks:
   - docs
   objective_ref: coo-gaps
   created_at: '2026-03-09T00:00:00Z'
-  completed_at: null
+  completed_at: '2026-04-02T00:00:00Z'
 - id: T-020
   title: _normalize_proposal_indentation() field coverage
   description: _normalize_proposal_indentation() in invoke.py only fixes known mis-indented
@@ -411,17 +414,18 @@ tasks:
   risk: low
   scope_paths:
   - runtime/orchestration/coo/invoke.py
-  status: pending
+  - runtime/tests/orchestration/coo/test_invoke_receipts.py
+  status: completed
   requires_approval: false
-  owner: ''
-  evidence: ''
+  owner: codex
+  evidence: runtime/orchestration/coo/invoke.py + runtime/tests/orchestration/coo/test_invoke_receipts.py
   task_type: build
   tags:
   - coo-step6
   - tech-debt
   objective_ref: coo-gaps
   created_at: '2026-03-09T00:00:00Z'
-  completed_at: null
+  completed_at: '2026-04-02T00:00:00Z'
 - id: T-021
   title: Prove prod_local on clean worktree
   description: Run pipeline certification from a clean worktree and close any remaining

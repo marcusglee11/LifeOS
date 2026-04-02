@@ -70,7 +70,7 @@ def _target_state(profile: str) -> str:
     return PROFILE_METADATA[profile]["state"]
 
 
-def run_proof(profile: str) -> dict[str, Any]:
+def run_proof(profile: str = "local") -> dict[str, Any]:
     payload: dict[str, Any] = {
         "timestamp": _now_iso(),
         "profile": profile,
@@ -98,7 +98,7 @@ def run_proof(profile: str) -> dict[str, Any]:
         )
         artifact = _load_readiness_artifact()
         state = artifact.get("state") if artifact else None
-        elapsed_s = round(time.monotonic() - started, 3)
+        elapsed_s = round(time.monotonic() - started, 1)
         counts = artifact.get("pytest_summary", {}) if artifact else {}
         leaks = artifact.get("leaks", []) if artifact else []
 

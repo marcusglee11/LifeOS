@@ -173,6 +173,7 @@ artifacts/store/
 artifacts/status/coo_telegram_runtime.json
 artifacts/status/pipeline_readiness.json
 artifacts/status/certification_proof.json
+artifacts/status/ops_readiness.json
 
 # Stale runtime artifacts (WSL/Windows filesystem side-effects)
 /nul
