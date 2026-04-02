@@ -32,6 +32,15 @@ skip_reason_patterns:
   - pattern: Symlinks require special permissions on Windows
     classification: platform
     reason: Windows privilege dependent
+  - pattern: POSIX only
+    classification: platform
+    reason: POSIX-only test, expected skip on Windows
+  - pattern: Windows only
+    classification: platform
+    reason: Windows-only test, expected skip on Linux
+  - pattern: "Waived: governance/mission-registry-v0.1"
+    classification: platform
+    reason: AT-12 waiver preserved for T-022; repair tracked separately
   - pattern: requires network access for pip dependencies
     classification: env_optional
     reason: Offline environment dependent

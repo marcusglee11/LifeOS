@@ -33,6 +33,7 @@ TOP_LEVEL_EXCLUDE = frozenset({
 
 # Key files cap per module
 KEY_FILES_CAP = 5
+GIT_STATUS_TIMEOUTS_S = (10, 30)
 
 
 # ---------------------------------------------------------------------------
@@ -66,14 +67,20 @@ def get_head_ref(repo: Path) -> str:
 
 def is_tree_dirty(repo: Path) -> bool:
     """Return True if working tree has uncommitted changes."""
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(repo), "status", "--porcelain=v1", "--untracked-files=no"],
-            capture_output=True, text=True, timeout=10,
-        )
-        return bool(result.stdout.strip())
-    except Exception:
-        return True
+    for timeout_s in GIT_STATUS_TIMEOUTS_S:
+        try:
+            result = subprocess.run(
+                ["git", "-C", str(repo), "status", "--porcelain=v1", "--untracked-files=no"],
+                capture_output=True,
+                text=True,
+                timeout=timeout_s,
+            )
+        except subprocess.TimeoutExpired:
+            continue
+        except Exception:
+            return True
+        return result.returncode != 0 or bool(result.stdout.strip())
+    return True
 
 
 # ---------------------------------------------------------------------------
