@@ -350,7 +350,11 @@ def parse_git_status_z(output: str) -> List[tuple]:
             if '\t' in part:
                 status_full, path = part.split('\t', 1)
                 result.append((status_full[0], path))
-            i += 1
+                i += 1
+            else:
+                path = parts[i + 1] if i + 1 < len(parts) else ""
+                result.append((status_char, path))
+                i += 2
     
     return result
 
