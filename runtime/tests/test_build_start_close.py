@@ -9,7 +9,17 @@ import pytest
 
 from scripts import repo_safety_gate as safety_gate
 from scripts.workflow import close_build as close_build
+from scripts.workflow.git_lock_health import GitLockHealth
 from scripts.workflow import start_build as start_build
+
+
+@pytest.fixture(autouse=True)
+def _default_git_lock_health(monkeypatch) -> None:
+    monkeypatch.setattr(
+        start_build,
+        "ensure_git_lock_health",
+        lambda *_args, **_kwargs: GitLockHealth(ok=True),
+    )
 
 
 def test_normalize_branch_defaults_to_build() -> None:
@@ -132,6 +142,52 @@ def test_start_build_auto_recover_existing_primary_branch(monkeypatch, capsys) -
     assert payload["ok"] is True
     assert payload["auto_recovered"] is True
     assert payload["worktree_path"] == "/tmp/repo/.worktrees/existing-work"
+
+
+def test_start_build_blocks_on_active_git_lock(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        start_build,
+        "ensure_git_lock_health",
+        lambda *_args, **_kwargs: GitLockHealth(
+            ok=False,
+            blocking_locks=["/tmp/repo/.git/index.lock"],
+            notes=["active process pid=999: git -C /tmp/repo status"],
+        ),
+    )
+    monkeypatch.setattr(sys, "argv", ["start_build.py", "lock test", "--json"])
+
+    rc = start_build.main()
+    payload = json.loads(capsys.readouterr().out)
+
+    assert rc == 1
+    assert payload["ok"] is False
+    assert payload["error"].startswith("GIT_LOCK_BLOCKER:")
+
+
+def test_start_build_reports_recovered_orphaned_locks_in_json(monkeypatch, capsys) -> None:
+    fake_out = "✓ Worktree ready at: /tmp/repo/.worktrees/auth-token\n  Run: cd /tmp/repo/.worktrees/auth-token\n"
+
+    def fake_run(*args, **kwargs):
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=fake_out, stderr="")
+
+    monkeypatch.setattr(
+        start_build,
+        "ensure_git_lock_health",
+        lambda *_args, **_kwargs: GitLockHealth(
+            ok=True,
+            removed_locks=["/tmp/repo/.git/index.lock"],
+        ),
+    )
+    monkeypatch.setattr(start_build.subprocess, "run", fake_run)
+    monkeypatch.setattr(start_build, "_git_stdout", lambda *_args, **_kwargs: "")
+    monkeypatch.setattr(sys, "argv", ["start_build.py", "auth token", "--json"])
+
+    rc = start_build.main()
+    payload = json.loads(capsys.readouterr().out)
+
+    assert rc == 0
+    assert payload["ok"] is True
+    assert payload["recovered_locks"] == ["/tmp/repo/.git/index.lock"]
 
 
 def test_recover_primary_branch_stashes_switches_and_reapplies(monkeypatch, tmp_path: Path) -> None:

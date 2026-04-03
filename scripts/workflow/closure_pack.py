@@ -336,7 +336,8 @@ def main() -> int:
     if not merge["success"]:
         test_results.append("FAIL: Merge to main failed.")
         for err in merge["errors"]:
-            test_results.append(f"- {err}")
+            prefix = "- Git lock blocker: " if err.startswith("Git lock blocker:") else "- "
+            test_results.append(f"{prefix}{err.removeprefix('Git lock blocker: ') if err.startswith('Git lock blocker:') else err}")
         what_remains.append("Resolve merge blockers and retry close-build.")
         _print_report(
             branch=branch,
@@ -449,7 +450,10 @@ def main() -> int:
         if cleanup.get("worktree_removed"):
             what_done.append("Removed linked worktree.")
         for err in cleanup["errors"]:
-            what_remains.append(err)
+            if err.startswith("Git lock blocker:"):
+                what_remains.append(err)
+            else:
+                what_remains.append(err)
 
     _print_report(
         branch=branch,

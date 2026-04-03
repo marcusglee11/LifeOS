@@ -22,6 +22,8 @@ _SCOPED_PREFIXES = tuple(f"{kind}/" for kind in _VALID_KINDS)
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from scripts.workflow.git_lock_health import ensure_git_lock_health
+
 
 def _slugify_topic(raw: str) -> str:
     value = re.sub(r"[^a-z0-9-]", "-", raw.strip().lower())
@@ -516,6 +518,20 @@ def main() -> int:
             print(f"❌ {exc}", file=sys.stderr)
         return 2
 
+    lock_health = ensure_git_lock_health(REPO_ROOT, auto_cleanup=True)
+    if not lock_health.ok:
+        details = " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
+        err = (
+            "GIT_LOCK_BLOCKER: "
+            + ", ".join(lock_health.blocking_locks)
+            + f" | {details}"
+        )
+        if args.json:
+            print(json.dumps({"ok": False, "error": err, "branch": branch, "worktree_path": None}))
+        else:
+            print(f"❌ {err}", file=sys.stderr)
+        return 1
+
     # Verify main is healthy before branching — catches orphaned staged changes
     # or untracked files left by a failed merge_to_main.
     _main_staged = _git_stdout(REPO_ROOT, ["diff", "--cached", "--name-only"])
@@ -538,6 +554,12 @@ def main() -> int:
         else:
             print(f"❌ {err}", file=sys.stderr)
         return 1
+
+    if lock_health.removed_locks and not args.json:
+        print(
+            "ℹ️  Recovered orphaned git lock(s): " + ", ".join(lock_health.removed_locks),
+            file=sys.stderr,
+        )
 
     cmd = [
         sys.executable,
@@ -602,6 +624,7 @@ def main() -> int:
             "stderr": stderr,
             "exit_code": proc.returncode,
             "auto_recovered": auto_recovered,
+            "recovered_locks": lock_health.removed_locks,
         }
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:

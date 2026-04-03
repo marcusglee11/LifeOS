@@ -23,6 +23,7 @@ from runtime.orchestration.coo.backlog import (
     save_backlog,
 )
 from runtime.util.atomic_write import atomic_write_text
+from scripts.workflow.git_lock_health import ensure_git_lock_health
 
 # Import for BACKLOG parsing (will handle import error gracefully)
 try:
@@ -1148,6 +1149,26 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
                 "errors": errors,
             }
 
+    lock_health = ensure_git_lock_health(primary_repo, auto_cleanup=True)
+    if lock_health.removed_locks:
+        errors.append(
+            "Git lock recovery: removed orphaned lock(s): "
+            + ", ".join(lock_health.removed_locks)
+        )
+    if not lock_health.ok:
+        details = " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
+        errors.append(
+            "Git lock blocker: "
+            + ", ".join(lock_health.blocking_locks)
+            + f" | {details}"
+        )
+        return {
+            "success": False,
+            "merge_sha": None,
+            "primary_repo": str(primary_repo),
+            "errors": errors,
+        }
+
     steps = [
         *(
             [("checkout main", ["git", "-C", str(primary_repo), "checkout", "main"])]
@@ -1177,6 +1198,25 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
     ]
 
     for label, cmd in steps:
+        step_lock_health = ensure_git_lock_health(primary_repo, auto_cleanup=True)
+        if step_lock_health.removed_locks:
+            errors.append(
+                "Git lock recovery: removed orphaned lock(s): "
+                + ", ".join(step_lock_health.removed_locks)
+            )
+        if not step_lock_health.ok:
+            details = " | ".join(step_lock_health.notes) if step_lock_health.notes else "unknown git lock owner"
+            errors.append(
+                f"{label} blocked by Git lock: "
+                + ", ".join(step_lock_health.blocking_locks)
+                + f" | {details}"
+            )
+            return {
+                "success": False,
+                "merge_sha": None,
+                "primary_repo": str(primary_repo),
+                "errors": errors,
+            }
         run_env = None
         if label == "commit squash merge":
             run_env = os.environ.copy()
@@ -1203,6 +1243,18 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
                 # Offline fallback: proceed with local main if remote is unreachable.
                 continue
         errors.append(f"{label} failed: {details or f'exit code {proc.returncode}'}")
+        after_failure_lock_health = ensure_git_lock_health(primary_repo, auto_cleanup=False)
+        if after_failure_lock_health.blocking_locks:
+            lock_details = (
+                " | ".join(after_failure_lock_health.notes)
+                if after_failure_lock_health.notes
+                else "unknown git lock owner"
+            )
+            errors.append(
+                "Git lock blocker: "
+                + ", ".join(after_failure_lock_health.blocking_locks)
+                + f" | {lock_details}"
+            )
         # If the squash merge staged changes into the index, reset to unstage
         # them before switching branches.  Without this, orphaned staged
         # changes persist on main, contaminating future operations.
@@ -1301,6 +1353,22 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
     worktree_removed = False
     if linked_wt_path is not None and linked_wt_path != primary_repo:
         git_cwd = str(primary_repo) if primary_repo is not None else str(repo)
+        target_repo = primary_repo if primary_repo is not None else repo
+        lock_health = ensure_git_lock_health(target_repo, auto_cleanup=True)
+        if not lock_health.ok:
+            details = " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
+            errors.append(
+                "Git lock blocker: "
+                + ", ".join(lock_health.blocking_locks)
+                + f" | {details}"
+            )
+            return {
+                "branch_deleted": False,
+                "context_cleared": False,
+                "worktree_removed": False,
+                "registry_records_closed": 0,
+                "errors": errors,
+            }
         rm_proc = subprocess.run(
             ["git", "-C", git_cwd, "worktree", "remove", "--force", str(linked_wt_path)],
             check=False,
@@ -1319,6 +1387,21 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
     branch_deleted = False
     registry_records_closed = 0
     if source_branch and source_branch not in {"main", "master"}:
+        lock_health = ensure_git_lock_health(branch_delete_repo, auto_cleanup=True)
+        if not lock_health.ok:
+            details = " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
+            errors.append(
+                "Git lock blocker: "
+                + ", ".join(lock_health.blocking_locks)
+                + f" | {details}"
+            )
+            return {
+                "branch_deleted": False,
+                "context_cleared": False,
+                "worktree_removed": worktree_removed,
+                "registry_records_closed": 0,
+                "errors": errors,
+            }
         proc = subprocess.run(
             ["git", "-C", str(branch_delete_repo), "branch", "-D", source_branch],
             check=False,

@@ -6,6 +6,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+import pytest
+
+from scripts.workflow.git_lock_health import GitLockHealth
 from runtime.tools.workflow_pack import (
     build_active_work_payload,
     check_doc_stewardship,
@@ -19,6 +22,15 @@ from runtime.tools.workflow_pack import (
     update_structured_backlog,
     write_active_work,
 )
+
+
+def _healthy_git_lock_state(*_args, **_kwargs) -> GitLockHealth:
+    return GitLockHealth(ok=True)
+
+
+@pytest.fixture(autouse=True)
+def _default_git_lock_health(monkeypatch) -> None:
+    monkeypatch.setattr("runtime.tools.workflow_pack.ensure_git_lock_health", _healthy_git_lock_state)
 
 
 def test_active_work_roundtrip(tmp_path: Path) -> None:
@@ -607,6 +619,153 @@ def test_merge_to_main_reports_post_merge_dirt(monkeypatch, tmp_path: Path) -> N
 
     assert result["success"] is True
     assert any("post-merge health check" in e for e in result["errors"])
+
+
+def test_merge_to_main_recovers_orphaned_git_lock(monkeypatch, tmp_path: Path) -> None:
+    repo = tmp_path
+    primary = repo / "primary"
+    primary.mkdir(parents=True, exist_ok=True)
+    worktree_list = f"worktree {primary}\nbranch refs/heads/main\n"
+    call_count = {"locks": 0}
+
+    def fake_lock_health(*_args, **_kwargs):
+        call_count["locks"] += 1
+        if call_count["locks"] == 1:
+            return GitLockHealth(ok=True, removed_locks=["/tmp/repo/.git/index.lock"])
+        return GitLockHealth(ok=True)
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        if cmd[-2:] == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
+        if "ls-files" in cmd and "--others" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-1:] == ["HEAD"] and "rev-parse" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="abc123\n", stderr="")
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.ensure_git_lock_health", fake_lock_health)
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = merge_to_main(repo, "build/feature")
+
+    assert result["success"] is True
+    assert any("Git lock recovery" in e for e in result["errors"])
+
+
+def test_merge_to_main_blocks_on_active_git_lock(monkeypatch, tmp_path: Path) -> None:
+    repo = tmp_path
+    primary = repo / "primary"
+    primary.mkdir(parents=True, exist_ok=True)
+    worktree_list = f"worktree {primary}\nbranch refs/heads/main\n"
+    call_log: list[list[str]] = []
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        call_log.append(cmd)
+        if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        if cmd[-2:] == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
+        if "ls-files" in cmd and "--others" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(
+        "runtime.tools.workflow_pack.ensure_git_lock_health",
+        lambda *_args, **_kwargs: GitLockHealth(
+            ok=False,
+            blocking_locks=["/tmp/repo/.git/index.lock"],
+            notes=["active process pid=123: git -C /tmp/repo status"],
+        ),
+    )
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = merge_to_main(repo, "build/feature")
+
+    assert result["success"] is False
+    assert any("Git lock blocker" in e for e in result["errors"])
+    assert not any("--squash" in c for c in call_log)
+
+
+def test_merge_to_main_reports_lock_diagnostics_after_git_failure(monkeypatch, tmp_path: Path) -> None:
+    repo = tmp_path
+    primary = repo / "primary"
+    primary.mkdir(parents=True, exist_ok=True)
+    worktree_list = f"worktree {primary}\nbranch refs/heads/main\n"
+
+    def fake_lock_health(*_args, auto_cleanup=True, **_kwargs):
+        if auto_cleanup:
+            return GitLockHealth(ok=True)
+        return GitLockHealth(
+            ok=False,
+            blocking_locks=["/tmp/repo/.git/index.lock"],
+            notes=["active process pid=123: git -C /tmp/repo status"],
+        )
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        if cmd == [sys.executable, "scripts/repo_safety_gate.py", "--operation", "merge"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        if cmd[-2:] == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="main\n", stderr="")
+        if "ls-files" in cmd and "--others" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+        if "merge" in cmd and "--squash" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=1, stdout="", stderr="index locked")
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.ensure_git_lock_health", fake_lock_health)
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = merge_to_main(repo, "build/feature")
+
+    assert result["success"] is False
+    assert any("squash merge failed" in e for e in result["errors"])
+    assert any("Git lock blocker" in e for e in result["errors"])
+
+
+def test_cleanup_after_merge_reports_git_lock_blocker(monkeypatch, tmp_path: Path) -> None:
+    primary = tmp_path / "primary"
+    repo = tmp_path / ".worktrees" / "feature"
+    primary.mkdir(parents=True, exist_ok=True)
+    repo.mkdir(parents=True, exist_ok=True)
+    commands: list[list[str]] = []
+
+    worktree_list = (
+        f"worktree {primary}\n"
+        "branch refs/heads/main\n\n"
+        f"worktree {repo}\n"
+        "branch refs/heads/build/feature\n"
+    )
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        commands.append(cmd)
+        if cmd[-3:] == ["worktree", "list", "--porcelain"]:
+            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=worktree_list, stderr="")
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(
+        "runtime.tools.workflow_pack.ensure_git_lock_health",
+        lambda *_args, **_kwargs: GitLockHealth(
+            ok=False,
+            blocking_locks=["/tmp/repo/.git/index.lock"],
+            notes=["active process pid=123: git -C /tmp/repo status"],
+        ),
+    )
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+
+    result = cleanup_after_merge(repo, "build/feature", clear_context=False)
+
+    assert result["branch_deleted"] is False
+    assert any("Git lock blocker" in e for e in result["errors"])
+    assert not any("remove" in c for cmd in commands for c in cmd if c == "remove")
 
 
 # --- Tests for STATE/BACKLOG update functions ---

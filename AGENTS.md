@@ -47,6 +47,7 @@ Model fallback chains are defined in `config/models.yaml`. If a primary model is
    work was started in primary by mistake, run
    `python3 scripts/workflow/start_build.py --recover-primary`.
    - Exception: plan-only artifact edits limited to `artifacts/plans/*.md` do not require a scoped worktree branch.
+   - Do not run mutating Git commands in parallel for the same repo or linked worktree.
 
 ---
 
