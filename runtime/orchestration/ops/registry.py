@@ -26,6 +26,21 @@ class ActionSpec:
 
 
 _ACTION_SPECS: dict[str, ActionSpec] = {
+    "workspace.file.read": ActionSpec(
+        action_id="workspace.file.read",
+        operation_kind="query",
+        requires_approval=True,
+    ),
+    "workspace.file.list": ActionSpec(
+        action_id="workspace.file.list",
+        operation_kind="query",
+        requires_approval=True,
+    ),
+    "workspace.status.inspect": ActionSpec(
+        action_id="workspace.status.inspect",
+        operation_kind="query",
+        requires_approval=True,
+    ),
     "workspace.file.write": ActionSpec(
         action_id="workspace.file.write",
         operation_kind="mutation",
@@ -112,6 +127,33 @@ def _normalize_write_args(args: dict[str, Any], workspace_root: Path) -> dict[st
     }
 
 
+def _normalize_read_args(args: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
+    path_value = _path_arg(args)
+    resolved = normalize_workspace_path(path_value, workspace_root)
+    return {
+        "path": path_value,
+        "resolved_path": str(resolved),
+    }
+
+
+def _normalize_list_args(args: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
+    path_value = _path_arg(args)
+    resolved = normalize_workspace_path(path_value, workspace_root)
+    return {
+        "path": path_value,
+        "resolved_path": str(resolved),
+    }
+
+
+def _normalize_inspect_args(args: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
+    path_value = _path_arg(args)
+    resolved = normalize_workspace_path(path_value, workspace_root)
+    return {
+        "path": path_value,
+        "resolved_path": str(resolved),
+    }
+
+
 def _normalize_edit_args(args: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
     path_value = _path_arg(args)
     old_text = args.get("old_text")
@@ -163,6 +205,9 @@ def validate_operation(action_id: str, args: dict[str, Any]) -> dict[str, Any]:
     spec = get_action_spec(action_id)
 
     normalizers = {
+        "workspace.file.read": _normalize_read_args,
+        "workspace.file.list": _normalize_list_args,
+        "workspace.status.inspect": _normalize_inspect_args,
         "workspace.file.write": _normalize_write_args,
         "workspace.file.edit": _normalize_edit_args,
         "lifeos.note.record": _normalize_note_args,

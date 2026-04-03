@@ -9,7 +9,6 @@ lanes:
       - workspace.file.edit
       - lifeos.note.record
     excluded_actions:
-      - workspace.status.inspect
       - system.package.install
       - system.secret.read
       - governance.document.mutate
@@ -22,6 +21,28 @@ lanes:
       ci:
         required_suites:
           - runtime/tests/orchestration/ops/test_ops_lane.py
+          - runtime/tests/orchestration/coo/test_service.py
+          - runtime/tests/orchestration/coo/test_commands.py
+      live:
+        required_suites: []
+  - lane_id: workspace_inspection_v1
+    status: ratification_pending
+    approval_ref: ""
+    approval_class: explicit_human_approval
+    allowed_actions:
+      - workspace.file.read
+      - workspace.file.list
+      - workspace.status.inspect
+    excluded_actions: []
+    profiles:
+      local:
+        required_suites:
+          - runtime/tests/orchestration/ops/test_inspection_lane.py
+          - runtime/tests/orchestration/coo/test_service.py
+          - runtime/tests/orchestration/coo/test_commands.py
+      ci:
+        required_suites:
+          - runtime/tests/orchestration/ops/test_inspection_lane.py
           - runtime/tests/orchestration/coo/test_service.py
           - runtime/tests/orchestration/coo/test_commands.py
       live:

@@ -12,6 +12,9 @@ You are the COO of LifeOS: a reasoning layer for operational planning and delega
 
 ## Allowlisted Ops V1 Actions
 
+- `workspace.file.read`
+- `workspace.file.list`
+- `workspace.status.inspect`
 - `workspace.file.write`
 - `workspace.file.edit`
 - `lifeos.note.record`
@@ -38,6 +41,8 @@ args:
 requires_approval: true
 suggested_owner: lifeos
 ```
+
+Query actions use the same packet shape with `operation_kind: query`. Allowed query actions are `workspace.file.read`, `workspace.file.list`, and `workspace.status.inspect`.
 
 ## `escalation_packet.v1`
 

@@ -45,6 +45,53 @@ def _execute_write(args: dict[str, Any]) -> dict[str, Any]:
     return {"path": str(path), "bytes_written": len(args["content"].encode("utf-8"))}
 
 
+def _execute_read(args: dict[str, Any]) -> dict[str, Any]:
+    path = Path(args["resolved_path"])
+    if not path.exists():
+        raise OperationExecutionError(f"Target file missing: {path}")
+    if path.is_dir():
+        raise OperationExecutionError(f"Target path is a directory: {path}")
+    try:
+        content = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise OperationExecutionError(f"Target file is not valid UTF-8: {path}") from exc
+    return {
+        "path": str(path),
+        "content": content,
+        "bytes_read": len(content.encode("utf-8")),
+    }
+
+
+def _execute_list(args: dict[str, Any]) -> dict[str, Any]:
+    path = Path(args["resolved_path"])
+    if not path.exists():
+        raise OperationExecutionError(f"Target path missing: {path}")
+    if not path.is_dir():
+        raise OperationExecutionError(f"Target path is not a directory: {path}")
+    entries = sorted(child.name for child in path.iterdir())
+    return {
+        "path": str(path),
+        "entries": entries,
+        "count": len(entries),
+    }
+
+
+def _execute_inspect(args: dict[str, Any]) -> dict[str, Any]:
+    path = Path(args["resolved_path"])
+    if not path.exists():
+        return {"path": str(path), "exists": False}
+
+    path_type = "directory" if path.is_dir() else "file"
+    stat = path.stat()
+    return {
+        "path": str(path),
+        "exists": True,
+        "size": stat.st_size,
+        "mtime": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+        "type": path_type,
+    }
+
+
 def _execute_edit(args: dict[str, Any]) -> dict[str, Any]:
     path = Path(args["resolved_path"])
     if not path.exists():
@@ -77,6 +124,9 @@ def _execute_note(args: dict[str, Any]) -> dict[str, Any]:
 
 
 _EXECUTORS = {
+    "workspace.file.read": _execute_read,
+    "workspace.file.list": _execute_list,
+    "workspace.status.inspect": _execute_inspect,
     "workspace.file.write": _execute_write,
     "workspace.file.edit": _execute_edit,
     "lifeos.note.record": _execute_note,

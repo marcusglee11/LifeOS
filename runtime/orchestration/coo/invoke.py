@@ -157,7 +157,7 @@ def invoke_coo_reasoning(
             "- OR first line MUST be exactly: schema_version: escalation_packet.v1\n"
             "- No prose before or after the YAML.\n"
             "- Do NOT read any files — all context provided below.\n\n"
-            "OPERATION EXAMPLE:\n"
+            "MUTATION EXAMPLE:\n"
             "schema_version: operation_proposal.v1\n"
             "proposal_id: OP-a1b2c3d4\n"
             'title: "Write COO workspace note"\n'
@@ -167,6 +167,17 @@ def invoke_coo_reasoning(
             "args:\n"
             "  path: /workspace/notes/example.md\n"
             '  content: "Hello from COO."\n'
+            "requires_approval: true\n"
+            "suggested_owner: lifeos\n\n"
+            "QUERY EXAMPLE:\n"
+            "schema_version: operation_proposal.v1\n"
+            "proposal_id: OP-b2c3d4e5\n"
+            'title: "List COO workspace notes"\n'
+            'rationale: "The request is a workspace inspection query that fits the allowlisted ops lane."\n'
+            "operation_kind: query\n"
+            "action_id: workspace.file.list\n"
+            "args:\n"
+            "  path: /workspace/notes\n"
             "requires_approval: true\n"
             "suggested_owner: lifeos\n\n"
             "ESCALATION EXAMPLE:\n"
@@ -182,7 +193,7 @@ def invoke_coo_reasoning(
             '    action: "What this alternative does"\n\n'
             "Rules:\n"
             "- operation_proposal.v1 is for allowlisted workspace/internal actions only\n"
-            "- action_id: one of workspace.file.write, workspace.file.edit, lifeos.note.record\n"
+            "- action_id: one of workspace.file.read, workspace.file.list, workspace.status.inspect, workspace.file.write, workspace.file.edit, lifeos.note.record\n"
             "- /workspace/... paths refer to the COO workspace root\n"
             "- type: one of governance_surface_touch, ambiguous_task, "
             "policy_violation, protected_path_modification, "
@@ -198,7 +209,7 @@ def invoke_coo_reasoning(
             "If the user is asking for an allowlisted workspace/internal action, include a valid "
             "operation_proposal.v1 YAML block inline in your response.\n"
             "Do not use markdown fences around the YAML block.\n"
-            "Allowlisted actions: workspace.file.write, workspace.file.edit, lifeos.note.record.\n"
+            "Allowlisted actions: workspace.file.read, workspace.file.list, workspace.status.inspect, workspace.file.write, workspace.file.edit, lifeos.note.record.\n"
             "/workspace/... paths refer to the COO workspace root.\n\n"
             f"User message:\n{json.dumps(payload, sort_keys=True)}"
         )

@@ -48,6 +48,19 @@ requires_approval: true
 suggested_owner: coo
 """
 
+_VALID_QUERY_OPERATION_YAML = """\
+schema_version: operation_proposal.v1
+proposal_id: OP-q1r2s3t4
+title: "List workspace notes"
+rationale: "The request fits the allowlisted inspection lane."
+operation_kind: query
+action_id: workspace.file.list
+args:
+  path: /workspace/notes
+requires_approval: true
+suggested_owner: lifeos
+"""
+
 
 def test_chat_message_returns_conversation_only(tmp_path: Path) -> None:
     with patch(
@@ -343,6 +356,34 @@ def test_direct_coo_requires_source_and_actor(tmp_path: Path) -> None:
     assert result["kind"] == "operation_proposal"
     assert "payload" in result
     assert "raw_output" in result
+
+
+def test_direct_coo_accepts_query_operation_proposal(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENCLAW_WORKSPACE", str(tmp_path / "workspace"))
+
+    with (
+        patch(
+            "runtime.orchestration.coo.service.invoke_coo_reasoning",
+            return_value=_VALID_QUERY_OPERATION_YAML,
+        ),
+        patch(
+            "runtime.orchestration.coo.service.verify_claims",
+            return_value=[],
+        ),
+    ):
+        result = direct_coo(
+            "list the workspace notes",
+            tmp_path,
+            source="coo_direct",
+            actor="cli:user",
+        )
+
+    assert result["kind"] == "operation_proposal"
+    assert result["payload"]["proposal_id"] == "OP-q1r2s3t4"
+    proposal_path = (
+        tmp_path / "artifacts" / "coo" / "operations" / "proposals" / "OP-q1r2s3t4.yaml"
+    )
+    assert proposal_path.exists()
 
 
 def test_direct_coo_escalation_includes_source_and_actor(tmp_path: Path) -> None:

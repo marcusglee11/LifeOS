@@ -89,6 +89,18 @@ requires_approval: true
 suggested_owner: lifeos
 ```
 
+Allowed query actions:
+- `workspace.file.read`
+- `workspace.file.list`
+- `workspace.status.inspect`
+
+Allowed mutation actions:
+- `workspace.file.write`
+- `workspace.file.edit`
+- `lifeos.note.record`
+
+`operation_kind` must match the registry-backed action kind for the selected `action_id`.
+
 ## 5) EscalationPacket (`escalation_packet.v1`)
 
 `type` values align with `EscalationType` enum in `runtime/orchestration/ceo_queue.py`.
