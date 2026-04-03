@@ -1,8 +1,8 @@
 schema_version: ops_lanes.v1
 lanes:
   - lane_id: workspace_mutation_v1
-    status: ratification_pending
-    approval_ref: null
+    status: ratified
+    approval_ref: docs/01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md
     approval_class: explicit_human_approval
     allowed_actions:
       - workspace.file.write

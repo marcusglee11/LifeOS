@@ -1,0 +1,60 @@
+header:
+  aur_id: "AUR_20260403_phase9_ops_ratification"
+  aur_type: "governance"
+  change_class: "amend"
+  blast_radius: "module"
+  reversibility: "easy"
+  uncertainty: "low"
+  touches:
+    - "runtime_core"
+    - "tests"
+  safety_critical: true
+  run_type: "review"
+  model_plan_v1:
+    topology: "HYBRID"
+    primary: "claude_code"
+    independent: "gemini"
+    seat_overrides:
+      Technical: "codex"
+      Testing: "codex"
+      RiskAdversarial: "gemini"
+      Determinism: "gemini"
+      Governance: "gemini"
+
+sections:
+  objective: |
+    Ratify the workspace_mutation_v1 constrained ops lane as the sole
+    approved operational lane for Phase 9. Confirm fail-closed semantics
+    for ci/live profiles. Confirm no Phase 10 pre-authorization.
+  scope:
+    surface: "phase9_ops_ratification"
+    branch: "main"
+    commit: "0a02801a"
+    files:
+      - "config/ops/lanes.yaml"
+      - "scripts/run_ops_certification.py"
+      - "runtime/tests/test_ops_certification.py"
+      - "artifacts/plans/2026-04-02-phase9-ops-autonomy-spec.md"
+      - "artifacts/review_packets/Phase9_Ops_Autonomy_Review_Packet.md"
+  constraints:
+    - "No executor scope expansion beyond workspace.file.write, workspace.file.edit, lifeos.note.record"
+    - "All actions must remain explicit_human_approval"
+    - "No Phase 10 lane pre-authorized"
+    - "ci and live must fail closed until approval_ref is valid"
+    - "No write to docs/01_governance/ before council Accept plus CEO approval"
+  artifacts:
+    - id: "config/ops/lanes.yaml"
+      type: "modified"
+      description: "Lane manifest with ratification_pending status and approval_ref: null"
+    - id: "scripts/run_ops_certification.py"
+      type: "modified"
+      description: "Certification runner with profile-aware ratification validation"
+    - id: "runtime/tests/test_ops_certification.py"
+      type: "modified"
+      description: "Test expansion covering full ratification policy matrix (15 tests)"
+    - id: "artifacts/plans/2026-04-02-phase9-ops-autonomy-spec.md"
+      type: "new"
+      description: "Phase 9 specification - governance-and-certification hardening"
+    - id: "artifacts/review_packets/Phase9_Ops_Autonomy_Review_Packet.md"
+      type: "new"
+      description: "CEO and Council review material for constrained ops lane ratification"
