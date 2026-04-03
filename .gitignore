@@ -4,6 +4,9 @@
 # Claude Octopus ephemeral session state
 .claude-octopus/
 
+# Codex CLI marker file
+.codex
+
 # WIP from concurrent agent sessions (move back when their branches land)
 .wip-other-sessions/
 
@@ -83,8 +86,14 @@ artifacts/bundles/*.txt
 artifacts/evidence/
 artifacts/packets/
 artifacts/review_packets/
+!artifacts/review_packets/
+artifacts/review_packets/*
+!artifacts/review_packets/Phase9_Ops_Autonomy_Review_Packet.md
 artifacts/steward_tasks/
 artifacts/plans/
+!artifacts/plans/
+artifacts/plans/*
+!artifacts/plans/2026-04-02-phase9-ops-autonomy-spec.md
 artifacts/council_reviews/
 !artifacts/council_reviews/
 artifacts/council_reviews/*

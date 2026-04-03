@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -25,6 +26,9 @@ from runtime.orchestration.ops.registry import get_action_spec
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = REPO_ROOT / "config" / "ops" / "lanes.yaml"
 OUTPUT_PATH = REPO_ROOT / "artifacts" / "status" / "ops_readiness.json"
+_GOVERNANCE_ROOT = Path("docs") / "01_governance"
+_VALID_LANE_STATUSES = {"ratification_pending", "ratified"}
+_DECISION_MARKER_RE = re.compile(r"^\*\*Decision\*\*:\s*(RATIFIED|APPROVED)\b", re.MULTILINE)
 
 
 @dataclass(frozen=True)
@@ -37,6 +41,15 @@ class CommandSpec:
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _blocking_leak(leak_id: str, blocker_kind: str, detail: str) -> dict[str, str]:
+    return {
+        "id": leak_id,
+        "severity": "blocking",
+        "blocker_kind": blocker_kind,
+        "detail": detail,
+    }
 
 
 def load_lanes(config_path: Path = CONFIG_PATH) -> dict[str, Any]:
@@ -109,58 +122,108 @@ def determine_state(
     return "candidate"
 
 
-def validate_lane_manifest(lanes_payload: dict[str, Any]) -> list[dict[str, str]]:
+def _validate_approval_ref(approval_ref: str, repo_root: Path | None = None) -> str | None:
+    root = repo_root or REPO_ROOT
+    ruling_path = (root / approval_ref).resolve()
+    gov_root = (root / _GOVERNANCE_ROOT).resolve()
+    if not ruling_path.is_relative_to(gov_root):
+        return f"approval_ref {approval_ref!r} is outside docs/01_governance/"
+    if not ruling_path.is_file():
+        return f"approval_ref {approval_ref!r} does not exist"
+    text = ruling_path.read_text(encoding="utf-8")
+    if not _DECISION_MARKER_RE.search(text):
+        return (
+            f"approval_ref {approval_ref!r} does not contain a structured approval marker "
+            "(**Decision**: RATIFIED or **Decision**: APPROVED)"
+        )
+    return None
+
+
+def validate_lane_manifest(
+    lanes_payload: dict[str, Any], profile: str, repo_root: Path | None = None
+) -> list[dict[str, str]]:
     leaks: list[dict[str, str]] = []
     for lane in lanes_payload.get("lanes", []):
         if not isinstance(lane, dict):
-            leaks.append(
-                {
-                    "id": "lane_manifest_shape",
-                    "severity": "blocking",
-                    "detail": "each lane must be a mapping",
-                }
-            )
+            leaks.append(_blocking_leak("lane_manifest_shape", "manifest", "each lane must be a mapping"))
             continue
         lane_id = str(lane.get("lane_id", "")).strip() or "<unknown>"
+        status = str(lane.get("status", "")).strip()
+        if status not in _VALID_LANE_STATUSES:
+            leaks.append(
+                _blocking_leak(
+                    "lane_invalid_status",
+                    "manifest",
+                    f"{lane_id} must declare status as one of {sorted(_VALID_LANE_STATUSES)}",
+                )
+            )
+        elif status == "ratification_pending" and profile in {"ci", "live"}:
+            leaks.append(
+                _blocking_leak(
+                    "lane_ratification_pending",
+                    "ratification",
+                    f"{lane_id} is not ratified for ops profile {profile}",
+                )
+            )
+        elif status == "ratified":
+            approval_ref = str(lane.get("approval_ref") or "").strip()
+            if not approval_ref:
+                leaks.append(
+                    _blocking_leak(
+                        "lane_missing_approval_ref",
+                        "policy",
+                        f"{lane_id} is ratified but approval_ref is missing",
+                    )
+                )
+            else:
+                approval_error = _validate_approval_ref(approval_ref, repo_root=repo_root)
+                if approval_error is not None:
+                    leaks.append(
+                        _blocking_leak(
+                            "lane_invalid_approval_ref",
+                            "policy",
+                            f"{lane_id} {approval_error}",
+                        )
+                    )
         approval_class = str(lane.get("approval_class", "")).strip()
         if approval_class != "explicit_human_approval":
             leaks.append(
-                {
-                    "id": "lane_approval_class",
-                    "severity": "blocking",
-                    "detail": f"{lane_id} must use explicit_human_approval in the initial envelope",
-                }
+                _blocking_leak(
+                    "lane_approval_class",
+                    "policy",
+                    f"{lane_id} must use explicit_human_approval in the initial envelope",
+                )
             )
         allowed_actions = lane.get("allowed_actions") or []
         excluded_actions = set(lane.get("excluded_actions") or [])
         overlap = excluded_actions.intersection(allowed_actions)
         if overlap:
             leaks.append(
-                {
-                    "id": "lane_action_overlap",
-                    "severity": "blocking",
-                    "detail": f"{lane_id} overlaps allowed/excluded actions: {sorted(overlap)}",
-                }
+                _blocking_leak(
+                    "lane_action_overlap",
+                    "manifest",
+                    f"{lane_id} overlaps allowed/excluded actions: {sorted(overlap)}",
+                )
             )
         for action_id in allowed_actions:
             try:
                 spec = get_action_spec(str(action_id))
             except Exception:
                 leaks.append(
-                    {
-                        "id": "lane_unknown_action",
-                        "severity": "blocking",
-                        "detail": f"{lane_id} references unsupported action_id {action_id!r}",
-                    }
+                    _blocking_leak(
+                        "lane_unknown_action",
+                        "manifest",
+                        f"{lane_id} references unsupported action_id {action_id!r}",
+                    )
                 )
                 continue
             if not spec.requires_approval:
                 leaks.append(
-                    {
-                        "id": "lane_approval_policy",
-                        "severity": "blocking",
-                        "detail": f"{lane_id} action {action_id!r} is not approval-gated",
-                    }
+                    _blocking_leak(
+                        "lane_approval_policy",
+                        "policy",
+                        f"{lane_id} action {action_id!r} is not approval-gated",
+                    )
                 )
     return leaks
 
@@ -205,15 +268,9 @@ def run_suite(spec: CommandSpec) -> tuple[dict[str, Any], dict[str, int], bool]:
 
 def certify(profile: str) -> dict[str, Any]:
     lanes_payload = load_lanes()
-    leaks = validate_lane_manifest(lanes_payload)
+    leaks = validate_lane_manifest(lanes_payload, profile)
     if not current_worktree_clean():
-        leaks.append(
-            {
-                "id": "worktree_cleanliness",
-                "severity": "blocking",
-                "detail": "git status --short is not empty",
-            }
-        )
+        leaks.append(_blocking_leak("worktree_cleanliness", "manifest", "git status --short is not empty"))
 
     previous_state = None
     live_status = "not_run"
@@ -237,21 +294,21 @@ def certify(profile: str) -> dict[str, Any]:
         if not passed:
             blocking = True
             leaks.append(
-                {
-                    "id": "suite_failure",
-                    "severity": "blocking",
-                    "detail": f"{spec.evidence_path} failed for ops profile {profile}",
-                }
+                _blocking_leak(
+                    "suite_failure",
+                    "suite",
+                    f"{spec.evidence_path} failed for ops profile {profile}",
+                )
             )
 
     if not current_worktree_clean():
         blocking = True
         leaks.append(
-            {
-                "id": "worktree_cleanliness_post_run",
-                "severity": "blocking",
-                "detail": "git status --short is not empty after ops profile suites completed",
-            }
+            _blocking_leak(
+                "worktree_cleanliness_post_run",
+                "manifest",
+                "git status --short is not empty after ops profile suites completed",
+            )
         )
 
     if profile == "live":

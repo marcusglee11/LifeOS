@@ -2,6 +2,7 @@ schema_version: ops_lanes.v1
 lanes:
   - lane_id: workspace_mutation_v1
     status: ratification_pending
+    approval_ref: null
     approval_class: explicit_human_approval
     allowed_actions:
       - workspace.file.write
