@@ -10,6 +10,10 @@ from typing import Any
 
 _WORKSPACE_ALIAS = "/workspace/"
 _DEFAULT_OPENCLAW_WORKSPACE = Path.home() / ".openclaw" / "workspace"
+_ARTIFACTS_ALIAS = "/artifacts/"
+_ARTIFACT_ALLOWED_SUBTREES: frozenset[str] = frozenset(
+    {"plans", "review_packets", "evidence", "99_archive"}
+)
 _OP_NOTE_DIR = Path("artifacts") / "coo" / "notes"
 _TITLE_SLUG_RE = re.compile(r"[^a-z0-9]+")
 
@@ -56,6 +60,21 @@ _ACTION_SPECS: dict[str, ActionSpec] = {
         operation_kind="mutation",
         requires_approval=True,
     ),
+    "artifact.file.write": ActionSpec(
+        action_id="artifact.file.write",
+        operation_kind="mutation",
+        requires_approval=True,
+    ),
+    "artifact.dir.ensure": ActionSpec(
+        action_id="artifact.dir.ensure",
+        operation_kind="mutation",
+        requires_approval=True,
+    ),
+    "artifact.file.archive": ActionSpec(
+        action_id="artifact.file.archive",
+        operation_kind="mutation",
+        requires_approval=True,
+    ),
 }
 
 
@@ -63,6 +82,58 @@ def resolve_openclaw_workspace_root() -> Path:
     raw = os.environ.get("OPENCLAW_WORKSPACE", "").strip()
     root = Path(raw).expanduser() if raw else _DEFAULT_OPENCLAW_WORKSPACE
     return root.resolve()
+
+
+def resolve_artifact_root(repo_root: Path | None = None) -> Path:
+    if repo_root is not None:
+        return (repo_root / "artifacts").resolve()
+    raw = os.environ.get("LIFEOS_REPO_ROOT", "").strip()
+    if raw:
+        return (Path(raw).expanduser() / "artifacts").resolve()
+    from runtime.config.repo_root import detect_repo_root
+    return (detect_repo_root() / "artifacts").resolve()
+
+
+def _normalize_artifact_relative_path(path_value: str) -> str:
+    candidate = str(path_value).strip()
+    if not candidate:
+        raise OperationValidationError("args.path is required")
+    if candidate.startswith(_ARTIFACTS_ALIAS):
+        candidate = candidate[len(_ARTIFACTS_ALIAS):]
+    elif candidate.startswith("/artifacts"):
+        candidate = candidate.removeprefix("/artifacts").lstrip("/")
+    elif candidate.startswith("/"):
+        raise OperationValidationError(
+            "args.path must be relative or use the /artifacts/... alias"
+        )
+    candidate = candidate.lstrip("/")
+    if not candidate:
+        raise OperationValidationError("args.path must resolve within the artifacts root")
+    return candidate
+
+
+def _validate_artifact_subpath(resolved: Path, artifacts_root: Path) -> None:
+    """Raise OperationValidationError if resolved is not within an allowed subtree."""
+    try:
+        rel = resolved.relative_to(artifacts_root)
+    except ValueError:
+        raise OperationValidationError(f"Resolved path escapes artifacts root: {resolved}")
+    top = rel.parts[0] if rel.parts else ""
+    if top not in _ARTIFACT_ALLOWED_SUBTREES:
+        raise OperationValidationError(
+            f"Path '{top}' is not in the allowed artifact subtrees: "
+            f"{sorted(_ARTIFACT_ALLOWED_SUBTREES)}"
+        )
+
+
+def normalize_artifact_path(path_value: str, artifacts_root: Path | None = None) -> Path:
+    root = (artifacts_root or resolve_artifact_root()).resolve()
+    relative = _normalize_artifact_relative_path(path_value)
+    resolved = (root / relative).resolve()
+    if resolved != root and root not in resolved.parents:
+        raise OperationValidationError(f"Resolved path escapes artifacts root: {path_value}")
+    _validate_artifact_subpath(resolved, root)
+    return resolved
 
 
 def get_action_spec(action_id: str) -> ActionSpec:
@@ -198,22 +269,77 @@ def _normalize_note_args(args: dict[str, Any], workspace_root: Path) -> dict[str
     }
 
 
+def _normalize_artifact_write_args(args: dict[str, Any], artifacts_root: Path) -> dict[str, Any]:
+    path_value = _path_arg(args)
+    content = args.get("content")
+    if not isinstance(content, str):
+        raise OperationValidationError("artifact.file.write requires string args.content")
+    resolved = normalize_artifact_path(path_value, artifacts_root)
+    return {
+        "path": path_value,
+        "resolved_path": str(resolved),
+        "content": content,
+    }
+
+
+def _normalize_artifact_dir_ensure_args(args: dict[str, Any], artifacts_root: Path) -> dict[str, Any]:
+    path_value = _path_arg(args)
+    resolved = normalize_artifact_path(path_value, artifacts_root)
+    return {
+        "path": path_value,
+        "resolved_path": str(resolved),
+    }
+
+
+def _normalize_artifact_archive_args(args: dict[str, Any], artifacts_root: Path) -> dict[str, Any]:
+    path_value = _path_arg(args)
+    if not path_value:
+        raise OperationValidationError("artifact.file.archive requires args.path")
+    archive_dir_value = str(args.get("archive_dir", "99_archive")).strip() or "99_archive"
+    resolved_source = normalize_artifact_path(path_value, artifacts_root)
+    resolved_archive = normalize_artifact_path(archive_dir_value, artifacts_root)
+    if resolved_archive.relative_to(artifacts_root).parts[0] != "99_archive":
+        raise OperationValidationError(
+            "artifact.file.archive: archive_dir must be within the 99_archive subtree"
+        )
+    return {
+        "path": path_value,
+        "resolved_path": str(resolved_source),
+        "archive_dir": archive_dir_value,
+        "resolved_archive_dir": str(resolved_archive),
+    }
+
+
 def validate_operation(action_id: str, args: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(args, dict):
         raise OperationValidationError("args must be a mapping")
-    workspace_root = resolve_openclaw_workspace_root()
     spec = get_action_spec(action_id)
 
-    normalizers = {
-        "workspace.file.read": _normalize_read_args,
-        "workspace.file.list": _normalize_list_args,
-        "workspace.status.inspect": _normalize_inspect_args,
-        "workspace.file.write": _normalize_write_args,
-        "workspace.file.edit": _normalize_edit_args,
-        "lifeos.note.record": _normalize_note_args,
-    }
-    normalized = normalizers[action_id](deepcopy(args), workspace_root)
-    normalized["workspace_root"] = str(workspace_root)
+    if action_id.startswith("artifact."):
+        op_root = resolve_artifact_root()
+        root_key = "artifacts_root"
+        normalizers = {
+            "artifact.file.write": _normalize_artifact_write_args,
+            "artifact.dir.ensure": _normalize_artifact_dir_ensure_args,
+            "artifact.file.archive": _normalize_artifact_archive_args,
+        }
+    else:
+        op_root = resolve_openclaw_workspace_root()
+        root_key = "workspace_root"
+        normalizers = {
+            "workspace.file.read": _normalize_read_args,
+            "workspace.file.list": _normalize_list_args,
+            "workspace.status.inspect": _normalize_inspect_args,
+            "workspace.file.write": _normalize_write_args,
+            "workspace.file.edit": _normalize_edit_args,
+            "lifeos.note.record": _normalize_note_args,
+        }
+
+    normalizer = normalizers.get(action_id)
+    if normalizer is None:
+        raise OperationValidationError(f"No normalizer for action_id: {action_id}")
+    normalized = normalizer(deepcopy(args), op_root)
+    normalized[root_key] = str(op_root)
     normalized["action_id"] = spec.action_id
     normalized["operation_kind"] = spec.operation_kind
     normalized["requires_approval"] = spec.requires_approval

@@ -47,3 +47,30 @@ lanes:
           - runtime/tests/orchestration/coo/test_commands.py
       live:
         required_suites: []
+  - lane_id: repo_artifact_v1
+    status: ratification_pending
+    approval_ref: ""
+    approval_class: explicit_human_approval
+    allowed_actions:
+      - artifact.file.write
+      - artifact.dir.ensure
+      - artifact.file.archive
+    excluded_actions:
+      - system.package.install
+      - system.secret.read
+      - governance.document.mutate
+      - workspace.file.write
+      - workspace.file.edit
+    profiles:
+      local:
+        required_suites:
+          - runtime/tests/orchestration/ops/test_repo_artifact_lane.py
+          - runtime/tests/orchestration/coo/test_service.py
+          - runtime/tests/orchestration/coo/test_commands.py
+      ci:
+        required_suites:
+          - runtime/tests/orchestration/ops/test_repo_artifact_lane.py
+          - runtime/tests/orchestration/coo/test_service.py
+          - runtime/tests/orchestration/coo/test_commands.py
+      live:
+        required_suites: []

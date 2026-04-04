@@ -123,6 +123,41 @@ def _execute_note(args: dict[str, Any]) -> dict[str, Any]:
     return {"path": str(path), "bytes_written": len(body.encode("utf-8"))}
 
 
+def _execute_artifact_write(args: dict[str, Any]) -> dict[str, Any]:
+    path = Path(args["resolved_path"])
+    if path.exists() and path.is_dir():
+        raise OperationExecutionError(f"Target path is a directory: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    atomic_write_text(path, args["content"])
+    return {"path": str(path), "bytes_written": len(args["content"].encode("utf-8"))}
+
+
+def _execute_artifact_dir_ensure(args: dict[str, Any]) -> dict[str, Any]:
+    path = Path(args["resolved_path"])
+    if path.exists() and not path.is_dir():
+        raise OperationExecutionError(f"Target path exists as a file: {path}")
+    created = not path.exists()
+    path.mkdir(parents=True, exist_ok=True)
+    return {"path": str(path), "created": created}
+
+
+def _execute_artifact_archive(args: dict[str, Any]) -> dict[str, Any]:
+    source = Path(args["resolved_path"])
+    archive_dir = Path(args["resolved_archive_dir"])
+    if not source.exists():
+        raise OperationExecutionError(f"Source file missing: {source}")
+    if source.is_dir():
+        raise OperationExecutionError(f"Source path is a directory, not a file: {source}")
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    archive_path = archive_dir / source.name
+    if archive_path.exists():
+        raise OperationExecutionError(
+            f"Archive destination already exists: {archive_path}"
+        )
+    source.rename(archive_path)
+    return {"source_path": str(source), "archive_path": str(archive_path)}
+
+
 _EXECUTORS = {
     "workspace.file.read": _execute_read,
     "workspace.file.list": _execute_list,
@@ -130,6 +165,9 @@ _EXECUTORS = {
     "workspace.file.write": _execute_write,
     "workspace.file.edit": _execute_edit,
     "lifeos.note.record": _execute_note,
+    "artifact.file.write": _execute_artifact_write,
+    "artifact.dir.ensure": _execute_artifact_dir_ensure,
+    "artifact.file.archive": _execute_artifact_archive,
 }
 
 

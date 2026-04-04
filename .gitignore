@@ -89,6 +89,7 @@ artifacts/review_packets/
 !artifacts/review_packets/
 artifacts/review_packets/*
 !artifacts/review_packets/Phase9_Ops_Autonomy_Review_Packet.md
+!artifacts/review_packets/Review_Packet_Phase10_Batch2_Repo_Artifact_Lane_v1.0.md
 artifacts/steward_tasks/
 artifacts/plans/
 !artifacts/plans/

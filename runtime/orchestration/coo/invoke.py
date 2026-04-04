@@ -169,6 +169,18 @@ def invoke_coo_reasoning(
             '  content: "Hello from COO."\n'
             "requires_approval: true\n"
             "suggested_owner: lifeos\n\n"
+            "Example (artifact write):\n"
+            "schema_version: operation_proposal.v1\n"
+            "proposal_id: OP-a1b2c3d4\n"
+            "title: Write batch summary\n"
+            "rationale: Record batch2 closure\n"
+            "operation_kind: mutation\n"
+            "action_id: artifact.file.write\n"
+            "args:\n"
+            "  path: plans/batch2-summary.md\n"
+            '  content: "# Batch 2 Summary\\n\\nCompleted."\n'
+            "requires_approval: true\n"
+            "suggested_owner: lifeos\n\n"
             "QUERY EXAMPLE:\n"
             "schema_version: operation_proposal.v1\n"
             "proposal_id: OP-b2c3d4e5\n"
@@ -193,7 +205,7 @@ def invoke_coo_reasoning(
             '    action: "What this alternative does"\n\n'
             "Rules:\n"
             "- operation_proposal.v1 is for allowlisted workspace/internal actions only\n"
-            "- action_id: one of workspace.file.read, workspace.file.list, workspace.status.inspect, workspace.file.write, workspace.file.edit, lifeos.note.record\n"
+            "- action_id: one of workspace.file.read, workspace.file.list, workspace.status.inspect, workspace.file.write, workspace.file.edit, lifeos.note.record, artifact.file.write, artifact.dir.ensure, artifact.file.archive\n"
             "- /workspace/... paths refer to the COO workspace root\n"
             "- type: one of governance_surface_touch, ambiguous_task, "
             "policy_violation, protected_path_modification, "
@@ -209,7 +221,7 @@ def invoke_coo_reasoning(
             "If the user is asking for an allowlisted workspace/internal action, include a valid "
             "operation_proposal.v1 YAML block inline in your response.\n"
             "Do not use markdown fences around the YAML block.\n"
-            "Allowlisted actions: workspace.file.read, workspace.file.list, workspace.status.inspect, workspace.file.write, workspace.file.edit, lifeos.note.record.\n"
+            "Allowlisted actions: workspace.file.read, workspace.file.list, workspace.status.inspect, workspace.file.write, workspace.file.edit, lifeos.note.record, artifact.file.write, artifact.dir.ensure, artifact.file.archive.\n"
             "/workspace/... paths refer to the COO workspace root.\n\n"
             f"User message:\n{json.dumps(payload, sort_keys=True)}"
         )
