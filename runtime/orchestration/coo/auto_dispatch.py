@@ -7,9 +7,16 @@ auto-dispatch without CEO approval based on the delegation envelope policy.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
+import yaml
+
 from runtime.orchestration.coo.backlog import TaskEntry
+from runtime.orchestration.coo.closures import (
+    ClosureValidationError,
+    validate_council_request_packet,
+)
 
 # Task types that are eligible for auto-dispatch.
 # This is a safeguard: future task types default to ineligible.
@@ -98,8 +105,52 @@ def check_scope_overlap_with_in_progress(
     return (True, "no scope_path overlap with in_progress tasks")
 
 
+def _council_cleared(task: TaskEntry, closures_dir: Path) -> tuple[bool, str]:
+    """Check predicate 7: flagged tasks need a resolved latest council request."""
+    if not task.decision_support_required:
+        return (True, "decision support not required")
+
+    if not closures_dir.exists():
+        return (False, "decision_support_required is true and no closures directory exists")
+
+    matching_requests: list[dict[str, Any]] = []
+    for path in sorted(closures_dir.glob("CR-*.yaml")):
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                payload = yaml.safe_load(handle)
+        except yaml.YAMLError as exc:
+            return (False, f"invalid council request YAML in {path.name}: {exc}")
+        if not isinstance(payload, dict):
+            return (False, f"invalid council request payload in {path.name}")
+        try:
+            validate_council_request_packet(payload)
+        except ClosureValidationError as exc:
+            return (False, f"invalid council request {path.name}: {exc}")
+        if task.id in payload.get("related_tasks", []):
+            matching_requests.append(payload)
+
+    if not matching_requests:
+        return (False, f"decision_support_required is true and no matching council request exists")
+
+    latest = max(matching_requests, key=lambda packet: str(packet.get("requested_at", "")))
+    if not latest.get("resolved", False):
+        return (
+            False,
+            f"latest council request {latest.get('request_id', 'unknown')} is unresolved",
+        )
+    if not str(latest.get("resolved_at", "")).strip():
+        return (
+            False,
+            f"latest council request {latest.get('request_id', 'unknown')} lacks resolved_at",
+        )
+    return (True, f"council request {latest.get('request_id', 'unknown')} is resolved")
+
+
 def is_fully_auto_dispatchable(
-    task: TaskEntry, all_tasks: list[TaskEntry], envelope: dict[str, Any]
+    task: TaskEntry,
+    all_tasks: list[TaskEntry],
+    envelope: dict[str, Any],
+    repo_root: Path | None = None,
 ) -> tuple[bool, str]:
     """Combined eligibility check including scope_path concurrency guard.
 
@@ -109,4 +160,13 @@ def is_fully_auto_dispatchable(
     if not eligible:
         return (eligible, reason)
 
-    return check_scope_overlap_with_in_progress(task, all_tasks)
+    eligible, reason = check_scope_overlap_with_in_progress(task, all_tasks)
+    if not eligible:
+        return (eligible, reason)
+
+    if repo_root is None:
+        if task.decision_support_required:
+            return (False, "decision_support_required is true and repo_root was not provided")
+        return (True, "all predicates pass")
+
+    return _council_cleared(task, repo_root / "artifacts" / "dispatch" / "closures")

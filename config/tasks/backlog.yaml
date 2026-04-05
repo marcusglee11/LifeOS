@@ -568,3 +568,116 @@ tasks:
   objective_ref: coo-coordination-loop
   created_at: '2026-04-05T05:33:44Z'
   completed_at: null
+- id: T-027
+  title: Add COO closure packet schemas and loader
+  description: Document sprint-close and session-context packet schemas and add
+    file-based validation and loading for COO closure artifacts.
+  dod: artifacts/coo/schemas.md documents the new packet family; closures.py validates
+    and loads close, context, and council-request artifacts; targeted tests pass.
+  priority: P1
+  risk: low
+  scope_paths:
+  - artifacts/coo/
+  - artifacts/dispatch/closures/
+  - runtime/orchestration/coo/
+  - runtime/tests/orchestration/coo/
+  - config/tasks/backlog.yaml
+  status: pending
+  requires_approval: false
+  decision_support_required: false
+  owner: codex
+  evidence: ''
+  task_type: build
+  tags:
+  - coo
+  - closures
+  - packets
+  objective_ref: coo-coordination-loop
+  created_at: '2026-04-05T12:04:26Z'
+  completed_at: null
+- id: T-028
+  title: Add decision-support backlog field and dispatch gate
+  description: Add decision_support_required to TaskEntry and block L0 auto-dispatch
+    until resolved council clearance exists for flagged tasks.
+  dod: TaskEntry round-trips the new field across all constructors and serializers;
+    auto_dispatch enforces council clearance; targeted tests pass.
+  priority: P1
+  risk: med
+  scope_paths:
+  - runtime/orchestration/coo/
+  - runtime/tests/orchestration/coo/
+  - config/tasks/backlog.yaml
+  status: pending
+  requires_approval: false
+  decision_support_required: false
+  owner: codex
+  evidence: ''
+  task_type: build
+  tags:
+  - coo
+  - dispatch
+  - governance
+  objective_ref: coo-coordination-loop
+  created_at: '2026-04-05T12:04:26Z'
+  completed_at: null
+- id: T-029
+  title: Add COO process-closures command and orientation updates
+  description: Add a deterministic COO command to process sprint-close artifacts
+    and update COO orientation documentation to read closures and for_ceo context
+    artifacts.
+  dod: lifeos coo process-closures validates and summarizes closure artifacts; brief.md
+    includes closures and for_ceo orientation steps; targeted tests pass.
+  priority: P1
+  risk: med
+  scope_paths:
+  - runtime/orchestration/coo/
+  - runtime/tests/orchestration/coo/
+  - runtime/cli.py
+  - artifacts/coo/
+  - docs/11_admin/BACKLOG.md
+  - docs/INDEX.md
+  - docs/LifeOS_Strategic_Corpus.md
+  - artifacts/review_packets/
+  - config/tasks/backlog.yaml
+  status: pending
+  requires_approval: false
+  decision_support_required: false
+  owner: codex
+  evidence: ''
+  task_type: build
+  tags:
+  - coo
+  - closures
+  - docs
+  objective_ref: coo-coordination-loop
+  created_at: '2026-04-05T12:04:26Z'
+  completed_at: null
+- id: T-030
+  title: Add agent-side sprint-close emission and CT-6 governance hook
+  description: Write sprint_close_packet.v1 from dispatch wrappers and add protected-path
+    handoff and governance updates for mandatory close reporting and decision-support
+    trigger CT-6.
+  dod: dispatch_codex.sh and dispatch_opencode.sh emit sprint_close_packet.v1 to
+    closures; CLAUDE.md requires close packets at handoff; delegation_envelope.yaml
+    defines CT-6; targeted and full tests pass after Council approval.
+  priority: P1
+  risk: med
+  scope_paths:
+  - scripts/workflow/
+  - CLAUDE.md
+  - config/governance/
+  - config/tasks/backlog.yaml
+  status: pending
+  requires_approval: true
+  decision_support_required: true
+  owner: codex
+  evidence: ''
+  task_type: build
+  tags:
+  - coo
+  - dispatch
+  - handoff
+  - governance
+  objective_ref: coo-coordination-loop
+  created_at: '2026-04-05T12:04:26Z'
+  completed_at: null

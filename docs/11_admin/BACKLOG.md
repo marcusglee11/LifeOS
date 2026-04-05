@@ -10,7 +10,7 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-04-05 (rev12)
+**Last Updated:** 2026-04-05 (rev13)
 
 ## Now (ready soon; not in WIP yet)
 
@@ -27,6 +27,10 @@
 ### P1 (High)
 
 - [ ] **Phase 7 `prod_ci` canonical closure** — DoD: default-branch `Prod CI Proof` workflow dispatches and passes, `T-022` repeat-run proof is re-recorded from a clean worktree, and canon is reconciled — Owner: codex — Context: local `main` is 117 commits ahead of `origin/main`; `gh workflow run .github/workflows/prod_ci_proof.yml --ref main` currently returns 404 — Priority: P1
+- [ ] **T-027 COO closure packet schemas and loader** — DoD: `artifacts/coo/schemas.md` documents the new packet family; `closures.py` validates and loads close/context/council-request artifacts; targeted tests pass — Owner: codex — Context: first slice of the COO coordination loop; file-based artifacts only — Priority: P1
+- [ ] **T-028 decision-support backlog field and dispatch gate** — DoD: `decision_support_required` round-trips through backlog state transitions and blocks L0 auto-dispatch until the latest matching council request is resolved — Owner: codex — Context: second slice of the COO coordination loop — Priority: P1
+- [ ] **T-029 `coo process-closures` and orientation updates** — DoD: `python3 -m runtime.cli coo process-closures` validates and summarizes closure artifacts; COO brief now reads closures and `artifacts/for_ceo/` — Owner: codex — Context: third slice of the COO coordination loop — Priority: P1
+- [ ] **T-030 sprint-close emission and CT-6 governance hook** — DoD: wrappers emit `sprint_close_packet.v1`; governance and handoff updates land only after Council approval — Owner: codex — Context: final protected slice of the COO coordination loop; blocked on Council ruling — Priority: P1
 - [x] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **OpenClaw distill lane operational rollout** — DoD: Session-scoped shadow rollout completed with 12-run / 2-session clean window, CEO-approved shadow success receipt recorded, `models status` active promotion gated by fresh preflight + forced-failure drill + CEO approval, runbook/state updated — Owner: Substrate — Context: Collaborators COO + CEO; distill lane is merged on `main` but not yet an active operating practice; milestone 1 keeps raw path authoritative and `status --all --usage` shadow-only — Priority: P1
 - [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification

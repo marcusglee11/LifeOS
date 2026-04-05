@@ -21,6 +21,11 @@ from runtime.orchestration.coo.claim_verifier import (
     verify_claims,  # noqa: F401 - patched by tests via this module surface
     verify_progress_obligation,
 )
+from runtime.orchestration.coo.closures import (
+    ClosureValidationError,
+    load_closures,
+    load_session_context_packets,
+)
 from runtime.orchestration.coo.context import (
     build_report_context,
     build_status_context,
@@ -233,6 +238,72 @@ def cmd_coo_sync_check(args: argparse.Namespace, repo_root: Path) -> int:
 
     print(render_sync_check(result, as_json=getattr(args, "json", False)))
     return 1 if result["drift_found"] else 0
+
+
+def cmd_coo_process_closures(args: argparse.Namespace, repo_root: Path) -> int:
+    """Validate and summarize file-based closure artifacts."""
+    try:
+        closures = load_closures(repo_root)
+        session_context_packets = load_session_context_packets(repo_root)
+    except (ClosureValidationError, OSError) as exc:
+        _print_error(f"Error: {type(exc).__name__}: {exc}")
+        return 1
+
+    sprint_closures = [
+        packet for packet in closures if packet.get("schema_version") == "sprint_close_packet.v1"
+    ]
+    council_requests = [
+        packet for packet in closures if packet.get("schema_version") == "council_request.v1"
+    ]
+    unresolved_requests = sorted(
+        [
+            str(packet.get("request_id", "")).strip()
+            for packet in council_requests
+            if not bool(packet.get("resolved", False))
+        ]
+    )
+    outcome_counts = {"success": 0, "partial": 0, "blocked": 0}
+    suggested_next_task_ids: set[str] = set()
+    for packet in sprint_closures:
+        outcome = str(packet.get("outcome", "")).strip()
+        if outcome in outcome_counts:
+            outcome_counts[outcome] += 1
+        for task_id in packet.get("suggested_next_task_ids", []):
+            suggested_next_task_ids.add(str(task_id))
+
+    pending_context_subjects = sorted(
+        str(packet.get("subject", "")).strip() for packet in session_context_packets
+    )
+    summary = {
+        "total_closure_count": len(closures),
+        "outcomes": outcome_counts,
+        "unresolved_council_requests": unresolved_requests,
+        "suggested_next_task_ids": sorted(
+            task_id for task_id in suggested_next_task_ids if task_id
+        ),
+        "session_context_pending_review": pending_context_subjects,
+    }
+
+    if getattr(args, "json", False):
+        print(json.dumps(summary, indent=2, sort_keys=True))
+        return 0
+
+    print(f"closures: {summary['total_closure_count']}")
+    print(
+        "outcomes: "
+        f"success={outcome_counts['success']} "
+        f"partial={outcome_counts['partial']} "
+        f"blocked={outcome_counts['blocked']}"
+    )
+    print(f"unresolved_council_requests: {len(unresolved_requests)}")
+    if unresolved_requests:
+        print("council_request_ids: " + ", ".join(unresolved_requests))
+    print("suggested_next_task_ids: " + ", ".join(summary["suggested_next_task_ids"] or ["none"]))
+    print(
+        "session_context_pending_review: "
+        + ", ".join(summary["session_context_pending_review"] or ["none"])
+    )
+    return 0
 
 
 def classify_coo_response(mode: str, raw_output: str) -> str:
@@ -769,7 +840,7 @@ def _auto_execute_proposals(
             results["pending_proposals"].append(proposal)
             continue
 
-        eligible, reason = is_fully_auto_dispatchable(task, all_tasks, envelope)
+        eligible, reason = is_fully_auto_dispatchable(task, all_tasks, envelope, repo_root)
         if not eligible:
             if not getattr(args, "json", False):
                 print(f"pending approval: {task_id} — {reason}")

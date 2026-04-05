@@ -25,6 +25,7 @@ def _make_task(
     status: str = "pending",
     risk: str = "low",
     requires_approval: bool = False,
+    decision_support_required: bool = False,
     task_type: str = "build",
     scope_paths: list[str] | None = None,
 ) -> TaskEntry:
@@ -45,6 +46,7 @@ def _make_task(
         objective_ref="bootstrap",
         created_at="2026-03-05T00:00:00Z",
         completed_at=None,
+        decision_support_required=decision_support_required,
     )
 
 
@@ -194,22 +196,94 @@ class TestIsFullyAutoDispatchable:
     def test_all_predicates_pass(self) -> None:
         candidate = _make_task("T-010")
         other = _make_task("T-011", status="pending")
-        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate, other], _ENVELOPE)
+        eligible, reason = is_fully_auto_dispatchable(
+            candidate,
+            [candidate, other],
+            _ENVELOPE,
+            Path("/tmp/unused"),
+        )
         assert eligible is True
 
     def test_fails_on_requires_approval(self) -> None:
         candidate = _make_task("T-010", requires_approval=True)
-        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE)
+        eligible, reason = is_fully_auto_dispatchable(
+            candidate,
+            [candidate],
+            _ENVELOPE,
+            Path("/tmp/unused"),
+        )
         assert eligible is False
 
     def test_fails_on_scope_overlap(self) -> None:
         candidate = _make_task("T-010", scope_paths=["runtime/orchestration/"])
         in_progress = _make_task("T-011", status="in_progress", scope_paths=["runtime/"])
         eligible, reason = is_fully_auto_dispatchable(
-            candidate, [candidate, in_progress], _ENVELOPE
+            candidate, [candidate, in_progress], _ENVELOPE, Path("/tmp/unused")
         )
         assert eligible is False
         assert "overlap" in reason
+
+    def test_flagged_task_fails_without_council_record(self, tmp_path: Path) -> None:
+        candidate = _make_task("T-010", decision_support_required=True)
+        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE, tmp_path)
+        assert eligible is False
+        assert "decision_support_required" in reason
+
+    def test_flagged_task_fails_with_unresolved_council_record(self, tmp_path: Path) -> None:
+        candidate = _make_task("T-010", decision_support_required=True)
+        closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+        closures_dir.mkdir(parents=True)
+        (closures_dir / "CR-001.yaml").write_text(
+            yaml.dump(
+                {
+                    "schema_version": "council_request.v1",
+                    "request_id": "001",
+                    "requested_at": "2026-04-05T12:00:00Z",
+                    "trigger": "decision_support_needed",
+                    "question": "Proceed?",
+                    "context_summary": "Need decision support.",
+                    "suggested_respondents": ["Governance", "Risk"],
+                    "options": [{"label": "Approve", "description": "Proceed"}],
+                    "requires_quorum": True,
+                    "related_tasks": ["T-010"],
+                    "resolved": False,
+                    "resolved_at": None,
+                },
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE, tmp_path)
+        assert eligible is False
+        assert "unresolved" in reason
+
+    def test_flagged_task_passes_with_resolved_council_record(self, tmp_path: Path) -> None:
+        candidate = _make_task("T-010", decision_support_required=True)
+        closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+        closures_dir.mkdir(parents=True)
+        (closures_dir / "CR-001.yaml").write_text(
+            yaml.dump(
+                {
+                    "schema_version": "council_request.v1",
+                    "request_id": "001",
+                    "requested_at": "2026-04-05T12:00:00Z",
+                    "trigger": "decision_support_needed",
+                    "question": "Proceed?",
+                    "context_summary": "Need decision support.",
+                    "suggested_respondents": ["Governance", "Risk"],
+                    "options": [{"label": "Approve", "description": "Proceed"}],
+                    "requires_quorum": True,
+                    "related_tasks": ["T-010"],
+                    "resolved": True,
+                    "resolved_at": "2026-04-05T12:10:00Z",
+                },
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE, tmp_path)
+        assert eligible is True
+        assert "resolved" in reason
 
 
 # ── cmd_coo_propose --execute integration ─────────────────────────────────────
@@ -249,6 +323,7 @@ def _task_dict(
         "scope_paths": scope_paths or ["runtime/orchestration/coo/"],
         "status": status,
         "requires_approval": requires_approval,
+        "decision_support_required": False,
         "owner": "codex",
         "evidence": "",
         "task_type": task_type,

@@ -49,6 +49,7 @@ class TaskEntry:
     objective_ref: str
     created_at: str
     completed_at: Optional[str] = None
+    decision_support_required: bool = False
 
 
 def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
@@ -110,6 +111,7 @@ def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
         scope_paths=[str(p) for p in scope_paths],
         status=status,
         requires_approval=bool(raw.get("requires_approval", False)),
+        decision_support_required=bool(raw.get("decision_support_required", False)),
         owner=str(raw.get("owner", "")).strip(),
         evidence=str(raw.get("evidence", "")).strip(),
         task_type=task_type,
@@ -157,6 +159,7 @@ def _task_to_dict(task: TaskEntry) -> Dict[str, Any]:
         "scope_paths": task.scope_paths,
         "status": task.status,
         "requires_approval": task.requires_approval,
+        "decision_support_required": task.decision_support_required,
         "owner": task.owner,
         "evidence": task.evidence,
         "task_type": task.task_type,
@@ -206,6 +209,7 @@ def mark_in_progress(tasks: list[TaskEntry], task_id: str, evidence: str = "") -
                 scope_paths=task.scope_paths,
                 status="in_progress",
                 requires_approval=task.requires_approval,
+                decision_support_required=task.decision_support_required,
                 owner=task.owner,
                 evidence=evidence or task.evidence,
                 task_type=task.task_type,
@@ -243,6 +247,7 @@ def mark_blocked(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> li
                 scope_paths=task.scope_paths,
                 status="blocked",
                 requires_approval=task.requires_approval,
+                decision_support_required=task.decision_support_required,
                 owner=task.owner,
                 evidence=evidence or task.evidence,
                 task_type=task.task_type,
@@ -282,6 +287,7 @@ def mark_completed(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> 
                 scope_paths=task.scope_paths,
                 status="completed",
                 requires_approval=task.requires_approval,
+                decision_support_required=task.decision_support_required,
                 owner=task.owner,
                 evidence=evidence or task.evidence,
                 task_type=task.task_type,

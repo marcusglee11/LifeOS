@@ -46,6 +46,7 @@ MINIMAL_VALID_TASK = {
     "scope_paths": ["runtime/"],
     "status": "pending",
     "requires_approval": False,
+    "decision_support_required": False,
     "owner": "codex",
     "evidence": "",
     "task_type": "build",
@@ -153,6 +154,7 @@ class TestFilterActionable:
             objective_ref="bootstrap",
             created_at="2026-03-05T00:00:00Z",
             completed_at=None,
+            decision_support_required=False,
         )
 
     def test_excludes_completed_and_blocked(self) -> None:
@@ -207,6 +209,7 @@ class TestMarkCompleted:
                 objective_ref="bootstrap",
                 created_at="2026-03-05T00:00:00Z",
                 completed_at=None,
+                decision_support_required=False,
             )
         ]
 
@@ -259,6 +262,7 @@ class TestSaveLoadRoundtrip:
                 objective_ref="bootstrap",
                 created_at="2026-03-05T12:00:00Z",
                 completed_at=None,
+                decision_support_required=True,
             )
         ]
         path = tmp_path / "backlog.yaml"
@@ -271,6 +275,7 @@ class TestSaveLoadRoundtrip:
         assert t.risk == "high"
         assert t.scope_paths == ["runtime/", "config/"]
         assert t.requires_approval is True
+        assert t.decision_support_required is True
         assert t.tags == ["tag1", "tag2"]
         assert t.completed_at is None
 
@@ -305,6 +310,7 @@ def _make_task(task_id: str, status: str = "pending") -> TaskEntry:
         objective_ref="bootstrap",
         created_at="2026-03-05T00:00:00Z",
         completed_at=None,
+        decision_support_required=False,
     )
 
 
@@ -336,6 +342,12 @@ class TestMarkInProgress:
         result = mark_in_progress(tasks, "T-010")
         assert result[0].completed_at is None
 
+    def test_mark_in_progress_preserves_decision_support_required(self) -> None:
+        tasks = [_make_task("T-010", "pending")]
+        tasks[0].decision_support_required = True
+        result = mark_in_progress(tasks, "T-010")
+        assert result[0].decision_support_required is True
+
 
 class TestMarkBlocked:
     def test_mark_blocked_sets_status_and_evidence(self) -> None:
@@ -359,3 +371,17 @@ class TestMarkBlocked:
         result = mark_blocked(tasks, "T-012")
         assert result[1].status == "pending"
         assert result[1].id == "T-013"
+
+    def test_mark_blocked_preserves_decision_support_required(self) -> None:
+        tasks = [_make_task("T-012", "in_progress")]
+        tasks[0].decision_support_required = True
+        result = mark_blocked(tasks, "T-012")
+        assert result[0].decision_support_required is True
+
+
+class TestMarkCompletedDecisionSupport:
+    def test_mark_completed_preserves_decision_support_required(self) -> None:
+        tasks = [_make_task("T-014", "in_progress")]
+        tasks[0].decision_support_required = True
+        result = mark_completed(tasks, "T-014")
+        assert result[0].decision_support_required is True

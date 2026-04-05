@@ -15,6 +15,7 @@ from runtime.orchestration.coo.commands import (
     cmd_coo_approve,
     cmd_coo_chat,
     cmd_coo_direct,
+    cmd_coo_process_closures,
     cmd_coo_prompt_status,
     cmd_coo_propose,
     cmd_coo_reject,
@@ -100,6 +101,7 @@ def _task(
         "scope_paths": ["runtime/"],
         "status": status,
         "requires_approval": requires_approval,
+        "decision_support_required": False,
         "owner": "codex",
         "evidence": "",
         "task_type": task_type,
@@ -946,3 +948,85 @@ proposals:
 
     assert rc == 0
     assert len(auto_dispatch_called) == 1
+
+
+def test_coo_process_closures_returns_summary(tmp_path: Path, capsys) -> None:
+    closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+    closures_dir.mkdir(parents=True, exist_ok=True)
+    (closures_dir / "SC-ORD-1.yaml").write_text(
+        yaml.dump(
+            {
+                "schema_version": "sprint_close_packet.v1",
+                "order_id": "ORD-1",
+                "task_ref": "T-027",
+                "agent": "codex",
+                "closed_at": "2026-04-05T12:00:00Z",
+                "outcome": "success",
+                "evidence_paths": ["artifacts/receipts/index.json"],
+                "open_items": [],
+                "suggested_next_task_ids": ["T-028", "T-029"],
+                "state_mutations": [],
+                "sync_check_result": "skipped",
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (closures_dir / "CR-REQ-1.yaml").write_text(
+        yaml.dump(
+            {
+                "schema_version": "council_request.v1",
+                "request_id": "REQ-1",
+                "requested_at": "2026-04-05T12:00:00Z",
+                "trigger": "decision_support_needed",
+                "question": "Proceed?",
+                "context_summary": "Need approval",
+                "suggested_respondents": ["Governance", "Risk"],
+                "options": [{"label": "Approve", "description": "Proceed"}],
+                "requires_quorum": True,
+                "related_tasks": ["T-030"],
+                "resolved": False,
+                "resolved_at": None,
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    for_ceo_dir = tmp_path / "artifacts" / "for_ceo"
+    for_ceo_dir.mkdir(parents=True, exist_ok=True)
+    (for_ceo_dir / "SCP-20260405T120000Z-context.yaml").write_text(
+        yaml.dump(
+            {
+                "schema_version": "session_context_packet.v1",
+                "author": "codex",
+                "written_at": "2026-04-05T12:00:00Z",
+                "subject": "Follow-up",
+                "context": "Need CEO context.",
+                "decisions_needed": ["Review T-030"],
+                "related_tasks": ["T-030"],
+                "expires_at": "2026-04-08T12:00:00Z",
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    rc = cmd_coo_process_closures(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "closures: 2" in out
+    assert "unresolved_council_requests: 1" in out
+    assert "T-028, T-029" in out
+    assert "Follow-up" in out
+
+
+def test_coo_process_closures_invalid_payload_returns_one(tmp_path: Path, capsys) -> None:
+    closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+    closures_dir.mkdir(parents=True, exist_ok=True)
+    (closures_dir / "SC-bad.yaml").write_text("[]\n", encoding="utf-8")
+
+    rc = cmd_coo_process_closures(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 1
+    assert "Error:" in capsys.readouterr().err

@@ -147,3 +147,77 @@ next_actions:
   - "Propose parser hardening tasks"
   - "Review resolved escalations"
 ```
+
+## 7) SprintClosePacket (`sprint_close_packet.v1`)
+
+File-based sprint-close artifact written to `artifacts/dispatch/closures/SC-<order_id>.yaml`.
+
+```yaml
+schema_version: sprint_close_packet.v1
+order_id: ORD-T-027-20260405T120000Z
+task_ref: T-027
+agent: codex
+closed_at: "2026-04-05T12:00:00Z"
+outcome: success
+evidence_paths:
+  - artifacts/receipts/example/index.json
+open_items: []
+suggested_next_task_ids:
+  - T-028
+state_mutations: []
+sync_check_result: skipped
+```
+
+Rules:
+- `agent` must be one of `codex`, `claude_code`, `gemini`, `opencode`.
+- `outcome` must be one of `success`, `partial`, `blocked`.
+- `closed_at` must be ISO-8601.
+
+## 8) SessionContextPacket (`session_context_packet.v1`)
+
+File-based CEO context artifact read from `artifacts/for_ceo/SCP-<written_at_compact>-<subject_slug>.yaml`.
+
+```yaml
+schema_version: session_context_packet.v1
+author: codex
+written_at: "2026-04-05T12:00:00Z"
+subject: "Need CEO review"
+context: "T-030 remains blocked until Council approval lands."
+decisions_needed:
+  - "Review T-030 sequencing"
+related_tasks:
+  - T-030
+expires_at: "2026-04-08T12:00:00Z"
+```
+
+Rules:
+- `expires_at` defaults to `written_at + 72h`.
+- `written_at` and `expires_at` must be ISO-8601.
+
+## 9) CouncilRequest (`council_request.v1`)
+
+File-based decision-support artifact written to `artifacts/dispatch/closures/CR-<request_id>.yaml`.
+
+```yaml
+schema_version: council_request.v1
+request_id: REQ-001
+requested_at: "2026-04-05T12:00:00Z"
+trigger: decision_support_needed
+question: "Can T-030 proceed?"
+context_summary: "Decision support required before the protected-path slice starts."
+suggested_respondents:
+  - Governance
+  - Risk
+options:
+  - label: Approve
+    description: "Allow the protected-path slice to proceed."
+requires_quorum: true
+related_tasks:
+  - T-030
+resolved: false
+resolved_at: null
+```
+
+Rules:
+- `options` must be non-empty and each option needs `label` and `description`.
+- `resolved_at` is required when `resolved` is `true`.

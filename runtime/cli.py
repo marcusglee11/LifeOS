@@ -1133,6 +1133,12 @@ def main() -> int:
     )
     p_coo_sync_check.add_argument("--json", action="store_true", help="Output drift report as JSON")
 
+    p_coo_process_closures = coo_subs.add_parser(
+        "process-closures",
+        help="Validate and summarize COO closure artifacts",
+    )
+    p_coo_process_closures.add_argument("--json", action="store_true", help="Output as JSON")
+
     p_coo_propose = coo_subs.add_parser("propose", help="Print COO proposal context")
     p_coo_propose.add_argument("--json", action="store_true", help="Output context as JSON")
     p_coo_propose.add_argument(
@@ -1296,6 +1302,8 @@ def main() -> int:
                 return coo_commands.cmd_coo_status(args, repo_root)
             elif args.coo_cmd == "sync-check":
                 return coo_commands.cmd_coo_sync_check(args, repo_root)
+            elif args.coo_cmd == "process-closures":
+                return coo_commands.cmd_coo_process_closures(args, repo_root)
             elif args.coo_cmd == "propose":
                 return coo_commands.cmd_coo_propose(args, repo_root)
             elif args.coo_cmd == "approve":

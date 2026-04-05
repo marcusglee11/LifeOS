@@ -25,6 +25,8 @@ Run in order at session start:
    - `config/tasks/backlog.yaml`
    - `artifacts/dispatch/inbox/`
    - `artifacts/dispatch/completed/`
+   - `artifacts/dispatch/closures/`
+   - `artifacts/for_ceo/`
    - `docs/11_admin/LIFEOS_STATE.md`
 6. Use QMD or workspace recall search for supporting context when needed.
 
