@@ -38,6 +38,7 @@ from runtime.orchestration.coo.parser import (
 from runtime.orchestration.coo.parser import (
     parse_ntp as _parse_ntp,
 )
+from runtime.orchestration.coo.sync_check import render_sync_check, run_sync_check
 from runtime.orchestration.coo.templates import instantiate_order, load_template
 from runtime.orchestration.dispatch.order import OrderValidationError, parse_order
 from runtime.orchestration.ops.executor import OperationExecutionError, execute_operation_proposal
@@ -220,6 +221,18 @@ def cmd_coo_status(args: argparse.Namespace, repo_root: Path) -> int:
         print()
         print(f"escalations: {dispatch.get('escalations_pending', 0)} pending")
     return 0
+
+
+def cmd_coo_sync_check(args: argparse.Namespace, repo_root: Path) -> int:
+    """Detect drift in backlog task state and ops-lane governance state."""
+    try:
+        result = run_sync_check(repo_root)
+    except Exception as exc:
+        _print_error(f"Error: {type(exc).__name__}: {exc}")
+        return 1
+
+    print(render_sync_check(result, as_json=getattr(args, "json", False)))
+    return 1 if result["drift_found"] else 0
 
 
 def classify_coo_response(mode: str, raw_output: str) -> str:

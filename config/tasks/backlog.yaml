@@ -540,3 +540,31 @@ tasks:
   objective_ref: ''
   created_at: '2026-03-30T00:00:00Z'
   completed_at: null
+- id: T-026
+  title: Add COO sync-check drift detector
+  description: Add a deterministic drift detector for backlog task status and
+    ops-lane governance approval refs, exposed as lifeos coo sync-check.
+  dod: lifeos coo sync-check returns 0 when no drift exists and 1 when task-status
+    or lane-governance drift is detected; targeted tests and runtime/tests full
+    suite pass.
+  priority: P1
+  risk: low
+  scope_paths:
+  - runtime/orchestration/coo/
+  - runtime/tests/orchestration/coo/
+  - runtime/cli.py
+  - scripts/workflow/
+  - config/tasks/backlog.yaml
+  status: pending
+  requires_approval: false
+  owner: claude-code
+  evidence: ''
+  task_type: build
+  tags:
+  - coo
+  - sync
+  - drift
+  - ops
+  objective_ref: coo-coordination-loop
+  created_at: '2026-04-05T05:33:44Z'
+  completed_at: null

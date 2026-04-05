@@ -1127,6 +1127,12 @@ def main() -> int:
     p_coo_status = coo_subs.add_parser("status", help="Show structured backlog status")
     p_coo_status.add_argument("--json", action="store_true", help="Output status as JSON")
 
+    p_coo_sync_check = coo_subs.add_parser(
+        "sync-check",
+        help="Detect structured drift in backlog tasks and ops lanes",
+    )
+    p_coo_sync_check.add_argument("--json", action="store_true", help="Output drift report as JSON")
+
     p_coo_propose = coo_subs.add_parser("propose", help="Print COO proposal context")
     p_coo_propose.add_argument("--json", action="store_true", help="Output context as JSON")
     p_coo_propose.add_argument(
@@ -1288,6 +1294,8 @@ def main() -> int:
 
             if args.coo_cmd == "status":
                 return coo_commands.cmd_coo_status(args, repo_root)
+            elif args.coo_cmd == "sync-check":
+                return coo_commands.cmd_coo_sync_check(args, repo_root)
             elif args.coo_cmd == "propose":
                 return coo_commands.cmd_coo_propose(args, repo_root)
             elif args.coo_cmd == "approve":
