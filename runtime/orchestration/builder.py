@@ -108,7 +108,7 @@ def _build_daily_loop(params: Dict[str, Any]) -> WorkflowDefinition:
     # (used to break loop early if we hit requested limit)
     # remaining_slots = requested_steps - len(steps)  <-- Unused variable removed for hygiene
 
-    for i, (step_id, description) in enumerate(runtime_templates):
+    for _i, (step_id, description) in enumerate(runtime_templates):
         if len(steps) >= requested_steps:
             break
         steps.append(

@@ -128,9 +128,9 @@ class PolicyLoader:
             with open(path, "r", encoding="utf-8") as f:
                 return yaml.safe_load(f)
         except yaml.YAMLError as e:
-            raise PolicyLoadError(f"YAML parse error in {path}: {e}")
-        except FileNotFoundError:
-            raise PolicyLoadError(f"Config file not found: {path}")
+            raise PolicyLoadError(f"YAML parse error in {path}: {e}") from e
+        except FileNotFoundError as e:
+            raise PolicyLoadError(f"Config file not found: {path}") from e
 
     def _resolve_includes(self, includes: List[str]) -> Tuple[List[Dict], List[Dict]]:
         """
@@ -201,12 +201,12 @@ class PolicyLoader:
             with open(schema_path, "r", encoding="utf-8") as f:
                 schema = json.load(f)
         except json.JSONDecodeError as e:
-            raise PolicyLoadError(f"Schema JSON parse error: {e}")
+            raise PolicyLoadError(f"Schema JSON parse error: {e}") from e
 
         try:
             validate(instance=effective, schema=schema)
         except ValidationError as e:
-            raise PolicyLoadError(f"Schema validation failed: {e.message}")
+            raise PolicyLoadError(f"Schema validation failed: {e.message}") from e
 
     def _validate_semantics(self, effective: Dict[str, Any]) -> None:
         """

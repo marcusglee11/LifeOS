@@ -503,7 +503,7 @@ def test_deprecated_gate_enforced_even_if_core_overlap(tmp_path, base_envelope):
     # 3. Validation should fail (SCHEMA_VIOLATION)
     code, out, err = run_validator(str(p), args=["--schema", str(schema_path)])
 
-    # The new fail-closed logic fails at schema load, which is EXIT_SCHEMA_VIOLATION (2, from EXIT_FAIL_GENERIC check? No, invalid key check is generic, overlap check is SCHEMA).
+    # The new fail-closed logic fails at schema load, which is EXIT_SCHEMA_VIOLATION (2, from EXIT_FAIL_GENERIC check? No, invalid key check is generic, overlap check is SCHEMA).  # noqa: E501
     # Wait, fail() prints to stderr.
     assert code == 2 or code == 1
     assert "taxonomy intersection detected" in err or "Deprecated packet type" in err

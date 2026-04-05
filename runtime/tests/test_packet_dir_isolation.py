@@ -132,7 +132,7 @@ def test_packet_dir_safe_ignored_succeeds(repo_root, safe_packet_dir, tmp_path):
         assert "isolation violation" not in result.stderr.lower(), (
             f"Should not fail on isolation for gitignored dir. stderr: {result.stderr}"
         )
-        # For this test, we accept validation failures (we're testing isolation, not full validation)
+        # For this test, we accept validation failures (we're testing isolation, not full validation)  # noqa: E501
 
     # Check that report was written to packet_dir (regardless of pass/fail outcome)
     report_json = packet_test_dir / "preflight_report.json"

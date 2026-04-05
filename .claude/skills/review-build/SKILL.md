@@ -5,7 +5,20 @@ description: Review a build from another agent using the tiered review-fix-repor
 
 # Review Build
 
-Review a build from another agent using the tiered review-fix-report protocol. Fix obvious issues in-place rather than just reporting them.
+Review a build from another agent using the tiered review-fix-report protocol.
+Fix obvious issues in-place rather than just reporting them.
+
+Default target:
+- the current worktree branch against its merge-base with `main`
+
+Use this skill for:
+- post-build review before `close_build.py`
+- review of a feature/build branch from another agent
+- review-and-fix passes where the builder already produced code and tests
+
+Close-build integration:
+- `python3 scripts/workflow/close_build.py` now writes a review brief under `.git/lifeos/reviews/<branch>.md`
+- treat that brief as the starting checklist, not the end of the review
 
 ## Inputs
 
@@ -17,17 +30,24 @@ The user will provide one or more of:
 
 If only a branch name is given, diff against the branch's merge-base with `main`.
 
-## Step 1: Understand the Scope
+## Step 1: Establish Shared Truth
 
 ```bash
-# Get the commit range
-git log --oneline <base>..<head>
-
-# Get the full diff
-git diff <base>..<head> --stat
+BASE=$(git merge-base main HEAD)
+git log --oneline "$BASE"..HEAD
+git diff --stat "$BASE"..HEAD
+git diff "$BASE"..HEAD
 ```
 
 Read the changed files. Understand what was built, not just what changed.
+
+For large diffs:
+
+```bash
+git diff --name-only "$BASE"..HEAD
+git diff "$BASE"..HEAD -- runtime/
+git diff "$BASE"..HEAD -- scripts/ config/ docs/
+```
 
 ## Step 2: Run Pre-Existing Baseline
 
@@ -40,7 +60,35 @@ git checkout <branch> --quiet && git stash pop 2>/dev/null
 
 This establishes which test failures are pre-existing vs introduced.
 
-## Step 3: Review Each Change
+If checkout/stash churn is risky, skip this step and use the current branch as the
+baseline. Record that assumption in the report.
+
+## Step 3: Run the Review Verification Stack
+
+Always run the light stack first:
+
+```bash
+python3 scripts/workflow/quality_gate.py check --scope changed --json
+git diff --check
+```
+
+If runtime Python changed:
+
+```bash
+/mnt/c/Users/cabra/Projects/LifeOS/.venv/bin/python -m ruff check runtime
+/mnt/c/Users/cabra/Projects/LifeOS/.venv/bin/python -m ruff format --check runtime
+```
+
+If the router points to tests, run those before a broad suite:
+
+```bash
+scripts/workflow/test_router.sh <changed-file>...
+```
+
+Then run the returned commands. Only run the broader suite if the changed surface
+needs it.
+
+## Step 4: Review Each Change
 
 For each file changed, assess:
 
@@ -50,11 +98,18 @@ For each file changed, assess:
 4. **Safety** - Error handling, validation, security concerns?
 5. **Tests** - Are new behaviors tested? Are edge cases covered?
 
-## Step 4: Classify Findings by Tier
+Focus first on:
+- import changes that can introduce circular dependencies
+- fail-closed logic changed to fail-open behavior
+- hook/build workflow changes that can block closure
+- test edits that only silence failures instead of checking behavior
+- broad lint suppressions on executable code
+
+## Step 5: Classify Findings by Tier
 
 | Tier | Criteria | Action |
 |------|----------|--------|
-| **Critical** | Broken logic, security holes, dead code, contract violations | Fix immediately |
+| **Critical** | Broken logic, circular imports, security holes, dead code, contract violations | Fix immediately |
 | **Moderate** | Missing error handling, coverage gaps, pattern inconsistencies | Fix if straightforward, otherwise propose |
 | **Low** | Style, naming, documentation, minor improvements | Report only |
 
@@ -77,15 +132,19 @@ For each file changed, assess:
 - The issue affects governance or constitution
 - You're unsure whether the fix is correct
 
-## Step 5: Fix and Verify
+## Step 6: Fix and Verify
 
 For each fix applied:
 1. Make the change
 2. Run targeted tests for the affected module
-3. Run `pytest runtime/tests -q` to check for regressions
-4. Commit with a clear message: `Fix review findings: <summary>`
+3. Re-run the changed-scope quality gate
+4. Run `pytest runtime/tests -q` if runtime behavior changed materially
+5. Commit with a clear message: `Fix review findings: <summary>`
 
-## Step 6: Report
+If a review fix introduces a new import edge, always run at least one import-time
+or collection-time verification command before moving on.
+
+## Step 7: Report
 
 Structure your report as:
 
@@ -103,3 +162,9 @@ What Remains:
 
 If needed, include a short `Verdict` line above this block, but keep the five
 core sections in this exact order for inter-agent consistency.
+
+When no findings remain, say so explicitly:
+- `Findings: none after review fixes`
+
+When assumptions remain, keep them short and concrete:
+- `Assumptions: full runtime suite not re-run after doc-only fix`

@@ -102,7 +102,8 @@ class StewardMission(BaseMission):
         Classify a path into one of three categories (fail-closed).
 
         Categories per P0.1:
-            - "protected": Protected roots (docs/00_foundations, docs/01_governance, scripts, config)
+            - "protected": Protected roots including `docs/00_foundations/`,
+              `docs/01_governance/`, `scripts/`, and `config/`
             - "in_envelope": In-envelope docs (docs/**/*.md, excluding protected)
             - "disallowed": Everything else
 
@@ -462,7 +463,7 @@ class StewardMission(BaseMission):
             # 4. Push (conditional on metadata.push flag)
             if context.metadata.get("push", False):
                 push_cmd = ["git", "push"]
-                push_result = subprocess.run(
+                subprocess.run(
                     push_cmd, cwd=context.repo_root, check=True, capture_output=True, text=True
                 )
                 # Fail-closed: if push fails, return error (commit happened but wasn't pushed)

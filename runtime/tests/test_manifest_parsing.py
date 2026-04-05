@@ -32,7 +32,7 @@ def test_incomplete_write():
         manifest = [
             {
                 "path": "src/main.py",
-                "checksum": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+                "checksum": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",  # noqa: E501
             }
         ]
         (root / ".coo-manifest.json").write_text(json.dumps(manifest))
@@ -82,7 +82,7 @@ def test_checksum_mismatch():
         manifest = [
             {
                 "path": "test.txt",
-                "checksum": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+                "checksum": "sha256:0000000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
             }
         ]
         (root / ".coo-manifest.json").write_text(json.dumps(manifest))

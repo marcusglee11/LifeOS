@@ -23,13 +23,13 @@ def test_snapshot_basic(db_conn):
 
     # Setup mission and task
     db_conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (mid, "executing", "desc", 10.0, 5, datetime.utcnow(), datetime.utcnow()),
     )
 
     started_at = datetime.utcnow()
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (tid, mid, 1, "task1", "executing", started_at, datetime.utcnow()),
     )
 
@@ -57,11 +57,11 @@ def test_snapshot_versioning(db_conn):
 
     # Setup mission and task
     db_conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (mid, "executing", "desc", 10.0, 5, datetime.utcnow(), datetime.utcnow()),
     )
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (tid, mid, 1, "task1", "executing", started_at, datetime.utcnow()),
     )
 
@@ -98,11 +98,11 @@ def test_snapshot_tombstone(db_conn):
 
     # Setup mission and task
     db_conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (mid, "executing", "desc", 10.0, 5, datetime.utcnow(), datetime.utcnow()),
     )
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (tid, mid, 1, "task1", "executing", started_at, datetime.utcnow()),
     )
 
@@ -118,7 +118,9 @@ def test_snapshot_tombstone(db_conn):
     # v2 (deleted)
     db_conn.execute(
         """
-        INSERT INTO artifacts (id, mission_id, file_path, version_number, kind, created_at, is_deleted)
+        INSERT INTO artifacts (
+            id, mission_id, file_path, version_number, kind, created_at, is_deleted
+        )
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """,
         ("a2", mid, "file1.txt", 2, "file", started_at - timedelta(seconds=10), 1),
@@ -137,11 +139,11 @@ def test_snapshot_required_artifact_override(db_conn):
 
     # Setup mission and task with required_artifact_ids pointing to v1
     db_conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (mid, "executing", "desc", 10.0, 5, datetime.utcnow(), datetime.utcnow()),
     )
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at, required_artifact_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at, required_artifact_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (tid, mid, 1, "task1", "executing", started_at, datetime.utcnow(), json.dumps(["a1"])),
     )
 
@@ -157,7 +159,9 @@ def test_snapshot_required_artifact_override(db_conn):
     # v2 (deleted, would normally hide v1)
     db_conn.execute(
         """
-        INSERT INTO artifacts (id, mission_id, file_path, version_number, kind, created_at, is_deleted)
+        INSERT INTO artifacts (
+            id, mission_id, file_path, version_number, kind, created_at, is_deleted
+        )
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """,
         ("a2", mid, "file1.txt", 2, "file", started_at - timedelta(seconds=10), 1),
@@ -181,11 +185,11 @@ def test_snapshot_ordering(db_conn):
 
     # Setup mission and task
     db_conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (mid, "executing", "desc", 10.0, 5, datetime.utcnow(), datetime.utcnow()),
     )
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, started_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         (tid, mid, 1, "task1", "executing", started_at, datetime.utcnow()),
     )
 

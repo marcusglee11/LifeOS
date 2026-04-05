@@ -74,7 +74,7 @@ class TestReplay(unittest.TestCase):
             f.write("modified data")
 
         with self.assertRaises(Exception) as cm:
-            # We don't need to patch here because verify_reference_mission fails BEFORE initialize_runtime
+            # We don't need to patch here because verify_reference_mission fails BEFORE initialize_runtime  # noqa: E501
             self.replay.execute_replay(self.mission_path, self.amu0_path)
 
         self.assertIn("Replay Mission Mismatch", str(cm.exception))

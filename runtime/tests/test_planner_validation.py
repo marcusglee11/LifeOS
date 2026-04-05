@@ -11,7 +11,7 @@ def db_conn():
     conn = sqlite3.connect(":memory:")
     apply_schema(conn)
     conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         ("m1", "executing", "desc", 100.0, 5, "now", "now"),
     )
     conn.commit()

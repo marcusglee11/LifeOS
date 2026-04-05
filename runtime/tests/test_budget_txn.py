@@ -14,11 +14,11 @@ def db_conn():
     apply_schema(conn)
     # Insert mission
     conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, repair_budget_usd, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, repair_budget_usd, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",  # noqa: E501
         ("m1", "executing", "desc", 10.0, 5, 2.0),
     )
     conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status) VALUES (?, ?, ?, ?, ?)",  # noqa: E501
         ("t1", "m1", 1, "task1", "executing"),
     )
     conn.commit()
@@ -63,7 +63,7 @@ def test_budget_concurrent_access(tmp_path: Path):
     conn = sqlite3.connect(str(db_path), check_same_thread=False)
     apply_schema(conn)
     conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, repair_budget_usd, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, repair_budget_usd, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",  # noqa: E501
         ("m1", "executing", "desc", 10.0, 5, 5.0),
     )
     conn.commit()

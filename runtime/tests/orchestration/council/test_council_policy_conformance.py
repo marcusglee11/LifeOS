@@ -85,7 +85,7 @@ def collect_enum_references(
     if not isinstance(section, dict):
         return references
 
-    for item_name, item_config in section.items():
+    for _item_name, item_config in section.items():
         if not isinstance(item_config, dict):
             continue
 

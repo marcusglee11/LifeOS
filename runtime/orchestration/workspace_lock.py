@@ -107,8 +107,8 @@ def acquire_workspace_lock(
             holder_attempt_id = existing.get("attempt_id", "unknown")
             raise WorkspaceLockError(
                 "CONCURRENT_RUN_DETECTED",
-                f"Workspace lock held by pid={existing_pid} run_id={holder_run_id} attempt_id={holder_attempt_id}",
-            )
+                f"Workspace lock held by pid={existing_pid} run_id={holder_run_id} attempt_id={holder_attempt_id}",  # noqa: E501
+            ) from None
 
     raise WorkspaceLockError("CONCURRENT_RUN_DETECTED", "Unable to acquire workspace lock")
 

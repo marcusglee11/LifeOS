@@ -4,8 +4,13 @@ Reactive Task Layer v0.1 — Boundaries
 Validation, configuration, and exceptions for reactive task planning.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from runtime.reactive.interfaces import ReactiveTaskRequest
 
 
 class ReactiveBoundaryViolation(Exception):
@@ -35,7 +40,7 @@ class ReactiveBoundaryConfig:
 
 
 def validate_request(
-    request: "ReactiveTaskRequest", config: Optional[ReactiveBoundaryConfig] = None
+    request: ReactiveTaskRequest, config: ReactiveBoundaryConfig | None = None
 ) -> None:
     """
     Validate a reactive task request against boundary config.
@@ -83,7 +88,7 @@ def validate_request(
                 raise ReactiveBoundaryViolation(f"tag[{i}] exceeds {config.max_tag_chars} chars")
 
 
-def validate_surface(surface: dict, config: Optional[ReactiveBoundaryConfig] = None) -> None:
+def validate_surface(surface: dict, config: ReactiveBoundaryConfig | None = None) -> None:
     """
     Validate a plan surface against boundary config.
 

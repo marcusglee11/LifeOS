@@ -56,7 +56,7 @@ class TestEnforceGovernance:
                 governance.enforce_governance()
 
     def test_malformed_digest_failure(self):
-        """Should fail if digest is malformed (even if not in allowed list check, it fails that check first)."""
+        """Should fail if digest is malformed (even if not in allowed list check, it fails that check first)."""  # noqa: E501
         with patch.object(settings, "SANDBOX_IMAGE_DIGEST", "not-a-digest"):
             with pytest.raises(governance.SandboxConfigError, match="Unauthorized sandbox digest"):
                 governance.enforce_governance()

@@ -119,7 +119,7 @@ def check_api_provider(name: str, endpoint: str, timeout: float = 5.0) -> Provid
 
         # Use a short timeout for health checks
         with httpx.Client(timeout=timeout) as client:
-            resp = client.head(endpoint)
+            client.head(endpoint)
             elapsed = (time.monotonic() - start) * 1000
             # Any response (even 4xx) means the endpoint is reachable
             return ProviderStatus(

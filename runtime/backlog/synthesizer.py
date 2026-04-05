@@ -80,7 +80,7 @@ def synthesize_mission(
     try:
         tasks = parse_backlog(backlog_path)
     except Exception as e:
-        raise SynthesisError(f"Failed to parse backlog: {e}")
+        raise SynthesisError(f"Failed to parse backlog: {e}") from e
 
     # Find task
     task = get_task_by_id(tasks, task_id)
@@ -97,7 +97,7 @@ def synthesize_mission(
             repo_root=repo_root,
         )
     except Exception as e:
-        raise SynthesisError(f"Failed to resolve context: {e}")
+        raise SynthesisError(f"Failed to resolve context: {e}") from e
 
     # Step 3: Generate packet
     all_context = context.resolved_paths + context.baseline_paths
@@ -169,6 +169,6 @@ def execute_mission(
         }
 
     except UnknownMissionError as e:
-        raise SynthesisError(f"Unknown mission type '{packet.mission_type}': {e}")
+        raise SynthesisError(f"Unknown mission type '{packet.mission_type}': {e}") from e
     except Exception as e:
-        raise SynthesisError(f"Mission execution failed: {e}")
+        raise SynthesisError(f"Mission execution failed: {e}") from e

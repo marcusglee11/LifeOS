@@ -18,8 +18,6 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 
 class TestDocHygieneMarkdownLint(unittest.TestCase):
     """Test suite for markdown linting script."""
@@ -213,7 +211,7 @@ class TestDocHygieneMarkdownLint(unittest.TestCase):
         # Get repo root dynamically
         repo_root = Path(__file__).parent.parent.parent
         # Run with --dry-run
-        result = subprocess.run(
+        subprocess.run(
             ["python3", "scripts/doc_hygiene_markdown_lint.py", str(self.test_path), "--dry-run"],
             cwd=str(repo_root),
             capture_output=True,

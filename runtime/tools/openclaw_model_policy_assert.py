@@ -295,7 +295,7 @@ def main() -> int:
             print(json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
         else:
             print(
-                f"policy_ok={'true' if result['policy_ok'] else 'false'} violations={len(result['violations'])}"
+                f"policy_ok={'true' if result['policy_ok'] else 'false'} violations={len(result['violations'])}"  # noqa: E501
             )
         return 0 if result["policy_ok"] else 1
     except (

@@ -1466,7 +1466,7 @@ class LoopSpine:
             return CheckpointPacket(**data)
 
         except (yaml.YAMLError, TypeError) as e:
-            raise SpineError(f"Failed to load checkpoint {checkpoint_id}: {e}")
+            raise SpineError(f"Failed to load checkpoint {checkpoint_id}: {e}") from e
 
     def _check_resolution(self, checkpoint_id: str) -> Tuple[bool, Optional[str]]:
         """
@@ -1650,7 +1650,7 @@ class LoopSpine:
             return hash_json(config)
 
         except Exception as e:
-            raise SpineError(f"Failed to compute policy hash: {e}")
+            raise SpineError(f"Failed to compute policy hash: {e}") from e
 
     def _build_hook_kwargs(self, task_spec: Dict[str, Any]) -> Dict[str, Any]:
         """Build keyword arguments for pre-run lifecycle hooks."""

@@ -78,14 +78,14 @@ def parse_managed_entries(crontab_text: str) -> Tuple[List[ParsedEntry], List[st
             cron_lines = [item for item in active_lines if _parse_cron_line(item[1]) is not None]
             if len(cron_lines) != 1:
                 violations.append(
-                    f"managed_block_entry_count_invalid instance={active_instance} job={active_job} count={len(cron_lines)} start={active_start}"
+                    f"managed_block_entry_count_invalid instance={active_instance} job={active_job} count={len(cron_lines)} start={active_start}"  # noqa: E501
                 )
             else:
                 line_no, cron_line = cron_lines[0]
                 parsed = _parse_cron_line(cron_line)
                 if parsed is None:
                     violations.append(
-                        f"managed_block_line_parse_failed instance={active_instance} job={active_job} line={line_no}"
+                        f"managed_block_line_parse_failed instance={active_instance} job={active_job} line={line_no}"  # noqa: E501
                     )
                 else:
                     schedule, command = parsed
@@ -109,7 +109,7 @@ def parse_managed_entries(crontab_text: str) -> Tuple[List[ParsedEntry], List[st
 
     if active_instance:
         violations.append(
-            f"managed_block_missing_end instance={active_instance} job={active_job} start={active_start}"
+            f"managed_block_missing_end instance={active_instance} job={active_job} start={active_start}"  # noqa: E501
         )
 
     return entries, violations
@@ -267,7 +267,7 @@ def main() -> int:
     else:
         if result["pass"]:
             print(
-                f"PASS host_cron_parity_guard=true expected_keys={len(result.get('expected_keys') or [])} "
+                f"PASS host_cron_parity_guard=true expected_keys={len(result.get('expected_keys') or [])} "  # noqa: E501
                 f"entries={len(result.get('entries') or [])}"
             )
         else:

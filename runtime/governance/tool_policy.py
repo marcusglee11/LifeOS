@@ -415,7 +415,7 @@ def check_tool_action_allowed(
         if not is_pytest_execution_enabled():
             return False, PolicyDecision(
                 allowed=False,
-                decision_reason="DENIED: pytest execution requires Council approval (CR-3A-01). Set PYTEST_EXECUTION_ENABLED=true after approval.",
+                decision_reason="DENIED: pytest execution requires Council approval (CR-3A-01). Set PYTEST_EXECUTION_ENABLED=true after approval.",  # noqa: E501
                 matched_rules=["pytest_council_approval_required"],
             )
 

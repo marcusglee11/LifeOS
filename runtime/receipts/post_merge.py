@@ -143,5 +143,5 @@ def run_post_merge_land_gate(
         emitted=True,
         land_receipt=receipt,
         error_code=None,
-        detail=f"Land receipt {receipt['receipt_id']!r} emitted; tree_match={receipt['tree_equivalence']['match']}",
+        detail=f"Land receipt {receipt['receipt_id']!r} emitted; tree_match={receipt['tree_equivalence']['match']}",  # noqa: E501
     )

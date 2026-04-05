@@ -440,8 +440,8 @@ class Orchestrator:
             ctx.metadata["repo_root"] = str(repo_root)
             ctx.metadata["baseline_commit"] = baseline_commit
 
-        # Always use direct path for operation="mission" to avoid recursion loops
-        # (registry.run_mission builds workflows that call operation="mission", creating a cycle if we call registry again)
+        # Always use the direct path for operation="mission" to avoid recursion loops.
+        # registry.run_mission builds workflows that may otherwise re-enter registry dispatch.
         use_direct_path = True
 
         # Execute mission (with selective exception handling)
@@ -483,6 +483,8 @@ class Orchestrator:
             else:
                 # Preferred path: Use registry dispatch
                 # AttributeError/TypeError here are programming bugs, not dispatch failures
+                from runtime.orchestration import registry
+
                 result = registry.run_mission(mission_type, ctx, inputs)
 
             # Normalize result to dict (uniform handling regardless of dispatch path)

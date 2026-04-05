@@ -164,7 +164,7 @@ def is_path_protected(path: str) -> tuple[bool, Optional[str]]:
     for protected_path, reason in PROTECTED_PATHS.items():
         if protected_path.endswith("/"):
             # Directory protection - use startswith to match prefix
-            # normalized is already canonical, so 'runtime/governance/foo.py'.startswith('runtime/governance/')
+            # normalized is already canonical, so 'runtime/governance/foo.py'.startswith('runtime/governance/')  # noqa: E501
             # will correctly match but 'runtime/governance_evil/foo.py' will not
             if normalized.startswith(protected_path):
                 return True, f"PROTECTED: {reason}"

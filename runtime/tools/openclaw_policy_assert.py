@@ -52,7 +52,7 @@ def _assert_ladder_prefix(entry: Dict[str, Any], label: str) -> None:
         raise AssertionError(f"{label} primary model must be set")
     if len(got_fallbacks) < len(SUBSCRIPTION_FALLBACKS):
         raise AssertionError(
-            f"{label} fallbacks must begin with {SUBSCRIPTION_FALLBACKS}; got too few entries: {got_fallbacks}"
+            f"{label} fallbacks must begin with {SUBSCRIPTION_FALLBACKS}; got too few entries: {got_fallbacks}"  # noqa: E501
         )
     prefix = [str(x) for x in got_fallbacks[: len(SUBSCRIPTION_FALLBACKS)]]
     if prefix != SUBSCRIPTION_FALLBACKS:
@@ -89,11 +89,11 @@ def _assert_legacy_memory_search(defaults: Dict[str, Any]) -> Dict[str, Any]:
     fallback = str(memory.get("fallback") or "")
     if provider != LEGACY_MEMORY_PROVIDER:
         raise AssertionError(
-            f"agents.defaults.memorySearch.provider must be {LEGACY_MEMORY_PROVIDER}, got {provider}"
+            f"agents.defaults.memorySearch.provider must be {LEGACY_MEMORY_PROVIDER}, got {provider}"  # noqa: E501
         )
     if fallback != LEGACY_MEMORY_FALLBACK:
         raise AssertionError(
-            f"agents.defaults.memorySearch.fallback must be {LEGACY_MEMORY_FALLBACK}, got {fallback}"
+            f"agents.defaults.memorySearch.fallback must be {LEGACY_MEMORY_FALLBACK}, got {fallback}"  # noqa: E501
         )
 
     sources = memory.get("sources")
@@ -136,14 +136,14 @@ def _assert_memory_policy(cfg: Dict[str, Any], policy_phase: str) -> Dict[str, A
     if policy_phase == "qmd":
         if top_backend != MEMORY_BACKEND_QMD:
             raise AssertionError(
-                f"memory.backend must be {MEMORY_BACKEND_QMD} in qmd phase, got {top_backend or 'missing'}"
+                f"memory.backend must be {MEMORY_BACKEND_QMD} in qmd phase, got {top_backend or 'missing'}"  # noqa: E501
             )
     else:
         # Burn-in accepts explicit canonical backend=local or legacy-only configs
         # that still rely on memorySearch fields during migration.
         if top_backend and top_backend != MEMORY_BACKEND_BURNIN:
             raise AssertionError(
-                f"memory.backend must be {MEMORY_BACKEND_BURNIN} in burnin phase when configured, got {top_backend}"
+                f"memory.backend must be {MEMORY_BACKEND_BURNIN} in burnin phase when configured, got {top_backend}"  # noqa: E501
             )
 
     legacy = {}

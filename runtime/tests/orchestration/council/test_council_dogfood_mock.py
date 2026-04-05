@@ -25,7 +25,7 @@ def _coo_dispatcher_ccp() -> dict:
             "safety_critical": False,
         },
         "sections": {
-            "objective": "Review COO Work Dispatcher — orchestration engine routing task assignments from COO to agents.",
+            "objective": "Review COO Work Dispatcher — orchestration engine routing task assignments from COO to agents.",  # noqa: E501
             "scope": {"surface": "runtime/orchestration"},
             "constraints": [
                 "Must not modify governance paths",
@@ -44,16 +44,16 @@ def _canned_seat_output(seat: str, *, verdict: str = "Revise") -> dict:
     output = {
         "verdict": verdict,
         "key_findings": [
-            "Dispatcher routing table uses static map REF: git:abc123:runtime/orchestration/dispatcher.py#L10-L30",
+            "Dispatcher routing table uses static map REF: git:abc123:runtime/orchestration/dispatcher.py#L10-L30",  # noqa: E501
             "No dynamic agent discovery — acceptable for v1 [ASSUMPTION]",
         ],
         "risks": [
-            "Single point of failure if dispatcher process crashes REF: git:abc123:runtime/orchestration/dispatcher.py#L10-L22",
-            "No backpressure mechanism for overloaded agents REF: git:abc123:runtime/orchestration/dispatcher.py#L23-L38",
+            "Single point of failure if dispatcher process crashes REF: git:abc123:runtime/orchestration/dispatcher.py#L10-L22",  # noqa: E501
+            "No backpressure mechanism for overloaded agents REF: git:abc123:runtime/orchestration/dispatcher.py#L23-L38",  # noqa: E501
         ],
         "fixes": [
-            "Add health-check ping before routing to agent REF: git:abc123:runtime/orchestration/dispatcher.py#L39-L52",
-            "Emit structured log on dispatch failure for observability REF: git:abc123:runtime/orchestration/dispatcher.py#L53-L70",
+            "Add health-check ping before routing to agent REF: git:abc123:runtime/orchestration/dispatcher.py#L39-L52",  # noqa: E501
+            "Emit structured log on dispatch failure for observability REF: git:abc123:runtime/orchestration/dispatcher.py#L53-L70",  # noqa: E501
         ],
         "confidence": "medium",
         "assumptions": [
@@ -65,7 +65,7 @@ def _canned_seat_output(seat: str, *, verdict: str = "Revise") -> dict:
             "new_surfaces_introduced": 2,
             "surfaces_removed": 0,
             "mechanized": "no",
-            "trade_statement": "Health-check adds one manual verification step but prevents silent dispatch failures.",
+            "trade_statement": "Health-check adds one manual verification step but prevents silent dispatch failures.",  # noqa: E501
         },
         "operator_view": (
             "COO Work Dispatcher routes tasks to agents via a static map. "
@@ -79,7 +79,7 @@ def _canned_seat_output(seat: str, *, verdict: str = "Revise") -> dict:
 
 
 def test_council_dogfood_mock_m1_coo_dispatcher():
-    """Full M1 pipeline: 2 seats, schema gate passes, synthesis produces verdict, terminal complete."""
+    """Full M1 pipeline: 2 seats, schema gate passes, synthesis produces verdict, terminal complete."""  # noqa: E501
     policy = load_council_policy()
 
     def seat_executor(seat, ccp, plan, retry_count):

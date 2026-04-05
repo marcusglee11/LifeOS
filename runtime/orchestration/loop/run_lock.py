@@ -140,7 +140,7 @@ def acquire_run_lock(
             raise RunLockError(
                 "CONCURRENT_RUN_DETECTED",
                 f"Run lock held by pid={existing_pid} run_id={holder_run_id}",
-            )
+            ) from None
 
     raise RunLockError("CONCURRENT_RUN_DETECTED", "Unable to acquire run lock")
 

@@ -21,10 +21,10 @@ REPO_ROOT = find_repo_root(Path(__file__))
 sys.path.insert(0, str(REPO_ROOT))
 
 # Fix YAML path escapes for Windows
-import os
+import os  # noqa: E402
 
-from opencode_governance import invoke
-from opencode_governance.errors import (
+from opencode_governance import invoke  # noqa: E402
+from opencode_governance.errors import (  # noqa: E402
     INTERNAL_ERROR,
     INVALID_PAYLOAD,
     INVALID_VERSION,

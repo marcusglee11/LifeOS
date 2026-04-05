@@ -189,7 +189,7 @@ def test_e2e_1_authoritative_on_uses_policy_engine(
             # Assert: config-driven policy WAS called
             assert mock_config.called, "ConfigDrivenLoopPolicy.decide_next_action should be called"
 
-            # Assert: Rule was applied (E2E1_TEST_CLASS rule returns TERMINATE with E2E1_WIRING_VERIFIED)
+            # Assert: Rule was applied (E2E1_TEST_CLASS rule returns TERMINATE with E2E1_WIRING_VERIFIED)  # noqa: E501
             assert action == "terminate", f"Expected terminate from rule, got {action}"
             assert "E2E1_WIRING_VERIFIED" in reason, (
                 f"Expected E2E1_WIRING_VERIFIED in reason, got {reason}"

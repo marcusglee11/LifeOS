@@ -48,7 +48,8 @@ class BudgetController:
         """
         Check if we are within budget.
         Returns: (is_over_budget, reason)
-        If reason is TOKEN_ACCOUNTING_UNAVAILABLE, the caller should treat it as ESCALATION_REQUESTED.
+        If reason is TOKEN_ACCOUNTING_UNAVAILABLE, the caller should treat it as
+        ESCALATION_REQUESTED.
         """
 
         # 1. Attempt Budget

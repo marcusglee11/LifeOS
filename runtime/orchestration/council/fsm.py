@@ -776,7 +776,7 @@ def _vendor_family(model: str, model_families: Mapping[str, list[str]] | None = 
 
 
 def _extract_verdict_from_lenses(lens_results: dict[str, Any]) -> str:
-    """Aggregate verdict from lens verdict_recommendations (majority rule, Reject > Revise > Accept)."""
+    """Aggregate verdict from lens verdict_recommendations (majority rule, Reject > Revise > Accept)."""  # noqa: E501
     verdicts = []
     for lr in lens_results.values():
         if isinstance(lr, dict):

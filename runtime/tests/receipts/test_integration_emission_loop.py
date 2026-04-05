@@ -187,7 +187,7 @@ def test_full_emission_loop_blocked_path(tmp_path):
 
 
 def test_determinism_check(tmp_path):
-    """Two runs from same PlanCore → identical deterministic content (timestamps/ULIDs/_ext excluded)."""
+    """Two runs from same PlanCore → identical deterministic content (timestamps/ULIDs/_ext excluded)."""  # noqa: E501
     # Run 1
     emitter1 = RunLogEmitter(phase_order=SAMPLE_PLAN_CORE["phase_order"])
     emitter1.emit("init", "s-init", "start")

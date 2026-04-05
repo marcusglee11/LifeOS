@@ -183,7 +183,7 @@ class ConfigurableLoopPolicy:
 
             # Check waiver eligibility
             if self._check_waiver_eligibility(failure_class_normalized):
-                # Build waiver context for artifact binding (use uppercase for governance surface stability)
+                # Build waiver context for artifact binding (use uppercase for governance surface stability)  # noqa: E501
                 waiver_context = {
                     "failure_class": failure_class.value.upper()
                     if isinstance(failure_class, FailureClass)
@@ -254,7 +254,8 @@ class ConfigurableLoopPolicy:
         Check if failure class is waiver-eligible.
 
         Args:
-            failure_class: Failure class (string or FailureClass enum) - should already be normalized
+            failure_class: Failure class (string or FailureClass enum); it
+                should already be normalized.
 
         Returns:
             True if waiver-eligible
@@ -293,8 +294,6 @@ class ConfigurableLoopPolicy:
         Returns:
             True if escalation required
         """
-        escalation_config = self.waiver_rules.get("escalation_triggers", [])
-
         for attempt in ledger.history:
             changed_files = getattr(attempt, "changed_files", None) or []
 
@@ -518,7 +517,7 @@ class ConfigurableLoopPolicy:
                 return decision
 
             # Normalize: forward slashes, lowercase (for case-insensitive match safety)
-            # We assume protected registry is also normalized to lowercase if we want strict matching,
+            # We assume protected registry is also normalized to lowercase if we want strict matching,  # noqa: E501
             # but standardizing the input is the first step.
             f_norm = f.replace("\\", "/").lower()
 
@@ -529,7 +528,7 @@ class ConfigurableLoopPolicy:
 
             for pattern in protected_path_registry:
                 # Assume registry patterns are also normalized or we normalize them?
-                # Better to be strict: normalize pattern too if not sure, but registry should be authoritative.
+                # Better to be strict: normalize pattern too if not sure, but registry should be authoritative.  # noqa: E501
                 # Use fnmatch on normalized strings
                 pattern_norm = pattern.lower()
                 if fnmatch.fnmatch(f_norm, pattern_norm):

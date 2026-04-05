@@ -844,7 +844,6 @@ def test_propose_writes_capture_dump(tmp_path: Path) -> None:
     _write_delegation(tmp_path)
     capture_dir = tmp_path / "captures"
 
-    env = {**os.environ, "LIFEOS_COO_CAPTURE_DIR": str(capture_dir)}
     with (
         patch(
             "runtime.orchestration.coo.service.invoke_coo_reasoning",

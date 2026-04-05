@@ -172,8 +172,6 @@ def _evaluate_op(
     Returns:
         (passed, details_dict)
     """
-    details: Dict[str, Any] = {}
-
     if op == "exists":
         # 'exists' passes if path resolution succeeded (caller handles resolution)
         # If we reached here, actual is the resolved value, so it "exists".

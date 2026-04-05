@@ -188,7 +188,7 @@ def parse_backlog(backlog_path: Path) -> List[TaskSpec]:
         with open(backlog_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
     except yaml.YAMLError as e:
-        raise BacklogParseError(f"YAML parse error: {e}")
+        raise BacklogParseError(f"YAML parse error: {e}") from e
 
     if not isinstance(data, dict):
         raise BacklogParseError("Backlog must be a YAML mapping")

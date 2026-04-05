@@ -187,7 +187,7 @@ class TestLogDirectory:
         assert not log_dir.exists()
 
         # Creating client should create directory
-        client = OpenCodeClient(log_calls=True)
+        OpenCodeClient(log_calls=True)
         assert log_dir.exists()
 
     def test_log_directory_not_created_when_disabled(self, tmp_path, monkeypatch):

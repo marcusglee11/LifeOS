@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from runtime.util.canonical import sha256_file
+from runtime.util.canonical import sha256_file  # noqa: E402
 
 EXECUTION_BASE = [
     "openai-codex/gpt-5.3-codex",

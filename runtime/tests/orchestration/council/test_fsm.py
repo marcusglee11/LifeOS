@@ -8,13 +8,13 @@ def _valid_seat_output(verify_ledger: bool = False) -> dict:
     return {
         "verdict": "Accept",
         "key_findings": [
-            "Finding is bounded and deterministic REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L1-L20"
+            "Finding is bounded and deterministic REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L1-L20"  # noqa: E501
         ],
         "risks": [
-            "Minimal operational risk REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L21-L40"
+            "Minimal operational risk REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L21-L40"  # noqa: E501
         ],
         "fixes": [
-            "Add regression test REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L41-L80"
+            "Add regression test REF: git:abc123:runtime/tests/orchestration/council/test_fsm.py#L41-L80"  # noqa: E501
         ],
         "confidence": "high",
         "assumptions": ["test fixture controls runtime"],

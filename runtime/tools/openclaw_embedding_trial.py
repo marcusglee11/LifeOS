@@ -232,7 +232,7 @@ def run_trial(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Run an opt-in OpenClaw memory embedding provider trial via temporary overlay config."
+        description="Run an opt-in OpenClaw memory embedding provider trial via temporary overlay config."  # noqa: E501
     )
     parser.add_argument("--provider", required=True, choices=SUPPORTED_PROVIDERS)
     parser.add_argument(
@@ -283,7 +283,7 @@ def main() -> int:
         print(json.dumps(summary, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
     else:
         print(
-            f"trial_pass={str(summary['pass']).lower()} provider={summary['provider']} hit_count={summary['hit_count']} summary={summary['summary_out']}"
+            f"trial_pass={str(summary['pass']).lower()} provider={summary['provider']} hit_count={summary['hit_count']} summary={summary['summary_out']}"  # noqa: E501
         )
     return rc
 

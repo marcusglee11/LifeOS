@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from runtime.tools.openclaw_policy_assert import command_authorized
+from runtime.tools.openclaw_policy_assert import command_authorized  # noqa: E402
 
 PRIV_COMMANDS = ["/model openai-codex/gpt-5.3-codex", "/models", "/think high"]
 

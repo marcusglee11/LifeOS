@@ -14,7 +14,7 @@ import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import yaml
 
@@ -23,6 +23,10 @@ from runtime.receipts.invocation_receipt import record_invocation_receipt
 from runtime.util.canonical import canonical_json
 
 from .models import ModelConfig, load_model_config, resolve_model_auto
+
+if TYPE_CHECKING:
+    from .cli_dispatch import CLIDispatchResult
+    from .logging import AgentCallLogger
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -306,6 +310,7 @@ def _load_role_prompt(role: str, config_dir: str = "config/agent_roles") -> tupl
             f"Governance baseline missing at {baseline_path}. "
             "Role prompt hash verification skipped.",
             UserWarning,
+            stacklevel=2,
         )
 
     return content, prompt_hash
@@ -449,11 +454,9 @@ def call_agent(
 
     # Resolve model
     if call.model == "auto":
-        model, selection_reason, model_chain = resolve_model_auto(call.role, config)
+        model, _, _ = resolve_model_auto(call.role, config)
     else:
         model = call.model
-        selection_reason = "explicit"
-        model_chain = [model]
     resolved_model = model
 
     # [HARDENING] Use OpenCodeClient for robust protocol and provider handling.
@@ -566,7 +569,7 @@ def call_agent(
             error=str(e),
         )
         logger.error(f"Agent call failed: {e}")
-        raise AgentAPIError(f"Agent call failed: {str(e)}")
+        raise AgentAPIError(f"Agent call failed: {str(e)}") from e
 
 
 def _try_cli_dispatch(

@@ -80,7 +80,6 @@ class TestCEOQueueMissionE2E:
         4. CEO approves escalation
         5. Mission resumes successfully
         """
-        mission = AutonomousBuildCycleMission()
         queue = CEOQueue(db_path=e2e_repo / "artifacts" / "queue" / "escalations.db")
 
         # Step 1: Manually create an escalation (simulating detection)

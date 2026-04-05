@@ -83,7 +83,7 @@ def load_order(path: Path) -> ExecutionOrder:
         with open(path, "r", encoding="utf-8") as f:
             raw = yaml.safe_load(f)
     except yaml.YAMLError as exc:
-        raise OrderValidationError(f"Invalid YAML in {path}: {exc}")
+        raise OrderValidationError(f"Invalid YAML in {path}: {exc}") from exc
 
     if not isinstance(raw, dict):
         raise OrderValidationError(f"Order file must be a YAML mapping, got {type(raw).__name__}")

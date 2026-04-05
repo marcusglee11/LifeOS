@@ -23,7 +23,7 @@ def load_config(config_path: Path) -> dict:
         with open(config_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
     except yaml.YAMLError as e:
-        raise ValueError(f"Malformed YAML in {config_path}: {e}")
+        raise ValueError(f"Malformed YAML in {config_path}: {e}") from e
 
     # Layer 1 Structural Validation
     if data is None:

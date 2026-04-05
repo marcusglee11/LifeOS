@@ -51,7 +51,7 @@ class TestFullConfigMatrix(unittest.TestCase):
             self.assertEqual(
                 actual_primary,
                 expectation["primary"],
-                f"Role {role} primary key mismatch. Got {actual_primary}, expected {expectation['primary']}",
+                f"Role {role} primary key mismatch. Got {actual_primary}, expected {expectation['primary']}",  # noqa: E501
             )
 
             # 3. Check Zen Provider for Primary
@@ -67,7 +67,7 @@ class TestFullConfigMatrix(unittest.TestCase):
             self.assertEqual(
                 actual_fallback_key,
                 expectation["fallback"],
-                f"Role {role} fallback key mismatch. Got {actual_fallback_key}, expected {expectation['fallback']}",
+                f"Role {role} fallback key mismatch. Got {actual_fallback_key}, expected {expectation['fallback']}",  # noqa: E501
             )
 
             # 6. Check Fallback Provider

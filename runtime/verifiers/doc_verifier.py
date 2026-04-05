@@ -92,7 +92,8 @@ class DocVerifier:
         Args:
             files_modified: List of file change dicts
             proposed_diffs: Unified diff content
-            constraints: Dict with allowed_paths, scope_paths, forbidden_paths (optional, uses defaults if None)
+            constraints: Dict with allowed_paths, scope_paths, and
+                forbidden_paths (optional; uses defaults if None)
         """
         findings = []
 
@@ -133,7 +134,7 @@ class DocVerifier:
                     Finding(
                         severity="ERROR",
                         category="BOUNDARY_VIOLATION",
-                        message=f"OUTSIDE_ALLOWED_PATHS: {path} is not within allowed paths: {allowed_paths}",
+                        message=f"OUTSIDE_ALLOWED_PATHS: {path} is not within allowed paths: {allowed_paths}",  # noqa: E501
                         location=path,
                     )
                 )
@@ -425,7 +426,7 @@ class DocVerifier:
                 Finding(
                     severity="ERROR",
                     category="DIFF_VALIDATION",
-                    message="Strict Diff Enforcement: Proposed changes are in prose format, must be valid UNIFIED DIFF",
+                    message="Strict Diff Enforcement: Proposed changes are in prose format, must be valid UNIFIED DIFF",  # noqa: E501
                     location="",
                 )
             )
@@ -471,7 +472,7 @@ class DocVerifier:
                     Finding(
                         severity="ERROR",  # P3.2: Fail-closed on boundary violations
                         category="BOUNDARY_VIOLATION",
-                        message=f"OUTSIDE_ALLOWED_PATHS: {path} is not within allowed paths: {allowed}",
+                        message=f"OUTSIDE_ALLOWED_PATHS: {path} is not within allowed paths: {allowed}",  # noqa: E501
                         location=path,
                     )
                 )
@@ -506,7 +507,7 @@ class DocVerifier:
                         Finding(
                             severity="ERROR",
                             category="DIFF_VALIDATION",
-                            message=f"Invalid date format in proposed change: {date_match.group(1)}",
+                            message=f"Invalid date format in proposed change: {date_match.group(1)}",  # noqa: E501
                             location="",
                         )
                     )

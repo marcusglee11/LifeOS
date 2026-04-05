@@ -91,7 +91,7 @@ class DeterministicGateway:
         try:
             json.dumps(spec.args, sort_keys=True)
         except (TypeError, ValueError) as e:
-            raise DeterministicCallError(f"Call args must be JSON-serializable: {e}")
+            raise DeterministicCallError(f"Call args must be JSON-serializable: {e}") from e
 
     def call(self, spec: CallSpec) -> CallResult:
         """

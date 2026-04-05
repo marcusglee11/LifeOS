@@ -16,11 +16,11 @@ def db_conn():
     conn = sqlite3.connect(":memory:")
     apply_schema(conn)
     conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         ("m1", "executing", "desc", 10.0, 5, datetime.utcnow(), datetime.utcnow()),
     )
     conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status) VALUES (?, ?, ?, ?, ?)",  # noqa: E501
         ("t1", "m1", 1, "task1", "pending"),
     )
     conn.commit()
@@ -46,7 +46,7 @@ def test_start_task_execution(db_conn):
 
     # Verify truncation event
     cur = db_conn.execute(
-        "SELECT event_type FROM timeline_events WHERE task_id='t1' AND event_type='repair_context_truncated'"
+        "SELECT event_type FROM timeline_events WHERE task_id='t1' AND event_type='repair_context_truncated'"  # noqa: E501
     )
     assert cur.fetchone()
 

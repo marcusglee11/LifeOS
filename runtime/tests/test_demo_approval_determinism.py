@@ -6,8 +6,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType
-from runtime.receipts.invocation_receipt import finalize_run_receipts, reset_invocation_receipt_collectors
-
+from runtime.receipts.invocation_receipt import (
+    finalize_run_receipts,
+    reset_invocation_receipt_collectors,
+)
 
 FIXED_RUN_ID = "test-run-determinism-001"
 FIXED_TIMESTAMP = "2026-01-01T00:00:00+00:00"

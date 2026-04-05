@@ -48,7 +48,7 @@ def load_mission_schema() -> Dict[str, Any]:
         with open(schema_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
     except yaml.YAMLError as e:
-        raise MissionSchemaError([f"Failed to parse mission schema: {e}"])
+        raise MissionSchemaError([f"Failed to parse mission schema: {e}"]) from e
 
 
 def validate_mission_definition(definition: Dict[str, Any]) -> None:

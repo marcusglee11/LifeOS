@@ -52,12 +52,14 @@ def test_mission_context_runtime_failures(tmp_path, mission):
     P0.2: Test actual runtime behavior when MissionContext is invalid.
     Instead of asserting on artificial types, we assert the mission behaves robustly (fails closed).
 
-    P0.1 Fix: No swallowed exceptions. We expect controlled failure (MissionResult(success=False) or MissionExecutionError).
-    Since build_with_validation uses filesystem ops heavily, passing a file as repo_root leads to OSError during mkdir
-    or check_pyproject. The mission relies on OS calls.
+    P0.1 Fix: No swallowed exceptions. We expect controlled failure such as
+    `MissionResult(success=False)` or `MissionExecutionError`.
+    Since build_with_validation uses filesystem operations heavily, passing a
+    file as repo_root leads to `OSError` during mkdir or check_pyproject.
     Ideally, we'd want MissionExecutionError, but purely from a "fail-closed" perspective,
     an exception raising out IS fail-closed (engine catches it).
-    However, the prompt asks to "Prefer (b) [raise controlled exception] only if engine is the fail-closed boundary."
+    However, the prompt asks to prefer a controlled exception only when the
+    engine is the fail-closed boundary.
     """
     # Case A: Repo root is valid path but not a directory
     non_dir_repo = tmp_path / "file_repo"
@@ -67,7 +69,7 @@ def test_mission_context_runtime_failures(tmp_path, mission):
         repo_root=non_dir_repo, baseline_commit=None, run_id="test_run", metadata={}
     )
 
-    # Expect failure. Since evidence_dir creation does mkdir(parents=True), it will fail with NotADirectoryError (OSError)
+    # Expect failure. Since evidence_dir creation does mkdir(parents=True), it will fail with NotADirectoryError (OSError)  # noqa: E501
     # The mission does not wrap this in try/except, so it raises.
     # We assert strict exception type compliance so we know exactly HOW it fails.
     with pytest.raises(OSError):
@@ -175,12 +177,12 @@ def test_validate_inputs_valid(mission):
 
 
 def test_validate_inputs_invalid_key(mission):
-    with pytest.raises(Exception):
+    with pytest.raises(MissionValidationError):
         mission.validate_inputs({"invalid_key": "val"})
 
 
 def test_validate_inputs_invalid_type(mission):
-    with pytest.raises(Exception):
+    with pytest.raises(MissionValidationError):
         mission.validate_inputs({"mode": 123})
 
 

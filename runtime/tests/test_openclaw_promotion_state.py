@@ -69,7 +69,7 @@ def test_apply_rejects_replay_ticket(tmp_path: Path) -> None:
     }
     (packet_dir / "promotion_packet.json").write_text(json.dumps(packet) + "\n", encoding="utf-8")
     (bin_dir / "openclaw").write_text(
-        '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  echo "1.0.0"\n  exit 0\nfi\nexit 1\n',
+        '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  echo "1.0.0"\n  exit 0\nfi\nexit 1\n',  # noqa: E501
         encoding="utf-8",
     )
     (bin_dir / "openclaw").chmod(0o755)
@@ -130,7 +130,7 @@ def test_normalize_version_strips_prefixes() -> None:
 
 
 def test_apply_accepts_prefixed_version_output(tmp_path: Path) -> None:
-    """apply succeeds when openclaw --version outputs 'OpenClaw CLI v<ver>' matching packet target."""
+    """apply succeeds when openclaw --version outputs 'OpenClaw CLI v<ver>' matching packet target."""  # noqa: E501
     repo = Path(__file__).resolve().parents[2]
     state_dir = tmp_path / "state"
     packet_dir = tmp_path / "packet"
@@ -166,7 +166,7 @@ def test_apply_accepts_prefixed_version_output(tmp_path: Path) -> None:
     (packet_dir / "promotion_packet.json").write_text(json.dumps(packet) + "\n", encoding="utf-8")
     # Fake openclaw that outputs prefixed version string
     (bin_dir / "openclaw").write_text(
-        '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  echo "OpenClaw CLI v2026.3.13"\n  exit 0\nfi\nexit 1\n',
+        '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  echo "OpenClaw CLI v2026.3.13"\n  exit 0\nfi\nexit 1\n',  # noqa: E501
         encoding="utf-8",
     )
     (bin_dir / "openclaw").chmod(0o755)
@@ -233,7 +233,7 @@ def test_apply_rejects_when_installed_version_does_not_match_packet(tmp_path: Pa
     }
     (packet_dir / "promotion_packet.json").write_text(json.dumps(packet) + "\n", encoding="utf-8")
     (bin_dir / "openclaw").write_text(
-        '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  echo "2026.3.2"\n  exit 0\nfi\nexit 1\n',
+        '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  echo "2026.3.2"\n  exit 0\nfi\nexit 1\n',  # noqa: E501
         encoding="utf-8",
     )
     (bin_dir / "openclaw").chmod(0o755)

@@ -109,7 +109,7 @@ def _parse_mission_call(cfg: Mapping[str, Any]) -> MissionCall:
 
     # params is Mapping, but MissionCall expects Dict | None explicitly in signature?
     # MissionCall: params: Dict[str, Any] | None
-    # We convert Mapping to Dict safely if needed (dataclass usually handles it, but explicit is better)
+    # We convert Mapping to Dict safely if needed (dataclass usually handles it, but explicit is better)  # noqa: E501
     params_dict = dict(params) if params is not None else None
 
     return MissionCall(name=name, params=params_dict)

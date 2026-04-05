@@ -202,7 +202,7 @@ def test_write_land_receipt_is_append_only(tmp_store):
         run_id="run-1",
     )
     store.write_land_receipt(receipt)
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         store.write_land_receipt(receipt)  # duplicate write must fail
 
 
@@ -456,11 +456,11 @@ def test_reconciliation_missing_tree_match_is_violation(tmp_store):
 
 # ── Task 6: CLI + exports ─────────────────────────────────────────────────
 
-import json
-import os
-import subprocess
-import sys
-from pathlib import Path as _Path
+import json  # noqa: E402
+import os  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
 
 LAND_SCRIPT = str(_Path(__file__).resolve().parents[3] / "scripts" / "receipts_post_merge_land.py")
 

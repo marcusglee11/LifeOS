@@ -347,11 +347,11 @@ def test_pre_merge_exports_from_package():
 
 # ── Task 6: CLI script ────────────────────────────────────────────────────
 
-import json
-import os
-import subprocess
-import sys
-from pathlib import Path as _Path
+import json  # noqa: E402
+import os  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
 
 SCRIPT = str(_Path(__file__).resolve().parents[3] / "scripts" / "receipts_pre_merge_check.py")
 

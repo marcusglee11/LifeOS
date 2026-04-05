@@ -28,8 +28,8 @@ if os.path.exists(_env_path):
                 k, v = line.split("=", 1)
                 os.environ.setdefault(k.strip(), v.strip())
 
-from runtime.agents.api import AgentAPIError, AgentCall, call_agent
-from runtime.agents.models import clear_config_cache, load_model_config
+from runtime.agents.api import AgentAPIError, AgentCall, call_agent  # noqa: E402
+from runtime.agents.models import clear_config_cache, load_model_config  # noqa: E402
 
 # Skip if no API key or explicit skip
 pytestmark = pytest.mark.skipif(

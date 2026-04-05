@@ -14,6 +14,7 @@ TDD test suite covering:
 """
 
 import json
+from dataclasses import FrozenInstanceError
 
 import pytest
 
@@ -276,14 +277,14 @@ class TestCycle6Immutability:
     def test_mission_id_is_frozen(self):
         """MissionId is frozen (immutable)."""
         mid = MissionId(value="test")
-        with pytest.raises(Exception):  # FrozenInstanceError
+        with pytest.raises(FrozenInstanceError):
             mid.value = "changed"
 
     def test_mission_definition_is_frozen(self):
         """MissionDefinition is frozen (immutable)."""
         mid = MissionId(value="test")
         defn = MissionDefinition(id=mid, name="Test")
-        with pytest.raises(Exception):  # FrozenInstanceError
+        with pytest.raises(FrozenInstanceError):
             defn.name = "changed"
 
     def test_registry_operations_return_new_instances(self):

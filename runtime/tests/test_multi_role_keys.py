@@ -171,8 +171,7 @@ def test_fallback_behavior():
         for role in ROLES:
             client = OpenCodeClient(role=role)
             # Request Zen provider, but it should fallback to OpenRouter
-            loaded_key = client._load_api_key_for_role(role, provider="zen")
-            expected_key = None  # Should be None since we're asking for Zen specifically
+            client._load_api_key_for_role(role, provider="zen")
 
             # Now try loading without provider filter (should get OpenRouter)
             loaded_key_any = client._load_api_key_for_role(role, provider=None)
@@ -182,7 +181,7 @@ def test_fallback_behavior():
             results[role] = (status, loaded_key_any, expected_key_any)
 
             print(
-                f"{status} | Role: {role:20s} | Expected: {expected_key_any:30s} | Got: {loaded_key_any}"
+                f"{status} | Role: {role:20s} | Expected: {expected_key_any:30s} | Got: {loaded_key_any}"  # noqa: E501
             )
     finally:
         os.chdir(original_dir)

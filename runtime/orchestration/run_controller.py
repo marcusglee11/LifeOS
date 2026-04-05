@@ -287,7 +287,7 @@ def run_git_command(args: list[str], cwd: Optional[Path] = None) -> bytes:
             cwd=cwd,
         )
     except FileNotFoundError as e:
-        raise GitCommandError(cmd_str, -1, f"git not found: {e}")
+        raise GitCommandError(cmd_str, -1, f"git not found: {e}") from e
 
     if result.returncode != 0:
         raise GitCommandError(
@@ -325,7 +325,7 @@ def verify_repo_clean(repo_root: Optional[Path] = None) -> None:
             cwd=repo_root,
         )
     except FileNotFoundError as e:
-        raise GitCommandError("git status --porcelain", -1, f"git not found: {e}")
+        raise GitCommandError("git status --porcelain", -1, f"git not found: {e}") from e
 
     if status_result.returncode != 0:
         raise GitCommandError(
@@ -344,7 +344,7 @@ def verify_repo_clean(repo_root: Optional[Path] = None) -> None:
             cwd=repo_root,
         )
     except FileNotFoundError as e:
-        raise GitCommandError("git ls-files", -1, f"git not found: {e}")
+        raise GitCommandError("git ls-files", -1, f"git not found: {e}") from e
 
     if untracked_result.returncode != 0:
         raise GitCommandError(
@@ -440,7 +440,7 @@ def mission_startup_sequence(
                 cwd=repo_root,
             )
         except FileNotFoundError as e:
-            raise GitCommandError("git rev-parse HEAD", -1, f"git not found: {e}")
+            raise GitCommandError("git rev-parse HEAD", -1, f"git not found: {e}") from e
 
         if result.returncode != 0:
             raise GitCommandError(

@@ -30,8 +30,8 @@ class PreMergeResult:
     detail: str
 
 
-from runtime.receipts import plan_core as _pc
-from runtime.receipts.store import ReceiptStore
+from runtime.receipts import plan_core as _pc  # noqa: E402
+from runtime.receipts.store import ReceiptStore  # noqa: E402
 
 
 def run_pre_merge_check(
@@ -89,7 +89,7 @@ def run_pre_merge_check(
             allowed=False,
             reason_code=RC_NO_RECEIPT,
             receipt=None,
-            detail=f"No acceptance receipt for workspace_sha={workspace_sha!r}, plan_core_sha256={plan_core_sha256!r}",
+            detail=f"No acceptance receipt for workspace_sha={workspace_sha!r}, plan_core_sha256={plan_core_sha256!r}",  # noqa: E501
         )
 
     # 2. Decision must be ACCEPTED
@@ -109,7 +109,7 @@ def run_pre_merge_check(
             allowed=False,
             reason_code=RC_MISSING_POLICY_VERSION,
             receipt=receipt,
-            detail="Receipt policy_pack missing policy_version (Phase B requires policy_version, §5.3)",
+            detail="Receipt policy_pack missing policy_version (Phase B requires policy_version, §5.3)",  # noqa: E501
         )
 
     # 4. Tree OID anti-fabrication check (§10.1 step 4)
@@ -140,5 +140,5 @@ def run_pre_merge_check(
         allowed=True,
         reason_code=RC_ACCEPTED,
         receipt=receipt,
-        detail=f"Receipt {receipt.get('receipt_id')!r} accepted under policy {policy_id!r} v{policy_version}",
+        detail=f"Receipt {receipt.get('receipt_id')!r} accepted under policy {policy_id!r} v{policy_version}",  # noqa: E501
     )

@@ -67,7 +67,7 @@ def test_classify_disposition_defaults_failure_to_advisory_keep() -> None:
 def test_known_pytest_failure_extracts_first_failed_nodeid() -> None:
     output = (
         "some setup\n"
-        "FAILED runtime/tests/orchestration/coo/test_promotion_fixtures.py::test_all_promotion_fixtures\n"
+        "FAILED runtime/tests/orchestration/coo/test_promotion_fixtures.py::test_all_promotion_fixtures\n"  # noqa: E501
         "more text\n"
     )
     assert (
@@ -183,7 +183,7 @@ def test_updated_tech_debt_inventory_text_is_idempotent_when_reference_exists() 
     original = (
         "# Tech Debt Inventory\n\n"
         "## Audit References\n\n"
-        "- [QUALITY_AUDIT_BASELINE_v1.0.md](./QUALITY_AUDIT_BASELINE_v1.0.md) — repo-wide quality baseline audit.\n"
+        "- [QUALITY_AUDIT_BASELINE_v1.0.md](./QUALITY_AUDIT_BASELINE_v1.0.md) — repo-wide quality baseline audit.\n"  # noqa: E501
     )
 
     updated = updated_tech_debt_inventory_text(original)

@@ -292,9 +292,6 @@ class TestTailTruncation:
         ledger.append(_mk_record(attempt_id=2))
         ledger.append(_mk_record(attempt_id=3))
 
-        # Record the real tip before truncation
-        real_tip = ledger.history[-1].record_hash
-
         # Truncate last record (simulate tail truncation)
         del ledger.history[-1]
 

@@ -39,7 +39,7 @@ def test_fsm_invalid_transition():
 
 
 def test_fp001_strict_mode_explicit_true():
-    """FP-001: Construct FSM with explicit strict_mode=True and verify strict transitions succeed."""
+    """FP-001: Construct FSM with explicit strict_mode=True and verify strict transitions succeed."""  # noqa: E501
     fsm = RuntimeFSM(strict_mode=True)
 
     # Navigate to CEO_REVIEW (strict state) - should succeed with strict_mode=True
@@ -49,7 +49,7 @@ def test_fp001_strict_mode_explicit_true():
     fsm.transition_to(RuntimeState.CEO_REVIEW)  # Strict state
 
     assert fsm.current_state == RuntimeState.CEO_REVIEW
-    assert fsm._strict_mode == True
+    assert fsm._strict_mode
 
 
 def test_fp001_strict_mode_explicit_false():
@@ -66,18 +66,18 @@ def test_fp001_strict_mode_explicit_false():
         fsm.transition_to(RuntimeState.CEO_REVIEW)
 
     assert fsm.current_state == RuntimeState.ERROR
-    assert fsm._strict_mode == False
+    assert not fsm._strict_mode
 
 
 def test_fp001_strict_mode_from_env():
     """FP-001: Verify strict_mode defaults to environment variable when not specified."""
     os.environ["COO_STRICT_MODE"] = "1"
     fsm = RuntimeFSM()  # No explicit strict_mode
-    assert fsm._strict_mode == True
+    assert fsm._strict_mode
 
     os.environ["COO_STRICT_MODE"] = "0"
     fsm2 = RuntimeFSM()
-    assert fsm2._strict_mode == False
+    assert not fsm2._strict_mode
 
 
 def test_fp001_force_error_raises_governance_error():

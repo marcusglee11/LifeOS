@@ -126,7 +126,7 @@ class TestCallAgentCLIRouting:
             },
         )
         call = AgentCall(role="council_reviewer", packet={"task": "test"})
-        result = call_agent_cli(call, config=config)
+        call_agent_cli(call, config=config)
 
         mock_call_agent.assert_called_once()
 

@@ -32,7 +32,7 @@ def test_collector_records_and_finalizes(tmp_path):
     """Happy path: record invocations, finalize to index.json."""
     collector = InvocationReceiptCollector(run_id="run_test_001")
 
-    r1 = collector.record(
+    collector.record(
         provider_id="zen",
         mode="api",
         seat_id="designer",
@@ -44,7 +44,7 @@ def test_collector_records_and_finalizes(tmp_path):
         token_usage={"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150},
     )
 
-    r2 = collector.record(
+    collector.record(
         provider_id="claude_code",
         mode="cli",
         seat_id="reviewer_architect",

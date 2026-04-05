@@ -23,7 +23,7 @@ def test_dns_failure_is_deferred_and_non_blocking(tmp_path: Path, monkeypatch) -
             args=["git", "push", "origin", "--delete", "validator-suite-test"],
             returncode=128,
             stdout="",
-            stderr="ssh: Could not resolve hostname github.com: Temporary failure in name resolution",
+            stderr="ssh: Could not resolve hostname github.com: Temporary failure in name resolution",  # noqa: E501
         )
 
     monkeypatch.setattr(subprocess, "run", _fake_run)

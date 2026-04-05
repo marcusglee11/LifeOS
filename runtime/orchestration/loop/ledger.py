@@ -207,8 +207,8 @@ class AttemptLedger:
                 if header_data.get("type") != "header":
                     raise LedgerIntegrityError("First line is not a valid header")
                 self.header = header_data
-            except json.JSONDecodeError:
-                raise LedgerIntegrityError("Header JSON corrupt")
+            except json.JSONDecodeError as e:
+                raise LedgerIntegrityError("Header JSON corrupt") from e
 
             # Determine schema & chain mode
             schema_ver = self.header.get("schema_version", "v1.0")
@@ -244,12 +244,12 @@ class AttemptLedger:
                     record = AttemptRecord(**data)
                     self.history.append(record)
                 except (json.JSONDecodeError, TypeError) as e:
-                    raise LedgerIntegrityError(f"Corrupt record at line {i}: {e}")
+                    raise LedgerIntegrityError(f"Corrupt record at line {i}: {e}") from e
 
             return True
 
         except OSError as e:
-            raise LedgerIntegrityError(f"IO Error reading ledger: {e}")
+            raise LedgerIntegrityError(f"IO Error reading ledger: {e}") from e
 
     def append(self, record: AttemptRecord):
         """

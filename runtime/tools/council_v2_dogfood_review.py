@@ -23,28 +23,28 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType
-from runtime.orchestration.council.fsm import CouncilFSM
-from runtime.orchestration.council.policy import load_council_policy
-from runtime.tools.council_v2_dogfood_common import (
+from runtime.orchestration.ceo_queue import CEOQueue, EscalationEntry, EscalationType  # noqa: E402
+from runtime.orchestration.council.fsm import CouncilFSM  # noqa: E402
+from runtime.orchestration.council.policy import load_council_policy  # noqa: E402
+from runtime.tools.council_v2_dogfood_common import (  # noqa: E402
     load_env as _load_env,
 )
-from runtime.tools.council_v2_dogfood_common import (
+from runtime.tools.council_v2_dogfood_common import (  # noqa: E402
     parse_dotenv as _parse_dotenv,  # noqa: F401 - re-exported for tests
 )
-from runtime.tools.council_v2_dogfood_common import (
+from runtime.tools.council_v2_dogfood_common import (  # noqa: E402
     repo_root as _repo_root,
 )
-from runtime.tools.council_v2_dogfood_common import (
+from runtime.tools.council_v2_dogfood_common import (  # noqa: E402
     run_cmd as _run_cmd,
 )
-from runtime.tools.council_v2_dogfood_common import (
+from runtime.tools.council_v2_dogfood_common import (  # noqa: E402
     sha256_file as _sha256_file,
 )
-from runtime.tools.council_v2_dogfood_common import (
+from runtime.tools.council_v2_dogfood_common import (  # noqa: E402
     utc_stamp as _utc_stamp,
 )
-from runtime.tools.council_v2_dogfood_common import (
+from runtime.tools.council_v2_dogfood_common import (  # noqa: E402
     write_json as _write_json,
 )
 
@@ -131,7 +131,8 @@ Council V2 dogfood flow for COO dispatcher using one mock M1 gate and one live M
 Generated: {now}
 
 # Issue Catalogue
-No additional implementation issues logged in this packet; this packet tracks gate outcomes and approval flow.
+No additional implementation issues logged in this packet; it tracks gate
+outcomes and approval flow.
 
 # Acceptance Criteria
 | ID | Criterion | Status | Evidence Pointer | SHA-256 |
@@ -300,7 +301,7 @@ def _run(args: argparse.Namespace) -> int:
         cwd=repo_root,
     )
     live_log.write_text(
-        f"$ {' '.join([sys.executable, '-m', 'runtime.tools.council_v2_dogfood_review', 'live-m1', '--out', str(live_result)])}\n\n"
+        f"$ {' '.join([sys.executable, '-m', 'runtime.tools.council_v2_dogfood_review', 'live-m1', '--out', str(live_result)])}\n\n"  # noqa: E501
         f"exit_code={live_proc.returncode}\n\nSTDOUT:\n{live_proc.stdout}\n\nSTDERR:\n{live_proc.stderr}\n",
         encoding="utf-8",
     )
@@ -362,7 +363,7 @@ def _run(args: argparse.Namespace) -> int:
             type=EscalationType.AMBIGUOUS_TASK,
             run_id=str(run_id),
             context={
-                "summary": "Council V2 dogfood run completed; approval captured for governance traceability.",
+                "summary": "Council V2 dogfood run completed; approval captured for governance traceability.",  # noqa: E501
                 "packet_path": str(packet_path.relative_to(repo_root)),
                 "run_stamp": run_stamp,
                 "terminal_outcome": terminal_outcome,

@@ -175,7 +175,7 @@ def dispatch_lenses(
         # Non-waivable, non-mandatory but still failed -> block
         raise CouncilBlockedError(
             "LENS_MANDATORY_FAILURE",
-            f"Lens ''{lens_name}''  failed after {retries_used} retries and is not waivable: {errors}",
+            f"Lens ''{lens_name}''  failed after {retries_used} retries and is not waivable: {errors}",  # noqa: E501
         )
 
     # Sort results deterministically by lens_name

@@ -119,7 +119,7 @@ _PROPOSE_OUTPUT_SCHEMA = {
         "proposed_action": "must be one of: dispatch, defer, escalate",
         "urgency_override": "null or one of: P0, P1, P2, P3",
         "suggested_owner": "codex, claude_code, gemini, or empty string",
-        "indentation": "sub-keys of each proposals list item must be indented 4 spaces (2 for '-' + 2 for content)",
+        "indentation": "sub-keys of each proposals list item must be indented 4 spaces (2 for '-' + 2 for content)",  # noqa: E501
     },
 }
 

@@ -158,7 +158,7 @@ class TestExceptionDistinction:
         anti_failure = AntiFailureViolation("Test")
         envelope = EnvelopeViolation("Test")
 
-        assert type(anti_failure) != type(envelope)
+        assert not isinstance(anti_failure, type(envelope))
         assert not isinstance(anti_failure, EnvelopeViolation)
         assert not isinstance(envelope, AntiFailureViolation)
 

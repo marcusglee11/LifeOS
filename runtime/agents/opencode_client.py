@@ -93,7 +93,7 @@ def _get_openrouter_base_url() -> str:
     """Get OpenRouter base URL from config or fallback."""
     if _HAS_MODELS_MODULE:
         try:
-            config = load_model_config()
+            load_model_config()
             # Check for openrouter config in the raw yaml
             from pathlib import Path
 
@@ -459,7 +459,7 @@ class OpenCodeClient:
             )
         except Exception as e:
             self._cleanup_config()
-            raise OpenCodeServerError(f"Failed to start server: {e}")
+            raise OpenCodeServerError(f"Failed to start server: {e}") from e
 
         # Wait for server to be ready
         if not self._wait_for_health():
@@ -510,7 +510,7 @@ class OpenCodeClient:
                 )
             return resp.json()["id"]
         except requests.RequestException as e:
-            raise OpenCodeSessionError(f"Session creation failed: {e}")
+            raise OpenCodeSessionError(f"Session creation failed: {e}") from e
 
     def _send_message(self, session_id: str, prompt: str) -> str:
         """Send a message and return response content."""
@@ -526,10 +526,11 @@ class OpenCodeClient:
             # Parse response
             try:
                 data = resp.json()
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
                 raise OpenCodeSessionError(
-                    f"Message send failed: Invalid JSON response from server. Body: {resp.text[:500]}"
-                )
+                    "Message send failed: Invalid JSON response from server. "
+                    f"Body: {resp.text[:500]}"
+                ) from e
             parts = data.get("parts", [])
             content = ""
             for part in parts:
@@ -537,10 +538,10 @@ class OpenCodeClient:
                     content += part.get("text", "")
             return content
 
-        except requests.Timeout:
-            raise OpenCodeTimeoutError(f"Request timed out after {self.timeout}s")
+        except requests.Timeout as e:
+            raise OpenCodeTimeoutError(f"Request timed out after {self.timeout}s") from e
         except requests.RequestException as e:
-            raise OpenCodeSessionError(f"Message send failed: {e}")
+            raise OpenCodeSessionError(f"Message send failed: {e}") from e
 
     # ========================================================================
     # CALL INTERFACE
@@ -594,9 +595,8 @@ class OpenCodeClient:
 
             # Trace log
             if "repro" in sys.argv[0] or "verify" in sys.argv[0]:
-                print(
-                    f"  [TRACE] Attempt {i + 1}/{len(attempts)}: {model} {'(Fallback)' if is_fallback else '(Primary)'}"
-                )
+                phase = "(Fallback)" if is_fallback else "(Primary)"
+                print(f"  [TRACE] Attempt {i + 1}/{len(attempts)}: {model} {phase}")
 
             try:
                 return self._execute_attempt(model, request, provider=attempt.get("provider"))
@@ -658,7 +658,7 @@ class OpenCodeClient:
 
         # SWAP LOGIC: Determine correct key & provider for THIS model
         # Expanded for new OpenCode/Gemini models
-        # P1: Option C - If provider is explicitly 'opencode-openai', treat as plugin (skip Zen REST)
+        # P1: Treat explicit `opencode-openai` providers as plugins and skip Zen REST.
         is_plugin = provider and "opencode-openai" in provider
         is_zen_model = not is_plugin and any(
             k in model.lower() for k in ["minimax", "zen", "opencode", "gemini"]
@@ -762,7 +762,9 @@ class OpenCodeClient:
                         return llm_response
                     else:
                         logger.debug(
-                            f"OpenRouter REST Failed: Status {response.status_code}, Body: {response.text[:200]}..."
+                            "OpenRouter REST Failed: Status %s, Body: %s...",
+                            response.status_code,
+                            response.text[:200],
                         )
                 except Exception as e:
                     import traceback
@@ -793,13 +795,12 @@ class OpenCodeClient:
                 # SPECIAL CASE: Gemini on Zen (Google Style)
                 if "gemini" in model.lower():
                     # Use Google Generative Language API format
-                    # Zen endpoint likely mirrors Google's requirement for key in query param or x-goog-api-key
+                    # Zen likely mirrors Google's API key requirements.
                     # Try removing :generateContent in case Zen appends it
                     zen_url = f"https://opencode.ai/zen/v1/models/gemini-3-flash:generateContent?key={zen_key}"
 
                     # Google payload format
-                    # user -> user, system -> (not robustly supported in v1beta/v1 for all models, passing as system_instruction if needed or prepending)
-                    # For Flash, system_instruction is supported but simplified here to prepending for robustness via Zen?
+                    # System prompts are prepended for Zen robustness.
                     # Let's try standard contents.
 
                     contents = []
@@ -850,7 +851,8 @@ class OpenCodeClient:
                                 content=text,
                                 model_used=f"ZEN:{model}",
                                 latency_ms=int((time.time() - start_time) * 1000),
-                                timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
+                                # AUDIT-ONLY: wall-clock metadata
+                                timestamp=datetime.now().isoformat(),
                                 usage=_normalize_usage(data.get("usageMetadata")),
                             )
                             if self.log_calls:
@@ -858,7 +860,9 @@ class OpenCodeClient:
                             return llm_response
                         else:
                             logger.debug(
-                                f"Zen/Gemini REST Failed: Status {response.status_code}, Body: {response.text[:200]}..."
+                                "Zen/Gemini REST Failed: Status %s, Body: %s...",
+                                response.status_code,
+                                response.text[:200],
                             )
                     except Exception as e:
                         import traceback
@@ -906,7 +910,8 @@ class OpenCodeClient:
                                 content=text,
                                 model_used=f"ZEN:{data.get('model', model)}",
                                 latency_ms=int((time.time() - start_time) * 1000),
-                                timestamp=datetime.now().isoformat(),  # AUDIT-ONLY: wall-clock metadata
+                                # AUDIT-ONLY: wall-clock metadata
+                                timestamp=datetime.now().isoformat(),
                                 usage=_normalize_usage(data.get("usage")),
                             )
 
@@ -917,7 +922,9 @@ class OpenCodeClient:
                             return llm_response
                         else:
                             logger.debug(
-                                f"Zen REST Failed: Status {response.status_code}, Body: {response.text[:200]}..."
+                                "Zen REST Failed: Status %s, Body: %s...",
+                                response.status_code,
+                                response.text[:200],
                             )
                     except Exception as e:
                         import traceback
@@ -994,12 +1001,12 @@ class OpenCodeClient:
                 self._log_call(request, response)
 
             return response
-        except subprocess.TimeoutExpired:
-            raise OpenCodeTimeoutError(f"opencode run timed out after {self.timeout}s")
+        except subprocess.TimeoutExpired as e:
+            raise OpenCodeTimeoutError(f"opencode run timed out after {self.timeout}s") from e
         except Exception as e:
             if isinstance(e, OpenCodeError):
                 raise
-            raise OpenCodeError(f"Failed to execute opencode run: {e}")
+            raise OpenCodeError(f"Failed to execute opencode run: {e}") from e
 
     # ========================================================================
     # LOGGING

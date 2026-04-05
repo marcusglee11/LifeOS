@@ -130,7 +130,10 @@ class CEOQueue:
             conn.execute(
                 """
                 INSERT INTO escalations
-                (id, type, status, context, run_id, created_at, resolved_at, resolution_note, resolver)
+                (
+                    id, type, status, context, run_id, created_at, resolved_at,
+                    resolution_note, resolver
+                )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (

@@ -48,7 +48,7 @@ class TestDeterminismSuite(unittest.TestCase):
     def test_checkpoint_content_deterministic(self):
         """Verify checkpoint file contents are identical across runs."""
         checksums = []
-        for i in range(3):
+        for _i in range(3):
             with tempfile.TemporaryDirectory() as tmpdir:
                 amu0_path = os.path.join(tmpdir, "amu0")
                 os.makedirs(os.path.join(amu0_path, "checkpoints"), exist_ok=True)
@@ -81,7 +81,7 @@ class TestDeterminismSuite(unittest.TestCase):
     def test_checkpoint_no_timestamp_deterministic(self):
         """Verify checkpoints without mock_time are also deterministic (no timestamp field)."""
         checksums = []
-        for i in range(3):
+        for _i in range(3):
             with tempfile.TemporaryDirectory() as tmpdir:
                 amu0_path = os.path.join(tmpdir, "amu0")
                 # NO pinned_context.json created here - tests no timestamp case

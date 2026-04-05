@@ -114,7 +114,8 @@ class TestCouncilV2LensCoverage:
         catalog = list(policy.lens_catalog)
         unique = set(catalog)
         assert len(catalog) == len(unique), (
-            f"Duplicate lens names in catalog: {[l for l in catalog if catalog.count(l) > 1]}"
+            "Duplicate lens names in catalog: "
+            f"{[lens_name for lens_name in catalog if catalog.count(lens_name) > 1]}"
         )
 
     def test_t2_t3_mandatory_lenses_are_in_catalog(self, policy: CouncilPolicy) -> None:

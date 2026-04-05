@@ -173,7 +173,7 @@ class TestBuildMultiProviderExecutor:
         )
         plan = _make_plan_core()
 
-        result = executor("Architecture", {"task": "review"}, plan, 0)
+        executor("Architecture", {"task": "review"}, plan, 0)
 
         # Should have fallen back to API
         mock_call.assert_called_once()
@@ -207,7 +207,7 @@ class TestBuildMultiProviderExecutor:
         )
         plan = _make_plan_core()
 
-        result = executor("Architecture", {"task": "review"}, plan, 0)
+        executor("Architecture", {"task": "review"}, plan, 0)
 
         mock_call.assert_called_once()
 
@@ -294,7 +294,7 @@ class TestDelegatedRoleWithOverride:
 
     @patch("runtime.orchestration.council.multi_provider.call_agent_cli")
     def test_delegated_role_with_override_routes_via_synthetic_config(self, mock_cli):
-        """Delegated roles: multi_provider injects synthetic dispatch_mode='cli' — no DelegatedDispatchError raised."""
+        """Delegated roles: multi_provider injects synthetic dispatch_mode='cli' — no DelegatedDispatchError raised."""  # noqa: E501
         mock_cli.return_value = AgentResponse(
             call_id="test",
             call_id_audit="test",
@@ -334,8 +334,8 @@ class TestDelegatedRoleWithOverride:
             lenses=("Architecture",), lens_role_map={"Architecture": "council_reviewer"}
         )
 
-        # Should NOT raise DelegatedDispatchError — synthetic config overrides dispatch_mode to "cli"
-        result = executor("Architecture", {"task": "review"}, plan, 0)
+        # Should NOT raise DelegatedDispatchError — synthetic config overrides dispatch_mode to "cli"  # noqa: E501
+        executor("Architecture", {"task": "review"}, plan, 0)
 
         mock_cli.assert_called_once()
         # Verify synthetic config was used (dispatch_mode="cli" in the call)

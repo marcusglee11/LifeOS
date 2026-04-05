@@ -215,9 +215,7 @@ def test_determine_state_transitions() -> None:
     assert run_ops_certification.determine_state("local", blocking=False) == "prod_local"
     assert run_ops_certification.determine_state("ci", blocking=False) == "prod_ci"
     assert (
-        run_ops_certification.determine_state(
-            "live", blocking=False, previous_state="prod_ci"
-        )
+        run_ops_certification.determine_state("live", blocking=False, previous_state="prod_ci")
         == "prod_ci"
     )
 

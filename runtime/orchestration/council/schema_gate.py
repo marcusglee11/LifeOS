@@ -323,7 +323,7 @@ def validate_seat_output(
                 isinstance(item, str) and item.strip() for item in assumptions
             ):
                 errors.append(
-                    "assumptions must enumerate evidence gaps when assumption-backed claims are used."
+                    "assumptions must enumerate evidence gaps when assumption-backed claims are used."  # noqa: E501
                 )
 
     _validate_complexity_budget(normalized, warnings)

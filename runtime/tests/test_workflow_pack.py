@@ -1032,7 +1032,8 @@ def test_update_backlog_accepts_single_owner_with_collaborators_in_context(tmp_p
 
 ### P1 (High)
 
-- [ ] **OpenClaw distill lane operational rollout** — DoD: Session-scoped shadow rollout completed — Owner: Substrate — Context: Collaborators COO + CEO; milestone 1 keeps raw path authoritative
+- [ ] **OpenClaw distill lane operational rollout** — DoD: Session-scoped shadow rollout completed
+  — Owner: Substrate — Context: Collaborators COO + CEO; milestone 1 keeps raw path authoritative
 """,
         encoding="utf-8",
     )

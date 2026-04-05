@@ -161,7 +161,7 @@ def read(artifact_path: Path) -> WaiverGrant:
         content = artifact_path.read_text(encoding="utf-8")
         data = json.loads(content)
     except (OSError, json.JSONDecodeError) as e:
-        raise WaiverValidationError(f"Failed to read waiver artifact: {e}")
+        raise WaiverValidationError(f"Failed to read waiver artifact: {e}") from e
 
     # Validate required fields
     required_fields = [

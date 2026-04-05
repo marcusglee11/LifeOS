@@ -237,7 +237,7 @@ class TestRetryLimitEnforcement:
         assert override == "WAIVER_REQUESTED"
 
     def test_retry_limit_exhausted_not_waiver_eligible(self, policy_config):
-        """Retry limit exhausted for non-waiver-eligible class returns configured terminal_outcome"""
+        """Retry limit exhausted for non-waiver-eligible class returns configured terminal_outcome"""  # noqa: E501
         policy = ConfigurableLoopPolicy(policy_config)
         # TIMEOUT has retry_limit=1 and not waiver eligible, terminal_outcome=ESCALATION_REQUESTED
         ledger = MockLedger(

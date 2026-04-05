@@ -303,6 +303,14 @@ def test_closure_pack_regen_after_merge(monkeypatch, tmp_path: Path) -> None:
             "results": [],
         },
     )
+    monkeypatch.setattr(
+        cp,
+        "_write_review_checkpoint",
+        lambda *_args, **_kwargs: (
+            True,
+            str(repo_root / ".git" / "lifeos" / "reviews" / "build__feature.md"),
+        ),
+    )
     monkeypatch.setattr(cp, "merge_to_main", fake_merge_to_main)
     monkeypatch.setattr(
         cp,
@@ -422,6 +430,14 @@ def test_closure_pack_plan_only_skips_post_merge_state_churn(monkeypatch, tmp_pa
             "results": [],
         },
     )
+    monkeypatch.setattr(
+        cp,
+        "_write_review_checkpoint",
+        lambda *_args, **_kwargs: (
+            True,
+            str(repo_root / ".git" / "lifeos" / "reviews" / "plan__coo.md"),
+        ),
+    )
     monkeypatch.setattr(cp, "merge_to_main", fake_merge_to_main)
     monkeypatch.setattr(
         cp,
@@ -459,3 +475,59 @@ def test_closure_pack_plan_only_skips_post_merge_state_churn(monkeypatch, tmp_pa
     assert "regen" not in events
     assert "state_update" not in events
     assert "structured_update" not in events
+
+
+def test_closure_pack_blocks_on_review_checkpoint_failure(
+    monkeypatch, tmp_path: Path, capsys
+) -> None:
+    repo_root = tmp_path / "linked"
+    repo_root.mkdir(parents=True)
+
+    def fake_git_stdout(repo: Path, args: list[str]) -> str:
+        if args == ["rev-parse", "--abbrev-ref", "HEAD"]:
+            return "build/review-hook"
+        if args == ["log", "--oneline", "-n", "10"]:
+            return "abc123 test commit"
+        return ""
+
+    monkeypatch.setattr(cp, "_git_stdout", fake_git_stdout)
+    monkeypatch.setattr(cp, "_working_tree_clean", lambda _: True)
+    monkeypatch.setattr(cp, "discover_changed_files", lambda _: ["runtime/foo.py"])
+    monkeypatch.setattr(
+        cp,
+        "run_closure_tests",
+        lambda *_: {"passed": True, "summary": "ok", "commands_run": [], "failures": []},
+    )
+    monkeypatch.setattr(
+        cp,
+        "check_doc_stewardship",
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "required": False,
+            "auto_fixed": False,
+            "errors": [],
+        },
+    )
+    monkeypatch.setattr(
+        cp,
+        "run_quality_gates",
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "auto_fixed": False,
+            "summary": "ok",
+            "commands_run": [],
+            "results": [],
+        },
+    )
+    monkeypatch.setattr(
+        cp,
+        "_write_review_checkpoint",
+        lambda *_args, **_kwargs: (False, "Failed to write review checkpoint: disk full"),
+    )
+    monkeypatch.setattr(sys, "argv", ["closure_pack.py", "--repo-root", str(repo_root)])
+
+    rc = cp.main()
+    output = capsys.readouterr().out
+
+    assert rc == 1
+    assert "Failed to write review checkpoint" in output

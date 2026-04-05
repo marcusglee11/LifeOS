@@ -67,7 +67,7 @@ class TestRunResult:
         }
 
     def _serialise_suite_result(self, res: ScenarioSuiteResult) -> Dict[str, Any]:
-        # ScenarioSuiteResult is an internal container. We serialise it here explicitly rather than adding a public to_dict().
+        # ScenarioSuiteResult is an internal container. We serialise it here explicitly rather than adding a public to_dict().  # noqa: E501
         return {
             "suite_name": res.suite_name,
             "scenario_results": {k: v.to_dict() for k, v in dict(res.scenario_results).items()},

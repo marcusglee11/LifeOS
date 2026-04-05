@@ -45,7 +45,7 @@ class TestCoreSpecCliAccuracy:
         for i, line in enumerate(spec.splitlines(), 1):
             if "coo chat" in line and "NOT YET IMPLEMENTED" in line:
                 raise AssertionError(
-                    f"Line {i}: 'coo chat' exists in cli.py but is still marked [NOT YET IMPLEMENTED]"
+                    f"Line {i}: 'coo chat' exists in cli.py but is still marked [NOT YET IMPLEMENTED]"  # noqa: E501
                 )
 
 

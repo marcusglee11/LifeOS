@@ -99,7 +99,7 @@ def test_api_boundary_enforcement():
             for err in errs:
                 msg += f"  {err}\n"
 
-        assert False, msg
+        raise AssertionError(msg)
 
 
 if __name__ == "__main__":

@@ -52,6 +52,10 @@ QUALITY_BIOME_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc"}
 QUALITY_BIOME_CONFIG_FILES = {"biome.json"}
 QUALITY_MARKDOWN_CONFIG_FILES = {".markdownlint.json", ".markdownlint.yaml", ".markdownlint.yml"}
 QUALITY_YAML_CONFIG_FILES = {".yamllint", ".yamllint.yml", ".yamllint.yaml"}
+BACKLOG_METADATA_CONTINUATION_PATTERN = re.compile(
+    r"^\s+[—-]+\s*(?:DoD|Why\s*Now|Owner|Context):",
+    re.IGNORECASE,
+)
 
 
 def _unique_ordered(values: Iterable[str]) -> list[str]:
@@ -64,6 +68,28 @@ def _unique_ordered(values: Iterable[str]) -> list[str]:
         seen.add(item)
         out.append(item)
     return out
+
+
+def _flatten_backlog_metadata_continuations(content: str) -> str:
+    """Join wrapped backlog metadata lines onto the preceding dispatch item."""
+    if not content:
+        return content
+
+    flattened: list[str] = []
+    for line in content.splitlines():
+        if (
+            BACKLOG_METADATA_CONTINUATION_PATTERN.match(line)
+            and flattened
+            and flattened[-1].lstrip().startswith("- [")
+        ):
+            flattened[-1] = f"{flattened[-1].rstrip()} {line.strip()}"
+            continue
+        flattened.append(line)
+
+    normalized = "\n".join(flattened)
+    if content.endswith("\n"):
+        normalized += "\n"
+    return normalized
 
 
 def build_active_work_payload(
@@ -597,7 +623,7 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
             ),
         ):
             add(
-                "pytest -q runtime/tests/test_workflow_pack.py runtime/tests/test_git_workflow_worktree.py"
+                "pytest -q runtime/tests/test_workflow_pack.py runtime/tests/test_git_workflow_worktree.py"  # noqa: E501
             )
             continue
 
@@ -684,7 +710,7 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
             ),
         ):
             add(
-                "pytest -q runtime/tests/test_known_failures_gate.py runtime/tests/test_state_hygiene.py"
+                "pytest -q runtime/tests/test_known_failures_gate.py runtime/tests/test_state_hygiene.py"  # noqa: E501
             )
             continue
 
@@ -1380,7 +1406,7 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
         else:
             details = (rm_proc.stderr or "").strip() or (rm_proc.stdout or "").strip()
             errors.append(
-                f"failed to remove worktree at {linked_wt_path}: {details or f'exit code {rm_proc.returncode}'}"
+                f"failed to remove worktree at {linked_wt_path}: {details or f'exit code {rm_proc.returncode}'}"  # noqa: E501
             )
 
     branch_delete_repo = primary_repo if primary_repo is not None else repo
@@ -1413,7 +1439,7 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
         else:
             details = (proc.stderr or "").strip() or (proc.stdout or "").strip()
             errors.append(
-                f"failed to delete local branch '{source_branch}': {details or f'exit code {proc.returncode}'}"
+                f"failed to delete local branch '{source_branch}': {details or f'exit code {proc.returncode}'}"  # noqa: E501
             )
 
         if _gw is not None:
@@ -1690,6 +1716,7 @@ def _update_backlog_state(
             f"**Last Updated:** {today}",
             content,
         )
+        updated_content = _flatten_backlog_metadata_continuations(updated_content)
         atomic_write_text(backlog_path, updated_content)
     except Exception as exc:
         msg = f"Failed to update BACKLOG timestamp: {exc}"

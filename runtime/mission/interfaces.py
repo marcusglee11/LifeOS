@@ -82,7 +82,7 @@ class MissionDefinition:
             try:
                 json.dumps(metadata)
             except (TypeError, OverflowError) as e:
-                raise ValueError(f"Metadata must be JSON serializable: {e}")
+                raise ValueError(f"Metadata must be JSON serializable: {e}") from e
 
             sorted_items = sorted(metadata.items(), key=lambda x: x[0])
             safe_metadata = tuple(sorted_items)

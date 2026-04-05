@@ -21,7 +21,7 @@ def db_conn():
     conn = sqlite3.connect(":memory:")
     apply_schema(conn)
     conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         ("m1", "executing", "desc", 10.0, 5, datetime.utcnow(), datetime.utcnow()),
     )
     conn.commit()
@@ -33,7 +33,7 @@ def test_reclaim_success(db_conn):
     # Stale task, dead worker
     stale_time = datetime.utcnow() - timedelta(seconds=TASK_LOCK_TIMEOUT_SECONDS + 10)
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, locked_at, locked_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, locked_at, locked_by) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         ("t1", "m1", 1, "desc", "executing", stale_time, "123"),
     )
     db_conn.commit()
@@ -58,7 +58,7 @@ def test_reclaim_skipped_alive(db_conn):
     # Stale task, ALIVE worker
     stale_time = datetime.utcnow() - timedelta(seconds=TASK_LOCK_TIMEOUT_SECONDS + 10)
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, locked_at, locked_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, locked_at, locked_by) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         ("t1", "m1", 1, "desc", "executing", stale_time, "123"),
     )
     db_conn.commit()
@@ -71,7 +71,7 @@ def test_reclaim_skipped_alive(db_conn):
 
     # Verify skipped event
     cur = db_conn.execute(
-        "SELECT event_type FROM timeline_events WHERE task_id='t1' AND event_type='task_reclaim_skipped_alive_or_unknown'"
+        "SELECT event_type FROM timeline_events WHERE task_id='t1' AND event_type='task_reclaim_skipped_alive_or_unknown'"  # noqa: E501
     )
     assert cur.fetchone()
 
@@ -80,7 +80,7 @@ def test_reclaim_not_stale(db_conn):
     # Fresh task
     fresh_time = datetime.utcnow()
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, locked_at, locked_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status, locked_at, locked_by) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         ("t1", "m1", 1, "desc", "executing", fresh_time, "123"),
     )
     db_conn.commit()

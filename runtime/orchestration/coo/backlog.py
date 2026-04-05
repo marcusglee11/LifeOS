@@ -69,7 +69,8 @@ def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
     priority = str(_req("priority")).strip()
     if priority not in VALID_PRIORITIES:
         raise BacklogValidationError(
-            f"Task '{task_id}' invalid priority {priority!r}. Must be one of {sorted(VALID_PRIORITIES)}"
+            f"Task '{task_id}' invalid priority {priority!r}. "
+            f"Must be one of {sorted(VALID_PRIORITIES)}"
         )
 
     risk = str(_req("risk")).strip()
@@ -87,7 +88,8 @@ def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
     task_type = str(_req("task_type")).strip()
     if task_type not in VALID_TASK_TYPES:
         raise BacklogValidationError(
-            f"Task '{task_id}' invalid task_type {task_type!r}. Must be one of {sorted(VALID_TASK_TYPES)}"
+            f"Task '{task_id}' invalid task_type {task_type!r}. "
+            f"Must be one of {sorted(VALID_TASK_TYPES)}"
         )
 
     scope_paths = raw.get("scope_paths") or []
@@ -124,7 +126,7 @@ def load_backlog(path: Path) -> list[TaskEntry]:
         with open(path, "r", encoding="utf-8") as f:
             raw = yaml.safe_load(f)
     except yaml.YAMLError as exc:
-        raise BacklogValidationError(f"Invalid YAML in {path}: {exc}")
+        raise BacklogValidationError(f"Invalid YAML in {path}: {exc}") from exc
 
     if not isinstance(raw, dict):
         raise BacklogValidationError(

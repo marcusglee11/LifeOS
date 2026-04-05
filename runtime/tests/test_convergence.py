@@ -141,7 +141,7 @@ class TestComputeConvergence:
             "Security": {"verdict": "Accept", "text": "looks fine"},
         }
         # With a very high threshold, even similar outputs may not converge
-        conv_strict = compute_convergence(results, threshold=0.99)
+        compute_convergence(results, threshold=0.99)
         conv_loose = compute_convergence(results, threshold=0.1)
         assert conv_loose.convergent is True
         # The strict one may or may not converge depending on exact similarity

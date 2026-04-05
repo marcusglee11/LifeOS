@@ -52,9 +52,9 @@ class PolicyConfigLoader:
             with open(self.config_path, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f)
         except yaml.YAMLError as e:
-            raise PolicyConfigLoadError(f"YAML parse error: {e}")
+            raise PolicyConfigLoadError(f"YAML parse error: {e}") from e
         except Exception as e:
-            raise PolicyConfigLoadError(f"Failed to load config: {e}")
+            raise PolicyConfigLoadError(f"Failed to load config: {e}") from e
 
         if not isinstance(config, dict):
             raise PolicyConfigLoadError("Config must be a dictionary")

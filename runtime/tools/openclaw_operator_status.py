@@ -19,7 +19,7 @@ COOLDOWN_RE = re.compile(
     r"(in cooldown|all profiles unavailable|profiles are unavailable)", re.IGNORECASE
 )
 INVALID_MISSING_RE = re.compile(
-    r"(expired|missing|invalid|unauthorized|not authenticated|authentication required|token has been invalidated)",
+    r"(expired|missing|invalid|unauthorized|not authenticated|authentication required|token has been invalidated)",  # noqa: E501
     re.IGNORECASE,
 )
 EXPIRING_RE = re.compile(r"(expiring soon|expires in\s*[0-9]+(?:m|h))", re.IGNORECASE)
@@ -372,10 +372,18 @@ import shutil
 import subprocess
 
 PROVIDER_RE = re.compile(r"\bprovider\s+([a-z0-9._-]+)\b", re.IGNORECASE)
-PROVIDER_COOLDOWN_RE = re.compile(r"\bprovider\s+([a-z0-9._-]+)\s+is\s+in\s+cooldown\b", re.IGNORECASE)
-COOLDOWN_RE = re.compile(r"(in cooldown|all profiles unavailable|profiles are unavailable)", re.IGNORECASE)
+PROVIDER_COOLDOWN_RE = re.compile(
+    r"\bprovider\s+([a-z0-9._-]+)\s+is\s+in\s+cooldown\b", re.IGNORECASE
+)
+COOLDOWN_RE = re.compile(
+    r"(in cooldown|all profiles unavailable|profiles are unavailable)",
+    re.IGNORECASE,
+)
 INVALID_MISSING_RE = re.compile(
-    r"(expired|missing|invalid|unauthorized|not authenticated|authentication required|token has been invalidated)",
+    (
+        r"(expired|missing|invalid|unauthorized|not authenticated|"
+        r"authentication required|token has been invalidated)"
+    ),
     re.IGNORECASE,
 )
 EXPIRING_RE = re.compile(r"(expiring soon|expires in\s*[0-9]+(?:m|h))", re.IGNORECASE)
@@ -469,8 +477,16 @@ def classify_auth_health(exit_code, output_text):
     if exit_code == 2 or EXPIRING_RE.search(text):
         return {"state": "expiring", "reason_code": "expiring_nonzero", "provider": provider}
     if exit_code == 1 or INVALID_MISSING_RE.search(low):
-        return {"state": "invalid_missing", "reason_code": "expired_or_missing", "provider": provider}
-    return {"state": "invalid_missing", "reason_code": f"check_failed_rc_{exit_code}", "provider": provider}
+        return {
+            "state": "invalid_missing",
+            "reason_code": "expired_or_missing",
+            "provider": provider,
+        }
+    return {
+        "state": "invalid_missing",
+        "reason_code": f"check_failed_rc_{exit_code}",
+        "provider": provider,
+    }
 
 
 host = _run(["hostname"], timeout_s=5)
@@ -546,7 +562,10 @@ if isinstance(probe_obj, dict):
                 tg_probe_ok = True
                 break
 
-tg_alive = bool((tg_running and tg_mode in {"polling", "webhook"} and not tg_last_error_present) or tg_probe_ok)
+tg_alive = bool(
+    (tg_running and tg_mode in {"polling", "webhook"} and not tg_last_error_present)
+    or tg_probe_ok
+)
 
 summary = {
     "vm": {
@@ -556,7 +575,9 @@ summary = {
     },
     "openclaw": {
         "service_user": SERVICE_USER,
-        "executed_as": str(openclaw_version.get("executed_as") or openclaw_path.get("executed_as") or ""),
+        "executed_as": str(
+            openclaw_version.get("executed_as") or openclaw_path.get("executed_as") or ""
+        ),
         "path": _first_line(openclaw_path.get("out")),
         "version": _first_line(openclaw_version.get("out")),
     },
@@ -678,7 +699,7 @@ def _result_json(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Discover active MIG instance and run OpenClaw gateway/Telegram/auth operator checks."
+        description="Discover active MIG instance and run OpenClaw gateway/Telegram/auth operator checks."  # noqa: E501
     )
     parser.add_argument("--project", help="GCP project ID (defaults to gcloud config project)")
     parser.add_argument("--mig", help="Managed instance group name override")
@@ -814,7 +835,7 @@ def main() -> int:
             print(
                 "FAIL "
                 f"reason={payload['reason']} "
-                f"mig={payload['mig']['name']} instance={payload['mig']['instance']} zone={payload['mig']['zone']} "
+                f"mig={payload['mig']['name']} instance={payload['mig']['instance']} zone={payload['mig']['zone']} "  # noqa: E501
                 f"ui_url={payload['ui']['url']}"
             )
             print(f"FORWARD_CMD={payload['ui']['tunnel_cmd']}")
@@ -869,8 +890,8 @@ def main() -> int:
     status = "PASS" if ok else "FAIL"
     print(
         f"{status} reason={reason} "
-        f"mig={payload['mig']['name']} instance={payload['mig']['instance']} zone={payload['mig']['zone']} "
-        f"gateway_ok={str(gateway_ok).lower()} telegram_alive={str(telegram_ok).lower()} auth_state={auth_state} "
+        f"mig={payload['mig']['name']} instance={payload['mig']['instance']} zone={payload['mig']['zone']} "  # noqa: E501
+        f"gateway_ok={str(gateway_ok).lower()} telegram_alive={str(telegram_ok).lower()} auth_state={auth_state} "  # noqa: E501
         f"ui_url={payload['ui']['url']}"
     )
     print(f"FORWARD_CMD={payload['ui']['tunnel_cmd']}")

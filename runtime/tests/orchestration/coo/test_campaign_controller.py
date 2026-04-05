@@ -20,7 +20,7 @@ def test_run_scenario_mock(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
         "scripts.campaign.coo_promotion_controller.subprocess.run",
         lambda *args, **kwargs: SimpleNamespace(
-            stdout="schema_version: nothing_to_propose.v1\nreason: idle\nrecommended_follow_up: wait\n",
+            stdout="schema_version: nothing_to_propose.v1\nreason: idle\nrecommended_follow_up: wait\n",  # noqa: E501
             returncode=0,
         ),
     )

@@ -48,7 +48,7 @@ def _make_completed(returncode=0, stdout=_STUB_ENVELOPE, stderr=""):
 
 def test_success_produces_receipt():
     with patch("subprocess.run", return_value=_make_completed()):
-        result = invoke_coo_reasoning(
+        invoke_coo_reasoning(
             context={"backlog": []},
             mode="propose",
             repo_root=None,

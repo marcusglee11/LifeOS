@@ -119,7 +119,6 @@ def test_check_gate_bypass_token(tmp_path, monkeypatch):
     git_common = repo / ".git"
     git_common.mkdir()
 
-    branch = "main"
     slug = "main"
     bypass_dir = git_common / "lifeos" / "bypass"
     bypass_dir.mkdir(parents=True)
@@ -151,7 +150,6 @@ def test_check_gate_bypass_token_expired(tmp_path, monkeypatch):
     git_common = repo / ".git"
     git_common.mkdir()
 
-    branch = "main"
     slug = "main"
     bypass_dir = git_common / "lifeos" / "bypass"
     bypass_dir.mkdir(parents=True)

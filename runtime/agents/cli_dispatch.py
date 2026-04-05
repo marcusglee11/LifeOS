@@ -266,8 +266,10 @@ def dispatch_cli_agent(
             errors=errors,
         )
 
-    except FileNotFoundError:
-        raise CLIProviderNotFound(f"CLI binary '{binary}' disappeared between resolve and exec")
+    except FileNotFoundError as exc:
+        raise CLIProviderNotFound(
+            f"CLI binary '{binary}' disappeared between resolve and exec"
+        ) from exc
 
     except OSError as exc:
         elapsed_ms = int((time.monotonic() - start) * 1000)

@@ -729,7 +729,7 @@ class TestTerminalPacketLedgerAnchor:
     def test_terminal_packet_includes_anchor_fields(
         self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
     ):
-        """Terminal packet YAML contains ledger_chain_tip, ledger_attempt_count, ledger_schema_version."""
+        """Terminal packet YAML contains ledger_chain_tip, ledger_attempt_count, ledger_schema_version."""  # noqa: E501
         spine = LoopSpine(repo_root=clean_repo_root)
 
         with patch.object(spine, "_run_chain_steps") as mock_steps:
@@ -739,7 +739,7 @@ class TestTerminalPacketLedgerAnchor:
                 "commit_hash": "abc123",
             }
 
-            result = spine.run(task_spec=task_spec)
+            spine.run(task_spec=task_spec)
 
             # Read the terminal packet
             terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
@@ -877,7 +877,7 @@ class TestBatch2Fixes:
     """Regression tests for the three Batch 1 procedure fixes (B2-F2, B2-F3, B2-F5)."""
 
     def test_steward_inputs_include_max_diff_lines_default(self, clean_repo_root, task_spec):
-        """B2-F5: Spine threads max_diff_lines=500 default into steward inputs (≥400 for Batch-1 Run-6 safety)."""
+        """B2-F5: Spine threads max_diff_lines=500 default into steward inputs (≥400 for Batch-1 Run-6 safety)."""  # noqa: E501
         spine = LoopSpine(repo_root=clean_repo_root)
         spine.run_id = "run_fix5_default"
 

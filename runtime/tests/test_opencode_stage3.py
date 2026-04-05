@@ -468,7 +468,7 @@ def test_live_spine_paid_models():
     _log_comparison_result(model_label, result, elapsed, repo_root)
 
     print(
-        f"\n[ZEN PAID] model={model_label_model} outcome={result['outcome']} elapsed={elapsed:.1f}s commit={result.get('commit_hash')}"
+        f"\n[ZEN PAID] model={model_label_model} outcome={result['outcome']} elapsed={elapsed:.1f}s commit={result.get('commit_hash')}"  # noqa: E501
     )
     assert result["outcome"] == "PASS", (
         f"Paid-model spine failed: {result}\nCheck artifacts/terminal/ for TP_*.yaml"

@@ -78,7 +78,6 @@ class TestKillSwitch:
         """
         # Patch check_kill_switch to return False first, then True
         call_count = [0]
-        original_check = check_kill_switch
 
         def mock_check(repo_root=None):
             call_count[0] += 1
@@ -315,7 +314,7 @@ class TestGitFailClosed:
             script_dir.mkdir(exist_ok=True)
             (script_dir / "validate_canon_spine.py").touch()
 
-            with patch("subprocess.run", side_effect=mock_subprocess) as mock_run_patch:
+            with patch("subprocess.run", side_effect=mock_subprocess):
                 with pytest.raises(GitCommandError) as exc_info:
                     mission_startup_sequence("test-run", "test", temp_repo)
 

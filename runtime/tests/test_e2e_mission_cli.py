@@ -85,12 +85,12 @@ def test_mission_cli_e2e_harness(tmp_path):
         # If lifeos is NOT in PATH, we check if we expected python-m or BLOCKED
         # How do we know if python-m usage was proven?
         # We can check the search log or the summary which reflects the choice.
-        # But per P0.2 requirements: "Update assertions: ... expect overall_outcome == BLOCKED" if not proven.
+        # But per P0.2 requirements: "Update assertions: ... expect overall_outcome == BLOCKED" if not proven.  # noqa: E501
 
         # We need to know if the repo actually HAD the proof.
         # In this specific test environment (temp_repo not used here, actual repo used),
         # we expect the repo to have the proof (since we are testing LifeOS repo itself).
-        # So we expect python-m if we are on a system without lifeos in PATH but WITH the repo artifact.
+        # So we expect python-m if we are on a system without lifeos in PATH but WITH the repo artifact.  # noqa: E501
 
         # HOWEVER, if the harness failed to find proof, it would have exited non-zero (BLOCKED).
         # And we caught that exit.
@@ -104,7 +104,7 @@ def test_mission_cli_e2e_harness(tmp_path):
         assert mode == "python-m", "Harness fell back to python-m without blocking"
 
         # Verify it was justified (proven)
-        # We can check evidence or search log, but simply asserting mode is python-m implies it found proof.
+        # We can check evidence or search log, but simply asserting mode is python-m implies it found proof.  # noqa: E501
 
     # Check Outcome
     if summary["overall_outcome"] != "PASS":

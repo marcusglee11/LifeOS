@@ -294,7 +294,7 @@ def test_policy_changed_mid_run(acceptance_context, mock_subs):
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
     with open(ledger_path, "w") as f:
         f.write(
-            '{"type": "header", "schema_version": "v1.0", "policy_hash": "OLD_POLICY", "handoff_hash": "x", "run_id": "r"}\n'
+            '{"type": "header", "schema_version": "v1.0", "policy_hash": "OLD_POLICY", "handoff_hash": "x", "run_id": "r"}\n'  # noqa: E501
         )
 
     mission = AutonomousBuildCycleMission()

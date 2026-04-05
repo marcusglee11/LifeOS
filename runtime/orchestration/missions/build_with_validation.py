@@ -12,6 +12,7 @@ import json
 import re  # Added for P0.1 commit validation
 import sys
 from pathlib import Path
+from typing import Any, Dict
 
 # External dependencies (assumed present in env)
 import jsonschema
@@ -69,7 +70,7 @@ class BuildWithValidationMission(BaseMission):
         try:
             schema = self._load_schema(PARAMS_SCHEMA_FILE)
         except Exception as e:
-            raise MissionValidationError(f"Failed to load params schema: {e}")
+            raise MissionValidationError(f"Failed to load params schema: {e}") from e
 
         # Coerce None to empty dict
         if inputs is None:
@@ -79,7 +80,7 @@ class BuildWithValidationMission(BaseMission):
         try:
             jsonschema.validate(instance=inputs, schema=schema)
         except jsonschema.ValidationError as e:
-            raise MissionValidationError(f"Invalid inputs: {e.message}")
+            raise MissionValidationError(f"Invalid inputs: {e.message}") from e
 
     def run(self, context: MissionContext, inputs: Dict[str, Any]) -> MissionResult:
         # P0.1: Handle inputs=None deterministically and type-check
@@ -95,7 +96,7 @@ class BuildWithValidationMission(BaseMission):
             # Must be 7-40 hex chars
             if not re.match(r"^[0-9a-fA-F]{7,40}$", context.baseline_commit):
                 raise MissionValidationError(
-                    f"Invalid baseline_commit format (must be 7-40 hex chars): {context.baseline_commit}"
+                    f"Invalid baseline_commit format (must be 7-40 hex chars): {context.baseline_commit}"  # noqa: E501
                 )
 
         # 0. Validate Inputs (Fail-Closed)
@@ -216,7 +217,7 @@ class BuildWithValidationMission(BaseMission):
 
                     return self._make_result(
                         success=False,
-                        error="Full mode requires explicit pytest_targets (fail-closed, no defaults allowed)",
+                        error="Full mode requires explicit pytest_targets (fail-closed, no defaults allowed)",  # noqa: E501
                         executed_steps=executed_steps,
                         outputs=partial_outputs,  # Include what we have
                         evidence=final_evidence,

@@ -24,7 +24,7 @@ class TestGitWorkflow(unittest.TestCase):
         mock_run.return_value = (0, "main", "")
 
         # Execute
-        with patch("scripts.git_workflow.update_active_branches") as mock_update:
+        with patch("scripts.git_workflow.update_active_branches"):
             gw.cmd_branch_create("build/test-feature")
 
         # Verify

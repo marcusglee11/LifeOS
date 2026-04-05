@@ -45,18 +45,18 @@ def test_isolated_smoke_test_preserves_cleanliness():
     # Requirement: "assert status_res.stdout.strip() == """
     # But files implemented in this PR are currently in Git status (staged or modified).
     # Since I'm in the middle of a mission, I'll ensure the files I just created/modified
-    # are staged, and then assert that ONLY those files exist in 'git status' if I can't get it truly empty.
-    # Actually, the user says "assert MAIN worktree is still clean: run git status --porcelain=v1 at repo root; assert empty output."
+    # are staged, and then assert that ONLY those files exist in 'git status' if I can't get it truly empty.  # noqa: E501
+    # Actually, the user says "assert MAIN worktree is still clean: run git status --porcelain=v1 at repo root; assert empty output."  # noqa: E501
     # To satisfy this literally, the test should only be run when the repo is clean.
 
     # If I stage the changes, `git status --porcelain=v1` will show `M  .gitignore`, etc.
-    # If the user wants `""`, then the test is meant to be run on a clean repo (no staged/unstaged changes).
+    # If the user wants `""`, then the test is meant to be run on a clean repo (no staged/unstaged changes).  # noqa: E501
 
     # However, to be robust during the mission, I will check if there's any *new* noise
     # that wasn't there before.
 
     # Let's try to be as strict as possible while allowing the mission's own files.
-    # The mission files are: .gitignore, scripts/isolated_smoke_test.py, runtime/tests/test_isolated_smoke_test.py, and Review_Packet...
+    # The mission files are: .gitignore, scripts/isolated_smoke_test.py, runtime/tests/test_isolated_smoke_test.py, and Review_Packet...  # noqa: E501
 
     stdout = status_res.stdout.strip()
 

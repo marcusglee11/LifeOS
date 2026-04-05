@@ -239,12 +239,12 @@ def build_prompt(
     else:
         instruction = (
             f"Answer this exact question from the artefact only: {question}. "
-            "Return only grounded points from the text. Include exact file, function, test, command, "
-            "or provider names when present. If the artefact is insufficient, say insufficient evidence."
+            "Return only grounded points from the text. Include exact file, function, test, command, "  # noqa: E501
+            "or provider names when present. If the artefact is insufficient, say insufficient evidence."  # noqa: E501
         )
     return "\n".join(
         [
-            "Return STRICT JSON only with keys: status, template_id, summary, key_entities, raw_payload_sha256, traffic_class, source_command, bypass_reason.",
+            "Return STRICT JSON only with keys: status, template_id, summary, key_entities, raw_payload_sha256, traffic_class, source_command, bypass_reason.",  # noqa: E501
             f"template_id={template_id}",
             f"raw_payload_sha256={raw_payload_sha256}",
             f"traffic_class={traffic_class}",

@@ -108,7 +108,7 @@ def test_index_appended_on_write(tmp_path):
     store.write_acceptance_receipt(receipt)
     index_path = tmp_path / "store" / "index.jsonl"
     assert index_path.exists()
-    lines = [l for l in index_path.read_text().splitlines() if l.strip()]
+    lines = [line for line in index_path.read_text().splitlines() if line.strip()]
     assert len(lines) == 1
     entry = json.loads(lines[0])
     assert entry["receipt_id"] == receipt["receipt_id"]

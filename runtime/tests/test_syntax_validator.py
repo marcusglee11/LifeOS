@@ -341,8 +341,6 @@ class TestFailClosedBehavior:
         """Unexpected errors during validation fail closed."""
         # This is more of a contract test - the validators catch Exception
         # and return invalid results rather than raising
-        validator = SyntaxValidator()
-
         # Even with weird input, should return ValidationResult (not raise)
         result = validate_python(None)  # type: ignore - intentionally bad input
         assert isinstance(result, ValidationResult)

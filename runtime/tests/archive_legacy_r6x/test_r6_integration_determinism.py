@@ -67,7 +67,7 @@ class TestR6IntegrationDeterminism(unittest.TestCase):
         if sys.platform != "linux" and os.environ.get("COO_PLATFORM_OVERRIDE") != "1":
             # On Windows without override, __init__ raises ImportError.
             # But here we are testing runtime initialization logic.
-            # If we imported coo_runtime successfully (which we did), then we must have override on or be on Linux.
+            # If we imported coo_runtime successfully (which we did), then we must have override on or be on Linux.  # noqa: E501
             # So this test logic is a bit circular if we are running it.
             # Assuming we are running tests with override.
             pass
@@ -150,7 +150,7 @@ class TestR6IntegrationDeterminism(unittest.TestCase):
 
         # Mock enforce_pinned_context_or_fail to return dummy env
         # Mock initialize_runtime
-        with patch("coo_runtime.runtime.replay.initialize_runtime") as mock_init:
+        with patch("coo_runtime.runtime.replay.initialize_runtime"):
             with patch("coo_runtime.runtime.replay.run_pinned_subprocess") as mock_run:
                 # Run Fast Mode
                 replay_engine.execute_replay("mission.json", "amu0_path", mode="fast")

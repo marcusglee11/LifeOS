@@ -67,7 +67,8 @@ def _make_plan(
         tier=tier,
         run_type=run_type,
         required_lenses=required_lenses,
-        model_assignments=model_assignments or {l: "model-x" for l in required_lenses},
+        model_assignments=model_assignments
+        or {lens_name: "model-x" for lens_name in required_lenses},
         mandatory_lenses=mandatory_lenses if mandatory_lenses is not None else frozenset(),
         waivable_lenses=waivable_lenses
         if waivable_lenses is not None
@@ -152,7 +153,7 @@ def test_dispatch_multiple_lenses_sorted_by_name():
     lenses = ("Risk", "Governance", "Architecture")
     plan = _make_plan(
         required_lenses=lenses,
-        model_assignments={l: "model-x" for l in lenses},
+        model_assignments={lens_name: "model-x" for lens_name in lenses},
         mandatory_lenses=frozenset(),
         waivable_lenses=frozenset(lenses),
     )
@@ -266,7 +267,7 @@ def test_dispatch_mixed_results_coverage_degraded():
 
     plan = _make_plan(
         required_lenses=lenses,
-        model_assignments={l: "model-x" for l in lenses},
+        model_assignments={lens_name: "model-x" for lens_name in lenses},
         mandatory_lenses=frozenset(),
         waivable_lenses=frozenset({"Beta"}),
     )

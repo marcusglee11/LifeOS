@@ -16,13 +16,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from runtime.tools.schemas import AuthHealthResult
+from runtime.tools.schemas import AuthHealthResult  # noqa: E402
 
 COOLDOWN_RE = re.compile(
     r"(in cooldown|all profiles unavailable|profiles are unavailable)", re.IGNORECASE
 )
 INVALID_MISSING_RE = re.compile(
-    r"(expired|missing|invalid|unauthorized|not authenticated|authentication required|token has been invalidated)",
+    r"(expired|missing|invalid|unauthorized|not authenticated|authentication required|token has been invalidated)",  # noqa: E501
     re.IGNORECASE,
 )
 EXPIRING_RE = re.compile(r"(expiring soon|expires in\s*[0-9]+(?:m|h))", re.IGNORECASE)

@@ -7,7 +7,9 @@ from pathlib import Path
 from runtime.tests.test_coo_worktree_breakglass import _prepare_repo
 
 
-def _run_ensure(repo_dir: Path, env: dict[str, str], *extra: str) -> subprocess.CompletedProcess[str]:
+def _run_ensure(
+    repo_dir: Path, env: dict[str, str], *extra: str
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [str(repo_dir / "runtime" / "tools" / "coo_worktree.sh"), "ensure", *extra],
         cwd=repo_dir,
@@ -32,7 +34,7 @@ def _seed_windows_launcher(repo_dir: Path, name: str = "COO_TUI.cmd") -> Path:
     launcher.write_text(
         "@echo off\n"
         "setlocal\n"
-        "wsl.exe -d Ubuntu -e bash -lic \"cd /mnt/c/Users/cabra/Projects/LifeOS && coo tui\"\n"
+        'wsl.exe -d Ubuntu -e bash -lic "cd /mnt/c/Users/cabra/Projects/LifeOS && coo tui"\n'
         "endlocal\n",
         encoding="utf-8",
     )

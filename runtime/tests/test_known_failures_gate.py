@@ -16,7 +16,7 @@ scripts_dir = Path(__file__).parent.parent.parent / "scripts"
 sys.path.insert(0, str(scripts_dir))
 
 # Import after path modification
-import importlib.util
+import importlib.util  # noqa: E402
 
 spec = importlib.util.spec_from_file_location(
     "check_known_failures_gate", scripts_dir / "check_known_failures_gate.py"

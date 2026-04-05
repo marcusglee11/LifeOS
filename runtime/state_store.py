@@ -46,7 +46,9 @@ class StateStore:
         try:
             os.makedirs(storage_path, exist_ok=True)
         except OSError as e:
-            raise StateStoreError(f"Failed to create storage directory '{storage_path}': {e}")
+            raise StateStoreError(
+                f"Failed to create storage directory '{storage_path}': {e}"
+            ) from e
 
     def write_state(self, key: str, state: Dict[str, Any]):
         """Write state to disk. Fail-closed: raises StateStoreError on filesystem errors."""
@@ -55,7 +57,7 @@ class StateStore:
             with open(path, "w") as f:
                 json.dump(state, f, sort_keys=True)
         except OSError as e:
-            raise StateStoreError(f"Failed to write state '{key}': {e}")
+            raise StateStoreError(f"Failed to write state '{key}': {e}") from e
 
     def read_state(self, key: str) -> Dict[str, Any]:
         """Read state from disk. Fail-closed: raises StateStoreError on filesystem/JSON errors."""
@@ -66,9 +68,9 @@ class StateStore:
             with open(path, "r") as f:
                 return json.load(f)
         except OSError as e:
-            raise StateStoreError(f"Failed to read state '{key}': {e}")
+            raise StateStoreError(f"Failed to read state '{key}': {e}") from e
         except json.JSONDecodeError as e:
-            raise StateStoreError(f"Invalid JSON in state '{key}': {e}")
+            raise StateStoreError(f"Invalid JSON in state '{key}': {e}") from e
 
     def create_snapshot(self, key: str) -> str:
         """Create SHA256 hash of state. Fail-closed: raises StateStoreError if state unreadable."""

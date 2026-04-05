@@ -65,7 +65,7 @@ class TestDeepSeekP0Blockers:
         """Bypass denied if patch creates/modifies symlink."""
         # Simulated by passing extra metadata or just a known symlink path if we could detect it.
         # Check if policy implementation handles the 'has_symlinks' flag or similar.
-        # We need to implement this detection in the Mission and pass it, or Policy needs to refuse '120000' modes.
+        # We need to implement this detection in the Mission and pass it, or Policy needs to refuse '120000' modes.  # noqa: E501
         # Let's assume we pass 'has_suspicious_modes' in patch stats.
         patch_stats = {
             "files_touched": 1,

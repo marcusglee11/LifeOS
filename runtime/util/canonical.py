@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
 from typing import Any, Union
 
 
@@ -167,7 +168,7 @@ def verify_canonical(json_str: str, obj: Any) -> bool:
         return False
 
 
-def sha256_file(path: Union[str, "Path"]) -> str:
+def sha256_file(path: Union[str, Path]) -> str:
     """
     Compute SHA-256 hash of a file on disk.
 

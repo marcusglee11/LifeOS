@@ -19,7 +19,7 @@ def dogfood_context(tmp_path):
 
 def test_autonomous_build_cycle_imports():
     """Regression Guard: Verify AutonomousBuildCycleMission modules import correctly."""
-    # This test fails if PolicyLoader or other dependencies are missing from runtime.api.governance_api
+    # This test fails if PolicyLoader or other dependencies are missing from runtime.api.governance_api  # noqa: E501
     from runtime.orchestration.missions.autonomous_build_cycle import AutonomousBuildCycleMission
 
     assert AutonomousBuildCycleMission is not None
@@ -113,7 +113,7 @@ def test_plan_bypass_activation(dogfood_context):
                 evidence={"usage": {"total": 1}},
             )
 
-            # Build: Attempt 1 and Attempt 2 must have different content to avoid "NO_PROGRESS" deadlock check
+            # Build: Attempt 1 and Attempt 2 must have different content to avoid "NO_PROGRESS" deadlock check  # noqa: E501
             B.return_value.run.side_effect = [
                 MissionResult(
                     True,

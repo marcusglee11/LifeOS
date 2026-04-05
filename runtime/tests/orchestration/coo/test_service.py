@@ -91,7 +91,7 @@ suggested_owner: lifeos
         "runtime.orchestration.coo.service.invoke_coo_reasoning",
         return_value=malformed,
     ):
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             chat_message("write a note", tmp_path)
 
 

@@ -136,7 +136,7 @@ def invoke_coo_reasoning(
         message = (
             f"[MACHINE_API mode={mode}]\n"
             "Draft the task proposal packet for CEO review.\n"
-            "This is the DRAFTING stage — the CEO will approve or reject AFTER seeing your output.\n"
+            "This is the DRAFTING stage — the CEO will approve or reject AFTER seeing your output.\n"  # noqa: E501
             "Your output IS the proposal document. Output it as YAML and nothing else.\n\n"
             "OUTPUT FORMAT (strict):\n"
             "- First line MUST be exactly: schema_version: task_proposal.v1\n"
@@ -149,7 +149,7 @@ def invoke_coo_reasoning(
         message = (
             f"[MACHINE_API mode={mode}]\n"
             "Classify this direct CEO objective.\n"
-            "If it fits an allowlisted workspace/internal action, emit operation_proposal.v1 YAML.\n"
+            "If it fits an allowlisted workspace/internal action, emit operation_proposal.v1 YAML.\n"  # noqa: E501
             "Otherwise emit escalation_packet.v1 YAML.\n"
             "Output YAML and nothing else.\n\n"
             "OUTPUT FORMAT (strict):\n"

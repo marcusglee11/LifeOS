@@ -155,10 +155,10 @@ def test_suite_handles_duplicate_scenario_names():
     assert len(result.scenario_results) == 1
     assert "dupe" in result.scenario_results
     # Verify the last one won by checking a property of the result hash or internal state
-    # (Since both run 'daily_loop' with no params, their results are identical except possibly for receipt timing?)
+    # (Since both run 'daily_loop' with no params, their results are identical except possibly for receipt timing?)  # noqa: E501
     # Wait, daily loop is deterministic. The results should be identical.
     # To differentiate, I need different params or initial state affecting the result.
-    # But wait, daily_loop result doesn't expose initial_state in `to_dict()` directly unless we debug.
+    # But wait, daily_loop result doesn't expose initial_state in `to_dict()` directly unless we debug.  # noqa: E501
     # Oh, wait. `run_scenario` uses initial_state to create ExecutionContext.
     # Mission result doesn't capture initial state, but final_init_state does capture modifications.
     # Daily loop step count?
@@ -178,7 +178,7 @@ def test_suite_handles_duplicate_scenario_names():
     )
 
     res = run_suite(suite_def_echo)
-    # OrchestrationResult doesn't carry workflow metadata, but echo mission puts params in step payload.
+    # OrchestrationResult doesn't carry workflow metadata, but echo mission puts params in step payload.  # noqa: E501
     echo_res = res.scenario_results["echo_dupe"].mission_results["echo"].to_dict()
     assert echo_res["executed_steps"][0]["payload"]["params"]["id"] == "2"
 

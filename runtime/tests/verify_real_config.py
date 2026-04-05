@@ -24,7 +24,7 @@ class TestRealConfig(unittest.TestCase):
         builder = config.agents["builder"]
         self.assertEqual(builder.api_key_env, "OPENROUTER_BUILDER_KEY")
 
-        # Check fallback (simple existence check for now as models.py AgentConfig might not fully parse dicts deeply into objs yet)
+        # Check fallback (simple existence check for now as models.py AgentConfig might not fully parse dicts deeply into objs yet)  # noqa: E501
         self.assertTrue(len(steward.fallback) > 0)
         self.assertEqual(steward.fallback[0]["provider"], "zen")
 

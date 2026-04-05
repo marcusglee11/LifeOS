@@ -40,7 +40,7 @@ def test_normalize_branch_rejects_prefix_kind_conflict() -> None:
 
 
 def test_start_build_json_output_success(monkeypatch, capsys, tmp_path: Path) -> None:
-    fake_out = "✓ Worktree ready at: /tmp/repo/.worktrees/auth-token\n  Run: cd /tmp/repo/.worktrees/auth-token\n"
+    fake_out = "✓ Worktree ready at: /tmp/repo/.worktrees/auth-token\n  Run: cd /tmp/repo/.worktrees/auth-token\n"  # noqa: E501
 
     def fake_run(*args, **kwargs):
         return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=fake_out, stderr="")

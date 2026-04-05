@@ -78,8 +78,6 @@ def run_command_capture(
 
     status = CaptureStatus.OK
     exit_code = 0
-    exec_error_msg = None
-
     # 5. Streaming Execution
     try:
         with open(stdout_path, "wb") as f_stdout, open(stderr_path, "wb") as f_stderr:
@@ -111,7 +109,7 @@ def run_command_capture(
     except Exception as e:
         # File operations failed (e.g. disk full, permission)
         # This is a fatal infrastructure error
-        raise RuntimeError(f"Failed to open/write evidence files: {str(e)}")
+        raise RuntimeError(f"Failed to open/write evidence files: {str(e)}") from e
 
     # 6. Write exitcode file
     with open(exitcode_path, "w", encoding="utf-8", newline="\n") as f:

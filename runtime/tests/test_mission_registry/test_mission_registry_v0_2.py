@@ -9,6 +9,8 @@ Tests for v0.2 synthesis + validation:
 - Golden fixture: determinism proof
 """
 
+from dataclasses import FrozenInstanceError
+
 import pytest
 
 # v0.2 imports — these will fail until implemented
@@ -110,7 +112,7 @@ class TestCycle2SynthesisRequestSchema:
     def test_synthesis_request_is_frozen(self):
         """MissionSynthesisRequest is immutable."""
         req = MissionSynthesisRequest(id="test-id", name="Test Name")
-        with pytest.raises(Exception):  # FrozenInstanceError
+        with pytest.raises(FrozenInstanceError):
             req.id = "changed"
 
 

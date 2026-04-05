@@ -96,7 +96,7 @@ class AutonomousBuildCycleMission(BaseMission):
                 # We can't return a Result from validate_inputs, must raise.
                 # But strict fail-closed requires blocking.
                 raise MissionValidationError(
-                    f"Handoff version mismatch. Expected {req_version}, got {inputs['handoff_schema_version']}"
+                    f"Handoff version mismatch. Expected {req_version}, got {inputs['handoff_schema_version']}"  # noqa: E501
                 )
 
     def _can_reset_workspace(self, context: MissionContext) -> bool:
@@ -113,7 +113,7 @@ class AutonomousBuildCycleMission(BaseMission):
         # If we can't implement reset, we return False.
         # Since I don't have a built-in resetter:
         return True  # Stub for MVP, implying "Assume Clean" for now?
-        # User constraint: "If a clean reset cannot be guaranteed... fail-closed: ESCALATION_REQUESTED reason WORKSPACE_RESET_UNAVAILABLE"
+        # User constraint: "If a clean reset cannot be guaranteed... fail-closed: ESCALATION_REQUESTED reason WORKSPACE_RESET_UNAVAILABLE"  # noqa: E501
         # I will enforce this check at start of loop.
 
     def _compute_hash(self, obj: Any) -> str:
@@ -290,7 +290,8 @@ class AutonomousBuildCycleMission(BaseMission):
 
         Returns:
             BacklogItem or None if no eligible tasks
-            Raises: FileNotFoundError if BACKLOG.md missing (caller distinguishes from NO_ELIGIBLE_TASKS)
+            Raises: FileNotFoundError if BACKLOG.md is missing. The caller
+                distinguishes that case from NO_ELIGIBLE_TASKS.
         """
         backlog_path = context.repo_root / "docs" / "11_admin" / "BACKLOG.md"
 
@@ -407,7 +408,7 @@ class AutonomousBuildCycleMission(BaseMission):
                     )
                     return self._make_result(
                         success=False,
-                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}",
+                        escalation_reason=f"{reason}: Ledger has {ledger.header['policy_hash']}, current is {current_policy_hash}",  # noqa: E501
                         executed_steps=executed_steps,
                     )
                 executed_steps.append("ledger_hydrated")
@@ -426,7 +427,7 @@ class AutonomousBuildCycleMission(BaseMission):
                             # Still pending, cannot resume
                             return self._make_result(
                                 success=False,
-                                escalation_reason=f"Escalation {escalation_id} still pending CEO approval",
+                                escalation_reason=f"Escalation {escalation_id} still pending CEO approval",  # noqa: E501
                                 outputs={"escalation_id": escalation_id},
                                 executed_steps=executed_steps,
                             )
@@ -468,7 +469,7 @@ class AutonomousBuildCycleMission(BaseMission):
         except LedgerIntegrityError as e:
             return self._make_result(
                 success=False,
-                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}",
+                error=f"{TerminalOutcome.BLOCKED.value}: {TerminalReason.LEDGER_CORRUPT.value} - {e}",  # noqa: E501
                 executed_steps=executed_steps,
             )
 
@@ -658,7 +659,6 @@ class AutonomousBuildCycleMission(BaseMission):
             # Classification
             success = False
             failure_class = None
-            term_reason = None
 
             verdict = or_res.outputs.get("verdict")
             if verdict == "approved":
@@ -924,9 +924,9 @@ class AutonomousBuildCycleMission(BaseMission):
             Suggestion string for retry
         """
         suggestions = {
-            FailureClass.TEST_FAILURE: "Review test failures and fix the code logic that's causing assertions to fail.",
-            FailureClass.TEST_FLAKE: "This test appears flaky (passed before, failed now). Consider investigating timing issues or test dependencies.",
-            FailureClass.TEST_TIMEOUT: "Tests exceeded timeout limit. Consider optimizing slow tests or increasing timeout threshold.",
+            FailureClass.TEST_FAILURE: "Review test failures and fix the code logic that's causing assertions to fail.",  # noqa: E501
+            FailureClass.TEST_FLAKE: "This test appears flaky (passed before, failed now). Consider investigating timing issues or test dependencies.",  # noqa: E501
+            FailureClass.TEST_TIMEOUT: "Tests exceeded timeout limit. Consider optimizing slow tests or increasing timeout threshold.",  # noqa: E501
         }
         return suggestions.get(
             failure_class, "Review the test output and fix the underlying issue."

@@ -80,6 +80,98 @@ def _branch_requires_isolation(branch: str) -> bool:
     return branch.startswith(("build/", "fix/", "hotfix/", "spike/"))
 
 
+def _review_checkpoint_path(repo_root: Path, branch: str) -> Path:
+    git_common = _git_stdout(repo_root, ["rev-parse", "--git-common-dir"]).strip()
+    git_common_dir = Path(git_common) if git_common else repo_root / ".git"
+    if not git_common_dir.is_absolute():
+        git_common_dir = repo_root / git_common_dir
+    slug = branch.replace("/", "__")
+    return git_common_dir / "lifeos" / "reviews" / f"{slug}.md"
+
+
+def _write_review_checkpoint(
+    repo_root: Path,
+    *,
+    branch: str,
+    changed_files: list[str],
+    commits: list[str],
+    test_results: list[str],
+) -> tuple[bool, str]:
+    try:
+        checkpoint_path = _review_checkpoint_path(repo_root, branch)
+        checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+
+        merge_base = _git_stdout(repo_root, ["merge-base", "main", "HEAD"])
+        diff_range = f"{merge_base}..HEAD" if merge_base else "HEAD~1..HEAD"
+        diff_stat = _git_stdout(repo_root, ["diff", "--stat", diff_range]) or "Unavailable"
+
+        review_commands = [
+            "BASE=$(git merge-base main HEAD)",
+            'git log --oneline "$BASE"..HEAD',
+            'git diff --stat "$BASE"..HEAD',
+            'git diff "$BASE"..HEAD',
+            "python3 scripts/workflow/quality_gate.py check --scope changed --json",
+            "git diff --check",
+        ]
+        if any(path.endswith(".py") and path.startswith("runtime/") for path in changed_files):
+            review_commands.extend(
+                [
+                    "/mnt/c/Users/cabra/Projects/LifeOS/.venv/bin/python -m ruff check runtime",
+                    (
+                        "/mnt/c/Users/cabra/Projects/LifeOS/.venv/bin/python "
+                        "-m ruff format --check runtime"
+                    ),
+                ]
+            )
+
+        changed_lines = [f"- {path}" for path in changed_files[:80]] or ["- None detected"]
+        if len(changed_files) > 80:
+            changed_lines.append(f"- ... ({len(changed_files) - 80} more)")
+
+        commit_lines = [f"- {line}" for line in commits] or ["- None"]
+        result_lines = [f"- {line}" for line in test_results] or ["- None yet"]
+
+        review_skill_path = (
+            repo_root / ".claude" / "skills" / "review-build" / "SKILL.md"
+        ).relative_to(repo_root)
+
+        checkpoint_path.write_text(
+            "\n".join(
+                [
+                    "# Post-Build Review Brief",
+                    "",
+                    f"Generated: {datetime.now(timezone.utc).isoformat()}",
+                    f"Branch: `{branch}`",
+                    f"Review Skill: `{review_skill_path}`",
+                    "",
+                    "## Review Commands",
+                    "```bash",
+                    *review_commands,
+                    "```",
+                    "",
+                    "## Recent Commits",
+                    *commit_lines,
+                    "",
+                    "## Changed Files",
+                    *changed_lines,
+                    "",
+                    "## Closure Verification",
+                    *result_lines,
+                    "",
+                    "## Diff Stat",
+                    "```text",
+                    diff_stat,
+                    "```",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        return True, str(checkpoint_path)
+    except Exception as exc:
+        return False, f"Failed to write review checkpoint: {exc}"
+
+
 def _commit_doc_autofix(repo_root: Path) -> tuple[bool, str]:
     status_lines = _git_stdout(repo_root, ["status", "--short"]).splitlines()
     changed = [line[3:].strip() for line in status_lines if len(line) >= 4]
@@ -217,13 +309,16 @@ def main() -> int:
 
     if _branch_requires_isolation(branch) and _is_primary_worktree(repo_root):
         what_remains.append(
-            f"ISOLATION_REQUIRED: close-build for '{branch}' must run from the linked worktree, not primary."
+            "ISOLATION_REQUIRED: close-build for "
+            f"'{branch}' must run from the linked worktree, not primary."
         )
         what_remains.append(
-            "Recover this branch in-place: python3 scripts/workflow/start_build.py --recover-primary"
+            "Recover this branch in-place: "
+            "python3 scripts/workflow/start_build.py --recover-primary"
         )
         what_remains.append(
-            "Or create a fresh isolated branch: python3 scripts/workflow/start_build.py <topic> --kind "
+            "Or create a fresh isolated branch: "
+            "python3 scripts/workflow/start_build.py <topic> --kind "
             f"{branch.split('/', 1)[0]}"
         )
         _print_report(
@@ -267,7 +362,9 @@ def main() -> int:
     what_done.append("Closure targeted tests passed.")
 
     quality_check = run_quality_gates(repo_root, changed_files, scope="changed", fix=False)
-    test_results.append(f"{'PASS' if quality_check['passed'] else 'FAIL'}: {quality_check['summary']}")
+    test_results.append(
+        f"{'PASS' if quality_check['passed'] else 'FAIL'}: {quality_check['summary']}"
+    )
     for command in quality_check["commands_run"]:
         test_results.append(f"- {command}")
     if not quality_check["passed"]:
@@ -319,6 +416,25 @@ def main() -> int:
         what_done.append("Doc stewardship gate passed.")
     else:
         what_done.append("Doc stewardship gate skipped (no docs changes).")
+
+    review_checkpoint_ok, review_checkpoint_msg = _write_review_checkpoint(
+        repo_root,
+        branch=branch,
+        changed_files=changed_files,
+        commits=commits,
+        test_results=test_results,
+    )
+    if not review_checkpoint_ok:
+        what_remains.append(review_checkpoint_msg)
+        _print_report(
+            branch=branch,
+            commits=commits,
+            test_results=test_results,
+            what_done=what_done,
+            what_remains=what_remains,
+        )
+        return 1
+    what_done.append(f"Generated review checkpoint: {review_checkpoint_msg}.")
 
     if args.dry_run:
         what_done.append("Dry-run completed; merge and cleanup were skipped.")
@@ -394,7 +510,9 @@ def main() -> int:
                     "Regenerated and committed runtime_status.json for freshness compliance."
                 )
             else:
-                what_remains.append(f"Runtime status generation failed: {status_proc.stderr.strip()}")
+                what_remains.append(
+                    f"Runtime status generation failed: {status_proc.stderr.strip()}"
+                )
     elif plan_only_change:
         what_done.append("Skipped runtime_status.json refresh for plan-only artifact change.")
 
@@ -427,7 +545,8 @@ def main() -> int:
         )
         if structured_update["updated"]:
             what_done.append(
-                f"Marked {len(structured_update['tasks_completed'])} task(s) complete in backlog.yaml: "
+                f"Marked {len(structured_update['tasks_completed'])} "
+                "task(s) complete in backlog.yaml: "
                 f"{', '.join(structured_update['tasks_completed'])}"
             )
         for err in structured_update["errors"]:

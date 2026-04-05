@@ -1115,7 +1115,9 @@ def main() -> int:
         "pipeline", help="Run pipeline readiness certification"
     )
     p_certify_pipeline.add_argument("--profile", choices=("local", "ci", "live"), required=True)
-    p_certify_ops = certify_subs.add_parser("ops", help="Run constrained ops readiness certification")
+    p_certify_ops = certify_subs.add_parser(
+        "ops", help="Run constrained ops readiness certification"
+    )
     p_certify_ops.add_argument("--profile", choices=("local", "ci", "live"), required=True)
 
     # coo group
@@ -1157,7 +1159,7 @@ def main() -> int:
     p_coo_direct.add_argument(
         "--execute",
         action="store_true",
-        help="Execute immediately if the COO returns an allowlisted operation proposal that does not require approval",
+        help="Execute immediately if the COO returns an allowlisted operation proposal that does not require approval",  # noqa: E501
     )
 
     p_coo_chat = coo_subs.add_parser(

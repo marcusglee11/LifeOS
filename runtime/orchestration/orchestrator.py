@@ -262,7 +262,7 @@ class ValidationOrchestrator:
                 if actual_job_spec_sha != expected_job_spec_sha:
                     tamper_message = (
                         "job_spec.json tampered after preflight: "
-                        f"expected_sha256={expected_job_spec_sha} actual_sha256={actual_job_spec_sha}"
+                        f"expected_sha256={expected_job_spec_sha} actual_sha256={actual_job_spec_sha}"  # noqa: E501
                     )
                     report_path = self._emit_terminal_report(
                         attempt_dir=attempt_dir,
@@ -314,7 +314,7 @@ class ValidationOrchestrator:
                 if postflight.success:
                     assert postflight.token_path is not None
                     try:
-                        acceptance_record = accept(postflight.token_path)
+                        accept(postflight.token_path)
                     except AcceptanceTokenError as exc:
                         retry_state.record_failure("postflight", exc.code)
                         self._append_recovery_event(

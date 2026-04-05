@@ -9,6 +9,7 @@ Tests for BUILD packet acceptance criteria:
 import pytest
 
 from runtime.mission import (
+    MissionBoundaryViolation,
     MissionConflictError,
     MissionDefinition,
     MissionId,
@@ -53,7 +54,7 @@ class TestAT2InterfaceDefinedNoExecution:
         reg = MissionRegistry()
 
         # Invalid: empty ID
-        with pytest.raises(Exception):
+        with pytest.raises(MissionBoundaryViolation):
             empty_id = MissionId(value="")
             reg.register(MissionDefinition(id=empty_id, name="Test"))
 

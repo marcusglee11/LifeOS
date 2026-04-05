@@ -24,7 +24,7 @@ def db_conn():
         )
     """)
     conn.execute(
-        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO missions (id, status, description, max_cost_usd, max_loops, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",  # noqa: E501
         ("m1", "executing", "desc", 10.0, 5, "now", "now"),
     )
     conn.commit()
@@ -48,7 +48,7 @@ def test_compute_thresholds():
 def test_backpressure_pause(db_conn):
     # 1 task, limit 50
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status) VALUES (?, ?, ?, ?, ?)",  # noqa: E501
         ("t1", "m1", 1, "desc", "executing"),
     )
 
@@ -81,7 +81,7 @@ def test_backpressure_resume(db_conn):
         "UPDATE missions SET status='paused_error', previous_status='executing' WHERE id='m1'"
     )
     db_conn.execute(
-        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO mission_tasks (id, mission_id, task_order, description, status) VALUES (?, ?, ?, ?, ?)",  # noqa: E501
         ("t1", "m1", 1, "desc", "executing"),
     )
 
@@ -103,6 +103,6 @@ def test_backpressure_resume(db_conn):
 
     # Verify event
     cur = db_conn.execute(
-        "SELECT event_type FROM timeline_events WHERE mission_id='m1' AND event_type='mission_resumed_backpressure'"
+        "SELECT event_type FROM timeline_events WHERE mission_id='m1' AND event_type='mission_resumed_backpressure'"  # noqa: E501
     )
     assert cur.fetchone()

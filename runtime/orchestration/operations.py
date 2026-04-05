@@ -518,7 +518,9 @@ class OperationExecutor:
                 "stderr_lines": len(result.stderr.splitlines()),
             }
 
-        except subprocess.TimeoutExpired:
-            raise OperationFailed(f"Test execution timed out after {ctx.envelope.timeout_seconds}s")
+        except subprocess.TimeoutExpired as exc:
+            raise OperationFailed(
+                f"Test execution timed out after {ctx.envelope.timeout_seconds}s"
+            ) from exc
         except Exception as e:
-            raise OperationFailed(f"Failed to execute tests: {str(e)}")
+            raise OperationFailed(f"Failed to execute tests: {str(e)}") from e

@@ -440,8 +440,14 @@ def _select_lenses(tier: str, policy: CouncilPolicy) -> dict[str, Any]:
 
     # Filter mandatory/waivable through current catalog (enables mock-based exhaustion testing)
     catalog_set = set(policy.lens_catalog)
-    mandatory = [l for l in policy.mandatory_lenses_for_tier(tier) if l in catalog_set]
-    waivable = [l for l in policy.waivable_lenses_for_tier(tier) if l in catalog_set]
+    mandatory = [
+        lens_name
+        for lens_name in policy.mandatory_lenses_for_tier(tier)
+        if lens_name in catalog_set
+    ]
+    waivable = [
+        lens_name for lens_name in policy.waivable_lenses_for_tier(tier) if lens_name in catalog_set
+    ]
 
     # Start with mandatory lenses
     selected = list(mandatory)

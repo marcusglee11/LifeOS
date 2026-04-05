@@ -146,7 +146,7 @@ class TestFallbackChain:
 
     def test_fallback_chain_length_for_agents(self, config: ModelConfig):
         """Each agent should have primary + fallbacks totaling at least 3 models."""
-        for role, agent in config.agents.items():
+        for role, _agent in config.agents.items():
             chain = get_model_chain(role, config)
             assert len(chain) >= 3, f"Agent '{role}' has only {len(chain)} models in chain"
 

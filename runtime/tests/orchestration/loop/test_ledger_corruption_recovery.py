@@ -57,7 +57,7 @@ class TestJSONCorruption:
         """Mid-line JSON corruption triggers LedgerIntegrityError."""
         with open(ledger_path, "w") as f:
             f.write(
-                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'  # noqa: E501
             )
             f.write('{"attempt_id": 1, "timestamp": "2026-01-01", CORRUPT_HERE\n')
 
@@ -71,10 +71,10 @@ class TestJSONCorruption:
         """Partial valid JSON (cut off mid-object) triggers LedgerIntegrityError."""
         with open(ledger_path, "w") as f:
             f.write(
-                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'  # noqa: E501
             )
             f.write(
-                '{"attempt_id": 1, "timestamp": "2026-01-01", "run_id": "run1", "policy_hash": "abc", "input_hash'
+                '{"attempt_id": 1, "timestamp": "2026-01-01", "run_id": "run1", "policy_hash": "abc", "input_hash'  # noqa: E501
             )
 
         ledger = AttemptLedger(ledger_path)
@@ -99,10 +99,10 @@ class TestEncodingErrors:
     """Tests for UTF-8 encoding errors."""
 
     def test_invalid_utf8_in_ledger_line(self, ledger_path):
-        """Invalid UTF-8 bytes in ledger line trigger error (UnicodeDecodeError or LedgerIntegrityError)."""
+        """Invalid UTF-8 bytes in ledger line trigger error (UnicodeDecodeError or LedgerIntegrityError)."""  # noqa: E501
         with open(ledger_path, "wb") as f:
             f.write(
-                b'{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+                b'{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'  # noqa: E501
             )
             # Write invalid UTF-8 sequence
             f.write(b'{"attempt_id": 1, "invalid": "\xff\xfe"}\n')
@@ -159,7 +159,7 @@ class TestSequenceGaps:
 
         # Manually write r5 to file to bypass append validation
         with open(ledger_path, "a") as f:
-            r5 = AttemptRecord(
+            AttemptRecord(
                 attempt_id=5,
                 timestamp="",
                 run_id="run1",
@@ -252,10 +252,10 @@ class TestSequenceGaps:
         """Negative attempt_id in ledger file - integrity_check detects invalid sequence."""
         with open(ledger_path, "w") as f:
             f.write(
-                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'  # noqa: E501
             )
             f.write(
-                '{"attempt_id": -1, "timestamp": "", "run_id": "run1", "policy_hash": "", "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "", "terminal_reason": null, "next_action": "", "rationale": "", "plan_bypass_info": null}\n'
+                '{"attempt_id": -1, "timestamp": "", "run_id": "run1", "policy_hash": "", "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "", "terminal_reason": null, "next_action": "", "rationale": "", "plan_bypass_info": null}\n'  # noqa: E501
             )
 
         ledger = AttemptLedger(ledger_path)
@@ -286,10 +286,10 @@ class TestHeaderValidation:
         """Multiple headers in single ledger - second is treated as record and may fail."""
         with open(ledger_path, "w") as f:
             f.write(
-                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'  # noqa: E501
             )
             f.write(
-                '{"type": "header", "schema_version": "v1.0", "policy_hash": "xyz", "handoff_hash": "789", "run_id": "run2"}\n'
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "xyz", "handoff_hash": "789", "run_id": "run2"}\n'  # noqa: E501
             )
 
         ledger = AttemptLedger(ledger_path)
@@ -301,10 +301,10 @@ class TestHeaderValidation:
         """Header not being first line is caught - empty type triggers error."""
         with open(ledger_path, "w") as f:
             f.write(
-                '{"attempt_id": 1, "timestamp": "", "run_id": "run1", "policy_hash": "", "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "", "terminal_reason": null, "next_action": "", "rationale": "", "plan_bypass_info": null}\n'
+                '{"attempt_id": 1, "timestamp": "", "run_id": "run1", "policy_hash": "", "input_hash": "", "actions_taken": [], "diff_hash": "", "changed_files": [], "evidence_hashes": {}, "success": false, "failure_class": "", "terminal_reason": null, "next_action": "", "rationale": "", "plan_bypass_info": null}\n'  # noqa: E501
             )
             f.write(
-                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'
+                '{"type": "header", "schema_version": "v1.0", "policy_hash": "abc", "handoff_hash": "123", "run_id": "run1"}\n'  # noqa: E501
             )
 
         ledger = AttemptLedger(ledger_path)

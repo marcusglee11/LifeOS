@@ -82,7 +82,7 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
                 "import os",
                 "import sys",
                 "",
-                'print(os.environ.get(\'STUB_MODEL_POLICY_JSON\', \'{"policy_ok":true,"violations":[],"ladders":{}}\'))',
+                'print(os.environ.get(\'STUB_MODEL_POLICY_JSON\', \'{"policy_ok":true,"violations":[],"ladders":{}}\'))',  # noqa: E501
                 "raise SystemExit(int(os.environ.get('STUB_MODEL_POLICY_RC', '0')))",
             ]
         )
@@ -148,7 +148,7 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
             [
                 "#!/usr/bin/env bash",
                 "set -euo pipefail",
-                'if [ "${1:-}" = "agent" ] && [ "${2:-}" = "--local" ] && [ "${3:-}" = "--agent" ] && [ "${4:-}" = "quick" ]; then',
+                'if [ "${1:-}" = "agent" ] && [ "${2:-}" = "--local" ] && [ "${3:-}" = "--agent" ] && [ "${4:-}" = "quick" ]; then',  # noqa: E501
                 '  if [ "${STUB_QUICK_FAIL:-0}" = "1" ]; then',
                 "    echo 'quick unavailable' >&2",
                 "    exit 1",
@@ -160,7 +160,7 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
                 '  if [ -n "${STUB_DISTILL_JSON:-}" ]; then',
                 '    echo "${STUB_DISTILL_JSON}"',
                 "  else",
-                '    echo \'{"payloads":[{"text":"{\\"status\\":\\"ok\\",\\"template_id\\":\\"actionable_faults\\",\\"summary\\":[\\"fallback\\"],\\"key_entities\\":[\\"openclaw\\"],\\"raw_payload_sha256\\":\\"missing\\",\\"traffic_class\\":\\"repo_scans\\",\\"source_command\\":\\"openclaw models status\\",\\"bypass_reason\\":null}"}]}\'',
+                '    echo \'{"payloads":[{"text":"{\\"status\\":\\"ok\\",\\"template_id\\":\\"actionable_faults\\",\\"summary\\":[\\"fallback\\"],\\"key_entities\\":[\\"openclaw\\"],\\"raw_payload_sha256\\":\\"missing\\",\\"traffic_class\\":\\"repo_scans\\",\\"source_command\\":\\"openclaw models status\\",\\"bypass_reason\\":null}"}]}\'',  # noqa: E501
                 "  fi",
                 "  exit 0",
                 "fi",
@@ -169,14 +169,14 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
                 "  exit 0",
                 "fi",
                 'if [ "${1:-}" = "models" ] && [ "${2:-}" = "status" ]; then',
-                "  printf '%s' \"${STUB_MODELS_STATUS:-openai-codex/gpt-5.3-codex text yes configured}\"",
+                "  printf '%s' \"${STUB_MODELS_STATUS:-openai-codex/gpt-5.3-codex text yes configured}\"",  # noqa: E501
                 "  exit 0",
                 "fi",
                 'if [ "${1:-}" = "status" ] && [ "${2:-}" = "--usage" ]; then',
                 "  printf '%s' \"${STUB_STATUS_USAGE:-openai usage visible}\"",
                 "  exit 0",
                 "fi",
-                'if [ "${1:-}" = "status" ] && [ "${2:-}" = "--all" ] && [ "${3:-}" = "--usage" ]; then',
+                'if [ "${1:-}" = "status" ] && [ "${2:-}" = "--all" ] && [ "${3:-}" = "--usage" ]; then',  # noqa: E501
                 "  printf '%s' \"${STUB_STATUS_ALL_USAGE:-- openai-codex usage: 90% left}\"",
                 "  exit 0",
                 "fi",

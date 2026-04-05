@@ -59,9 +59,9 @@ def get_mission_class(mission_type: str):
     """
     try:
         mt = MissionType(mission_type)
-    except ValueError:
+    except ValueError as exc:
         valid = sorted([t.value for t in MissionType])
-        raise MissionError(f"Unknown mission type: '{mission_type}'. Valid types: {valid}")
+        raise MissionError(f"Unknown mission type: '{mission_type}'. Valid types: {valid}") from exc
     return MISSION_TYPES[mt]
 
 

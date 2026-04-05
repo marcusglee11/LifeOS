@@ -15,10 +15,15 @@ Mission Registry / Executor are not included.
 - Trigger: First import of reactive types from outside runtime/reactive/.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
+
+if TYPE_CHECKING:
+    from runtime.reactive.boundaries import ReactiveBoundaryConfig
 
 # Authoritative version constant for reactive layer surfaces
 # Version Alignment: REACTIVE_LAYER_VERSION is the authoritative source for
@@ -53,7 +58,7 @@ class ReactiveTaskRequest:
 
 
 def to_plan_surface(
-    request: ReactiveTaskRequest, config: Optional["ReactiveBoundaryConfig"] = None
+    request: ReactiveTaskRequest, config: ReactiveBoundaryConfig | None = None
 ) -> ReactivePlanSurface:
     """
     Convert a request to a Plan Surface v0.1.
@@ -84,7 +89,7 @@ def to_plan_surface(
 
 
 def build_plan_surface(
-    request: ReactiveTaskRequest, config: Optional["ReactiveBoundaryConfig"] = None
+    request: ReactiveTaskRequest, config: ReactiveBoundaryConfig | None = None
 ) -> ReactivePlanSurface:
     """
     Build a validated Plan Surface v0.1 — THE ONLY EXTERNAL ENTRYPOINT.
