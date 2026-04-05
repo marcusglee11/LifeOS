@@ -13,9 +13,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** COO unsandboxed promotion — COMPLETE
+**Current Focus:** Phase 7 `prod_ci` canonical closure
 **Active WIP:** none
-**Last Updated:** 2026-03-31 (rev33)
+**Last Updated:** 2026-04-05 (rev34)
 
 ---
 
@@ -73,21 +73,35 @@
 - **Phase 5 (COO Bootstrap):** COMPLETE (2026-03-05 → 2026-03-08)
   - All 9 steps merged; live OpenClaw COO (gpt-5.3-codex) operational via gateway
   - `lifeos coo propose` invokes live COO; Stage A parity + Stage B real-backlog = PASS
+- **Phase 6 (`prod_local` Engineering Certification):** COMPLETE (2026-03-31)
+  - `T-021` closed with 3-run local proof at `artifacts/evidence/T_021_prod_local_certification_proof.md`
+- **Phase 7 (`prod_ci` Engineering Certification):** LOCAL BAR MET, CANONICAL CLOSURE STILL PENDING
+  - `lifeos certify pipeline --profile ci` reached `prod_ci` on current `main` state in this closure pass
+  - default-branch `Prod CI Proof` dispatch is still blocked because the workflow is absent on `origin/main`
+- **Phase 8 (COO Control-Plane Completion):** COMPLETE (2026-04-02)
+  - `T-016`, `T-019`, and `T-020` are closed in structured backlog; direct-path parity and prompt/schema authority cleanup are in main
+- **Phase 9 (Ops-Autonomy Ratification):** RATIFIED (2026-04-03)
+  - `workspace_mutation_v1` approved by [Council_Ruling_Phase9_Ops_Ratification_v1.0.md](../01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md)
+- **Phase 10 (Ops Executor Expansion):** PARTIALLY MERGED (2026-04-04)
+  - `workspace_inspection_v1` and `repo_artifact_v1` are implemented on `main`
+  - both new lanes remain `ratification_pending`; no Phase 11 burn-in has started
 
 ---
 
 ## ⚠️ System Blockers
 
-None — all prior blockers resolved:
-- ~~Model reliability~~ → Zen paid routing merged (`adab507`, 2026-02-20)
-- ~~PyYAML missing~~ → PyYAML 6.0.3 installed; steward phase works in E2E proof
-- ~~Auto-commit gap~~ → Working in recent merges (8f6287e, adab507, cb5f5d9)
-- Step 2 (coo-brain) pending Codex test pass — not a blocker, normal pipeline
+- **Phase 7 canonical proof dispatch blocked on GitHub default-branch state**
+  - `gh workflow run .github/workflows/prod_ci_proof.yml --ref main` returned `HTTP 404` on 2026-04-05
+  - after `git fetch origin main`, local `main` is `117` commits ahead of `origin/main`, so the local workflow file is not yet registered on the remote default branch
 
 ---
 
 ## 🟩 Recent Wins
 
+- **2026-04-04:** Phase 10 Batch 2 merged — `repo_artifact_v1` executor surface and tests landed on `main` (`2569ec53`); lane remains `ratification_pending`.
+- **2026-04-04:** Phase 10 Batch 1 merged — `workspace_inspection_v1` executor surface and tests landed on `main` (`8730916e`); lane remains `ratification_pending`.
+- **2026-04-03:** Phase 9 ops ratification COMPLETE — `workspace_mutation_v1` formally ratified by [Council_Ruling_Phase9_Ops_Ratification_v1.0.md](../01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md); `T-023` is decision-complete.
+- **2026-04-02:** Phase 8 control-plane closure reconciled — structured backlog now records `T-016`, `T-019`, and `T-020` complete; the direct COO parity and schema-authority cleanup are in main.
 - **2026-03-31:** Phase 6 `prod_local` proof closure COMPLETE — `T-021` metadata reconciled after the proof-only follow-up: structured backlog marked done, durable proof receipt committed at `artifacts/evidence/T_021_prod_local_certification_proof.md`, and the 3-run local certification proof remains PASS (`prod_local` on all three runs, zero leaks).
 - **2026-03-24:** COO C4 Gate-6 UAT PASS — 5/5 prompts verified on gpt-5.3-codex, manifest activated (approved → active), surface verification PASS. Fixes applied: direct-mode schema example in invoke.py, fallback chain update (openai-codex OAuth re-auth), config permissions hardening. COO unsandboxed promotion COMPLETE.
 - **2026-03-24:** COO C3 PASS — Gate-5 soak complete (16 runs / 4 sessions / 2 calendar days); validator PASS (0 violations). invoke.py hardening merged (commit `5c82de02`): explicit schema mapping + `[MACHINE_API mode=...]` instruction blocks per mode. Advancing to C4 Gate-6 CEO UAT.

@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-03-31
+Last Updated: 2026-04-05
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -118,6 +118,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md) | **ACTIVE** — OpenCode-First Doc Stewardship Adoption |
 | [Council_Ruling_Build_Handoff_v1.0.md](./01_governance/Council_Ruling_Build_Handoff_v1.0.md) | **Approved**: Build Handoff Protocol v1.0 activation-canonical |
 | [Council_Ruling_Build_Loop_Architecture_v1.0.md](./01_governance/Council_Ruling_Build_Loop_Architecture_v1.0.md) | **ACTIVE**: Build Loop Architecture v0.3 authorised for Phase 1 |
+| [Council_Ruling_Phase9_Ops_Ratification_v1.0.md](./01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md) | **ACTIVE** — Phase 9 constrained ops ratification for `workspace_mutation_v1` |
 | [Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md](./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md) | **Active**: Reactive Task Layer v0.1 Signoff |
 | [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
 

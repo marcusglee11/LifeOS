@@ -487,10 +487,10 @@ tasks:
   - docs/11_admin/
   - artifacts/plans/
   - config/tasks/
-  status: pending
+  status: completed
   requires_approval: true
-  owner: ''
-  evidence: ''
+  owner: codex
+  evidence: artifacts/plans/2026-04-02-phase9-ops-autonomy-spec.md + artifacts/review_packets/Phase9_Ops_Autonomy_Review_Packet.md + docs/01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md
   task_type: build
   tags:
   - operations
@@ -498,7 +498,7 @@ tasks:
   - roadmap
   objective_ref: pipeline-readiness
   created_at: '2026-03-27T00:00:00Z'
-  completed_at: null
+  completed_at: '2026-04-03T00:00:00Z'
 - id: T-024
   title: run_doctor mktemp leak on Python subprocess failure
   description: fix_actions_file created by mktemp in run_doctor is not cleaned up

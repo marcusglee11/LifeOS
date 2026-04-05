@@ -1,5 +1,7 @@
 # BACKLOG (prune aggressively; target ≤ 40 items)
 
+<!-- markdownlint-disable MD012 MD013 -->
+
 ## Workflow Hook
 
 **"Done means" checklist:**
@@ -8,7 +10,7 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-03-09 (rev11)
+**Last Updated:** 2026-04-05 (rev12)
 
 ## Now (ready soon; not in WIP yet)
 
@@ -24,6 +26,7 @@
 
 ### P1 (High)
 
+- [ ] **Phase 7 `prod_ci` canonical closure** — DoD: default-branch `Prod CI Proof` workflow dispatches and passes, `T-022` repeat-run proof is re-recorded from a clean worktree, and canon is reconciled — Owner: codex — Context: local `main` is 117 commits ahead of `origin/main`; `gh workflow run .github/workflows/prod_ci_proof.yml --ref main` currently returns 404 — Priority: P1
 - [x] **Ledger Hash Chain (Trusted Builder P1)** — DoD: Tamper-proof linking of bypass records — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
 - [ ] **OpenClaw distill lane operational rollout** — DoD: Session-scoped shadow rollout completed with 12-run / 2-session clean window, CEO-approved shadow success receipt recorded, `models status` active promotion gated by fresh preflight + forced-failure drill + CEO approval, runbook/state updated — Owner: Substrate — Context: Collaborators COO + CEO; distill lane is merged on `main` but not yet an active operating practice; milestone 1 keeps raw path authoritative and `status --all --usage` shadow-only — Priority: P1
 - [ ] **Bypass Monitoring (Trusted Builder P1)** — DoD: Alerting on high bypass utilization — Owner: antigravity — Context: Deferred from Trusted Builder v1.1 Ratification
@@ -53,11 +56,11 @@
 
 - [x] **COO Sandboxing Decision** — DoD: Council ruling on OS-level containment strategy — Owner: Council — Context: COO currently runs with full filesystem + exec access (`sandboxed: false`); autonomy boundary is delegation envelope + fail-closed reasoning only. Requires architectural decision before L1/L2 autonomy promotion — Priority: P2 — **Done: 2026-03-24** — Council ruling APPROVED (2026-03-20); COO promoted to unsandboxed prod L3; manifest active; Gate-6 UAT 5/5 PASS
 - [ ] **COO schema drift guard** — DoD: `output_schema` in `context.py` and `artifacts/coo/schemas.md` stay in sync; add CI check or single source-of-truth — Owner: Substrate — Context: Step 6 gap #3; `build_propose_context()` embeds schema inline, divergence from `schemas.md` is silent — Priority: P2
-- [ ] **`cmd_coo_direct()` live Stage A parity** — DoD: Escalation and ambiguous parity cases pass live COO replay (not just mock tests) — Owner: Substrate — Context: Step 6 gap #4; only mocked tests exist; Stage A escalation/ambiguous cases were SKIPPED — Priority: P2
-- [ ] **COO retry/backoff in `invoke_coo_reasoning()`** — DoD: Gateway timeouts trigger exponential backoff (max 2 retries) before raising `InvocationError` — Owner: Substrate — Context: Step 6 gap #5; current adapter is single-shot; gateway restarts cause cascading failures — Priority: P3
-- [ ] **COO cron/event trigger** — DoD: `lifeos coo propose` runs on a schedule or backlog-change event without manual invocation — Owner: Wiring — Context: Step 6 gap #6; currently manual-pull only — Priority: P2
-- [ ] **`coo.md` output schema section** — DoD: `config/agent_roles/coo.md` includes inline output schema matching `context.py`; `schemas.md` cross-referenced — Owner: Docs — Context: Step 6 gap #7; schema lives only in `schemas.md` + `context.py`, not in the role definition the COO reads — Priority: P2
-- [ ] **`_normalize_proposal_indentation()` field coverage** — DoD: Either generalize the normalizer or add a regression test that fails when new COO sub-keys appear at column 0 — Owner: Substrate — Context: Step 6 gap #2; currently hard-codes 4 field names; new sub-keys silently ignored — Priority: P3
+- [x] **`cmd_coo_direct()` live Stage A parity** — DoD: Escalation and ambiguous parity cases pass live COO replay (not just mock tests) — Owner: Substrate — Context: Step 6 gap #4; only mocked tests exist; Stage A escalation/ambiguous cases were SKIPPED — Priority: P2 — **Done: 2026-04-02** — `T-016` closed from Gate 6 evidence plus direct-path coverage on main
+- [x] **COO retry/backoff in `invoke_coo_reasoning()`** — DoD: Gateway timeouts trigger exponential backoff (max 2 retries) before raising `InvocationError` — Owner: Substrate — Context: Step 6 gap #5; current adapter is single-shot; gateway restarts cause cascading failures — Priority: P3 — **Done: 2026-03-27** — merged `1cd86177` + `69eb7a10`
+- [x] **COO cron/event trigger** — DoD: `lifeos coo propose` runs on a schedule or backlog-change event without manual invocation — Owner: Wiring — Context: Step 6 gap #6; currently manual-pull only — Priority: P2 — **Done: 2026-03-09** — OpenClaw cron heartbeat registered (`T-018`)
+- [x] **`coo.md` output schema section** — DoD: `config/agent_roles/coo.md` includes inline output schema matching `context.py`; `schemas.md` cross-referenced — Owner: Docs — Context: Step 6 gap #7; schema lives only in `schemas.md` + `context.py`, not in the role definition the COO reads — Priority: P2 — **Done: 2026-04-02** — `T-019` closed with prompt authority split in `config/agent_roles/coo.md` and `config/coo/prompt_canonical.md`
+- [x] **`_normalize_proposal_indentation()` field coverage** — DoD: Either generalize the normalizer or add a regression test that fails when new COO sub-keys appear at column 0 — Owner: Substrate — Context: Step 6 gap #2; currently hard-codes 4 field names; new sub-keys silently ignored — Priority: P3 — **Done: 2026-04-02** — `T-020` closed with fail-closed normalization coverage in main
 - [ ] **Thread `OPENCLAW_BIN` into promotion state version check** — DoD: `_current_openclaw_version()` in `openclaw_promotion_state.py` uses `OPENCLAW_BIN` env var (already set by `openclaw_coo_update_protocol.sh`) instead of bare PATH lookup; test with fake binary at explicit path — Owner: Substrate — Context: Codex review finding on `build/openclaw-runtime-upgrade`; version check gates promotion but resolves binary from untrusted PATH; defense-in-depth, not urgent since orchestrated-mode + attestation TTL bound the attack window — Priority: P2
 
 ## Later (not actionable / unclear / exploratory)

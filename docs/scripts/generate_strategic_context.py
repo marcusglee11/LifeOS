@@ -18,6 +18,7 @@ from typing import Tuple, Optional
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 DOCS_DIR = ROOT_DIR / "docs"
 OUTPUT_FILE = DOCS_DIR / "LifeOS_Strategic_Corpus.md"
+MARKDOWNLINT_DISABLE = "<!-- markdownlint-disable -->"
 
 INCLUDE_DIRS = [
     DOCS_DIR / "00_foundations",
@@ -268,6 +269,7 @@ def main():
 
     # Preamble (Dashboard) - Note: No volatile timestamp per deterministic bundle conventions
     dashboard = (
+        f"{MARKDOWNLINT_DISABLE}\n\n"
         f"# ⚡ LifeOS Strategic Dashboard\n"
         f"**Current Tier:** {dash['tier']}\n"
         f"**Active Roadmap Phase:** {dash['roadmap']}\n"
