@@ -75,7 +75,7 @@ The autonomous build cycle follows this chain:
 2. **Policy** — Validate policy hash, governance constraints
 3. **Design** — Designer produces BUILD_PACKET (YAML)
 4. **Build** — Builder produces code + tests from design
-5. **Review** — Reviewer validates architecture, alignment, risk
+5. **Review** — Reviewer validates architecture, alignment, risk. For plan artifacts (PLAN_*.md or BUILD_PACKET YAML), apply the rubric in `docs/02_protocols/Project_Planning_Protocol_v1.0.md §4` before setting status to APPROVED.
 6. **Steward** — Steward commits approved changes, updates docs
 
 Each phase produces a typed packet. See `runtime/orchestration/missions/` for implementation.

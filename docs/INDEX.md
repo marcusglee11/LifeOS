@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-04-05
+Last Updated: 2026-04-05 (rev13)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -161,6 +161,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [EOL_Policy_v1.0.md](./02_protocols/EOL_Policy_v1.0.md) | **Canonical** — LF line endings, config compliance, clean invariant enforcement |
 | [Filesystem_Error_Boundary_Protocol_v1.0.md](./02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md) | **Draft** — Fail-closed filesystem error boundaries, exception taxonomy |
 | [GitHub_Actions_Secrets_Setup.md](./02_protocols/GitHub_Actions_Secrets_Setup.md) | PAT creation, secrets config, and rotation for CI workflows |
+| [Project_Planning_Protocol_v1.0.md](./02_protocols/Project_Planning_Protocol_v1.0.md) | Build mission plan requirements, schema compliance, lifecycle, and review rubric |
 
 ### Council Protocols
 
