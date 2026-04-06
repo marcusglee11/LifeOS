@@ -4,6 +4,7 @@ Typed models for the policy-driven council runtime.
 
 from __future__ import annotations
 
+import enum
 import hashlib
 import json
 import uuid
@@ -285,3 +286,109 @@ class ContradictionLedgerEntry:
 def generate_run_id() -> str:
     """Generate a unique run identifier."""
     return f"council_{uuid.uuid4().hex}"
+
+
+# ---------------------------------------------------------------------------
+# Runner hardening models (provider preflight, seat output, run manifest)
+# ---------------------------------------------------------------------------
+
+
+class SeatFailureClass(str, enum.Enum):
+    """Classification for seat execution outcomes."""
+
+    seat_completed = "seat_completed"
+    provider_unavailable = "provider_unavailable"
+    provider_quota = "provider_quota"
+    seat_timeout = "seat_timeout"
+    seat_schema_invalid = "seat_schema_invalid"
+
+
+@dataclass
+class ProviderHealthResult:
+    """Result of a per-provider preflight health check."""
+
+    provider: str
+    auth_ok: bool
+    echo_ok: bool
+    status: SeatFailureClass
+    latency_seconds: float | None = None
+    error: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "auth_ok": self.auth_ok,
+            "echo_ok": self.echo_ok,
+            "error": self.error,
+            "latency_seconds": self.latency_seconds,
+            "provider": self.provider,
+            "status": self.status.value,
+        }
+
+
+@dataclass
+class NormalizedSeatOutput:
+    """
+    Normalized seat output after parsing raw LLM response.
+
+    Every seat result is coerced into this shape before synthesis.
+    """
+
+    verdict: str
+    findings: list[str]
+    risks: list[str]
+    fixes: list[str]
+    open_questions: list[str]
+    confidence: str
+    assumptions: list[str]
+    complexity_budget: str | None
+    raw_output_path: str | None
+    provider_status: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "assumptions": list(self.assumptions),
+            "complexity_budget": self.complexity_budget,
+            "confidence": self.confidence,
+            "findings": list(self.findings),
+            "fixes": list(self.fixes),
+            "open_questions": list(self.open_questions),
+            "provider_status": self.provider_status,
+            "raw_output_path": self.raw_output_path,
+            "risks": list(self.risks),
+            "verdict": self.verdict,
+        }
+
+
+@dataclass
+class RunManifest:
+    """
+    Immutable run manifest written at archive creation time.
+
+    Written before any LLM calls so that every run — including blocked ones —
+    has a traceable manifest.
+    """
+
+    run_stamp: str
+    run_id: str
+    ccp_path: str
+    archive_path: str
+    seat_map: list[str]
+    provider_bindings: dict[str, str]
+    prompt_hashes: dict[str, str]
+    seat_timeout_seconds: int
+    preflight_timeout_seconds: int
+    review_packet_path: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "archive_path": self.archive_path,
+            "ccp_path": self.ccp_path,
+            "preflight_timeout_seconds": self.preflight_timeout_seconds,
+            "prompt_hashes": dict(sorted(self.prompt_hashes.items())),
+            "provider_bindings": dict(sorted(self.provider_bindings.items())),
+            "review_packet_path": self.review_packet_path,
+            "run_id": self.run_id,
+            "run_stamp": self.run_stamp,
+            "seat_map": list(self.seat_map),
+            "seat_timeout_seconds": self.seat_timeout_seconds,
+        }
