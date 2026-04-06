@@ -46,6 +46,17 @@ def _write_doctor_catalog(repo_dir: Path) -> None:
                     "manual_hint": None,
                 },
             },
+            "model_ladder_auth_failed": {
+                "severity": "drift",
+                "drift_bypassable": True,
+                "owner_system": "models",
+                "remediation": {
+                    "auto_fixable": False,
+                    "action_id": None,
+                    "fix_command": None,
+                    "manual_hint": "Re-authenticate: openclaw models auth login-github-copilot (interactive TTY required)",
+                },
+            },
             "cron_delivery_guard_failed": {
                 "severity": "drift",
                 "drift_bypassable": True,
@@ -130,6 +141,38 @@ def test_doctor_model_ladder_policy_failed_emits_coo_models_fix(tmp_path: Path) 
     proc = _run_doctor(repo_dir, env)
 
     assert proc.returncode == 1
+    assert "BLOCKER_FIX_COMMAND=coo models fix" in proc.stdout
+
+
+def test_doctor_model_ladder_auth_failed_is_not_auto_fixable(tmp_path: Path) -> None:
+    repo_dir, env, _ = _prepare_repo(tmp_path)
+    _write_doctor_catalog(repo_dir)
+    env["STUB_VERIFY_RC"] = "1"
+    env["STUB_GATE_STATUS_JSON"] = json.dumps(
+        {"pass": False, "blocking_reasons": ["model_ladder_auth_failed"]}
+    )
+
+    proc = _run_doctor(repo_dir, env)
+
+    assert proc.returncode == 1
+    assert "BLOCKER_REASON=model_ladder_auth_failed" in proc.stdout
+    assert "BLOCKER_AUTO_FIXABLE=false" in proc.stdout
+    assert "BLOCKER_FIX_COMMAND=" not in proc.stdout
+    assert "login-github-copilot" in proc.stdout
+
+
+def test_doctor_model_ladder_policy_failed_still_auto_fixable(tmp_path: Path) -> None:
+    repo_dir, env, _ = _prepare_repo(tmp_path)
+    _write_doctor_catalog(repo_dir)
+    env["STUB_VERIFY_RC"] = "1"
+    env["STUB_GATE_STATUS_JSON"] = json.dumps(
+        {"pass": False, "blocking_reasons": ["model_ladder_policy_failed"]}
+    )
+
+    proc = _run_doctor(repo_dir, env)
+
+    assert proc.returncode == 1
+    assert "BLOCKER_AUTO_FIXABLE=true" in proc.stdout
     assert "BLOCKER_FIX_COMMAND=coo models fix" in proc.stdout
 
 

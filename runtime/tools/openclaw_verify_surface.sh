@@ -283,7 +283,16 @@ fi
 if [ "${CMD_RC[sandbox_explain_json]:-1}" -ne 0 ]; then add_blocking_reason "sandbox_explain_failed"; fi
 if [ "$GATEWAY_PROBE_PASS" != "true" ]; then add_blocking_reason "gateway_probe_failed"; fi
 if [ "${CMD_RC[policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "policy_assert_failed"; fi
-if [ "${CMD_RC[model_ladder_policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "model_ladder_policy_failed"; fi
+if [ "${CMD_RC[model_ladder_policy_assert]:-1}" -ne 0 ]; then
+  _mlpa_out="$OUT_DIR/model_ladder_policy_assert.txt"
+  if [ -f "$_mlpa_out" ] && python3 -c \
+      "import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if d.get('auth_missing_providers') else 1)" \
+      "$_mlpa_out" 2>/dev/null; then
+    add_blocking_reason "model_ladder_auth_failed"
+  else
+    add_blocking_reason "model_ladder_policy_failed"
+  fi
+fi
 if [ "${CMD_RC[multiuser_posture_assert]:-1}" -ne 0 ]; then add_blocking_reason "multiuser_posture_failed"; fi
 if [ "${CMD_RC[interfaces_policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "interfaces_policy_failed"; fi
 if [ "${CMD_RC[sandbox_policy_assert]:-1}" -ne 0 ]; then

@@ -23,6 +23,17 @@
         "manual_hint": null
       }
     },
+    "model_ladder_auth_failed": {
+      "severity": "drift",
+      "drift_bypassable": true,
+      "owner_system": "models",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "Re-authenticate: openclaw models auth login-github-copilot (interactive TTY required)"
+      }
+    },
     "multiuser_posture_failed": {
       "severity": "drift",
       "drift_bypassable": true,
