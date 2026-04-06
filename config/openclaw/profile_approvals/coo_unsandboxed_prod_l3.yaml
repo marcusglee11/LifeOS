@@ -3,7 +3,7 @@ profile_name: coo_unsandboxed_prod_l3
 profile_path: config/openclaw/instance_profiles/coo_unsandboxed_prod_l3.json
 profile_sha256: e1bce4f5be3135cc03390886ed79e46281cdd76e4e473d4bc440a6f34d1cc6bf
 delegation_envelope_path: config/governance/delegation_envelope.yaml
-delegation_envelope_sha256: 236aee34a735eb32347054bc5c4598df0d71728cafc2b01d18c79de53fbf484e
+delegation_envelope_sha256: 49773b1faf80fbe02467d9d0b31b6a018a2da6138d6fca278cb8d94bfcf5dd70
 autonomy_ceiling:
   active_levels:
   - L0
