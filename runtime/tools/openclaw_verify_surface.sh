@@ -150,7 +150,41 @@ if [ "$GATEWAY_PROBE_PASS" != "true" ]; then
   fi
 fi
 to_file policy_assert python3 runtime/tools/openclaw_policy_assert.py --config "$CFG_PATH" --policy-phase "$POLICY_PHASE" --json
-to_file model_ladder_policy_assert python3 runtime/tools/openclaw_model_policy_assert.py --config "$CFG_PATH" --json
+mlpa_models_list_raw="$OUT_DIR/models_list_raw.txt"
+mlpa_policy_json="$OUT_DIR/model_ladder_policy_assert.json"
+mlpa_out="$OUT_DIR/model_ladder_policy_assert.txt"
+set +e
+timeout "$VERIFY_CMD_TIMEOUT_SEC" "${OPENCLAW_BIN:-openclaw}" models list > "$mlpa_models_list_raw" 2>&1
+rc_mlpa_models_list=$?
+python3 runtime/tools/openclaw_model_policy_assert.py --config "$CFG_PATH" --models-list-file "$mlpa_models_list_raw" --json > "$mlpa_policy_json" 2>/dev/null
+rc_mlpa=$?
+set -e
+CMD_RC["model_ladder_policy_assert"]="$rc_mlpa"
+if [ "$rc_mlpa_models_list" -ne 0 ] || [ "$rc_mlpa" -ne 0 ]; then
+  WARNINGS=1
+fi
+python3 - "$mlpa_policy_json" > "$mlpa_out" 2>/dev/null <<'PY' || true
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    data = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+except Exception:
+    print("policy_ok=unknown")
+    print("auth_missing_providers=")
+    print("violations_count=0")
+    raise SystemExit(0)
+
+violations = data.get("violations") or []
+providers = data.get("auth_missing_providers") or []
+print(f"policy_ok={'true' if data.get('policy_ok') else 'false'}")
+print("auth_missing_providers=" + ",".join(str(item) for item in providers if str(item)))
+print(f"violations_count={len(violations)}")
+for violation in violations[:10]:
+    print(f"- {violation}")
+PY
 to_file multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --config "$CFG_PATH" --json
 to_file interfaces_policy_assert python3 runtime/tools/openclaw_interfaces_policy_assert.py --config "$CFG_PATH" --json
 to_file sandbox_policy_assert python3 runtime/tools/openclaw_sandbox_policy_assert.py --config "$CFG_PATH" --instance-profile "$INSTANCE_PROFILE_PATH" --sandbox-explain-file "$OUT_DIR/sandbox_explain_json.txt"
@@ -284,10 +318,9 @@ if [ "${CMD_RC[sandbox_explain_json]:-1}" -ne 0 ]; then add_blocking_reason "san
 if [ "$GATEWAY_PROBE_PASS" != "true" ]; then add_blocking_reason "gateway_probe_failed"; fi
 if [ "${CMD_RC[policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "policy_assert_failed"; fi
 if [ "${CMD_RC[model_ladder_policy_assert]:-1}" -ne 0 ]; then
-  _mlpa_out="$OUT_DIR/model_ladder_policy_assert.txt"
-  if [ -f "$_mlpa_out" ] && python3 -c \
-      "import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if d.get('auth_missing_providers') else 1)" \
-      "$_mlpa_out" 2>/dev/null; then
+  if [ -f "$mlpa_policy_json" ] && [ -f "$mlpa_models_list_raw" ] && python3 -c \
+      "import json,re,sys; model_re=re.compile(r'^[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)+$', re.IGNORECASE); d=json.load(open(sys.argv[1], encoding='utf-8', errors='replace')); lines=open(sys.argv[2], encoding='utf-8', errors='replace').read().splitlines(); has_rows=any((cols:=line.strip().split()) and len(cols) >= 5 and model_re.match(cols[0]) for line in lines if line.strip() and not line.startswith('Model ') and not line.startswith('rc=') and not line.startswith('BUILD_REPO=')); sys.exit(0 if d.get('auth_missing_providers') and has_rows else 1)" \
+      "$mlpa_policy_json" "$mlpa_models_list_raw" 2>/dev/null; then
     add_blocking_reason "model_ladder_auth_failed"
   else
     add_blocking_reason "model_ladder_policy_failed"

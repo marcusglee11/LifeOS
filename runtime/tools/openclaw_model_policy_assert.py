@@ -6,6 +6,7 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -21,11 +22,32 @@ OPENCLAW_BIN = os.environ.get("OPENCLAW_BIN") or "openclaw"
 
 
 def _safe_run(cmd: Sequence[str], timeout_s: int = 20) -> Tuple[int, str]:
+    tmp_path = ""
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_s, check=False)
-        return int(proc.returncode), proc.stdout
+        fd, tmp_path = tempfile.mkstemp(suffix=".txt")
+        os.close(fd)
+        with open(tmp_path, "w", encoding="utf-8") as out:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=out,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            )
+            try:
+                rc = proc.wait(timeout=timeout_s)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
+                rc = 124
+        return rc, Path(tmp_path).read_text(encoding="utf-8", errors="replace")
     except Exception:
         return 1, ""
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
 
 def _collect_model_ids_from_config(cfg: Dict[str, Any]) -> List[str]:
