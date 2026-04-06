@@ -7,6 +7,7 @@ Tests checkpoint/resume semantics, deterministic execution, and fail-closed beha
 
 import hashlib
 import json
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -15,13 +16,18 @@ import yaml
 from runtime.orchestration.loop.run_lock import RunLockError
 from runtime.orchestration.loop.spine import (
     CheckpointPacket,
+    CheckpointTriggered,
     LoopSpine,
     PolicyChangedError,
     SpineState,
     TerminalPacket,
 )
 from runtime.orchestration.run_controller import RepoDirtyError
-from runtime.orchestration.workflow_runtime import build_task_context, build_workflow_instance
+from runtime.orchestration.workflow_runtime import (
+    build_task_context,
+    build_workflow_instance,
+    get_workflow_definition,
+)
 
 
 @pytest.fixture
@@ -721,6 +727,272 @@ class TestArtifactOutputContract:
             data = json.loads(content)
             keys = list(data.keys())
             assert keys == sorted(keys)
+
+
+class TestTokenAccounting:
+    def test_spine_result_carries_token_data(
+        self, clean_repo_root, task_spec, mock_run_controller, mock_policy_hash
+    ):
+        spine = LoopSpine(repo_root=clean_repo_root)
+
+        with patch.object(spine, "_run_chain_steps") as mock_steps:
+            mock_steps.return_value = {
+                "outcome": "PASS",
+                "steps_executed": ["hydrate", "policy", "design"],
+                "commit_hash": "abc123",
+                "tokens_consumed": 50000,
+                "token_source": "actual",
+                "token_accounting_complete": True,
+            }
+
+            spine.run(task_spec=task_spec)
+
+        terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
+        packet_data = yaml.safe_load(terminal_packets[0].read_text("utf-8"))
+        assert packet_data["tokens_consumed"] == 50000
+        assert packet_data["token_source"] == "actual"
+        assert packet_data["token_accounting_complete"] is True
+
+    def test_token_accounting_partial_when_step_missing_usage(
+        self, clean_repo_root, mock_run_controller, mock_policy_hash
+    ):
+        spine = LoopSpine(repo_root=clean_repo_root)
+        instance = build_workflow_instance(
+            workflow_id="legacy_code_change.v1",
+            task_ref="T-usage-missing",
+            order_id="ORD-T-usage-missing",
+            task_context=build_task_context(None, objective="Implement feature"),
+        )
+
+        class FakeMission:
+            def __init__(self, result):
+                self._result = result
+
+            def run(self, context, inputs):
+                return self._result
+
+        mission_map = {
+            "design": FakeMission(
+                SimpleNamespace(
+                    success=True,
+                    outputs={"build_packet": {"deliverables": []}},
+                    evidence={},
+                )
+            ),
+            "build": FakeMission(
+                SimpleNamespace(
+                    success=True,
+                    outputs={"review_packet": {"status": "ok"}},
+                    evidence={"usage": {"total_tokens": 25}},
+                )
+            ),
+            "review": FakeMission(
+                SimpleNamespace(
+                    success=True,
+                    outputs={
+                        "verdict": "approved",
+                        "council_decision": {"verdict": "approved", "synthesis": "ok"},
+                        "reviewer_packet_parsed": {},
+                    },
+                    evidence={"usage": {"total_tokens": 35}},
+                )
+            ),
+            "steward": FakeMission(
+                SimpleNamespace(
+                    success=True,
+                    outputs={},
+                    evidence={"usage": {"total_tokens": 15}},
+                )
+            ),
+        }
+
+        with patch("runtime.orchestration.missions.get_mission_class", side_effect=lambda m: lambda: mission_map[m]):
+            result = spine._run_typed_workflow({"workflow_instance": instance.to_dict()})
+
+        assert result["outcome"] == "PASS"
+        assert result["token_accounting_complete"] is False
+        assert result["tokens_consumed"] == 75
+
+    def test_token_state_persisted_in_task_spec_before_checkpoint(self, clean_repo_root):
+        spine = LoopSpine(repo_root=clean_repo_root)
+        instance = build_workflow_instance(
+            workflow_id="spec_creation.v1",
+            task_ref="T-checkpoint",
+            order_id="ORD-T-checkpoint",
+            task_context=build_task_context(None, objective="Write a spec"),
+        )
+        decision = MagicMock()
+        decision.payload = {"verdict": "escalate"}
+        decision.to_dict.return_value = {"payload": {"verdict": "escalate"}}
+        decision.artifact_type = "review_decision.v1"
+
+        task_spec = {"workflow_instance": instance.to_dict()}
+
+        with patch.object(spine, "_trigger_checkpoint", side_effect=CheckpointTriggered("CP_test")):
+            with pytest.raises(CheckpointTriggered):
+                spine._apply_review_transition(
+                    instance=instance,
+                    definition=get_workflow_definition("spec_creation.v1"),
+                    step=SimpleNamespace(step_id="architect_review"),
+                    decision=decision,
+                    task_spec=task_spec,
+                    total_tokens=123,
+                    token_sources={"estimated"},
+                    token_accounting_complete=False,
+                    run_started_at="2026-04-06T00:00:00+00:00",
+                )
+
+        assert task_spec["_token_accounting"]["tokens"] == 123
+        assert task_spec["_token_accounting"]["sources"] == ["estimated"]
+        assert task_spec["_token_accounting"]["complete"] is False
+
+    def test_resume_restores_saved_token_state(
+        self, clean_repo_root, task_spec, mock_run_controller
+    ):
+        spine = LoopSpine(repo_root=clean_repo_root)
+        checkpoint_packet = CheckpointPacket(
+            checkpoint_id="CP_resume_tokens",
+            run_id="run_resume_tokens",
+            timestamp="2026-02-02T12:00:00Z",
+            trigger="ESCALATION_REQUESTED",
+            step_index=2,
+            policy_hash="current_policy_hash",
+            task_spec={
+                **task_spec,
+                "_token_accounting": {
+                    "tokens": 80,
+                    "sources": ["estimated"],
+                    "complete": False,
+                    "run_started_at": "2026-04-06T00:00:00+00:00",
+                },
+            },
+            resolved=True,
+            resolution_decision="APPROVED",
+        )
+        spine._save_checkpoint(checkpoint_packet)
+
+        with patch.object(spine, "_run_chain_steps") as mock_steps:
+            mock_steps.return_value = {
+                "outcome": "PASS",
+                "steps_executed": ["build", "review", "steward"],
+                "commit_hash": "def456",
+                "tokens_consumed": 120,
+                "token_source": "mixed",
+                "token_accounting_complete": False,
+            }
+            with patch.object(spine, "_get_current_policy_hash", return_value="current_policy_hash"):
+                spine.resume(checkpoint_id="CP_resume_tokens")
+
+        terminal_packets = list((clean_repo_root / "artifacts" / "terminal").glob("TP_*.yaml"))
+        packet_data = yaml.safe_load(terminal_packets[0].read_text("utf-8"))
+        assert packet_data["tokens_consumed"] == 120
+        assert packet_data["token_source"] == "mixed"
+        assert packet_data["token_accounting_complete"] is False
+
+    def test_budget_attempt_uses_revision_cycle_not_step_count(
+        self, clean_repo_root, mock_run_controller, mock_policy_hash
+    ):
+        spine = LoopSpine(repo_root=clean_repo_root)
+        instance = build_workflow_instance(
+            workflow_id="legacy_code_change.v1",
+            task_ref="T-attempts",
+            order_id="ORD-T-attempts",
+            task_context=build_task_context(None, objective="Implement feature"),
+        )
+        attempts: list[int] = []
+
+        class FakeMission:
+            def __init__(self, result):
+                self._result = result
+
+            def run(self, context, inputs):
+                return self._result
+
+        mission_map = {
+            "design": FakeMission(
+                SimpleNamespace(
+                    success=True,
+                    outputs={"build_packet": {"deliverables": []}},
+                    evidence={"usage": {"total_tokens": 10}},
+                )
+            ),
+            "build": FakeMission(
+                SimpleNamespace(
+                    success=True,
+                    outputs={"review_packet": {"status": "ok"}},
+                    evidence={"usage": {"total_tokens": 20}},
+                )
+            ),
+            "review": FakeMission(
+                SimpleNamespace(
+                    success=True,
+                    outputs={
+                        "verdict": "approved",
+                        "council_decision": {"verdict": "approved", "synthesis": "ok"},
+                        "reviewer_packet_parsed": {},
+                    },
+                    evidence={"usage": {"total_tokens": 30}},
+                )
+            ),
+            "steward": FakeMission(
+                SimpleNamespace(
+                    success=True,
+                    outputs={},
+                    evidence={"usage": {"total_tokens": 40}},
+                )
+            ),
+        }
+
+        with (
+            patch("runtime.orchestration.missions.get_mission_class", side_effect=lambda m: lambda: mission_map[m]),
+            patch("runtime.orchestration.loop.spine.BudgetController.check_budget_warn", return_value=False),
+            patch("runtime.orchestration.loop.spine.BudgetController.check_budget") as mock_check_budget,
+        ):
+            mock_check_budget.side_effect = lambda current_attempt, total_tokens, token_accounting_available=True: (
+                attempts.append(current_attempt) or False,
+                None,
+            )
+            result = spine._run_typed_workflow({"workflow_instance": instance.to_dict()})
+
+        assert result["outcome"] == "PASS"
+        assert attempts == [1, 1, 1, 1]
+
+    def test_budget_block_closes_active_invocation(
+        self, clean_repo_root, mock_run_controller, mock_policy_hash
+    ):
+        spine = LoopSpine(repo_root=clean_repo_root)
+        instance = build_workflow_instance(
+            workflow_id="legacy_code_change.v1",
+            task_ref="T-budget-close",
+            order_id="ORD-T-budget-close",
+            task_context=build_task_context(None, objective="Implement feature"),
+        )
+
+        class FakeMission:
+            def run(self, context, inputs):
+                return SimpleNamespace(
+                    success=True,
+                    outputs={"build_packet": {"deliverables": []}},
+                    evidence={"usage": {"total_tokens": 100001}},
+                )
+
+        with (
+            patch.object(spine, "_hydrate_workflow_instance", return_value=instance),
+            patch("runtime.orchestration.missions.get_mission_class", return_value=lambda: FakeMission()),
+        ):
+            result = spine._run_typed_workflow({"workflow_instance": instance.to_dict()})
+
+        assert result["outcome"] == "BLOCKED"
+        assert result["reason"] == "budget_exhausted"
+        invocation_records = list(instance.invocation_records.values())
+        record = next(
+            candidate
+            for candidate in invocation_records
+            if candidate["step_id"] == "design" and candidate["error_code"] == "budget_exhausted"
+        )
+        assert record["lease_status"] == "COMPLETED"
+        assert record["result_status"] == "FAILED"
+        assert record["error_code"] == "budget_exhausted"
 
 
 class TestTerminalPacketLedgerAnchor:

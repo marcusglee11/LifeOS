@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
+
 import pytest
 
-from runtime.orchestration.loop.budgets import BudgetConfig, BudgetController
+from runtime.orchestration.loop.budgets import (
+    BudgetConfig,
+    BudgetController,
+    extract_usage_tokens,
+)
 
 
 class TestBudgetConfig:
@@ -106,3 +113,41 @@ class TestBudgetConfig:
         )
         assert not is_over
         assert reason is None
+
+    def test_extract_usage_tokens_handles_total_tokens_field(self) -> None:
+        assert extract_usage_tokens({"usage": {"total_tokens": 500}}) == 500
+
+    def test_extract_usage_tokens_handles_input_output_fields(self) -> None:
+        assert extract_usage_tokens({"usage": {"input_tokens": 300, "output_tokens": 200}}) == 500
+
+    def test_extract_usage_tokens_handles_legacy_total_field(self) -> None:
+        assert extract_usage_tokens({"usage": {"total": 500}}) == 500
+
+    def test_extract_usage_tokens_returns_none_on_empty(self) -> None:
+        assert extract_usage_tokens({}) is None
+
+    def test_check_budget_warn_fires_at_threshold(self) -> None:
+        controller = BudgetController(BudgetConfig(max_tokens=1000))
+        with patch("runtime.orchestration.loop.budgets.logger") as mock_logger:
+            assert controller.check_budget_warn(800) is True
+        mock_logger.warning.assert_called_once()
+
+    def test_check_budget_warn_silent_below_threshold(self) -> None:
+        controller = BudgetController(BudgetConfig(max_tokens=1000))
+        with patch("runtime.orchestration.loop.budgets.logger") as mock_logger:
+            assert controller.check_budget_warn(799) is False
+        mock_logger.warning.assert_not_called()
+
+    def test_budget_controller_uses_persisted_run_started_at(self) -> None:
+        started = (datetime.now(timezone.utc) - timedelta(minutes=31)).isoformat()
+        controller = BudgetController(
+            BudgetConfig(max_attempts=5, max_tokens=1000, max_wall_clock_minutes=30),
+            run_started_at=started,
+        )
+        is_over, reason = controller.check_budget(
+            current_attempt=1,
+            total_tokens=0,
+            token_accounting_available=True,
+        )
+        assert is_over is True
+        assert reason is not None

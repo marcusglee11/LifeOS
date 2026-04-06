@@ -119,6 +119,27 @@ def test_backward_compatible_defaults():
     assert packet.repo_clean_verified is False
     assert packet.orphan_check_passed is False
     assert packet.packet_hash is None
+    assert packet.tokens_consumed is None
+    assert packet.token_source is None
+    assert packet.token_accounting_complete is True
+
+
+def test_terminal_packet_has_token_accounting_fields():
+    fields_present = {f.name for f in fields(TerminalPacket)}
+    assert {"tokens_consumed", "token_source", "token_accounting_complete"}.issubset(
+        fields_present
+    )
+
+
+def test_token_accounting_complete_defaults_true():
+    packet = TerminalPacket(
+        run_id="run_accounting_defaults",
+        timestamp="2026-02-26T12:00:00+00:00",
+        outcome="PASS",
+        reason="pass",
+        steps_executed=[],
+    )
+    assert packet.token_accounting_complete is True
 
 
 def test_terminal_packet_serializes():

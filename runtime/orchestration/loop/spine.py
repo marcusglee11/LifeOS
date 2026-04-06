@@ -28,6 +28,7 @@ import yaml
 
 from runtime.api.governance_api import PolicyLoader, hash_json
 from runtime.orchestration.council.shadow_runner import ShadowCouncilRunner
+from runtime.orchestration.loop.budgets import BudgetController, extract_usage_tokens
 from runtime.orchestration.loop.bypass_monitor import check_bypass_utilization
 from runtime.orchestration.loop.ledger import (
     AttemptLedger,
@@ -138,6 +139,9 @@ class TerminalPacket:
     repo_clean_verified: bool = False
     orphan_check_passed: bool = False
     packet_hash: Optional[str] = None  # SHA-256, computed last
+    tokens_consumed: Optional[int] = None
+    token_source: Optional[str] = None
+    token_accounting_complete: bool = True
     bypass_utilization: Optional[Dict[str, Any]] = (
         None  # BypassStatus as dict; None if monitor failed
     )
@@ -468,6 +472,9 @@ class LoopSpine:
                 clean_fail_reason=reason if outcome != "PASS" else None,
                 repo_clean_verified=repo_clean_verified,
                 orphan_check_passed=True,
+                tokens_consumed=result.get("tokens_consumed"),
+                token_source=result.get("token_source"),
+                token_accounting_complete=result.get("token_accounting_complete", True),
                 bypass_utilization=vars(_bypass_status) if _bypass_status else None,
             )
             terminal_file = self._emit_terminal(terminal_packet)
@@ -813,6 +820,9 @@ class LoopSpine:
                 clean_fail_reason=reason if outcome != "PASS" else None,
                 repo_clean_verified=repo_clean_verified,
                 orphan_check_passed=True,
+                tokens_consumed=result.get("tokens_consumed"),
+                token_source=result.get("token_source"),
+                token_accounting_complete=result.get("token_accounting_complete", True),
                 bypass_utilization=vars(_bypass_status) if _bypass_status else None,
             )
             terminal_file = self._emit_terminal(terminal_packet)
@@ -875,6 +885,32 @@ class LoopSpine:
             start_from_step=start_from_step,
             execution_root=execution_root,
         )
+
+    @staticmethod
+    def _derive_token_source(sources: set[str]) -> Optional[str]:
+        if not sources:
+            return None
+        return next(iter(sources)) if len(sources) == 1 else "mixed"
+
+    @staticmethod
+    def _current_budget_attempt(instance: WorkflowInstance) -> int:
+        return max(1, instance.revision_count + 1)
+
+    @staticmethod
+    def _stash_token_accounting(
+        task_spec: Dict[str, Any],
+        *,
+        total_tokens: int,
+        token_sources: set[str],
+        token_accounting_complete: bool,
+        run_started_at: str,
+    ) -> None:
+        task_spec["_token_accounting"] = {
+            "tokens": total_tokens,
+            "sources": sorted(token_sources),
+            "complete": token_accounting_complete,
+            "run_started_at": run_started_at,
+        }
 
     def _hydrate_workflow_instance(
         self, task_spec: Dict[str, Any], start_from_step: int
@@ -1026,6 +1062,10 @@ class LoopSpine:
         step,
         decision: WorkflowArtifact,
         task_spec: Dict[str, Any],
+        total_tokens: int,
+        token_sources: set[str],
+        token_accounting_complete: bool,
+        run_started_at: str,
     ) -> Optional[Dict[str, Any]]:
         payload = decision.payload
         verdict = str(payload.get("verdict", "needs_revision"))
@@ -1049,6 +1089,13 @@ class LoopSpine:
             if instance.revision_count >= definition.max_revision_attempts:
                 instance.state = "CHECKPOINTED"
                 task_spec["workflow_instance"] = instance.to_dict()
+                self._stash_token_accounting(
+                    task_spec,
+                    total_tokens=total_tokens,
+                    token_sources=token_sources,
+                    token_accounting_complete=token_accounting_complete,
+                    run_started_at=run_started_at,
+                )
                 self._trigger_checkpoint(
                     trigger="ESCALATION_REQUESTED",
                     step_index=[
@@ -1072,6 +1119,13 @@ class LoopSpine:
             instance.state = "CHECKPOINTED"
             instance.checkpoint_ref = f"checkpoint:{self.run_id}:{step.step_id}"
             task_spec["workflow_instance"] = instance.to_dict()
+            self._stash_token_accounting(
+                task_spec,
+                total_tokens=total_tokens,
+                token_sources=token_sources,
+                token_accounting_complete=token_accounting_complete,
+                run_started_at=run_started_at,
+            )
             self._trigger_checkpoint(
                 trigger="ESCALATION_REQUESTED",
                 step_index=[
@@ -1097,6 +1151,16 @@ class LoopSpine:
         definition = get_workflow_definition(instance.workflow_id)
         effective_root = execution_root or self.repo_root
         steps_executed: List[str] = []
+        saved_accounting = task_spec.get("_token_accounting", {})
+        total_tokens = int(saved_accounting.get("tokens", 0) or 0)
+        token_sources = {
+            str(source)
+            for source in list(saved_accounting.get("sources", []))
+            if str(source).strip()
+        }
+        token_accounting_complete = bool(saved_accounting.get("complete", True))
+        run_started_at = str(saved_accounting.get("run_started_at") or self._get_timestamp())
+        budget = BudgetController(run_started_at=run_started_at)
 
         def _head_now() -> Optional[str]:
             """Capture HEAD at the moment of return (for BLOCKED provenance)."""
@@ -1123,6 +1187,39 @@ class LoopSpine:
             baseline_commit = cmd_result.stdout.strip() if cmd_result.returncode == 0 else "unknown"
         except Exception:
             baseline_commit = "unknown"
+
+        def _budget_result_with_step(step_id: str, reason: str) -> Dict[str, Any]:
+            return {
+                "outcome": "BLOCKED",
+                "reason": reason,
+                "steps_executed": steps_executed + [step_id],
+                "commit_hash": _head_now(),
+                "tokens_consumed": total_tokens if total_tokens > 0 else None,
+                "token_source": self._derive_token_source(token_sources),
+                "token_accounting_complete": token_accounting_complete,
+            }
+
+        def _update_token_accounting(result: Any, step_id: str) -> Optional[Dict[str, Any]]:
+            nonlocal total_tokens, token_accounting_complete
+
+            evidence = getattr(result, "evidence", {}) or {}
+            step_tokens = extract_usage_tokens(evidence)
+            if step_tokens is not None:
+                total_tokens += step_tokens
+                source = ((evidence.get("usage") or {}).get("token_source")) or "actual"
+                token_sources.add(str(source))
+            else:
+                token_accounting_complete = False
+
+            budget.check_budget_warn(total_tokens)
+            is_over, budget_reason = budget.check_budget(
+                self._current_budget_attempt(instance),
+                total_tokens,
+                token_accounting_available=True,
+            )
+            if is_over and budget_reason:
+                return _budget_result_with_step(step_id, budget_reason)
+            return None
 
         while instance.current_step_id and instance.state not in TERMINAL_WORKFLOW_STATES:
             step = get_step(definition, instance.current_step_id)
@@ -1161,6 +1258,16 @@ class LoopSpine:
                             "steps_executed": steps_executed + [step.step_id],
                             "commit_hash": _head_now(),
                         }
+                    budget_result = _update_token_accounting(result, step.step_id)
+                    if budget_result:
+                        record_invocation_finish(
+                            instance,
+                            invocation,
+                            result_ref=None,
+                            result_status="FAILED",
+                            error_code=budget_result["reason"],
+                        )
+                        return budget_result
                     payload = dict((getattr(result, "outputs", {}) or {}).get("build_packet") or {})
                     produced_artifact = WorkflowArtifact(
                         artifact_id=f"{instance.instance_id}:{step.produces}:{step.step_id}",
@@ -1195,6 +1302,16 @@ class LoopSpine:
                             "steps_executed": steps_executed + [step.step_id],
                             "commit_hash": _head_now(),
                         }
+                    budget_result = _update_token_accounting(result, step.step_id)
+                    if budget_result:
+                        record_invocation_finish(
+                            instance,
+                            invocation,
+                            result_ref=None,
+                            result_status="FAILED",
+                            error_code=budget_result["reason"],
+                        )
+                        return budget_result
                     payload = dict(
                         (getattr(result, "outputs", {}) or {}).get("review_packet") or {}
                     )
@@ -1243,6 +1360,16 @@ class LoopSpine:
                             "steps_executed": steps_executed + [step.step_id],
                             "commit_hash": _head_now(),
                         }
+                    budget_result = _update_token_accounting(result, step.step_id)
+                    if budget_result:
+                        record_invocation_finish(
+                            instance,
+                            invocation,
+                            result_ref=None,
+                            result_status="FAILED",
+                            error_code=budget_result["reason"],
+                        )
+                        return budget_result
                     decision = self._normalize_review_decision(
                         instance=instance,
                         step_id=step.step_id,
@@ -1274,6 +1401,10 @@ class LoopSpine:
                         step=step,
                         decision=decision,
                         task_spec=task_spec,
+                        total_tokens=total_tokens,
+                        token_sources=token_sources,
+                        token_accounting_complete=token_accounting_complete,
+                        run_started_at=run_started_at,
                     )
                     if transition:
                         return {
@@ -1319,6 +1450,16 @@ class LoopSpine:
                             "steps_executed": steps_executed + [step.step_id],
                             "commit_hash": _head_now(),
                         }
+                    budget_result = _update_token_accounting(result, step.step_id)
+                    if budget_result:
+                        record_invocation_finish(
+                            instance,
+                            invocation,
+                            result_ref=None,
+                            result_status="FAILED",
+                            error_code=budget_result["reason"],
+                        )
+                        return budget_result
                     self._commit_step_success(
                         instance=instance, definition=definition, step=step, produced_artifact=None
                     )
@@ -1338,6 +1479,13 @@ class LoopSpine:
                 steps_executed.append(step.step_id)
             except MissionEscalationRequired:
                 task_spec["workflow_instance"] = instance.to_dict()
+                self._stash_token_accounting(
+                    task_spec,
+                    total_tokens=total_tokens,
+                    token_sources=token_sources,
+                    token_accounting_complete=token_accounting_complete,
+                    run_started_at=run_started_at,
+                )
                 self._trigger_checkpoint(
                     trigger="ESCALATION_REQUESTED",
                     step_index=[
@@ -1383,6 +1531,9 @@ class LoopSpine:
             "reason": reason,
             "steps_executed": steps_executed,
             "commit_hash": commit_hash,
+            "tokens_consumed": total_tokens if total_tokens > 0 else None,
+            "token_source": self._derive_token_source(token_sources),
+            "token_accounting_complete": token_accounting_complete,
         }
 
     def _trigger_checkpoint(

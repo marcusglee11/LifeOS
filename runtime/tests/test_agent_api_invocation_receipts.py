@@ -130,3 +130,5 @@ def test_call_agent_cli_records_receipt(tmp_path) -> None:
     assert receipt["mode"] == "cli"
     assert receipt["provider_id"] == "codex"
     assert receipt["schema_validation"] == "pass"
+    assert receipt["token_usage"]["total_tokens"] > 0
+    assert "token_source" not in receipt["token_usage"]

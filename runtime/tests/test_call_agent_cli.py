@@ -182,6 +182,8 @@ class TestCallAgentCLIDispatch:
         assert result.latency_ms == 5000
         assert "ACCEPT" in result.content
         assert result.call_id.startswith("sha256:")
+        assert result.usage["total_tokens"] > 0
+        assert result.usage["token_source"] == "estimated"
 
     @patch("runtime.agents.cli_dispatch.dispatch_cli_agent")
     @patch("runtime.agents.api._load_role_prompt", return_value=("system prompt", "sha256:abc"))
@@ -202,6 +204,37 @@ class TestCallAgentCLIDispatch:
 
         assert isinstance(result, AgentResponse)
         assert "partial analysis" in result.content
+
+    @patch("runtime.agents.cli_dispatch.dispatch_cli_agent")
+    @patch("runtime.agents.api._load_role_prompt", return_value=("system prompt", "sha256:abc"))
+    def test_cli_usage_estimation_scales_with_length(self, mock_prompt, mock_dispatch):
+        mock_dispatch.side_effect = [
+            CLIDispatchResult(
+                output="short",
+                exit_code=0,
+                latency_ms=100,
+                provider=CLIProvider.CODEX,
+                model="gpt-5.3-codex",
+            ),
+            CLIDispatchResult(
+                output="this is a much longer response body than the short one",
+                exit_code=0,
+                latency_ms=100,
+                provider=CLIProvider.CODEX,
+                model="gpt-5.3-codex",
+            ),
+        ]
+        config = _make_cli_config()
+        short_call = AgentCall(role="council_reviewer", packet={"task": "x"})
+        long_call = AgentCall(
+            role="council_reviewer",
+            packet={"task": "x" * 200},
+        )
+
+        short_result = call_agent_cli(short_call, config=config)
+        long_result = call_agent_cli(long_call, config=config)
+
+        assert long_result.usage["total_tokens"] > short_result.usage["total_tokens"]
 
     @patch("runtime.agents.api.call_agent")
     @patch("runtime.agents.cli_dispatch.dispatch_cli_agent")

@@ -713,6 +713,12 @@ def call_agent_cli(
         logger.warning("CLI agent %s returned partial output (timeout)", used_provider)
 
     content = result.output
+    usage = {
+        "input_tokens": len(prompt) // 4,
+        "output_tokens": len(content) // 4,
+        "total_tokens": (len(prompt) // 4) + (len(content) // 4),
+        "token_source": "estimated",
+    }
     packet = _parse_response_packet(content)
     output_packet_hash = (
         f"sha256:{hashlib.sha256(canonical_json(packet)).hexdigest()}" if packet else ""
@@ -735,8 +741,8 @@ def call_agent_cli(
         model_version=model_version,
         input_packet_hash=packet_hash,
         prompt_hash=prompt_hash,
-        input_tokens=0,
-        output_tokens=0,
+        input_tokens=usage["input_tokens"],
+        output_tokens=usage["output_tokens"],
         latency_ms=result.latency_ms,
         output_packet_hash=output_packet_hash,
         status="success" if result.success else "partial",
@@ -750,7 +756,7 @@ def call_agent_cli(
         model_version=model_version,
         content=content,
         packet=packet,
-        usage={},
+        usage=usage,
         latency_ms=result.latency_ms,
         timestamp=timestamp,
     )
@@ -764,6 +770,7 @@ def call_agent_cli(
         exit_status=result.exit_code,
         output_content=content,
         schema_validation="pass" if packet is not None else "n/a",
+        token_usage=_receipt_token_usage(usage),
         truncation={"input_truncated": False, "output_truncated": bool(result.partial)},
     )
     return agent_response

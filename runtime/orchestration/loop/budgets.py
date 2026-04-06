@@ -1,10 +1,32 @@
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from .taxonomy import TerminalReason
+
+logger = logging.getLogger(__name__)
+
+
+def extract_usage_tokens(evidence: dict) -> Optional[int]:
+    """Return normalized token count from mission evidence, or None if unavailable."""
+    usage = evidence.get("usage")
+    if not isinstance(usage, dict) or not usage:
+        return None
+    total = usage.get("total_tokens")
+    if isinstance(total, int) and total >= 0:
+        return total
+    inp = usage.get("input_tokens")
+    out = usage.get("output_tokens")
+    if isinstance(inp, int) and inp >= 0 and isinstance(out, int) and out >= 0:
+        return inp + out
+    legacy = usage.get("total")
+    if isinstance(legacy, int) and legacy >= 0:
+        return legacy
+    return None
 
 
 @dataclass
@@ -33,14 +55,27 @@ class BudgetConfig:
 class BudgetController:
     """
     Enforces interaction limits on the loop.
-    Fail-closed: token accounting unavailability leads to critical termination.
+
+    Fail-closed behaviour is caller-opt-in via the ``token_accounting_available``
+    parameter to ``check_budget``.  Callers that pass ``False`` trigger immediate
+    ``BUDGET_EXHAUSTED`` termination.  The typed workflow (``_run_typed_workflow``)
+    intentionally passes ``True`` and instead surfaces partial accounting via
+    ``token_accounting_complete`` on the terminal packet, allowing mixed-agent
+    runs where some steps emit estimates and others have no usage data.
     """
 
-    def __init__(self, config: BudgetConfig = None):
+    def __init__(
+        self,
+        config: BudgetConfig = None,
+        *,
+        run_started_at: Optional[str] = None,
+    ):
         if config is None:
             config = BudgetConfig()
         self.config = config
         self.start_time = time.monotonic()
+        self.run_started_at = run_started_at
+        self._warned = False
 
     def check_budget(
         self, current_attempt: int, total_tokens: int, token_accounting_available: bool = True
@@ -57,7 +92,7 @@ class BudgetController:
             return True, TerminalReason.BUDGET_EXHAUSTED.value
 
         # 2. Wall Clock Budget
-        elapsed_min = (time.monotonic() - self.start_time) / 60.0
+        elapsed_min = self._elapsed_minutes()
         if elapsed_min > self.config.max_wall_clock_minutes:
             return True, TerminalReason.BUDGET_EXHAUSTED.value
 
@@ -71,9 +106,37 @@ class BudgetController:
 
         return False, None
 
+    def check_budget_warn(self, total_tokens: int, warn_threshold: float = 0.8) -> bool:
+        """Log warning if total_tokens exceeds the warning threshold. Returns True once."""
+        if self._warned:
+            return False
+
+        threshold = int(self.config.max_tokens * warn_threshold)
+        if total_tokens >= threshold:
+            logger.warning(
+                "TOKEN_BUDGET_WARNING: %d/%d tokens consumed (%.0f%% of budget)",
+                total_tokens,
+                self.config.max_tokens,
+                100.0 * total_tokens / self.config.max_tokens,
+            )
+            self._warned = True
+            return True
+        return False
+
     def check_diff_budget(
         self, diff_lines: int, max_lines: int = 300
     ) -> Tuple[bool, Optional[str]]:
         if diff_lines > max_lines:
             return True, TerminalReason.DIFF_BUDGET_EXCEEDED.value
         return False, None
+
+    def _elapsed_minutes(self) -> float:
+        if self.run_started_at:
+            try:
+                started = datetime.fromisoformat(self.run_started_at.replace("Z", "+00:00"))
+                if started.tzinfo is None:
+                    started = started.replace(tzinfo=timezone.utc)
+                return max(0.0, (datetime.now(timezone.utc) - started).total_seconds() / 60.0)
+            except ValueError:
+                pass
+        return (time.monotonic() - self.start_time) / 60.0
