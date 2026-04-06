@@ -202,6 +202,7 @@ File-based decision-support artifact written to `artifacts/dispatch/closures/CR-
 schema_version: council_request.v1
 request_id: REQ-001
 requested_at: "2026-04-05T12:00:00Z"
+expires_at: "2026-04-12T12:00:00Z"
 trigger: decision_support_needed
 question: "Can T-030 proceed?"
 context_summary: "Decision support required before the protected-path slice starts."
@@ -216,8 +217,14 @@ related_tasks:
   - T-030
 resolved: false
 resolved_at: null
+approval_ref: null
 ```
 
 Rules:
+- `expires_at` defaults to `requested_at + 7d` when omitted by legacy unresolved packets.
+- `related_tasks` is required and must be a non-empty list of task IDs.
 - `options` must be non-empty and each option needs `label` and `description`.
 - `resolved_at` is required when `resolved` is `true`.
+- `approval_ref` is required when `resolved` is `true`.
+- `approval_ref` must point to a file under `docs/01_governance/` containing `**Decision**: RATIFIED` or `**Decision**: APPROVED`.
+- Staleness is defined as `now() > expires_at` after applying the effective-expiry rule above.

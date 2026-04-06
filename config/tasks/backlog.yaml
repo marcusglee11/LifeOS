@@ -658,8 +658,9 @@ tasks:
     handoff and governance updates for mandatory close reporting and decision-support
     trigger CT-6.
   dod: dispatch_codex.sh and dispatch_opencode.sh emit sprint_close_packet.v1 to
-    closures; CLAUDE.md requires close packets at handoff; delegation_envelope.yaml
-    defines CT-6; targeted and full tests pass after Council approval.
+    closures while retaining the <topic> <task> wrapper signature; CLAUDE.md
+    requires close packets at handoff; delegation_envelope.yaml defines CT-6;
+    targeted and full tests pass after Council approval.
   priority: P1
   risk: med
   scope_paths:

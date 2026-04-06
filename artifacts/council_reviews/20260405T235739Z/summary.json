@@ -1,0 +1,52 @@
+{
+  "review_id": "AUR_20260405_coo_loop_t030_rerun",
+  "task": "T-030",
+  "status": "approved",
+  "decision_marker": "**Decision**: APPROVED",
+  "archive_dir": "artifacts/council_reviews/20260405T235739Z",
+  "review_packet": "artifacts/review_packets/Review_Packet_COO_Coordination_Loop_v1.0.md",
+  "source_plan": "artifacts/plans/PLAN_COO_COORDINATION_LOOP_v1.0.md",
+  "seats": {
+    "cochair": {
+      "artifact": "artifacts/council_reviews/20260405T235739Z/claude_cochair_output.md",
+      "verdict": "APPROVED"
+    },
+    "governance": {
+      "artifact": "artifacts/council_reviews/20260405T235739Z/gemini_governance_output.md",
+      "verdict": "ADMISSIBLE"
+    },
+    "architect_prior": {
+      "artifact": "artifacts/council_reviews/20260405T235739Z/claude_architect_output_prior.md",
+      "verdict": "CONDITIONAL APPROVE",
+      "note": "Prior architect conditions were resolved in this rerun: CT-6 text narrowed to non-gating advisory contexts, L0 overlay note added, and entry-point clarity added."
+    },
+    "risk_prior": {
+      "artifact": "artifacts/council_reviews/20260405T235739Z/codex_risk_output_prior.md",
+      "verdict": "APPROVE_WITH_CONDITIONS",
+      "note": "Prior risk conditions were resolved in this rerun: OpenCode now executes inside the isolated worktree and CT-6 governance text is explicit."
+    },
+    "technical_prior": {
+      "artifact": "artifacts/council_reviews/20260405T235739Z/codex_technical_output_prior.md",
+      "verdict": "APPROVE_WITH_CONDITIONS",
+      "note": "Prior technical conditions were resolved in this rerun: OpenCode isolation fixed, council_request rules deduplicated, CT-6 wording narrowed, and helper entry-point clarity added."
+    }
+  },
+  "provider_issues": {
+    "codex_cli": "Fresh rerun blocked by provider usage limit; prior seat findings retained and explicitly closed.",
+    "claude_architect_cli": "Fresh rerun attempt timed out without usable output; prior architect seat retained and explicitly closed."
+  },
+  "conditions_closed": [
+    "dispatch_opencode.sh now runs inside the isolated worktree",
+    "council_request.v1 schema has one authoritative Rules block",
+    "CT-6 governance text now uses advisory_contexts_non_gating",
+    "CT-6 governance text states it is an L0 overlay only",
+    "is_fully_auto_dispatchable() is documented as the authoritative entry point"
+  ],
+  "unlock": {
+    "t030": true,
+    "protected_paths_ready": [
+      "CLAUDE.md",
+      "config/governance/delegation_envelope.yaml"
+    ]
+  }
+}

@@ -121,6 +121,7 @@ python -m doc_steward.cli dap-validate .
 6. **Safe auto-fix only** - `quality_gate.py fix` is allowed only for deterministic style/import/doc-style fixes
 7. **Match code style** - Follow conventions in the existing codebase
 8. **Always start builds in a worktree** - Use `/new-build <topic>` (runs `python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]`) to atomically create branch + isolated worktree. `build` is default; fixes use `--kind fix`. If work already started on a scoped branch in primary, recover it with `python3 scripts/workflow/start_build.py --recover-primary`. `/close-build` maps to `python3 scripts/workflow/close_build.py` and must be run from linked worktrees. Shared working tree + concurrent agents = Article XIX blocks, merge conflicts, and stash pop failures.
+9. **For dispatched build/content work, emit sprint-close before handoff** - write `artifacts/dispatch/closures/SC-<order_id>.yaml` using `sprint_close_packet.v1` before handoff. If packet emission or validation fails, treat the handoff as blocked.
 
 ### TODO & Documentation Discipline
 

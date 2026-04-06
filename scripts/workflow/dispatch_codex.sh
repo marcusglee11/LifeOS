@@ -23,12 +23,16 @@
 #   2  — Could not determine worktree path from start_build.py output
 #   3  — Worktree path does not exist
 #   4  — Worktree path resolves to primary repo root (isolation failure)
-#   N  — Codex exit code (propagated)
+#   5  — Task prompt does not contain exactly one valid backlog task ID
+#   6  — Sprint-close packet emission failed
+#   N  — Final wrapper exit code
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REAL_REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="${LIFEOS_DISPATCH_REPO_ROOT:-$REAL_REPO_ROOT}"
+PYTHON_ROOT="${LIFEOS_DISPATCH_PYTHON_ROOT:-$REAL_REPO_ROOT}"
 
 if [[ $# -lt 2 ]]; then
     echo "Usage: $0 <topic> <task>" >&2
@@ -40,32 +44,52 @@ fi
 
 TOPIC="$1"
 TASK="$2"
+TASK_IDS="$(printf '%s\n' "$TASK" | grep -oE 'T-[0-9]{3,}' | sort -u || true)"
+TASK_ID_COUNT="$(printf '%s\n' "$TASK_IDS" | sed '/^$/d' | wc -l | tr -d ' ')"
+
+if [[ "$TASK_ID_COUNT" != "1" ]]; then
+    echo "ERROR: Task prompt must contain exactly one backlog task ID like T-030." >&2
+    exit 5
+fi
+
+TASK_REF="$(printf '%s\n' "$TASK_IDS" | sed -n '1p')"
+if [[ ! -f "$REPO_ROOT/config/tasks/backlog.yaml" ]] || ! grep -q "^- id: $TASK_REF\$" "$REPO_ROOT/config/tasks/backlog.yaml"; then
+    echo "ERROR: Task ID $TASK_REF was not found in config/tasks/backlog.yaml." >&2
+    exit 5
+fi
+
+ORDER_ID="ORD-${TASK_REF}-$(date -u +%Y%m%dT%H%M%SZ)"
 
 # ------------------------------------------------------------------
 # Step 1: Create isolated worktree via start_build.py
 # ------------------------------------------------------------------
-echo ">> [dispatch_codex] Creating worktree for topic: $TOPIC"
-WORKTREE_OUTPUT="$(python3 "$SCRIPT_DIR/start_build.py" "$TOPIC" 2>&1)" || true
-echo "$WORKTREE_OUTPUT"
+if [[ -n "${LIFEOS_DISPATCH_WORKTREE_PATH:-}" ]]; then
+    WORKTREE_PATH="$LIFEOS_DISPATCH_WORKTREE_PATH"
+    echo ">> [dispatch_codex] Using injected worktree path: $WORKTREE_PATH"
+else
+    echo ">> [dispatch_codex] Creating worktree for topic: $TOPIC"
+    WORKTREE_OUTPUT="$(python3 "$SCRIPT_DIR/start_build.py" "$TOPIC" 2>&1)" || true
+    echo "$WORKTREE_OUTPUT"
 
-# ------------------------------------------------------------------
-# Step 2: Extract worktree path from start_build.py output
-# ------------------------------------------------------------------
-WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep -oP 'Worktree ready at:\s*\K.+' | head -1)"
+    # ------------------------------------------------------------------
+    # Step 2: Extract worktree path from start_build.py output
+    # ------------------------------------------------------------------
+    WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep -oP 'Worktree ready at:\s*\K.+' | head -1)"
 
-# Handle "already exists" case — extract path from error message
-if [[ -z "$WORKTREE_PATH" ]]; then
-    WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep -oP 'Worktree path already exists:\s*\K.+' | head -1)"
-    if [[ -n "$WORKTREE_PATH" ]]; then
-        echo ">> [dispatch_codex] Worktree already exists — reusing: $WORKTREE_PATH"
+    # Handle "already exists" case — extract path from error message
+    if [[ -z "$WORKTREE_PATH" ]]; then
+        WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep -oP 'Worktree path already exists:\s*\K.+' | head -1)"
+        if [[ -n "$WORKTREE_PATH" ]]; then
+            echo ">> [dispatch_codex] Worktree already exists — reusing: $WORKTREE_PATH"
+        fi
     fi
-fi
 
-if [[ -z "$WORKTREE_PATH" ]]; then
-    echo "" >&2
-    echo "ERROR: Could not determine worktree path from start_build.py output." >&2
-    echo "       Aborting — do NOT run Codex without an isolated worktree." >&2
-    exit 2
+    if [[ -z "$WORKTREE_PATH" ]]; then
+        echo "" >&2
+        echo "ERROR: Could not determine worktree path from start_build.py output." >&2
+        echo "       Aborting — do NOT run Codex without an isolated worktree." >&2
+        exit 2
+    fi
 fi
 WORKTREE_PATH="$(echo "$WORKTREE_PATH" | xargs)"  # trim whitespace
 
@@ -98,9 +122,35 @@ echo ""
 # Disable errexit around codex invocation so non-zero exits do not
 # terminate the shell before we capture CODEX_EXIT and emit the receipt.
 set +e
-codex exec --sandbox workspace-write -C "$WORKTREE_PATH" "$TASK"
-CODEX_EXIT=$?
+if [[ -n "${LIFEOS_DISPATCH_PROVIDER_EXIT_CODE:-}" ]]; then
+    CODEX_EXIT="$LIFEOS_DISPATCH_PROVIDER_EXIT_CODE"
+else
+    codex exec --sandbox workspace-write -C "$WORKTREE_PATH" "$TASK"
+    CODEX_EXIT=$?
+fi
 set -e
+
+OUTCOME="blocked"
+if [[ "$CODEX_EXIT" == "0" ]]; then
+    OUTCOME="success"
+fi
+
+set +e
+python3 "$SCRIPT_DIR/emit_sprint_close_packet.py" \
+    --repo-root "$REPO_ROOT" \
+    --python-root "$PYTHON_ROOT" \
+    --order-id "$ORDER_ID" \
+    --task-ref "$TASK_REF" \
+    --agent "codex" \
+    --outcome "$OUTCOME" \
+    --sync-check-result "skipped"
+SPRINT_EXIT=$?
+set -e
+
+FINAL_EXIT="$CODEX_EXIT"
+if [[ "$SPRINT_EXIT" != "0" ]]; then
+    FINAL_EXIT=6
+fi
 
 # ------------------------------------------------------------------
 # Step 5: Emit invocation receipt (audit trail)
@@ -108,7 +158,12 @@ set -e
 python3 "$SCRIPT_DIR/emit_dispatch_receipt.py" \
     --topic "$TOPIC" \
     --worktree "$WORKTREE_PATH" \
-    --exit-code "$CODEX_EXIT" \
-    --repo-root "$REPO_ROOT" || true  # receipt failure must not mask Codex exit
+    --exit-code "$FINAL_EXIT" \
+    --repo-root "$REPO_ROOT" \
+    --python-root "$PYTHON_ROOT" || true  # receipt failure must not mask wrapper exit
 
-exit $CODEX_EXIT
+if [[ "$SPRINT_EXIT" != "0" ]]; then
+    echo "ERROR: Sprint-close packet emission failed." >&2
+fi
+
+exit "$FINAL_EXIT"

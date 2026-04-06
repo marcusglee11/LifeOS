@@ -38,7 +38,8 @@ autonomy:
     note: >
       Tasks meeting ALL predicates may be dispatched without CEO approval.
       This is a scoped L0 exception, not an activation of L1/L2.
-      The full predicate logic lives in runtime/orchestration/coo/auto_dispatch.py.
+      The full 7-predicate logic lives in runtime/orchestration/coo/auto_dispatch.py.
+      Use is_fully_auto_dispatchable() as the authoritative entry point.
 
   L3:
     label: "propose-and-wait"
@@ -65,6 +66,18 @@ autonomy:
       - ambiguous_scope
       - governance_change
       - unknown_action_category
+
+decision_triggers:
+  CT-6:
+    label: decision_support_needed
+    primary_gate: task.decision_support_required == true
+    advisory_contexts_non_gating:
+      - cross-phase transitions
+      - architectural choices affecting more than two modules
+    dispatch_effect: blocks auto-dispatch until the latest matching council_request.v1 is resolved, non-stale, and carries a valid approval_ref
+    note: >
+      CT-6 is an L0 overlay only. It applies to tasks that would otherwise
+      qualify for auto-dispatch and does not replace L3 propose-and-wait.
 
 protected_paths:
   - "docs/00_foundations/"

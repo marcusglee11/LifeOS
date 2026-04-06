@@ -977,7 +977,7 @@ def test_coo_process_closures_returns_summary(tmp_path: Path, capsys) -> None:
             {
                 "schema_version": "council_request.v1",
                 "request_id": "REQ-1",
-                "requested_at": "2026-04-05T12:00:00Z",
+                "requested_at": "2026-03-24T12:00:00Z",
                 "trigger": "decision_support_needed",
                 "question": "Proceed?",
                 "context_summary": "Need approval",
@@ -987,6 +987,7 @@ def test_coo_process_closures_returns_summary(tmp_path: Path, capsys) -> None:
                 "related_tasks": ["T-030"],
                 "resolved": False,
                 "resolved_at": None,
+                "expires_at": "2026-04-12T12:00:00Z",
             },
             sort_keys=False,
         ),
@@ -1017,8 +1018,42 @@ def test_coo_process_closures_returns_summary(tmp_path: Path, capsys) -> None:
     out = capsys.readouterr().out
     assert "closures: 2" in out
     assert "unresolved_council_requests: 1" in out
+    assert "stale_council_requests: 0" in out
     assert "T-028, T-029" in out
     assert "Follow-up" in out
+
+
+def test_coo_process_closures_reports_stale_request(tmp_path: Path, capsys) -> None:
+    closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+    closures_dir.mkdir(parents=True, exist_ok=True)
+    (closures_dir / "CR-REQ-1.yaml").write_text(
+        yaml.dump(
+            {
+                "schema_version": "council_request.v1",
+                "request_id": "REQ-1",
+                "requested_at": "2026-03-24T12:00:00Z",
+                "trigger": "decision_support_needed",
+                "question": "Proceed?",
+                "context_summary": "Need approval",
+                "suggested_respondents": ["Governance", "Risk"],
+                "options": [{"label": "Approve", "description": "Proceed"}],
+                "requires_quorum": True,
+                "related_tasks": ["T-030"],
+                "resolved": False,
+                "resolved_at": None,
+                "expires_at": "2026-04-01T12:00:00Z",
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    rc = cmd_coo_process_closures(argparse.Namespace(json=False), tmp_path)
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "stale_council_requests: 1" in out
+    assert "REQ-1" in out
 
 
 def test_coo_process_closures_invalid_payload_returns_one(tmp_path: Path, capsys) -> None:

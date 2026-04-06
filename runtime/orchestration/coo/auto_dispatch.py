@@ -7,14 +7,17 @@ auto-dispatch without CEO approval based on the delegation envelope policy.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+from runtime.orchestration.coo.approval_refs import approval_ref_error
 from runtime.orchestration.coo.backlog import TaskEntry
 from runtime.orchestration.coo.closures import (
     ClosureValidationError,
+    effective_council_request_expiry,
     validate_council_request_packet,
 )
 
@@ -24,7 +27,11 @@ _ELIGIBLE_TASK_TYPES = frozenset({"build", "content", "hygiene"})
 
 
 def is_auto_dispatchable(task: TaskEntry, envelope: dict[str, Any]) -> tuple[bool, str]:
-    """Check if a task qualifies for auto-dispatch without CEO approval.
+    """Check only the base auto-dispatch predicates.
+
+    Internal helper for predicates 1-5.
+    Callers that need a real dispatch decision must use
+    ``is_fully_auto_dispatchable()`` so CT-6 and overlap checks are applied.
 
     Args:
         task: The TaskEntry to evaluate.
@@ -138,12 +145,33 @@ def _council_cleared(task: TaskEntry, closures_dir: Path) -> tuple[bool, str]:
             False,
             f"latest council request {latest.get('request_id', 'unknown')} is unresolved",
         )
+    expires_at = effective_council_request_expiry(latest)
+    if _parse_request_time(expires_at) < datetime.now(timezone.utc):
+        return (
+            False,
+            f"latest council request {latest.get('request_id', 'unknown')} is stale",
+        )
     if not str(latest.get("resolved_at", "")).strip():
         return (
             False,
             f"latest council request {latest.get('request_id', 'unknown')} lacks resolved_at",
         )
+    approval_ref = str(latest.get("approval_ref", "") or "").strip()
+    if not approval_ref:
+        return (
+            False,
+            f"latest council request {latest.get('request_id', 'unknown')} lacks approval_ref",
+        )
+    error = approval_ref_error(approval_ref, closures_dir.parents[2])
+    if error is not None:
+        return (False, error)
     return (True, f"council request {latest.get('request_id', 'unknown')} is resolved")
+
+
+def _parse_request_time(value: str) -> datetime:
+    if value.endswith("Z"):
+        value = value[:-1] + "+00:00"
+    return datetime.fromisoformat(value)
 
 
 def is_fully_auto_dispatchable(
@@ -152,9 +180,10 @@ def is_fully_auto_dispatchable(
     envelope: dict[str, Any],
     repo_root: Path | None = None,
 ) -> tuple[bool, str]:
-    """Combined eligibility check including scope_path concurrency guard.
+    """Authoritative dispatch eligibility check.
 
-    Runs all 6 predicates. Returns (eligible, reason).
+    Runs the base predicates, scope overlap guard, and CT-6 council-clearance
+    gate. Use this entry point for any production dispatch decision.
     """
     eligible, reason = is_auto_dispatchable(task, envelope)
     if not eligible:
@@ -166,7 +195,7 @@ def is_fully_auto_dispatchable(
 
     if repo_root is None:
         if task.decision_support_required:
-            return (False, "decision_support_required is true and repo_root was not provided")
-        return (True, "all predicates pass")
+            return (False, "CT-6 gate: repo_root not provided; treating as council clearance required")
+        return (True, "CT-6 check skipped: repo_root not provided; task not flagged")
 
     return _council_cleared(task, repo_root / "artifacts" / "dispatch" / "closures")

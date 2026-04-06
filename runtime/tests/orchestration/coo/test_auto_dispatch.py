@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -258,6 +259,9 @@ class TestIsFullyAutoDispatchable:
         assert "unresolved" in reason
 
     def test_flagged_task_passes_with_resolved_council_record(self, tmp_path: Path) -> None:
+        ruling_path = tmp_path / "docs" / "01_governance" / "approved.md"
+        ruling_path.parent.mkdir(parents=True, exist_ok=True)
+        ruling_path.write_text("**Decision**: APPROVED\n", encoding="utf-8")
         candidate = _make_task("T-010", decision_support_required=True)
         closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
         closures_dir.mkdir(parents=True)
@@ -276,6 +280,8 @@ class TestIsFullyAutoDispatchable:
                     "related_tasks": ["T-010"],
                     "resolved": True,
                     "resolved_at": "2026-04-05T12:10:00Z",
+                    "approval_ref": "docs/01_governance/approved.md",
+                    "expires_at": "2026-04-12T12:00:00Z",
                 },
                 sort_keys=False,
             ),
@@ -284,6 +290,106 @@ class TestIsFullyAutoDispatchable:
         eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE, tmp_path)
         assert eligible is True
         assert "resolved" in reason
+
+    def test_flagged_task_fails_with_invalid_approval_ref(self, tmp_path: Path) -> None:
+        candidate = _make_task("T-010", decision_support_required=True)
+        closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+        closures_dir.mkdir(parents=True)
+        (closures_dir / "CR-001.yaml").write_text(
+            yaml.dump(
+                {
+                    "schema_version": "council_request.v1",
+                    "request_id": "001",
+                    "requested_at": "2026-04-05T12:00:00Z",
+                    "trigger": "decision_support_needed",
+                    "question": "Proceed?",
+                    "context_summary": "Need decision support.",
+                    "suggested_respondents": ["Governance", "Risk"],
+                    "options": [{"label": "Approve", "description": "Proceed"}],
+                    "requires_quorum": True,
+                    "related_tasks": ["T-010"],
+                    "resolved": True,
+                    "resolved_at": "2026-04-05T12:30:00Z",
+                    "approval_ref": "docs/01_governance/missing.md",
+                    "expires_at": "2026-04-12T12:00:00Z",
+                },
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE, tmp_path)
+        assert eligible is False
+        assert "approval_ref" in reason
+
+    def test_flagged_task_fails_when_latest_request_is_stale(self, tmp_path: Path) -> None:
+        ruling_path = tmp_path / "docs" / "01_governance" / "approved.md"
+        ruling_path.parent.mkdir(parents=True, exist_ok=True)
+        ruling_path.write_text("**Decision**: APPROVED\n", encoding="utf-8")
+        candidate = _make_task("T-010", decision_support_required=True)
+        closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+        closures_dir.mkdir(parents=True)
+        requested_at = (datetime.now(timezone.utc) - timedelta(days=8)).isoformat().replace("+00:00", "Z")
+        stale_expiry = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat().replace("+00:00", "Z")
+        (closures_dir / "CR-001.yaml").write_text(
+            yaml.dump(
+                {
+                    "schema_version": "council_request.v1",
+                    "request_id": "001",
+                    "requested_at": requested_at,
+                    "trigger": "decision_support_needed",
+                    "question": "Proceed?",
+                    "context_summary": "Need decision support.",
+                    "suggested_respondents": ["Governance", "Risk"],
+                    "options": [{"label": "Approve", "description": "Proceed"}],
+                    "requires_quorum": True,
+                    "related_tasks": ["T-010"],
+                    "resolved": True,
+                    "resolved_at": requested_at,
+                    "approval_ref": "docs/01_governance/approved.md",
+                    "expires_at": stale_expiry,
+                },
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE, tmp_path)
+        assert eligible is False
+        assert "stale" in reason
+
+    def test_flagged_task_fails_when_related_tasks_do_not_match(self, tmp_path: Path) -> None:
+        candidate = _make_task("T-010", decision_support_required=True)
+        closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+        closures_dir.mkdir(parents=True)
+        (closures_dir / "CR-001.yaml").write_text(
+            yaml.dump(
+                {
+                    "schema_version": "council_request.v1",
+                    "request_id": "001",
+                    "requested_at": "2026-04-05T12:00:00Z",
+                    "trigger": "decision_support_needed",
+                    "question": "Proceed?",
+                    "context_summary": "Need decision support.",
+                    "suggested_respondents": ["Governance", "Risk"],
+                    "options": [{"label": "Approve", "description": "Proceed"}],
+                    "requires_quorum": True,
+                    "related_tasks": ["T-999"],
+                    "resolved": False,
+                    "resolved_at": None,
+                    "expires_at": "2026-04-12T12:00:00Z",
+                },
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE, tmp_path)
+        assert eligible is False
+        assert "no matching council request exists" in reason
+
+    def test_flagged_task_repo_root_reason_mentions_ct6(self) -> None:
+        candidate = _make_task("T-010", decision_support_required=True)
+        eligible, reason = is_fully_auto_dispatchable(candidate, [candidate], _ENVELOPE, None)
+        assert eligible is False
+        assert "CT-6 gate" in reason
 
 
 # ── cmd_coo_propose --execute integration ─────────────────────────────────────

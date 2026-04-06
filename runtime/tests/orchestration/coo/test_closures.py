@@ -9,7 +9,9 @@ import yaml
 
 from runtime.orchestration.coo.closures import (
     ClosureValidationError,
+    default_council_request_expiry,
     default_session_context_expiry,
+    effective_council_request_expiry,
     load_closures,
     load_session_context_packets,
     validate_council_request_packet,
@@ -93,7 +95,51 @@ def test_validate_council_request_requires_resolved_at_when_resolved() -> None:
         )
 
 
+def test_validate_council_request_requires_approval_ref_when_resolved() -> None:
+    with pytest.raises(ClosureValidationError, match="approval_ref"):
+        validate_council_request_packet(
+            {
+                "schema_version": "council_request.v1",
+                "request_id": "REQ-1",
+                "requested_at": "2026-04-05T12:00:00Z",
+                "trigger": "decision_support_needed",
+                "question": "Proceed?",
+                "context_summary": "Need approval",
+                "suggested_respondents": ["Governance"],
+                "options": [{"label": "Approve", "description": "Proceed"}],
+                "requires_quorum": True,
+                "related_tasks": ["T-030"],
+                "resolved": True,
+                "resolved_at": "2026-04-05T13:00:00Z",
+            }
+        )
+
+
+def test_validate_council_request_accepts_approval_ref_and_expires_at() -> None:
+    validate_council_request_packet(
+        {
+            "schema_version": "council_request.v1",
+            "request_id": "REQ-1",
+            "requested_at": "2026-04-05T12:00:00Z",
+            "trigger": "decision_support_needed",
+            "question": "Proceed?",
+            "context_summary": "Need approval",
+            "suggested_respondents": ["Governance"],
+            "options": [{"label": "Approve", "description": "Proceed"}],
+            "requires_quorum": True,
+            "related_tasks": ["T-030"],
+            "resolved": True,
+            "resolved_at": "2026-04-05T13:00:00Z",
+            "approval_ref": "docs/01_governance/Council_Ruling_COO_Loop_v1.0.md",
+            "expires_at": "2026-04-12T12:00:00Z",
+        }
+    )
+
+
 def test_write_and_load_closures_round_trip(tmp_path: Path) -> None:
+    ruling_path = tmp_path / "docs" / "01_governance" / "Council_Ruling_COO_Loop_v1.0.md"
+    ruling_path.parent.mkdir(parents=True, exist_ok=True)
+    ruling_path.write_text("**Decision**: APPROVED\n", encoding="utf-8")
     sprint_path = write_sprint_close_packet(
         repo_root=tmp_path,
         order_id="ORD-1",
@@ -118,6 +164,7 @@ def test_write_and_load_closures_round_trip(tmp_path: Path) -> None:
         requires_quorum=True,
         related_tasks=["T-030"],
         requested_at="2026-04-05T12:00:00Z",
+        expires_at="2026-04-12T12:00:00Z",
     )
 
     assert sprint_path.name == "SC-ORD-1.yaml"
@@ -140,6 +187,53 @@ def test_load_closures_fails_closed_on_filename_schema_mismatch(tmp_path: Path) 
     )
     with pytest.raises(ClosureValidationError, match="filename SC"):
         load_closures(tmp_path)
+
+
+def test_load_closures_fails_closed_on_legacy_resolved_request_without_approval_ref(
+    tmp_path: Path,
+) -> None:
+    closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
+    closures_dir.mkdir(parents=True)
+    (closures_dir / "CR-REQ-1.yaml").write_text(
+        yaml.dump(
+            {
+                "schema_version": "council_request.v1",
+                "request_id": "REQ-1",
+                "requested_at": "2026-04-05T12:00:00Z",
+                "trigger": "decision_support_needed",
+                "question": "Proceed?",
+                "context_summary": "Need approval",
+                "suggested_respondents": ["Governance"],
+                "options": [{"label": "Approve", "description": "Proceed"}],
+                "requires_quorum": True,
+                "related_tasks": ["T-030"],
+                "resolved": True,
+                "resolved_at": "2026-04-05T13:00:00Z",
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ClosureValidationError, match="approval_ref"):
+        load_closures(tmp_path)
+
+
+def test_effective_council_request_expiry_defaults_for_legacy_unresolved_packets() -> None:
+    payload = {
+        "schema_version": "council_request.v1",
+        "request_id": "REQ-1",
+        "requested_at": "2026-04-05T12:00:00Z",
+        "trigger": "decision_support_needed",
+        "question": "Proceed?",
+        "context_summary": "Need approval",
+        "suggested_respondents": ["Governance"],
+        "options": [{"label": "Approve", "description": "Proceed"}],
+        "requires_quorum": True,
+        "related_tasks": ["T-030"],
+        "resolved": False,
+        "resolved_at": None,
+    }
+    assert effective_council_request_expiry(payload) == "2026-04-12T12:00:00Z"
 
 
 def test_load_session_context_packets_scans_only_scp_files(tmp_path: Path) -> None:
@@ -170,3 +264,7 @@ def test_load_session_context_packets_scans_only_scp_files(tmp_path: Path) -> No
 
 def test_default_session_context_expiry_uses_z_suffix() -> None:
     assert default_session_context_expiry("2026-04-05T12:00:00Z") == "2026-04-08T12:00:00Z"
+
+
+def test_default_council_request_expiry_uses_z_suffix() -> None:
+    assert default_council_request_expiry("2026-04-05T12:00:00Z") == "2026-04-12T12:00:00Z"

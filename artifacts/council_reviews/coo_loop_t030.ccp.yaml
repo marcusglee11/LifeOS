@@ -1,0 +1,55 @@
+header:
+  aur_id: AUR_20260405_coo_loop_t030
+  aur_type: plan
+  change_class: modify
+  blast_radius: system
+  reversibility: moderate
+  uncertainty: medium
+  touches:
+    - governance_protocol
+    - interfaces
+  safety_critical: true
+  override:
+    mode: M1_STANDARD
+  model_plan_v1:
+    topology: HYBRID
+    models:
+      primary: claude-cli
+      adversarial: codex-cli
+      implementation: codex-cli
+      governance: gemini-cli
+    role_to_model:
+      Chair: primary
+      CoChair: primary
+      Architect: primary
+      Technical: implementation
+      RiskAdversarial: adversarial
+      Governance: governance
+sections:
+  objective: >-
+    Narrow council review for COO Coordination Loop task T-030 only. Decide
+    whether mandatory sprint-close reporting and CT-6 council escalation should
+    become standing operating rules across agent handoff and COO delegation.
+  scope:
+    surface: protected-path governance unlock
+    files:
+      - CLAUDE.md
+      - config/governance/delegation_envelope.yaml
+      - artifacts/plans/PLAN_COO_COORDINATION_LOOP_v1.0.md
+      - artifacts/review_packets/Review_Packet_COO_Coordination_Loop_v1.0.md
+  constraints:
+    - Review scope is limited to T-030 and does not re-open T-027 through T-029.
+    - Governance and Risk must be separate CLI seat runs with no cross-seat context before verdicts finalize.
+    - Final unlock requires a ruling with the exact marker '**Decision**: APPROVED'.
+    - All seat outputs must follow Council Protocol v1.3 section 7.
+    - CT-6 is the governance label for task.decision_support_required == true and does not replace L3 propose-and-wait.
+    - council_request.v1 clearance is valid only when the latest matching request is resolved, non-stale, and has a valid approval_ref.
+  artifacts:
+    - id: artifacts/plans/PLAN_COO_COORDINATION_LOOP_v1.0.md
+      type: plan
+    - id: artifacts/review_packets/Review_Packet_COO_Coordination_Loop_v1.0.md
+      type: review_packet
+    - id: CLAUDE.md
+      type: protected_path
+    - id: config/governance/delegation_envelope.yaml
+      type: protected_path

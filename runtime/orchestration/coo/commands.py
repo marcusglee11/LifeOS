@@ -23,6 +23,7 @@ from runtime.orchestration.coo.claim_verifier import (
 )
 from runtime.orchestration.coo.closures import (
     ClosureValidationError,
+    effective_council_request_expiry,
     load_closures,
     load_session_context_packets,
 )
@@ -262,6 +263,17 @@ def cmd_coo_process_closures(args: argparse.Namespace, repo_root: Path) -> int:
             if not bool(packet.get("resolved", False))
         ]
     )
+    now = datetime.now(timezone.utc)
+    stale_requests = sorted(
+        [
+            str(packet.get("request_id", "")).strip()
+            for packet in council_requests
+            if datetime.fromisoformat(
+                effective_council_request_expiry(packet).replace("Z", "+00:00")
+            )
+            < now
+        ]
+    )
     outcome_counts = {"success": 0, "partial": 0, "blocked": 0}
     suggested_next_task_ids: set[str] = set()
     for packet in sprint_closures:
@@ -278,6 +290,7 @@ def cmd_coo_process_closures(args: argparse.Namespace, repo_root: Path) -> int:
         "total_closure_count": len(closures),
         "outcomes": outcome_counts,
         "unresolved_council_requests": unresolved_requests,
+        "stale_council_requests": stale_requests,
         "suggested_next_task_ids": sorted(
             task_id for task_id in suggested_next_task_ids if task_id
         ),
@@ -298,6 +311,9 @@ def cmd_coo_process_closures(args: argparse.Namespace, repo_root: Path) -> int:
     print(f"unresolved_council_requests: {len(unresolved_requests)}")
     if unresolved_requests:
         print("council_request_ids: " + ", ".join(unresolved_requests))
+    print(f"stale_council_requests: {len(stale_requests)}")
+    if stale_requests:
+        print("stale_council_request_ids: " + ", ".join(stale_requests))
     print("suggested_next_task_ids: " + ", ".join(summary["suggested_next_task_ids"] or ["none"]))
     print(
         "session_context_pending_review: "

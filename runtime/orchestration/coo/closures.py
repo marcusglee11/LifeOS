@@ -8,6 +8,7 @@ from typing import Any
 
 import yaml
 
+from runtime.orchestration.coo.approval_refs import approval_ref_error
 from runtime.util.atomic_write import atomic_write_text
 
 SPRINT_CLOSE_SCHEMA_VERSION = "sprint_close_packet.v1"
@@ -64,6 +65,21 @@ def _session_context_dir(repo_root: Path) -> Path:
     return repo_root / "artifacts" / "for_ceo"
 
 
+def default_council_request_expiry(requested_at: str) -> str:
+    """Return the default decision-support TTL of requested_at + 7d."""
+    expires_at = _parse_iso8601(requested_at, "requested_at") + timedelta(days=7)
+    return expires_at.isoformat().replace("+00:00", "Z")
+
+
+def effective_council_request_expiry(payload: dict[str, Any]) -> str:
+    """Return explicit expires_at or derive it from requested_at for legacy packets."""
+    expires_at = str(payload.get("expires_at", "") or "").strip()
+    if expires_at:
+        return expires_at
+    requested_at = _require_string(payload, "requested_at")
+    return default_council_request_expiry(requested_at)
+
+
 def validate_sprint_close_packet(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict):
         raise ClosureValidationError("Sprint-close payload must be a mapping")
@@ -114,7 +130,7 @@ def validate_council_request_packet(payload: dict[str, Any]) -> None:
             f"Unsupported schema_version {payload.get('schema_version')!r} for council request"
         )
     _require_string(payload, "request_id")
-    _parse_iso8601(_require_string(payload, "requested_at"), "requested_at")
+    requested_at = _parse_iso8601(_require_string(payload, "requested_at"), "requested_at")
     _require_string(payload, "trigger")
     _require_string(payload, "question")
     _require_string(payload, "context_summary")
@@ -131,10 +147,18 @@ def validate_council_request_packet(payload: dict[str, Any]) -> None:
     _require_string_list(payload, "related_tasks")
     resolved = _require_bool(payload, "resolved")
     resolved_at = str(payload.get("resolved_at", "") or "").strip()
+    expires_at = str(payload.get("expires_at", "") or "").strip()
+    approval_ref = str(payload.get("approval_ref", "") or "").strip()
+    if expires_at:
+        expires_at_dt = _parse_iso8601(expires_at, "expires_at")
+        if expires_at_dt < requested_at:
+            raise ClosureValidationError("expires_at must not be earlier than requested_at")
     if resolved:
         if not resolved_at:
             raise ClosureValidationError("resolved_at is required when resolved is true")
         _parse_iso8601(resolved_at, "resolved_at")
+        if not approval_ref:
+            raise ClosureValidationError("approval_ref is required when resolved is true")
     elif resolved_at:
         _parse_iso8601(resolved_at, "resolved_at")
 
@@ -171,6 +195,13 @@ def load_closures(repo_root: Path) -> list[dict[str, Any]]:
                     f"{path} has filename CR-* but schema_version {schema_version!r}"
                 )
             validate_council_request_packet(payload)
+            effective_expires_at = effective_council_request_expiry(payload)
+            payload["expires_at"] = effective_expires_at
+            approval_ref = str(payload.get("approval_ref", "") or "").strip()
+            if approval_ref:
+                error = approval_ref_error(approval_ref, repo_root)
+                if error is not None:
+                    raise ClosureValidationError(error)
         packets.append(payload)
     return packets
 
@@ -242,12 +273,14 @@ def write_council_request_packet(
     resolved: bool = False,
     resolved_at: str | None = None,
     requested_at: str | None = None,
+    approval_ref: str | None = None,
+    expires_at: str | None = None,
 ) -> Path:
+    requested_at_value = requested_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     payload = {
         "schema_version": COUNCIL_REQUEST_SCHEMA_VERSION,
         "request_id": request_id,
-        "requested_at": requested_at
-        or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "requested_at": requested_at_value,
         "trigger": trigger,
         "question": question,
         "context_summary": context_summary,
@@ -257,6 +290,8 @@ def write_council_request_packet(
         "related_tasks": related_tasks,
         "resolved": resolved,
         "resolved_at": resolved_at,
+        "approval_ref": approval_ref,
+        "expires_at": expires_at or default_council_request_expiry(requested_at_value),
     }
     validate_council_request_packet(payload)
     out_dir = _closures_dir(repo_root)

@@ -174,10 +174,7 @@ def test_cmd_coo_sync_check_json_output_reports_drift(tmp_path: Path, capsys) ->
     assert payload["task_status_gaps"][0]["task_id"] == "T-001"
 
 
-def test_fallback_approval_ref_validation_path(monkeypatch, tmp_path: Path) -> None:
-    from runtime.orchestration.coo import sync_check
-
-    monkeypatch.setattr(sync_check, "_load_approval_ref_validator", lambda: None)
+def test_approval_ref_validation_path_accepts_approved_marker(tmp_path: Path) -> None:
     _write_ruling(tmp_path, "docs/01_governance/approved.md", decision="APPROVED")
 
     gaps = check_lane_governance(
