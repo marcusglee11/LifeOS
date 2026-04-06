@@ -10,7 +10,7 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-04-05 (rev13)
+**Last Updated:** 2026-04-06 (rev14)
 
 ## Now (ready soon; not in WIP yet)
 
@@ -45,6 +45,14 @@
 
 
 ## Next (valuable, but not imminent)
+
+### Agent Efficiency Initiative
+
+See living doc: `artifacts/plans/2026-04-06-agent-efficiency-improvements.md`
+
+- [ ] **T-AE-01 Run-level token ledger + CLI estimation** — DoD: Cumulative token spend visible across all agent calls in a run; 80% budget warning emitted before exhaustion; CLI invocations contribute `estimated_tokens` (not just API calls) — Owner: Substrate — Context: Port aggregation pattern from `autonomous_build_cycle.py:337` into LoopSpine/dispatch/COO path; extend `budgets.py:23` and `api.py:671` — Priority: P1
+- [ ] **T-AE-02 COO context telemetry + stable block reuse** — DoD: `build_propose_context()` logs serialized byte sizes per block; stable blocks (REPO_MAP, delegation_envelope) get content-addressed IDs excluding ephemeral fields; repeated same-session invocations skip re-serializing unchanged blocks — Owner: Substrate — Context: `context.py:148` (cache keys), `context.py:152` (slim actionable_tasks fields), `invoke.py:105` — Priority: P1
+- [ ] **T-AE-03 REPO_MAP freshness gate in start_build.py** — DoD: `start_build.py` warns (or blocks, configurable) when REPO_MAP.md is >7 days old; reuses existing detector at `scripts/entropy/scan_v1.py:55`; no auto-commit automation — Owner: Substrate — Context: REPO_MAP was 25 days stale at 2026-04-06 analysis — Priority: P1
 
 - [ ] **Tech Debt Audit Follow-up** — DoD: Address items in `docs/11_admin/TECH_DEBT_INVENTORY.md` as their trigger conditions are met — Context: Inventory created 2026-02-27 during 3-pass audit; 5 resolved items, 8 tracked items with explicit triggers — Priority: P2
 

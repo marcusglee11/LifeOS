@@ -15,7 +15,7 @@
 
 **Current Focus:** Phase 7 `prod_ci` canonical closure
 **Active WIP:** none
-**Last Updated:** 2026-04-05 (rev34)
+**Last Updated:** 2026-04-06 (rev35)
 
 ---
 
@@ -85,6 +85,10 @@
 - **Phase 10 (Ops Executor Expansion):** PARTIALLY MERGED (2026-04-04)
   - `workspace_inspection_v1` and `repo_artifact_v1` are implemented on `main`
   - both new lanes remain `ratification_pending`; no Phase 11 burn-in has started
+- **Agent Efficiency Initiative (2026-04-06):** PLANNING
+  - Living doc at `artifacts/plans/2026-04-06-agent-efficiency-improvements.md`
+  - Addresses token blindness, context bloat, memory fragmentation, and model-tier routing
+  - P0 items queued in BACKLOG: run-level token ledger, COO context telemetry + block reuse, REPO_MAP freshness gate
 
 ---
 
