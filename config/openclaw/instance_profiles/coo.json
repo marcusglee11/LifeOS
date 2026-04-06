@@ -7,7 +7,7 @@
   "sandbox_policy": {
     "target_posture": "unsandboxed",
     "allowed_modes": [
-      "all"
+      "off"
     ],
     "require_session_sandboxed": false,
     "require_elevated_disabled": false

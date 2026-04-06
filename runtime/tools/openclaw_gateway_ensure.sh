@@ -164,7 +164,7 @@ if [ "$started_via" = "none" ]; then
     else
       set +e
       tmux new-session -d -s openclaw-gateway \
-        "OPENCLAW_STATE_DIR='$STATE_DIR' OPENCLAW_CONFIG_PATH='$CFG_PATH' OPENCLAW_GATEWAY_PORT='$PORT' '$OPENCLAW_BIN' gateway run --port '$PORT' --verbose" >/dev/null 2>&1
+        "PATH='$PATH' HOME='$HOME' OPENCLAW_STATE_DIR='$STATE_DIR' OPENCLAW_CONFIG_PATH='$CFG_PATH' OPENCLAW_GATEWAY_PORT='$PORT' '$OPENCLAW_BIN' gateway run --port '$PORT' --verbose" >/dev/null 2>&1
       rc_tmux_new=$?
       set -e
       if [ "$rc_tmux_new" -eq 0 ]; then
@@ -176,7 +176,7 @@ fi
 
 if [ "$started_via" = "none" ]; then
   set +e
-  nohup env OPENCLAW_STATE_DIR="$STATE_DIR" OPENCLAW_CONFIG_PATH="$CFG_PATH" OPENCLAW_GATEWAY_PORT="$PORT" \
+  nohup env PATH="$PATH" HOME="$HOME" OPENCLAW_STATE_DIR="$STATE_DIR" OPENCLAW_CONFIG_PATH="$CFG_PATH" OPENCLAW_GATEWAY_PORT="$PORT" \
     "$OPENCLAW_BIN" gateway run --port "$PORT" --verbose >"$NOHUP_LOG" 2>&1 &
   pid=$!
   rc_nohup=$?

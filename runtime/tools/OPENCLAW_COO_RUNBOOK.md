@@ -449,3 +449,39 @@ HTTP mode enablement (when provisioning is approved):
 - Receipts include a non-deep channels status capture and never include Slack secrets.
 - Receipts include multi-user posture status (`multiuser_posture_ok`, channel names, allowlist counts, violations count) and never include allowlist values.
 - Receipts include Slack guard posture (`slack_ready_to_enable`, `slack_base_enabled`, `slack_env_present`, `slack_overlay_last_mode`) with booleans/counts only.
+
+## Config Pairing
+
+Two files must remain consistent or `coo doctor` / `coo start` will block at startup:
+
+| File | Location | Controls |
+|------|----------|----------|
+| Instance profile | `config/openclaw/instance_profiles/coo.json` (in-repo, versioned) | `sandbox_policy.allowed_modes`, `target_posture` |
+| OpenClaw config | `~/.openclaw/openclaw.json` (out-of-repo, mutable) | Actual `agents.*.sandbox.mode`, docker settings |
+
+### Known failure modes
+
+**`sandbox_mode_disallowed`** — instance profile `allowed_modes` does not contain the actual sandbox
+mode set in `openclaw.json`. Fix: update `allowed_modes` in the instance profile to match the
+intended posture, or change the sandbox mode in `openclaw.json` to match the policy.
+
+**`security_audit_summary_not_clean` (docker variant)** — `openclaw.json` has `sandbox.docker.*`
+settings on an agent while that agent's `sandbox.mode` is `"off"`. Docker config has no effect
+with mode=off and triggers a security audit warning. Fix: remove the docker settings or enable
+sandbox mode.
+
+### Drift detection
+
+Run before `coo start` if either file was recently changed:
+
+```bash
+coo diag
+# Look for CONFIG_PAIR_CHECK_BEGIN / CONFIG_PAIR_CHECK_END block.
+# pair_check_ok=false indicates a mismatch to fix before startup.
+```
+
+The pair check also runs automatically as part of `coo diag`.
+
+For the in-repo side, `scripts/hooks/pre-commit` lints `config/openclaw/instance_profiles/*.json`
+when staged, catching logical inconsistencies (e.g. `target_posture=unsandboxed` with
+`allowed_modes=["all"]`) before they are committed.

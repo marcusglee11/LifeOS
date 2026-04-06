@@ -75,6 +75,27 @@ if [ "$IS_VALID" = false ] && [ -n "$CURRENT_BRANCH" ]; then
 fi
 
 # ------------------------------------------------------------------------------
+# OpenClaw Instance Profile Lint
+# ------------------------------------------------------------------------------
+
+_REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+_CHANGED_PROFILES=$(git diff --cached --name-only 2>/dev/null | grep '^config/openclaw/instance_profiles/.*\.json' || true)
+if [ -n "$_CHANGED_PROFILES" ]; then
+    while IFS= read -r _profile; do
+        if [ -f "$_REPO_ROOT/$_profile" ]; then
+            if ! python3 "$_REPO_ROOT/runtime/tools/openclaw_instance_profile_lint.py" \
+                    "$_REPO_ROOT/$_profile" 2>&1; then
+                echo ""
+                echo "❌ Instance profile lint failed: $_profile"
+                echo "   Fix the violations above before committing."
+                echo ""
+                exit 1
+            fi
+        fi
+    done <<< "$_CHANGED_PROFILES"
+fi
+
+# ------------------------------------------------------------------------------
 # Article XIX Enforcement: Untracked Asset Stewardship (Anti-Deletion)
 # ------------------------------------------------------------------------------
 
