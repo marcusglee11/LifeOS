@@ -2784,12 +2784,18 @@ EOF
     set +a
     print_header
     cd "$BUILD_REPO"
+    # Use the repo venv if available (it has python-telegram-bot installed);
+    # fall back to bare python3 for environments without a venv.
+    _tg_python="python3"
+    if [ -x "$BUILD_REPO/.venv/bin/python3" ]; then
+      _tg_python="$BUILD_REPO/.venv/bin/python3"
+    fi
     case "$subcmd" in
       run)
-        python3 -m runtime.cli coo telegram run
+        "$_tg_python" -m runtime.cli coo telegram run
         ;;
       status)
-        python3 -m runtime.cli coo telegram status "${@:2}"
+        "$_tg_python" -m runtime.cli coo telegram status "${@:2}"
         ;;
     esac
     ;;
