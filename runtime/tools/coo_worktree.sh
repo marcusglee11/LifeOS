@@ -691,7 +691,7 @@ render_capsule_marker() {
 run_startup_probe_bundle() {
   local quiet_mode="${1:-0}"
   local gateway_mode="${2:-normal}"
-  local timeout_sec="${COO_STARTUP_TIMEOUT_SEC:-180}"
+  local timeout_sec="${COO_STARTUP_TIMEOUT_SEC:-300}"
   local rc
 
   set +e
@@ -800,7 +800,7 @@ run_doctor() {
     probe_rc="$?"
   fi
 
-  python3 - "$gate_status_path" "$catalog_path" "$probe_rc" "$json_output" "$fix_actions_file" "$applied_fixes_file" "${COO_STARTUP_TIMEOUT_SEC:-180}" "$emit_initial_output" <<'PY'
+  python3 - "$gate_status_path" "$catalog_path" "$probe_rc" "$json_output" "$fix_actions_file" "$applied_fixes_file" "${COO_STARTUP_TIMEOUT_SEC:-300}" "$emit_initial_output" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -1133,7 +1133,7 @@ PY
       annotate_gate_breakglass_status "$gate_status_path" "false" "$break_glass_scope" ""
       emit_gate_blocking_summary
       if [ "$startup_probe_rc" -eq 124 ]; then
-        echo "ERROR: startup health checks timed out after ${COO_STARTUP_TIMEOUT_SEC:-180}s." >&2
+        echo "ERROR: startup health checks timed out after ${COO_STARTUP_TIMEOUT_SEC:-300}s." >&2
       fi
       echo "ERROR: startup blocked by fail-closed gate policy." >&2
       echo "NEXT: run 'coo doctor' to diagnose and fix, or re-run with --unsafe-allow-drift for emergency local use only." >&2
@@ -1157,7 +1157,7 @@ PY
           echo "ERROR: --unsafe-allow-drift cannot classify gate failures safely; refusing bypass." >&2
         fi
         if [ "$startup_probe_rc" -eq 124 ]; then
-          echo "ERROR: startup health checks timed out after ${COO_STARTUP_TIMEOUT_SEC:-180}s." >&2
+          echo "ERROR: startup health checks timed out after ${COO_STARTUP_TIMEOUT_SEC:-300}s." >&2
         fi
         echo "ERROR: startup blocked by fail-closed gate policy." >&2
         echo "NEXT: run 'coo doctor' to diagnose and fix." >&2
