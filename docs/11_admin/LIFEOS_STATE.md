@@ -15,7 +15,7 @@
 
 **Current Focus:** Phase 7 `prod_ci` canonical closure
 **Active WIP:** none
-**Last Updated:** 2026-04-06 (rev35)
+**Last Updated:** 2026-04-07 (rev36)
 
 ---
 
@@ -85,10 +85,11 @@
 - **Phase 10 (Ops Executor Expansion):** PARTIALLY MERGED (2026-04-04)
   - `workspace_inspection_v1` and `repo_artifact_v1` are implemented on `main`
   - both new lanes remain `ratification_pending`; no Phase 11 burn-in has started
-- **Agent Efficiency Initiative (2026-04-06):** PLANNING
+- **Agent Efficiency Initiative (2026-04-06):** P0 VERIFIED ON MAIN (2026-04-07)
   - Living doc at `artifacts/plans/2026-04-06-agent-efficiency-improvements.md`
-  - Addresses token blindness, context bloat, memory fragmentation, and model-tier routing
-  - P0 items queued in BACKLOG: run-level token ledger, COO context telemetry + block reuse, REPO_MAP freshness gate
+  - `T-AE-01`, `T-AE-02`, and `T-AE-03` are reconciled closed in canon after scoped-worktree verification on `fix/ae-p0-closure`
+  - Verification evidence: `pytest runtime/tests -q` PASS (`3058 passed, 6 skipped`); focused AE suite PASS (`24 passed`)
+  - Landed P0 slices now reflected in `BACKLOG.md`: run-level token ledger + CLI estimation, COO context telemetry + stable block reuse, REPO_MAP freshness gate
 
 ---
 
@@ -102,6 +103,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-04-07:** Agent Efficiency P0 closure reconciled — canon now records `T-AE-01`, `T-AE-02`, and `T-AE-03` done after scoped-worktree verification on `fix/ae-p0-closure`; baseline `pytest runtime/tests -q` PASS (`3058 passed, 6 skipped`) and focused AE suite PASS (`24 passed`).
 - **2026-04-04:** Phase 10 Batch 2 merged — `repo_artifact_v1` executor surface and tests landed on `main` (`2569ec53`); lane remains `ratification_pending`.
 - **2026-04-04:** Phase 10 Batch 1 merged — `workspace_inspection_v1` executor surface and tests landed on `main` (`8730916e`); lane remains `ratification_pending`.
 - **2026-04-03:** Phase 9 ops ratification COMPLETE — `workspace_mutation_v1` formally ratified by [Council_Ruling_Phase9_Ops_Ratification_v1.0.md](../01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md); `T-023` is decision-complete.

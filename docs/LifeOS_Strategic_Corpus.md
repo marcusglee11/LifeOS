@@ -2000,8 +2000,8 @@ The following protected-path updates are authorized by this ruling:
 ## Verification Evidence
 
 - targeted tests on fixed surfaces: `92 passed`
-- baseline full runtime suite earlier in this worktree: `2945 passed, 6 skipped`
-- changed-file quality gate passed before protected-path stewardship
+- post-change full runtime suite: `2946 passed, 6 skipped`
+- changed-file quality gate passed with no blocking failures
 
 ## End State
 
