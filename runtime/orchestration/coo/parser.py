@@ -267,6 +267,15 @@ def parse_escalation_packet(raw_output: str) -> dict[str, Any]:
         raise ParseError("Escalation packet missing required 'type' field")
     if not isinstance(raw.get("options"), list) or not raw["options"]:
         raise ParseError("Escalation packet 'options' must be a non-empty list")
+    # Validate each option; resolution_action is optional and backward-compatible.
+    _VALID_RESOLUTION_ACTIONS = frozenset({"approve", "reject"})
+    for opt in raw["options"]:
+        ra = opt.get("resolution_action")
+        if ra is not None and ra not in _VALID_RESOLUTION_ACTIONS:
+            raise ParseError(
+                f"Invalid resolution_action {ra!r} on option {opt.get('option_id')!r}. "
+                f"Must be 'approve' or 'reject'."
+            )
     return raw
 
 

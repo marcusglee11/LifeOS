@@ -121,6 +121,7 @@ def invoke_coo_reasoning(
     repo_root: Path,
     timeout_s: int = 120,
     run_id: str = "",
+    agent: str = "main",
     _retry_delays: tuple[float, ...] = (1.0, 3.0),
 ) -> str:
     """
@@ -255,7 +256,7 @@ def invoke_coo_reasoning(
         "openclaw",
         "agent",
         "--agent",
-        "main",
+        agent,
         "--session-id",
         session_id,
         "--thinking",

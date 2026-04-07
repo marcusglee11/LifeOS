@@ -74,7 +74,7 @@ def get_prompt_status(repo_root: Path) -> dict[str, Any]:
     }
 
 
-def propose_coo(repo_root: Path) -> dict[str, Any]:
+def propose_coo(repo_root: Path, agent: str = "main") -> dict[str, Any]:
     """Invoke COO in propose mode and return parsed result with dump metadata.
 
     Returns a dict with keys:
@@ -94,7 +94,7 @@ def propose_coo(repo_root: Path) -> dict[str, Any]:
     """
     context = build_propose_context(repo_root)
     run_id = compute_sha256({"context": context, "mode": "propose"})
-    raw_output = invoke_coo_reasoning(context, mode="propose", repo_root=repo_root, run_id=run_id)
+    raw_output = invoke_coo_reasoning(context, mode="propose", repo_root=repo_root, run_id=run_id, agent=agent)
     _, parse_recovery_stage = _extract_yaml_payload_with_stage(raw_output)
 
     try:
@@ -131,7 +131,7 @@ def propose_coo(repo_root: Path) -> dict[str, Any]:
     }
 
 
-def direct_coo(intent: str, repo_root: Path, *, source: str, actor: str) -> dict[str, Any]:
+def direct_coo(intent: str, repo_root: Path, *, source: str, actor: str, agent: str = "main") -> dict[str, Any]:
     """Invoke COO in direct mode and return parsed result with dump metadata.
 
     Returns a dict with keys:
@@ -154,7 +154,7 @@ def direct_coo(intent: str, repo_root: Path, *, source: str, actor: str) -> dict
 
     context = build_direct_context(repo_root, intent, source=source)
     run_id = compute_sha256({"context": context, "mode": "direct"})
-    raw_output = invoke_coo_reasoning(context, mode="direct", repo_root=repo_root, run_id=run_id)
+    raw_output = invoke_coo_reasoning(context, mode="direct", repo_root=repo_root, run_id=run_id, agent=agent)
     _, parse_recovery_stage = _extract_yaml_payload_with_stage(raw_output)
 
     evidence = collect_evidence(repo_root)
@@ -345,6 +345,7 @@ def chat_message(
     *,
     auto_execute: bool = False,
     actor: str = "coo_chat",
+    agent: str = "main",
 ) -> dict[str, Any]:
     context = build_chat_context(message, repo_root)
     run_id = compute_sha256({"context": context, "mode": "chat"})
@@ -353,6 +354,7 @@ def chat_message(
         mode="chat",
         repo_root=repo_root,
         run_id=run_id,
+        agent=agent,
     )
 
     try:
@@ -457,3 +459,49 @@ def reject_operation(
     }
     save_receipt(repo_root, receipt)
     return receipt
+
+
+def approve_escalation(
+    escalation_id: str, repo_root: Path, resolver: str, note: str = ""
+) -> dict[str, Any]:
+    """Approve a CEO queue escalation (ESC-...) from Telegram.
+
+    Returns:
+        {"kind": "escalation_approved", "escalation_id": str}
+        {"kind": "error", "message": str}
+    """
+    from runtime.orchestration.ceo_queue import CEOQueue
+
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+    success = queue.approve(escalation_id, note=note or "Approved via Telegram", resolver=resolver)
+    if success:
+        return {"kind": "escalation_approved", "escalation_id": escalation_id}
+    return {
+        "kind": "error",
+        "message": f"Escalation {escalation_id} not found or not pending",
+    }
+
+
+def reject_escalation(
+    escalation_id: str, repo_root: Path, resolver: str, reason: str = ""
+) -> dict[str, Any]:
+    """Reject a CEO queue escalation (ESC-...) from Telegram.
+
+    Returns:
+        {"kind": "escalation_rejected", "escalation_id": str}
+        {"kind": "error", "message": str}
+    """
+    from runtime.orchestration.ceo_queue import CEOQueue
+
+    queue = CEOQueue(db_path=repo_root / "artifacts" / "queue" / "escalations.db")
+    success = queue.reject(
+        escalation_id,
+        reason=reason or "Rejected via Telegram",
+        resolver=resolver,
+    )
+    if success:
+        return {"kind": "escalation_rejected", "escalation_id": escalation_id}
+    return {
+        "kind": "error",
+        "message": f"Escalation {escalation_id} not found or not pending",
+    }

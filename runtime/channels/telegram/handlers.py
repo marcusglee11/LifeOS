@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 from contextlib import suppress
 from datetime import datetime, timezone
@@ -8,10 +9,27 @@ from pathlib import Path
 from typing import Any
 
 from runtime.channels.telegram.config import TelegramConfig
-from runtime.channels.telegram.sessions import clear_session
+from runtime.channels.telegram.model_control import (
+    ModelControlError,
+    get_telegram_agent_primary,
+    list_allowed_models,
+    set_telegram_model,
+)
+from runtime.channels.telegram.sessions import (
+    clear_pending_escalation,
+    clear_session,
+    get_pending_escalation,
+    set_pending_escalation,
+)
 from runtime.channels.telegram.status import write_status
 from runtime.orchestration.coo import service as coo_service
 from runtime.orchestration.coo.parser import ParseError
+
+_MODEL_SWITCH_RE = re.compile(
+    r"^(?:use|switch\s+to|set\s+(?:telegram\s+)?(?:default\s+)?(?:model\s+)?(?:to\s+)?)"
+    r"\s*([\w.\-/]+)\s*$",
+    re.IGNORECASE,
+)
 
 
 def _utc_now() -> str:
@@ -101,8 +119,11 @@ _HELP_TEXT = (
     "/status — backlog + dispatch state\n"
     "/propose — trigger COO propose sweep\n"
     "/direct <intent> — direct directive to COO\n"
-    "/approve <id> — approve T-... or OP-...\n"
-    "/reject <id> [reason] — reject OP-...\n"
+    "/approve <id> — approve T-..., OP-..., or ESC-...\n"
+    "/reject <id> [reason] — reject OP-... or ESC-...\n"
+    "/model — show current Telegram default model\n"
+    "/model <model_id> — set Telegram default model\n"
+    "/models — list available model IDs\n"
     "/prompt_status — canonical vs live prompt hash\n"
     "/new or /reset — clear session state\n"
     "/help — show this message"
@@ -152,6 +173,17 @@ def _render_prompt_status(ps: dict[str, Any]) -> str:
     live_hash = str(ps.get("live_sha256") or "missing")[:12]
     sync_label = "IN SYNC" if in_sync else "OUT OF SYNC"
     return f"Prompt status: {sync_label}\n  canonical: {canonical_hash}\n  live:      {live_hash}"
+
+
+def _match_escalation_reply(text: str, options: list[dict]) -> dict | None:
+    """Return the matching option dict if text matches an option_id or title, else None."""
+    text_lower = text.strip().lower()
+    for opt in options:
+        option_id = str(opt.get("option_id", "")).strip().lower()
+        title = str(opt.get("title", "")).strip().lower()
+        if text_lower in (option_id, f"option {option_id}", title):
+            return opt
+    return None
 
 
 async def _dispatch_slash_command(
@@ -213,6 +245,7 @@ async def _dispatch_slash_command(
                 repo_root,
                 source="telegram_direct",
                 actor=actor,
+                agent="telegram",
             )
         except Exception as exc:
             await message.reply_text(f"Direct directive failed: {exc}")
@@ -231,10 +264,29 @@ async def _dispatch_slash_command(
             packet = result.get("payload") or {}
             summary = str((packet.get("context") or {}).get("summary", "")).strip()
             escalation_id = str(packet.get("escalation_id", "")).strip()
-            msg = f"Escalated to CEO (id={escalation_id})."
+            options = packet.get("options", [])
+            option_lines = [
+                f"  {opt.get('option_id', '?')}. {opt.get('title', '')} — {opt.get('action', '')}"
+                for opt in options
+            ]
             if summary:
-                msg = f"{summary}\n{msg}"
+                msg = f"{summary}\n\nEscalation (id={escalation_id})"
+            else:
+                msg = f"Escalation (id={escalation_id})"
+            if option_lines:
+                msg += ":\n" + "\n".join(option_lines)
+                if any(opt.get("resolution_action") for opt in options):
+                    msg += "\n\nReply with option letter or title to resolve."
+                else:
+                    msg += f"\n\nUse /approve {escalation_id} or /reject {escalation_id} to resolve."
             await message.reply_text(msg)
+            if chat_id is not None:
+                pending = {
+                    "escalation_id": escalation_id,
+                    "options": options,
+                    "presented_at": _utc_now(),
+                }
+                set_pending_escalation(repo_root, chat_id, pending)
         return True
 
     if command == "/approve":
@@ -242,6 +294,17 @@ async def _dispatch_slash_command(
             await message.reply_text("Usage: /approve <id>")
             return True
         actor = _actor_label(update, "telegram_approve")
+        if rest.startswith("ESC-"):
+            result = await asyncio.to_thread(
+                coo_service.approve_escalation, rest, repo_root, actor
+            )
+            if result["kind"] == "escalation_approved":
+                if chat_id is not None:
+                    clear_pending_escalation(repo_root, chat_id)
+                await message.reply_text(f"Escalation {rest} approved.")
+            else:
+                await message.reply_text(f"Approval failed: {result.get('message', 'unknown error')}")
+            return True
         result = await asyncio.to_thread(coo_service.approve_item, rest, repo_root, actor)
         kind = result.get("kind")
         if kind == "task_approval":
@@ -260,16 +323,61 @@ async def _dispatch_slash_command(
             await message.reply_text("Usage: /reject <id> [reason]")
             return True
         identifier = parts2[0]
-        reason = parts2[1].strip() if len(parts2) > 1 else "Rejected from Telegram"
+        reason = parts2[1].strip() if len(parts2) > 1 else ""
         actor = _actor_label(update, "telegram_reject")
+        if identifier.startswith("ESC-"):
+            result = await asyncio.to_thread(
+                coo_service.reject_escalation,
+                identifier,
+                repo_root,
+                actor,
+                reason or "Rejected from Telegram",
+            )
+            if result["kind"] == "escalation_rejected":
+                if chat_id is not None:
+                    clear_pending_escalation(repo_root, chat_id)
+                await message.reply_text(f"Escalation {identifier} rejected.")
+            else:
+                await message.reply_text(
+                    f"Rejection failed: {result.get('message', 'unknown error')}"
+                )
+            return True
         result = await asyncio.to_thread(
-            coo_service.reject_item, identifier, repo_root, actor, reason
+            coo_service.reject_item,
+            identifier,
+            repo_root,
+            actor,
+            reason or "Rejected from Telegram",
         )
         kind = result.get("kind")
         if kind == "operation_receipt":
             await message.reply_text(_render_terminal_text(result["receipt"]))
         else:
             await message.reply_text(f"Rejection failed: {result.get('message', 'unknown error')}")
+        return True
+
+    if command == "/model":
+        if not rest:
+            current = get_telegram_agent_primary() or "(unknown)"
+            await message.reply_text(f"Telegram default model: {current}")
+            return True
+        try:
+            set_telegram_model(repo_root, rest)
+        except ModelControlError as exc:
+            await message.reply_text(f"Model change failed: {exc}")
+            return True
+        await message.reply_text(f"Telegram default model set to: {rest}")
+        return True
+
+    if command == "/models":
+        try:
+            models = list_allowed_models()
+        except ModelControlError as exc:
+            await message.reply_text(f"Could not list models: {exc}")
+            return True
+        current = get_telegram_agent_primary() or "(unknown)"
+        lines = [f"Current: {current}", "", "Available:"] + [f"  {m}" for m in models]
+        await message.reply_text("\n".join(lines))
         return True
 
     # Unknown slash command
@@ -291,13 +399,87 @@ async def handle_message(
     _msg_start = time.monotonic()
     write_status(repo_root, last_message_at=_utc_now())
 
+    # --- Slash command dispatch (includes /model, /models, /approve ESC-...) ---
     if await _dispatch_slash_command(text, update, context, repo_root=repo_root):
         return
 
+    # --- NLU model-switch pre-filter (owner only, already gated by _is_allowed above) ---
+    m = _MODEL_SWITCH_RE.match(text)
+    if m:
+        model_id = m.group(1).strip()
+        try:
+            set_telegram_model(repo_root, model_id)
+            await message.reply_text(f"Telegram default model set to: {model_id}")
+        except ModelControlError as exc:
+            await message.reply_text(f"Model change failed: {exc}")
+        return
+
+    chat = getattr(message, "chat", None)
+    chat_id = getattr(chat, "id", None)
+
+    # --- Session-aware escalation follow-up ---
+    if chat_id is not None:
+        pending = get_pending_escalation(repo_root, chat_id)
+        if pending is not None:
+            escalation_id = pending.get("escalation_id", "")
+            options = pending.get("options", [])
+            matched = _match_escalation_reply(text, options)
+            if matched:
+                ra = matched.get("resolution_action")
+                if ra == "approve":
+                    actor = _actor_label(update, "telegram_approve")
+                    result = await asyncio.to_thread(
+                        coo_service.approve_escalation,
+                        escalation_id,
+                        repo_root,
+                        actor,
+                        f"Option {matched.get('option_id')}: {matched.get('title', '')}",
+                    )
+                    clear_pending_escalation(repo_root, chat_id)
+                    if result["kind"] == "escalation_approved":
+                        await message.reply_text(f"Escalation {escalation_id} approved.")
+                    else:
+                        await message.reply_text(
+                            f"Approval failed: {result.get('message', 'unknown error')}"
+                        )
+                elif ra == "reject":
+                    actor = _actor_label(update, "telegram_reject")
+                    result = await asyncio.to_thread(
+                        coo_service.reject_escalation,
+                        escalation_id,
+                        repo_root,
+                        actor,
+                        f"Option {matched.get('option_id')}: {matched.get('title', '')}",
+                    )
+                    clear_pending_escalation(repo_root, chat_id)
+                    if result["kind"] == "escalation_rejected":
+                        await message.reply_text(f"Escalation {escalation_id} rejected.")
+                    else:
+                        await message.reply_text(
+                            f"Rejection failed: {result.get('message', 'unknown error')}"
+                        )
+                else:
+                    # Option matched but no resolution_action — tell user to use explicit command
+                    await message.reply_text(
+                        f"This escalation requires explicit resolution.\n"
+                        f"Use /approve {escalation_id} or /reject {escalation_id}."
+                    )
+                return
+            # Non-matching text while escalation pending — block chat and prompt
+            await message.reply_text(
+                f"Pending escalation (id={escalation_id}). "
+                f"Reply with option letter/title, or "
+                f"/approve {escalation_id} / /reject {escalation_id}."
+            )
+            return
+
+    # --- COO chat (uses telegram agent) ---
     typing_task = asyncio.create_task(_typing_pulse(update, context))
     await asyncio.sleep(0)
     try:
-        result = await asyncio.to_thread(coo_service.chat_message, text, repo_root)
+        result = await asyncio.to_thread(
+            coo_service.chat_message, text, repo_root, agent="telegram"
+        )
     except ParseError as exc:
         await message.reply_text(
             f"COO returned an invalid operation packet and nothing was queued: {exc}"

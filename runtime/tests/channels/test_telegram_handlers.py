@@ -69,7 +69,7 @@ async def test_handle_message_replies_with_buttons(
     monkeypatch.setattr(
         handlers.coo_service,
         "chat_message",
-        lambda text, repo_root: {
+        lambda text, repo_root, **_: {
             "mode": "chat",
             "has_proposal": True,
             "proposal_id": "OP-a1b2c3d4",
@@ -113,7 +113,7 @@ async def test_handle_message_starts_and_cancels_typing_pulse(
     monkeypatch.setattr(
         handlers.coo_service,
         "chat_message",
-        lambda text, repo_root: {
+        lambda text, repo_root, **_: {
             "mode": "chat",
             "has_proposal": False,
             "proposal_id": None,
@@ -179,7 +179,7 @@ async def test_handle_message_replies_on_parse_error(
     monkeypatch.setattr(
         handlers.coo_service,
         "chat_message",
-        lambda text, repo_root: (_ for _ in ()).throw(
+        lambda text, repo_root, **_: (_ for _ in ()).throw(
             ParseError("Operation proposal has invalid proposal_id format")
         ),
     )
@@ -243,7 +243,7 @@ async def test_handle_message_writes_activity_status(
     monkeypatch.setattr(
         handlers.coo_service,
         "chat_message",
-        lambda text, repo_root: {
+        lambda text, repo_root, **_: {
             "mode": "chat",
             "has_proposal": False,
             "proposal_id": None,
@@ -317,7 +317,7 @@ async def test_handle_message_writes_last_error_on_exception(
     monkeypatch.setattr(
         handlers.coo_service,
         "chat_message",
-        lambda text, repo_root: (_ for _ in ()).throw(RuntimeError("gateway down")),
+        lambda text, repo_root, **_: (_ for _ in ()).throw(RuntimeError("gateway down")),
     )
 
     await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
@@ -520,7 +520,7 @@ async def test_slash_direct_op_proposal_shows_buttons(
     update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
     captured_source = []
 
-    def _fake_direct(intent, repo_root, *, source, actor):
+    def _fake_direct(intent, repo_root, *, source, actor, agent="main"):
         captured_source.append(source)
         return {
             "kind": "operation_proposal",
@@ -563,7 +563,7 @@ async def test_slash_direct_escalation_no_buttons(
     message = _FakeMessage(text="/direct touch protected path")
     update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
 
-    def _fake_direct(intent, repo_root, *, source, actor):
+    def _fake_direct(intent, repo_root, *, source, actor, agent="main"):
         return {
             "kind": "escalation_packet",
             "payload": {
@@ -781,3 +781,339 @@ async def test_slash_prompt_status_replies(monkeypatch: pytest.MonkeyPatch, tmp_
 
     assert len(message.replies) == 1
     assert "IN SYNC" in message.replies[0][0]
+
+
+# ---------------------------------------------------------------------------
+# /model and /models command tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_model_command_shows_current_default(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="/model")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers, "get_telegram_agent_primary", lambda: "openai-codex/gpt-5.4")
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert len(message.replies) == 1
+    assert "openai-codex/gpt-5.4" in message.replies[0][0]
+
+
+@pytest.mark.asyncio
+async def test_model_command_sets_model(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="/model openai-codex/gpt-5.3-codex")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    called_with: list[str] = []
+
+    def _fake_set(repo_root, primary):
+        called_with.append(primary)
+
+    monkeypatch.setattr(handlers, "set_telegram_model", _fake_set)
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert called_with == ["openai-codex/gpt-5.3-codex"]
+    assert "set to" in message.replies[0][0]
+
+
+@pytest.mark.asyncio
+async def test_model_command_unauthorized_user_ignored(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="/model openai-codex/gpt-5.4")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=999))
+
+    called = []
+    monkeypatch.setattr(handlers, "set_telegram_model", lambda *a: called.append(a))
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert called == []
+    assert message.replies == []
+
+
+@pytest.mark.asyncio
+async def test_models_command_shows_list(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="/models")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(
+        handlers, "list_allowed_models",
+        lambda: ["openai-codex/gpt-5.4", "openai-codex/gpt-5.3-codex"],
+    )
+    monkeypatch.setattr(handlers, "get_telegram_agent_primary", lambda: "openai-codex/gpt-5.4")
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert len(message.replies) == 1
+    reply = message.replies[0][0]
+    assert "openai-codex/gpt-5.4" in reply
+    assert "openai-codex/gpt-5.3-codex" in reply
+    assert "Current:" in reply
+
+
+# ---------------------------------------------------------------------------
+# NLU model-switch tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_nlu_model_switch_calls_set_telegram_model(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="use openai-codex/gpt-5.4")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    called_with: list[str] = []
+    monkeypatch.setattr(handlers, "set_telegram_model", lambda repo, primary: called_with.append(primary))
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert called_with == ["openai-codex/gpt-5.4"]
+    assert "set to" in message.replies[0][0]
+
+
+@pytest.mark.asyncio
+async def test_nlu_model_switch_does_not_call_chat_message(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="switch to openai-codex/gpt-5.3-codex")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers, "set_telegram_model", lambda *a: None)
+    chat_called = []
+    monkeypatch.setattr(handlers.coo_service, "chat_message", lambda *a, **kw: chat_called.append(a))
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert chat_called == []
+
+
+@pytest.mark.asyncio
+async def test_nlu_model_switch_switch_to_variant(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="switch to openai-codex/gpt-5.4")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    called_with: list[str] = []
+    monkeypatch.setattr(handlers, "set_telegram_model", lambda repo, primary: called_with.append(primary))
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert called_with == ["openai-codex/gpt-5.4"]
+
+
+# ---------------------------------------------------------------------------
+# Escalation follow-up reply tests
+# ---------------------------------------------------------------------------
+
+_SAMPLE_ESCALATION_PENDING = {
+    "escalation_id": "ESC-0001",
+    "options": [
+        {"option_id": "A", "title": "Proceed", "action": "Do it", "resolution_action": "approve"},
+        {"option_id": "B", "title": "Abort", "action": "Stop", "resolution_action": "reject"},
+    ],
+    "presented_at": "2026-04-07T00:00:00+00:00",
+}
+
+
+@pytest.mark.asyncio
+async def test_pending_escalation_option_reply_approves(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from runtime.channels.telegram.sessions import set_pending_escalation
+
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    set_pending_escalation(tmp_path, 1, _SAMPLE_ESCALATION_PENDING)
+    message = _FakeMessage(text="A")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "approve_escalation",
+        lambda esc_id, repo, resolver, note="": {"kind": "escalation_approved", "escalation_id": esc_id},
+    )
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert len(message.replies) == 1
+    assert "approved" in message.replies[0][0].lower()
+
+    from runtime.channels.telegram.sessions import get_pending_escalation
+    assert get_pending_escalation(tmp_path, 1) is None
+
+
+@pytest.mark.asyncio
+async def test_pending_escalation_option_reply_rejects(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from runtime.channels.telegram.sessions import set_pending_escalation
+
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    set_pending_escalation(tmp_path, 1, _SAMPLE_ESCALATION_PENDING)
+    message = _FakeMessage(text="option B")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "reject_escalation",
+        lambda esc_id, repo, resolver, reason="": {"kind": "escalation_rejected", "escalation_id": esc_id},
+    )
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert "rejected" in message.replies[0][0].lower()
+
+    from runtime.channels.telegram.sessions import get_pending_escalation
+    assert get_pending_escalation(tmp_path, 1) is None
+
+
+@pytest.mark.asyncio
+async def test_pending_escalation_no_resolution_action_prompts_explicit(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from runtime.channels.telegram.sessions import set_pending_escalation
+
+    # Options without resolution_action
+    pending = {
+        "escalation_id": "ESC-0002",
+        "options": [
+            {"option_id": "A", "title": "Do something", "action": "Act"},
+        ],
+        "presented_at": "2026-04-07T00:00:00+00:00",
+    }
+
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    set_pending_escalation(tmp_path, 1, pending)
+    message = _FakeMessage(text="A")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    chat_called = []
+    monkeypatch.setattr(handlers.coo_service, "chat_message", lambda *a, **kw: chat_called.append(a))
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert chat_called == []
+    assert "/approve" in message.replies[0][0] or "/reject" in message.replies[0][0]
+
+
+@pytest.mark.asyncio
+async def test_pending_escalation_unmatched_reply_blocks_chat(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from runtime.channels.telegram.sessions import set_pending_escalation
+
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    set_pending_escalation(tmp_path, 1, _SAMPLE_ESCALATION_PENDING)
+    message = _FakeMessage(text="hello random text")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    chat_called = []
+    monkeypatch.setattr(handlers.coo_service, "chat_message", lambda *a, **kw: chat_called.append(a))
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert chat_called == []
+    assert "Pending escalation" in message.replies[0][0]
+
+
+# ---------------------------------------------------------------------------
+# /approve ESC-... and /reject ESC-... tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_approve_esc_id_calls_approve_escalation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="/approve ESC-0001")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    called: list = []
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "approve_escalation",
+        lambda esc_id, repo, resolver: called.append(esc_id) or {"kind": "escalation_approved", "escalation_id": esc_id},
+    )
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert called == ["ESC-0001"]
+    assert "approved" in message.replies[0][0].lower()
+
+
+@pytest.mark.asyncio
+async def test_reject_esc_id_calls_reject_escalation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="/reject ESC-0001 not needed")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    called: list = []
+    monkeypatch.setattr(
+        handlers.coo_service,
+        "reject_escalation",
+        lambda esc_id, repo, resolver, reason="": called.append((esc_id, reason)) or {"kind": "escalation_rejected", "escalation_id": esc_id},
+    )
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert called[0][0] == "ESC-0001"
+    assert called[0][1] == "not needed"
+    assert "rejected" in message.replies[0][0].lower()
+
+
+# ---------------------------------------------------------------------------
+# chat_message uses telegram agent
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_chat_message_uses_telegram_agent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = TelegramConfig(bot_token="token", allow_from=frozenset({123}), mode="polling")
+    message = _FakeMessage(text="what is the backlog status?")
+    update = _FakeUpdate(effective_message=message, effective_user=_FakeUser(id=123))
+
+    monkeypatch.setattr(handlers.asyncio, "to_thread", _direct_to_thread)
+    agent_used: list[str] = []
+
+    def _fake_chat(text, repo_root, *, agent="main", **kwargs):
+        agent_used.append(agent)
+        return {"has_proposal": False, "message": "Here is the status."}
+
+    monkeypatch.setattr(handlers.coo_service, "chat_message", _fake_chat)
+    monkeypatch.setattr(handlers, "_typing_pulse", lambda *a, **kw: _noop_coro())
+
+    async def _noop_coro():
+        pass
+
+    monkeypatch.setattr(handlers, "_typing_pulse", lambda *a, **kw: _noop_coro())
+
+    await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
+
+    assert agent_used == ["telegram"]

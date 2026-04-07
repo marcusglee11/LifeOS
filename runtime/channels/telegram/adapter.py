@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
 from runtime.channels.telegram.config import TelegramConfig
 from runtime.channels.telegram.handlers import handle_callback, handle_message
+from runtime.channels.telegram.model_control import ModelControlError, bootstrap_telegram_agent
 from runtime.channels.telegram.status import write_status
+
+_log = logging.getLogger(__name__)
 
 
 def _utc_now() -> str:
@@ -24,6 +28,11 @@ def run_polling(config: TelegramConfig, repo_root: Path) -> None:
     from telegram.ext import ApplicationBuilder, CallbackQueryHandler, MessageHandler, filters
 
     write_status(repo_root, state="starting", mode=config.mode, started_at=_utc_now())
+
+    try:
+        bootstrap_telegram_agent(repo_root)
+    except ModelControlError as exc:
+        _log.warning("Telegram agent bootstrap failed: %s", exc)
 
     application = ApplicationBuilder().token(config.bot_token).build()
 
