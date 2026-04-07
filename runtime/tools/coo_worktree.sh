@@ -992,6 +992,7 @@ Usage:
   runtime/tools/coo_worktree.sh tui -- <tui-args...>
   runtime/tools/coo_worktree.sh run -- <command...>
   runtime/tools/coo_worktree.sh openclaw -- <openclaw-args...>
+  runtime/tools/coo_worktree.sh telegram {run|status}   # @LifeOSCOOBot Telegram adapter
 
 Enforcement modes:
   - Default startup mode is fail-closed for security/model/posture gates.
@@ -2736,6 +2737,40 @@ EOF
     else
       run_openclaw "$@"
     fi
+    ;;
+  telegram)
+    shift || true
+    subcmd="${1:-}"
+    case "$subcmd" in
+      run|status) ;;
+      *)
+        echo "Usage: coo telegram {run|status}" >&2
+        exit 2
+        ;;
+    esac
+    _tg_env="$HOME/.config/lifeos/telegram.env"
+    if [ ! -f "$_tg_env" ]; then
+      echo "ERROR: Telegram env file not found: $_tg_env" >&2
+      echo "Expected vars: LIFEOS_COO_TELEGRAM_BOT_TOKEN, LIFEOS_COO_TELEGRAM_ALLOW_FROM" >&2
+      exit 1
+    fi
+    # shellcheck source=/dev/null
+    set -a
+    if ! . "$_tg_env"; then
+      echo "ERROR: Failed to source $_tg_env" >&2
+      exit 1
+    fi
+    set +a
+    print_header
+    cd "$BUILD_REPO"
+    case "$subcmd" in
+      run)
+        python3 -m runtime.cli coo telegram run
+        ;;
+      status)
+        python3 -m runtime.cli coo telegram status "${@:2}"
+        ;;
+    esac
     ;;
   *)
     usage
