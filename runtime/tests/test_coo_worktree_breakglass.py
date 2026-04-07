@@ -123,6 +123,10 @@ def _prepare_repo(tmp_path: Path) -> tuple[Path, dict[str, str], Path]:
                     "sandbox_explain_parse_failed": {"severity": "hard", "drift_bypassable": False},
                     "sandbox_elevated_enabled": {"severity": "hard", "drift_bypassable": False},
                     "leak_scan_failed": {"severity": "hard", "drift_bypassable": False},
+                    "security_audit_timeout_no_usable_report": {
+                        "severity": "hard",
+                        "drift_bypassable": False,
+                    },
                     "gate_reason_unknown": {"severity": "hard", "drift_bypassable": False},
                     "gate_reason_catalog_failed": {"severity": "hard", "drift_bypassable": False},
                 },
@@ -337,6 +341,64 @@ def test_start_without_failures_keeps_breakglass_off(tmp_path: Path) -> None:
     assert gate["break_glass_used"] is False
     assert gate["break_glass_scope"] == "policy_drift_only"
     assert gate["break_glass_bypass_reasons"] == []
+
+
+def test_start_accepts_timeout_after_clean_report_mode(tmp_path: Path) -> None:
+    repo_dir, env, state_dir = _prepare_repo(tmp_path)
+    env["STUB_GATE_STATUS_JSON"] = json.dumps(
+        {
+            "pass": True,
+            "blocking_reasons": [],
+            "verify_out_dir": str(state_dir / "verify" / "20260407T070034Z"),
+            "security_audit_file": str(
+                state_dir / "verify" / "20260407T070034Z" / "security_audit_deep.txt"
+            ),
+            "security_audit_deep_exit": 124,
+            "security_audit_fallback_exit": None,
+            "security_audit_mode": "timeout_after_clean_report",
+            "security_audit_summary_present": True,
+            "security_audit_critical_count": 0,
+            "security_audit_warn_codes": ["security.trust_model.multi_user_heuristic"],
+            "security_audit_unexpected_warnings": [],
+        }
+    )
+
+    proc = _run_start(repo_dir, env)
+
+    assert proc.returncode == 0, proc.stderr
+    gate = _gate_status(state_dir)
+    assert gate["security_audit_mode"] == "timeout_after_clean_report"
+    assert gate["security_audit_deep_exit"] == 124
+    assert gate["security_audit_unexpected_warnings"] == []
+
+
+def test_start_blocks_timeout_without_usable_report(tmp_path: Path) -> None:
+    repo_dir, env, state_dir = _prepare_repo(tmp_path)
+    env["STUB_VERIFY_RC"] = "1"
+    env["STUB_GATE_STATUS_JSON"] = json.dumps(
+        {
+            "pass": False,
+            "blocking_reasons": ["security_audit_timeout_no_usable_report"],
+            "verify_out_dir": str(state_dir / "verify" / "20260407T070034Z"),
+            "security_audit_file": str(
+                state_dir / "verify" / "20260407T070034Z" / "security_audit_deep.txt"
+            ),
+            "security_audit_deep_exit": 124,
+            "security_audit_fallback_exit": None,
+            "security_audit_mode": "blocked_timeout_no_usable_report",
+            "security_audit_summary_present": False,
+            "security_audit_critical_count": None,
+            "security_audit_warn_codes": [],
+            "security_audit_unexpected_warnings": [],
+        }
+    )
+
+    proc = _run_start(repo_dir, env)
+
+    assert proc.returncode == 1
+    gate = _gate_status(state_dir)
+    assert gate["blocking_reasons"] == ["security_audit_timeout_no_usable_report"]
+    assert gate["security_audit_mode"] == "blocked_timeout_no_usable_report"
 
 
 def test_start_resolves_repo_when_invoked_outside_repo(tmp_path: Path) -> None:

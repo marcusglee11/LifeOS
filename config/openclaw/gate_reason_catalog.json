@@ -177,6 +177,17 @@
         "manual_hint": "Re-run security verification and inspect the missing audit output path."
       }
     },
+    "security_audit_timeout_no_usable_report": {
+      "severity": "hard",
+      "drift_bypassable": false,
+      "owner_system": "security",
+      "remediation": {
+        "auto_fixable": false,
+        "action_id": null,
+        "fix_command": null,
+        "manual_hint": "The deep security audit timed out before a usable report was available. Inspect the latest audit output for truncation or a missing Summary line, then retry startup."
+      }
+    },
     "security_audit_summary_not_clean": {
       "severity": "hard",
       "drift_bypassable": false,

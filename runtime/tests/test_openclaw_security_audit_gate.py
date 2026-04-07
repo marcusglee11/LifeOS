@@ -134,3 +134,23 @@ def test_rejects_summary_critical_count_mismatch() -> None:
         + "\n",
     )
     assert result.clean is False
+
+
+def test_marks_report_unparseable_when_summary_line_missing() -> None:
+    result = assess_security_audit_text(
+        "\n".join(
+            [
+                "OpenClaw security audit",
+                "",
+                "WARN",
+                "security.trust_model.multi_user_heuristic Shared gateway detected",
+                "[exit_code]=124",
+            ]
+        )
+        + "\n",
+        allow_multiuser_heuristic=True,
+    )
+    assert result.clean is False
+    assert result.summary_present is False
+    assert result.summary_critical_count is None
+    assert result.warn_codes == ()

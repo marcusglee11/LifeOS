@@ -79,6 +79,17 @@ def _write_doctor_catalog(repo_dir: Path) -> None:
                     "manual_hint": "Adjust sandbox policy; contact the operator if the active posture is unexpected.",  # noqa: E501
                 },
             },
+            "security_audit_timeout_no_usable_report": {
+                "severity": "hard",
+                "drift_bypassable": False,
+                "owner_system": "security",
+                "remediation": {
+                    "auto_fixable": False,
+                    "action_id": None,
+                    "fix_command": None,
+                    "manual_hint": "The deep security audit timed out before a usable report was available. Inspect the latest audit output for truncation or a missing Summary line, then retry startup.",  # noqa: E501
+                },
+            },
         },
     }
     path = repo_dir / "config" / "openclaw" / "gate_reason_catalog.json"
@@ -325,6 +336,63 @@ def test_doctor_json_blocked_has_blockers_list(tmp_path: Path) -> None:
     payload = json.loads(proc.stdout)
     assert payload["status"] == "blocked"
     assert payload["blockers"][0]["reason"] == "model_ladder_policy_failed"
+
+
+def test_doctor_surfaces_security_audit_evidence_in_text_output(tmp_path: Path) -> None:
+    repo_dir, env, state_dir = _prepare_repo(tmp_path)
+    _write_doctor_catalog(repo_dir)
+    env["STUB_VERIFY_RC"] = "1"
+    env["STUB_GATE_STATUS_JSON"] = json.dumps(
+        {
+            "pass": False,
+            "blocking_reasons": ["security_audit_timeout_no_usable_report"],
+            "verify_out_dir": str(state_dir / "verify" / "20260407T070034Z"),
+            "security_audit_file": str(
+                state_dir / "verify" / "20260407T070034Z" / "security_audit_deep.txt"
+            ),
+            "security_audit_deep_exit": 124,
+            "security_audit_fallback_exit": None,
+            "security_audit_mode": "blocked_timeout_no_usable_report",
+        }
+    )
+
+    proc = _run_doctor(repo_dir, env)
+
+    assert proc.returncode == 1
+    assert "GATE_STATUS_PATH=" in proc.stdout
+    assert "VERIFY_OUT_DIR=" in proc.stdout
+    assert "SECURITY_AUDIT_FILE=" in proc.stdout
+    assert "SECURITY_AUDIT_DEEP_EXIT=124" in proc.stdout
+    assert "SECURITY_AUDIT_MODE=blocked_timeout_no_usable_report" in proc.stdout
+
+
+def test_doctor_json_includes_security_audit_evidence_fields(tmp_path: Path) -> None:
+    repo_dir, env, state_dir = _prepare_repo(tmp_path)
+    _write_doctor_catalog(repo_dir)
+    env["STUB_VERIFY_RC"] = "1"
+    env["STUB_GATE_STATUS_JSON"] = json.dumps(
+        {
+            "pass": False,
+            "blocking_reasons": ["gateway_probe_failed"],
+            "verify_out_dir": str(state_dir / "verify" / "20260407T070034Z"),
+            "security_audit_file": str(
+                state_dir / "verify" / "20260407T070034Z" / "security_audit_deep.txt"
+            ),
+            "security_audit_deep_exit": 124,
+            "security_audit_fallback_exit": None,
+            "security_audit_mode": "timeout_after_clean_report",
+        }
+    )
+
+    proc = _run_doctor(repo_dir, env, "--json")
+
+    payload = json.loads(proc.stdout)
+    assert payload["gate_status_path"].endswith("gate_status.json")
+    assert payload["verify_out_dir"].endswith("20260407T070034Z")
+    assert payload["security_audit_file"].endswith("security_audit_deep.txt")
+    assert payload["security_audit_deep_exit"] == 124
+    assert payload["security_audit_fallback_exit"] is None
+    assert payload["security_audit_mode"] == "timeout_after_clean_report"
 
 
 def test_doctor_json_apply_safe_fixes_output_is_valid_json(tmp_path: Path) -> None:

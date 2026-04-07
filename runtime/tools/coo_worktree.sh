@@ -845,6 +845,15 @@ applied = []
 if applied_fixes_path.exists():
     applied = [line.strip() for line in applied_fixes_path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
+evidence = {
+    "gate_status_path": str(gate_path),
+    "verify_out_dir": gate.get("verify_out_dir"),
+    "security_audit_file": gate.get("security_audit_file"),
+    "security_audit_deep_exit": gate.get("security_audit_deep_exit"),
+    "security_audit_fallback_exit": gate.get("security_audit_fallback_exit"),
+    "security_audit_mode": gate.get("security_audit_mode"),
+}
+
 synthetic = {
     "startup_probe_timed_out": {
         "severity": "hard",
@@ -898,12 +907,24 @@ payload = {
     "blockers": blockers,
     "fix_commands_available": [item["fix_command"] for item in blockers if item.get("fix_command")],
     "auto_fixes_applied": applied,
+    **evidence,
 }
 
 if emit_json and emit_output:
     print(json.dumps(payload, indent=2, sort_keys=True))
 elif emit_output:
     print(f"DOCTOR_STATUS={status}")
+    print(f"GATE_STATUS_PATH={evidence['gate_status_path']}")
+    if isinstance(evidence["verify_out_dir"], str) and evidence["verify_out_dir"]:
+        print(f"VERIFY_OUT_DIR={evidence['verify_out_dir']}")
+    if isinstance(evidence["security_audit_file"], str) and evidence["security_audit_file"]:
+        print(f"SECURITY_AUDIT_FILE={evidence['security_audit_file']}")
+    if evidence["security_audit_deep_exit"] is not None:
+        print(f"SECURITY_AUDIT_DEEP_EXIT={evidence['security_audit_deep_exit']}")
+    if evidence["security_audit_fallback_exit"] is not None:
+        print(f"SECURITY_AUDIT_FALLBACK_EXIT={evidence['security_audit_fallback_exit']}")
+    if isinstance(evidence["security_audit_mode"], str) and evidence["security_audit_mode"]:
+        print(f"SECURITY_AUDIT_MODE={evidence['security_audit_mode']}")
     for blocker in blockers:
         print(f"BLOCKER_REASON={blocker['reason']}")
         print(f"BLOCKER_SEVERITY={blocker['severity']}")

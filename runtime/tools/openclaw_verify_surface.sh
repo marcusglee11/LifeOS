@@ -33,10 +33,15 @@ PASS=1
 WARNINGS=0
 declare -A CMD_RC
 SECURITY_AUDIT_MODE="unknown"
+SECURITY_AUDIT_TIMEOUT_CANDIDATE=0
 CONFINEMENT_FLAG=""
 AUTH_HEALTH_STATE="unknown"
 AUTH_HEALTH_REASON="auth_health_unavailable"
 SECURITY_AUDIT_CLEAN="false"
+SECURITY_AUDIT_SUMMARY_PRESENT="false"
+SECURITY_AUDIT_CRITICAL_COUNT=""
+SECURITY_AUDIT_WARN_CODES=""
+SECURITY_AUDIT_UNEXPECTED_WARNINGS=""
 GATEWAY_PROBE_PASS="false"
 SANDBOX_POLICY_TARGET="unknown"
 SANDBOX_POLICY_ALLOWED_MODES=""
@@ -123,6 +128,9 @@ else
       SECURITY_AUDIT_MODE="blocked_fallback_failed"
       add_blocking_reason "security_audit_fallback_failed"
     fi
+  elif [ "${CMD_RC[security_audit_deep]:-1}" -eq 124 ]; then
+    SECURITY_AUDIT_MODE="timeout_after_clean_report"
+    SECURITY_AUDIT_TIMEOUT_CANDIDATE=1
   else
     SECURITY_AUDIT_MODE="blocked_unknown_deep_error"
     add_blocking_reason "security_audit_deep_failed"
@@ -266,7 +274,12 @@ if [ "$SECURITY_AUDIT_MODE" = "non_deep_fallback_due_uv_interface_addresses" ]; 
 fi
 
 if [ ! -f "$SECURITY_FILE" ]; then
-  add_blocking_reason "security_audit_output_missing"
+  if [ "$SECURITY_AUDIT_TIMEOUT_CANDIDATE" -eq 1 ]; then
+    SECURITY_AUDIT_MODE="blocked_timeout_no_usable_report"
+    add_blocking_reason "security_audit_timeout_no_usable_report"
+  else
+    add_blocking_reason "security_audit_output_missing"
+  fi
 else
   allow_multiuser_heuristic=0
   # Accept the shared-ingress heuristic only when explicit posture and
@@ -285,18 +298,38 @@ result = assess_security_audit_file(
     allow_multiuser_heuristic=sys.argv[2] == "1",
 )
 print(f"clean={'true' if result.clean else 'false'}")
+print(f"summary_present={'true' if result.summary_present else 'false'}")
+print(
+    "summary_critical_count="
+    + ("" if result.summary_critical_count is None else str(result.summary_critical_count))
+)
+print(
+    "summary_warn_count="
+    + ("" if result.summary_warn_count is None else str(result.summary_warn_count))
+)
 print("warn_codes=" + ",".join(result.warn_codes))
 print("unexpected_warn_codes=" + ",".join(result.unexpected_warn_codes))
 PY
 )"
   SECURITY_AUDIT_CLEAN="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^clean=//p' | tail -n 1)"
-  warn_codes_csv="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^warn_codes=//p' | tail -n 1)"
-  if [ "$SECURITY_AUDIT_CLEAN" = "true" ]; then
-    if [ -n "$warn_codes_csv" ]; then
+  SECURITY_AUDIT_SUMMARY_PRESENT="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^summary_present=//p' | tail -n 1)"
+  SECURITY_AUDIT_CRITICAL_COUNT="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^summary_critical_count=//p' | tail -n 1)"
+  SECURITY_AUDIT_WARN_CODES="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^warn_codes=//p' | tail -n 1)"
+  SECURITY_AUDIT_UNEXPECTED_WARNINGS="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^unexpected_warn_codes=//p' | tail -n 1)"
+  if [ "$SECURITY_AUDIT_CLEAN" = "true" ] && [ "$SECURITY_AUDIT_SUMMARY_PRESENT" = "true" ]; then
+    if [ -n "$SECURITY_AUDIT_WARN_CODES" ]; then
+      WARNINGS=1
+    fi
+    if [ "$SECURITY_AUDIT_TIMEOUT_CANDIDATE" -eq 1 ]; then
       WARNINGS=1
     fi
   else
-    add_blocking_reason "security_audit_summary_not_clean"
+    if [ "$SECURITY_AUDIT_TIMEOUT_CANDIDATE" -eq 1 ] && [ "$SECURITY_AUDIT_SUMMARY_PRESENT" != "true" ]; then
+      SECURITY_AUDIT_MODE="blocked_timeout_no_usable_report"
+      add_blocking_reason "security_audit_timeout_no_usable_report"
+    else
+      add_blocking_reason "security_audit_summary_not_clean"
+    fi
   fi
 fi
 
@@ -394,6 +427,11 @@ fi
   echo "leak_scan_exit=$rc_leak"
   echo "security_audit_mode=$SECURITY_AUDIT_MODE"
   echo "security_audit_clean=$SECURITY_AUDIT_CLEAN"
+  echo "security_audit_file=$SECURITY_FILE"
+  echo "security_audit_summary_present=$SECURITY_AUDIT_SUMMARY_PRESENT"
+  echo "security_audit_critical_count=$SECURITY_AUDIT_CRITICAL_COUNT"
+  echo "security_audit_warn_codes=$SECURITY_AUDIT_WARN_CODES"
+  echo "security_audit_unexpected_warnings=$SECURITY_AUDIT_UNEXPECTED_WARNINGS"
   echo "security_audit_deep_exit=${CMD_RC[security_audit_deep]:-1}"
   echo "security_audit_fallback_exit=${CMD_RC[security_audit_fallback]:-NA}"
   echo "cron_delivery_guard_exit=${CMD_RC[cron_delivery_guard]:-1}"
@@ -504,7 +542,7 @@ export SANDBOX_POLICY_OBSERVED_MODE
 export SANDBOX_POLICY_SESSION_IS_SANDBOXED
 export SANDBOX_POLICY_ELEVATED_ENABLED
 
-python3 - <<'PY' "$GATE_STATUS_PATH" "$TS_UTC" "$policy_fingerprint" "$SECURITY_AUDIT_MODE" "$CONFINEMENT_FLAG" "$OUT_DIR" "$reasons_file" "$AUTH_HEALTH_STATE" "$AUTH_HEALTH_REASON"
+python3 - <<'PY' "$GATE_STATUS_PATH" "$TS_UTC" "$policy_fingerprint" "$SECURITY_AUDIT_MODE" "$CONFINEMENT_FLAG" "$OUT_DIR" "$reasons_file" "$AUTH_HEALTH_STATE" "$AUTH_HEALTH_REASON" "$SECURITY_FILE" "${CMD_RC[security_audit_deep]:-1}" "${CMD_RC[security_audit_fallback]:-NA}" "$SECURITY_AUDIT_SUMMARY_PRESENT" "$SECURITY_AUDIT_CRITICAL_COUNT" "$SECURITY_AUDIT_WARN_CODES" "$SECURITY_AUDIT_UNEXPECTED_WARNINGS"
 import json
 import os
 import sys
@@ -520,6 +558,23 @@ out_dir = Path(sys.argv[6])
 reasons_file = Path(sys.argv[7])
 auth_health_state = str(sys.argv[8] or "unknown")
 auth_health_reason = str(sys.argv[9] or "auth_health_unavailable")
+security_audit_file = str(sys.argv[10] or "")
+security_audit_deep_exit_raw = str(sys.argv[11] or "")
+security_audit_fallback_exit_raw = str(sys.argv[12] or "")
+security_audit_summary_present = str(sys.argv[13] or "").strip().lower() == "true"
+security_audit_critical_count_raw = str(sys.argv[14] or "")
+security_audit_warn_codes_raw = str(sys.argv[15] or "")
+security_audit_unexpected_raw = str(sys.argv[16] or "")
+
+
+def parse_optional_int(raw: str) -> int | None:
+    raw = raw.strip()
+    if not raw or raw == "NA":
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        return None
 
 def env_bool(key: str) -> bool:
     return str(os.environ.get(key, "")).strip().lower() == "true"
@@ -557,7 +612,15 @@ payload: Dict[str, Any] = {
     "pass": all(bool(item.get("pass")) for item in checks) and not blocking_reasons,
     "blocking_reasons": blocking_reasons,
     "checks": checks,
+    "verify_out_dir": str(out_dir),
+    "security_audit_file": security_audit_file,
+    "security_audit_deep_exit": parse_optional_int(security_audit_deep_exit_raw),
+    "security_audit_fallback_exit": parse_optional_int(security_audit_fallback_exit_raw),
     "security_audit_mode": security_audit_mode,
+    "security_audit_summary_present": security_audit_summary_present,
+    "security_audit_critical_count": parse_optional_int(security_audit_critical_count_raw),
+    "security_audit_warn_codes": [item for item in security_audit_warn_codes_raw.split(",") if item],
+    "security_audit_unexpected_warnings": [item for item in security_audit_unexpected_raw.split(",") if item],
     "confinement_detected": bool(confinement_flag),
     "policy_fingerprint": policy_fingerprint,
     "auth_health_state": auth_health_state,
