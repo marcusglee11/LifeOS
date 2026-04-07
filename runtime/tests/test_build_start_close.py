@@ -47,6 +47,17 @@ def test_start_build_json_output_success(monkeypatch, capsys, tmp_path: Path) ->
 
     monkeypatch.setattr(start_build.subprocess, "run", fake_run)
     monkeypatch.setattr(start_build, "_git_stdout", lambda *_args, **_kwargs: "")
+    monkeypatch.setattr(
+        start_build,
+        "get_stale_repo_map_status",
+        lambda: {
+            "status": "ok",
+            "detail": "REPO_MAP.md is 0 commit(s) behind HEAD",
+            "commits_behind": 0,
+            "threshold": 5,
+            "generated_from_ref": "abc1234",
+        },
+    )
     monkeypatch.setattr(sys, "argv", ["start_build.py", "auth token", "--json"])
 
     rc = start_build.main()
@@ -56,6 +67,7 @@ def test_start_build_json_output_success(monkeypatch, capsys, tmp_path: Path) ->
     assert payload["ok"] is True
     assert payload["branch"] == "build/auth-token"
     assert payload["worktree_path"] == "/tmp/repo/.worktrees/auth-token"
+    assert payload["repo_map_freshness"]["status"] == "ok"
 
 
 def test_start_build_recover_primary_json_success(monkeypatch, capsys) -> None:
@@ -180,6 +192,17 @@ def test_start_build_reports_recovered_orphaned_locks_in_json(monkeypatch, capsy
     )
     monkeypatch.setattr(start_build.subprocess, "run", fake_run)
     monkeypatch.setattr(start_build, "_git_stdout", lambda *_args, **_kwargs: "")
+    monkeypatch.setattr(
+        start_build,
+        "get_stale_repo_map_status",
+        lambda: {
+            "status": "ok",
+            "detail": "REPO_MAP.md is 0 commit(s) behind HEAD",
+            "commits_behind": 0,
+            "threshold": 5,
+            "generated_from_ref": "abc1234",
+        },
+    )
     monkeypatch.setattr(sys, "argv", ["start_build.py", "auth token", "--json"])
 
     rc = start_build.main()
@@ -188,6 +211,60 @@ def test_start_build_reports_recovered_orphaned_locks_in_json(monkeypatch, capsy
     assert rc == 0
     assert payload["ok"] is True
     assert payload["recovered_locks"] == ["/tmp/repo/.git/index.lock"]
+
+
+def test_start_build_json_includes_repo_map_warning(monkeypatch, capsys) -> None:
+    fake_out = "✓ Worktree ready at: /tmp/repo/.worktrees/auth-token\n  Run: cd /tmp/repo/.worktrees/auth-token\n"
+
+    def fake_run(*args, **kwargs):
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=fake_out, stderr="")
+
+    monkeypatch.setattr(start_build.subprocess, "run", fake_run)
+    monkeypatch.setattr(start_build, "_git_stdout", lambda *_args, **_kwargs: "")
+    monkeypatch.setattr(
+        start_build,
+        "get_stale_repo_map_status",
+        lambda: {
+            "status": "warn",
+            "detail": "REPO_MAP.md is 145 commits behind HEAD",
+            "commits_behind": 145,
+            "threshold": 5,
+            "generated_from_ref": "abc1234",
+        },
+    )
+    monkeypatch.setattr(sys, "argv", ["start_build.py", "auth token", "--json"])
+
+    rc = start_build.main()
+    payload = json.loads(capsys.readouterr().out)
+
+    assert rc == 0
+    assert payload["repo_map_freshness"]["status"] == "warn"
+    assert payload["repo_map_freshness"]["commit_lag"] == 145
+    assert payload["repo_map_freshness"]["blocking"] is False
+
+
+def test_start_build_blocks_when_repo_map_block_mode_enabled(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(start_build, "_git_stdout", lambda *_args, **_kwargs: "")
+    monkeypatch.setattr(
+        start_build,
+        "get_stale_repo_map_status",
+        lambda: {
+            "status": "warn",
+            "detail": "REPO_MAP.md is 145 commits behind HEAD",
+            "commits_behind": 145,
+            "threshold": 5,
+            "generated_from_ref": "abc1234",
+        },
+    )
+    monkeypatch.setenv("LIFEOS_REPO_MAP_FRESHNESS_MODE", "block")
+    monkeypatch.setattr(sys, "argv", ["start_build.py", "auth token", "--json"])
+
+    rc = start_build.main()
+    payload = json.loads(capsys.readouterr().out)
+
+    assert rc == 1
+    assert payload["error"].startswith("REPO_MAP_STALE:")
+    assert payload["repo_map_freshness"]["blocking"] is True
 
 
 def test_recover_primary_branch_stashes_switches_and_reapplies(monkeypatch, tmp_path: Path) -> None:

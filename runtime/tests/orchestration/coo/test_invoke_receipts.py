@@ -64,6 +64,9 @@ def test_success_produces_receipt():
     assert r.exit_status == 0
     assert r.schema_validation == "pass"
     assert r.error is None
+    assert r.token_usage is not None
+    assert r.token_usage["token_source"] == "estimated"
+    assert r.token_usage["estimated_tokens"] == r.token_usage["total_tokens"]
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +87,8 @@ def test_receipt_output_hash_matches_content():
     # The normalized text extracted from the envelope
     expected_text = "schema_version: task_proposal.v1\n"
     assert r.output_hash == compute_sha256(expected_text)
+    assert r.token_usage is not None
+    assert r.token_usage["completion_tokens"] == len(expected_text) // 4
 
 
 def test_chat_mode_uses_low_thinking():
@@ -144,6 +149,8 @@ def test_bad_exit_produces_receipt_and_raises():
     r = collector.receipts[0]
     assert r.exit_status == 1
     assert "boom" in (r.error or "")
+    assert r.token_usage is not None
+    assert r.token_usage["token_source"] == "estimated"
 
 
 # ---------------------------------------------------------------------------

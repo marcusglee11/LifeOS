@@ -68,11 +68,11 @@ def test_call_agent_records_receipt(tmp_path) -> None:
     assert receipt["mode"] == "api"
     assert receipt["provider_id"] == "openai-codex"
     assert receipt["schema_validation"] == "pass"
-    assert receipt["token_usage"] == {
-        "prompt_tokens": 11,
-        "completion_tokens": 7,
-        "total_tokens": 18,
-    }
+    assert receipt["token_usage"]["prompt_tokens"] == 11
+    assert receipt["token_usage"]["completion_tokens"] == 7
+    assert receipt["token_usage"]["total_tokens"] == 18
+    assert receipt["token_usage"]["actual_tokens"] == 18
+    assert receipt["token_usage"]["token_source"] == "actual"
 
 
 def test_call_agent_cli_records_receipt(tmp_path) -> None:
@@ -131,4 +131,5 @@ def test_call_agent_cli_records_receipt(tmp_path) -> None:
     assert receipt["provider_id"] == "codex"
     assert receipt["schema_validation"] == "pass"
     assert receipt["token_usage"]["total_tokens"] > 0
-    assert "token_source" not in receipt["token_usage"]
+    assert receipt["token_usage"]["estimated_tokens"] == receipt["token_usage"]["total_tokens"]
+    assert receipt["token_usage"]["token_source"] == "estimated"

@@ -16,6 +16,7 @@ from runtime.orchestration.coo.context import (
     _OP_PROPOSAL_OUTPUT_SCHEMA_EXAMPLE,
     _PROPOSE_OUTPUT_SCHEMA_EXAMPLE,
     build_propose_context,
+    get_last_propose_context_telemetry,
     build_report_context,
     build_status_context,
 )
@@ -131,6 +132,76 @@ def test_build_propose_context_missing_brief_returns_empty_string(tmp_path: Path
     context = build_propose_context(tmp_path)
 
     assert context["brief"] == ""
+
+
+def test_build_propose_context_records_telemetry(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+    _write_repo_map(tmp_path, "# Repo Map\nmodule: runtime/\n")
+
+    context = build_propose_context(tmp_path)
+    telemetry = get_last_propose_context_telemetry(tmp_path)
+
+    assert telemetry is not None
+    assert telemetry["total_serialized_bytes"] > 0
+    assert set(telemetry["blocks"]) == {
+        "actionable_tasks",
+        "delegation_envelope",
+        "brief",
+        "output_format_instruction",
+        "repo_map",
+    }
+    assert telemetry["blocks"]["repo_map"]["byte_size"] == len(context["repo_map"].encode("utf-8"))
+    assert telemetry["blocks"]["repo_map"]["block_id"].startswith("repo_map:")
+
+
+def test_build_propose_context_reuses_stable_blocks_across_calls(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+    _write_repo_map(tmp_path, "# Repo Map\nmodule: runtime/\n")
+
+    build_propose_context(tmp_path)
+    first = get_last_propose_context_telemetry(tmp_path)
+    build_propose_context(tmp_path)
+    second = get_last_propose_context_telemetry(tmp_path)
+
+    assert first is not None and second is not None
+    assert (
+        first["blocks"]["repo_map"]["block_id"]
+        == second["blocks"]["repo_map"]["block_id"]
+    )
+    assert second["blocks"]["repo_map"]["reused_serialization"] is True
+    assert second["blocks"]["delegation_envelope"]["reused_serialization"] is True
+
+
+def test_build_propose_context_stable_block_ids_ignore_generated_at(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+
+    first = build_propose_context(tmp_path)
+    first_telemetry = get_last_propose_context_telemetry(tmp_path)
+    second = build_propose_context(tmp_path)
+    second_telemetry = get_last_propose_context_telemetry(tmp_path)
+
+    assert first["generated_at"] != second["generated_at"]
+    assert first_telemetry is not None and second_telemetry is not None
+    assert (
+        first_telemetry["blocks"]["actionable_tasks"]["block_id"]
+        == second_telemetry["blocks"]["actionable_tasks"]["block_id"]
+    )
+
+
+def test_build_propose_context_slims_actionable_task_fields(tmp_path: Path) -> None:
+    _write_backlog(tmp_path, [_task("T-001", "P1", "pending")])
+    _write_delegation(tmp_path)
+
+    context = build_propose_context(tmp_path)
+    task = context["actionable_tasks"][0]
+
+    assert "created_at" not in task
+    assert "completed_at" not in task
+    assert "evidence" not in task
+    assert task["id"] == "T-001"
 
 
 def test_build_status_context_counts(tmp_path: Path) -> None:

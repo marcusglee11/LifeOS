@@ -102,6 +102,19 @@ def _thinking_level_for_mode(mode: str) -> str:
     return "high"
 
 
+def _estimate_token_usage(input_text: str, output_text: str = "") -> dict[str, int | str]:
+    prompt_tokens = max(0, len(input_text) // 4)
+    completion_tokens = max(0, len(output_text) // 4)
+    total_tokens = prompt_tokens + completion_tokens
+    return {
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": completion_tokens,
+        "total_tokens": total_tokens,
+        "estimated_tokens": total_tokens,
+        "token_source": "estimated",
+    }
+
+
 def invoke_coo_reasoning(
     context: dict,
     mode: str,
@@ -287,6 +300,7 @@ def invoke_coo_reasoning(
                     exit_status=-1,
                     output_content="",
                     schema_validation="n/a",
+                    token_usage=_estimate_token_usage(message),
                     error="openclaw binary not found",
                 )
                 raise InvocationError(
@@ -307,6 +321,7 @@ def invoke_coo_reasoning(
                 exit_status=-1,
                 output_content="",
                 schema_validation="n/a",
+                token_usage=_estimate_token_usage(message),
                 error=f"timeout after {timeout_s}s",
             )
             raise InvocationError(
@@ -323,6 +338,7 @@ def invoke_coo_reasoning(
             exit_status=-1,
             output_content="",
             schema_validation="n/a",
+            token_usage=_estimate_token_usage(message),
             error="openclaw binary not found",
         )
         raise InvocationError(
@@ -345,6 +361,7 @@ def invoke_coo_reasoning(
             exit_status=result.returncode,
             output_content=result.stdout or "",
             schema_validation="n/a",
+            token_usage=_estimate_token_usage(message, result.stdout or ""),
             error=stderr_snippet,
         )
         raise InvocationError(f"openclaw exited {result.returncode}: {stderr_snippet}")
@@ -362,6 +379,7 @@ def invoke_coo_reasoning(
             exit_status=result.returncode,
             output_content=result.stdout or "",
             schema_validation="fail",
+            token_usage=_estimate_token_usage(message, result.stdout or ""),
             error=f"JSON decode error: {exc}",
         )
         raise InvocationError(f"openclaw output is not valid JSON: {exc}") from exc
@@ -377,6 +395,7 @@ def invoke_coo_reasoning(
             exit_status=result.returncode,
             output_content=result.stdout or "",
             schema_validation="fail",
+            token_usage=_estimate_token_usage(message, result.stdout or ""),
             error=f"openclaw status={envelope.get('status')!r}",
         )
         raise InvocationError(f"openclaw returned status={envelope.get('status')!r}")
@@ -395,6 +414,7 @@ def invoke_coo_reasoning(
             exit_status=result.returncode,
             output_content=result.stdout or "",
             schema_validation="fail",
+            token_usage=_estimate_token_usage(message, result.stdout or ""),
             error=f"unexpected output shape: {exc}",
         )
         raise InvocationError(f"Unexpected openclaw output shape: {exc}") from exc
@@ -412,6 +432,7 @@ def invoke_coo_reasoning(
             exit_status=result.returncode,
             output_content=raw_text,
             schema_validation="fail",
+            token_usage=_estimate_token_usage(message, raw_text),
             error=f"proposal normalization failed: {exc}",
         )
         raise InvocationError(f"COO output normalization failed: {exc}") from exc
@@ -426,6 +447,7 @@ def invoke_coo_reasoning(
         exit_status=0,
         output_content=normalized,
         schema_validation="pass",
+        token_usage=_estimate_token_usage(message, normalized),
     )
 
     return normalized

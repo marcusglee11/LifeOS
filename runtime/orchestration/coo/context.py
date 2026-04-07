@@ -4,6 +4,9 @@ Context builders for COO proposal/status/report flows.
 
 from __future__ import annotations
 
+import hashlib
+import json
+import logging
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +20,26 @@ _BACKLOG_RELATIVE_PATH = Path("config/tasks/backlog.yaml")
 _DELEGATION_RELATIVE_PATH = Path("config/governance/delegation_envelope.yaml")
 _BRIEF_RELATIVE_PATH = Path("artifacts/coo/brief.md")
 _REPO_MAP_RELATIVE_PATH = Path(".context/REPO_MAP.md")
+
+logger = logging.getLogger(__name__)
+
+_TASK_CONTEXT_FIELDS = (
+    "id",
+    "title",
+    "description",
+    "dod",
+    "priority",
+    "risk",
+    "scope_paths",
+    "status",
+    "requires_approval",
+    "owner",
+    "task_type",
+    "tags",
+    "objective_ref",
+)
+_STABLE_BLOCK_CACHE: dict[str, dict[str, dict[str, Any]]] = {}
+_LAST_PROPOSE_CONTEXT_TELEMETRY: dict[str, dict[str, Any]] = {}
 
 
 def _load_repo_map(repo_root: Path) -> str:
@@ -38,6 +61,11 @@ def _task_to_dict(task: TaskEntry) -> dict[str, Any]:
     return asdict(task)
 
 
+def _task_to_context_dict(task: TaskEntry) -> dict[str, Any]:
+    payload = asdict(task)
+    return {field: payload[field] for field in _TASK_CONTEXT_FIELDS if field in payload}
+
+
 def _load_yaml_mapping(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(path)
@@ -54,6 +82,67 @@ def _read_optional_brief(path: Path) -> str:
     if not path.exists():
         return ""
     return path.read_text(encoding="utf-8")
+
+
+def _drop_ephemeral_fields(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _drop_ephemeral_fields(item)
+            for key, item in value.items()
+            if key != "generated_at"
+        }
+    if isinstance(value, list):
+        return [_drop_ephemeral_fields(item) for item in value]
+    return value
+
+
+def _serialize_context_block(value: Any) -> bytes:
+    if isinstance(value, str):
+        return value.encode("utf-8")
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    ).encode("utf-8")
+
+
+def _stable_block_id(block_name: str, value: Any) -> str:
+    stable_payload = _drop_ephemeral_fields(value)
+    digest = hashlib.sha256(_serialize_context_block(stable_payload)).hexdigest()
+    return f"{block_name}:{digest}"
+
+
+def _repo_cache_key(repo_root: Path) -> str:
+    try:
+        return str(repo_root.resolve())
+    except FileNotFoundError:
+        return str(repo_root)
+
+
+def _serialize_stable_block(repo_root: Path, block_name: str, value: Any) -> tuple[bytes, dict[str, Any]]:
+    cache = _STABLE_BLOCK_CACHE.setdefault(_repo_cache_key(repo_root), {})
+    block_id = _stable_block_id(block_name, value)
+    cached = cache.get(block_name)
+    reused = bool(cached and cached.get("block_id") == block_id)
+    if reused:
+        serialized = cached["serialized"]
+    else:
+        serialized = _serialize_context_block(value)
+        cache[block_name] = {"block_id": block_id, "serialized": serialized}
+    return serialized, {
+        "block_id": block_id,
+        "byte_size": len(serialized),
+        "reused_serialization": reused,
+    }
+
+
+def get_last_propose_context_telemetry(repo_root: Path) -> dict[str, Any] | None:
+    """Return the last telemetry snapshot captured for build_propose_context()."""
+    telemetry = _LAST_PROPOSE_CONTEXT_TELEMETRY.get(_repo_cache_key(repo_root))
+    if telemetry is None:
+        return None
+    return json.loads(json.dumps(telemetry, sort_keys=True))
 
 
 _PROPOSE_OUTPUT_SCHEMA_EXAMPLE = """\
@@ -152,17 +241,46 @@ def build_propose_context(repo_root: Path) -> dict[str, Any]:
     tasks = load_backlog(backlog_path)
     actionable = filter_actionable(tasks)
     delegation = _load_yaml_mapping(delegation_path)
+    actionable_tasks = [_task_to_context_dict(task) for task in actionable]
+    block_values = {
+        "actionable_tasks": actionable_tasks,
+        "delegation_envelope": delegation,
+        "brief": _read_optional_brief(brief_path),
+        "output_format_instruction": _PROPOSE_FORMAT_INSTRUCTION,
+        "repo_map": _load_repo_map(repo_root),
+    }
+    telemetry_blocks: dict[str, Any] = {}
+    for block_name, value in block_values.items():
+        _, telemetry = _serialize_stable_block(repo_root, block_name, value)
+        telemetry_blocks[block_name] = telemetry
+
+    telemetry = {
+        "blocks": telemetry_blocks,
+        "total_serialized_bytes": sum(
+            int(details["byte_size"]) for details in telemetry_blocks.values()
+        ),
+        "generated_at": _now_iso(),
+    }
+    _LAST_PROPOSE_CONTEXT_TELEMETRY[_repo_cache_key(repo_root)] = telemetry
+    logger.info(
+        "COO_PROPOSE_CONTEXT_BYTES total=%d blocks=%s",
+        telemetry["total_serialized_bytes"],
+        ", ".join(
+            f"{name}:{details['byte_size']}"
+            for name, details in telemetry_blocks.items()
+        ),
+    )
 
     return {
         "audience": "runtime_machine",
         "interaction_style": "machine_packet_only",
-        "actionable_tasks": [_task_to_dict(task) for task in actionable],
-        "delegation_envelope": delegation,
+        "actionable_tasks": actionable_tasks,
+        "delegation_envelope": block_values["delegation_envelope"],
         "backlog_path": str(backlog_path),
-        "brief": _read_optional_brief(brief_path),
+        "brief": block_values["brief"],
         "generated_at": _now_iso(),
-        "output_format_instruction": _PROPOSE_FORMAT_INSTRUCTION,
-        "repo_map": _load_repo_map(repo_root),
+        "output_format_instruction": block_values["output_format_instruction"],
+        "repo_map": block_values["repo_map"],
     }
 
 

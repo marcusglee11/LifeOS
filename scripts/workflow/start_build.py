@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -23,6 +24,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.workflow.git_lock_health import ensure_git_lock_health
+from scripts.entropy.scan_v1 import get_stale_repo_map_status
 
 
 def _slugify_topic(raw: str) -> str:
@@ -428,6 +430,26 @@ def _should_auto_recover_existing_primary_branch(branch: str) -> bool:
     return branch.startswith(_SCOPED_PREFIXES) and _branch_exists(primary, branch)
 
 
+def _repo_map_freshness_mode() -> str:
+    mode = os.environ.get("LIFEOS_REPO_MAP_FRESHNESS_MODE", "warn").strip().lower()
+    return mode if mode in {"off", "warn", "block"} else "warn"
+
+
+def _repo_map_freshness_status() -> dict[str, object]:
+    status = get_stale_repo_map_status()
+    mode = _repo_map_freshness_mode()
+    freshness = {
+        "mode": mode,
+        "status": status.get("status"),
+        "detail": status.get("detail"),
+        "commit_lag": status.get("commits_behind"),
+        "threshold": status.get("threshold"),
+        "generated_from_ref": status.get("generated_from_ref"),
+        "blocking": bool(mode == "block" and status.get("status") == "warn"),
+    }
+    return freshness
+
+
 def _emit_recovery_text(result: dict) -> None:
     if result.get("ok"):
         print(f"✓ Recovered branch into linked worktree: {result['worktree_path']}")
@@ -561,6 +583,30 @@ def main() -> int:
             file=sys.stderr,
         )
 
+    repo_map_freshness = _repo_map_freshness_status()
+    if repo_map_freshness["status"] == "warn" and not args.json:
+        print(
+            f"⚠️  REPO_MAP_FRESHNESS: {repo_map_freshness['detail']}",
+            file=sys.stderr,
+        )
+    if repo_map_freshness["blocking"]:
+        err = f"REPO_MAP_STALE: {repo_map_freshness['detail']}"
+        if args.json:
+            print(
+                json.dumps(
+                    {
+                        "ok": False,
+                        "error": err,
+                        "branch": branch,
+                        "worktree_path": None,
+                        "repo_map_freshness": repo_map_freshness,
+                    }
+                )
+            )
+        else:
+            print(f"❌ {err}", file=sys.stderr)
+        return 1
+
     cmd = [
         sys.executable,
         str(REPO_ROOT / "scripts" / "git_workflow.py"),
@@ -625,6 +671,7 @@ def main() -> int:
             "exit_code": proc.returncode,
             "auto_recovered": auto_recovered,
             "recovered_locks": lock_health.removed_locks,
+            "repo_map_freshness": repo_map_freshness,
         }
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:

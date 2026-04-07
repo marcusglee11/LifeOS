@@ -123,6 +123,12 @@ class TestBudgetConfig:
     def test_extract_usage_tokens_handles_legacy_total_field(self) -> None:
         assert extract_usage_tokens({"usage": {"total": 500}}) == 500
 
+    def test_extract_usage_tokens_handles_actual_tokens_field(self) -> None:
+        assert extract_usage_tokens({"usage": {"actual_tokens": 500}}) == 500
+
+    def test_extract_usage_tokens_handles_estimated_tokens_field(self) -> None:
+        assert extract_usage_tokens({"usage": {"estimated_tokens": 500}}) == 500
+
     def test_extract_usage_tokens_returns_none_on_empty(self) -> None:
         assert extract_usage_tokens({}) is None
 

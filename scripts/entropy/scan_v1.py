@@ -55,30 +55,60 @@ def current_head() -> str:
 # Detector 1: Stale REPO_MAP
 # ---------------------------------------------------------------------------
 
-def detect_stale_repo_map() -> dict:
-    """Warn if REPO_MAP.md is >5 commits behind HEAD."""
+def get_stale_repo_map_status() -> dict:
+    """Return structured REPO_MAP freshness details."""
     if not REPO_MAP_PATH.exists():
-        return {"status": "error", "detail": "REPO_MAP.md not found"}
+        return {
+            "status": "error",
+            "detail": "REPO_MAP.md not found",
+            "commits_behind": None,
+            "threshold": STALE_REPO_MAP_THRESHOLD,
+            "generated_from_ref": None,
+        }
 
     content = REPO_MAP_PATH.read_text(encoding="utf-8")
     m = re.search(r"generated_from_ref:\s*([0-9a-f]{7,40})", content)
     if not m:
-        return {"status": "warn", "detail": "Could not parse generated_from_ref from REPO_MAP.md"}
+        return {
+            "status": "warn",
+            "detail": "Could not parse generated_from_ref from REPO_MAP.md",
+            "commits_behind": None,
+            "threshold": STALE_REPO_MAP_THRESHOLD,
+            "generated_from_ref": None,
+        }
 
     map_ref = m.group(1)
     head = current_head()
     if not head or head == "unknown":
-        return {"status": "warn", "detail": "Could not determine HEAD commit"}
+        return {
+            "status": "warn",
+            "detail": "Could not determine HEAD commit",
+            "commits_behind": None,
+            "threshold": STALE_REPO_MAP_THRESHOLD,
+            "generated_from_ref": map_ref,
+        }
 
     # Count commits between map_ref and HEAD
     count_str = run_git(["rev-list", "--count", f"{map_ref}..HEAD"])
     if not count_str:
-        return {"status": "warn", "detail": f"Could not count commits since {map_ref[:8]}"}
+        return {
+            "status": "warn",
+            "detail": f"Could not count commits since {map_ref[:8]}",
+            "commits_behind": None,
+            "threshold": STALE_REPO_MAP_THRESHOLD,
+            "generated_from_ref": map_ref,
+        }
 
     try:
         count = int(count_str)
     except ValueError:
-        return {"status": "warn", "detail": f"Unexpected rev-list output: {count_str!r}"}
+        return {
+            "status": "warn",
+            "detail": f"Unexpected rev-list output: {count_str!r}",
+            "commits_behind": None,
+            "threshold": STALE_REPO_MAP_THRESHOLD,
+            "generated_from_ref": map_ref,
+        }
 
     if count > STALE_REPO_MAP_THRESHOLD:
         return {
@@ -87,9 +117,23 @@ def detect_stale_repo_map() -> dict:
                 f"REPO_MAP.md is {count} commits behind HEAD "
                 f"(generated at {map_ref[:8]}, threshold={STALE_REPO_MAP_THRESHOLD})"
             ),
+            "commits_behind": count,
+            "threshold": STALE_REPO_MAP_THRESHOLD,
+            "generated_from_ref": map_ref,
         }
 
-    return {"status": "ok", "detail": f"REPO_MAP.md is {count} commit(s) behind HEAD"}
+    return {
+        "status": "ok",
+        "detail": f"REPO_MAP.md is {count} commit(s) behind HEAD",
+        "commits_behind": count,
+        "threshold": STALE_REPO_MAP_THRESHOLD,
+        "generated_from_ref": map_ref,
+    }
+
+
+def detect_stale_repo_map() -> dict:
+    """Warn if REPO_MAP.md is >5 commits behind HEAD."""
+    return get_stale_repo_map_status()
 
 
 # ---------------------------------------------------------------------------

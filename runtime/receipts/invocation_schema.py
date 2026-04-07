@@ -33,6 +33,11 @@ INVOCATION_RECEIPT_SCHEMA = {
                 "prompt_tokens": {"type": "integer", "minimum": 0},
                 "completion_tokens": {"type": "integer", "minimum": 0},
                 "total_tokens": {"type": "integer", "minimum": 0},
+                "input_tokens": {"type": "integer", "minimum": 0},
+                "output_tokens": {"type": "integer", "minimum": 0},
+                "actual_tokens": {"type": "integer", "minimum": 0},
+                "estimated_tokens": {"type": "integer", "minimum": 0},
+                "token_source": {"type": "string", "enum": ["actual", "estimated", "mixed"]},
             },
         },
         "truncation": {

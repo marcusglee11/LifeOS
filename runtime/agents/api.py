@@ -177,23 +177,34 @@ def _provider_id_from_model(model_version: str, model_used: str, fallback: str =
     return fallback
 
 
-def _receipt_token_usage(usage: dict[str, int]) -> Optional[dict[str, int]]:
+def _receipt_token_usage(usage: dict[str, Any]) -> Optional[dict[str, Any]]:
     """Map normalized usage keys to invocation receipt schema keys."""
     if not usage:
         return None
 
-    mapped: dict[str, int] = {}
+    mapped: dict[str, Any] = {}
     input_tokens = usage.get("input_tokens")
     output_tokens = usage.get("output_tokens")
     total_tokens = usage.get("total_tokens")
     if isinstance(input_tokens, int) and input_tokens >= 0:
+        mapped["input_tokens"] = input_tokens
         mapped["prompt_tokens"] = input_tokens
     if isinstance(output_tokens, int) and output_tokens >= 0:
+        mapped["output_tokens"] = output_tokens
         mapped["completion_tokens"] = output_tokens
     if isinstance(total_tokens, int) and total_tokens >= 0:
         mapped["total_tokens"] = total_tokens
     elif "prompt_tokens" in mapped and "completion_tokens" in mapped:
         mapped["total_tokens"] = mapped["prompt_tokens"] + mapped["completion_tokens"]
+    token_source = usage.get("token_source")
+    if token_source not in {"actual", "estimated", "mixed"}:
+        token_source = "actual" if "total_tokens" in mapped else None
+    if token_source:
+        mapped["token_source"] = token_source
+        if token_source == "actual" and "total_tokens" in mapped:
+            mapped["actual_tokens"] = mapped["total_tokens"]
+        elif token_source == "estimated" and "total_tokens" in mapped:
+            mapped["estimated_tokens"] = mapped["total_tokens"]
     return mapped or None
 
 

@@ -19,6 +19,12 @@ def extract_usage_tokens(evidence: dict) -> Optional[int]:
     total = usage.get("total_tokens")
     if isinstance(total, int) and total >= 0:
         return total
+    actual = usage.get("actual_tokens")
+    if isinstance(actual, int) and actual >= 0:
+        return actual
+    estimated = usage.get("estimated_tokens")
+    if isinstance(estimated, int) and estimated >= 0:
+        return estimated
     inp = usage.get("input_tokens")
     out = usage.get("output_tokens")
     if isinstance(inp, int) and inp >= 0 and isinstance(out, int) and out >= 0:
