@@ -437,3 +437,81 @@ def test_file_not_found_retries_on_chat():
                 _retry_delays=(0.0, 0.0),
             )
     assert call_count[0] == 3
+
+
+# ---------------------------------------------------------------------------
+# Regression: empty stdout with exit 0 must surface stderr, not bare JSON err
+# ---------------------------------------------------------------------------
+
+
+def test_empty_stdout_exit0_raises_with_stderr():
+    """OpenClaw exits 0 but writes nothing to stdout — error must include stderr."""
+    proc = _make_completed(returncode=0, stdout="", stderr="model not found: gpt-5.4")
+    with patch("subprocess.run", return_value=proc):
+        with pytest.raises(InvocationError, match="no output"):
+            invoke_coo_reasoning(
+                context={},
+                mode="chat",
+                repo_root=None,
+                run_id=_RUN_ID,
+            )
+
+
+def test_empty_stdout_exit0_stderr_in_error_message():
+    """Stderr content is included in the InvocationError message."""
+    proc = _make_completed(returncode=0, stdout="", stderr="authentication failed")
+    with patch("subprocess.run", return_value=proc):
+        with pytest.raises(InvocationError, match="authentication failed"):
+            invoke_coo_reasoning(
+                context={},
+                mode="chat",
+                repo_root=None,
+                run_id=_RUN_ID,
+            )
+
+
+def test_empty_stdout_exit0_no_stderr_still_raises():
+    """Empty stdout with no stderr still raises a useful error."""
+    proc = _make_completed(returncode=0, stdout="", stderr="")
+    with patch("subprocess.run", return_value=proc):
+        with pytest.raises(InvocationError, match="no output"):
+            invoke_coo_reasoning(
+                context={},
+                mode="chat",
+                repo_root=None,
+                run_id=_RUN_ID,
+            )
+
+
+def test_empty_stdout_receipt_recorded():
+    """A receipt is recorded even for empty-stdout failures."""
+    proc = _make_completed(returncode=0, stdout="", stderr="model unavailable")
+    with patch("subprocess.run", return_value=proc):
+        with pytest.raises(InvocationError):
+            invoke_coo_reasoning(
+                context={},
+                mode="chat",
+                repo_root=None,
+                run_id=_RUN_ID,
+            )
+    collector = get_or_create_collector(_RUN_ID)
+    assert len(collector.receipts) == 1
+    r = collector.receipts[0]
+    assert r.schema_validation == "fail"
+    assert "empty stdout" in (r.error or "")
+
+
+def test_subprocess_called_with_stdin_devnull():
+    """subprocess.run must be called with stdin=DEVNULL to prevent stdin inheritance."""
+    import subprocess as sp
+
+    proc = _make_completed()
+    with patch("subprocess.run", return_value=proc) as mock_run:
+        invoke_coo_reasoning(
+            context={},
+            mode="chat",
+            repo_root=None,
+            run_id=_RUN_ID,
+        )
+    _, kwargs = mock_run.call_args
+    assert kwargs.get("stdin") == sp.DEVNULL

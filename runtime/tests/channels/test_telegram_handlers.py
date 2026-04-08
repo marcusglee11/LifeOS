@@ -322,7 +322,8 @@ async def test_handle_message_writes_last_error_on_exception(
 
     await handlers.handle_message(update, None, repo_root=tmp_path, config=config)
 
-    assert message.replies[0][0] == "COO chat failed: gateway down"
+    assert "COO is unavailable" in message.replies[0][0]
+    assert "gateway down" in message.replies[0][0]
     status_path = tmp_path / "artifacts" / "status" / "coo_telegram_runtime.json"
     assert status_path.exists()
     data = _json.loads(status_path.read_text())

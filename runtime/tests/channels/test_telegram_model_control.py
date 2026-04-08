@@ -221,3 +221,100 @@ def test_bootstrap_preserves_other_agents(
     agent_ids = [a["id"] for a in cfg["agents"]["list"]]
     assert "main" in agent_ids
     assert "telegram" in agent_ids
+
+
+# ---------------------------------------------------------------------------
+# Regression: model validation — fall back to main agent when primary unavailable
+# ---------------------------------------------------------------------------
+
+
+def test_bootstrap_falls_back_to_main_model_when_primary_unavailable(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """If telegram_model.json primary is not in allowed_models, use main agent's model."""
+    # OpenClaw only knows about "claude-3-5-sonnet" — not the configured gpt-5.4
+    cfg = {
+        "agents": {
+            "defaults": {
+                "models": {
+                    "claude-3-5-sonnet": {},
+                    "claude-3-haiku": {},
+                }
+            },
+            "list": [
+                {
+                    "id": "main",
+                    "model": {
+                        "primary": "claude-3-5-sonnet",
+                        "fallbacks": ["claude-3-haiku"],
+                    },
+                }
+            ],
+        }
+    }
+    p = tmp_path / ".openclaw" / "openclaw.json"
+    _write_openclaw_cfg(p, cfg)
+    monkeypatch.setattr(mc_mod, "_OPENCLAW_CONFIG_PATH", p)
+
+    bootstrap_telegram_agent(repo)
+
+    updated = json.loads(p.read_text())
+    telegram = next(a for a in updated["agents"]["list"] if a["id"] == "telegram")
+    # Should have fallen back to main agent's model
+    assert telegram["model"]["primary"] == "claude-3-5-sonnet"
+
+
+def test_bootstrap_raises_when_primary_unavailable_and_main_also_unavailable(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Raise ModelControlError when configured primary is bad AND main has no usable fallback."""
+    cfg = {
+        "agents": {
+            "defaults": {
+                "models": {
+                    "some-other-model": {},
+                }
+            },
+            "list": [
+                {
+                    "id": "main",
+                    "model": {
+                        "primary": "also-not-allowed",
+                        "fallbacks": [],
+                    },
+                }
+            ],
+        }
+    }
+    p = tmp_path / ".openclaw" / "openclaw.json"
+    _write_openclaw_cfg(p, cfg)
+    monkeypatch.setattr(mc_mod, "_OPENCLAW_CONFIG_PATH", p)
+
+    with pytest.raises(ModelControlError, match="not in allowed models"):
+        bootstrap_telegram_agent(repo)
+
+
+def test_bootstrap_skips_validation_when_allowed_models_unavailable(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """If list_allowed_models() raises (openclaw.json missing defaults.models), skip validation."""
+    # openclaw.json exists but has no defaults.models — list_allowed_models() will raise
+    cfg = {
+        "agents": {
+            "list": [
+                {
+                    "id": "main",
+                    "model": {"primary": "openai-codex/gpt-5.4", "fallbacks": []},
+                }
+            ]
+        }
+    }
+    p = tmp_path / ".openclaw" / "openclaw.json"
+    _write_openclaw_cfg(p, cfg)
+    monkeypatch.setattr(mc_mod, "_OPENCLAW_CONFIG_PATH", p)
+
+    # Should not raise — skips validation when allowed_models can't be read
+    bootstrap_telegram_agent(repo)
+    updated = json.loads(p.read_text())
+    telegram = next(a for a in updated["agents"]["list"] if a["id"] == "telegram")
+    assert telegram["model"]["primary"] == "openai-codex/gpt-5.4"

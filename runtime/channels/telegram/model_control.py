@@ -105,7 +105,33 @@ def bootstrap_telegram_agent(repo_root: Path) -> None:
 
     if "model" not in telegram_entry:
         telegram_entry["model"] = {}
-    telegram_entry["model"]["primary"] = model_cfg["primary"]
-    telegram_entry["model"]["fallbacks"] = model_cfg.get("fallbacks", [])
+
+    # Validate configured primary model against what OpenClaw actually supports.
+    # If the configured model is absent from allowed_models, fall back to the
+    # main agent's model rather than writing an unusable config.
+    try:
+        allowed = list_allowed_models()
+    except ModelControlError:
+        allowed = []
+
+    primary = model_cfg["primary"]
+    fallbacks = model_cfg.get("fallbacks", [])
+
+    if allowed and primary not in allowed:
+        main_entry = next(
+            (a for a in agents_list if a.get("id") == _MAIN_AGENT_ID), None
+        )
+        main_primary = main_entry.get("model", {}).get("primary") if main_entry else None
+        if main_primary and main_primary in allowed:
+            primary = main_primary
+            fallbacks = [m for m in fallbacks if m in allowed]
+        else:
+            raise ModelControlError(
+                f"Telegram primary model '{model_cfg['primary']}' not in allowed models "
+                f"and main agent has no usable fallback. Allowed: {allowed}"
+            )
+
+    telegram_entry["model"]["primary"] = primary
+    telegram_entry["model"]["fallbacks"] = fallbacks
 
     atomic_write_text(_OPENCLAW_CONFIG_PATH, json.dumps(config, indent=2))

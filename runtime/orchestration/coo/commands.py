@@ -726,11 +726,33 @@ def cmd_coo_reject(args: argparse.Namespace, repo_root: Path) -> int:
 
 
 def cmd_coo_telegram_run(args: argparse.Namespace, repo_root: Path) -> int:
+    import logging
+
+    logger = logging.getLogger(__name__)
+
     try:
         from runtime.channels.telegram.adapter import run_polling
         from runtime.channels.telegram.config import load_config
+        from runtime.channels.telegram.model_control import (
+            ModelControlError,
+            bootstrap_telegram_agent,
+            get_telegram_agent_primary,
+        )
 
         config = load_config()
+
+        # Preflight: ensure OpenClaw telegram agent is properly configured before
+        # accepting any messages. A ModelControlError here means the bot would
+        # fail every single chat — better to surface it at startup.
+        try:
+            bootstrap_telegram_agent(repo_root)
+            active_model = get_telegram_agent_primary()
+            logger.info("Telegram agent ready — model: %s", active_model)
+            print(f"[coo telegram] agent bootstrapped, model: {active_model}")
+        except ModelControlError as exc:
+            _print_error(f"Error: telegram agent bootstrap failed: {exc}")
+            return 1
+
         run_polling(config, repo_root)
     except Exception as exc:
         _print_error(f"Error: telegram adapter failed: {exc}")

@@ -283,6 +283,7 @@ def invoke_coo_reasoning(
                 capture_output=True,
                 text=True,
                 timeout=timeout_s,
+                stdin=subprocess.DEVNULL,
             )
             _last_transient_exc = None
             break
@@ -366,6 +367,25 @@ def invoke_coo_reasoning(
             error=stderr_snippet,
         )
         raise InvocationError(f"openclaw exited {result.returncode}: {stderr_snippet}")
+
+    if not result.stdout.strip():
+        stderr_snippet = result.stderr[:600].strip() if result.stderr else "(no stderr output)"
+        record_invocation_receipt(
+            run_id=run_id,
+            provider_id="openclaw",
+            mode="cli",
+            seat_id=f"coo_{mode}",
+            start_ts=start_ts,
+            end_ts=end_ts,
+            exit_status=result.returncode,
+            output_content="",
+            schema_validation="fail",
+            token_usage=_estimate_token_usage(message),
+            error=f"empty stdout: {stderr_snippet}",
+        )
+        raise InvocationError(
+            f"openclaw produced no output (exit 0). stderr: {stderr_snippet}"
+        )
 
     try:
         envelope = json.loads(result.stdout)

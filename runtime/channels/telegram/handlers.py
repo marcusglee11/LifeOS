@@ -487,8 +487,11 @@ async def handle_message(
         write_status(repo_root, last_error=f"parse error: {exc}")
         return
     except Exception as exc:
-        await message.reply_text(f"COO chat failed: {exc}")
-        write_status(repo_root, last_error=str(exc))
+        err_str = str(exc)
+        write_status(repo_root, last_error=err_str)
+        await message.reply_text(
+            f"COO is unavailable.\n\n{err_str}\n\nCheck `coo telegram status` for details."
+        )
         return
     finally:
         typing_task.cancel()
