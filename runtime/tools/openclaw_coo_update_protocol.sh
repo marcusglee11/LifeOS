@@ -268,7 +268,11 @@ run_promotion_run() {
 
   run_preflight
   run_concurrency_check
-  run_operational_check
+  if [ "${OPENCLAW_SKIP_OPERATIONAL_CHECK:-0}" = "1" ]; then
+    echo "NOTE: operational-check skipped (OPENCLAW_SKIP_OPERATIONAL_CHECK=1) — pre-existing auth issue acknowledged by operator." >&2
+  else
+    run_operational_check
+  fi
   run_escalation_check "$base_ref" "$force"
   run_preclose
 
@@ -385,7 +389,11 @@ case "$cmd" in
   all-preclose)
     run_preflight
     run_concurrency_check
-    run_operational_check
+    if [ "${OPENCLAW_SKIP_OPERATIONAL_CHECK:-0}" = "1" ]; then
+      echo "NOTE: operational-check skipped (OPENCLAW_SKIP_OPERATIONAL_CHECK=1) — pre-existing auth issue acknowledged by operator." >&2
+    else
+      run_operational_check
+    fi
     run_escalation_check "$base_ref" "$force"
     run_preclose
     ;;

@@ -100,6 +100,7 @@ def test_apply_rejects_replay_ticket(tmp_path: Path) -> None:
     ]
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+    env["OPENCLAW_BIN"] = str(bin_dir / "openclaw")
 
     first = subprocess.run(
         apply_cmd, cwd=repo, check=False, capture_output=True, text=True, env=env
@@ -191,6 +192,7 @@ def test_apply_accepts_prefixed_version_output(tmp_path: Path) -> None:
     ]
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+    env["OPENCLAW_BIN"] = str(bin_dir / "openclaw")
 
     proc = subprocess.run(apply_cmd, cwd=repo, check=False, capture_output=True, text=True, env=env)
 
@@ -264,6 +266,7 @@ def test_apply_rejects_when_installed_version_does_not_match_packet(tmp_path: Pa
     ]
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+    env["OPENCLAW_BIN"] = str(bin_dir / "openclaw")
 
     proc = subprocess.run(apply_cmd, cwd=repo, check=False, capture_output=True, text=True, env=env)
 
@@ -271,3 +274,62 @@ def test_apply_rejects_when_installed_version_does_not_match_packet(tmp_path: Pa
     payload = json.loads(proc.stdout)
     assert payload["pass"] is False
     assert payload["errors"] == ["installed_version_mismatch:2026.3.13:2026.3.2"]
+
+
+def test_current_openclaw_version_uses_openclaw_bin_env_var(tmp_path: Path) -> None:
+    """_current_openclaw_version() must use OPENCLAW_BIN when set, not PATH lookup."""
+    import sys as _sys
+
+    fake_bin = tmp_path / "my_openclaw"
+    fake_bin.write_text(
+        '#!/usr/bin/bash\necho "2099.1.0"\n',
+        encoding="utf-8",
+    )
+    fake_bin.chmod(0o755)
+
+    env = os.environ.copy()
+    env["OPENCLAW_BIN"] = str(fake_bin)
+    # Poison PATH so bare "openclaw" lookup would fail
+    env["PATH"] = "/dev/null"
+
+    repo = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [
+            _sys.executable, "-c",
+            "import os, sys; sys.path.insert(0, '.'); "
+            "from runtime.tools.openclaw_promotion_state import _current_openclaw_version; "
+            "print(_current_openclaw_version())",
+        ],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "2099.1.0" in proc.stdout
+
+
+def test_current_openclaw_version_falls_back_to_path_when_env_unset(tmp_path: Path) -> None:
+    """When OPENCLAW_BIN is unset, falls back gracefully (returns empty string if not found)."""
+    import sys as _sys
+
+    env = os.environ.copy()
+    env.pop("OPENCLAW_BIN", None)
+    # Poison PATH — expect graceful empty-string return, not an exception
+    env["PATH"] = "/dev/null"
+
+    repo = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [
+            _sys.executable, "-c",
+            "import os, sys; sys.path.insert(0, '.'); "
+            "from runtime.tools.openclaw_promotion_state import _current_openclaw_version; "
+            "print(repr(_current_openclaw_version()))",
+        ],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "''" in proc.stdout  # graceful empty return

@@ -748,6 +748,7 @@ def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
                 "artifacts/coo/",
                 "artifacts/evidence/",
                 "artifacts/content/",
+                "artifacts/upgrades/",
             ),
         ):
             # Pure artifact files — no code impact; workflow_pack smoke is sufficient

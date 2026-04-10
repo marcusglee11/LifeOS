@@ -2784,10 +2784,13 @@ EOF
     set +a
     print_header
     cd "$BUILD_REPO"
-    # Use the repo venv if available (it has python-telegram-bot installed);
-    # fall back to bare python3 for environments without a venv.
+    # Prefer the Linux-filesystem venv (~/.lifeos-venv) for fast imports — the
+    # repo .venv lives on /mnt/c/ (Windows filesystem) and is 4-5x slower.
+    # Fall back to repo .venv, then bare python3.
     _tg_python="python3"
-    if [ -x "$BUILD_REPO/.venv/bin/python3" ]; then
+    if [ -x "$HOME/.lifeos-venv/bin/python3" ]; then
+      _tg_python="$HOME/.lifeos-venv/bin/python3"
+    elif [ -x "$BUILD_REPO/.venv/bin/python3" ]; then
       _tg_python="$BUILD_REPO/.venv/bin/python3"
     fi
     case "$subcmd" in

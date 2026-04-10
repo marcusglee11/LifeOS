@@ -77,11 +77,12 @@ def _normalize_version(raw: str) -> str:
 
 
 def _current_openclaw_version() -> str:
+    openclaw_bin = os.environ.get("OPENCLAW_BIN") or "openclaw"
     try:
         proc = subprocess.run(
-            ["openclaw", "--version"], capture_output=True, text=True, check=False, timeout=10
+            [openclaw_bin, "--version"], capture_output=True, text=True, check=False, timeout=10
         )
-    except subprocess.TimeoutExpired:
+    except (subprocess.TimeoutExpired, OSError):
         return ""
     if proc.returncode != 0:
         return ""

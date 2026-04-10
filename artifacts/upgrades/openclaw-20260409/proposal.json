@@ -1,0 +1,49 @@
+{
+  "channel": "stable",
+  "checked_at_utc": "2026-04-09T13:48:35.793794+00:00",
+  "command": "propose",
+  "detected_channel": "stable",
+  "health_gate": {
+    "checked": true,
+    "command": "coo models status",
+    "exit_code": 0,
+    "pass": false,
+    "reason": "invalid",
+    "status_line": "STATUS: INVALID - 3 violation(s) detected"
+  },
+  "installed_version": "OpenClaw 2026.4.5 (3e72c03)",
+  "needs_action": true,
+  "promotion_packet_base": {
+    "previous_version": "OpenClaw 2026.4.5 (3e72c03)",
+    "target_commit": "1a6a31287f1e2ba540e37a53990fbb880c18356b",
+    "target_version": "2026.4.9"
+  },
+  "proposal": {
+    "apply_then_record": [
+      "npm install -g openclaw@2026.4.9",
+      "openclaw --version",
+      "runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>",
+      "runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir>"
+    ],
+    "mode": "manual_apply_then_record"
+  },
+  "recommended_apply_command": "npm install -g openclaw@2026.4.9",
+  "recommended_record_command_template": "runtime/tools/openclaw_coo_update_protocol.sh promotion-run --packet-dir <dir>",
+  "recommended_validation_command": "runtime/tools/openclaw_coo_update_protocol.sh all-preclose",
+  "recommended_verify_command_template": "runtime/tools/openclaw_coo_update_protocol.sh promotion-verify --packet-dir <dir>",
+  "registry_check": {
+    "attempts": 1,
+    "error": "",
+    "ok": true,
+    "source": "live"
+  },
+  "registry_dist_tags": {
+    "beta": "2026.4.9-beta.1",
+    "latest": "2026.4.9"
+  },
+  "registry_latest": "2026.4.9",
+  "registry_source": "live",
+  "status_report_path": null,
+  "update_available": true,
+  "version_comparison": "behind"
+}
