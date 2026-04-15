@@ -16,6 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from runtime.tools.openclaw_codex_auth_repair import analyze_codex_auth_setup, default_paths  # noqa: E402
 from runtime.tools.schemas import AuthHealthResult  # noqa: E402
 
 COOLDOWN_RE = re.compile(
@@ -26,6 +27,7 @@ INVALID_MISSING_RE = re.compile(
     re.IGNORECASE,
 )
 EXPIRING_RE = re.compile(r"(expiring soon|expires in\s*[0-9]+(?:m|h))", re.IGNORECASE)
+REFRESH_REUSED_RE = re.compile(r"refresh_token_reused", re.IGNORECASE)
 PROVIDER_RE = re.compile(r"\bprovider\s+([a-z0-9._-]+)\b", re.IGNORECASE)
 PROVIDER_COOLDOWN_RE = re.compile(
     r"\bprovider\s+([a-z0-9._-]+)\s+is\s+in\s+cooldown\b", re.IGNORECASE
@@ -59,6 +61,8 @@ def _safe_run(cmd: Sequence[str], timeout_s: int = 30) -> Tuple[int, str]:
 
 def detect_provider(output_text: str) -> str:
     text = str(output_text or "")
+    if REFRESH_REUSED_RE.search(text) or "openai-codex" in text.lower():
+        return "openai-codex"
     match = PROVIDER_COOLDOWN_RE.search(text) or PROVIDER_RE.search(text)
     if match:
         provider = str(match.group(1) or "").strip().lower()
@@ -67,11 +71,64 @@ def detect_provider(output_text: str) -> str:
     return "multi-provider"
 
 
-def classify_auth_health(exit_code: int, output_text: str) -> AuthHealthResult:
+def inspect_codex_auth_order(state_dir: Path, agent_id: str) -> dict[str, object] | None:
+    try:
+        auth_state_path, auth_profiles_path = default_paths(state_dir, agent_id)
+        analysis = analyze_codex_auth_setup(
+            json.loads(auth_state_path.read_text(encoding="utf-8")),
+            json.loads(auth_profiles_path.read_text(encoding="utf-8")),
+            codex_auth_path=Path.home() / ".codex" / "auth.json",
+        )
+    except Exception:
+        return None
+
+    return {
+        "stale_order": analysis.stale_order,
+        "chosen_profile_id": analysis.chosen_profile_id,
+        "current_order": analysis.current_order,
+        "proposed_order": analysis.proposed_order,
+    }
+
+
+def codex_repair_action() -> str:
+    return "python3 runtime/tools/openclaw_codex_auth_repair.py --apply --json"
+
+
+def classify_auth_health(
+    exit_code: int,
+    output_text: str,
+    *,
+    codex_auth_order: dict[str, object] | None = None,
+) -> AuthHealthResult:
     text = str(output_text or "")
     low = text.lower()
     provider = detect_provider(text)
     now = ts_utc()
+    codex_stale_order = bool(
+        isinstance(codex_auth_order, dict) and codex_auth_order.get("stale_order")
+    )
+
+    if REFRESH_REUSED_RE.search(text):
+        return AuthHealthResult(
+            provider="openai-codex",
+            state="invalid_missing",
+            reason_code="refresh_token_reused",
+            recommended_action=codex_repair_action(),
+            ts_utc=now,
+        )
+
+    if codex_stale_order:
+        chosen_profile_id = str(codex_auth_order.get("chosen_profile_id") or "").strip()
+        action = codex_repair_action()
+        if chosen_profile_id:
+            action = f"{action} # promote {chosen_profile_id}"
+        return AuthHealthResult(
+            provider="openai-codex",
+            state="expiring",
+            reason_code="codex_auth_order_stale",
+            recommended_action=action,
+            ts_utc=now,
+        )
 
     if exit_code == 0:
         if EXPIRING_RE.search(text):
@@ -147,12 +204,16 @@ def main() -> int:
     parser.add_argument(
         "--state-dir", default=os.environ.get("OPENCLAW_STATE_DIR", str(Path.home() / ".openclaw"))
     )
+    parser.add_argument("--agent-id", default="main")
     parser.add_argument("--timeout-sec", type=int, default=30)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
     rc, merged = run_auth_health_check(args.openclaw_bin, timeout_s=max(1, int(args.timeout_sec)))
-    result = classify_auth_health(rc, merged)
+    codex_auth_order = inspect_codex_auth_order(
+        Path(args.state_dir).expanduser(), agent_id=str(args.agent_id)
+    )
+    result = classify_auth_health(rc, merged, codex_auth_order=codex_auth_order)
 
     out_path = Path(args.state_dir).expanduser() / "runtime" / "gates" / "auth_health.jsonl"
     try:

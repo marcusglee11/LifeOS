@@ -21,6 +21,17 @@ has_rows = any(
 raise SystemExit(0 if d.get('auth_missing_providers') and has_rows else 1)
 """
 
+AUTH_HEALTH_PARSE_SNIPPET = r"""
+import json
+import sys
+
+obj = json.load(open(sys.argv[1], encoding='utf-8', errors='replace'))
+state = str(obj.get('state') or 'unknown').strip() or 'unknown'
+reason = str(obj.get('reason_code') or 'auth_health_reason_missing').strip() or 'auth_health_reason_missing'
+action = str(obj.get('recommended_action') or 'none').strip() or 'none'
+print(f"{state}\t{reason}\t{action}")
+"""
+
 
 def _classify(tmp_path: Path, payload: dict[str, object], models_list_text: str) -> str:
     json_path = tmp_path / "model_ladder_policy_assert.json"
@@ -61,3 +72,29 @@ def test_classifies_policy_failure_when_models_list_has_no_parseable_rows(tmp_pa
         "",
     )
     assert result == "model_ladder_policy_failed"
+
+
+def test_parses_auth_health_refresh_reuse_reason_and_action(tmp_path: Path) -> None:
+    path = tmp_path / "auth_health.json"
+    path.write_text(
+        json.dumps(
+            {
+                "state": "invalid_missing",
+                "reason_code": "refresh_token_reused",
+                "recommended_action": "python3 runtime/tools/openclaw_codex_auth_repair.py --apply --json",
+            }
+        ),
+        encoding="utf-8",
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", AUTH_HEALTH_PARSE_SNIPPET, str(path)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0
+    assert proc.stdout.strip().split("\t") == [
+        "invalid_missing",
+        "refresh_token_reused",
+        "python3 runtime/tools/openclaw_codex_auth_repair.py --apply --json",
+    ]

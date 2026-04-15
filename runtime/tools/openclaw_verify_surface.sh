@@ -37,6 +37,7 @@ SECURITY_AUDIT_TIMEOUT_CANDIDATE=0
 CONFINEMENT_FLAG=""
 AUTH_HEALTH_STATE="unknown"
 AUTH_HEALTH_REASON="auth_health_unavailable"
+AUTH_HEALTH_ACTION="none"
 SECURITY_AUDIT_CLEAN="false"
 SECURITY_AUDIT_SUMMARY_PRESENT="false"
 SECURITY_AUDIT_CRITICAL_COUNT=""
@@ -247,7 +248,7 @@ fi
 } > "$auth_health_out"
 
 if [ "$rc_auth_health" -eq 0 ] && [ -s "$auth_health_raw" ]; then
-  auth_health_parse_out="$(python3 - <<'PY' "$auth_health_raw"
+auth_health_parse_out="$(python3 - <<'PY' "$auth_health_raw"
 import json
 import sys
 from pathlib import Path
@@ -256,16 +257,27 @@ path = Path(sys.argv[1])
 try:
     obj = json.loads(path.read_text(encoding="utf-8", errors="replace"))
 except Exception:
-    print("unknown\tauth_health_parse_failed")
+    print("unknown\tauth_health_parse_failed\tnone")
     raise SystemExit(0)
 
 state = str(obj.get("state") or "unknown").strip() or "unknown"
 reason = str(obj.get("reason_code") or "auth_health_reason_missing").strip() or "auth_health_reason_missing"
-print(f"{state}\t{reason}")
+action = str(obj.get("recommended_action") or "none").strip() or "none"
+print(f"{state}\t{reason}\t{action}")
 PY
 )"
   AUTH_HEALTH_STATE="$(printf '%s' "$auth_health_parse_out" | awk -F'\t' '{print $1}')"
   AUTH_HEALTH_REASON="$(printf '%s' "$auth_health_parse_out" | awk -F'\t' '{print $2}')"
+  AUTH_HEALTH_ACTION="$(printf '%s' "$auth_health_parse_out" | awk -F'\t' '{print $3}')"
+fi
+
+if [ "$AUTH_HEALTH_REASON" = "refresh_token_reused" ] || [ "$AUTH_HEALTH_REASON" = "codex_auth_order_stale" ]; then
+  WARNINGS=1
+  {
+    echo
+    echo "auth_health_notice=$AUTH_HEALTH_REASON"
+    echo "auth_health_action=$AUTH_HEALTH_ACTION"
+  } >> "$auth_health_out"
 fi
 
 SECURITY_FILE="$OUT_DIR/security_audit_deep.txt"
@@ -441,6 +453,7 @@ fi
   echo "auth_health_exit=${CMD_RC[auth_health]:-1}"
   echo "auth_health_state=$AUTH_HEALTH_STATE"
   echo "auth_health_reason=$AUTH_HEALTH_REASON"
+  echo "auth_health_action=$AUTH_HEALTH_ACTION"
   echo "sandbox_explain_json_exit=${CMD_RC[sandbox_explain_json]:-1}"
   echo "sandbox_policy_assert_exit=${CMD_RC[sandbox_policy_assert]:-1}"
   echo "expected_sandbox_posture=$SANDBOX_POLICY_TARGET"
@@ -542,7 +555,7 @@ export SANDBOX_POLICY_OBSERVED_MODE
 export SANDBOX_POLICY_SESSION_IS_SANDBOXED
 export SANDBOX_POLICY_ELEVATED_ENABLED
 
-python3 - <<'PY' "$GATE_STATUS_PATH" "$TS_UTC" "$policy_fingerprint" "$SECURITY_AUDIT_MODE" "$CONFINEMENT_FLAG" "$OUT_DIR" "$reasons_file" "$AUTH_HEALTH_STATE" "$AUTH_HEALTH_REASON" "$SECURITY_FILE" "${CMD_RC[security_audit_deep]:-1}" "${CMD_RC[security_audit_fallback]:-NA}" "$SECURITY_AUDIT_SUMMARY_PRESENT" "$SECURITY_AUDIT_CRITICAL_COUNT" "$SECURITY_AUDIT_WARN_CODES" "$SECURITY_AUDIT_UNEXPECTED_WARNINGS"
+python3 - <<'PY' "$GATE_STATUS_PATH" "$TS_UTC" "$policy_fingerprint" "$SECURITY_AUDIT_MODE" "$CONFINEMENT_FLAG" "$OUT_DIR" "$reasons_file" "$AUTH_HEALTH_STATE" "$AUTH_HEALTH_REASON" "$AUTH_HEALTH_ACTION" "$SECURITY_FILE" "${CMD_RC[security_audit_deep]:-1}" "${CMD_RC[security_audit_fallback]:-NA}" "$SECURITY_AUDIT_SUMMARY_PRESENT" "$SECURITY_AUDIT_CRITICAL_COUNT" "$SECURITY_AUDIT_WARN_CODES" "$SECURITY_AUDIT_UNEXPECTED_WARNINGS"
 import json
 import os
 import sys
@@ -558,13 +571,14 @@ out_dir = Path(sys.argv[6])
 reasons_file = Path(sys.argv[7])
 auth_health_state = str(sys.argv[8] or "unknown")
 auth_health_reason = str(sys.argv[9] or "auth_health_unavailable")
-security_audit_file = str(sys.argv[10] or "")
-security_audit_deep_exit_raw = str(sys.argv[11] or "")
-security_audit_fallback_exit_raw = str(sys.argv[12] or "")
-security_audit_summary_present = str(sys.argv[13] or "").strip().lower() == "true"
-security_audit_critical_count_raw = str(sys.argv[14] or "")
-security_audit_warn_codes_raw = str(sys.argv[15] or "")
-security_audit_unexpected_raw = str(sys.argv[16] or "")
+auth_health_action = str(sys.argv[10] or "none")
+security_audit_file = str(sys.argv[11] or "")
+security_audit_deep_exit_raw = str(sys.argv[12] or "")
+security_audit_fallback_exit_raw = str(sys.argv[13] or "")
+security_audit_summary_present = str(sys.argv[14] or "").strip().lower() == "true"
+security_audit_critical_count_raw = str(sys.argv[15] or "")
+security_audit_warn_codes_raw = str(sys.argv[16] or "")
+security_audit_unexpected_raw = str(sys.argv[17] or "")
 
 
 def parse_optional_int(raw: str) -> int | None:
@@ -625,6 +639,7 @@ payload: Dict[str, Any] = {
     "policy_fingerprint": policy_fingerprint,
     "auth_health_state": auth_health_state,
     "auth_health_reason": auth_health_reason,
+    "auth_health_action": auth_health_action,
     "expected_sandbox_posture": str(os.environ.get("SANDBOX_POLICY_TARGET") or "unknown"),
     "allowed_sandbox_modes": [item for item in str(os.environ.get("SANDBOX_POLICY_ALLOWED_MODES") or "").split(",") if item],
     "observed_sandbox_mode": str(os.environ.get("SANDBOX_POLICY_OBSERVED_MODE") or "unknown"),
