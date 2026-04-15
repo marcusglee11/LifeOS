@@ -1,3 +1,2317 @@
+---
+artifact_id: "348bce09-058d-4a7a-9c06-4bc15d3aa7b7"
+artifact_type: "REVIEW_PACKET"
+schema_version: "1.0.0"
+created_at: "2026-04-15T02:13:25Z"
+author: "Codex"
+version: "1.0"
+status: "PENDING_REVIEW"
+tags: ["openclaw", "oauth", "codex", "recovery"]
+terminal_outcome: "BLOCKED"
+closure_evidence:
+  focused_tests:
+    - "pytest runtime/tests/test_openclaw_auth_health.py -q"
+    - "pytest runtime/tests/test_openclaw_codex_auth_repair.py -q"
+    - "pytest runtime/tests/test_openclaw_verify_surface_classification.py -q"
+  full_tests:
+    - "pytest runtime/tests -q"
+  quality_gate:
+    - "python3 scripts/workflow/quality_gate.py check --scope changed --json"
+---
+
+# Review_Packet_Codex_OAuth_Recovery_v1.0
+
+# Scope Envelope
+
+- **Allowed Paths**: `runtime/tools/`, `runtime/tests/`, `docs/`, `artifacts/review_packets/`
+- **Forbidden Paths**: governance-protected docs under `docs/00_foundations/`, `docs/01_governance/`, and `config/governance/protected_artefacts.json`
+- **Authority**: Approved sprint scope from `PLAN_CodexOAuthRecovery_v1.2`
+
+# Summary
+
+Implemented the local LifeOS mitigation for stale `openai-codex` auth ordering.
+The change adds a dry-run/apply repair tool, surfaces `refresh_token_reused`
+and stale-order signals through auth health, updates verify-surface reporting,
+and ships the runbook plus required stewardship artefacts.
+Focused auth verification passed, but the repo-wide `pytest runtime/tests -q`
+run remains blocked by four unrelated baseline failures in untouched
+orchestration and ops suites.
+
+# Issue Catalogue
+
+| Issue ID | Description | Resolution | Status |
+|----------|-------------|------------|--------|
+| P0.1 | Valid email-scoped Codex profile existed but `auth-state.json` still preferred expired legacy profiles | Added `runtime/tools/openclaw_codex_auth_repair.py` to inspect, rank, and repair provider order via the existing OpenClaw CLI | FIXED |
+| P0.2 | `refresh_token_reused` was not surfaced in the local auth-health path | Added explicit `refresh_token_reused` and `codex_auth_order_stale` reason codes with repair actions | FIXED |
+| P0.3 | Operator guidance and rollback path were missing | Added indexed runbook, regenerated corpus, and documented rollback receipt location | FIXED |
+
+# Acceptance Criteria
+
+| ID | Criterion | Status | Evidence Pointer | SHA-256 |
+|----|-----------|--------|------------------|---------|
+| AC1 | Repair tool ranks valid Codex profiles deterministically and proposes repaired order | PASS | `runtime/tests/test_openclaw_codex_auth_repair.py` | N/A |
+| AC2 | Auth health surfaces `refresh_token_reused` and stale-order warnings | PASS | `runtime/tests/test_openclaw_auth_health.py` | N/A |
+| AC3 | Verify surface parsing preserves auth-health reason and action | PASS | `runtime/tests/test_openclaw_verify_surface_classification.py` | N/A |
+| AC4 | Recovery workflow is documented and indexed | PASS | `docs/02_protocols/guides/OpenClaw_Codex_OAuth_Recovery_v1.0.md`, `docs/INDEX.md` | N/A |
+
+# Closure Evidence Checklist
+
+| Category | Requirement | Verified |
+|----------|-------------|----------|
+| **Provenance** | Changed file list (paths) | 9 files in Appendix / File Manifest |
+| **Artifacts** | Review packet present | `artifacts/review_packets/Review_Packet_Codex_OAuth_Recovery_v1.0.md` |
+| **Artifacts** | Docs touched and indexed | `docs/INDEX.md`, `docs/LifeOS_Strategic_Corpus.md`, runbook |
+| **Repro** | Focused test commands | Listed in frontmatter `closure_evidence.focused_tests` |
+| **Repro** | Quality gate command | Listed in frontmatter `closure_evidence.quality_gate` |
+| **Outcome** | Local mitigation implemented; repo-wide baseline still has unrelated failures | BLOCKED |
+
+# Non-Goals
+
+- Upstream OpenClaw refresh mutex / coordinator implementation
+- Automatic auth snapshot file watching inside the OpenClaw gateway
+- Gateway-native event emission for `refresh_token_reused`
+
+# Appendix
+
+## File Manifest
+- `runtime/tools/openclaw_codex_auth_repair.py`
+- `runtime/tools/openclaw_auth_health.py`
+- `runtime/tools/openclaw_verify_surface.sh`
+- `runtime/tests/test_openclaw_codex_auth_repair.py`
+- `runtime/tests/test_openclaw_auth_health.py`
+- `runtime/tests/test_openclaw_verify_surface_classification.py`
+- `docs/02_protocols/guides/OpenClaw_Codex_OAuth_Recovery_v1.0.md`
+- `docs/INDEX.md`
+- `docs/LifeOS_Strategic_Corpus.md`
+
+## Flattened Code
+
+### File: `runtime/tools/openclaw_codex_auth_repair.py`
+
+```python
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, Iterable, Sequence
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_PROVIDER = "openai-codex"
+DEFAULT_AGENT_ID = "main"
+DEFAULT_RECEIPT_ROOT = (
+    REPO_ROOT / "artifacts" / "evidence" / "openclaw" / "codex_auth_repair"
+)
+
+
+@dataclass(frozen=True)
+class CodexProfile:
+    profile_id: str
+    provider: str
+    profile_type: str
+    expires_ms: int | None
+    email: str | None
+    account_id: str | None
+    managed_by: str | None
+    refresh_present: bool
+    access_present: bool
+    valid: bool
+
+    @property
+    def kind_rank(self) -> int:
+        if self.email and ":" in self.profile_id:
+            suffix = self.profile_id.split(":", 1)[1]
+            if suffix and suffix not in {"default", "codex-cli"}:
+                return 0
+        if self.profile_id.endswith(":default"):
+            return 1
+        if self.profile_id.endswith(":codex-cli"):
+            return 2
+        return 3
+
+    def to_dict(self) -> dict[str, Any]:
+        payload = asdict(self)
+        payload["expires_utc"] = format_epoch_ms(self.expires_ms)
+        return payload
+
+
+@dataclass(frozen=True)
+class CodexRepairAnalysis:
+    provider: str
+    current_order: list[str]
+    proposed_order: list[str]
+    chosen_profile_id: str | None
+    stale_order: bool
+    profiles: list[CodexProfile]
+    codex_cli_summary: dict[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "provider": self.provider,
+            "current_order": self.current_order,
+            "proposed_order": self.proposed_order,
+            "chosen_profile_id": self.chosen_profile_id,
+            "stale_order": self.stale_order,
+            "profiles": [profile.to_dict() for profile in self.profiles],
+            "codex_cli_summary": self.codex_cli_summary,
+        }
+
+
+def now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def ts_utc() -> str:
+    return now_utc().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def compact_ts_utc() -> str:
+    return now_utc().strftime("%Y%m%dT%H%M%SZ")
+
+
+def format_epoch_ms(value: int | None) -> str | None:
+    if value is None:
+        return None
+    return datetime.fromtimestamp(value / 1000, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _load_json(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _optional_int(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str) and value.strip():
+        try:
+            return int(value.strip())
+        except ValueError:
+            return None
+    return None
+
+
+def load_codex_profiles(
+    auth_profiles_payload: dict[str, Any],
+    *,
+    provider: str = DEFAULT_PROVIDER,
+    now_ms: int | None = None,
+) -> list[CodexProfile]:
+    profiles = auth_profiles_payload.get("profiles")
+    if not isinstance(profiles, dict):
+        return []
+
+    if now_ms is None:
+        now_ms = int(now_utc().timestamp() * 1000)
+
+    rows: list[CodexProfile] = []
+    for profile_id, payload in sorted(profiles.items()):
+        if not isinstance(payload, dict):
+            continue
+        if str(payload.get("provider") or "").strip() != provider:
+            continue
+        profile_type = str(payload.get("type") or "").strip()
+        expires_ms = _optional_int(payload.get("expires"))
+        refresh_present = bool(payload.get("refresh"))
+        access_present = bool(payload.get("access"))
+        valid = (
+            profile_type == "oauth"
+            and refresh_present
+            and expires_ms is not None
+            and expires_ms > now_ms
+        )
+        rows.append(
+            CodexProfile(
+                profile_id=str(profile_id),
+                provider=provider,
+                profile_type=profile_type,
+                expires_ms=expires_ms,
+                email=_string_or_none(payload.get("email")),
+                account_id=_string_or_none(payload.get("accountId")),
+                managed_by=_string_or_none(payload.get("managedBy")),
+                refresh_present=refresh_present,
+                access_present=access_present,
+                valid=valid,
+            )
+        )
+    return rows
+
+
+def _string_or_none(value: Any) -> str | None:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
+
+
+def rank_profiles(profiles: Iterable[CodexProfile]) -> list[CodexProfile]:
+    valid_profiles = [profile for profile in profiles if profile.valid]
+    return sorted(
+        valid_profiles,
+        key=lambda profile: (
+            -(profile.expires_ms or 0),
+            profile.kind_rank,
+            profile.profile_id,
+        ),
+    )
+
+
+def build_proposed_order(
+    current_order: Sequence[str],
+    ranked_profiles: Sequence[CodexProfile],
+    all_profile_ids: Sequence[str],
+) -> list[str]:
+    proposed: list[str] = []
+    seen: set[str] = set()
+
+    def add(profile_id: str) -> None:
+        if profile_id not in seen:
+            proposed.append(profile_id)
+            seen.add(profile_id)
+
+    for profile in ranked_profiles:
+        add(profile.profile_id)
+    for profile_id in current_order:
+        add(profile_id)
+    for profile_id in sorted(all_profile_ids):
+        add(profile_id)
+    return proposed
+
+
+def read_auth_state_order(
+    auth_state_payload: dict[str, Any],
+    *,
+    provider: str = DEFAULT_PROVIDER,
+) -> list[str]:
+    order = auth_state_payload.get("order")
+    if not isinstance(order, dict):
+        return []
+    provider_order = order.get(provider)
+    if not isinstance(provider_order, list):
+        return []
+    return [str(item) for item in provider_order if str(item).strip()]
+
+
+def summarize_codex_cli_auth(path: Path) -> dict[str, Any]:
+    summary: dict[str, Any] = {
+        "path": str(path),
+        "exists": path.exists(),
+        "auth_mode": None,
+        "has_refresh_token": False,
+        "has_access_token": False,
+        "has_id_token": False,
+    }
+    if not path.exists():
+        return summary
+    try:
+        payload = _load_json(path)
+    except Exception as exc:
+        summary["error"] = f"{type(exc).__name__}:{exc}"
+        return summary
+
+    tokens = payload.get("tokens")
+    summary["auth_mode"] = _string_or_none(payload.get("auth_mode"))
+    summary["has_refresh_token"] = bool(isinstance(tokens, dict) and tokens.get("refresh_token"))
+    summary["has_access_token"] = bool(isinstance(tokens, dict) and tokens.get("access_token"))
+    summary["has_id_token"] = bool(isinstance(tokens, dict) and tokens.get("id_token"))
+    return summary
+
+
+def analyze_codex_auth_setup(
+    auth_state_payload: dict[str, Any],
+    auth_profiles_payload: dict[str, Any],
+    *,
+    provider: str = DEFAULT_PROVIDER,
+    now_ms: int | None = None,
+    codex_auth_path: Path | None = None,
+) -> CodexRepairAnalysis:
+    profiles = load_codex_profiles(auth_profiles_payload, provider=provider, now_ms=now_ms)
+    ranked_profiles = rank_profiles(profiles)
+    current_order = read_auth_state_order(auth_state_payload, provider=provider)
+    proposed_order = build_proposed_order(
+        current_order,
+        ranked_profiles,
+        [profile.profile_id for profile in profiles],
+    )
+    chosen_profile_id = ranked_profiles[0].profile_id if ranked_profiles else None
+    stale_order = bool(chosen_profile_id and current_order[:1] != [chosen_profile_id])
+    codex_cli_summary = summarize_codex_cli_auth(codex_auth_path) if codex_auth_path else {}
+    return CodexRepairAnalysis(
+        provider=provider,
+        current_order=current_order,
+        proposed_order=proposed_order,
+        chosen_profile_id=chosen_profile_id,
+        stale_order=stale_order,
+        profiles=profiles,
+        codex_cli_summary=codex_cli_summary,
+    )
+
+
+def planned_apply_commands(
+    *,
+    openclaw_bin: str,
+    provider: str,
+    proposed_order: Sequence[str],
+) -> list[list[str]]:
+    if not proposed_order:
+        return []
+    return [
+        [openclaw_bin, "models", "auth", "order", "set", "--provider", provider, *proposed_order],
+        [openclaw_bin, "secrets", "reload", "--json"],
+    ]
+
+
+def _run_command(cmd: Sequence[str]) -> dict[str, Any]:
+    proc = subprocess.run(list(cmd), capture_output=True, text=True, check=False)
+    return {
+        "cmd": list(cmd),
+        "exit_code": int(proc.returncode),
+        "stdout": (proc.stdout or "").strip(),
+        "stderr": (proc.stderr or "").strip(),
+    }
+
+
+def write_rollback_receipt(
+    receipt_root: Path,
+    analysis: CodexRepairAnalysis,
+    *,
+    command_results: Sequence[dict[str, Any]],
+    applied: bool,
+) -> Path:
+    receipt_dir = receipt_root / compact_ts_utc()
+    receipt_dir.mkdir(parents=True, exist_ok=False)
+    receipt_path = receipt_dir / "rollback_receipt.json"
+    payload = {
+        "ts_utc": ts_utc(),
+        "provider": analysis.provider,
+        "applied": applied,
+        "current_order": analysis.current_order,
+        "proposed_order": analysis.proposed_order,
+        "chosen_profile_id": analysis.chosen_profile_id,
+        "stale_order": analysis.stale_order,
+        "profiles": [profile.to_dict() for profile in analysis.profiles],
+        "codex_cli_summary": analysis.codex_cli_summary,
+        "commands": list(command_results),
+    }
+    receipt_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    return receipt_path
+
+
+def apply_repair(
+    analysis: CodexRepairAnalysis,
+    *,
+    provider: str,
+    openclaw_bin: str,
+    receipt_root: Path,
+    runner: Callable[[Sequence[str]], dict[str, Any]] = _run_command,
+) -> dict[str, Any]:
+    commands = planned_apply_commands(
+        openclaw_bin=openclaw_bin,
+        provider=provider,
+        proposed_order=analysis.proposed_order,
+    )
+    results = [runner(command) for command in commands]
+    receipt_path = write_rollback_receipt(
+        receipt_root,
+        analysis,
+        command_results=results,
+        applied=True,
+    )
+    ok = all(int(result.get("exit_code", 1)) == 0 for result in results)
+    return {
+        "applied": True,
+        "ok": ok,
+        "commands": results,
+        "receipt_path": str(receipt_path),
+    }
+
+
+def default_paths(state_dir: Path, agent_id: str) -> tuple[Path, Path]:
+    agent_dir = state_dir / "agents" / agent_id / "agent"
+    return agent_dir / "auth-state.json", agent_dir / "auth-profiles.json"
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Inspect and repair stale OpenClaw auth order for openai-codex."
+    )
+    parser.add_argument("--state-dir", default=str(Path.home() / ".openclaw"))
+    parser.add_argument("--agent-id", default=DEFAULT_AGENT_ID)
+    parser.add_argument("--provider", default=DEFAULT_PROVIDER)
+    parser.add_argument("--codex-auth-path", default=str(Path.home() / ".codex" / "auth.json"))
+    parser.add_argument("--openclaw-bin", default=os.environ.get("OPENCLAW_BIN", "openclaw"))
+    parser.add_argument("--receipt-root", default=str(DEFAULT_RECEIPT_ROOT))
+    parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--json", action="store_true")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = _parse_args()
+    state_dir = Path(args.state_dir).expanduser()
+    auth_state_path, auth_profiles_path = default_paths(state_dir, args.agent_id)
+    codex_auth_path = Path(args.codex_auth_path).expanduser()
+
+    auth_state_payload = _load_json(auth_state_path)
+    auth_profiles_payload = _load_json(auth_profiles_path)
+    analysis = analyze_codex_auth_setup(
+        auth_state_payload,
+        auth_profiles_payload,
+        provider=args.provider,
+        codex_auth_path=codex_auth_path,
+    )
+
+    payload: dict[str, Any] = {
+        "ts_utc": ts_utc(),
+        "agent_id": args.agent_id,
+        "state_dir": str(state_dir),
+        "auth_state_path": str(auth_state_path),
+        "auth_profiles_path": str(auth_profiles_path),
+        **analysis.to_dict(),
+        "repair_needed": analysis.stale_order,
+        "recommended_command": (
+            "python3 runtime/tools/openclaw_codex_auth_repair.py --apply --json"
+            if analysis.stale_order
+            else "none"
+        ),
+    }
+
+    if args.apply:
+        if not analysis.chosen_profile_id:
+            payload["applied"] = False
+            payload["ok"] = False
+            payload["error"] = "no_valid_oauth_profile"
+        else:
+            apply_result = apply_repair(
+                analysis,
+                provider=args.provider,
+                openclaw_bin=args.openclaw_bin,
+                receipt_root=Path(args.receipt_root),
+            )
+            payload.update(apply_result)
+    else:
+        payload["applied"] = False
+        payload["ok"] = True
+
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=True))
+    else:
+        print(
+            json.dumps(
+                {
+                    "provider": payload["provider"],
+                    "repair_needed": payload["repair_needed"],
+                    "chosen_profile_id": payload["chosen_profile_id"],
+                    "recommended_command": payload["recommended_command"],
+                },
+                ensure_ascii=True,
+            )
+        )
+    return 0 if payload.get("ok") else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+```
+
+### File: `runtime/tools/openclaw_auth_health.py`
+
+```python
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Sequence, Tuple
+
+# Ensure repo root is importable when script is executed directly.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from runtime.tools.openclaw_codex_auth_repair import analyze_codex_auth_setup, default_paths  # noqa: E402
+from runtime.tools.schemas import AuthHealthResult  # noqa: E402
+
+COOLDOWN_RE = re.compile(
+    r"(in cooldown|all profiles unavailable|profiles are unavailable)", re.IGNORECASE
+)
+INVALID_MISSING_RE = re.compile(
+    r"(expired|missing|invalid|unauthorized|not authenticated|authentication required|token has been invalidated)",  # noqa: E501
+    re.IGNORECASE,
+)
+EXPIRING_RE = re.compile(r"(expiring soon|expires in\s*[0-9]+(?:m|h))", re.IGNORECASE)
+REFRESH_REUSED_RE = re.compile(r"refresh_token_reused", re.IGNORECASE)
+PROVIDER_RE = re.compile(r"\bprovider\s+([a-z0-9._-]+)\b", re.IGNORECASE)
+PROVIDER_COOLDOWN_RE = re.compile(
+    r"\bprovider\s+([a-z0-9._-]+)\s+is\s+in\s+cooldown\b", re.IGNORECASE
+)
+
+
+def ts_utc() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _safe_run(cmd: Sequence[str], timeout_s: int = 30) -> Tuple[int, str]:
+    try:
+        proc = subprocess.run(
+            list(cmd),
+            capture_output=True,
+            text=True,
+            timeout=timeout_s,
+            check=False,
+        )
+    except Exception as exc:
+        return 1, f"subprocess_error:{type(exc).__name__}:{exc}"
+
+    merged = "\n".join(
+        [
+            (proc.stdout or "").strip(),
+            (proc.stderr or "").strip(),
+        ]
+    ).strip()
+    return int(proc.returncode), merged
+
+
+def detect_provider(output_text: str) -> str:
+    text = str(output_text or "")
+    if REFRESH_REUSED_RE.search(text) or "openai-codex" in text.lower():
+        return "openai-codex"
+    match = PROVIDER_COOLDOWN_RE.search(text) or PROVIDER_RE.search(text)
+    if match:
+        provider = str(match.group(1) or "").strip().lower()
+        if provider:
+            return provider
+    return "multi-provider"
+
+
+def inspect_codex_auth_order(state_dir: Path, agent_id: str) -> dict[str, object] | None:
+    try:
+        auth_state_path, auth_profiles_path = default_paths(state_dir, agent_id)
+        analysis = analyze_codex_auth_setup(
+            json.loads(auth_state_path.read_text(encoding="utf-8")),
+            json.loads(auth_profiles_path.read_text(encoding="utf-8")),
+            codex_auth_path=Path.home() / ".codex" / "auth.json",
+        )
+    except Exception:
+        return None
+
+    return {
+        "stale_order": analysis.stale_order,
+        "chosen_profile_id": analysis.chosen_profile_id,
+        "current_order": analysis.current_order,
+        "proposed_order": analysis.proposed_order,
+    }
+
+
+def codex_repair_action() -> str:
+    return "python3 runtime/tools/openclaw_codex_auth_repair.py --apply --json"
+
+
+def classify_auth_health(
+    exit_code: int,
+    output_text: str,
+    *,
+    codex_auth_order: dict[str, object] | None = None,
+) -> AuthHealthResult:
+    text = str(output_text or "")
+    low = text.lower()
+    provider = detect_provider(text)
+    now = ts_utc()
+    codex_stale_order = bool(
+        isinstance(codex_auth_order, dict) and codex_auth_order.get("stale_order")
+    )
+
+    if REFRESH_REUSED_RE.search(text):
+        return AuthHealthResult(
+            provider="openai-codex",
+            state="invalid_missing",
+            reason_code="refresh_token_reused",
+            recommended_action=codex_repair_action(),
+            ts_utc=now,
+        )
+
+    if codex_stale_order:
+        chosen_profile_id = str(codex_auth_order.get("chosen_profile_id") or "").strip()
+        action = codex_repair_action()
+        if chosen_profile_id:
+            action = f"{action} # promote {chosen_profile_id}"
+        return AuthHealthResult(
+            provider="openai-codex",
+            state="expiring",
+            reason_code="codex_auth_order_stale",
+            recommended_action=action,
+            ts_utc=now,
+        )
+
+    if exit_code == 0:
+        if EXPIRING_RE.search(text):
+            return AuthHealthResult(
+                provider=provider,
+                state="expiring",
+                reason_code="expiring_warning",
+                recommended_action="refresh auth within 24h",
+                ts_utc=now,
+            )
+        return AuthHealthResult(
+            provider=provider,
+            state="ok",
+            reason_code="ok",
+            recommended_action="none",
+            ts_utc=now,
+        )
+
+    if COOLDOWN_RE.search(text):
+        return AuthHealthResult(
+            provider=provider,
+            state="cooldown",
+            reason_code="provider_cooldown",
+            recommended_action="wait cooldown or add backup profile",
+            ts_utc=now,
+        )
+
+    if exit_code == 2 or EXPIRING_RE.search(text):
+        return AuthHealthResult(
+            provider=provider,
+            state="expiring",
+            reason_code="expiring_nonzero",
+            recommended_action="refresh auth within 24h",
+            ts_utc=now,
+        )
+
+    if exit_code == 1 or INVALID_MISSING_RE.search(low):
+        return AuthHealthResult(
+            provider=provider,
+            state="invalid_missing",
+            reason_code="expired_or_missing",
+            recommended_action="re-auth affected provider profile",
+            ts_utc=now,
+        )
+
+    return AuthHealthResult(
+        provider=provider,
+        state="invalid_missing",
+        reason_code=f"check_failed_rc_{exit_code}",
+        recommended_action="inspect models status and re-auth provider profiles",
+        ts_utc=now,
+    )
+
+
+def append_auth_health_record(path: Path, result: AuthHealthResult) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = result.to_dict()
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+        fh.write("\n")
+
+
+def run_auth_health_check(openclaw_bin: str, timeout_s: int) -> Tuple[int, str]:
+    cmd = [openclaw_bin, "models", "status", "--check"]
+    return _safe_run(cmd, timeout_s=timeout_s)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Classify OpenClaw auth health from models status checks."
+    )
+    parser.add_argument("--openclaw-bin", default=os.environ.get("OPENCLAW_BIN", "openclaw"))
+    parser.add_argument(
+        "--state-dir", default=os.environ.get("OPENCLAW_STATE_DIR", str(Path.home() / ".openclaw"))
+    )
+    parser.add_argument("--agent-id", default="main")
+    parser.add_argument("--timeout-sec", type=int, default=30)
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+
+    rc, merged = run_auth_health_check(args.openclaw_bin, timeout_s=max(1, int(args.timeout_sec)))
+    codex_auth_order = inspect_codex_auth_order(
+        Path(args.state_dir).expanduser(), agent_id=str(args.agent_id)
+    )
+    result = classify_auth_health(rc, merged, codex_auth_order=codex_auth_order)
+
+    out_path = Path(args.state_dir).expanduser() / "runtime" / "gates" / "auth_health.jsonl"
+    try:
+        append_auth_health_record(out_path, result)
+    except Exception as exc:
+        error_payload = {
+            "state": "invalid_missing",
+            "reason_code": "auth_health_append_failed",
+            "error_detail": f"{type(exc).__name__}:{exc}",
+            "provider": result.provider,
+            "ts_utc": result.ts_utc,
+        }
+        if args.json:
+            print(
+                json.dumps(error_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+            )
+        else:
+            print(
+                f"state={error_payload['state']} reason_code={error_payload['reason_code']} "
+                f"provider={result.provider} ts_utc={result.ts_utc}"
+            )
+        return 1
+
+    payload = result.to_dict()
+    if args.json:
+        print(json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+    else:
+        print(
+            f"state={result.state} reason_code={result.reason_code} "
+            f"provider={result.provider} ts_utc={result.ts_utc}"
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+```
+
+### File: `runtime/tools/openclaw_verify_surface.sh`
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
+CFG_PATH="${OPENCLAW_CONFIG_PATH:-$STATE_DIR/openclaw.json}"
+TS_UTC="$(date -u +%Y%m%dT%H%M%SZ)"
+OUT_DIR="$STATE_DIR/verify/$TS_UTC"
+VERIFY_CMD_TIMEOUT_SEC="${OPENCLAW_VERIFY_CMD_TIMEOUT_SEC:-35}"
+CRON_DELIVERY_GUARD_TIMEOUT_SEC="${OPENCLAW_CRON_DELIVERY_GUARD_TIMEOUT_SEC:-40}"
+HOST_CRON_PARITY_GUARD_TIMEOUT_SEC="${OPENCLAW_HOST_CRON_PARITY_GUARD_TIMEOUT_SEC:-25}"
+SECURITY_FALLBACK_TIMEOUT_SEC="${OPENCLAW_SECURITY_FALLBACK_TIMEOUT_SEC:-20}"
+RECEIPT_CMD_TIMEOUT_SEC="${OPENCLAW_RECEIPT_CMD_TIMEOUT_SEC:-1}"
+GATEWAY_PROBE_RETRIES="${OPENCLAW_GATEWAY_PROBE_RETRIES:-3}"
+GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
+HOST_CRON_PARITY_GUARD_REQUIRED="${OPENCLAW_HOST_CRON_PARITY_GUARD_REQUIRED:-1}"
+POLICY_PHASE="${OPENCLAW_POLICY_PHASE:-burnin}"
+INSTANCE_PROFILE_PATH="${OPENCLAW_INSTANCE_PROFILE_PATH:-config/openclaw/instance_profiles/coo.json}"
+GATE_REASON_CATALOG_PATH="${OPENCLAW_GATE_REASON_CATALOG_PATH:-config/openclaw/gate_reason_catalog.json}"
+KNOWN_UV_IFADDR='uv_interface_addresses returned Unknown system error 1'
+GATE_STATUS_PATH="${OPENCLAW_GATE_STATUS_PATH:-$STATE_DIR/runtime/gates/gate_status.json}"
+
+if ! mkdir -p "$OUT_DIR" 2>/dev/null; then
+  OUT_DIR="/tmp/openclaw-verify/$TS_UTC"
+  mkdir -p "$OUT_DIR"
+fi
+
+if ! mkdir -p "$(dirname "$GATE_STATUS_PATH")" 2>/dev/null; then
+  GATE_STATUS_PATH="/tmp/openclaw-runtime/gates/gate_status.json"
+  mkdir -p "$(dirname "$GATE_STATUS_PATH")"
+fi
+
+PASS=1
+WARNINGS=0
+declare -A CMD_RC
+SECURITY_AUDIT_MODE="unknown"
+SECURITY_AUDIT_TIMEOUT_CANDIDATE=0
+CONFINEMENT_FLAG=""
+AUTH_HEALTH_STATE="unknown"
+AUTH_HEALTH_REASON="auth_health_unavailable"
+AUTH_HEALTH_ACTION="none"
+SECURITY_AUDIT_CLEAN="false"
+SECURITY_AUDIT_SUMMARY_PRESENT="false"
+SECURITY_AUDIT_CRITICAL_COUNT=""
+SECURITY_AUDIT_WARN_CODES=""
+SECURITY_AUDIT_UNEXPECTED_WARNINGS=""
+GATEWAY_PROBE_PASS="false"
+SANDBOX_POLICY_TARGET="unknown"
+SANDBOX_POLICY_ALLOWED_MODES=""
+SANDBOX_POLICY_OBSERVED_MODE="unknown"
+SANDBOX_POLICY_SESSION_IS_SANDBOXED="false"
+SANDBOX_POLICY_ELEVATED_ENABLED="false"
+declare -a BLOCKING_REASONS=()
+
+add_blocking_reason() {
+  local reason="$1"
+  BLOCKING_REASONS+=("$reason")
+  PASS=0
+}
+
+to_file_with_timeout() {
+  local timeout_sec="$1"
+  shift
+  local name="$1"
+  shift
+  local out="$OUT_DIR/${name}.txt"
+  {
+    echo '```bash'
+    printf '%q ' "$@"
+    echo
+    echo '```'
+    echo '```text'
+    set +e
+    timeout "$timeout_sec" "$@"
+    rc=$?
+    set -e
+    echo "[exit_code]=$rc"
+    echo '```'
+  } > "$out" 2>&1
+  CMD_RC["$name"]="$rc"
+  if [ "$rc" -ne 0 ]; then
+    WARNINGS=1
+  fi
+}
+
+to_file() {
+  local name="$1"
+  shift
+  to_file_with_timeout "$VERIFY_CMD_TIMEOUT_SEC" "$name" "$@"
+}
+
+port_reachable() {
+  python3 - <<'PY' "$GATEWAY_PORT"
+import socket
+import sys
+
+port = int(sys.argv[1])
+s = socket.socket()
+s.settimeout(0.75)
+try:
+    s.connect(("127.0.0.1", port))
+except Exception:
+    raise SystemExit(1)
+finally:
+    s.close()
+PY
+}
+
+# Validate INSTANCE_PROFILE_PATH is within the repo-controlled profile directory (Gov F3 / CWE-15).
+# Environment override to an out-of-allowlist path is a hard block.
+# Anchor allowlist to SCRIPT_DIR so the check is CWD-independent (Arch C-6).
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PROFILE_ALLOWLIST="$(realpath --canonicalize-missing "${_SCRIPT_DIR}/../../config/openclaw/instance_profiles")"
+_PROFILE_RESOLVED="$(realpath --canonicalize-missing "$INSTANCE_PROFILE_PATH" 2>/dev/null || echo "")"
+if [[ -z "$_PROFILE_RESOLVED" ]] || [[ "$_PROFILE_RESOLVED" != "$_PROFILE_ALLOWLIST/"* && "$_PROFILE_RESOLVED" != "$_PROFILE_ALLOWLIST" ]]; then
+  add_blocking_reason "instance_profile_path_outside_allowlist"
+fi
+
+# Required order with signature-gated fallback.
+to_file security_audit_deep coo openclaw -- security audit --deep
+if [ "${CMD_RC[security_audit_deep]:-1}" -eq 0 ]; then
+  SECURITY_AUDIT_MODE="deep"
+else
+  if rg -q "$KNOWN_UV_IFADDR" "$OUT_DIR/security_audit_deep.txt"; then
+    to_file_with_timeout "$SECURITY_FALLBACK_TIMEOUT_SEC" security_audit_fallback coo openclaw -- security audit
+    if [ "${CMD_RC[security_audit_fallback]:-1}" -eq 0 ]; then
+      SECURITY_AUDIT_MODE="non_deep_fallback_due_uv_interface_addresses"
+      CONFINEMENT_FLAG="uv_interface_addresses_unknown_system_error_1"
+    else
+      SECURITY_AUDIT_MODE="blocked_fallback_failed"
+      add_blocking_reason "security_audit_fallback_failed"
+    fi
+  elif [ "${CMD_RC[security_audit_deep]:-1}" -eq 124 ]; then
+    SECURITY_AUDIT_MODE="timeout_after_clean_report"
+    SECURITY_AUDIT_TIMEOUT_CANDIDATE=1
+  else
+    SECURITY_AUDIT_MODE="blocked_unknown_deep_error"
+    add_blocking_reason "security_audit_deep_failed"
+  fi
+fi
+
+to_file_with_timeout "$CRON_DELIVERY_GUARD_TIMEOUT_SEC" cron_delivery_guard python3 runtime/tools/openclaw_cron_delivery_guard.py --json
+to_file_with_timeout "$HOST_CRON_PARITY_GUARD_TIMEOUT_SEC" host_cron_parity_guard python3 runtime/tools/openclaw_host_cron_parity_guard.py --instance-profile "$INSTANCE_PROFILE_PATH" --json
+to_file models_status_probe coo openclaw -- models status
+to_file sandbox_explain_json coo openclaw -- sandbox explain --json
+for attempt in $(seq 1 "$GATEWAY_PROBE_RETRIES"); do
+  to_file gateway_probe_json coo openclaw -- gateway probe --json
+  if [ "${CMD_RC[gateway_probe_json]:-1}" -eq 0 ]; then
+    GATEWAY_PROBE_PASS="true"
+    break
+  fi
+  if [ "$attempt" -lt "$GATEWAY_PROBE_RETRIES" ]; then
+    sleep 1
+  fi
+done
+if [ "$GATEWAY_PROBE_PASS" != "true" ]; then
+  if port_reachable >/dev/null 2>&1 && rg -q "$KNOWN_UV_IFADDR|connect EPERM 127\\.0\\.0\\.1:${GATEWAY_PORT}|gateway closed" "$OUT_DIR/gateway_probe_json.txt"; then
+    GATEWAY_PROBE_PASS="true"
+    WARNINGS=1
+  fi
+fi
+to_file policy_assert python3 runtime/tools/openclaw_policy_assert.py --config "$CFG_PATH" --policy-phase "$POLICY_PHASE" --json
+mlpa_models_list_raw="$OUT_DIR/models_list_raw.txt"
+mlpa_policy_json="$OUT_DIR/model_ladder_policy_assert.json"
+mlpa_out="$OUT_DIR/model_ladder_policy_assert.txt"
+set +e
+timeout "$VERIFY_CMD_TIMEOUT_SEC" "${OPENCLAW_BIN:-openclaw}" models list > "$mlpa_models_list_raw" 2>&1
+rc_mlpa_models_list=$?
+python3 runtime/tools/openclaw_model_policy_assert.py --config "$CFG_PATH" --models-list-file "$mlpa_models_list_raw" --json > "$mlpa_policy_json" 2>/dev/null
+rc_mlpa=$?
+set -e
+CMD_RC["model_ladder_policy_assert"]="$rc_mlpa"
+if [ "$rc_mlpa_models_list" -ne 0 ] || [ "$rc_mlpa" -ne 0 ]; then
+  WARNINGS=1
+fi
+python3 - "$mlpa_policy_json" > "$mlpa_out" 2>/dev/null <<'PY' || true
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    data = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+except Exception:
+    print("policy_ok=unknown")
+    print("auth_missing_providers=")
+    print("violations_count=0")
+    raise SystemExit(0)
+
+violations = data.get("violations") or []
+providers = data.get("auth_missing_providers") or []
+print(f"policy_ok={'true' if data.get('policy_ok') else 'false'}")
+print("auth_missing_providers=" + ",".join(str(item) for item in providers if str(item)))
+print(f"violations_count={len(violations)}")
+for violation in violations[:10]:
+    print(f"- {violation}")
+PY
+to_file multiuser_posture_assert python3 runtime/tools/openclaw_multiuser_posture_assert.py --config "$CFG_PATH" --json
+to_file interfaces_policy_assert python3 runtime/tools/openclaw_interfaces_policy_assert.py --config "$CFG_PATH" --json
+to_file sandbox_policy_assert python3 runtime/tools/openclaw_sandbox_policy_assert.py --config "$CFG_PATH" --instance-profile "$INSTANCE_PROFILE_PATH" --sandbox-explain-file "$OUT_DIR/sandbox_explain_json.txt"
+# Extract profile_name and target_posture from the active instance profile.
+# Output format: "<profile_name>|<target_posture>" — pipe-delimited, single line.
+_PROFILE_META="$(python3 - "$INSTANCE_PROFILE_PATH" <<'_PYEOF' 2>/dev/null || true
+import sys, json
+p = json.load(open(sys.argv[1]))
+name = p.get('profile_name', '')
+posture = p.get('sandbox_policy', {}).get('target_posture', 'sandboxed')
+print(name + '|' + posture)
+_PYEOF
+)"
+PROFILE_NAME="${_PROFILE_META%%|*}"
+PROFILE_TARGET_POSTURE="${_PROFILE_META##*|}"
+# Validate profile_name is safe before use in shell/Python path construction.
+# Empty profile_name is fail-closed for unsandboxed posture (no governance bypass via config-shape drift).
+if [ -z "$PROFILE_NAME" ]; then
+  if [ "$PROFILE_TARGET_POSTURE" = "unsandboxed" ]; then
+    add_blocking_reason "approval_manifest_missing_profile_name_for_unsandboxed_posture"
+  fi
+  # sandboxed/shared_ingress: no promotion profile active — vacuously OK
+elif [[ "$PROFILE_NAME" =~ ^[A-Za-z0-9_-]+$ ]]; then
+  to_file approval_manifest_check python3 -m runtime.orchestration.coo.promotion_guard --repo-root "$(pwd)" --profile-name "$PROFILE_NAME" --json
+  if [ "${CMD_RC[approval_manifest_check]:-1}" -ne 0 ]; then
+    add_blocking_reason "approval_manifest_check_failed"
+  fi
+else
+  add_blocking_reason "approval_manifest_profile_name_invalid_format"
+fi
+
+auth_health_raw="$OUT_DIR/auth_health_raw.json"
+auth_health_out="$OUT_DIR/auth_health.txt"
+set +e
+timeout "$VERIFY_CMD_TIMEOUT_SEC" python3 runtime/tools/openclaw_auth_health.py --json > "$auth_health_raw" 2>&1
+rc_auth_health=$?
+set -e
+CMD_RC["auth_health"]="$rc_auth_health"
+if [ "$rc_auth_health" -ne 0 ]; then
+  WARNINGS=1
+fi
+{
+  echo '```bash'
+  printf '%q ' python3 runtime/tools/openclaw_auth_health.py --json
+  echo
+  echo '```'
+  echo '```text'
+  cat "$auth_health_raw" 2>/dev/null || true
+  echo
+  echo "[exit_code]=$rc_auth_health"
+  echo '```'
+} > "$auth_health_out"
+
+if [ "$rc_auth_health" -eq 0 ] && [ -s "$auth_health_raw" ]; then
+auth_health_parse_out="$(python3 - <<'PY' "$auth_health_raw"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    obj = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+except Exception:
+    print("unknown\tauth_health_parse_failed\tnone")
+    raise SystemExit(0)
+
+state = str(obj.get("state") or "unknown").strip() or "unknown"
+reason = str(obj.get("reason_code") or "auth_health_reason_missing").strip() or "auth_health_reason_missing"
+action = str(obj.get("recommended_action") or "none").strip() or "none"
+print(f"{state}\t{reason}\t{action}")
+PY
+)"
+  AUTH_HEALTH_STATE="$(printf '%s' "$auth_health_parse_out" | awk -F'\t' '{print $1}')"
+  AUTH_HEALTH_REASON="$(printf '%s' "$auth_health_parse_out" | awk -F'\t' '{print $2}')"
+  AUTH_HEALTH_ACTION="$(printf '%s' "$auth_health_parse_out" | awk -F'\t' '{print $3}')"
+fi
+
+if [ "$AUTH_HEALTH_REASON" = "refresh_token_reused" ] || [ "$AUTH_HEALTH_REASON" = "codex_auth_order_stale" ]; then
+  WARNINGS=1
+  {
+    echo
+    echo "auth_health_notice=$AUTH_HEALTH_REASON"
+    echo "auth_health_action=$AUTH_HEALTH_ACTION"
+  } >> "$auth_health_out"
+fi
+
+SECURITY_FILE="$OUT_DIR/security_audit_deep.txt"
+if [ "$SECURITY_AUDIT_MODE" = "non_deep_fallback_due_uv_interface_addresses" ]; then
+  SECURITY_FILE="$OUT_DIR/security_audit_fallback.txt"
+fi
+
+if [ ! -f "$SECURITY_FILE" ]; then
+  if [ "$SECURITY_AUDIT_TIMEOUT_CANDIDATE" -eq 1 ]; then
+    SECURITY_AUDIT_MODE="blocked_timeout_no_usable_report"
+    add_blocking_reason "security_audit_timeout_no_usable_report"
+  else
+    add_blocking_reason "security_audit_output_missing"
+  fi
+else
+  allow_multiuser_heuristic=0
+  # Accept the shared-ingress heuristic only when explicit posture and
+  # interface policy checks already pass. Any other warn remains hard-fail.
+  if [ "${CMD_RC[multiuser_posture_assert]:-1}" -eq 0 ] && [ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ]; then
+    allow_multiuser_heuristic=1
+  fi
+  security_audit_eval="$(
+    python3 - <<'PY' "$SECURITY_FILE" "$allow_multiuser_heuristic"
+import sys
+
+from runtime.tools.openclaw_security_audit_gate import assess_security_audit_file
+
+result = assess_security_audit_file(
+    sys.argv[1],
+    allow_multiuser_heuristic=sys.argv[2] == "1",
+)
+print(f"clean={'true' if result.clean else 'false'}")
+print(f"summary_present={'true' if result.summary_present else 'false'}")
+print(
+    "summary_critical_count="
+    + ("" if result.summary_critical_count is None else str(result.summary_critical_count))
+)
+print(
+    "summary_warn_count="
+    + ("" if result.summary_warn_count is None else str(result.summary_warn_count))
+)
+print("warn_codes=" + ",".join(result.warn_codes))
+print("unexpected_warn_codes=" + ",".join(result.unexpected_warn_codes))
+PY
+)"
+  SECURITY_AUDIT_CLEAN="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^clean=//p' | tail -n 1)"
+  SECURITY_AUDIT_SUMMARY_PRESENT="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^summary_present=//p' | tail -n 1)"
+  SECURITY_AUDIT_CRITICAL_COUNT="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^summary_critical_count=//p' | tail -n 1)"
+  SECURITY_AUDIT_WARN_CODES="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^warn_codes=//p' | tail -n 1)"
+  SECURITY_AUDIT_UNEXPECTED_WARNINGS="$(printf '%s\n' "$security_audit_eval" | sed -n 's/^unexpected_warn_codes=//p' | tail -n 1)"
+  if [ "$SECURITY_AUDIT_CLEAN" = "true" ] && [ "$SECURITY_AUDIT_SUMMARY_PRESENT" = "true" ]; then
+    if [ -n "$SECURITY_AUDIT_WARN_CODES" ]; then
+      WARNINGS=1
+    fi
+    if [ "$SECURITY_AUDIT_TIMEOUT_CANDIDATE" -eq 1 ]; then
+      WARNINGS=1
+    fi
+  else
+    if [ "$SECURITY_AUDIT_TIMEOUT_CANDIDATE" -eq 1 ] && [ "$SECURITY_AUDIT_SUMMARY_PRESENT" != "true" ]; then
+      SECURITY_AUDIT_MODE="blocked_timeout_no_usable_report"
+      add_blocking_reason "security_audit_timeout_no_usable_report"
+    else
+      add_blocking_reason "security_audit_summary_not_clean"
+    fi
+  fi
+fi
+
+# The gateway probe command can be flaky on some hosts even when deep audit is fully clean.
+if [ "$GATEWAY_PROBE_PASS" != "true" ] && [ "${CMD_RC[security_audit_deep]:-1}" -eq 0 ] && rg -q 'Summary:\s*0 critical\s*·\s*0 warn' "$OUT_DIR/security_audit_deep.txt"; then
+  GATEWAY_PROBE_PASS="true"
+  WARNINGS=1
+fi
+
+if [ "${CMD_RC[cron_delivery_guard]:-1}" -ne 0 ]; then add_blocking_reason "cron_delivery_guard_failed"; fi
+if [ "${CMD_RC[host_cron_parity_guard]:-1}" -ne 0 ]; then
+  if [ "$HOST_CRON_PARITY_GUARD_REQUIRED" = "1" ]; then
+    add_blocking_reason "host_cron_parity_guard_failed"
+  else
+    WARNINGS=1
+  fi
+fi
+if [ "${CMD_RC[sandbox_explain_json]:-1}" -ne 0 ]; then add_blocking_reason "sandbox_explain_failed"; fi
+if [ "$GATEWAY_PROBE_PASS" != "true" ]; then add_blocking_reason "gateway_probe_failed"; fi
+if [ "${CMD_RC[policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "policy_assert_failed"; fi
+if [ "${CMD_RC[model_ladder_policy_assert]:-1}" -ne 0 ]; then
+  if [ -f "$mlpa_policy_json" ] && [ -f "$mlpa_models_list_raw" ] && python3 -c \
+      "import json,re,sys; model_re=re.compile(r'^[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)+$', re.IGNORECASE); d=json.load(open(sys.argv[1], encoding='utf-8', errors='replace')); lines=open(sys.argv[2], encoding='utf-8', errors='replace').read().splitlines(); has_rows=any((cols:=line.strip().split()) and len(cols) >= 5 and model_re.match(cols[0]) for line in lines if line.strip() and not line.startswith('Model ') and not line.startswith('rc=') and not line.startswith('BUILD_REPO=')); sys.exit(0 if d.get('auth_missing_providers') and has_rows else 1)" \
+      "$mlpa_policy_json" "$mlpa_models_list_raw" 2>/dev/null; then
+    add_blocking_reason "model_ladder_auth_failed"
+  else
+    add_blocking_reason "model_ladder_policy_failed"
+  fi
+fi
+if [ "${CMD_RC[multiuser_posture_assert]:-1}" -ne 0 ]; then add_blocking_reason "multiuser_posture_failed"; fi
+if [ "${CMD_RC[interfaces_policy_assert]:-1}" -ne 0 ]; then add_blocking_reason "interfaces_policy_failed"; fi
+if [ "${CMD_RC[sandbox_policy_assert]:-1}" -ne 0 ]; then
+  violations_csv="$(sed -n 's/^violations=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+  if [ -n "$violations_csv" ]; then
+    OLD_IFS="$IFS"
+    IFS=','
+    for reason in $violations_csv; do
+      reason="$(printf '%s' "$reason" | tr -d '[:space:]')"
+      if [ -n "$reason" ]; then
+        add_blocking_reason "$reason"
+      fi
+    done
+    IFS="$OLD_IFS"
+  else
+    add_blocking_reason "sandbox_explain_parse_failed"
+  fi
+fi
+
+SANDBOX_POLICY_TARGET="$(sed -n 's/^target_posture=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+SANDBOX_POLICY_ALLOWED_MODES="$(sed -n 's/^allowed_modes=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+SANDBOX_POLICY_OBSERVED_MODE="$(sed -n 's/^observed_mode=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+SANDBOX_POLICY_SESSION_IS_SANDBOXED="$(sed -n 's/^session_is_sandboxed=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+SANDBOX_POLICY_ELEVATED_ENABLED="$(sed -n 's/^elevated_enabled=//p' "$OUT_DIR/sandbox_policy_assert.txt" | tail -n 1)"
+
+receipt_gen="$OUT_DIR/receipt_generation.txt"
+set +e
+OPENCLAW_CMD_TIMEOUT_SEC="$RECEIPT_CMD_TIMEOUT_SEC" \
+OPENCLAW_SECURITY_AUDIT_MODE="$SECURITY_AUDIT_MODE" \
+OPENCLAW_CONFINEMENT_FLAG="$CONFINEMENT_FLAG" \
+runtime/tools/openclaw_receipts_bundle.sh > "$receipt_gen" 2>&1
+rc_receipt=$?
+set -e
+if [ "$rc_receipt" -ne 0 ]; then
+  add_blocking_reason "receipt_generation_failed"
+fi
+
+runtime_receipt="$(sed -n '1p' "$receipt_gen" | tr -d '\r')"
+runtime_manifest="$(sed -n '2p' "$receipt_gen" | tr -d '\r')"
+runtime_ledger_entry="$(sed -n '3p' "$receipt_gen" | tr -d '\r')"
+ledger_path="$(sed -n '4p' "$receipt_gen" | tr -d '\r')"
+
+leak_out="$OUT_DIR/leak_scan_output.txt"
+set +e
+runtime/tools/openclaw_leak_scan.sh "$runtime_receipt" "$runtime_ledger_entry" > "$leak_out" 2>&1
+rc_leak=$?
+set -e
+if [ "$rc_leak" -ne 0 ]; then
+  add_blocking_reason "leak_scan_failed"
+fi
+
+policy_fingerprint="missing_config"
+if [ -f "$CFG_PATH" ]; then
+  policy_fingerprint="$(sha256sum "$CFG_PATH" | awk '{print $1}')"
+fi
+
+{
+  echo "ts_utc=$TS_UTC"
+  echo "verify_out_dir=$OUT_DIR"
+  echo "gate_status_path=$GATE_STATUS_PATH"
+  echo "runtime_receipt=$runtime_receipt"
+  echo "runtime_manifest=$runtime_manifest"
+  echo "runtime_ledger_entry=$runtime_ledger_entry"
+  echo "ledger_path=$ledger_path"
+  echo "receipt_generation_exit=$rc_receipt"
+  echo "leak_scan_exit=$rc_leak"
+  echo "security_audit_mode=$SECURITY_AUDIT_MODE"
+  echo "security_audit_clean=$SECURITY_AUDIT_CLEAN"
+  echo "security_audit_file=$SECURITY_FILE"
+  echo "security_audit_summary_present=$SECURITY_AUDIT_SUMMARY_PRESENT"
+  echo "security_audit_critical_count=$SECURITY_AUDIT_CRITICAL_COUNT"
+  echo "security_audit_warn_codes=$SECURITY_AUDIT_WARN_CODES"
+  echo "security_audit_unexpected_warnings=$SECURITY_AUDIT_UNEXPECTED_WARNINGS"
+  echo "security_audit_deep_exit=${CMD_RC[security_audit_deep]:-1}"
+  echo "security_audit_fallback_exit=${CMD_RC[security_audit_fallback]:-NA}"
+  echo "cron_delivery_guard_exit=${CMD_RC[cron_delivery_guard]:-1}"
+  echo "host_cron_parity_guard_exit=${CMD_RC[host_cron_parity_guard]:-1}"
+  echo "host_cron_parity_guard_required=$HOST_CRON_PARITY_GUARD_REQUIRED"
+  echo "models_status_probe_exit=${CMD_RC[models_status_probe]:-1}"
+  echo "auth_health_exit=${CMD_RC[auth_health]:-1}"
+  echo "auth_health_state=$AUTH_HEALTH_STATE"
+  echo "auth_health_reason=$AUTH_HEALTH_REASON"
+  echo "auth_health_action=$AUTH_HEALTH_ACTION"
+  echo "sandbox_explain_json_exit=${CMD_RC[sandbox_explain_json]:-1}"
+  echo "sandbox_policy_assert_exit=${CMD_RC[sandbox_policy_assert]:-1}"
+  echo "expected_sandbox_posture=$SANDBOX_POLICY_TARGET"
+  echo "allowed_sandbox_modes=$SANDBOX_POLICY_ALLOWED_MODES"
+  echo "observed_sandbox_mode=$SANDBOX_POLICY_OBSERVED_MODE"
+  echo "sandbox_session_is_sandboxed=$SANDBOX_POLICY_SESSION_IS_SANDBOXED"
+  echo "sandbox_elevated_enabled=$SANDBOX_POLICY_ELEVATED_ENABLED"
+  echo "gateway_probe_json_exit=${CMD_RC[gateway_probe_json]:-1}"
+  echo "gateway_probe_pass=$GATEWAY_PROBE_PASS"
+  echo "gateway_probe_retries=$GATEWAY_PROBE_RETRIES"
+  echo "policy_assert_exit=${CMD_RC[policy_assert]:-1}"
+  echo "policy_phase=$POLICY_PHASE"
+  echo "model_ladder_policy_assert_exit=${CMD_RC[model_ladder_policy_assert]:-1}"
+  echo "multiuser_posture_assert_exit=${CMD_RC[multiuser_posture_assert]:-1}"
+  echo "interfaces_policy_assert_exit=${CMD_RC[interfaces_policy_assert]:-1}"
+  echo "warnings_present=$WARNINGS"
+  echo "policy_fingerprint=$policy_fingerprint"
+  if [ -n "$CONFINEMENT_FLAG" ]; then
+    echo "confinement_detected=true"
+    echo "confinement_flag=$CONFINEMENT_FLAG"
+  else
+    echo "confinement_detected=false"
+  fi
+} > "$OUT_DIR/summary.txt"
+
+reasons_file="$OUT_DIR/blocking_reasons.txt"
+catalog_json="$(python3 runtime/tools/openclaw_gate_reason_catalog.py --catalog "$GATE_REASON_CATALOG_PATH" --reasons "${BLOCKING_REASONS[@]}" --json 2>/dev/null || true)"
+catalog_eval="$(python3 - <<'PY' "$catalog_json"
+import json
+import sys
+
+raw = str(sys.argv[1] or "").strip()
+if not raw:
+    print("catalog_ok=false")
+    print("unknown_count=0")
+    raise SystemExit(0)
+
+try:
+    obj = json.loads(raw)
+except Exception:
+    print("catalog_ok=false")
+    print("unknown_count=0")
+    raise SystemExit(0)
+
+catalog_ok = bool(obj.get("catalog_ok"))
+unknown = obj.get("unknown") or []
+if not isinstance(unknown, list):
+    unknown = []
+
+print(f"catalog_ok={'true' if catalog_ok else 'false'}")
+print(f"unknown_count={len([u for u in unknown if str(u).strip()])}")
+PY
+)"
+catalog_ok="$(printf '%s\n' "$catalog_eval" | sed -n 's/^catalog_ok=//p' | tail -n 1)"
+unknown_count="$(printf '%s\n' "$catalog_eval" | sed -n 's/^unknown_count=//p' | tail -n 1)"
+if [ "$catalog_ok" != "true" ]; then
+  add_blocking_reason "gate_reason_catalog_failed"
+fi
+if [ "${unknown_count:-0}" -gt 0 ]; then
+  add_blocking_reason "gate_reason_unknown"
+fi
+
+if [ "${#BLOCKING_REASONS[@]}" -gt 0 ]; then
+  printf '%s\n' "${BLOCKING_REASONS[@]}" | awk '!seen[$0]++' > "$reasons_file"
+else
+  : > "$reasons_file"
+fi
+
+export CHECK_SECURITY_AUDIT_CLEAN="$SECURITY_AUDIT_CLEAN"
+export CHECK_CRON_DELIVERY_GUARD="$([ "${CMD_RC[cron_delivery_guard]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_HOST_CRON_PARITY_GUARD="$([ "${CMD_RC[host_cron_parity_guard]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_MODELS_STATUS_PROBE="$([ "${CMD_RC[models_status_probe]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_SANDBOX_EXPLAIN="$([ "${CMD_RC[sandbox_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_GATEWAY_PROBE="$GATEWAY_PROBE_PASS"
+export CHECK_POLICY_ASSERT="$([ "${CMD_RC[policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_MODEL_LADDER_POLICY="$([ "${CMD_RC[model_ladder_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_MULTIUSER_POSTURE="$([ "${CMD_RC[multiuser_posture_assert]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_INTERFACES_POLICY="$([ "${CMD_RC[interfaces_policy_assert]:-1}" -eq 0 ] && echo true || echo false)"
+export CHECK_APPROVAL_MANIFEST="$(
+  if [ -z "$PROFILE_NAME" ]; then
+    # Unsandboxed posture without profile_name is already blocked above; here it's false.
+    # Sandboxed/shared_ingress without profile_name: no promotion profile active, vacuously true.
+    if [ "$PROFILE_TARGET_POSTURE" = "unsandboxed" ]; then
+      echo false
+    else
+      echo true
+    fi
+  elif [ "${CMD_RC[approval_manifest_check]:-1}" -eq 0 ]; then
+    echo true
+  else
+    echo false
+  fi
+)"
+export CHECK_RECEIPT_GENERATION="$([ "$rc_receipt" -eq 0 ] && echo true || echo false)"
+export CHECK_LEAK_SCAN="$([ "$rc_leak" -eq 0 ] && echo true || echo false)"
+export SANDBOX_POLICY_TARGET
+export SANDBOX_POLICY_ALLOWED_MODES
+export SANDBOX_POLICY_OBSERVED_MODE
+export SANDBOX_POLICY_SESSION_IS_SANDBOXED
+export SANDBOX_POLICY_ELEVATED_ENABLED
+
+python3 - <<'PY' "$GATE_STATUS_PATH" "$TS_UTC" "$policy_fingerprint" "$SECURITY_AUDIT_MODE" "$CONFINEMENT_FLAG" "$OUT_DIR" "$reasons_file" "$AUTH_HEALTH_STATE" "$AUTH_HEALTH_REASON" "$AUTH_HEALTH_ACTION" "$SECURITY_FILE" "${CMD_RC[security_audit_deep]:-1}" "${CMD_RC[security_audit_fallback]:-NA}" "$SECURITY_AUDIT_SUMMARY_PRESENT" "$SECURITY_AUDIT_CRITICAL_COUNT" "$SECURITY_AUDIT_WARN_CODES" "$SECURITY_AUDIT_UNEXPECTED_WARNINGS"
+import json
+import os
+import sys
+from pathlib import Path
+from typing import Any, Dict, List
+
+gate_status_path = Path(sys.argv[1])
+ts_utc = sys.argv[2]
+policy_fingerprint = sys.argv[3]
+security_audit_mode = sys.argv[4]
+confinement_flag = sys.argv[5]
+out_dir = Path(sys.argv[6])
+reasons_file = Path(sys.argv[7])
+auth_health_state = str(sys.argv[8] or "unknown")
+auth_health_reason = str(sys.argv[9] or "auth_health_unavailable")
+auth_health_action = str(sys.argv[10] or "none")
+security_audit_file = str(sys.argv[11] or "")
+security_audit_deep_exit_raw = str(sys.argv[12] or "")
+security_audit_fallback_exit_raw = str(sys.argv[13] or "")
+security_audit_summary_present = str(sys.argv[14] or "").strip().lower() == "true"
+security_audit_critical_count_raw = str(sys.argv[15] or "")
+security_audit_warn_codes_raw = str(sys.argv[16] or "")
+security_audit_unexpected_raw = str(sys.argv[17] or "")
+
+
+def parse_optional_int(raw: str) -> int | None:
+    raw = raw.strip()
+    if not raw or raw == "NA":
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        return None
+
+def env_bool(key: str) -> bool:
+    return str(os.environ.get(key, "")).strip().lower() == "true"
+
+def first_line(path: Path) -> str:
+    if not path.exists():
+        return "output_missing"
+    text = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    if not text:
+        return "empty_output"
+    return text[0][:260]
+
+checks: List[Dict[str, Any]] = [
+    {"name": "security_audit_clean", "pass": env_bool("CHECK_SECURITY_AUDIT_CLEAN"), "mode": security_audit_mode, "detail": first_line(out_dir / "security_audit_deep.txt")},
+    {"name": "cron_delivery_guard", "pass": env_bool("CHECK_CRON_DELIVERY_GUARD"), "mode": "required", "detail": first_line(out_dir / "cron_delivery_guard.txt")},
+    {"name": "host_cron_parity_guard", "pass": env_bool("CHECK_HOST_CRON_PARITY_GUARD"), "mode": "required", "detail": first_line(out_dir / "host_cron_parity_guard.txt")},
+    {"name": "models_status_probe", "pass": env_bool("CHECK_MODELS_STATUS_PROBE"), "mode": "required", "detail": first_line(out_dir / "models_status_probe.txt")},
+    {"name": "sandbox_explain", "pass": env_bool("CHECK_SANDBOX_EXPLAIN"), "mode": "required", "detail": first_line(out_dir / "sandbox_explain_json.txt")},
+    {"name": "gateway_probe", "pass": env_bool("CHECK_GATEWAY_PROBE"), "mode": "required", "detail": first_line(out_dir / "gateway_probe_json.txt")},
+    {"name": "policy_assert", "pass": env_bool("CHECK_POLICY_ASSERT"), "mode": "required", "detail": first_line(out_dir / "policy_assert.txt")},
+    {"name": "model_ladder_policy_assert", "pass": env_bool("CHECK_MODEL_LADDER_POLICY"), "mode": "required", "detail": first_line(out_dir / "model_ladder_policy_assert.txt")},
+    {"name": "multiuser_posture_assert", "pass": env_bool("CHECK_MULTIUSER_POSTURE"), "mode": "required", "detail": first_line(out_dir / "multiuser_posture_assert.txt")},
+    {"name": "interfaces_policy_assert", "pass": env_bool("CHECK_INTERFACES_POLICY"), "mode": "required", "detail": first_line(out_dir / "interfaces_policy_assert.txt")},
+    {"name": "approval_manifest", "pass": env_bool("CHECK_APPROVAL_MANIFEST"), "mode": "required", "detail": first_line(out_dir / "approval_manifest_check.txt")},
+    {"name": "receipt_generation", "pass": env_bool("CHECK_RECEIPT_GENERATION"), "mode": "required", "detail": first_line(out_dir / "receipt_generation.txt")},
+    {"name": "leak_scan", "pass": env_bool("CHECK_LEAK_SCAN"), "mode": "required", "detail": first_line(out_dir / "leak_scan_output.txt")},
+]
+
+blocking_reasons: List[str] = []
+if reasons_file.exists():
+    blocking_reasons = [line.strip() for line in reasons_file.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()]
+
+payload: Dict[str, Any] = {
+    "ts_utc": ts_utc,
+    "pass": all(bool(item.get("pass")) for item in checks) and not blocking_reasons,
+    "blocking_reasons": blocking_reasons,
+    "checks": checks,
+    "verify_out_dir": str(out_dir),
+    "security_audit_file": security_audit_file,
+    "security_audit_deep_exit": parse_optional_int(security_audit_deep_exit_raw),
+    "security_audit_fallback_exit": parse_optional_int(security_audit_fallback_exit_raw),
+    "security_audit_mode": security_audit_mode,
+    "security_audit_summary_present": security_audit_summary_present,
+    "security_audit_critical_count": parse_optional_int(security_audit_critical_count_raw),
+    "security_audit_warn_codes": [item for item in security_audit_warn_codes_raw.split(",") if item],
+    "security_audit_unexpected_warnings": [item for item in security_audit_unexpected_raw.split(",") if item],
+    "confinement_detected": bool(confinement_flag),
+    "policy_fingerprint": policy_fingerprint,
+    "auth_health_state": auth_health_state,
+    "auth_health_reason": auth_health_reason,
+    "auth_health_action": auth_health_action,
+    "expected_sandbox_posture": str(os.environ.get("SANDBOX_POLICY_TARGET") or "unknown"),
+    "allowed_sandbox_modes": [item for item in str(os.environ.get("SANDBOX_POLICY_ALLOWED_MODES") or "").split(",") if item],
+    "observed_sandbox_mode": str(os.environ.get("SANDBOX_POLICY_OBSERVED_MODE") or "unknown"),
+    "sandbox_session_is_sandboxed": env_bool("SANDBOX_POLICY_SESSION_IS_SANDBOXED"),
+    "sandbox_elevated_enabled": env_bool("SANDBOX_POLICY_ELEVATED_ENABLED"),
+}
+if confinement_flag:
+    payload["confinement_flag"] = confinement_flag
+
+gate_status_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+PY
+
+if [ "$PASS" -eq 1 ]; then
+  if [ "$WARNINGS" -eq 1 ]; then
+    if [ -n "$CONFINEMENT_FLAG" ]; then
+      echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=true confinement_flag=$CONFINEMENT_FLAG notes=command_warnings_present gate_status=$GATE_STATUS_PATH runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    else
+      echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=false notes=command_warnings_present gate_status=$GATE_STATUS_PATH runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    fi
+  else
+    if [ -n "$CONFINEMENT_FLAG" ]; then
+      echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=true confinement_flag=$CONFINEMENT_FLAG gate_status=$GATE_STATUS_PATH runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    else
+      echo "PASS security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=false gate_status=$GATE_STATUS_PATH runtime_receipt=$runtime_receipt ledger_path=$ledger_path"
+    fi
+  fi
+  exit 0
+fi
+
+if [ -n "$CONFINEMENT_FLAG" ]; then
+  echo "FAIL security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=true confinement_flag=$CONFINEMENT_FLAG gate_status=$GATE_STATUS_PATH runtime_receipt=$runtime_receipt ledger_path=$ledger_path" >&2
+else
+  echo "FAIL security_audit_mode=$SECURITY_AUDIT_MODE confinement_detected=false gate_status=$GATE_STATUS_PATH runtime_receipt=$runtime_receipt ledger_path=$ledger_path" >&2
+fi
+exit 1
+
+```
+
+### File: `runtime/tests/test_openclaw_codex_auth_repair.py`
+
+```python
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from runtime.tools.openclaw_codex_auth_repair import (
+    analyze_codex_auth_setup,
+    apply_repair,
+    build_proposed_order,
+    planned_apply_commands,
+    rank_profiles,
+    write_rollback_receipt,
+)
+
+
+def _auth_profiles_payload() -> dict[str, object]:
+    return {
+        "version": 1,
+        "profiles": {
+            "openai-codex:default": {
+                "type": "oauth",
+                "provider": "openai-codex",
+                "refresh": "r1",
+                "access": "a1",
+                "expires": 100,
+                "managedBy": "codex-cli",
+                "accountId": "acct-default",
+            },
+            "openai-codex:codex-cli": {
+                "type": "oauth",
+                "provider": "openai-codex",
+                "refresh": "r2",
+                "access": "a2",
+                "expires": 200,
+                "accountId": "acct-codex-cli",
+            },
+            "openai-codex:person@example.com": {
+                "type": "oauth",
+                "provider": "openai-codex",
+                "refresh": "r3",
+                "access": "a3",
+                "expires": 300,
+                "email": "person@example.com",
+            },
+            "anthropic:default": {
+                "type": "oauth",
+                "provider": "anthropic",
+                "refresh": "ignore",
+                "expires": 9999,
+            },
+        },
+    }
+
+
+def _auth_state_payload() -> dict[str, object]:
+    return {
+        "version": 1,
+        "order": {"openai-codex": ["openai-codex:default", "openai-codex:codex-cli"]},
+        "lastGood": {"openai-codex": "openai-codex:default"},
+    }
+
+
+def test_rank_profiles_prefers_latest_expiry_then_email_scoped() -> None:
+    analysis = analyze_codex_auth_setup(
+        _auth_state_payload(),
+        _auth_profiles_payload(),
+        now_ms=50,
+        codex_auth_path=Path("/missing/auth.json"),
+    )
+
+    ranked = rank_profiles(analysis.profiles)
+    assert [profile.profile_id for profile in ranked] == [
+        "openai-codex:person@example.com",
+        "openai-codex:codex-cli",
+        "openai-codex:default",
+    ]
+
+
+def test_build_proposed_order_promotes_valid_profile_and_keeps_existing_entries() -> None:
+    analysis = analyze_codex_auth_setup(
+        _auth_state_payload(),
+        _auth_profiles_payload(),
+        now_ms=250,
+        codex_auth_path=Path("/missing/auth.json"),
+    )
+
+    assert analysis.chosen_profile_id == "openai-codex:person@example.com"
+    assert analysis.stale_order is True
+    assert analysis.proposed_order == [
+        "openai-codex:person@example.com",
+        "openai-codex:default",
+        "openai-codex:codex-cli",
+    ]
+
+
+def test_build_proposed_order_handles_no_valid_profile() -> None:
+    analysis = analyze_codex_auth_setup(
+        _auth_state_payload(),
+        _auth_profiles_payload(),
+        now_ms=500,
+        codex_auth_path=Path("/missing/auth.json"),
+    )
+
+    assert analysis.chosen_profile_id is None
+    assert analysis.stale_order is False
+    assert analysis.proposed_order == [
+        "openai-codex:default",
+        "openai-codex:codex-cli",
+        "openai-codex:person@example.com",
+    ]
+
+
+def test_planned_apply_commands_match_openclaw_cli_contract() -> None:
+    commands = planned_apply_commands(
+        openclaw_bin="openclaw",
+        provider="openai-codex",
+        proposed_order=["openai-codex:person@example.com", "openai-codex:default"],
+    )
+
+    assert commands == [
+        [
+            "openclaw",
+            "models",
+            "auth",
+            "order",
+            "set",
+            "--provider",
+            "openai-codex",
+            "openai-codex:person@example.com",
+            "openai-codex:default",
+        ],
+        ["openclaw", "secrets", "reload", "--json"],
+    ]
+
+
+def test_write_rollback_receipt_captures_previous_and_proposed_order(tmp_path: Path) -> None:
+    analysis = analyze_codex_auth_setup(
+        _auth_state_payload(),
+        _auth_profiles_payload(),
+        now_ms=250,
+        codex_auth_path=Path("/missing/auth.json"),
+    )
+
+    receipt_path = write_rollback_receipt(
+        tmp_path,
+        analysis,
+        command_results=[{"cmd": ["openclaw", "secrets", "reload", "--json"], "exit_code": 0}],
+        applied=False,
+    )
+
+    payload = json.loads(receipt_path.read_text(encoding="utf-8"))
+    assert payload["applied"] is False
+    assert payload["current_order"] == ["openai-codex:default", "openai-codex:codex-cli"]
+    assert payload["proposed_order"][0] == "openai-codex:person@example.com"
+
+
+def test_apply_repair_uses_runner_and_returns_receipt_path(tmp_path: Path) -> None:
+    analysis = analyze_codex_auth_setup(
+        _auth_state_payload(),
+        _auth_profiles_payload(),
+        now_ms=250,
+        codex_auth_path=Path("/missing/auth.json"),
+    )
+    calls: list[list[str]] = []
+
+    def runner(cmd: list[str]) -> dict[str, object]:
+        calls.append(cmd)
+        return {"cmd": cmd, "exit_code": 0, "stdout": "", "stderr": ""}
+
+    result = apply_repair(
+        analysis,
+        provider="openai-codex",
+        openclaw_bin="openclaw",
+        receipt_root=tmp_path,
+        runner=runner,
+    )
+
+    assert result["ok"] is True
+    assert len(calls) == 2
+    assert Path(str(result["receipt_path"])).exists()
+
+
+def test_build_proposed_order_deduplicates_existing_rows() -> None:
+    order = build_proposed_order(
+        ["openai-codex:default", "openai-codex:default"],
+        [],
+        ["openai-codex:default", "openai-codex:person@example.com"],
+    )
+    assert order == ["openai-codex:default", "openai-codex:person@example.com"]
+
+```
+
+### File: `runtime/tests/test_openclaw_auth_health.py`
+
+```python
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from runtime.tools.openclaw_auth_health import (
+    append_auth_health_record,
+    classify_auth_health,
+    inspect_codex_auth_order,
+)
+from runtime.tools.schemas import AuthHealthResult
+
+
+def _write_codex_auth_files(tmp_path: Path) -> None:
+    agent_dir = tmp_path / "agents" / "main" / "agent"
+    agent_dir.mkdir(parents=True)
+    (agent_dir / "auth-state.json").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "order": {"openai-codex": ["openai-codex:default", "openai-codex:codex-cli"]},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (agent_dir / "auth-profiles.json").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "profiles": {
+                    "openai-codex:default": {
+                        "type": "oauth",
+                        "provider": "openai-codex",
+                        "refresh": "r1",
+                        "access": "a1",
+                        "expires": 100,
+                    },
+                    "openai-codex:person@example.com": {
+                        "type": "oauth",
+                        "provider": "openai-codex",
+                        "refresh": "r2",
+                        "access": "a2",
+                        "expires": 9999999999999,
+                        "email": "person@example.com",
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_classify_auth_health_ok_from_exit_zero() -> None:
+    result = classify_auth_health(0, "models status check passed")
+    assert isinstance(result, AuthHealthResult)
+    assert result.state == "ok"
+    assert result.reason_code == "ok"
+
+
+def test_classify_auth_health_cooldown_pattern() -> None:
+    output = "Provider openai-codex is in cooldown (all profiles unavailable)"
+    result = classify_auth_health(1, output)
+    assert result.state == "cooldown"
+    assert result.reason_code == "provider_cooldown"
+    assert result.provider == "openai-codex"
+
+
+def test_classify_auth_health_invalid_pattern() -> None:
+    output = "authentication required: token has been invalidated"
+    result = classify_auth_health(1, output)
+    assert result.state == "invalid_missing"
+    assert result.reason_code == "expired_or_missing"
+
+
+def test_classify_auth_health_refresh_token_reused_is_visible() -> None:
+    output = "Token refresh failed: 401 code=refresh_token_reused"
+    result = classify_auth_health(1, output)
+    assert result.provider == "openai-codex"
+    assert result.reason_code == "refresh_token_reused"
+    assert "openclaw_codex_auth_repair.py --apply --json" in result.recommended_action
+
+
+def test_classify_auth_health_stale_order_overrides_generic_ok() -> None:
+    result = classify_auth_health(
+        0,
+        "models status check passed",
+        codex_auth_order={
+            "stale_order": True,
+            "chosen_profile_id": "openai-codex:person@example.com",
+        },
+    )
+    assert result.state == "expiring"
+    assert result.reason_code == "codex_auth_order_stale"
+    assert "person@example.com" in result.recommended_action
+
+
+def test_inspect_codex_auth_order_detects_stale_profile_order(tmp_path: Path) -> None:
+    _write_codex_auth_files(tmp_path)
+    result = inspect_codex_auth_order(tmp_path, "main")
+    assert result is not None
+    assert result["stale_order"] is True
+    assert result["chosen_profile_id"] == "openai-codex:person@example.com"
+
+
+def test_append_auth_health_record_writes_jsonl(tmp_path: Path) -> None:
+    out = tmp_path / "auth_health.jsonl"
+    result = classify_auth_health(1, "Provider github-copilot is in cooldown")
+    append_auth_health_record(out, result)
+
+    lines = out.read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) == 1
+    payload = json.loads(lines[0])
+    assert payload["state"] == "cooldown"
+    assert payload["provider"] == "github-copilot"
+
+```
+
+### File: `runtime/tests/test_openclaw_verify_surface_classification.py`
+
+```python
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+CLASSIFY_SNIPPET = r"""
+import json
+import re
+import sys
+
+model_re = re.compile(r'^[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)+$', re.IGNORECASE)
+d = json.load(open(sys.argv[1], encoding='utf-8', errors='replace'))
+lines = open(sys.argv[2], encoding='utf-8', errors='replace').read().splitlines()
+has_rows = any(
+    (cols := line.strip().split()) and len(cols) >= 5 and model_re.match(cols[0])
+    for line in lines
+    if line.strip() and not line.startswith('Model ') and not line.startswith('rc=') and not line.startswith('BUILD_REPO=')
+)
+raise SystemExit(0 if d.get('auth_missing_providers') and has_rows else 1)
+"""
+
+AUTH_HEALTH_PARSE_SNIPPET = r"""
+import json
+import sys
+
+obj = json.load(open(sys.argv[1], encoding='utf-8', errors='replace'))
+state = str(obj.get('state') or 'unknown').strip() or 'unknown'
+reason = str(obj.get('reason_code') or 'auth_health_reason_missing').strip() or 'auth_health_reason_missing'
+action = str(obj.get('recommended_action') or 'none').strip() or 'none'
+print(f"{state}\t{reason}\t{action}")
+"""
+
+
+def _classify(tmp_path: Path, payload: dict[str, object], models_list_text: str) -> str:
+    json_path = tmp_path / "model_ladder_policy_assert.json"
+    list_path = tmp_path / "models_list_raw.txt"
+    json_path.write_text(json.dumps(payload, ensure_ascii=True) + "\n", encoding="utf-8")
+    list_path.write_text(models_list_text, encoding="utf-8")
+    proc = subprocess.run(
+        [sys.executable, "-c", CLASSIFY_SNIPPET, str(json_path), str(list_path)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return "model_ladder_auth_failed" if proc.returncode == 0 else "model_ladder_policy_failed"
+
+
+def test_classifies_auth_failure_when_auth_missing_and_model_rows_present(tmp_path: Path) -> None:
+    result = _classify(
+        tmp_path,
+        {"auth_missing_providers": ["openai-codex"], "violations": [], "policy_ok": False},
+        "Model Input Ctx Local Auth Tags\nopenai-codex/gpt-5.3-codex text+image 266k no yes configured\n",
+    )
+    assert result == "model_ladder_auth_failed"
+
+
+def test_classifies_policy_failure_when_auth_missing_is_empty(tmp_path: Path) -> None:
+    result = _classify(
+        tmp_path,
+        {"auth_missing_providers": [], "violations": ["ladder mismatch"], "policy_ok": False},
+        "Model Input Ctx Local Auth Tags\nopenai-codex/gpt-5.3-codex text+image 266k no yes configured\n",
+    )
+    assert result == "model_ladder_policy_failed"
+
+
+def test_classifies_policy_failure_when_models_list_has_no_parseable_rows(tmp_path: Path) -> None:
+    result = _classify(
+        tmp_path,
+        {"auth_missing_providers": ["openai-codex"], "violations": [], "policy_ok": False},
+        "",
+    )
+    assert result == "model_ladder_policy_failed"
+
+
+def test_parses_auth_health_refresh_reuse_reason_and_action(tmp_path: Path) -> None:
+    path = tmp_path / "auth_health.json"
+    path.write_text(
+        json.dumps(
+            {
+                "state": "invalid_missing",
+                "reason_code": "refresh_token_reused",
+                "recommended_action": "python3 runtime/tools/openclaw_codex_auth_repair.py --apply --json",
+            }
+        ),
+        encoding="utf-8",
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", AUTH_HEALTH_PARSE_SNIPPET, str(path)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0
+    assert proc.stdout.strip().split("\t") == [
+        "invalid_missing",
+        "refresh_token_reused",
+        "python3 runtime/tools/openclaw_codex_auth_repair.py --apply --json",
+    ]
+
+```
+
+### File: `docs/02_protocols/guides/OpenClaw_Codex_OAuth_Recovery_v1.0.md`
+
+```md
+# OpenClaw Codex OAuth Recovery v1.0
+
+## Purpose
+
+Provide a deterministic operator workflow for recovering `openai-codex` routing when:
+
+- the gateway prefers expired legacy profiles ahead of a valid email-scoped profile;
+- `refresh_token_reused` appears in gateway logs; or
+- a fresh `openclaw configure` / `openclaw models auth login` does not recover live routing.
+
+This guide is a local LifeOS mitigation.
+It does not fix the upstream OpenClaw runtime race where multiple agents can
+refresh the same Codex OAuth token concurrently.
+
+## Symptoms
+
+- Gateway log contains `refresh_token_reused`
+- `openclaw models status --check` fails or degrades to fallback providers
+- `openclaw models auth order get --provider openai-codex --json` lists expired profiles first
+- `python3 runtime/tools/openclaw_auth_health.py --json` reports `codex_auth_order_stale` or `refresh_token_reused`
+
+## Root Cause Summary
+
+OpenClaw separates Codex auth state across three places:
+
+- `~/.openclaw/agents/<agent>/agent/auth-state.json`
+  This controls provider order.
+- `~/.openclaw/agents/<agent>/agent/auth-profiles.json`
+  This stores per-agent OAuth profiles.
+- `~/.codex/auth.json`
+  This stores the external Codex CLI managed token set.
+
+When `auth-state.json` still prefers `openai-codex:default` or
+`openai-codex:codex-cli`, the gateway can keep routing into expired profiles
+even when a valid email-scoped profile exists in `auth-profiles.json`.
+
+## Detection
+
+Dry-run the repair tool:
+
+```bash
+python3 runtime/tools/openclaw_codex_auth_repair.py --json
+```
+
+Expected stale-order signal:
+
+- `repair_needed: true`
+- `chosen_profile_id` is the valid email-scoped profile
+- `proposed_order[0]` is the same profile
+
+Check auth health:
+
+```bash
+python3 runtime/tools/openclaw_auth_health.py --json
+```
+
+Important reason codes:
+
+- `codex_auth_order_stale`
+- `refresh_token_reused`
+- `expired_or_missing`
+
+## Repair
+
+Apply the local repair:
+
+```bash
+python3 runtime/tools/openclaw_codex_auth_repair.py --apply --json
+```
+
+The tool:
+
+1. Reads `auth-state.json`, `auth-profiles.json`, and `~/.codex/auth.json`
+2. Ranks valid `openai-codex` OAuth profiles by latest expiry
+3. Prefers email-scoped profiles over `:default` and `:codex-cli` on expiry ties
+4. Runs:
+   `openclaw models auth order set --provider openai-codex ...`
+5. Runs:
+   `openclaw secrets reload --json`
+6. Writes a rollback receipt under:
+   `artifacts/evidence/openclaw/codex_auth_repair/<UTC_TS>/rollback_receipt.json`
+
+## Verification
+
+Check the repaired order:
+
+```bash
+openclaw models auth order get --provider openai-codex --json
+```
+
+Re-run health tooling:
+
+```bash
+python3 runtime/tools/openclaw_auth_health.py --json
+bash runtime/tools/openclaw_verify_surface.sh
+```
+
+Expected result:
+
+- the valid email-scoped profile is first in the `openai-codex` order
+- `codex_auth_order_stale` no longer appears
+- verify-surface output includes any remaining auth warning explicitly
+
+## Rollback
+
+1. Open the latest receipt in `artifacts/evidence/openclaw/codex_auth_repair/<UTC_TS>/rollback_receipt.json`
+2. Restore the previous order with:
+
+```bash
+openclaw models auth order set --provider openai-codex <previous-order...>
+openclaw secrets reload --json
+```
+
+## Limitations
+
+- This guide does not serialize concurrent token refreshes across agents.
+- If `openclaw secrets reload` does not refresh the running gateway snapshot, restart the gateway as an operational fallback.
+- The repair tool does not delete any legacy profiles. It only changes provider order.
+
+```
+
+### File: `docs/INDEX.md`
+
+```md
+# LifeOS Strategic Corpus [P26-02-28 (rev12)]
+
+<!-- markdownlint-disable MD013 MD040 MD060 -->
+
+Last Updated: 2026-04-15 (rev16)
+
+**Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
+
+---
+
+## Authority Chain
+
+```
+LifeOS Constitution v2.0 (Supreme)
+        │
+        └── Governance Protocol v1.0
+                │
+                ├── COO Operating Contract v1.0
+                ├── DAP v2.0
+                └── COO Runtime Spec v1.0
+```
+
+---
+
+## Strategic Context
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Strategic_Corpus.md](./LifeOS_Strategic_Corpus.md) | **Primary Context for the LifeOS Project** |
+
+---
+
+## Agent Guidance (Root Level)
+
+| File | Purpose |
+|------|---------|
+| [CLAUDE.md](../CLAUDE.md) | Claude Code (claude.ai/code) agent guidance |
+| [AGENTS.md](../AGENTS.md) | OpenCode agent instructions (Doc Steward subset) |
+| [GEMINI.md](../GEMINI.md) | Gemini agent constitution |
+
+---
+
+## 00_admin — Project Admin (Thin Control Plane)
+
+### Canonical Files
+
+| Document | Purpose |
+|----------|---------|
+| [LIFEOS_STATE.md](./11_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions (auto-updated) |
+| [BACKLOG.md](./11_admin/BACKLOG.md) | **Canonical backlog** — Actionable backlog (Now/Next/Later), target ≤40 items (auto-updated) |
+| [DECISIONS.md](./11_admin/DECISIONS.md) | **Append-only** — Decision log (low volume) |
+| [INBOX.md](./11_admin/INBOX.md) | Raw capture scratchpad for triage |
+| [Plan_Supersession_Register.md](./11_admin/Plan_Supersession_Register.md) | **Control** — Canonical register of superseded and active plans |
+| [LifeOS_Build_Loop_Production_Plan_v2.1.md](./11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md) | **Canonical plan** — Production readiness plan (per supersession register) |
+| [LifeOS_Master_Execution_Plan_v1.1.md](./11_admin/LifeOS_Master_Execution_Plan_v1.1.md) | (superseded by v2.1) — Historical master execution plan W0–W7 |
+| [Doc_Freshness_Gate_Spec_v1.0.md](./11_admin/Doc_Freshness_Gate_Spec_v1.0.md) | **Control** — Runtime-backed doc freshness and contradiction gate spec |
+| [AUTONOMY_STATUS.md](./11_admin/AUTONOMY_STATUS.md) | **Derived view** — Autonomy capability matrix (derived from canonical sources) |
+| [WIP_LOG.md](./11_admin/WIP_LOG.md) | **WIP tracker** — Work-in-progress log with controlled status enum |
+| [lifeos-master-operating-manual-v2.1.md](./11_admin/lifeos-master-operating-manual-v2.1.md) | **Strategic context** — Master Operating Manual v2.1 |
+| [TECH_DEBT_INVENTORY.md](./11_admin/TECH_DEBT_INVENTORY.md) | **Tech debt tracker** — Structural debt items with explicit trigger conditions |
+| [QUALITY_AUDIT_BASELINE_v1.0.md](./11_admin/QUALITY_AUDIT_BASELINE_v1.0.md) | **Audit baseline** — Repo-wide quality findings, evidence, and promotion recommendations |
+| [build_summaries/COO_Step6_LiveWiring_Build_Summary_2026-03-08.md](./11_admin/build_summaries/COO_Step6_LiveWiring_Build_Summary_2026-03-08.md) | COO Step 6 build summary — live wiring, shadow validation, gaps, workflow |
+
+### Subdirectories
+
+| Directory | Purpose | Naming Rule |
+|-----------|---------|-------------|
+| `build_summaries/` | Timestamped build evidence summaries | `*_Build_Summary_YYYY-MM-DD.md` |
+| `archive/` | Historical documents (reference only; immutable) | Archive subdirs: `YYYY-MM-DD_<topic>/` |
+
+---
+
+## 00_foundations — Core Principles
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Constitution_v2.0.md](./00_foundations/LifeOS_Constitution_v2.0.md) | **Supreme governing document** — Raison d'être, invariants, principles |
+| [Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md) | Anti-failure mechanisms, human preservation, workflow constraints |
+| [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
+| [Tier_Definition_Spec_v1.1.md](./00_foundations/Tier_Definition_Spec_v1.1.md) | **Canonical** — Tier progression model, definitions, and capabilities |
+| [ARCH_Future_Build_Automation_Operating_Model_v0.2.md](./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md) | **Architecture Proposal** — Future Build Automation Operating Model v0.2 |
+| [lifeos-agent-architecture.md](./00_foundations/lifeos-agent-architecture.md) | **Architecture** — Non-canonical agent architecture |
+| [lifeos-maximum-vision.md](./00_foundations/lifeos-maximum-vision.md) | **Vision** — Non-canonical maximum vision architecture |
+
+---
+
+## 01_governance — Governance & Contracts
+
+### Core Governance
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Operating_Contract_v1.0.md](./01_governance/COO_Operating_Contract_v1.0.md) | CEO/COO role boundaries and interaction rules |
+| [AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md) | Template for agent GEMINI.md files |
+| [DOC_STEWARD_Constitution_v1.0.md](./01_governance/DOC_STEWARD_Constitution_v1.0.md) | Document Steward constitutional boundaries |
+
+### Council & Review
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Invocation_Runtime_Binding_Spec_v1.1.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md) | Council invocation and runtime binding |
+| [Antigravity_Council_Review_Packet_Spec_v1.0.md](./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md) | Council review packet format |
+| [ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md) | Monthly/quarterly alignment review template |
+
+### Policies & Logs
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Expectations_Log_v1.0.md](./01_governance/COO_Expectations_Log_v1.0.md) | Working preferences and behavioral refinements |
+| [Antigrav_Output_Hygiene_Policy_v0.1.md](./01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md) | Output path rules for Antigravity |
+| [OpenCode_First_Stewardship_Policy_v1.1.md](./01_governance/OpenCode_First_Stewardship_Policy_v1.1.md) | **Mandatory** OpenCode routing for in-envelope docs |
+
+### Active Rulings
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](./01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md) | **ACTIVE** — OpenCode Document Steward CT-2 Phase 2 Activation |
+| [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md) | **ACTIVE** — OpenCode-First Doc Stewardship Adoption |
+| [Council_Ruling_Build_Handoff_v1.0.md](./01_governance/Council_Ruling_Build_Handoff_v1.0.md) | **Approved**: Build Handoff Protocol v1.0 activation-canonical |
+| [Council_Ruling_Build_Loop_Architecture_v1.0.md](./01_governance/Council_Ruling_Build_Loop_Architecture_v1.0.md) | **ACTIVE**: Build Loop Architecture v0.3 authorised for Phase 1 |
+| [Council_Ruling_Phase9_Ops_Ratification_v1.0.md](./01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md) | **ACTIVE** — Phase 9 constrained ops ratification for `workspace_mutation_v1` |
+| [Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md](./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md) | **Active**: Reactive Task Layer v0.1 Signoff |
+| [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
+
+### Historical Rulings
+
+| Document | Purpose |
+|----------|---------|
+| [Tier1_Hardening_Council_Ruling_v0.1.md](./01_governance/Tier1_Hardening_Council_Ruling_v0.1.md) | Historical: Tier-1 ratification ruling |
+| [Tier1_Tier2_Activation_Ruling_v0.2.md](./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md) | Historical: Tier-2 activation ruling |
+| [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md) | Historical: Tier transition conditions |
+| [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
+
+---
+
+## 02_protocols — Protocols & Agent Communication
+
+### Batch 1 Runtime Protocols
+
+> **Note:** The 5 Batch 1 runtime modules (`run_lock`, `invocation_receipt`, `invocation_schema`, `shadow_runner`, `shadow_capture`) do not yet have dedicated protocol docs in `02_protocols/`. Their protocol definitions are captured in:
+
+| Document | Coverage |
+|----------|---------|
+| [LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md](./03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md) | **Batch 1**: run_lock, invocation_receipt, invocation_schema, shadow_runner, shadow_capture — autonomous build loop protocol definitions |
+
+### Core Protocols
+
+| Document | Purpose |
+|----------|---------|
+| [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
+| [Git_Workflow_Protocol_v1.1.md](./02_protocols/Git_Workflow_Protocol_v1.1.md) | **Fail-Closed**: Branch conventions, CI proof merging, receipts |
+| [Document_Steward_Protocol_v1.0.md](./02_protocols/Document_Steward_Protocol_v1.0.md) | Document creation, indexing, GitHub/Drive sync |
+| [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
+| [Build_Artifact_Protocol_v1.0.md](./02_protocols/Build_Artifact_Protocol_v1.0.md) | **NEW** — Formal schemas/templates for Plans, Review Packets, Walkthroughs, etc. |
+| [Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md) | Tier-2 API Versioning, Deprecation, and Compatibility Rules |
+| [Build_Handoff_Protocol_v1.0.md](./02_protocols/Build_Handoff_Protocol_v1.0.md) | Messaging & handoff architecture for agent coordination |
+| [Intent_Routing_Rule_v1.1.md](./02_protocols/Intent_Routing_Rule_v1.1.md) | Decision routing (CEO/CSO/Council/Runtime) |
+| [LifeOS_Design_Principles_Protocol_v1.1.md](./02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md) | **Canonical** — "Prove then Harden" development principles, Output-First governance, sandbox workflow |
+| [Emergency_Declaration_Protocol_v1.0.md](./02_protocols/Emergency_Declaration_Protocol_v1.0.md) | **Canonical** — Emergency override and auto-revert procedures |
+| [Test_Protocol_v2.0.md](./02_protocols/Test_Protocol_v2.0.md) | **WIP** — Test categories, coverage, and flake policy |
+| [EOL_Policy_v1.0.md](./02_protocols/EOL_Policy_v1.0.md) | **Canonical** — LF line endings, config compliance, clean invariant enforcement |
+| [Filesystem_Error_Boundary_Protocol_v1.0.md](./02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md) | **Draft** — Fail-closed filesystem error boundaries, exception taxonomy |
+| [GitHub_Actions_Secrets_Setup.md](./02_protocols/GitHub_Actions_Secrets_Setup.md) | PAT creation, secrets config, and rotation for CI workflows |
+| [Project_Planning_Protocol_v1.0.md](./02_protocols/Project_Planning_Protocol_v1.0.md) | Build mission plan requirements, schema compliance, lifecycle, and review rubric |
+
+### Council Protocols
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Protocol_v1.3.md](./02_protocols/Council_Protocol_v1.3.md) | **Canonical** — Council review procedure, modes, topologies, P0 criteria, complexity budget |
+| [AI_Council_Procedural_Spec_v1.1.md](./02_protocols/AI_Council_Procedural_Spec_v1.1.md) | Runbook for executing Council Protocol v1.2 |
+| [Council_Context_Pack_Schema_v0.3.md](./02_protocols/Council_Context_Pack_Schema_v0.3.md) | CCP template schema for council reviews |
+
+### Packet & Artifact Schemas
+
+| Document | Purpose |
+|----------|---------|
+| [lifeos_packet_schemas_v1.yaml](./02_protocols/lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
+| [lifeos_packet_templates_v1.yaml](./02_protocols/lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
+| [build_artifact_schemas_v1.yaml](./02_protocols/build_artifact_schemas_v1.yaml) | **NEW** — Build artifact schema definitions (6 artifact types) |
+| [templates/](./02_protocols/templates/) | **NEW** — Markdown templates for all artifact types |
+| [example_converted_antigravity_packet.yaml](./02_protocols/example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
+
+### Operational Guides
+
+| Document | Purpose |
+|----------|---------|
+| [guides/OpenClaw_Codex_OAuth_Recovery_v1.0.md](./02_protocols/guides/OpenClaw_Codex_OAuth_Recovery_v1.0.md) | Recovery flow for stale `openai-codex` auth ordering, `refresh_token_reused`, and secrets reload validation |
+
+---
+
+## 03_runtime — Runtime Specification
+
+### Core Specs
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Runtime_Spec_v1.0.md](./03_runtime/COO_Runtime_Spec_v1.0.md) | Mechanical execution contract, FSM, determinism rules |
+| [COO_Runtime_Implementation_Packet_v1.0.md](./03_runtime/COO_Runtime_Implementation_Packet_v1.0.md) | Implementation details for Antigravity |
+| [COO_Runtime_Core_Spec_v1.0.md](./03_runtime/COO_Runtime_Core_Spec_v1.0.md) | Extended core specification |
+| [COO_Runtime_Spec_Index_v1.0.md](./03_runtime/COO_Runtime_Spec_Index_v1.0.md) | Spec index and patch log |
+| [LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md](./03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md) | **Canonical**: Autonomous Build Loop Architecture (Council-authorised) |
+| [Council_Agent_Design_v1.0.md](./03_runtime/Council_Agent_Design_v1.0.md) | **Information Only** — Conceptual design for the Council Agent |
+
+### Roadmaps & Plans
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](./03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) | **Current roadmap** — Core/Fuel/Plumbing tracks |
+| [LifeOS_Recursive_Improvement_Architecture_v0.2.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md) | Recursive improvement architecture |
+| [LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](./03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md) | Future router and executor adapter spec |
+| [LifeOS_Plan_SelfBuilding_Loop_v2.2.md](./03_runtime/LifeOS_Plan_SelfBuilding_Loop_v2.2.md) | **Plan**: Self-Building LifeOS — CEO Out of the Execution Loop (Milestone) |
+
+### Work Plans & Fix Packs
+
+| Document | Purpose |
+|----------|---------|
+| [Hardening_Backlog_v0.1.md](./03_runtime/Hardening_Backlog_v0.1.md) | Hardening work backlog |
+| [Tier1_Hardening_Work_Plan_v0.1.md](./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md) | Tier-1 hardening work plan |
+| [Tier2.5_Unified_Fix_Plan_v1.0.md](./03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md) | Tier-2.5 unified fix plan |
+| [F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](./03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md) | Tier-2.5 activation conditions checklist (F3) |
+| [F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](./03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md) | Tier-2.5 deactivation and rollback conditions (F4) |
+| [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](./03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md) | Runtime↔Antigrav mission protocol (F7) |
+| [Runtime_Hardening_Fix_Pack_v0.1.md](./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md) | Runtime hardening fix pack |
+| [fixpacks/FP-4x_Implementation_Packet_v0.1.md](./03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md) | FP-4x implementation |
+
+### Templates & Tools
+
+| Document | Purpose |
+|----------|---------|
+| [BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](./03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md) | Build starter prompt template |
+| [CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](./03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md) | Code review prompt template |
+| [COO_Runtime_Walkthrough_v1.0.md](./03_runtime/COO_Runtime_Walkthrough_v1.0.md) | Runtime walkthrough |
+| [COO_Runtime_Clean_Build_Spec_v1.1.md](./03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md) | Clean build specification |
+
+### Other
+
+| Document | Purpose |
+|----------|---------|
+| [Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md) | Automation proposal |
+| [Runtime_Complexity_Constraints_v0.1.md](./03_runtime/Runtime_Complexity_Constraints_v0.1.md) | Complexity constraints |
+| [README_Recursive_Kernel_v0.1.md](./03_runtime/README_Recursive_Kernel_v0.1.md) | Recursive kernel readme |
+
+---
+
+## 12_productisation — Productisation & Marketing
+
+| Document | Purpose |
+|----------|---------|
+| [An_OS_for_Life.mp4](./12_productisation/assets/An_OS_for_Life.mp4) | **Promotional Video** — An introduction to LifeOS |
+
+---
+
+## internal — Internal Reports
+
+| Document | Purpose |
+|----------|---------|
+| [OpenCode_Phase0_Completion_Report_v1.0.md](./internal/OpenCode_Phase0_Completion_Report_v1.0.md) | OpenCode Phase 0 API connectivity validation — PASSED |
+
+---
+
+## 99_archive — Historical Documents
+
+Archived documents are in `99_archive/`. Key locations:
+
+- `99_archive/superseded_by_constitution_v2/` — Documents superseded by Constitution v2.0
+- `99_archive/legacy_structures/` — Legacy governance and specs
+- `99_archive/lifeos-master-operating-manual-v2.md` — Preceding version of the master operations manual
+- `99_archive/lifeos-operations-manual.md` — First version of the master operations manual
+
+---
+
+## Other Directories
+
+| Directory | Contents |
+|-----------|----------|
+| `04_project_builder/` | Project builder specs |
+| `05_agents/` | Agent architecture |
+| `06_user_surface/` | User surface specs |
+| `08_manuals/` | Operational manuals (COO Doc Management, Governance Runtime) |
+| `09_prompts/v1.0/` | Legacy v1.0 prompt templates |
+| `09_prompts/v1.2/` | **Current** — Council role prompts (Chair, Co-Chair, 10 reviewer seats) |
+| `10_meta/` | Meta documents, reviews, tasks |
+
+---
+
+## 08_manuals — Operational Manuals
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Doc_Management_Manual_v1.0.md](./08_manuals/COO_Doc_Management_Manual_v1.0.md) | **Executable runbook** — Doc stewardship operations, validators, governance boundaries |
+| [Governance_Runtime_Manual_v1.0.md](./08_manuals/Governance_Runtime_Manual_v1.0.md) | Governance runtime operations |
+
+<!-- markdownlint-enable MD013 MD040 MD060 -->
+
+```
+
+### File: `docs/LifeOS_Strategic_Corpus.md`
+
+```md
 <!-- markdownlint-disable -->
 
 # ⚡ LifeOS Strategic Dashboard
@@ -9219,3 +11533,14 @@ One of: **Accept / Go with Fixes / Reject**
 
 
 ---
+
+```
+
+## 7. SELF-GATING CHECKLIST (Computed)
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| E1 | Review packet created in allowed path | PASS | `artifacts/review_packets/Review_Packet_Codex_OAuth_Recovery_v1.0.md` |
+| E2 | Changed files are flattened in Appendix | PASS | `Appendix / Flattened Code` |
+| E3 | Docs stewardship updates included | PASS | `docs/INDEX.md`, `docs/LifeOS_Strategic_Corpus.md` |
+| E4 | Scope stayed inside approved sprint boundary | PASS | File manifest excludes upstream OpenClaw package edits |
