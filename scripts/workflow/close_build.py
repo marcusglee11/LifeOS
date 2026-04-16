@@ -17,6 +17,10 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.workflow.closure_pack import run_closure  # noqa: E402
 
 # Stage banner markers emitted by closure_pack.py (matched by prefix)
 _STAGE_PREFIXES = (
@@ -64,28 +68,24 @@ def main() -> int:
         cmd.append("--allow-concurrent-wip")
 
     if args.json:
-        # Accumulate mode: capture everything, emit single JSON blob on exit
-        proc = subprocess.run(
-            cmd,
-            cwd=Path(args.repo_root).resolve(),
-            capture_output=True,
-            text=True,
-            check=False,
+        result = run_closure(
+            Path(args.repo_root).resolve(),
+            dry_run=args.dry_run,
+            no_cleanup=args.no_cleanup,
+            no_state_update=args.no_state_update,
+            allow_concurrent_wip=args.allow_concurrent_wip,
         )
         print(
             json.dumps(
                 {
-                    "ok": proc.returncode == 0,
-                    "exit_code": proc.returncode,
-                    "stdout": proc.stdout or "",
-                    "stderr": proc.stderr or "",
+                    **result,
                     "command": cmd,
                 },
                 indent=2,
                 sort_keys=True,
             )
         )
-        return proc.returncode
+        return int(result["exit_code"])
 
     # Streaming mode: print stage banners and output live
     proc = subprocess.Popen(

@@ -16,11 +16,15 @@ REPO_ROOT = SCRIPT_PATH.parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from runtime.tools.closure_policy import (  # noqa: E402
+    BASE_BRANCH,
+    CLOSURE_POLICY_VERSION,
+    get_tier_execution_policy,
+    resolve_closure_tier,
+)
 from runtime.tools.workflow_pack import (  # noqa: E402
     check_doc_stewardship,
     cleanup_after_merge,
-    discover_changed_files,
-    is_plan_only_change,
     merge_to_main,
     run_closure_tests,
     run_quality_gates,
@@ -80,6 +84,29 @@ def _branch_requires_isolation(branch: str) -> bool:
     return branch.startswith(("build/", "fix/", "hotfix/", "spike/"))
 
 
+def _current_working_tree_paths(repo_root: Path) -> list[str]:
+    status_lines = _git_stdout(repo_root, ["status", "--short"]).splitlines()
+    paths: list[str] = []
+    for line in status_lines:
+        if len(line) < 4:
+            continue
+        candidate = line[3:].strip()
+        if " -> " in candidate:
+            old_path, new_path = candidate.split(" -> ", 1)
+            paths.extend([old_path.strip(), new_path.strip()])
+        elif candidate:
+            paths.append(candidate)
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        normalized = path.replace("\\", "/")
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        deduped.append(normalized)
+    return deduped
+
+
 def _review_checkpoint_path(repo_root: Path, branch: str) -> Path:
     git_common = _git_stdout(repo_root, ["rev-parse", "--git-common-dir"]).strip()
     git_common_dir = Path(git_common) if git_common else repo_root / ".git"
@@ -101,12 +128,12 @@ def _write_review_checkpoint(
         checkpoint_path = _review_checkpoint_path(repo_root, branch)
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
-        merge_base = _git_stdout(repo_root, ["merge-base", "main", "HEAD"])
+        merge_base = _git_stdout(repo_root, ["merge-base", BASE_BRANCH, "HEAD"])
         diff_range = f"{merge_base}..HEAD" if merge_base else "HEAD~1..HEAD"
         diff_stat = _git_stdout(repo_root, ["diff", "--stat", diff_range]) or "Unavailable"
 
         review_commands = [
-            "BASE=$(git merge-base main HEAD)",
+            f"BASE=$(git merge-base {BASE_BRANCH} HEAD)",
             'git log --oneline "$BASE"..HEAD',
             'git diff --stat "$BASE"..HEAD',
             'git diff "$BASE"..HEAD',
@@ -211,266 +238,275 @@ def _commit_doc_autofix(repo_root: Path) -> tuple[bool, str]:
     return True, "Doc auto-fix changes committed."
 
 
-def _print_report(
-    *,
-    branch: str,
-    commits: list[str],
-    test_results: list[str],
-    what_done: list[str],
-    what_remains: list[str],
-) -> None:
+def _print_report(result: dict) -> None:
     print("Branch")
-    print(f"{branch} -> main")
+    print(f"{result['branch']} -> {result['base_branch']}")
+    print()
+
+    print("Closure Policy")
+    print(f"Version: {result['closure_policy_version']}")
+    print(f"Tier: {result['closure_tier']}")
+    print(f"Selected Checks: {', '.join(result['selected_checks']) or 'None'}")
+    print(f"Skipped Checks: {', '.join(result['skipped_checks']) or 'None'}")
+    print(
+        "Post-Merge Updates Suppressed: "
+        f"{'yes' if result['post_merge_updates_suppressed'] else 'no'}"
+    )
     print()
 
     print("Commits")
-    if commits:
-        for line in commits:
+    if result["commits"]:
+        for line in result["commits"]:
             print(line)
     else:
         print("None")
     print()
 
     print("Test Results")
-    if test_results:
-        for line in test_results:
+    if result["test_results"]:
+        for line in result["test_results"]:
             print(line)
     else:
         print("None")
     print()
 
     print("What Was Done")
-    if what_done:
-        for line in what_done:
+    if result["what_done"]:
+        for line in result["what_done"]:
             print(line)
     else:
         print("None")
     print()
 
     print("What Remains")
-    if what_remains:
-        for line in what_remains:
+    if result["what_remains"]:
+        for line in result["what_remains"]:
             print(line)
     else:
         print("None")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--repo-root",
-        default=".",
-        help="Repository root (default: current directory).",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Run validation gates only; skip merge and cleanup.",
-    )
-    parser.add_argument(
-        "--no-cleanup",
-        action="store_true",
-        help="Skip post-merge cleanup (branch delete + active context clear).",
-    )
-    parser.add_argument(
-        "--no-state-update",
-        action="store_true",
-        help="Skip automatic STATE/BACKLOG updates after merge.",
-    )
-    parser.add_argument(
-        "--allow-concurrent-wip",
-        action="store_true",
-        help=(
-            "Skip the primary-repo untracked-files gate and use --no-verify on the merge commit. "
-            "For Article XIX chicken-and-egg: concurrent agent WIP is intentionally present. "
-            "Documents the exemption in the commit message."
-        ),
-    )
-    args = parser.parse_args()
-
-    repo_root = Path(args.repo_root).resolve()
+def run_closure(
+    repo_root: Path,
+    *,
+    dry_run: bool = False,
+    no_cleanup: bool = False,
+    no_state_update: bool = False,
+    allow_concurrent_wip: bool = False,
+) -> dict:
     branch = _git_stdout(repo_root, ["rev-parse", "--abbrev-ref", "HEAD"]) or "unknown"
 
     commits = _git_stdout(repo_root, ["log", "--oneline", "-n", "10"]).splitlines()
-    test_results: list[str] = []
-    what_done: list[str] = []
-    what_remains: list[str] = []
+    result = {
+        "ok": False,
+        "exit_code": 1,
+        "branch": branch,
+        "base_branch": "",
+        "closure_policy_version": CLOSURE_POLICY_VERSION,
+        "closure_tier": "full",
+        "classification_reason": "",
+        "selected_checks": [],
+        "skipped_checks": [],
+        "post_merge_updates_suppressed": False,
+        "commits": commits,
+        "test_results": [],
+        "what_done": [],
+        "what_remains": [],
+        "changed_paths": [],
+        "final_validated_paths": [],
+        "no_changes": False,
+        "outcome": "error",
+    }
+
+    def fail(message: str, *, exit_code: int = 1) -> dict:
+        result["what_remains"].append(message)
+        result["exit_code"] = exit_code
+        return result
 
     if branch in {"main", "master"}:
-        what_remains.append("Switch to a feature/build branch before running close-build.")
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
-        )
-        return 1
+        return fail("Switch to a feature/build branch before running close-build.")
 
     if _branch_requires_isolation(branch) and _is_primary_worktree(repo_root):
-        what_remains.append(
+        result["what_remains"].append(
             "ISOLATION_REQUIRED: close-build for "
             f"'{branch}' must run from the linked worktree, not primary."
         )
-        what_remains.append(
+        result["what_remains"].append(
             "Recover this branch in-place: "
             "python3 scripts/workflow/start_build.py --recover-primary"
         )
-        what_remains.append(
+        result["what_remains"].append(
             "Or create a fresh isolated branch: "
             "python3 scripts/workflow/start_build.py <topic> --kind "
             f"{branch.split('/', 1)[0]}"
         )
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
-        )
-        return 1
+        return result
 
     if not _working_tree_clean(repo_root):
-        what_remains.append("Working tree must be clean before close-build.")
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
+        return fail("Working tree must be clean before close-build.")
+
+    tier_info = resolve_closure_tier(repo_root)
+    result["base_branch"] = tier_info["base_branch"]
+    result["closure_tier"] = tier_info["closure_tier"]
+    result["classification_reason"] = tier_info["classification_reason"]
+    result["changed_paths"] = list(tier_info["changed_paths"])
+    result["outcome"] = tier_info["outcome"]
+    policy = get_tier_execution_policy(tier_info["closure_tier"])
+    result["selected_checks"] = list(policy["selected_checks"])
+    result["skipped_checks"] = list(policy["skipped_checks"])
+    result["post_merge_updates_suppressed"] = bool(policy["post_merge_updates_suppressed"])
+
+    if tier_info["outcome"] == "full_fallback":
+        result["what_done"].append(
+            f"Closure tier fell back to full: {tier_info['classification_reason']}"
         )
-        return 1
 
-    changed_files = discover_changed_files(repo_root)
-    plan_only_change = is_plan_only_change(changed_files)
-    test_run = run_closure_tests(repo_root, changed_files)
-    test_results.append(f"{'PASS' if test_run['passed'] else 'FAIL'}: {test_run['summary']}")
-    for command in test_run["commands_run"]:
-        test_results.append(f"- {command}")
-    if not test_run["passed"]:
-        for failure in test_run["failures"]:
-            test_results.append(f"  {failure}")
-        what_remains.append("Fix failing closure tests.")
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
+    if tier_info["outcome"] == "no_changes":
+        result["no_changes"] = True
+        result["what_done"].append("No changes to close; closure exited as a no-op.")
+        result["ok"] = True
+        result["exit_code"] = 0
+        return result
+
+    changed_files = list(tier_info["changed_paths"])
+    final_validation_paths = list(changed_files)
+
+    if policy["run_targeted_pytest"] and tier_info["closure_tier"] == "full":
+        test_run = run_closure_tests(
+            repo_root,
+            changed_files,
+            closure_tier=tier_info["closure_tier"],
         )
-        return 1
-    what_done.append("Closure targeted tests passed.")
-
-    quality_check = run_quality_gates(repo_root, changed_files, scope="changed", fix=False)
-    test_results.append(
-        f"{'PASS' if quality_check['passed'] else 'FAIL'}: {quality_check['summary']}"
-    )
-    for command in quality_check["commands_run"]:
-        test_results.append(f"- {command}")
-    if not quality_check["passed"]:
-        for row in quality_check["results"]:
-            if row["passed"] or row["mode"] != "blocking":
-                continue
-            detail = str(row["details"]).strip() or "blocking quality failure"
-            test_results.append(f"  {row['tool']}: {detail}")
-        what_remains.append("Fix blocking quality gate failures.")
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
+        result["test_results"].append(
+            f"{'PASS' if test_run['passed'] else 'FAIL'}: {test_run['summary']}"
         )
-        return 1
-    what_done.append("Closure quality gate passed.")
+        for command in test_run["commands_run"]:
+            result["test_results"].append(f"- {command}")
+        if not test_run["passed"]:
+            for failure in test_run["failures"]:
+                result["test_results"].append(f"  {failure}")
+            return fail("Fix failing closure tests.")
+        result["what_done"].append("Closure targeted tests passed.")
 
-    doc_check = check_doc_stewardship(repo_root, changed_files, auto_fix=True)
-    if not doc_check["passed"]:
-        test_results.append("FAIL: Doc stewardship gate failed.")
-        for err in doc_check["errors"]:
-            test_results.append(f"- {err}")
-        what_remains.append("Resolve doc stewardship gate failures.")
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
+    if policy["run_general_quality_gate"]:
+        quality_check = run_quality_gates(repo_root, changed_files, scope="changed", fix=False)
+        result["test_results"].append(
+            f"{'PASS' if quality_check['passed'] else 'FAIL'}: {quality_check['summary']}"
         )
-        return 1
+        for command in quality_check["commands_run"]:
+            result["test_results"].append(f"- {command}")
+        if not quality_check["passed"]:
+            for row in quality_check["results"]:
+                if row["passed"] or row["mode"] != "blocking":
+                    continue
+                detail = str(row["details"]).strip() or "blocking quality failure"
+                result["test_results"].append(f"  {row['tool']}: {detail}")
+            return fail("Fix blocking quality gate failures.")
+        result["what_done"].append("Closure quality gate passed.")
 
-    if doc_check["required"]:
-        if doc_check["auto_fixed"]:
-            ok, msg = _commit_doc_autofix(repo_root)
-            if not ok:
-                what_remains.append(msg)
-                _print_report(
-                    branch=branch,
-                    commits=commits,
-                    test_results=test_results,
-                    what_done=what_done,
-                    what_remains=what_remains,
-                )
-                return 1
-            what_done.append(msg)
-        what_done.append("Doc stewardship gate passed.")
-    else:
-        what_done.append("Doc stewardship gate skipped (no docs changes).")
+    if policy["run_doc_stewardship"]:
+        doc_check = check_doc_stewardship(repo_root, changed_files, auto_fix=True)
+        if not doc_check["passed"]:
+            result["test_results"].append("FAIL: Doc stewardship gate failed.")
+            for err in doc_check["errors"]:
+                result["test_results"].append(f"- {err}")
+            return fail("Resolve doc stewardship gate failures.")
 
-    review_checkpoint_ok, review_checkpoint_msg = _write_review_checkpoint(
-        repo_root,
-        branch=branch,
-        changed_files=changed_files,
-        commits=commits,
-        test_results=test_results,
-    )
-    if not review_checkpoint_ok:
-        what_remains.append(review_checkpoint_msg)
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
+        if doc_check["required"]:
+            if doc_check["auto_fixed"]:
+                ok, msg = _commit_doc_autofix(repo_root)
+                if not ok:
+                    return fail(msg)
+                result["what_done"].append(msg)
+            result["what_done"].append("Doc stewardship gate passed.")
+            final_validation_paths = sorted(
+                {
+                    *changed_files,
+                    *[path for path in doc_check.get("docs_files", []) if isinstance(path, str)],
+                    *_current_working_tree_paths(repo_root),
+                }
+            )
+        else:
+            result["what_done"].append("Doc stewardship gate skipped (no docs changes).")
+
+    if policy["quality_tools"]:
+        tool_check = run_quality_gates(
+            repo_root,
+            final_validation_paths,
+            scope="changed",
+            fix=False,
+            tool_names=policy["quality_tools"],
         )
-        return 1
-    what_done.append(f"Generated review checkpoint: {review_checkpoint_msg}.")
-
-    if args.dry_run:
-        what_done.append("Dry-run completed; merge and cleanup were skipped.")
-        what_remains.append("Run close-build without --dry-run to merge and clean up.")
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
+        result["test_results"].append(
+            f"{'PASS' if tool_check['passed'] else 'FAIL'}: {tool_check['summary']}"
         )
-        return 0
+        for command in tool_check["commands_run"]:
+            result["test_results"].append(f"- {command}")
+        if not tool_check["passed"]:
+            for row in tool_check["results"]:
+                if row["passed"] or row["mode"] != "blocking":
+                    continue
+                detail = str(row["details"]).strip() or "blocking quality failure"
+                result["test_results"].append(f"  {row['tool']}: {detail}")
+            return fail("Fix blocking quality gate failures.")
+        result["what_done"].append(
+            f"Tier-specific quality checks passed: {', '.join(policy['quality_tools'])}."
+        )
 
-    merge = merge_to_main(repo_root, branch, allow_concurrent_wip=args.allow_concurrent_wip)
+    if policy["run_targeted_pytest"] and tier_info["closure_tier"] != "full":
+        test_run = run_closure_tests(
+            repo_root,
+            final_validation_paths,
+            closure_tier=tier_info["closure_tier"],
+        )
+        result["test_results"].append(
+            f"{'PASS' if test_run['passed'] else 'FAIL'}: {test_run['summary']}"
+        )
+        for command in test_run["commands_run"]:
+            result["test_results"].append(f"- {command}")
+        if not test_run["passed"]:
+            for failure in test_run["failures"]:
+                result["test_results"].append(f"  {failure}")
+            return fail("Fix failing closure tests.")
+        result["what_done"].append("Closure targeted tests passed.")
+
+    result["final_validated_paths"] = list(final_validation_paths)
+
+    if policy["run_review_checkpoint"]:
+        review_checkpoint_ok, review_checkpoint_msg = _write_review_checkpoint(
+            repo_root,
+            branch=branch,
+            changed_files=final_validation_paths,
+            commits=commits,
+            test_results=result["test_results"],
+        )
+        if not review_checkpoint_ok:
+            return fail(review_checkpoint_msg)
+        result["what_done"].append(f"Generated review checkpoint: {review_checkpoint_msg}.")
+
+    if dry_run:
+        result["what_done"].append("Dry-run completed; merge and cleanup were skipped.")
+        result["what_remains"].append("Run close-build without --dry-run to merge and clean up.")
+        result["ok"] = True
+        result["exit_code"] = 0
+        return result
+
+    merge = merge_to_main(repo_root, branch, allow_concurrent_wip=allow_concurrent_wip)
     if not merge["success"]:
-        test_results.append("FAIL: Merge to main failed.")
+        result["test_results"].append("FAIL: Merge to main failed.")
         for err in merge["errors"]:
             prefix = "- Git lock blocker: " if err.startswith("Git lock blocker:") else "- "
-            test_results.append(f"{prefix}{err.removeprefix('Git lock blocker: ') if err.startswith('Git lock blocker:') else err}")
-        what_remains.append("Resolve merge blockers and retry close-build.")
-        _print_report(
-            branch=branch,
-            commits=commits,
-            test_results=test_results,
-            what_done=what_done,
-            what_remains=what_remains,
-        )
-        return 1
-    what_done.append(f"Merged to main (squash): {merge['merge_sha']}.")
-    # Surface any health warnings from the merge (e.g. post-merge dirt).
+            result["test_results"].append(
+                f"{prefix}{err.removeprefix('Git lock blocker: ') if err.startswith('Git lock blocker:') else err}"
+            )
+        return fail("Resolve merge blockers and retry close-build.")
+    result["what_done"].append(f"Merged to main (squash): {merge['merge_sha']}.")
     for warning in merge.get("errors", []):
-        what_remains.append(f"Merge warning: {warning}")
+        result["what_remains"].append(f"Merge warning: {warning}")
     _close_build_record(repo_root, branch)
 
     primary_repo_str = merge.get("primary_repo")
-    if primary_repo_str and not plan_only_change:
+    if primary_repo_str and policy["run_runtime_status_regeneration"]:
         primary_repo = Path(primary_repo_str)
         status_gen = primary_repo / "scripts" / "generate_runtime_status.py"
         if status_gen.exists():
@@ -506,82 +542,123 @@ def main() -> int:
                         text=True,
                         env=commit_env,
                     )
-                what_done.append(
+                result["what_done"].append(
                     "Regenerated and committed runtime_status.json for freshness compliance."
                 )
             else:
-                what_remains.append(
+                result["what_remains"].append(
                     f"Runtime status generation failed: {status_proc.stderr.strip()}"
                 )
-    elif plan_only_change:
-        what_done.append("Skipped runtime_status.json refresh for plan-only artifact change.")
+    else:
+        result["what_done"].append("Skipped runtime_status.json refresh per closure tier policy.")
 
-    # Update STATE and BACKLOG
-    if not args.no_state_update and not plan_only_change:
+    if not no_state_update and policy["run_state_backlog_updates"]:
         state_update = update_state_and_backlog(
             repo_root,
             branch=branch,
             merge_sha=merge["merge_sha"],
-            test_summary=test_run["summary"],
+            test_summary=result["test_results"][0] if result["test_results"] else "No closure checks run.",
             skip_on_error=True,
         )
         if state_update["state_updated"]:
-            what_done.append("Updated LIFEOS_STATE.md with Recent Win.")
+            result["what_done"].append("Updated LIFEOS_STATE.md with Recent Win.")
         if state_update["backlog_updated"]:
             if state_update["items_marked"] > 0:
-                what_done.append(
+                result["what_done"].append(
                     f"Updated BACKLOG.md: marked {state_update['items_marked']} item(s) done."
                 )
             else:
-                what_done.append("Updated BACKLOG.md timestamp (no matching items).")
+                result["what_done"].append("Updated BACKLOG.md timestamp (no matching items).")
         for err in state_update["errors"]:
-            what_remains.append(f"State update warning: {err}")
+            result["what_remains"].append(f"State update warning: {err}")
 
-        # Update structured backlog (COO task registry)
-        structured_update = update_structured_backlog(
-            repo_root,
-            merge_sha=merge["merge_sha"],
-            skip_on_error=True,
-        )
-        if structured_update["updated"]:
-            what_done.append(
-                f"Marked {len(structured_update['tasks_completed'])} "
-                "task(s) complete in backlog.yaml: "
-                f"{', '.join(structured_update['tasks_completed'])}"
+        if policy["run_structured_backlog_updates"]:
+            structured_update = update_structured_backlog(
+                repo_root,
+                merge_sha=merge["merge_sha"],
+                skip_on_error=True,
             )
-        for err in structured_update["errors"]:
-            what_remains.append(f"Structured backlog warning: {err}")
-    elif plan_only_change:
-        what_done.append("Skipped STATE/BACKLOG updates for plan-only artifact change.")
+            if structured_update["updated"]:
+                result["what_done"].append(
+                    f"Marked {len(structured_update['tasks_completed'])} "
+                    "task(s) complete in backlog.yaml: "
+                    f"{', '.join(structured_update['tasks_completed'])}"
+                )
+            for err in structured_update["errors"]:
+                result["what_remains"].append(f"Structured backlog warning: {err}")
     else:
-        what_done.append("State update skipped by --no-state-update.")
+        result["what_done"].append("Skipped STATE/BACKLOG updates per close-build policy.")
 
-    if args.no_cleanup:
-        what_done.append("Cleanup skipped by --no-cleanup.")
+    if no_cleanup:
+        result["what_done"].append("Cleanup skipped by --no-cleanup.")
     else:
         cleanup = cleanup_after_merge(repo_root, branch, clear_context=True)
         if cleanup["branch_deleted"]:
-            what_done.append(f"Deleted local branch: {branch}.")
+            result["what_done"].append(f"Deleted local branch: {branch}.")
         else:
-            what_done.append(f"Branch not deleted: {branch}.")
+            result["what_done"].append(f"Branch not deleted: {branch}.")
         if cleanup["context_cleared"]:
-            what_done.append("Cleared .context/active_work.yaml.")
+            result["what_done"].append("Cleared .context/active_work.yaml.")
         if cleanup.get("worktree_removed"):
-            what_done.append("Removed linked worktree.")
+            result["what_done"].append("Removed linked worktree.")
         for err in cleanup["errors"]:
             if err.startswith("Git lock blocker:"):
-                what_remains.append(err)
+                result["what_remains"].append(err)
             else:
-                what_remains.append(err)
+                result["what_remains"].append(err)
 
-    _print_report(
-        branch=branch,
-        commits=commits,
-        test_results=test_results,
-        what_done=what_done,
-        what_remains=what_remains,
+    result["ok"] = True
+    result["exit_code"] = 0
+    return result
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--repo-root",
+        default=".",
+        help="Repository root (default: current directory).",
     )
-    return 0
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run validation gates only; skip merge and cleanup.",
+    )
+    parser.add_argument(
+        "--no-cleanup",
+        action="store_true",
+        help="Skip post-merge cleanup (branch delete + active context clear).",
+    )
+    parser.add_argument(
+        "--no-state-update",
+        action="store_true",
+        help="Skip automatic STATE/BACKLOG updates after merge.",
+    )
+    parser.add_argument(
+        "--allow-concurrent-wip",
+        action="store_true",
+        help=(
+            "Skip the primary-repo untracked-files gate and use --no-verify on the merge commit. "
+            "For Article XIX chicken-and-egg: concurrent agent WIP is intentionally present. "
+            "Documents the exemption in the commit message."
+        ),
+    )
+    parser.add_argument("--json", action="store_true", help="Emit structured JSON result.")
+    args = parser.parse_args()
+
+    repo_root = Path(args.repo_root).resolve()
+    result = run_closure(
+        repo_root,
+        dry_run=args.dry_run,
+        no_cleanup=args.no_cleanup,
+        no_state_update=args.no_state_update,
+        allow_concurrent_wip=args.allow_concurrent_wip,
+    )
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    else:
+        _print_report(result)
+    return int(result["exit_code"])
 
 
 if __name__ == "__main__":

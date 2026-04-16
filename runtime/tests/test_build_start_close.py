@@ -324,10 +324,19 @@ def test_recover_primary_branch_stashes_switches_and_reapplies(monkeypatch, tmp_
 
 
 def test_close_build_json_output(monkeypatch, capsys) -> None:
-    def fake_run(*args, **kwargs):
-        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout="done\n", stderr="")
-
-    monkeypatch.setattr(close_build.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        close_build,
+        "run_closure",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "exit_code": 0,
+            "closure_policy_version": "v1",
+            "closure_tier": "no_changes",
+            "selected_checks": [],
+            "skipped_checks": ["targeted_pytest"],
+            "post_merge_updates_suppressed": True,
+        },
+    )
     monkeypatch.setattr(sys, "argv", ["close_build.py", "--json"])
 
     rc = close_build.main()
@@ -336,7 +345,8 @@ def test_close_build_json_output(monkeypatch, capsys) -> None:
     assert rc == 0
     assert payload["ok"] is True
     assert payload["exit_code"] == 0
-    assert payload["stdout"] == "done\n"
+    assert payload["closure_policy_version"] == "v1"
+    assert payload["closure_tier"] == "no_changes"
 
 
 def test_isolation_requirement_flags_primary_scoped_branch(monkeypatch) -> None:

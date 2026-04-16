@@ -202,8 +202,9 @@ def test_close_build_json_mode_produces_single_blob(tmp_path):
         pytest.fail(f"close_build --json produced non-JSON stdout: {exc}\n{result.stdout[:500]}")
 
     assert "exit_code" in data
-    assert "stdout" in data
     assert "ok" in data
+    assert "closure_policy_version" in data
+    assert "closure_tier" in data
 
 
 def test_close_build_streaming_mode_no_json_blob(tmp_path):

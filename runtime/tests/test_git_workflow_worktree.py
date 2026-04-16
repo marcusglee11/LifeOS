@@ -276,11 +276,26 @@ def test_closure_pack_regen_after_merge(monkeypatch, tmp_path: Path) -> None:
 
     monkeypatch.setattr(cp, "_git_stdout", fake_git_stdout)
     monkeypatch.setattr(cp, "_working_tree_clean", lambda _: True)
-    monkeypatch.setattr(cp, "discover_changed_files", lambda _: [])
+    monkeypatch.setattr(
+        cp,
+        "resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "base_branch": "main",
+            "closure_tier": "full",
+            "classification_reason": "full",
+            "changed_paths": [],
+            "outcome": "classified",
+        },
+    )
     monkeypatch.setattr(
         cp,
         "run_closure_tests",
-        lambda *_: {"passed": True, "summary": "ok", "commands_run": [], "failures": []},
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "summary": "ok",
+            "commands_run": [],
+            "failures": [],
+        },
     )
     monkeypatch.setattr(
         cp,
@@ -396,17 +411,13 @@ def test_closure_pack_plan_only_skips_post_merge_state_churn(monkeypatch, tmp_pa
     monkeypatch.setattr(cp, "_working_tree_clean", lambda _: True)
     monkeypatch.setattr(
         cp,
-        "discover_changed_files",
-        lambda _: ["artifacts/plans/2026-03-26-coo-telegram-reliability-operatorization-v1.md"],
-    )
-    monkeypatch.setattr(
-        cp,
-        "run_closure_tests",
-        lambda *_: {
-            "passed": True,
-            "summary": "Plan-only artifact change; targeted closure tests skipped.",
-            "commands_run": [],
-            "failures": [],
+        "resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "base_branch": "main",
+            "closure_tier": "artifact_only",
+            "classification_reason": "artifact",
+            "changed_paths": ["artifacts/plans/2026-03-26-coo-telegram-reliability-operatorization-v1.md"],
+            "outcome": "classified",
         },
     )
     monkeypatch.setattr(
@@ -492,11 +503,26 @@ def test_closure_pack_blocks_on_review_checkpoint_failure(
 
     monkeypatch.setattr(cp, "_git_stdout", fake_git_stdout)
     monkeypatch.setattr(cp, "_working_tree_clean", lambda _: True)
-    monkeypatch.setattr(cp, "discover_changed_files", lambda _: ["runtime/foo.py"])
+    monkeypatch.setattr(
+        cp,
+        "resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "base_branch": "main",
+            "closure_tier": "full",
+            "classification_reason": "full",
+            "changed_paths": ["runtime/foo.py"],
+            "outcome": "classified",
+        },
+    )
     monkeypatch.setattr(
         cp,
         "run_closure_tests",
-        lambda *_: {"passed": True, "summary": "ok", "commands_run": [], "failures": []},
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "summary": "ok",
+            "commands_run": [],
+            "failures": [],
+        },
     )
     monkeypatch.setattr(
         cp,
@@ -531,3 +557,78 @@ def test_closure_pack_blocks_on_review_checkpoint_failure(
 
     assert rc == 1
     assert "Failed to write review checkpoint" in output
+
+
+def test_closure_pack_no_changes_returns_clean_noop(monkeypatch, tmp_path: Path) -> None:
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir(parents=True)
+
+    monkeypatch.setattr(cp, "_git_stdout", lambda *_args, **_kwargs: "build/noop")
+    monkeypatch.setattr(cp, "_working_tree_clean", lambda _: True)
+    monkeypatch.setattr(
+        cp,
+        "resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "base_branch": "main",
+            "closure_tier": "no_changes",
+            "classification_reason": "none",
+            "changed_paths": [],
+            "outcome": "no_changes",
+        },
+    )
+
+    result = cp.run_closure(repo_root, dry_run=True)
+    assert result["ok"] is True
+    assert result["no_changes"] is True
+    assert result["exit_code"] == 0
+
+
+def test_closure_pack_validates_post_autofix_scope(monkeypatch, tmp_path: Path) -> None:
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir(parents=True)
+    quality_calls: list[list[str]] = []
+
+    def fake_git_stdout(repo: Path, args: list[str]) -> str:
+        if args == ["rev-parse", "--abbrev-ref", "HEAD"]:
+            return "build/docs"
+        if args == ["log", "--oneline", "-n", "10"]:
+            return "abc123 doc commit"
+        if args == ["status", "--short"]:
+            return " M docs/INDEX.md\n M docs/LifeOS_Strategic_Corpus.md\n"
+        return ""
+
+    monkeypatch.setattr(cp, "_git_stdout", fake_git_stdout)
+    monkeypatch.setattr(cp, "_working_tree_clean", lambda _: True)
+    monkeypatch.setattr(
+        cp,
+        "resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "base_branch": "main",
+            "closure_tier": "general_docs",
+            "classification_reason": "general docs",
+            "changed_paths": ["docs/04_project_builder/example.md"],
+            "outcome": "classified",
+        },
+    )
+    monkeypatch.setattr(
+        cp,
+        "check_doc_stewardship",
+        lambda *_args, **_kwargs: {
+            "passed": True,
+            "required": True,
+            "auto_fixed": False,
+            "errors": [],
+            "docs_files": ["docs/04_project_builder/example.md", "docs/INDEX.md"],
+        },
+    )
+
+    def fake_quality(repo_root_arg, changed_files, **kwargs):
+        quality_calls.append(list(changed_files))
+        return {"passed": True, "summary": "ok", "commands_run": [], "results": []}
+
+    monkeypatch.setattr(cp, "run_quality_gates", fake_quality)
+
+    result = cp.run_closure(repo_root, dry_run=True)
+    assert result["ok"] is True
+    assert quality_calls
+    assert "docs/LifeOS_Strategic_Corpus.md" in quality_calls[0]

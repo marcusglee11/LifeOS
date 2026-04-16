@@ -2,205 +2,142 @@
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 
 from scripts.workflow.closure_gate import run_gate
 
 
-def _make_fake_run(returncode: int = 0, stdout: str = "", stderr: str = ""):
-    """Return a fake subprocess.run that returns fixed results."""
-
-    def fake_run(*args, **kwargs):
-        return subprocess.CompletedProcess(
-            args=args[0],
-            returncode=returncode,
-            stdout=stdout,
-            stderr=stderr,
-        )
-
-    return fake_run
-
-
-def test_all_gates_pass(monkeypatch) -> None:
-    """When tests pass and no docs changed, verdict is passed."""
+def test_gate_no_changes_includes_policy_fields(monkeypatch) -> None:
     monkeypatch.setattr(
-        "runtime.tools.workflow_pack.subprocess.run",
-        _make_fake_run(returncode=0, stdout="ok"),
+        "scripts.workflow.closure_gate.resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "outcome": "no_changes",
+            "closure_tier": "no_changes",
+            "classification_reason": "none",
+            "changed_paths": [],
+        },
     )
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.get_tier_execution_policy",
+        lambda *_args, **_kwargs: {
+            "selected_checks": [],
+            "skipped_checks": ["targeted_pytest"],
+            "post_merge_updates_suppressed": True,
+        },
+    )
+
+    verdict = run_gate(Path("."))
+    assert verdict["passed"] is True
+    assert verdict["gate"] == "no_changes"
+    assert verdict["closure_policy_version"] == "v1"
+    assert verdict["closure_tier"] == "no_changes"
+    assert verdict["post_merge_updates_suppressed"] is True
+
+
+def test_gate_structured_docs_reports_selected_checks(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "outcome": "classified",
+            "closure_tier": "structured_docs",
+            "classification_reason": "structured docs",
+            "changed_paths": ["docs/02_protocols/example.md"],
+        },
+    )
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.get_tier_execution_policy",
+        lambda *_args, **_kwargs: {
+            "selected_checks": ["doc_stewardship", "markdownlint", "targeted_pytest"],
+            "skipped_checks": ["quality_gate"],
+            "post_merge_updates_suppressed": True,
+            "run_doc_stewardship": True,
+            "quality_tools": ["markdownlint"],
+            "run_general_quality_gate": False,
+        },
+    )
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.check_doc_stewardship",
+        lambda *_args, **_kwargs: {"passed": True, "required": True, "errors": []},
+    )
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.run_quality_gates",
+        lambda *_args, **_kwargs: {"passed": True, "summary": "markdown ok", "results": []},
+    )
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.run_closure_tests",
+        lambda *_args, **_kwargs: {"passed": True, "summary": "doc pytest ok"},
+    )
+
     verdict = run_gate(Path("."))
     assert verdict["passed"] is True
     assert verdict["gate"] == "all"
-    assert "skipped" in verdict["summary"].lower()
+    assert verdict["closure_tier"] == "structured_docs"
+    assert verdict["selected_checks"] == ["doc_stewardship", "markdownlint", "targeted_pytest"]
+    assert verdict["skipped_checks"] == ["quality_gate"]
+    assert verdict["post_merge_updates_suppressed"] is True
 
 
-def test_test_gate_fails(monkeypatch) -> None:
-    """When targeted tests fail, gate is 'tests'."""
-
-    def sequenced_run(*args, **kwargs):
-        cmd = args[0] if args else kwargs.get("args", [])
-        cmd_str = " ".join(str(c) for c in cmd) if isinstance(cmd, list) else str(cmd)
-
-        # git diff probes for discover_changed_files
-        if "git" in cmd_str and "diff" in cmd_str:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=0,
-                stdout="runtime/engine.py\n",
-                stderr="",
-            )
-
-        # Test command fails
-        if "pytest" in cmd_str:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=1,
-                stdout="",
-                stderr="FAILED test_foo.py",
-            )
-
-        return subprocess.CompletedProcess(
-            args=cmd,
-            returncode=0,
-            stdout="",
-            stderr="",
-        )
-
+def test_gate_quality_failure(monkeypatch) -> None:
     monkeypatch.setattr(
-        "runtime.tools.workflow_pack.subprocess.run",
-        sequenced_run,
+        "scripts.workflow.closure_gate.resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "outcome": "classified",
+            "closure_tier": "full",
+            "classification_reason": "full",
+            "changed_paths": ["runtime/tools/workflow_pack.py"],
+        },
     )
-    verdict = run_gate(Path("."))
-    assert verdict["passed"] is False
-    assert verdict["gate"] == "tests"
-
-
-def test_doc_gate_fails(monkeypatch) -> None:
-    """When doc stewardship fails, gate is 'doc_stewardship'."""
-    call_count = {"n": 0}
-
-    def sequenced_run(*args, **kwargs):
-        call_count["n"] += 1
-        cmd = args[0] if args else kwargs.get("args", [])
-        cmd_str = " ".join(str(c) for c in cmd) if isinstance(cmd, list) else str(cmd)
-
-        # discover_changed_files: return docs path on first git diff probe
-        if "git" in cmd_str and "diff" in cmd_str:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=0,
-                stdout="docs/INDEX.md\n",
-                stderr="",
-            )
-
-        # Test commands pass
-        if "pytest" in cmd_str:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=0,
-                stdout="ok",
-                stderr="",
-            )
-
-        # Doc stewardship gate fails
-        if "doc_stewardship" in cmd_str or "claude_doc_stewardship" in cmd_str:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=1,
-                stdout='{"passed": false, "errors": ["INDEX.md out of date"]}',
-                stderr="",
-            )
-
-        return subprocess.CompletedProcess(
-            args=cmd,
-            returncode=0,
-            stdout="",
-            stderr="",
-        )
-
     monkeypatch.setattr(
-        "runtime.tools.workflow_pack.subprocess.run",
-        sequenced_run,
+        "scripts.workflow.closure_gate.get_tier_execution_policy",
+        lambda *_args, **_kwargs: {
+            "selected_checks": ["targeted_pytest", "quality_gate"],
+            "skipped_checks": [],
+            "post_merge_updates_suppressed": False,
+            "run_doc_stewardship": False,
+            "quality_tools": [],
+            "run_general_quality_gate": True,
+        },
     )
-    verdict = run_gate(Path("."))
-    assert verdict["passed"] is False
-    assert verdict["gate"] == "doc_stewardship"
-
-
-def test_no_docs_changed_summary_mentions_skipped(monkeypatch) -> None:
-    """When no docs are in changed files, summary mentions skipped."""
-    call_count = {"n": 0}
-
-    def sequenced_run(*args, **kwargs):
-        call_count["n"] += 1
-        cmd = args[0] if args else kwargs.get("args", [])
-        cmd_str = " ".join(str(c) for c in cmd) if isinstance(cmd, list) else str(cmd)
-
-        # discover_changed_files: return non-docs path
-        if "git" in cmd_str and "diff" in cmd_str:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=0,
-                stdout="runtime/engine.py\n",
-                stderr="",
-            )
-
-        # All test commands pass
-        return subprocess.CompletedProcess(
-            args=cmd,
-            returncode=0,
-            stdout="ok",
-            stderr="",
-        )
-
     monkeypatch.setattr(
-        "runtime.tools.workflow_pack.subprocess.run",
-        sequenced_run,
+        "scripts.workflow.closure_gate.run_quality_gates",
+        lambda *_args, **_kwargs: {
+            "passed": False,
+            "summary": "quality failed",
+            "results": [{"passed": False, "mode": "blocking", "details": "unused import"}],
+        },
     )
-    verdict = run_gate(Path("."))
-    assert verdict["passed"] is True
-    assert "skipped" in verdict["summary"].lower()
 
-
-def test_quality_gate_fails(monkeypatch) -> None:
-    """When blocking quality checks fail, gate is 'quality'."""
-
-    def sequenced_run(*args, **kwargs):
-        cmd = args[0] if args else kwargs.get("args", [])
-        cmd_str = " ".join(str(c) for c in cmd) if isinstance(cmd, list) else str(cmd)
-
-        if "git" in cmd_str and "diff" in cmd_str:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=0,
-                stdout="runtime/tools/workflow_pack.py\n",
-                stderr="",
-            )
-
-        if "pytest" in cmd_str:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=0,
-                stdout="ok",
-                stderr="",
-            )
-
-        if cmd[:2] == ["ruff", "check"]:
-            return subprocess.CompletedProcess(
-                args=cmd,
-                returncode=1,
-                stdout="",
-                stderr="unused import",
-            )
-
-        return subprocess.CompletedProcess(
-            args=cmd,
-            returncode=0,
-            stdout="",
-            stderr="",
-        )
-
-    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", sequenced_run)
     verdict = run_gate(Path("."))
     assert verdict["passed"] is False
     assert verdict["gate"] == "quality"
+
+
+def test_gate_full_fallback_summary(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.resolve_closure_tier",
+        lambda *_args, **_kwargs: {
+            "outcome": "full_fallback",
+            "closure_tier": "full",
+            "classification_reason": "Unsupported diff status line: X",
+            "changed_paths": [],
+        },
+    )
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.get_tier_execution_policy",
+        lambda *_args, **_kwargs: {
+            "selected_checks": ["targeted_pytest", "quality_gate"],
+            "skipped_checks": [],
+            "post_merge_updates_suppressed": False,
+            "run_doc_stewardship": False,
+            "quality_tools": [],
+            "run_general_quality_gate": False,
+        },
+    )
+    monkeypatch.setattr(
+        "scripts.workflow.closure_gate.run_closure_tests",
+        lambda *_args, **_kwargs: {"passed": True, "summary": "test ok"},
+    )
+
+    verdict = run_gate(Path("."))
+    assert verdict["passed"] is True
+    assert "fell back to full" in verdict["summary"]

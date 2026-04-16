@@ -9,12 +9,15 @@ from pathlib import Path
 import pytest
 
 from scripts.workflow.git_lock_health import GitLockHealth
+from runtime.tools.closure_policy import (
+    STRUCTURED_DOC_PYTEST_COMMANDS,
+    classify_paths,
+)
 from runtime.tools.workflow_pack import (
     build_active_work_payload,
     check_doc_stewardship,
     cleanup_after_merge,
     discover_changed_files,
-    is_plan_only_change,
     merge_to_main,
     read_active_work,
     route_targeted_tests,
@@ -115,7 +118,7 @@ def test_route_targeted_tests_fallback() -> None:
 
 
 def test_route_targeted_tests_docs_admin() -> None:
-    # docs/11_admin changes route to targeted doc tests, not full suite
+    # docs/11_admin changes are full-tier in closure policy, but full-tier routing stays unchanged.
     commands = route_targeted_tests(["docs/11_admin/BACKLOG.md"])
     assert commands == [
         "pytest -q runtime/tests/test_doc_hygiene.py runtime/tests/test_backlog_parser.py"
@@ -123,11 +126,8 @@ def test_route_targeted_tests_docs_admin() -> None:
 
 
 def test_route_targeted_tests_docs_general() -> None:
-    # Any docs/ change routes to targeted doc tests
     commands = route_targeted_tests(["docs/02_protocols/some_spec.md"])
-    assert commands == [
-        "pytest -q runtime/tests/test_doc_hygiene.py runtime/tests/test_backlog_parser.py"
-    ]
+    assert commands == list(STRUCTURED_DOC_PYTEST_COMMANDS)
 
 
 def test_route_targeted_tests_spine() -> None:
@@ -148,9 +148,9 @@ def test_route_targeted_tests_pyproject() -> None:
 
 
 def test_route_targeted_tests_artifacts_status() -> None:
-    # Regenerated status artifacts route to workflow_pack tests
+    # Pure artifact-only changes skip targeted pytest.
     commands = route_targeted_tests(["artifacts/status/runtime_status.json"])
-    assert commands == ["pytest -q runtime/tests/test_workflow_pack.py"]
+    assert commands == []
 
 
 def test_route_targeted_tests_coo_module() -> None:
@@ -178,25 +178,28 @@ def test_route_targeted_tests_artifacts_plans() -> None:
     assert commands == []
 
 
-def test_is_plan_only_change_true() -> None:
-    assert is_plan_only_change(["artifacts/plans/2026-03-05-coo-bootstrap-plan.md"]) is True
-
-
-def test_is_plan_only_change_false_for_mixed_changes() -> None:
+def test_classify_paths_artifact_only() -> None:
     assert (
-        is_plan_only_change(
+        classify_paths(["artifacts/plans/2026-03-05-coo-bootstrap-plan.md"])["closure_tier"]
+        == "artifact_only"
+    )
+
+
+def test_classify_paths_full_for_mixed_changes() -> None:
+    assert (
+        classify_paths(
             [
                 "artifacts/plans/2026-03-05-coo-bootstrap-plan.md",
                 "runtime/tools/workflow_pack.py",
             ]
-        )
-        is False
+        )["closure_tier"]
+        == "full"
     )
 
 
 def test_route_targeted_tests_artifacts_handoffs() -> None:
     commands = route_targeted_tests(["artifacts/handoffs/some-handoff.md"])
-    assert commands == ["pytest -q runtime/tests/test_workflow_pack.py"]
+    assert commands == []
 
 
 def test_route_targeted_tests_coo_and_config_deduplicates() -> None:
@@ -239,15 +242,39 @@ def test_run_closure_tests_fails_on_nonzero(monkeypatch) -> None:
     assert result["failures"]
 
 
-def test_run_closure_tests_skips_plan_only_without_subprocess(monkeypatch) -> None:
+def test_run_closure_tests_skips_artifact_only_without_subprocess(monkeypatch) -> None:
     def fail_if_called(*args, **kwargs):
-        raise AssertionError("subprocess should not be called for plan-only closure checks")
+        raise AssertionError("subprocess should not be called for artifact-only closure checks")
 
     monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fail_if_called)
     result = run_closure_tests(Path("."), ["artifacts/plans/2026-03-05-coo-bootstrap-plan.md"])
     assert result["passed"] is True
     assert result["commands_run"] == []
-    assert "Plan-only artifact change" in result["summary"]
+    assert "artifact_only change" in result["summary"]
+
+
+def test_run_closure_tests_structured_docs_uses_central_commands(monkeypatch) -> None:
+    seen: list[list[str]] = []
+
+    def fake_run(*args, **kwargs):
+        seen.append(args[0])
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout="ok", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = run_closure_tests(Path("."), ["docs/02_protocols/example.md"])
+    assert result["passed"] is True
+    assert result["commands_run"] == list(STRUCTURED_DOC_PYTEST_COMMANDS)
+    assert len(seen) == len(STRUCTURED_DOC_PYTEST_COMMANDS)
+
+
+def test_run_closure_tests_full_fallback_with_explicit_tier_runs_full_suite(monkeypatch) -> None:
+    def fake_run(*args, **kwargs):
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout="ok", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = run_closure_tests(Path("."), [], closure_tier="full")
+    assert result["passed"] is True
+    assert result["commands_run"] == ["pytest -q runtime/tests"]
 
 
 def test_discover_changed_files_includes_untracked(monkeypatch) -> None:

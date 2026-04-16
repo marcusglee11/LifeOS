@@ -16,6 +16,10 @@ from typing import Iterable, Optional, Sequence
 
 import yaml
 
+from runtime.tools.closure_policy import (
+    classify_paths,
+    get_tier_execution_policy,
+)
 from runtime.orchestration.coo.backlog import (
     BacklogValidationError,
     load_backlog,
@@ -446,6 +450,7 @@ def run_quality_gates(
     changed_files: Sequence[str],
     scope: str = "changed",
     fix: bool = False,
+    tool_names: Sequence[str] | None = None,
 ) -> dict:
     """Run manifest-driven code quality gates."""
     effective_changed_files = list(changed_files)
@@ -458,7 +463,10 @@ def run_quality_gates(
     results: list[dict[str, object]] = []
     auto_fixed = False
 
+    allowed_tools = set(tool_names or [])
     for tool_name in manifest.get("tools", {}):
+        if allowed_tools and tool_name not in allowed_tools:
+            continue
         if not _quality_tool_enabled(manifest, tool_name, scope):
             continue
         tool_cfg = manifest["tools"][tool_name]
@@ -562,17 +570,15 @@ def doctor_quality_tools(repo_root: Path) -> dict:
     }
 
 
-def is_plan_only_change(changed_files: Sequence[str]) -> bool:
-    """Return True when every changed file is a plan artifact under artifacts/plans/."""
-    files = _unique_ordered(changed_files)
-    return bool(files) and all(path.startswith("artifacts/plans/") for path in files)
-
-
-def route_targeted_tests(changed_files: Sequence[str]) -> list[str]:
+def route_targeted_tests(changed_files: Sequence[str], closure_tier: str | None = None) -> list[str]:
     """Map changed files to targeted test commands."""
     files = _unique_ordered(changed_files)
-    if is_plan_only_change(files):
+    effective_tier = closure_tier or classify_paths(files)["closure_tier"]
+    policy = get_tier_execution_policy(effective_tier)
+    if not policy["run_targeted_pytest"]:
         return []
+    if policy["targeted_pytest_commands"]:
+        return list(policy["targeted_pytest_commands"])
 
     routed: list[str] = []
 
@@ -807,17 +813,33 @@ def discover_changed_files(repo_root: Path, branch: str | None = None) -> list[s
     return []
 
 
-def run_closure_tests(repo_root: Path, changed_files: Sequence[str]) -> dict:
+def run_closure_tests(
+    repo_root: Path,
+    changed_files: Sequence[str],
+    *,
+    closure_tier: str | None = None,
+) -> dict:
     """Run targeted closure tests derived from changed files."""
-    if is_plan_only_change(changed_files):
+    effective_tier = closure_tier or classify_paths(changed_files)["closure_tier"]
+    if effective_tier == "no_changes":
         return {
             "passed": True,
             "commands_run": [],
-            "summary": "Plan-only artifact change; targeted closure tests skipped.",
+            "summary": "Valid diff with zero changed paths; targeted closure tests skipped.",
             "failures": [],
+            "closure_tier": effective_tier,
         }
 
-    commands = route_targeted_tests(changed_files)
+    if not get_tier_execution_policy(effective_tier)["run_targeted_pytest"]:
+        return {
+            "passed": True,
+            "commands_run": [],
+            "summary": f"{effective_tier} change; targeted closure tests skipped.",
+            "failures": [],
+            "closure_tier": effective_tier,
+        }
+
+    commands = route_targeted_tests(changed_files, closure_tier=effective_tier)
     commands_run: list[str] = []
     failures: list[str] = []
     passed_count = 0
@@ -849,6 +871,7 @@ def run_closure_tests(repo_root: Path, changed_files: Sequence[str]) -> dict:
         "commands_run": commands_run,
         "summary": summary,
         "failures": failures,
+        "closure_tier": effective_tier,
     }
 
 
