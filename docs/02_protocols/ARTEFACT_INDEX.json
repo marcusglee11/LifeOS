@@ -24,6 +24,7 @@
     { "path": "docs/02_protocols/Governance_Protocol_v1.0.md" },
     { "path": "docs/02_protocols/Intent_Routing_Rule_v1.1.md" },
     { "path": "docs/02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md" },
+    { "path": "docs/02_protocols/Multi_Agent_Communication_Architecture_v1.0.md" },
     { "path": "docs/02_protocols/Packet_Schema_Versioning_Policy_v1.0.md" },
     { "path": "docs/02_protocols/Project_Planning_Protocol_v1.0.md" },
     { "path": "docs/02_protocols/Test_Protocol_v1.0.md" },
