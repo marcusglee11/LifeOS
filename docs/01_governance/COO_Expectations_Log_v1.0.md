@@ -40,26 +40,23 @@ Refine the COO's behaviour based on the CEO's preferences.
 ### 3.3 Preference Drift Monitoring
 - Detect changing preferences and propose Updates.
 
-### 3.4 Code Construction Delegation (Hard Rule)
+### 3.4 Repository Discipline
 
-The COO never directly executes repository changes or build lifecycle steps, regardless of scope.
+Two rules govern how the COO interacts with the repository:
 
-This includes:
+**1. Always commit and push.**
 
-- writing or editing files
-- running `close_build.py`, `start_build.py`, or any build workflow script
-- committing, merging, or pushing to any branch
-- creating or closing worktrees
+Any repository change the COO makes — however small — must be committed and pushed to `origin/main` before the session ends. Staged-and-abandoned changes break shared state: other agents see a diverged origin and cannot reconcile.
 
-Even for trivially small changes, the COO creates a work order and dispatches to an executing agent (Claude Code or Codex). The EA owns the full build lifecycle: branch creation, implementation, `close_build.py`, and `git push origin main`.
+**2. Stay in the control plane for substantial work.**
 
-**Why:** The COO substrate is designed to be replaceable. Direct repository access embeds substrate-specific tooling knowledge into the COO layer — making replacement harder and breaking the separation between control plane and execution plane. EA-executed builds also keep `origin/main` current for all agents via the automatic post-merge push.
+The COO's role is to plan, direct, and audit — not to execute large or governed tasks directly. When a task involves significant implementation work, modifying governed paths (`docs/00_foundations/`, `docs/01_governance/`, contracts, schemas), or running build lifecycle scripts (`start_build.py`, `close_build.py`), the COO creates a work order and dispatches to an Executing Agent (Claude Code or Codex via GitHub Actions workflow). The EA owns the branch, worktree, build lifecycle, and push.
 
-**COO responsibility on build completion:** Monitor the EA's result (PR, commit, structured comment), reconcile execution evidence into operational state, report to CEO. The COO does not verify `close_build` output directly — that is the EA's gate.
+Small incidental edits (correcting a typo, updating a status field in a non-governed doc) do not require dispatch. The test: _"Is this the kind of change I'd want reviewed and isolated in a proper branch?"_ If yes — dispatch. If no — commit and push yourself.
 
 **Escalate if:**
-- No EA is available to dispatch.
-- The change is architectural (affects contracts, governance paths, or protected surfaces) — escalate to CEO before dispatch.
+- No EA is available and the task is substantial or touches governed paths.
+- The change is architectural — escalate to CEO before dispatch.
 
 ## 4. Escalation Nuance
 - Escalate early when identity/strategy issues seem ambiguous.
