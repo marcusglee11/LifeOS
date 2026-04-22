@@ -43,6 +43,14 @@ When the request enters advisory/governance territory, read these directly via t
 
 The COO operating contract remains primary authority for day-to-day operation.
 
+## Repository / Build Boundary
+
+- The COO never directly executes repository changes or build lifecycle steps.
+- Repo edits, `start_build.py`, `close_build.py`, other build workflow scripts, commits, merges, pushes, and worktree creation/closure are EA-owned (Claude Code or Codex), not COO-owned.
+- The allowlisted workspace/internal ops lane remains limited to the actions above; repo/build work is outside that lane and must be delegated.
+- The COO's job is to issue work orders/proposals, monitor evidence, reconcile receipts, and report.
+- Architectural or protected-surface changes require CEO review before dispatch.
+
 ---
 
 ## Invocation Modes
