@@ -1,6 +1,6 @@
 # LifeOS Strategic Corpus [P26-02-28 (rev12)]
 
-Last Updated: 2026-03-10
+Last Updated: 2026-04-20
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -76,6 +76,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
 | [Tier_Definition_Spec_v1.1.md](./00_foundations/Tier_Definition_Spec_v1.1.md) | **Canonical** — Tier progression model, definitions, and capabilities |
 | [ARCH_Future_Build_Automation_Operating_Model_v0.2.md](./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md) | **Architecture Proposal** — Future Build Automation Operating Model v0.2 |
+| [ARCH_Multi_Agent_Communication_Architecture.md](./00_foundations/ARCH_Multi_Agent_Communication_Architecture.md) | **Architecture** — Multi-agent communication bus, authority boundaries, promotion flow, briefing projection |
 | [lifeos-agent-architecture.md](./00_foundations/lifeos-agent-architecture.md) | **Architecture** — Non-canonical agent architecture |
 | [lifeos-maximum-vision.md](./00_foundations/lifeos-maximum-vision.md) | **Vision** — Non-canonical maximum vision architecture |
 

@@ -17,6 +17,7 @@
     "constitution": "docs/00_foundations/LifeOS_Constitution_v2.0.md",
     "anti_failure": "docs/00_foundations/Anti_Failure_Operational_Packet_v0.1.md",
     "architecture_skeleton": "docs/00_foundations/Architecture_Skeleton_v1.0.md",
+    "multi_agent_comm_arch": "docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md",
     "_comment_governance": "=== 01_governance: Governance Contracts ===",
     "coo_contract": "docs/01_governance/COO_Operating_Contract_v1.0.md",
     "agent_constitution": "docs/01_governance/AgentConstitution_GEMINI_Template_v1.0.md",
