@@ -53,6 +53,11 @@ def main() -> int:
         action="store_true",
         help="Emit structured output (accumulates; no live streaming)",
     )
+    parser.add_argument(
+        "--no-push",
+        action="store_true",
+        help="Skip 'git push origin main' after successful merge (offline/CI override)",
+    )
     args = parser.parse_args()
 
     cmd = [sys.executable, str(REPO_ROOT / "scripts" / "workflow" / "closure_pack.py")]
@@ -75,6 +80,10 @@ def main() -> int:
             no_state_update=args.no_state_update,
             allow_concurrent_wip=args.allow_concurrent_wip,
         )
+        exit_code = int(result["exit_code"])
+        if exit_code == 0 and not args.dry_run and not args.no_push:
+            push_result = _push_main(REPO_ROOT)
+            result["push_origin_main"] = push_result
         print(
             json.dumps(
                 {
@@ -85,7 +94,7 @@ def main() -> int:
                 sort_keys=True,
             )
         )
-        return int(result["exit_code"])
+        return exit_code
 
     # Streaming mode: print stage banners and output live
     proc = subprocess.Popen(
@@ -112,7 +121,24 @@ def main() -> int:
         print(stripped, flush=True)
 
     proc.wait()
+    if proc.returncode == 0 and not args.dry_run and not args.no_push:
+        push = _push_main(REPO_ROOT)
+        status = "ok" if push["exit_code"] == 0 else "FAILED"
+        print(f"\n--- [push] ---\ngit push origin main: {status}", flush=True)
+        if push["exit_code"] != 0:
+            print(push["stderr"], flush=True)
     return proc.returncode
+
+
+def _push_main(repo_root: Path) -> dict:
+    """Push local main to origin after successful closure."""
+    proc = subprocess.run(
+        ["git", "push", "origin", "main"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    return {"exit_code": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}
 
 
 if __name__ == "__main__":

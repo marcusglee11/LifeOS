@@ -337,7 +337,7 @@ def test_close_build_json_output(monkeypatch, capsys) -> None:
             "post_merge_updates_suppressed": True,
         },
     )
-    monkeypatch.setattr(sys, "argv", ["close_build.py", "--json"])
+    monkeypatch.setattr(sys, "argv", ["close_build.py", "--json", "--no-push"])
 
     rc = close_build.main()
     payload = json.loads(capsys.readouterr().out)
@@ -347,6 +347,45 @@ def test_close_build_json_output(monkeypatch, capsys) -> None:
     assert payload["exit_code"] == 0
     assert payload["closure_policy_version"] == "v1"
     assert payload["closure_tier"] == "no_changes"
+
+
+def test_close_build_json_pushes_on_success(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        close_build,
+        "run_closure",
+        lambda *_args, **_kwargs: {"ok": True, "exit_code": 0, "closure_tier": "no_changes"},
+    )
+    monkeypatch.setattr(
+        close_build,
+        "_push_main",
+        lambda _root: {"exit_code": 0, "stdout": "ok", "stderr": ""},
+    )
+    monkeypatch.setattr(sys, "argv", ["close_build.py", "--json"])
+
+    rc = close_build.main()
+    payload = json.loads(capsys.readouterr().out)
+
+    assert rc == 0
+    assert payload["push_origin_main"]["exit_code"] == 0
+
+
+def test_close_build_json_no_push_flag(monkeypatch, capsys) -> None:
+    push_called = []
+    monkeypatch.setattr(
+        close_build,
+        "run_closure",
+        lambda *_args, **_kwargs: {"ok": True, "exit_code": 0, "closure_tier": "no_changes"},
+    )
+    monkeypatch.setattr(
+        close_build,
+        "_push_main",
+        lambda _root: push_called.append(1) or {"exit_code": 0, "stdout": "", "stderr": ""},
+    )
+    monkeypatch.setattr(sys, "argv", ["close_build.py", "--json", "--no-push"])
+
+    rc = close_build.main()
+    assert rc == 0
+    assert len(push_called) == 0
 
 
 def test_isolation_requirement_flags_primary_scoped_branch(monkeypatch) -> None:
