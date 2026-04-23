@@ -35,7 +35,12 @@ def run_gate(repo_root: Path, branch: str | None = None) -> dict:
     """Execute closure gates and return structured verdict."""
     tier_info = resolve_closure_tier(repo_root, head_ref=branch or "HEAD")
     closure_tier = tier_info["closure_tier"]
-    policy = get_tier_execution_policy(closure_tier)
+    branch_kind = (branch or "").split("/", 1)[0] if "/" in (branch or "") else None
+    policy = get_tier_execution_policy(
+        closure_tier,
+        branch_kind=branch_kind,
+        changed_paths=tier_info["changed_paths"],
+    )
     verdict = {
         "passed": False,
         "gate": "classification",

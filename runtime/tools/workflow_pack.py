@@ -283,19 +283,9 @@ def route_quality_tools(
         routed["mypy"] = _unique_ordered(python_files)
     if biome_trigger:
         routed["biome"] = _unique_ordered(biome_files)
-    if markdown_trigger:
-        if not markdown_files:
-            markdown_files = _tracked_files_matching(
-                repo_root,
-                lambda file_path: file_path.startswith("docs/") and file_path.endswith(".md"),
-            )
+    if markdown_trigger and markdown_files:
         routed["markdownlint"] = _unique_ordered(markdown_files)
-    if yaml_trigger:
-        if not yaml_files:
-            yaml_files = _tracked_files_matching(
-                repo_root,
-                lambda file_path: file_path.endswith((".yml", ".yaml")),
-            )
+    if yaml_trigger and yaml_files:
         routed["yamllint"] = _unique_ordered(yaml_files)
     if shell_files:
         routed["shellcheck"] = _unique_ordered(shell_files)
@@ -925,15 +915,22 @@ def check_doc_stewardship(
         if admin_struct_proc.returncode != 0:
             errors.append(f"Admin structure check failed:\n{admin_struct_proc.stdout}")
 
-        # Admin archive link ban check (always blocking)
+        # Admin archive link ban check — scope to changed admin doc paths
+        admin_doc_paths = [
+            p for p in changed_files
+            if p.endswith(".md") and p.startswith("docs/11_admin/") and not p.endswith("/")
+        ]
+        admin_archive_cmd = [
+            sys.executable,
+            "-m",
+            "doc_steward.cli",
+            "admin-archive-link-ban-check",
+            str(repo_root),
+        ]
+        if admin_doc_paths:
+            admin_archive_cmd += ["--paths"] + admin_doc_paths
         admin_archive_proc = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "doc_steward.cli",
-                "admin-archive-link-ban-check",
-                str(repo_root),
-            ],
+            admin_archive_cmd,
             check=False,
             cwd=Path(repo_root),
             capture_output=True,
@@ -990,15 +987,22 @@ def check_doc_stewardship(
         if protocols_index_proc.returncode != 0:
             errors.append(f"Protocols artefact index check failed:\n{protocols_index_proc.stdout}")
 
-        # Global archive link ban check (always blocking)
+        # Global archive link ban check — scope to changed protocol doc paths
+        protocols_doc_paths = [
+            p for p in changed_files
+            if p.endswith(".md") and p.startswith("docs/02_protocols/") and not p.endswith("/")
+        ]
+        protocols_link_cmd = [
+            sys.executable,
+            "-m",
+            "doc_steward.cli",
+            "docs-archive-link-ban-check",
+            str(repo_root),
+        ]
+        if protocols_doc_paths:
+            protocols_link_cmd += ["--paths"] + protocols_doc_paths
         protocols_link_proc = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "doc_steward.cli",
-                "docs-archive-link-ban-check",
-                str(repo_root),
-            ],
+            protocols_link_cmd,
             check=False,
             cwd=Path(repo_root),
             capture_output=True,
@@ -1043,15 +1047,22 @@ def check_doc_stewardship(
         if runtime_index_proc.returncode != 0:
             errors.append(f"Runtime artefact index check failed:\n{runtime_index_proc.stdout}")
 
-        # Global archive link ban check (always blocking)
+        # Global archive link ban check — scope to changed runtime doc paths
+        runtime_doc_paths = [
+            p for p in changed_files
+            if p.endswith(".md") and p.startswith("docs/03_runtime/") and not p.endswith("/")
+        ]
+        runtime_link_cmd = [
+            sys.executable,
+            "-m",
+            "doc_steward.cli",
+            "docs-archive-link-ban-check",
+            str(repo_root),
+        ]
+        if runtime_doc_paths:
+            runtime_link_cmd += ["--paths"] + runtime_doc_paths
         runtime_link_proc = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "doc_steward.cli",
-                "docs-archive-link-ban-check",
-                str(repo_root),
-            ],
+            runtime_link_cmd,
             check=False,
             cwd=Path(repo_root),
             capture_output=True,

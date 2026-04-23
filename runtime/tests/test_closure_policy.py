@@ -85,3 +85,75 @@ def test_review_checkpoint_uses_central_base_branch() -> None:
 def test_structured_doc_commands_are_centralized() -> None:
     policy = cp.get_tier_execution_policy("structured_docs")
     assert policy["targeted_pytest_commands"] == list(cp.STRUCTURED_DOC_PYTEST_COMMANDS)
+
+
+def test_classify_paths_config_light_yaml_only() -> None:
+    result = cp.classify_paths(["config/governance/delegation_envelope.yaml"])
+    assert result["closure_tier"] == "config_light"
+
+
+def test_classify_paths_config_quality_yaml_is_config_light() -> None:
+    result = cp.classify_paths(["config/quality/manifest.yaml"])
+    assert result["closure_tier"] == "config_light"
+
+
+def test_classify_paths_config_tasks_yaml_stays_full() -> None:
+    result = cp.classify_paths(["config/tasks/backlog.yaml"])
+    assert result["closure_tier"] == "full"
+
+
+def test_classify_paths_config_light_python_falls_to_full() -> None:
+    result = cp.classify_paths(["config/governance/loader.py"])
+    assert result["closure_tier"] == "full"
+
+
+def test_classify_paths_config_light_mixed_with_runtime_falls_to_full() -> None:
+    result = cp.classify_paths([
+        "config/governance/delegation_envelope.yaml",
+        "runtime/tools/workflow_pack.py",
+    ])
+    assert result["closure_tier"] == "full"
+
+
+def test_get_tier_execution_policy_config_light() -> None:
+    policy = cp.get_tier_execution_policy("config_light")
+    assert "yamllint" in policy["selected_checks"]
+    assert "targeted_pytest" in policy["selected_checks"]
+    assert policy["run_targeted_pytest"] is True
+    assert policy["run_doc_stewardship"] is False
+    assert policy["run_general_quality_gate"] is False
+    assert policy["run_review_checkpoint"] is False
+    assert policy["run_state_backlog_updates"] is False
+    assert policy["run_structured_backlog_updates"] is False
+    assert policy["run_runtime_status_regeneration"] is False
+    assert policy["post_merge_updates_suppressed"] is True
+
+
+def test_get_tier_execution_policy_fix_branch_skips_backlog_updates_for_config_light() -> None:
+    policy = cp.get_tier_execution_policy("config_light", branch_kind="fix")
+    assert policy["run_state_backlog_updates"] is False
+    assert policy["run_structured_backlog_updates"] is False
+    assert policy["run_runtime_status_regeneration"] is False
+    assert policy["run_review_checkpoint"] is False
+    assert policy["run_targeted_pytest"] is True
+
+
+def test_get_tier_execution_policy_hotfix_branch_behaves_like_fix() -> None:
+    policy = cp.get_tier_execution_policy("config_light", branch_kind="hotfix")
+    assert policy["run_state_backlog_updates"] is False
+    assert policy["run_review_checkpoint"] is False
+    assert policy["run_targeted_pytest"] is True
+
+
+def test_get_tier_execution_policy_fix_branch_does_not_relax_generic_full() -> None:
+    policy = cp.get_tier_execution_policy("full", branch_kind="fix")
+    assert policy["run_state_backlog_updates"] is True
+    assert policy["run_structured_backlog_updates"] is True
+    assert policy["run_runtime_status_regeneration"] is True
+    assert policy["run_review_checkpoint"] is True
+
+
+def test_get_tier_execution_policy_build_branch_unaffected() -> None:
+    policy_default = cp.get_tier_execution_policy("config_light")
+    policy_build = cp.get_tier_execution_policy("config_light", branch_kind="build")
+    assert policy_default == policy_build

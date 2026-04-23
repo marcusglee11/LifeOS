@@ -351,7 +351,12 @@ def run_closure(
     result["classification_reason"] = tier_info["classification_reason"]
     result["changed_paths"] = list(tier_info["changed_paths"])
     result["outcome"] = tier_info["outcome"]
-    policy = get_tier_execution_policy(tier_info["closure_tier"])
+    branch_kind = branch.split("/", 1)[0] if "/" in branch else None
+    policy = get_tier_execution_policy(
+        tier_info["closure_tier"],
+        branch_kind=branch_kind,
+        changed_paths=tier_info["changed_paths"],
+    )
     result["selected_checks"] = list(policy["selected_checks"])
     result["skipped_checks"] = list(policy["skipped_checks"])
     result["post_merge_updates_suppressed"] = bool(policy["post_merge_updates_suppressed"])

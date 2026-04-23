@@ -23,6 +23,11 @@ _STRUCTURED_DOC_PREFIXES = (
     "docs/02_protocols/",
     "docs/03_runtime/",
 )
+_CONFIG_LIGHT_PREFIXES = (
+    "config/governance/",
+    "config/quality/",
+)
+_CONFIG_LIGHT_SUFFIXES = frozenset({".yml", ".yaml", ".toml"})
 _FULL_PREFIXES = (
     "docs/00_foundations/",
     "docs/01_governance/",
@@ -90,6 +95,10 @@ def _classify_path(path: str) -> str:
         if normalized.startswith(_GENERAL_DOC_EXCLUDES):
             return "full"
         return "general_docs"
+    if normalized.startswith(_CONFIG_LIGHT_PREFIXES):
+        suffix = Path(normalized).suffix.lower()
+        if suffix in _CONFIG_LIGHT_SUFFIXES:
+            return "config_light"
     if normalized.startswith(_FULL_PREFIXES):
         return "full"
     if normalized.startswith(_KNOWN_TIER_ROOTS):
@@ -129,6 +138,12 @@ def classify_paths(paths: Sequence[str]) -> dict:
         return {
             "closure_tier": "structured_docs",
             "classification_reason": "All changed paths are structured docs under docs/02_protocols or docs/03_runtime.",
+            "changed_paths": normalized,
+        }
+    if categories == {"config_light"}:
+        return {
+            "closure_tier": "config_light",
+            "classification_reason": "All changed paths are light-tier config (config/governance/ or config/quality/) with safe suffixes.",
             "changed_paths": normalized,
         }
     return {
@@ -262,7 +277,15 @@ def resolve_closure_tier(repo_root: Path, head_ref: str = "HEAD") -> dict:
     }
 
 
-def get_tier_execution_policy(closure_tier: str) -> dict:
+_KIND_LIGHT_SUPPRESS_TIERS = frozenset({"config_light"})
+_KIND_LIGHT_KINDS = frozenset({"fix", "hotfix"})
+
+
+def get_tier_execution_policy(
+    closure_tier: str,
+    branch_kind: str | None = None,
+    changed_paths: Sequence[str] | None = None,
+) -> dict:
     policies = {
         "no_changes": {
             "selected_checks": [],
@@ -343,6 +366,28 @@ def get_tier_execution_policy(closure_tier: str) -> dict:
             "run_state_backlog_updates": False,
             "run_structured_backlog_updates": False,
         },
+        "config_light": {
+            "selected_checks": ["yamllint", "targeted_pytest"],
+            "skipped_checks": [
+                "quality_gate",
+                "doc_stewardship",
+                "markdownlint",
+                "review_checkpoint",
+                "runtime_status_regeneration",
+                "state_backlog_updates",
+                "structured_backlog_updates",
+            ],
+            "run_doc_stewardship": False,
+            "run_general_quality_gate": False,
+            "quality_tools": ["yamllint"],
+            "run_targeted_pytest": True,
+            "targeted_pytest_commands": [],
+            "run_review_checkpoint": False,
+            "post_merge_updates_suppressed": True,
+            "run_runtime_status_regeneration": False,
+            "run_state_backlog_updates": False,
+            "run_structured_backlog_updates": False,
+        },
         "full": {
             "selected_checks": ["targeted_pytest", "quality_gate", "doc_stewardship", "review_checkpoint"],
             "skipped_checks": [],
@@ -358,4 +403,14 @@ def get_tier_execution_policy(closure_tier: str) -> dict:
             "run_structured_backlog_updates": True,
         },
     }
-    return dict(policies.get(closure_tier, policies["full"]))
+    policy = dict(policies.get(closure_tier, policies["full"]))
+    if (
+        branch_kind in _KIND_LIGHT_KINDS
+        and closure_tier in _KIND_LIGHT_SUPPRESS_TIERS
+    ):
+        policy["run_review_checkpoint"] = False
+        policy["run_runtime_status_regeneration"] = False
+        policy["run_state_backlog_updates"] = False
+        policy["run_structured_backlog_updates"] = False
+        policy["post_merge_updates_suppressed"] = True
+    return policy

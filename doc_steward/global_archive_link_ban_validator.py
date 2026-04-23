@@ -11,12 +11,16 @@ Fail-closed: any violation is an error.
 """
 import re
 from pathlib import Path
+from typing import Sequence
 
 # Pattern to match markdown links: [text](url)
 LINK_PATTERN = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
 
 
-def check_global_archive_link_ban(repo_root: str) -> list[str]:
+def check_global_archive_link_ban(
+    repo_root: str,
+    paths: Sequence[str] | None = None,
+) -> list[str]:
     """
     Validate that active docs do not link into any archive paths.
 
@@ -26,6 +30,9 @@ def check_global_archive_link_ban(repo_root: str) -> list[str]:
 
     Args:
         repo_root: Path to repository root
+        paths: Optional list of repo-relative paths to restrict scanning to.
+               When provided, only those paths are checked. Structural
+               invariants (directory presence) are unaffected.
 
     Returns:
         List of error strings for violations (empty if valid)
@@ -37,8 +44,17 @@ def check_global_archive_link_ban(repo_root: str) -> list[str]:
     if not docs_path.exists():
         return []  # No docs directory, nothing to check
 
-    # Scan all markdown files in docs/
-    for md_file in docs_path.rglob("*.md"):
+    if paths is not None:
+        candidate_files = [
+            repo_path / p.replace("\\", "/")
+            for p in paths
+            if p.endswith(".md") and p.startswith("docs/")
+        ]
+        candidate_files = [f for f in candidate_files if f.exists()]
+    else:
+        candidate_files = list(docs_path.rglob("*.md"))
+
+    for md_file in candidate_files:
         rel_path = md_file.relative_to(repo_path)
 
         # Skip files that are themselves inside any archive

@@ -112,7 +112,8 @@ def cmd_admin_structure_check(args: argparse.Namespace) -> int:
 def cmd_admin_archive_link_ban_check(args: argparse.Namespace) -> int:
     """Run admin archive link ban validation."""
     repo_root = str(Path(args.repo_root).resolve())
-    errors = check_admin_archive_link_ban(repo_root)
+    paths = args.paths if hasattr(args, "paths") and args.paths else None
+    errors = check_admin_archive_link_ban(repo_root, paths=paths)
 
     if errors:
         print(f"[FAILED] Admin archive link ban check failed ({len(errors)} errors):\n")
@@ -202,7 +203,8 @@ def cmd_archive_structure_check(args: argparse.Namespace) -> int:
 def cmd_docs_archive_link_ban_check(args: argparse.Namespace) -> int:
     """Run global archive link ban validation."""
     repo_root = str(Path(args.repo_root).resolve())
-    errors = check_global_archive_link_ban(repo_root)
+    paths = args.paths if hasattr(args, "paths") and args.paths else None
+    errors = check_global_archive_link_ban(repo_root, paths=paths)
 
     if errors:
         print(f"[FAILED] Archive link ban check failed ({len(errors)} errors):\n")
@@ -293,6 +295,7 @@ def main() -> int:
     # admin-archive-link-ban-check
     p_admin_archive = subparsers.add_parser("admin-archive-link-ban-check", help="Check for links to archived docs")
     p_admin_archive.add_argument("repo_root", help="Repository root directory")
+    p_admin_archive.add_argument("--paths", nargs="+", default=None, help="Repo-relative paths to restrict scanning to")
     p_admin_archive.set_defaults(func=cmd_admin_archive_link_ban_check)
 
     # freshness-check
@@ -318,6 +321,7 @@ def main() -> int:
     # docs-archive-link-ban-check
     p_link_ban = subparsers.add_parser("docs-archive-link-ban-check", help="Check for links to archived docs (global)")
     p_link_ban.add_argument("repo_root", help="Repository root directory")
+    p_link_ban.add_argument("--paths", nargs="+", default=None, help="Repo-relative paths to restrict scanning to")
     p_link_ban.set_defaults(func=cmd_docs_archive_link_ban_check)
 
     # artefact-index-check

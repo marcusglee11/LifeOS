@@ -28,16 +28,18 @@ def test_route_quality_tools_markdown_is_style_only() -> None:
     assert routed["mypy"] == []
 
 
-def test_route_quality_tools_config_only_markdown_change_runs_docs(monkeypatch) -> None:
+def test_route_quality_tools_config_only_markdown_change_no_fan_out(monkeypatch) -> None:
     monkeypatch.setattr(
         "runtime.tools.workflow_pack._git_tracked_files",
         lambda repo_root: ["docs/02_protocols/example.md", "runtime/tools/workflow_pack.py"],
     )
     routed = route_quality_tools(Path("."), [".markdownlint.json"], scope="changed")
-    assert routed["markdownlint"] == ["docs/02_protocols/example.md"]
+    assert routed["markdownlint"] == [], (
+        "markdownlint config change should not expand to tracked docs — run repo-scope explicitly"
+    )
 
 
-def test_route_quality_tools_config_only_yaml_change_runs_yaml(monkeypatch) -> None:
+def test_route_quality_tools_config_only_yaml_change_no_fan_out(monkeypatch) -> None:
     monkeypatch.setattr(
         "runtime.tools.workflow_pack._git_tracked_files",
         lambda repo_root: [
@@ -47,7 +49,9 @@ def test_route_quality_tools_config_only_yaml_change_runs_yaml(monkeypatch) -> N
         ],
     )
     routed = route_quality_tools(Path("."), [".yamllint.yml"], scope="changed")
-    assert routed["yamllint"] == [".github/workflows/ci.yml", "config/quality/manifest.yaml"]
+    assert routed["yamllint"] == [], (
+        "yamllint config change should not expand to tracked yamls — run repo-scope explicitly"
+    )
 
 
 def test_run_quality_gates_blocks_on_blocking_failure(monkeypatch) -> None:
