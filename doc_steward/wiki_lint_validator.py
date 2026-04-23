@@ -4,10 +4,12 @@ Wiki lint validator for .context/wiki/ layer.
 Checks:
 - Required frontmatter fields on all wiki pages (source_docs, source_commit_max, authority,
   page_class, concepts)
+- Required frontmatter field VALUES: authority must equal "derived"; page_class must be
+  "evergreen" or "status"; concepts must be non-empty; source_docs must be non-empty
 - All source_docs paths resolve to files under docs/ (no directories, no non-docs/ paths)
 - source_commit_max matches actual newest git commit among declared sources
-- Required body sections present: Summary, Key Relationships, Authority Note, Current Truth,
-  Open Questions
+- Required body sections present in ORDER: Summary, Key Relationships, Authority Note,
+  Current Truth, Open Questions
 - All pages listed in SCHEMA.md page index exist; no orphaned pages
 """
 import re
@@ -16,13 +18,14 @@ from pathlib import Path
 
 
 _REQUIRED_FRONTMATTER = {"source_docs", "source_commit_max", "authority", "page_class", "concepts"}
-_REQUIRED_SECTIONS = {
+_REQUIRED_SECTIONS = (
     "## Summary",
     "## Key Relationships",
     "## Authority Note",
     "## Current Truth",
     "## Open Questions",
-}
+)
+_VALID_PAGE_CLASSES = frozenset({"evergreen", "status"})
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---", re.DOTALL)
 _FIELD_RE = re.compile(r"^(\w+):", re.MULTILINE)
 _PAGE_TABLE_RE = re.compile(r"`([a-z0-9_-]+\.md)`")
@@ -66,6 +69,44 @@ def _parse_field(text: str, field: str) -> str | None:
             val = stripped.split(":", 1)[1].strip()
             return val if val else None
     return None
+
+
+def _parse_list_field(text: str, field: str) -> list[str]:
+    """Extract a YAML list field from frontmatter."""
+    m = _FRONTMATTER_RE.match(text)
+    if not m:
+        return []
+    fm = m.group(1)
+    in_list = False
+    items: list[str] = []
+    for line in fm.splitlines():
+        if line.strip().startswith(f"{field}:"):
+            in_list = True
+            continue
+        if in_list:
+            if line.startswith("  - "):
+                items.append(line.strip().lstrip("- ").strip())
+            elif line and not line.startswith(" "):
+                break
+    return items
+
+
+def _validate_frontmatter_values(page_name: str, text: str) -> list[str]:
+    """Validate frontmatter field values, not just presence."""
+    errors = []
+    authority = _parse_field(text, "authority")
+    if authority != "derived":
+        errors.append(f"{page_name}: authority must be 'derived', got '{authority}'")
+    page_class = _parse_field(text, "page_class")
+    if page_class not in _VALID_PAGE_CLASSES:
+        errors.append(
+            f"{page_name}: page_class must be 'evergreen' or 'status', got '{page_class}'"
+        )
+    if not _parse_list_field(text, "concepts"):
+        errors.append(f"{page_name}: concepts must be a non-empty list")
+    if not _parse_source_docs(text):
+        errors.append(f"{page_name}: source_docs must be a non-empty list")
+    return errors
 
 
 def _compute_source_commit_max(source_docs: list[str], cwd: Path) -> str | None:
@@ -124,11 +165,20 @@ def _validate_source_commit_max(
 
 
 def _validate_required_sections(page_name: str, text: str) -> list[str]:
-    """Check that required body sections exist as ## headings."""
+    """Check that required body sections exist in order."""
     errors = []
-    for section in _REQUIRED_SECTIONS:
-        if section not in text:
+    positions = [text.find(s) for s in _REQUIRED_SECTIONS]
+    for section, pos in zip(_REQUIRED_SECTIONS, positions):
+        if pos == -1:
             errors.append(f"{page_name}: missing required section '{section}'")
+    if errors:
+        return errors
+    for i in range(len(positions) - 1):
+        if positions[i] >= positions[i + 1]:
+            errors.append(
+                f"{page_name}: section order violation — '{_REQUIRED_SECTIONS[i]}'"
+                f" must appear before '{_REQUIRED_SECTIONS[i + 1]}'"
+            )
     return errors
 
 
@@ -201,6 +251,9 @@ def check_wiki_lint(repo_root: str) -> list[str]:
                 f"{page.name}: missing frontmatter fields: {', '.join(sorted(missing))}"
             )
             continue
+
+        # Validate frontmatter values
+        errors.extend(_validate_frontmatter_values(page.name, text))
 
         source_docs = _parse_source_docs(text)
 

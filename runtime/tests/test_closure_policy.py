@@ -157,3 +157,28 @@ def test_get_tier_execution_policy_build_branch_unaffected() -> None:
     policy_default = cp.get_tier_execution_policy("config_light")
     policy_build = cp.get_tier_execution_policy("config_light", branch_kind="build")
     assert policy_default == policy_build
+
+
+def test_classify_paths_context_wiki_is_wiki_tier() -> None:
+    result = cp.classify_paths([".context/wiki/home.md"])
+    assert result["closure_tier"] == "wiki"
+
+
+def test_classify_paths_wiki_mixed_with_runtime_is_full() -> None:
+    result = cp.classify_paths([
+        ".context/wiki/home.md",
+        "runtime/tools/workflow_pack.py",
+    ])
+    assert result["closure_tier"] == "full"
+
+
+def test_get_tier_execution_policy_wiki() -> None:
+    policy = cp.get_tier_execution_policy("wiki")
+    assert policy["run_targeted_pytest"] is True
+    assert policy["run_doc_stewardship"] is False
+    assert policy["run_general_quality_gate"] is False
+    assert policy["run_review_checkpoint"] is False
+    assert policy["run_state_backlog_updates"] is False
+    assert policy["run_structured_backlog_updates"] is False
+    assert policy["run_runtime_status_regeneration"] is False
+    assert policy["post_merge_updates_suppressed"] is True

@@ -249,3 +249,102 @@ def test_compliant_page_passes_all_new_checks(wiki_root):
     (wiki_dir / "compliant.md").write_text(_compliant_page(real_sha))
     errors = check_wiki_lint(str(tmp_path))
     assert not any("compliant.md" in e for e in errors)
+
+
+# ── Value-validation regression tests ─────────────────────────────────────────
+
+def test_rejects_authority_not_derived(wiki_root):
+    tmp_path, wiki_dir, real_sha = wiki_root
+    (wiki_dir / "SCHEMA.md").write_text(_schema_with_pages("bad_auth.md"))
+    content = _compliant_page(real_sha).replace("authority: derived", "authority: canonical")
+    (wiki_dir / "bad_auth.md").write_text(content)
+    errors = check_wiki_lint(str(tmp_path))
+    assert any("bad_auth.md" in e and "authority" in e for e in errors)
+
+
+def test_rejects_invalid_page_class(wiki_root):
+    tmp_path, wiki_dir, real_sha = wiki_root
+    (wiki_dir / "SCHEMA.md").write_text(_schema_with_pages("bad_class.md"))
+    content = _compliant_page(real_sha).replace("page_class: evergreen", "page_class: wiki")
+    (wiki_dir / "bad_class.md").write_text(content)
+    errors = check_wiki_lint(str(tmp_path))
+    assert any("bad_class.md" in e and "page_class" in e for e in errors)
+
+
+def test_rejects_empty_concepts(wiki_root):
+    tmp_path, wiki_dir, real_sha = wiki_root
+    (wiki_dir / "SCHEMA.md").write_text(_schema_with_pages("empty_concepts.md"))
+    content = _compliant_page(real_sha).replace("concepts:\n  - test\n", "concepts:\n")
+    (wiki_dir / "empty_concepts.md").write_text(content)
+    errors = check_wiki_lint(str(tmp_path))
+    assert any("empty_concepts.md" in e and "concepts" in e for e in errors)
+
+
+def test_rejects_empty_source_docs(wiki_root):
+    tmp_path, wiki_dir, real_sha = wiki_root
+    (wiki_dir / "SCHEMA.md").write_text(_schema_with_pages("no_sources.md"))
+    content = _compliant_page(real_sha).replace(
+        "source_docs:\n  - docs/some_doc.md\n", "source_docs:\n"
+    )
+    (wiki_dir / "no_sources.md").write_text(content)
+    errors = check_wiki_lint(str(tmp_path))
+    assert any("no_sources.md" in e and "source_docs" in e for e in errors)
+
+
+def test_enforces_required_section_order(wiki_root):
+    """Sections present but in wrong order must be an error."""
+    tmp_path, wiki_dir, real_sha = wiki_root
+    (wiki_dir / "SCHEMA.md").write_text(_schema_with_pages("bad_order.md"))
+    content = _compliant_page(real_sha)
+    content = content.replace(
+        "## Summary\n\nTest summary.\n\n"
+        "## Key Relationships\n\nNone.\n\n"
+        "## Authority Note\n\nCanonical source: `docs/some_doc.md`. That document wins.\n\n"
+        "## Current Truth\n\nTest truth.\n\n"
+        "## Open Questions\n\nNone.\n",
+        "## Open Questions\n\nNone.\n\n"
+        "## Key Relationships\n\nNone.\n\n"
+        "## Authority Note\n\nCanonical source: `docs/some_doc.md`. That document wins.\n\n"
+        "## Current Truth\n\nTest truth.\n\n"
+        "## Summary\n\nTest summary.\n",
+    )
+    (wiki_dir / "bad_order.md").write_text(content)
+    errors = check_wiki_lint(str(tmp_path))
+    assert any("bad_order.md" in e and "order" in e.lower() for e in errors)
+
+
+def test_multi_source_commit_max_uses_newest_commit(wiki_root):
+    """source_commit_max must be the newest commit across all source_docs."""
+    tmp_path, wiki_dir, real_sha = wiki_root
+    (tmp_path / "docs" / "second_doc.md").write_text("# Second\n")
+    subprocess.run(["git", "add", "docs/second_doc.md"], cwd=tmp_path, capture_output=True)
+    subprocess.run(["git", "commit", "-m", "second"], cwd=tmp_path, capture_output=True)
+    newer_sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=tmp_path, capture_output=True, text=True
+    ).stdout.strip()
+
+    (wiki_dir / "SCHEMA.md").write_text(_schema_with_pages("multi.md"))
+    content = (
+        f"---\n"
+        f"source_docs:\n"
+        f"  - docs/some_doc.md\n"
+        f"  - docs/second_doc.md\n"
+        f"source_commit_max: {real_sha}\n"
+        f"authority: derived\n"
+        f"page_class: evergreen\n"
+        f"concepts:\n  - test\n"
+        f"---\n\n"
+        f"## Summary\n\nTest.\n\n"
+        f"## Key Relationships\n\nNone.\n\n"
+        f"## Authority Note\n\nCanonical source: `docs/some_doc.md`. Wins.\n\n"
+        f"## Current Truth\n\nTest.\n\n"
+        f"## Open Questions\n\nNone.\n"
+    )
+    (wiki_dir / "multi.md").write_text(content)
+    errors = check_wiki_lint(str(tmp_path))
+    assert any("multi.md" in e and "stale" in e.lower() for e in errors)
+
+    fixed = content.replace(real_sha, newer_sha)
+    (wiki_dir / "multi.md").write_text(fixed)
+    errors = check_wiki_lint(str(tmp_path))
+    assert not any("multi.md" in e for e in errors)

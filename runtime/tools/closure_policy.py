@@ -99,6 +99,8 @@ def _classify_path(path: str) -> str:
         suffix = Path(normalized).suffix.lower()
         if suffix in _CONFIG_LIGHT_SUFFIXES:
             return "config_light"
+    if normalized.startswith(".context/wiki/"):
+        return "wiki"
     if normalized.startswith(_FULL_PREFIXES):
         return "full"
     if normalized.startswith(_KNOWN_TIER_ROOTS):
@@ -144,6 +146,12 @@ def classify_paths(paths: Sequence[str]) -> dict:
         return {
             "closure_tier": "config_light",
             "classification_reason": "All changed paths are light-tier config (config/governance/ or config/quality/) with safe suffixes.",
+            "changed_paths": normalized,
+        }
+    if categories == {"wiki"}:
+        return {
+            "closure_tier": "wiki",
+            "classification_reason": "All changed paths are wiki layer files under .context/wiki/.",
             "changed_paths": normalized,
         }
     return {
@@ -380,6 +388,29 @@ def get_tier_execution_policy(
             "run_doc_stewardship": False,
             "run_general_quality_gate": False,
             "quality_tools": ["yamllint"],
+            "run_targeted_pytest": True,
+            "targeted_pytest_commands": [],
+            "run_review_checkpoint": False,
+            "post_merge_updates_suppressed": True,
+            "run_runtime_status_regeneration": False,
+            "run_state_backlog_updates": False,
+            "run_structured_backlog_updates": False,
+        },
+        "wiki": {
+            "selected_checks": ["targeted_pytest"],
+            "skipped_checks": [
+                "quality_gate",
+                "doc_stewardship",
+                "markdownlint",
+                "yamllint",
+                "review_checkpoint",
+                "runtime_status_regeneration",
+                "state_backlog_updates",
+                "structured_backlog_updates",
+            ],
+            "run_doc_stewardship": False,
+            "run_general_quality_gate": False,
+            "quality_tools": [],
             "run_targeted_pytest": True,
             "targeted_pytest_commands": [],
             "run_review_checkpoint": False,

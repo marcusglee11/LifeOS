@@ -169,6 +169,12 @@ def test_route_targeted_tests_wiki_does_not_fallback_to_full_suite() -> None:
     assert "pytest -q runtime/tests/test_wiki_lint_validator.py" in commands
 
 
+def test_route_targeted_tests_wiki_with_explicit_wiki_tier() -> None:
+    # Explicit closure_tier="wiki" must not break wiki routing.
+    commands = route_targeted_tests([".context/wiki/home.md"], closure_tier="wiki")
+    assert commands == ["pytest -q runtime/tests/test_wiki_lint_validator.py"]
+
+
 def test_route_targeted_tests_coo_module() -> None:
     commands = route_targeted_tests(["runtime/orchestration/coo/backlog.py"])
     assert commands == ["pytest -q runtime/tests/orchestration/coo/"]

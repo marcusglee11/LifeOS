@@ -28,6 +28,33 @@ doc under `docs/**`, the canonical doc wins. Never treat wiki pages as source of
 8. Operational reality not yet canonized under `docs/**` MUST NOT be added to wiki
    pages. Canonize it under `docs/**` first, then source from there.
 
+## Guarantee Tiers
+
+Wiki-lint enforces three classes of guarantee with different enforcement mechanisms:
+
+### Structural (mechanically enforced by tooling)
+
+- All required frontmatter fields present (`source_docs`, `source_commit_max`, `authority`, `page_class`, `concepts`)
+- Field VALUES: `authority` must equal `"derived"`; `page_class` must be `"evergreen"` or `"status"`; `concepts` must be non-empty; `source_docs` must be non-empty
+- All required body sections present **in order**: `## Summary`, `## Key Relationships`, `## Authority Note`, `## Current Truth`, `## Open Questions`
+- All pages listed in the Page Index exist on disk; no orphaned pages outside the index
+- All `source_docs` paths resolve to files under `docs/**` (not directories, not other roots)
+
+### Freshness (mechanically enforced by tooling)
+
+- `source_commit_max` MUST equal `git log -1 --format=%H -- <all source_docs files>`
+- Tooling rejects any page whose stored SHA does not match the computed newest-commit SHA across ALL declared source docs
+
+### Semantic (not mechanically enforced — requires human or Council review)
+
+- `page_class: evergreen` pages must not contain volatile phase/progress claims (Invariant 6)
+- Conflicts between source docs must be surfaced with `> [!CONFLICT]` (Invariant 7)
+- Operational reality not yet canonized under `docs/**` must not be added to wiki pages (Invariant 8)
+
+**Passing wiki-lint proves structural integrity and source freshness only. It does NOT prove
+semantic correctness or that the wiki accurately reflects current system state. Semantic
+accuracy requires human review of page content.**
+
 ## Required Frontmatter (every page)
 
 ```yaml
