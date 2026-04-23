@@ -2,7 +2,7 @@
 source_docs:
   - docs/02_protocols/OpenClaw_COO_Integration_v1.0.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: 7c3464d6a229e8530cda12c3bade71d027a7fe6a
+source_commit_max: 310aac1e0eda5cb96842d8a596bbadacbf4935f9
 authority: derived
 page_class: evergreen
 concepts:

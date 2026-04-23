@@ -2,7 +2,7 @@
 source_docs:
   - docs/INDEX.md
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
-source_commit_max: 369b18c1384fcc4cfd3703a9d5f531380e494c6d
+source_commit_max: 310aac1e0eda5cb96842d8a596bbadacbf4935f9
 authority: derived
 page_class: evergreen
 concepts:

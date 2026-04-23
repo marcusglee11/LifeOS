@@ -4,7 +4,7 @@ source_docs:
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
   - docs/02_protocols/Intent_Routing_Rule_v1.1.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: 7c3464d6a229e8530cda12c3bade71d027a7fe6a
+source_commit_max: 310aac1e0eda5cb96842d8a596bbadacbf4935f9
 authority: derived
 page_class: evergreen
 concepts:

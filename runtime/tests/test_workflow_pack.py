@@ -154,6 +154,21 @@ def test_route_targeted_tests_artifacts_status() -> None:
     assert commands == []
 
 
+def test_route_targeted_tests_wiki_content() -> None:
+    # Wiki content changes route to wiki lint validator test, not the full suite.
+    commands = route_targeted_tests([".context/wiki/home.md"])
+    assert commands == ["pytest -q runtime/tests/test_wiki_lint_validator.py"]
+
+
+def test_route_targeted_tests_wiki_does_not_fallback_to_full_suite() -> None:
+    # Multiple wiki files must NOT trigger the full suite fallback.
+    commands = route_targeted_tests(
+        [".context/wiki/home.md", ".context/wiki/agent-roles.md", ".context/wiki/SCHEMA.md"]
+    )
+    assert "pytest -q runtime/tests" not in commands
+    assert "pytest -q runtime/tests/test_wiki_lint_validator.py" in commands
+
+
 def test_route_targeted_tests_coo_module() -> None:
     commands = route_targeted_tests(["runtime/orchestration/coo/backlog.py"])
     assert commands == ["pytest -q runtime/tests/orchestration/coo/"]
