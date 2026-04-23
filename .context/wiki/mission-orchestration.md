@@ -1,65 +1,61 @@
 ---
 source_docs:
   - docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md
-  - runtime/mission/
-  - runtime/orchestration/
-last_updated: bf4d9ecd
+  - docs/00_foundations/LifeOS Target Architecture v2.3c.md
+  - docs/11_admin/LIFEOS_STATE.md
+source_commit_max: bf4d9ecd01e5124584e96a42b95f16c7f39e3fd2
+authority: derived
+page_class: status
 concepts:
   - mission
   - orchestration
-  - Tier-2
-  - Tier-3
   - executor
   - pipeline
+  - tier model
 ---
-
-# Mission Orchestration
 
 ## Summary
 
-LifeOS uses a tiered orchestration model. Tier-3 is the mission registry
-(long-horizon goals). Tier-2 is execution orchestration (task dispatch,
-sandboxed execution, result collection). Sprint agents operate at Tier-1
-(bounded file-level changes in isolated worktrees).
+LifeOS orchestrates work through a tiered mission model (runtime specs) and a phased
+CEO→COO→EA control plane (target architecture). These two models may represent compatible
+layers or competing designs — see Open Questions.
 
 ## Key Relationships
 
-- **[coo-runtime](coo-runtime.md)** — runtime engine drives Tier-2 execution.
-- **[agent-roles](agent-roles.md)** — COO plans; Engineer/QA execute.
-- **[backlog-task-system](backlog-task-system.md)** — missions originate from approved tasks.
-- **Source**: `runtime/mission/` (Tier-3 registry), `runtime/orchestration/` (Tier-2 execution)
+- [coo-runtime](coo-runtime.md) — FSM, message bus, and runtime details
+- [agent-roles](agent-roles.md) — actor types for each tier
+- [target-architecture](target-architecture.md) — current canonical control-plane model
+- Source: `docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md`
+- Source: `docs/00_foundations/LifeOS Target Architecture v2.3c.md`
+- Source: `docs/11_admin/LIFEOS_STATE.md` — executor merge status
 
-## Tier Model
+## Authority Note
 
-| Tier | Layer | Owner | Scope |
-|------|-------|-------|-------|
-| Tier-3 | Mission registry | COO | Long-horizon goals, multi-sprint |
-| Tier-2 | Execution orchestration | COO Runtime | Task dispatch, sandbox, result collection |
-| Tier-1 | Sprint execution | Sprint agents | Bounded file edits in worktrees |
+Canonical source for target state: `docs/00_foundations/LifeOS Target Architecture v2.3c.md`.
+Canonical source for runtime spec: `docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md`.
+These sources conflict — see Open Questions. Executor merge status sourced from
+`docs/11_admin/LIFEOS_STATE.md`.
 
-## Executor Types (Phase 10+)
+## Current Truth
 
-| Executor | Capability | Status |
-|----------|-----------|--------|
-| `workspace_mutation_v1` | File read/write ops | Ratified (Phase 9) |
-| `workspace_inspection_v1` | Repo inspection | Merged (Phase 10 Batch 1) |
-| `repo_artifact_v1` | Artifact management | Merged (Phase 10 Batch 2) |
+**Implementation history (COO_Runtime_Core_Spec_v1.0.md — Tier model):**
+- Tier-3: mission registry (long-horizon goals, COO)
+- Tier-2: execution orchestration (task dispatch, result collection)
+- Tier-1: sprint execution (bounded file edits in worktrees)
 
-## Mission Lifecycle (Tier-3)
+Executor types (per spec): `workspace_mutation_v1`, `workspace_inspection_v1`, `repo_artifact_v1`.
+Merge status per `docs/11_admin/LIFEOS_STATE.md`: `workspace_mutation_v1` ratified;
+`workspace_inspection_v1` and `repo_artifact_v1` merged (Phase 10).
 
-```
-mission created → COO decomposes → tasks proposed → approved
-→ ExecutionOrders dispatched → Tier-2 executes → results collected
-→ mission updated → next iteration or completion
-```
-
-## Current State
-
-Phase 10 Batch 1+2 executors live on main. Tier-2 orchestration active;
-COO invoking via OpenClaw gateway. See [coo-runtime](coo-runtime.md) for
-runtime FSM details and [backlog-task-system](backlog-task-system.md)
-for current phase status.
+**Canonical target (LifeOS Target Architecture v2.3c.md):**
+CEO→COO→EA via GitHub issues as work orders. EAs are stateless workers triggered by
+GitHub Actions. COO reconciles results and reports to CEO. COO Commons provides
+deterministic shared-services layer (webhook ingestion, schema validation, phase config).
 
 ## Open Questions
 
-None currently flagged.
+> [!CONFLICT] `docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md` describes a Tier-1/2/3
+> orchestration model with a SQLite message bus and FSM. `docs/00_foundations/LifeOS Target
+> Architecture v2.3c.md` describes a CEO→COO→EA model with GitHub as the relay bus. These
+> may be (a) compatible layerings at different abstraction levels, (b) old spec vs. target
+> state, or (c) competing designs. Resolution requires explicit Council ruling or doc update.

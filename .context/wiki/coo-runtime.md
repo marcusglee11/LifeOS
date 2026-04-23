@@ -2,75 +2,64 @@
 source_docs:
   - docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md
   - docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md
-  - runtime/engine.py
-last_updated: bf4d9ecd
+  - docs/00_foundations/LifeOS Target Architecture v2.3c.md
+  - docs/11_admin/LIFEOS_STATE.md
+source_commit_max: bf4d9ecd01e5124584e96a42b95f16c7f39e3fd2
+authority: derived
+page_class: status
 concepts:
   - FSM
-  - message bus
-  - budget enforcement
-  - sandbox
   - orchestration
   - COO runtime
+  - build spec
 ---
-
-# COO Runtime
 
 ## Summary
 
-The COO Runtime is a multi-agent orchestration system: CEO issues missions,
-COO plans, Engineer codes, QA reviews. All communication flows through a
-durable SQLite message bus. Hard budget enforcement and network-isolated Docker
-sandboxing are non-negotiable constraints, not configuration.
+The COO runtime specs (`docs/03_runtime/`) describe a multi-agent orchestration system
+with a FSM lifecycle, durable message store, budget enforcement, and Docker sandboxing.
+The target architecture (`docs/00_foundations/LifeOS Target Architecture v2.3c.md`) describes
+a CEO→COO→EA control plane using GitHub as relay bus. See Open Questions for conflict.
 
 ## Key Relationships
 
-- **[agent-roles](agent-roles.md)** — defines who does what in the pipeline.
-- **[mission-orchestration](mission-orchestration.md)** — Tier-2/3 mission lifecycle above the runtime.
-- **Source specs** → `docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md`, `COO_Runtime_Clean_Build_Spec_v1.1.md`
+- [target-architecture](target-architecture.md) — current canonical architecture model
+- [agent-roles](agent-roles.md) — actor definitions
+- [mission-orchestration](mission-orchestration.md) — mission lifecycle
+- Source: `docs/03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md`
+- Source: `docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md`
+- Source: `docs/00_foundations/LifeOS Target Architecture v2.3c.md`
+- Source: `docs/11_admin/LIFEOS_STATE.md` — current operational state
 
-## FSM States
+## Authority Note
 
-```
-created → planning → executing → reviewing → completed
-                                           ↘ failed
-         paused_budget / paused_approval (recoverable)
-```
+Canonical source for target state: `docs/00_foundations/LifeOS Target Architecture v2.3c.md`.
+Canonical source for runtime spec history: `docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md`.
+These sources conflict — see Open Questions. Current operational state sourced from
+`docs/11_admin/LIFEOS_STATE.md`.
 
-## Message Bus
+## Current Truth
 
-- Transport: SQLite (no OpenAI runtime dependency)
-- Message kinds: `TASK`, `RESULT`, `STREAM`, `ERROR`, `APPROVAL`, `SANDBOX_EXECUTE`, `CONTROL`, `QUESTION`, `SYSTEM`
-- Backpressure: hard pause at >50 pending messages; resume at <30
-- Context window: mission desc + last 5 messages (no summarization in v1.0)
+**Implementation history (COO_Runtime_Core_Spec_v1.0.md):**
+This spec describes a multi-agent FSM runtime with SQLite message bus, Engineer/QA/COO roles,
+and Docker sandbox. States: `created → planning → executing → reviewing → completed | failed`.
+Recoverable pauses: `paused_budget`, `paused_approval`. Budget enforcement: pre-call check,
+post-call rollback, max 3 increase requests. Sandbox: Docker `--network none`, non-root.
 
-## Budget Enforcement
+**Canonical target (LifeOS Target Architecture v2.3c.md):**
+COO validates CEO commands and creates GitHub issues as work orders. EAs execute stateless
+from issue body via GitHub Actions. Results posted as comments; COO reconciles.
 
-- Safety margin: 0.95 (stops at 95% of budget cap)
-- Pre-call check: `worst_case = max_tokens × price_per_1k_output`; if `spent + worst_case > cap × 0.95` → `paused_budget`
-- Post-call rollback: if actual cost exceeds limit, revert artifacts and spent counter
-- Max 3 budget increase requests per mission
-
-## Sandbox
-
-```
-docker run --network none --user 1000:1000 \
-  --security-opt=no-new-privileges -m 512m --cpus 0.5
-```
-
-Non-root, resource-limited, fully network-isolated. No exceptions.
-
-## Crash Recovery
-
-- Stale messages reclaimed after 5-min heartbeat timeout
-- `sandbox_runs` abandoned if `started_at < now - 10min` → marked failed
-- Orchestrator kill+restart is a tested scenario
-
-## Current State
-
-Spec at v1.1 Clean Build. 4 active build threads: Runtime Core, User Surface,
-Governance, Productisation. Phase 0-4 implementation pipeline. Phase 0 = core
-DB + message store.
+**Current operational state (LIFEOS_STATE.md):**
+COO is currently invoked via OpenClaw gateway. FSM runtime is not the active execution model.
 
 ## Open Questions
 
-None currently flagged.
+> [!CONFLICT] `docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md` describes a SQLite message
+> bus, Engineer/QA/COO multi-agent model, and Docker sandboxed execution as the runtime
+> design. `docs/00_foundations/LifeOS Target Architecture v2.3c.md` (2026-04-17) describes
+> a different model: CEO→COO→EA via GitHub issues and Actions.
+>
+> These may represent (a) implementation history vs. aspirational target, (b) different
+> system layers, or (c) a superseded vs. current design. Resolution needed: which spec
+> is canonical for the current operating model?

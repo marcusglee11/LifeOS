@@ -3,7 +3,9 @@ source_docs:
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
   - docs/02_protocols/Council_Protocol_v1.3.md
   - docs/02_protocols/Governance_Protocol_v1.0.md
-last_updated: bf4d9ecd
+source_commit_max: e1a968bd4087d4cbe5000c04753f66b04a1594f7
+authority: derived
+page_class: evergreen
 concepts:
   - CEO supremacy
   - hard invariants
@@ -12,45 +14,43 @@ concepts:
   - amendment
 ---
 
-# Governance Model
-
 ## Summary
 
-LifeOS is a CEO augmentation system: the CEO is the sole source of strategic
-intent and ultimate authority. The system amplifies human agency — it does not
-originate intent. The Constitution v2.0 (effective 2026-01-01) is the supreme
-governing document; all other docs and agent behaviors must conform to it.
+CEO is the sole source of strategic intent; the system amplifies human agency and does
+not originate it. Constitution v2.0 (effective 2026-01-01) is the supreme governing
+document. All docs, protocols, and agent behaviors must conform to it.
 
 ## Key Relationships
 
-- **CEO** — sole authority; all non-reversible actions require explicit CEO authorization. See [agent-roles](agent-roles.md).
-- **Council** — multi-agent deliberative body; governs amendment and policy changes. See [protocols-index](protocols-index.md) → `Council_Protocol_v1.3.md`.
-- **Protected paths** — `docs/00_foundations/` and `docs/01_governance/` require Council approval to modify.
-- **Hard invariants** — non-negotiable, detectable; any violation is a system fault.
+- [agent-roles](agent-roles.md) — CEO and COO role definitions
+- [target-architecture](target-architecture.md) — operational control-plane under governance
+- Source: `docs/00_foundations/LifeOS_Constitution_v2.0.md` — supreme
+- Source: `docs/02_protocols/Council_Protocol_v1.3.md` — Council composition and rulings
+- Source: `docs/02_protocols/Governance_Protocol_v1.0.md` — governance procedures
 
-## Hard Invariants
+## Authority Note
 
-| Invariant | Meaning |
-|-----------|---------|
-| CEO Supremacy | CEO intent overrides all agent decisions |
-| Audit Completeness | All actions must be logged and traceable |
-| Reversibility | Prefer reversible actions; irreversible requires CEO authorization |
-| Amendment Discipline | All amendments logged with rationale; emergency amendments reviewed within 30d |
+Canonical source: `docs/00_foundations/LifeOS_Constitution_v2.0.md`. That document wins
+on any conflict with this page.
 
-## Guiding Principles (interpretive, not absolute)
+## Current Truth
 
-- Prefer action over paralysis
-- Reversible over irreversible
-- External outcomes over internal elegance
-- Automation over human labor
-- Transparency over opacity
+**Hard invariants (non-negotiable):**
 
-## Current State
+| Invariant | Rule |
+|-----------|------|
+| CEO Supremacy | All strategic intent originates from CEO only |
+| Audit Completeness | Every state-changing action must be traceable |
+| Reversibility | Prefer reversible actions; gate irreversible ones |
+| Amendment Discipline | Constitution changes require Council ratification |
 
-Constitution v2.0 active since 2026-01-01. Council protocol at v1.3.
-Phase 7 (`prod_ci`) is the current active phase; Phase 9 ratification complete
-(`workspace_mutation_v1` approved). See [backlog-task-system](backlog-task-system.md).
+**Guiding principles:** action > paralysis; reversible > irreversible; explicit > implicit;
+human-in-loop for high-stakes; safe > fast.
+
+**Protected paths (Council approval required):** `docs/00_foundations/`, `docs/01_governance/`,
+`config/governance/protected_artefacts.json`.
 
 ## Open Questions
 
-None currently flagged.
+For current operational phase, active workstreams, and WIP status, see
+`docs/11_admin/LIFEOS_STATE.md` directly — governance-model.md does not carry volatile state.

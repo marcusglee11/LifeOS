@@ -21,6 +21,7 @@
     { "path": "docs/02_protocols/G-CBS_Standard_v1.1.md" },
     { "path": "docs/02_protocols/Git_Workflow_Protocol_v1.1.md" },
     { "path": "docs/02_protocols/GitHub_Actions_Secrets_Setup.md" },
+    { "path": "docs/02_protocols/OpenClaw_COO_Integration_v1.0.md" },
     { "path": "docs/02_protocols/Governance_Protocol_v1.0.md" },
     { "path": "docs/02_protocols/Intent_Routing_Rule_v1.1.md" },
     { "path": "docs/02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md" },
