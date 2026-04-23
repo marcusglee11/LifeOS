@@ -152,6 +152,7 @@ artifacts/shadow/
 artifacts/shadow_council/
 test_autonomous_direct.py
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 .claude/worktrees/
 .claude/skills/handoff-pack/
 .claude/skills/handoff/
