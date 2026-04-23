@@ -695,6 +695,22 @@ def route_targeted_tests(changed_files: Sequence[str], closure_tier: str | None 
         if _matches(
             file_path,
             (
+                "scripts/wiki/",
+                "doc_steward/wiki_lint_validator.py",
+                "doc_steward/cli.py",
+                "runtime/tests/test_wiki_lint_validator.py",
+            ),
+        ):
+            add("pytest -q runtime/tests/test_wiki_lint_validator.py")
+            continue
+
+        if _matches(file_path, (".context/wiki/", ".gitignore")):
+            # Wiki content and gitignore — no targeted tests; lint via doc_steward
+            continue
+
+        if _matches(
+            file_path,
+            (
                 "runtime/orchestration/loop/spine.py",
                 "runtime/tests/test_loop_spine.py",
                 "runtime/orchestration/loop/",

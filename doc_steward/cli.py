@@ -28,6 +28,7 @@ from .archive_structure_validator import check_archive_structure
 from .global_archive_link_ban_validator import check_global_archive_link_ban
 from .version_duplicate_detector import check_version_duplicates_with_lineage
 from .artefact_index_validator import check_artefact_index
+from .wiki_lint_validator import check_wiki_lint
 
 def cmd_opencode_validate(args: argparse.Namespace) -> int:
     """Run OpenCode artefact validation."""
@@ -229,6 +230,21 @@ def cmd_artefact_index_check(args: argparse.Namespace) -> int:
         return 0
 
 
+def cmd_wiki_lint(args: argparse.Namespace) -> int:
+    """Validate the .context/wiki/ layer."""
+    repo_root = str(Path(args.repo_root).resolve())
+    errors = check_wiki_lint(repo_root)
+
+    if errors:
+        print(f"[FAILED] Wiki lint failed ({len(errors)} errors):\n")
+        for err in errors:
+            print(f"  * {err}")
+        return 1
+    else:
+        print("[PASSED] Wiki lint passed.")
+        return 0
+
+
 def cmd_version_duplicate_scan(args: argparse.Namespace) -> int:
     """Run version duplicate scan (report-only, never fails)."""
     repo_root = str(Path(args.repo_root).resolve())
@@ -309,6 +325,11 @@ def main() -> int:
     p_artefact.add_argument("repo_root", help="Repository root directory")
     p_artefact.add_argument("--directory", help="Optional specific directory to check", default=None)
     p_artefact.set_defaults(func=cmd_artefact_index_check)
+
+    # wiki-lint
+    p_wiki = subparsers.add_parser("wiki-lint", help="Validate .context/wiki/ layer")
+    p_wiki.add_argument("repo_root", help="Repository root directory")
+    p_wiki.set_defaults(func=cmd_wiki_lint)
 
     # version-duplicate-scan
     p_version = subparsers.add_parser("version-duplicate-scan", help="Report version duplicates (warn-only)")

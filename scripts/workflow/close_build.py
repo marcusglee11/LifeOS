@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -33,6 +34,18 @@ _STAGE_PREFIXES = (
 
 
 def main() -> int:
+    # Guard against recursive invocation (e.g. test_council_runner_integration
+    # calls close_build.py --dry-run, which would re-run the full test suite
+    # including that test again).
+    if os.environ.get("_LIFEOS_CLOSE_BUILD_RUNNING"):
+        print(
+            "close_build: recursive invocation detected "
+            "(_LIFEOS_CLOSE_BUILD_RUNNING is set) — exiting immediately.",
+            file=sys.stderr,
+        )
+        return 0
+    os.environ["_LIFEOS_CLOSE_BUILD_RUNNING"] = "1"
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--repo-root", default=".", help="Repository/worktree root (default: current directory)"

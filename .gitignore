@@ -122,6 +122,7 @@ nul
 /.athena_root
 /.context/*
 !/.context/REPO_MAP.md
+!/.context/wiki/
 /.framework/
 /.claude-octopus/
 
