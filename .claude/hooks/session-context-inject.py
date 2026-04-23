@@ -210,6 +210,10 @@ def main() -> int:
     if warning:
         parts.insert(0, warning)
 
+    pending_marker = os.path.join(PROJECT_DIR, ".context", "wiki", "_refresh_needed")
+    if os.path.exists(pending_marker) and os.path.getsize(pending_marker) > 0:
+        parts.append("[wiki] Docs changed since last wiki refresh — run: python3 scripts/wiki/refresh_wiki.py")
+
     if not parts:
         # Nothing to inject
         print(json.dumps({"additionalContext": ""}))

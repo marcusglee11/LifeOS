@@ -3,23 +3,23 @@
 Wiki refresh script — updates .context/wiki/ pages when source docs change.
 
 Usage:
+    python3 scripts/wiki/refresh_wiki.py                        # consume _refresh_needed marker
     python3 scripts/wiki/refresh_wiki.py --changed-files docs/foo.md docs/bar.md
     python3 scripts/wiki/refresh_wiki.py --full
 
 The script identifies which wiki pages are affected (via source_docs frontmatter),
-calls the Anthropic Messages API to regenerate those pages, and writes a unified
+calls Claude via `claude -p` to regenerate those pages, and writes a unified
 diff to .context/wiki/_pending_diff.patch for human review.
 
 Wiki pages are NOT auto-committed. Run scripts/wiki/commit_wiki_update.py after review.
 
-Requires: ANTHROPIC_API_KEY env var, httpx (pip install httpx)
+Requires: `claude` CLI in PATH (Claude Code session).
 """
 
 from __future__ import annotations
 
 import argparse
 import difflib
-import os
 import re
 import subprocess
 import sys
@@ -29,7 +29,7 @@ from pathlib import Path
 WIKI_DIR_REL = ".context/wiki"
 SCHEMA_FILE = "SCHEMA.md"
 PENDING_DIFF = "_pending_diff.patch"
-API_URL = "https://api.anthropic.com/v1/messages"
+MARKER_FILE = "_refresh_needed"
 MODEL = "claude-sonnet-4-6"
 MAX_TOKENS = 2048
 
@@ -89,6 +89,28 @@ def _all_pages(wiki_dir: Path) -> list[Path]:
     return sorted(p for p in wiki_dir.glob("*.md") if p.name != SCHEMA_FILE)
 
 
+def _read_marker(wiki_dir: Path) -> list[str]:
+    """Read and deduplicate changed-file paths from the _refresh_needed marker."""
+    marker = wiki_dir / MARKER_FILE
+    if not marker.exists() or marker.stat().st_size == 0:
+        return []
+    lines = marker.read_text(encoding="utf-8").splitlines()
+    seen: set[str] = set()
+    result: list[str] = []
+    for line in lines:
+        line = line.strip()
+        if line and line not in seen:
+            seen.add(line)
+            result.append(line)
+    return result
+
+
+def _clear_marker(wiki_dir: Path) -> None:
+    marker = wiki_dir / MARKER_FILE
+    if marker.exists():
+        marker.unlink()
+
+
 def _read_source_content(repo_root: Path, source_docs: list[str]) -> str:
     parts: list[str] = []
     for rel in source_docs:
@@ -100,21 +122,12 @@ def _read_source_content(repo_root: Path, source_docs: list[str]) -> str:
     return "\n\n---\n\n".join(parts)
 
 
-def _call_api(api_key: str, schema_text: str, page_text: str, sources_text: str) -> str:
-    try:
-        import httpx
-    except ImportError:
-        print("ERROR: httpx not installed. Run: pip install httpx", file=sys.stderr)
-        sys.exit(1)
-
-    system_prompt = (
+def _call_ea(schema_text: str, page_text: str, sources_text: str) -> str:
+    prompt = (
         "You are a wiki maintainer for the LifeOS project. "
         "You update wiki pages in .context/wiki/ when source documentation changes. "
         "Follow the maintenance rules in the SCHEMA.md exactly.\n\n"
-        f"## SCHEMA.md\n\n{schema_text}"
-    )
-
-    user_prompt = (
+        f"## SCHEMA.md\n\n{schema_text}\n\n"
         "The following source documentation has changed. "
         "Update the wiki page to reflect the current state of the sources. "
         "Keep the page compact (200-400 tokens). "
@@ -125,32 +138,13 @@ def _call_api(api_key: str, schema_text: str, page_text: str, sources_text: str)
         f"## Changed source docs\n\n{sources_text}"
     )
 
-    payload = {
-        "model": MODEL,
-        "max_tokens": MAX_TOKENS,
-        "system": [
-            {
-                "type": "text",
-                "text": system_prompt,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        "messages": [
-            {"role": "user", "content": user_prompt}
-        ],
-    }
-
-    headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "anthropic-beta": "prompt-caching-2024-07-31",
-        "content-type": "application/json",
-    }
-
-    response = httpx.post(API_URL, json=payload, headers=headers, timeout=60)
-    response.raise_for_status()
-    data = response.json()
-    return data["content"][0]["text"]
+    result = subprocess.run(
+        ["claude", "-p", prompt, "--output-format", "text"],
+        capture_output=True, text=True, timeout=120
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or f"exit {result.returncode}")
+    return result.stdout.strip()
 
 
 def _substitute_sha(text: str, sha: str) -> str:
@@ -169,8 +163,8 @@ def _build_diff(old_text: str, new_text: str, filename: str) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Refresh LifeOS wiki pages via LLM")
-    group = parser.add_mutually_exclusive_group(required=True)
+    parser = argparse.ArgumentParser(description="Refresh LifeOS wiki pages via EA")
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--changed-files", nargs="+", metavar="FILE",
         help="Repo-relative paths of changed source docs"
@@ -184,11 +178,6 @@ def main() -> int:
         help="Print which pages would be updated, then exit"
     )
     args = parser.parse_args()
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not api_key:
-        print("ERROR: ANTHROPIC_API_KEY not set.", file=sys.stderr)
-        return 1
 
     repo_root = _repo_root()
     wiki_dir = repo_root / WIKI_DIR_REL
@@ -204,10 +193,11 @@ def main() -> int:
 
     schema_text = schema_path.read_text(encoding="utf-8")
 
+    # Determine pages to refresh
+    from_marker = False
     if args.full:
         pages = _all_pages(wiki_dir)
-    else:
-        # Filter changed files to only those under docs/
+    elif args.changed_files:
         docs_changed = [f for f in args.changed_files if f.startswith("docs/")]
         if not docs_changed:
             print("No docs/ files changed — wiki refresh skipped.")
@@ -216,6 +206,23 @@ def main() -> int:
         if not pages:
             print("No wiki pages are sourced from the changed files — skipped.")
             return 0
+    else:
+        # Default: consume _refresh_needed marker
+        marker_files = _read_marker(wiki_dir)
+        if not marker_files:
+            print("No pending wiki refresh (marker empty or absent).")
+            return 0
+        docs_changed = [f for f in marker_files if f.startswith("docs/")]
+        if not docs_changed:
+            print("Marker contained no docs/ paths — clearing.")
+            _clear_marker(wiki_dir)
+            return 0
+        pages = _affected_pages(wiki_dir, docs_changed)
+        if not pages:
+            print("No wiki pages sourced from marker files — clearing.")
+            _clear_marker(wiki_dir)
+            return 0
+        from_marker = True
 
     print(f"Pages to refresh: {[p.name for p in pages]}")
 
@@ -233,7 +240,7 @@ def main() -> int:
 
         print(f"  Refreshing {page.name}...", end=" ", flush=True)
         try:
-            new_text = _call_api(api_key, schema_text, old_text, sources_text)
+            new_text = _call_ea(schema_text, old_text, sources_text)
             new_text = _substitute_sha(new_text, sha)
             if not new_text.endswith("\n"):
                 new_text += "\n"
@@ -260,6 +267,9 @@ def main() -> int:
         if pending_path.exists():
             pending_path.unlink()
         print("\nNo changes to wiki pages.")
+
+    if from_marker and not errors:
+        _clear_marker(wiki_dir)
 
     if errors:
         print(f"\nErrors: {len(errors)}", file=sys.stderr)
