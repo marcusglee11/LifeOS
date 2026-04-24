@@ -1,6 +1,6 @@
 # Meta Documentation
 
-Repository-level metadata, review packets, deprecation notices, and historical records.
+Repository-level metadata, review packets, deprecation notices, historical records, and architecture-control surfaces.
 
 ## Contents
 
@@ -11,10 +11,17 @@ This directory contains meta-documentation about the LifeOS repository itself, i
 - **Implementation plans**: Meta-level planning documents
 - **Governance digests**: Summaries of governance activity
 - **Technical architecture signoffs**: Historical architecture approvals
+- **Architecture control surfaces**: Source-of-truth map, changelog, decision register, reconciliation packets
 
 ## Active Files
 
-- CHANGELOG.md - Repository change log
+- CHANGELOG.md - Legacy repository change log (stale; retained as historical surface)
+- ARCHITECTURE_CHANGELOG.md - Architecture delta log
+- ARCHITECTURE_SOURCE_OF_TRUTH.md - Current canon / proposal / stale map
+- Architecture_Normalization_Reconciliation_Packet_2026-04-24.md - Normalization packet for canon, authority, writer boundaries, and mismatches
+- COO_Authority_Contract_Draft_2026-04-24.md - Draft authority-boundary decisions for normalization
+- architecture_decisions/INDEX.md - ADR register skeleton
+- Architecture_Normalization_Targeted_Issue_List_2026-04-24.md - Targeted issue candidates derived from normalization packet
 - CODE_REVIEW_STATUS_v1.0.md - Code review tracking
 - COO_Runtime_Deprecation_Notice_v1.0.md - Component deprecation notice
 - DEPRECATION_AUDIT_v1.0.md - Deprecation tracking
@@ -34,7 +41,7 @@ See [archive/2026-02_historical_reviews/README.md](archive/2026-02_historical_re
 
 ## Organization
 
-This directory serves as a catch-all for repository metadata that doesn't fit in other structured directories. As the repository evolves, some content may be reorganized into more appropriate locations.
+This directory is the home for repository-level control surfaces that do not belong inside runtime canon or governance rulings. Architecture authority still lives in canonical governance / architecture docs; this directory contains orientation, deltas, and draft control artefacts.
 
 ## Related Directories
 
@@ -44,4 +51,4 @@ This directory serves as a catch-all for repository metadata that doesn't fit in
 
 ## Status
 
-Active - meta-documentation maintained here.
+Active - meta-documentation and architecture-control surfaces maintained here.

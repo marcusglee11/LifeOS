@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-04-15 (rev16)
+Last Updated: 2026-04-24 (rev17)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -259,6 +259,20 @@ LifeOS Constitution v2.0 (Supreme)
 | Document | Purpose |
 |----------|---------|
 | [OpenCode_Phase0_Completion_Report_v1.0.md](./internal/OpenCode_Phase0_Completion_Report_v1.0.md) | OpenCode Phase 0 API connectivity validation — PASSED |
+
+---
+
+
+## 10_meta — Meta / Architecture Control
+
+| Document | Purpose |
+|----------|---------|
+| [ARCHITECTURE_SOURCE_OF_TRUTH.md](./10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md) | **Orientation surface** — Current canon / proposal / stale map for architecture control |
+| [ARCHITECTURE_CHANGELOG.md](./10_meta/ARCHITECTURE_CHANGELOG.md) | **Control log** — Architecture deltas and their status |
+| [Architecture_Normalization_Reconciliation_Packet_2026-04-24.md](./10_meta/Architecture_Normalization_Reconciliation_Packet_2026-04-24.md) | **Normalization packet** — Canon, authority, writer boundaries, mismatch matrix |
+| [COO_Authority_Contract_Draft_2026-04-24.md](./10_meta/COO_Authority_Contract_Draft_2026-04-24.md) | **Decision draft** — Approval, proxy authority, active/standby, sole-writer boundaries |
+| [architecture_decisions/INDEX.md](./10_meta/architecture_decisions/INDEX.md) | **ADR register** — Ratified architecture decisions only |
+| [Architecture_Normalization_Targeted_Issue_List_2026-04-24.md](./10_meta/Architecture_Normalization_Targeted_Issue_List_2026-04-24.md) | **Issue draft** — Targeted follow-on issues derived from reconciliation packet |
 
 ---
 

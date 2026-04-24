@@ -755,6 +755,246 @@ All agent actions must produce artifacts that can be reviewed after the fact. Gi
 
 ---
 
+# File: 00_foundations/ARCH_Multi_Agent_Communication_Architecture.md
+
+# Multi-Agent Communication Architecture
+
+Status: Draft  
+Owner: CEO  
+Purpose: Define the authoritative communication architecture for advisory agents, the COO, EAs, and system buses/adapters.  
+Design posture: fail-closed, typed ingress, deterministic promotion, audit-first
+
+---
+
+## 1. Core framing
+
+### 1.1 Primary model
+
+LifeOS uses **one primary operational bus: GitHub**.
+
+Google Drive is **not** a peer bus. It is an asynchronous adapter and briefing mirror for agents that cannot reliably access the primary operational bus directly.
+
+### 1.2 Roles
+
+- **CEO** — directs priorities, approves gated actions, receives escalations
+- **COO** — control plane; validates ingress, classifies proposals, applies gates, promotes approved work, reconciles execution truth
+- **Advisory agents** — propose work; never write operational state directly
+- **Execution agents (EAs)** — execute promoted work orders and return results to GitHub
+- **GitHub** — authoritative store for operational artefacts and audit trail
+- **Google Drive** — constrained-agent ingress adapter and bounded briefing projection
+- **Telegram** — CEO ↔ COO approval and escalation channel
+
+### 1.3 Architectural invariant
+
+All execution-relevant work must cross an explicit authority boundary:
+
+**advisory ingress → COO validation/classification → CEO/policy gate → promotion → operational work order**
+
+No advisory artefact is a command.
+
+---
+
+## 2. Authority boundary
+
+### 2.1 Operational state
+
+**Operational state** is any artefact the COO, EAs, or CI treat as authoritative input to execution or gating.
+
+Operational state includes:
+
+- work orders
+- Schema A command envelopes
+- PR-linked execution state
+- CI results used for gating
+- approval receipts
+- promotion receipts
+- reconciliation receipts
+- completion and closure receipts
+
+### 2.2 Non-operational state
+
+The following are explicitly **non-operational**:
+
+- advisory issues
+- Drive proposal files
+- rejection notes
+- briefing projections
+- advisory archives
+- drafts, notes, and bootstrap material
+
+These may inform decisions but do not authorize execution.
+
+### 2.3 Sole-writer rule
+
+The **COO is the sole writer of operational state**.
+
+Advisory agents may write ingress artefacts only.
+
+### 2.4 Boundary crossing
+
+An advisory artefact becomes operational only when the COO:
+
+1. validates it
+2. classifies it
+3. obtains required approval or policy clearance
+4. translates it into Schema A
+5. emits a promotion receipt
+
+That act is the only authority boundary crossing.
+
+---
+
+## 3. Topology
+
+### 3.1 Primary operational path
+
+- GitHub hosts authoritative operational artefacts
+- COO ingests GitHub events by webhook
+- EAs execute against promoted work orders and write results back into GitHub
+- COO reconciles GitHub truth and updates state
+
+### 3.2 Advisory ingress paths
+
+#### 3.2.1 ChatGPT advisory ingress
+
+ChatGPT may write directly to GitHub using a dedicated **advisory issue class**.
+
+This is advisory ingress only. It is not operational state.
+
+#### 3.2.2 Claude advisory ingress
+
+Claude writes proposal YAML files into Drive:
+
+- `advisory/inbox/`
+- optional re-read of `briefing/current.md` at session start
+
+The COO polls or receives change notifications, validates the file, and translates conforming ingress into the same internal advisory lifecycle used for GitHub-origin ingress.
+
+### 3.3 CEO channel
+
+CEO commands, approvals, and escalations route through Telegram.
+
+Telegram approvals do not directly change GitHub state. They authorize the COO to do so, subject to approval binding rules.
+
+---
+
+## 4. Ingress contracts
+
+### 4.1 GitHub advisory ingress
+
+GitHub advisory ingress must use a required typed body block or issue template payload.
+
+Labels are **projections only** and are not trusted as the authoritative type signal.
+
+Required properties:
+
+- stable advisory issue class marker in body/template
+- typed proposal payload
+- proposal version
+- content suitable for deterministic hashing
+
+### 4.2 Drive advisory ingress
+
+Drive advisory ingress is a validated YAML file.
+
+Filename is convenience only. Authority comes from:
+
+- validated payload
+- Drive metadata
+- COO-assigned processing metadata
+
+### 4.3 Trust posture by phase
+
+#### Phase 1
+
+Drive-origin ingress is **unauthenticated**. `session_hash` is metadata only and not proof of identity.
+
+Implications:
+
+- Drive-origin proposals require explicit CEO approval before promotion
+- Drive-origin proposals are treated as untrusted advisory input
+
+#### Phase 2+
+
+Drive-origin ingress is authenticated via per-agent OAuth service accounts.
+
+The COO binds writer identity from Drive metadata such as `lastModifyingUser`.
+
+### 4.4 Fail-closed ingress rule
+
+Ingress missing its typed payload is invalid.
+
+A label alone is insufficient. Malformed YAML is invalid. Invalid ingress cannot be promoted.
+
+---
+
+## 5. Advisory proposal schema
+
+### 5.1 Required fields
+
+```yaml
+schema_version: "1.0"
+proposal_id: "{uuid-or-empty-on-ingress}"
+requester:
+  agent: "claude" | "chatgpt" | "other"
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
+# File: 00_foundations/Agent_Roles_Reference_v1.0.md
+
+# Agent Roles Reference v1.0
+
+**Status:** Active  
+**Applies To:** All agents in the LifeOS system
+
+---
+
+## Actor Taxonomy
+
+| Actor | Type | Authority |
+| ----- | ---- | --------- |
+| CEO | Human | Ultimate; sets strategic intent; approval authority |
+| COO | AI agent (OpenClaw) | Operational; bounded, phase-scoped discretion |
+| EA (Executing Agent) | AI agent (Claude Code, Codex) | Stateless worker; executes in worktrees |
+| Antigravity | AI agent | Primary builder; full-scope implementation |
+| Advisory | AI agents (Claude.ai, ChatGPT) | Read-only; not in operational loop |
+
+## COO Autonomy Levels
+
+Current active levels (L1 and L2 remain deferred — not yet operational):
+
+| Level | Trigger | Action |
+| ----- | ------- | ------ |
+| L0 | `requires_approval=false` AND `risk=low` per delegation_envelope | Auto-dispatch without CEO review |
+| L3 | Everything not eligible for L0 | Propose-and-wait for CEO approval |
+| L4 | Architectural / governance / enumerated escalation triggers | Mandatory escalation to Council/CEO |
+
+Fail-closed: unknown action category → L4. Everything not explicitly L0 defaults to L3.
+
+## COO Memory Layers
+
+1. `MEMORY.md` + memory files — persistent cross-session facts
+2. `.context/wiki/` — derived context layer
+3. `docs/11_admin/LIFEOS_STATE.md` — current operational state
+4. `config/agent_roles/coo.md` — operational rules and invocation spec
+
+## Provider Routing
+
+| Provider | When to use |
+| -------- | ----------- |
+| `codex` | Bounded implementation tasks |
+| `claude_code` | Complex multi-file changes |
+| `gemini` | Analysis and research |
+| `auto` | Uncertain; let orchestrator decide |
+
+
+---
+
 # File: 00_foundations/Anti_Failure_Operational_Packet_v0.1.md
 
 *[Reference Pointer: See full text in Universal Corpus for implementation details]*
@@ -810,6 +1050,84 @@ Provide a unified mental model for:
 ## 5. Relationship to Implementation
 This describes the *conceptual model*.  
 The COOSpec defines the actual runtime mechanics: SQLite message bus, deterministic lifecycle, Docker sandbox, and agent orchestration.
+
+
+
+---
+
+# File: 00_foundations/LifeOS Target Architecture v2.3c.md
+
+````markdown
+# LifeOS Target Architecture — v2.3c
+
+**Date:** 2026-04-17  
+**Status:** Canonical  
+**Supersedes:** LifeOS Target Architecture v2.3 (2026-04-17)  
+**Purpose:** Define the operational architecture for LifeOS agent orchestration  
+**Changes from v2.3:** Resolves remaining post-review blockers and micro-integration gaps: fixes CEO/COO authority contradiction in transition law, aligns state machine vocabulary to EA result schema, adds `attempt_id` to the EA result payload, restores missing `running → blocked` and `running → needs_decision` transitions, normalises the Commons Phase 1 interface model to in-process validation plus direct file reads from the local clone, makes `workflow_run_id` provenance explicit in the idempotency model, and adds malformed-result handling while still in `dispatched`.
+
+---
+
+## 1. Problem statement
+
+LifeOS has a working autonomous build spine (validated W5-T01, 2026-02-14: hydrate → policy → design → build → review → steward, 1527 passing tests). The spine is not the problem.
+
+The problem is that nothing can reliably trigger the spine and receive its outputs without the CEO manually acting as the context bus between agents. The CEO is currently the integration layer — copying prompts, pasting results, carrying state between sessions. This is the binding constraint on the entire system.
+
+The target architecture solves this by introducing a COO agent layer that creates work orders, monitors execution, and reports results, reducing the CEO’s role from operational relay to direction, approval, and escalation authority.
+
+---
+
+## 2. Actors
+
+### 2.1 CEO (human)
+
+- Sets objectives and strategic direction
+- Holds ultimate authority over all decisions (Constitution: CEO Supremacy invariant)
+- Issues commands via messaging channel (Telegram or CLI)
+- Commands are structured (slash commands with typed parameters in early phases, progressing to natural language in later phases)
+- Receives reports and escalations from COO
+- Consults advisory agents (Claude.ai, ChatGPT) for strategy, research, and review — these are not in the operational loop
+
+### 2.2 COO (OpenClaw or Hermes, replaceable via adapter)
+
+The COO is not a pure router. It is an **operational decision-maker with bounded, phase-scoped discretion**. Its authority expands across phases; in Phase 1 it is tightly constrained.
+
+Responsibilities common to all phases:
+
+- Receives CEO commands via messaging channel
+- Validates commands against canonical command schema and known task templates
+- Creates GitHub issues with structured prompts and labels
+- Monitors GitHub for execution results (via COO Commons webhook forwarding, with cron as fallback for proactive work — see Section 2.6)
+- Reports results and escalations to CEO via messaging channel
+- Performs tool and API actuation, GitHub state mutations — the COO does not execute task work or modify repository contents as an EA; it does perform GitHub API mutations required for orchestration
+- Reads phase configuration and policy rules from COO Commons (Section 2.6) as data inputs. Does not define these assets internally.
+- Performs deterministic schema validation via the COO Commons validation library before any schema-dependent state transition. Does not substitute substrate reasoning for schema validation.
+- Replaceable via adapter layer — true hot-swap requires stable contracts (command schema, state-read contract, result interpretation, escalation schema, retry rules). The GitHub bus alone does not make the COO interchangeable. COO Commons (Section 2.6) provides the shared deterministic assets that make replacement tractable; it does not eliminate substrate-specific judgment behaviour.
+- The operational constraints in this role are architectural rules imposed by LifeOS operating policy. They are not intrinsic substrate limitations.
+
+Phase-specific authority — see Section 5.
+
+### 2.3 GitHub (deterministic relay bus and evidence surface)
+
+- Central communication channel for all operational traffic
+- Issues = **canonical work-order objects** (see Section 4)
+- Workflows = event-driven dispatch (trigger on issue creation/labeling)
+- PRs and commits = execution evidence
+- Issue/PR comments = structured status reports from executing agents
+- GitHub Projects v2 = **projection/index over canonical issue state**, used for planning and visibility (NOT the deepest source of truth)
+- Webhooks = push notifications to COO Commons ingestion service for relevant workflow, issue, and result events
+- GitHub-resident work-order state transitions are visible, versioned, and auditable
+
+### 2.4 Executing agents (EAs)
+
+- Stateless workers. They exist only for the duration of a workflow run.
+- Receive a self-contained prompt from the issue body
+- Execute in a shell environment on the self-hosted runner (local machine initially, hosted later)
+- Write results back to GitHub (PR, commit, structured issue comment conforming to the COO ↔ EA schema in Section 4.5)
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
 
 
@@ -1615,6 +1933,24 @@ Refine the COO's behaviour based on the CEO's preferences.
 
 ### 3.3 Preference Drift Monitoring
 - Detect changing preferences and propose Updates.
+
+### 3.4 Repository Discipline
+
+Two rules govern how the COO interacts with the repository:
+
+**1. Always commit and push.**
+
+Any repository change the COO makes — however small — must be committed and pushed to `origin/main` before the session ends. Staged-and-abandoned changes break shared state: other agents see a diverged origin and cannot reconcile.
+
+**2. Stay in the control plane for substantial work.**
+
+The COO's role is to plan, direct, and audit — not to execute large or governed tasks directly. When a task involves significant implementation work, modifying governed paths (`docs/00_foundations/`, `docs/01_governance/`, contracts, schemas), or running build lifecycle scripts (`start_build.py`, `close_build.py`), the COO creates a work order and dispatches to an Executing Agent (Claude Code or Codex via GitHub Actions workflow). The EA owns the branch, worktree, build lifecycle, and push.
+
+Small incidental edits (correcting a typo, updating a status field in a non-governed doc) do not require dispatch. The test: _"Is this the kind of change I'd want reviewed and isolated in a proper branch?"_ If yes — dispatch. If no — commit and push yourself.
+
+**Escalate if:**
+- No EA is available and the task is substantial or touches governed paths.
+- The change is architectural — escalate to CEO before dispatch.
 
 ## 4. Escalation Nuance
 - Escalate early when identity/strategy issues seem ambiguous.
@@ -5408,6 +5744,55 @@ This definition is consistent with §5.5 (Governance Surface Definition).
 
 ---
 
+# File: 02_protocols/OpenClaw_COO_Integration_v1.0.md
+
+# OpenClaw COO Integration v1.0
+
+**Status:** Active  
+**Applies To:** COO invocation via OpenClaw gateway
+
+---
+
+## Overview
+
+OpenClaw is the external AI gateway hosting the live COO agent. LifeOS invokes the COO
+by sending structured JSON messages to the local OpenClaw HTTP gateway.
+
+## Gateway
+
+- **URL:** `127.0.0.1:18789`
+- **Protocol:** HTTP/JSON via `openclaw` CLI
+- **Agent slot:** `main` = live COO
+
+## Invocation Pattern
+
+```bash
+openclaw agent --agent main --message '<json_str>' --json
+```
+
+Response: `result.payloads[0].text` contains COO output.
+
+## CLI Wrappers
+
+| Command | Purpose |
+| ------- | ------- |
+| `lifeos coo propose` | Reads backlog → emits `task_proposal.v1` YAML |
+| `lifeos coo direct` | CEO objective → `escalation_packet.v1` → CEO queue |
+
+## Known Constraints
+
+- COO cannot access LifeOS schemas directly via gateway; the adapter
+  (`runtime/orchestration/coo/invoke.py`) injects `output_schema` with each call.
+- Gateway credentials stored at `~/.openclaw/.env` (token; refresh if expired).
+- COO output normalizer handles known gpt model formatting quirks (unindented sub-keys).
+
+## Current Version
+
+OpenClaw version as last recorded in LIFEOS_STATE.md. Verify with `openclaw --version`.
+
+
+---
+
 # File: 02_protocols/Packet_Schema_Versioning_Policy_v1.0.md
 
 # Packet Schema Versioning Policy v1.0
@@ -6579,7 +6964,9 @@ Provide a deterministic operator workflow for recovering `openai-codex` routing 
 - `refresh_token_reused` appears in gateway logs; or
 - a fresh `openclaw configure` / `openclaw models auth login` does not recover live routing.
 
-This guide is a local LifeOS mitigation. It does not fix the upstream OpenClaw runtime race where multiple agents can refresh the same Codex OAuth token concurrently.
+This guide is a local LifeOS mitigation.
+It does not fix the upstream OpenClaw runtime race where multiple agents can
+refresh the same Codex OAuth token concurrently.
 
 ## Symptoms
 
@@ -6599,7 +6986,9 @@ OpenClaw separates Codex auth state across three places:
 - `~/.codex/auth.json`
   This stores the external Codex CLI managed token set.
 
-When `auth-state.json` still prefers `openai-codex:default` or `openai-codex:codex-cli`, the gateway can keep routing into expired profiles even when a valid email-scoped profile exists in `auth-profiles.json`.
+When `auth-state.json` still prefers `openai-codex:default` or
+`openai-codex:codex-cli`, the gateway can keep routing into expired profiles
+even when a valid email-scoped profile exists in `auth-profiles.json`.
 
 ## Detection
 
