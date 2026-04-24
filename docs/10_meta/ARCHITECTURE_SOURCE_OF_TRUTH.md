@@ -55,13 +55,19 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 
 1. Authoritative CEO approval form and capture path
 2. Drive / Workspace role: mirror only vs advisory ingress adapter
-3. Full operational-state sole-writer boundary
-4. Active vs standby COO semantics in governance surfaces
-5. Hermes ↔ OpenClaw directionality and pushback rules
 
-## 7. Change-control rule
+## 7. Normalization blockers resolved
+
+| # | Decision | Ratified | ADR | Governance surface |
+| --- | --- | --- | --- | --- |
+| 3 | Full operational-state sole-writer boundary | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
+| 4 | Active vs standby COO semantics in governance surfaces | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
+| 5 | Hermes ↔ OpenClaw directionality and pushback rules | 2026-04-24 | ADR-002 | `COO_Operating_Contract_v1.0.md` §8 |
+
+## 8. Change-control rule
 
 No architecture-affecting change is canonical until required repo surfaces are updated:
+
 - this source-of-truth page when canon classification changes
 - architecture changelog when architecture deltas occur
 - ADR register when ratified architecture decisions land
