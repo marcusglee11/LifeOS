@@ -1,16 +1,16 @@
 # LifeOS Universal Corpus
-**Generated**: 2026-04-24 10:43:01
+**Generated**: 2026-04-24 11:35:44
 **Steward**: Antigravity (Automated)
-**Version**: d2cf07fb
+**Version**: e20832b4
 
 ---
 
 ## 📋 Table of Changes (Last 5 Commits)
+- `7f86833a` 2026-04-24: **docs: add architecture normalization control surfaces**
 - `310aac1e` 2026-04-24: **feat: Merge build/wiki-remediation (squashed)**
 - `bf4d9ecd` 2026-04-23: **chore: stage agent artifacts and config updates on main**
 - `6dd77841` 2026-04-22: **Merge branch 'main' of github.com:marcusglee11/LifeOS**
 - `9ee04eb8` 2026-04-22: **docs(governance): revise COO §3.4 — pragmatic repository discipline**
-- `1301b7ed` 2026-04-22: **docs(coo): add code construction delegation rule to Expectations Log**
 
 ---
 
@@ -15641,8 +15641,9 @@ Every completed advisory lifecycle is archived with enough metadata to reconstru
 
 # Agent Roles Reference v1.0
 
-**Status:** Active  
-**Applies To:** All agents in the LifeOS system
+**Status:** Active orientation reference — non-authoritative  
+**Authority:** Derived/supporting only. On conflict, `docs/00_foundations/LifeOS Target Architecture v2.3c.md`, `docs/01_governance/COO_Operating_Contract_v1.0.md`, and ratified governance docs win.  
+**Applies To:** Orientation for agents in the LifeOS system
 
 ---
 
@@ -15651,10 +15652,12 @@ Every completed advisory lifecycle is archived with enough metadata to reconstru
 | Actor | Type | Authority |
 | ----- | ---- | --------- |
 | CEO | Human | Ultimate; sets strategic intent; approval authority |
-| COO | AI agent (OpenClaw) | Operational; bounded, phase-scoped discretion |
-| EA (Executing Agent) | AI agent (Claude Code, Codex) | Stateless worker; executes in worktrees |
-| Antigravity | AI agent | Primary builder; full-scope implementation |
-| Advisory | AI agents (Claude.ai, ChatGPT) | Read-only; not in operational loop |
+| COO | AI substrate / control-plane agent | Operational decision-maker with bounded, phase-scoped discretion; active substrate determined by canonical architecture and operating state |
+| COO substrates | OpenClaw, Hermes, or successor adapters | Candidate / replaceable substrates; only the active COO has mutation authority |
+| EA (Executing Agent) | AI execution worker | Stateless worker; executes bounded tasks in worktrees |
+| Advisory | AI agents such as Claude.ai / ChatGPT | Read-only advisory role; not in operational loop |
+
+This file is an orientation reference, not a ratification surface for substrate selection, actor activation, or authority expansion.
 
 ## COO Autonomy Levels
 
@@ -39006,7 +39009,6 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 |---|---|---|
 | Canonical operational architecture | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | Operational architecture authority |
 | Canonical governance contract | `docs/01_governance/COO_Operating_Contract_v1.0.md` | CEO/COO governance authority |
-| Active actor taxonomy | `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Supporting authority for actors / autonomy routing |
 | Canonical runtime state ledger | `docs/11_admin/LIFEOS_STATE.md` | Current operational state |
 | Canonical runtime work tracker | `docs/11_admin/BACKLOG.md` | Actionable work tracker |
 
@@ -39019,7 +39021,13 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 | `docs/00_foundations/lifeos-agent-architecture.md` | Reference / bootstrap architecture |
 | `docs/00_foundations/lifeos-maximum-vision.md` | Vision / explainer |
 
-## 3. Superseded or stale surfaces
+## 3. Supporting orientation / derived references
+
+| Repo path | Current status |
+|---|---|
+| `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Active orientation reference; non-authoritative; loses to canonical architecture/governance docs on conflict |
+
+## 4. Superseded or stale surfaces
 
 | Repo path | Current classification |
 |---|---|
@@ -39027,17 +39035,17 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 | `docs/10_meta/CHANGELOG.md` | Stale repository changelog surface |
 | `docs/11_admin/AUTONOMY_STATUS.md` | Derived and stale orientation surface |
 
-## 4. Truth hierarchy
+## 5. Truth hierarchy
 
 1. Constitution and governance rulings
 2. Canonical governance contract + canonical operational architecture
-3. Active actor taxonomy / supporting authority docs
-4. Canonical execution trackers (`LIFEOS_STATE.md`, `BACKLOG.md`)
+3. Canonical execution trackers (`LIFEOS_STATE.md`, `BACKLOG.md`)
+4. Supporting orientation / derived references
 5. Derived projections and indexes
 6. Proposal / explainer docs
 7. Conversation memory and uncaptured notes — never canonical by themselves
 
-## 5. Normalization blockers still open
+## 6. Normalization blockers still open
 
 1. Authoritative CEO approval form and capture path
 2. Drive / Workspace role: mirror only vs advisory ingress adapter
@@ -39045,7 +39053,7 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 4. Active vs standby COO semantics in governance surfaces
 5. Hermes ↔ OpenClaw directionality and pushback rules
 
-## 6. Change-control rule
+## 7. Change-control rule
 
 No architecture-affecting change is canonical until required repo surfaces are updated:
 - this source-of-truth page when canon classification changes
@@ -39073,9 +39081,14 @@ Related reset: AMENDED RECOVERY PLAN — Architecture Normalization and COO Onbo
 |---|---|---|---|
 | Canonical operational architecture | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | Declared `Canonical` | Current canonical operational architecture for CEO→COO→EA orchestration, COO Commons, state machine, active/standby substrate, fail-closed behavior. |
 | Canonical governance agreement | `docs/01_governance/COO_Operating_Contract_v1.0.md` | Declared canonical in opening paragraph | Governance contract for CEO/COO interaction, escalation, and change control. Canonical, but materially less specific than v2.3c on active/standby and sole-writer boundaries. |
-| Active actor taxonomy / autonomy routing reference | `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Declared `Active` | Current actor taxonomy and COO autonomy level reference. Supportive canon, not the deepest architecture authority. |
 | Canonical runtime state ledger | `docs/11_admin/LIFEOS_STATE.md` | Declared canonical source in file and corpus | Current operational state / recent wins / blockers / phase posture. |
 | Canonical backlog / work tracker | `docs/11_admin/BACKLOG.md` | Declared canonical backlog | Actionable work tracker. Execution surface, not architecture authority. |
+
+## 1A. Supporting orientation / derived references
+
+| Surface | Repo path | Declared / inferred status | Notes |
+|---|---|---|---|
+| Active orientation reference / derived supporting surface | `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Active orientation reference — non-authoritative | Supporting actor taxonomy / autonomy / provider-routing summary. Loses to canonical architecture and governance docs on conflict. |
 
 ## 2. Proposal-only docs list
 
@@ -39102,7 +39115,7 @@ Related reset: AMENDED RECOVERY PLAN — Architecture Normalization and COO Onbo
 |---|---|---|
 | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | authority | Canonical operational architecture |
 | `docs/01_governance/COO_Operating_Contract_v1.0.md` | authority | Canonical governance contract |
-| `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | authority-supporting reference | Active actor taxonomy / autonomy routing reference |
+| `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | supporting orientation / derived reference | Active orientation reference; non-authoritative; loses to canonical architecture/governance docs on conflict |
 | `docs/11_admin/LIFEOS_STATE.md` | execution/work tracker | Canonical current operational state |
 | `docs/11_admin/BACKLOG.md` | execution/work tracker | Canonical actionable work tracker |
 | GitHub issue body + state block | authority within runtime execution | Canonical work-order state per v2.3c |
@@ -39179,7 +39192,8 @@ Related reset: AMENDED RECOVERY PLAN — Architecture Normalization and COO Onbo
 ## 9. Bottom line
 
 From this packet alone:
-- Canon now: `LifeOS Target Architecture v2.3c`, `COO_Operating_Contract_v1.0`, `Agent_Roles_Reference_v1.0`, `LIFEOS_STATE.md`, `BACKLOG.md`.
+- Canon now: `LifeOS Target Architecture v2.3c`, `COO_Operating_Contract_v1.0`, `LIFEOS_STATE.md`, `BACKLOG.md`.
+- Supporting orientation only: `Agent_Roles_Reference_v1.0` (non-authoritative; canon wins on conflict).
 - Proposal only: communications architecture draft, future operating-model proposal, vision/bootstrap architecture docs.
 - Stale / in tension: architecture skeleton, meta changelog, derived autonomy status, communications draft vs canon on Drive/approval semantics, and the governance contract for current active/standby specificity.
 - Active writer of operational work-order state: active COO.
@@ -46125,7 +46139,7 @@ Active - productisation planning maintained here.
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-04-24 (rev17)
+Last Updated: 2026-04-24 (rev18)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -46199,7 +46213,7 @@ LifeOS Constitution v2.0 (Supreme)
 |----------|---------|
 | [LifeOS_Constitution_v2.0.md](./00_foundations/LifeOS_Constitution_v2.0.md) | **Supreme governing document** — Raison d'être, invariants, principles |
 | [LifeOS Target Architecture v2.3c](./00_foundations/LifeOS%20Target%20Architecture%20v2.3c.md) | **Current canonical target architecture** — CEO→COO→EA control-plane, COO Commons, phased authority expansion |
-| [Agent_Roles_Reference_v1.0.md](./00_foundations/Agent_Roles_Reference_v1.0.md) | Actor taxonomy, COO autonomy levels, provider routing |
+| [Agent_Roles_Reference_v1.0.md](./00_foundations/Agent_Roles_Reference_v1.0.md) | Orientation reference — actor taxonomy, COO autonomy levels, provider routing (non-authoritative; canon wins on conflict) |
 | [Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md) | Anti-failure mechanisms, human preservation, workflow constraints |
 | [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
 | [Tier_Definition_Spec_v1.1.md](./00_foundations/Tier_Definition_Spec_v1.1.md) | **Canonical** — Tier progression model, definitions, and capabilities |

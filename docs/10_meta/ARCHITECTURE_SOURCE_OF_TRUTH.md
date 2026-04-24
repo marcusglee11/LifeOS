@@ -15,7 +15,6 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 |---|---|---|
 | Canonical operational architecture | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | Operational architecture authority |
 | Canonical governance contract | `docs/01_governance/COO_Operating_Contract_v1.0.md` | CEO/COO governance authority |
-| Active actor taxonomy | `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Supporting authority for actors / autonomy routing |
 | Canonical runtime state ledger | `docs/11_admin/LIFEOS_STATE.md` | Current operational state |
 | Canonical runtime work tracker | `docs/11_admin/BACKLOG.md` | Actionable work tracker |
 
@@ -28,7 +27,13 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 | `docs/00_foundations/lifeos-agent-architecture.md` | Reference / bootstrap architecture |
 | `docs/00_foundations/lifeos-maximum-vision.md` | Vision / explainer |
 
-## 3. Superseded or stale surfaces
+## 3. Supporting orientation / derived references
+
+| Repo path | Current status |
+|---|---|
+| `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Active orientation reference; non-authoritative; loses to canonical architecture/governance docs on conflict |
+
+## 4. Superseded or stale surfaces
 
 | Repo path | Current classification |
 |---|---|
@@ -36,17 +41,17 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 | `docs/10_meta/CHANGELOG.md` | Stale repository changelog surface |
 | `docs/11_admin/AUTONOMY_STATUS.md` | Derived and stale orientation surface |
 
-## 4. Truth hierarchy
+## 5. Truth hierarchy
 
 1. Constitution and governance rulings
 2. Canonical governance contract + canonical operational architecture
-3. Active actor taxonomy / supporting authority docs
-4. Canonical execution trackers (`LIFEOS_STATE.md`, `BACKLOG.md`)
+3. Canonical execution trackers (`LIFEOS_STATE.md`, `BACKLOG.md`)
+4. Supporting orientation / derived references
 5. Derived projections and indexes
 6. Proposal / explainer docs
 7. Conversation memory and uncaptured notes — never canonical by themselves
 
-## 5. Normalization blockers still open
+## 6. Normalization blockers still open
 
 1. Authoritative CEO approval form and capture path
 2. Drive / Workspace role: mirror only vs advisory ingress adapter
@@ -54,7 +59,7 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 4. Active vs standby COO semantics in governance surfaces
 5. Hermes ↔ OpenClaw directionality and pushback rules
 
-## 6. Change-control rule
+## 7. Change-control rule
 
 No architecture-affecting change is canonical until required repo surfaces are updated:
 - this source-of-truth page when canon classification changes

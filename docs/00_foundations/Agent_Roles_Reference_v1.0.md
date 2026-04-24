@@ -1,7 +1,8 @@
 # Agent Roles Reference v1.0
 
-**Status:** Active  
-**Applies To:** All agents in the LifeOS system
+**Status:** Active orientation reference — non-authoritative  
+**Authority:** Derived/supporting only. On conflict, `docs/00_foundations/LifeOS Target Architecture v2.3c.md`, `docs/01_governance/COO_Operating_Contract_v1.0.md`, and ratified governance docs win.  
+**Applies To:** Orientation for agents in the LifeOS system
 
 ---
 
@@ -10,10 +11,12 @@
 | Actor | Type | Authority |
 | ----- | ---- | --------- |
 | CEO | Human | Ultimate; sets strategic intent; approval authority |
-| COO | AI agent (OpenClaw) | Operational; bounded, phase-scoped discretion |
-| EA (Executing Agent) | AI agent (Claude Code, Codex) | Stateless worker; executes in worktrees |
-| Antigravity | AI agent | Primary builder; full-scope implementation |
-| Advisory | AI agents (Claude.ai, ChatGPT) | Read-only; not in operational loop |
+| COO | AI substrate / control-plane agent | Operational decision-maker with bounded, phase-scoped discretion; active substrate determined by canonical architecture and operating state |
+| COO substrates | OpenClaw, Hermes, or successor adapters | Candidate / replaceable substrates; only the active COO has mutation authority |
+| EA (Executing Agent) | AI execution worker | Stateless worker; executes bounded tasks in worktrees |
+| Advisory | AI agents such as Claude.ai / ChatGPT | Read-only advisory role; not in operational loop |
+
+This file is an orientation reference, not a ratification surface for substrate selection, actor activation, or authority expansion.
 
 ## COO Autonomy Levels
 

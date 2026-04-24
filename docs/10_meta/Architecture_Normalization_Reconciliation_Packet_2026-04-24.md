@@ -13,9 +13,14 @@ Related reset: AMENDED RECOVERY PLAN — Architecture Normalization and COO Onbo
 |---|---|---|---|
 | Canonical operational architecture | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | Declared `Canonical` | Current canonical operational architecture for CEO→COO→EA orchestration, COO Commons, state machine, active/standby substrate, fail-closed behavior. |
 | Canonical governance agreement | `docs/01_governance/COO_Operating_Contract_v1.0.md` | Declared canonical in opening paragraph | Governance contract for CEO/COO interaction, escalation, and change control. Canonical, but materially less specific than v2.3c on active/standby and sole-writer boundaries. |
-| Active actor taxonomy / autonomy routing reference | `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Declared `Active` | Current actor taxonomy and COO autonomy level reference. Supportive canon, not the deepest architecture authority. |
 | Canonical runtime state ledger | `docs/11_admin/LIFEOS_STATE.md` | Declared canonical source in file and corpus | Current operational state / recent wins / blockers / phase posture. |
 | Canonical backlog / work tracker | `docs/11_admin/BACKLOG.md` | Declared canonical backlog | Actionable work tracker. Execution surface, not architecture authority. |
+
+## 1A. Supporting orientation / derived references
+
+| Surface | Repo path | Declared / inferred status | Notes |
+|---|---|---|---|
+| Active orientation reference / derived supporting surface | `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Active orientation reference — non-authoritative | Supporting actor taxonomy / autonomy / provider-routing summary. Loses to canonical architecture and governance docs on conflict. |
 
 ## 2. Proposal-only docs list
 
@@ -42,7 +47,7 @@ Related reset: AMENDED RECOVERY PLAN — Architecture Normalization and COO Onbo
 |---|---|---|
 | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | authority | Canonical operational architecture |
 | `docs/01_governance/COO_Operating_Contract_v1.0.md` | authority | Canonical governance contract |
-| `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | authority-supporting reference | Active actor taxonomy / autonomy routing reference |
+| `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | supporting orientation / derived reference | Active orientation reference; non-authoritative; loses to canonical architecture/governance docs on conflict |
 | `docs/11_admin/LIFEOS_STATE.md` | execution/work tracker | Canonical current operational state |
 | `docs/11_admin/BACKLOG.md` | execution/work tracker | Canonical actionable work tracker |
 | GitHub issue body + state block | authority within runtime execution | Canonical work-order state per v2.3c |
@@ -119,7 +124,8 @@ Related reset: AMENDED RECOVERY PLAN — Architecture Normalization and COO Onbo
 ## 9. Bottom line
 
 From this packet alone:
-- Canon now: `LifeOS Target Architecture v2.3c`, `COO_Operating_Contract_v1.0`, `Agent_Roles_Reference_v1.0`, `LIFEOS_STATE.md`, `BACKLOG.md`.
+- Canon now: `LifeOS Target Architecture v2.3c`, `COO_Operating_Contract_v1.0`, `LIFEOS_STATE.md`, `BACKLOG.md`.
+- Supporting orientation only: `Agent_Roles_Reference_v1.0` (non-authoritative; canon wins on conflict).
 - Proposal only: communications architecture draft, future operating-model proposal, vision/bootstrap architecture docs.
 - Stale / in tension: architecture skeleton, meta changelog, derived autonomy status, communications draft vs canon on Drive/approval semantics, and the governance contract for current active/standby specificity.
 - Active writer of operational work-order state: active COO.

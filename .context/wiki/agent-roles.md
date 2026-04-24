@@ -11,7 +11,7 @@ concepts:
   - COO
   - CEO
   - EA
-  - Antigravity
+  - COO substrates
   - CSO
   - autonomy levels
   - provider routing
@@ -20,7 +20,7 @@ concepts:
 
 ## Summary
 
-LifeOS uses a layered multi-agent model. CEO provides strategic intent. COO (OpenClaw) decomposes objectives and dispatches work. EAs (Claude Code, Codex) execute bounded tasks in worktrees. Antigravity is the primary builder for full-scope implementation work. A CSO tier (T1, provisional) interprets CEO intent and resolves deadlocks per Intent_Routing_Rule v1.1.
+LifeOS uses a layered multi-agent model. CEO provides strategic intent. COO is a control-plane substrate role, with the active substrate determined by canonical architecture and operating state. EAs (Claude Code, Codex) execute bounded tasks in worktrees. Advisory agents remain outside the operational loop. A CSO tier from `Intent_Routing_Rule_v1.1` remains provisional / WIP, not canon.
 
 ## Key Relationships
 
@@ -33,7 +33,7 @@ LifeOS uses a layered multi-agent model. CEO provides strategic intent. COO (Ope
 
 ## Authority Note
 
-Canonical sources: `docs/00_foundations/Agent_Roles_Reference_v1.0.md` and `docs/00_foundations/LifeOS Target Architecture v2.3c.md`. Those documents win on conflict. `docs/02_protocols/Intent_Routing_Rule_v1.1.md` is WIP/non-canonical; content from it is provisional.
+Canonical sources: `docs/00_foundations/LifeOS Target Architecture v2.3c.md` and ratified governance docs. `docs/00_foundations/Agent_Roles_Reference_v1.0.md` is an active orientation reference only and loses on conflict. `docs/02_protocols/Intent_Routing_Rule_v1.1.md` is WIP/non-canonical; content from it is provisional.
 
 ## Current Truth
 
@@ -42,9 +42,9 @@ Canonical sources: `docs/00_foundations/Agent_Roles_Reference_v1.0.md` and `docs
 | Actor | Authority | Notes |
 |-------|-----------|-------|
 | CEO (human) | Ultimate | Sets objectives; approval authority |
-| COO (OpenClaw) | Operational | Bounded, phase-scoped discretion |
+| COO (active substrate) | Operational | Bounded, phase-scoped discretion; only active COO has mutation authority |
+| COO substrates | Orientation only | OpenClaw, Hermes, or successor adapters; substrate candidacy is not settled here |
 | EA (Claude Code, Codex) | Execution | Stateless; triggered via GitHub Actions |
-| Antigravity | Implementation | Primary builder; full-scope work |
 | Advisory (Claude.ai, ChatGPT) | None | Read-only; not in operational loop |
 
 **Delegation tiers (Intent_Routing_Rule v1.1, WIP):** T0=CEO, T1=CSO (intent interpretation, deadlock resolution), T2=Councils/Reviewers, T3=Agents, T4=Deterministic rules. Fail-closed: ambiguity escalates upward.
