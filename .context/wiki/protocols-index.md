@@ -1,7 +1,7 @@
 ---
 source_docs:
   - docs/INDEX.md
-source_commit_max: 310aac1e0eda5cb96842d8a596bbadacbf4935f9
+source_commit_max: 4e8237cba053b2cb10dba7467f463286d1711fd7
 authority: derived
 page_class: evergreen
 concepts:
@@ -41,12 +41,16 @@ Key active protocols (see `docs/INDEX.md` for full list):
 | `Council_Protocol_v1.3.md` | Council composition and rulings |
 | `Governance_Protocol_v1.0.md` | Governance procedures |
 | `Deterministic_Artefact_Protocol_v2.0.md` | DAP validation |
+| `Build_Artifact_Protocol_v1.0.md` | Formal schemas/templates for build artifacts |
 | `Intent_Routing_Rule_v1.1.md` | COO agent routing decisions |
+| `LifeOS_Design_Principles_Protocol_v1.1.md` | "Prove then Harden" development principles |
+| `Emergency_Declaration_Protocol_v1.0.md` | Emergency override and auto-revert |
 | `Test_Protocol_v2.0.md` | TDD and test design standards |
-| `TODO_Standard_v1.0.md` | LIFEOS_TODO format rules |
 | `EOL_Policy_v1.0.md` | End-of-life handling for docs |
+| `Project_Planning_Protocol_v1.0.md` | Build mission plan requirements and review |
+| `OpenClaw_COO_Integration_v1.0.md` | OpenClaw gateway invocation and constraints |
 
-For templates and guides, see `docs/02_protocols/templates/` and `docs/02_protocols/guides/`.
+For packet schemas, templates, and operational guides, see subdirectories under `docs/02_protocols/`.
 
 ## Open Questions
 

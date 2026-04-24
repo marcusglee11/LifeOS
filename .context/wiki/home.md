@@ -2,7 +2,8 @@
 source_docs:
   - docs/INDEX.md
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
-source_commit_max: 310aac1e0eda5cb96842d8a596bbadacbf4935f9
+  - docs/10_meta/architecture_decisions/INDEX.md
+source_commit_max: acd95ae997c49e76a9e64d566d3e9ef9d0d69ffc
 authority: derived
 page_class: evergreen
 concepts:
@@ -23,6 +24,7 @@ For current operational state, read `docs/11_admin/LIFEOS_STATE.md` directly.
 - `docs/00_foundations/LifeOS_Constitution_v2.0.md` — supreme governing document
 - `docs/11_admin/LIFEOS_STATE.md` — current phase and WIP (volatile; read directly)
 - `docs/INDEX.md` — navigation index for all canonical docs
+- `docs/10_meta/architecture_decisions/INDEX.md` — ratified architecture decision register (ADR-001, ADR-002)
 
 **Wiki pages:**
 - [target-architecture](target-architecture.md) — CEO→COO→EA control-plane design
@@ -44,6 +46,7 @@ This page is a navigation aid only. All substantive claims require canonical doc
 ## Current Truth
 
 `docs/INDEX.md` is the canonical navigation surface for the documentation corpus.
+Architecture decision records live in `docs/10_meta/architecture_decisions/INDEX.md`.
 For active phase, blockers, and current operational state, read `docs/11_admin/LIFEOS_STATE.md`
 directly. This page is a derived landing page only.
 

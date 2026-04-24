@@ -4,36 +4,36 @@ source_docs:
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
   - docs/02_protocols/Intent_Routing_Rule_v1.1.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: 310aac1e0eda5cb96842d8a596bbadacbf4935f9
+source_commit_max: 4e8237cba053b2cb10dba7467f463286d1711fd7
 authority: derived
 page_class: evergreen
 concepts:
   - COO
   - CEO
   - EA
-  - Antigravity
+  - COO substrates
+  - CSO
   - autonomy levels
   - provider routing
+  - delegation tiers
 ---
 
 ## Summary
 
-LifeOS uses a layered multi-agent model. CEO provides strategic intent. COO (OpenClaw)
-decomposes objectives and dispatches work. EAs (Claude Code, Codex) execute bounded tasks
-in worktrees. Antigravity is the primary builder for full-scope implementation work.
+LifeOS uses a layered multi-agent model. CEO provides strategic intent. COO is a control-plane substrate role, with the active substrate determined by canonical architecture and operating state. EAs (Claude Code, Codex) execute bounded tasks in worktrees. Advisory agents remain outside the operational loop. A CSO tier from `Intent_Routing_Rule_v1.1` remains provisional / WIP, not canon.
 
 ## Key Relationships
 
 - [target-architecture](target-architecture.md) — control-plane flow for these actors
 - [governance-model](governance-model.md) — CEO supremacy and invariants
 - [openclaw-integration](openclaw-integration.md) — COO substrate details
-- Source: `docs/00_foundations/Agent_Roles_Reference_v1.0.md` — autonomy model
+- Source: `docs/00_foundations/Agent_Roles_Reference_v1.0.md` — autonomy model, memory layers
 - Source: `docs/00_foundations/LifeOS Target Architecture v2.3c.md` — actor taxonomy
+- Source: `docs/02_protocols/Intent_Routing_Rule_v1.1.md` — delegation tiers (WIP)
 
 ## Authority Note
 
-Canonical sources: `docs/00_foundations/Agent_Roles_Reference_v1.0.md` and
-`docs/00_foundations/LifeOS Target Architecture v2.3c.md`. Those documents win on conflict.
+Canonical sources: `docs/00_foundations/LifeOS Target Architecture v2.3c.md` and ratified governance docs. `docs/00_foundations/Agent_Roles_Reference_v1.0.md` is an active orientation reference only and loses on conflict. `docs/02_protocols/Intent_Routing_Rule_v1.1.md` is WIP/non-canonical; content from it is provisional.
 
 ## Current Truth
 
@@ -42,18 +42,19 @@ Canonical sources: `docs/00_foundations/Agent_Roles_Reference_v1.0.md` and
 | Actor | Authority | Notes |
 |-------|-----------|-------|
 | CEO (human) | Ultimate | Sets objectives; approval authority |
-| COO (OpenClaw) | Operational | Bounded, phase-scoped discretion |
+| COO (active substrate) | Operational | Bounded, phase-scoped discretion; only active COO has mutation authority |
+| COO substrates | Orientation only | OpenClaw, Hermes, or successor adapters; substrate candidacy is not settled here |
 | EA (Claude Code, Codex) | Execution | Stateless; triggered via GitHub Actions |
-| Antigravity | Implementation | Primary builder; full-scope work |
 | Advisory (Claude.ai, ChatGPT) | None | Read-only; not in operational loop |
 
-**COO autonomy levels (current):** L0 (auto-dispatch: `requires_approval=false` AND `risk=low`
-per delegation_envelope) → L3 (propose-and-wait for everything else) → L4 (mandatory
-escalation for architectural/governance triggers). L1/L2 remain deferred.
+**Delegation tiers (Intent_Routing_Rule v1.1, WIP):** T0=CEO, T1=CSO (intent interpretation, deadlock resolution), T2=Councils/Reviewers, T3=Agents, T4=Deterministic rules. Fail-closed: ambiguity escalates upward.
 
-**Provider routing:** `codex` (bounded impl), `claude_code` (complex multi-file),
-`gemini` (analysis), `auto` (uncertain, let orchestrator decide).
+**COO autonomy levels:** L0 (auto-dispatch: `requires_approval=false` AND `risk=low`) → L3 (propose-and-wait) → L4 (mandatory escalation). L1/L2 deferred.
+
+**COO memory layers:** `MEMORY.md` + memory files → `.context/wiki/` → `docs/11_admin/LIFEOS_STATE.md` → `config/agent_roles/coo.md`.
+
+**Provider routing:** `codex` (bounded impl), `claude_code` (complex multi-file), `gemini` (analysis), `auto` (uncertain).
 
 ## Open Questions
 
-None.
+> [!CONFLICT] `Intent_Routing_Rule_v1.1.md` introduces a CSO role (T1) not present in `Agent_Roles_Reference_v1.0.md` or `LifeOS Target Architecture v2.3c.md` actor taxonomy. CSO is WIP/non-canonical; its operational status is unresolved until the rule is ratified.
