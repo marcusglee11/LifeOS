@@ -10,7 +10,20 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-04-07 (rev15)
+**Last Updated:** 2026-04-24 (rev16)
+
+## Architecture Normalization Decisions (unblocked; source: `docs/10_meta/Architecture_Normalization_Targeted_Issue_List_2026-04-24.md`)
+
+### P1 (High) — open only after PR #28 lands ✓ (landed 4e8237cb)
+
+- [ ] **Ratify human approval capture contract** — DoD: approval source channels named, receipt capture rule defined, minimum binding tuple ratified, re-approval invalidation explicit — Owner: CEO — Context: Issue 1 from normalization packet; required surfaces: canonical governance doc, `ARCHITECTURE_SOURCE_OF_TRUTH.md`, `ARCHITECTURE_CHANGELOG.md`, ADR if ratified
+- [ ] **Ratify active vs standby COO semantics and sole-writer boundary** — DoD: exactly-one-writer rule explicit, standby allowed/forbidden actions explicit, switchover trigger explicit, sole-writer scope explicit — Owner: CEO — Context: Issue 2; required surfaces: canonical governance/architecture docs, source-of-truth page, changelog, ADR
+- [ ] **Resolve Drive / Workspace role in canon** — DoD: canonical role chosen (mirror-only vs advisory ingress), proposal-only surfaces stay proposal unless ratified — Owner: CEO — Context: Issue 3; required surfaces: canonical architecture docs, source-of-truth page, changelog, ADR
+- [ ] **Resolve Hermes ↔ OpenClaw directionality and pushback rules** — DoD: peer directionality class explicit, active/standby interaction clear, pushback/escalation rules explicit — Owner: CEO — Context: Issue 4; required surfaces: canonical governance/architecture docs, source-of-truth page, changelog, ADR
+- [ ] **Reconcile communications draft with canon or mark proposal-only** — DoD: no silent conflict on approval semantics/Drive role/operational-state scope; status markers explicit — Owner: CEO — Context: Issue 5; doc: `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md`
+- [ ] **Install architecture-maintenance checks after canon is stable** — DoD: pre-merge checklist defined, trigger conditions for reconciliation defined, no bloat added — Owner: active COO — Context: Issue 6; blocked until Issues 1-5 resolved
+
+---
 
 ## Now (ready soon; not in WIP yet)
 
