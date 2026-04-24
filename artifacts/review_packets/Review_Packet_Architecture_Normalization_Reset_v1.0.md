@@ -5,7 +5,7 @@ created_at: "2026-04-24T01:38:56Z"
 author: "OpenAI Codex GPT-5.4"
 version: "1.0"
 status: "COMPLETE"
-terminal_outcome: "PENDING_VALIDATION"
+terminal_outcome: "PASS_WITH_KNOWN_BASELINE_FAILURES"
 closure_evidence:
   implementation_commit: "PENDING_COMMIT"
   effective_date: "2026-04-24"
@@ -37,8 +37,8 @@ Applied the PR #28 surgical fix by demoting `Agent_Roles_Reference_v1.0.md` to a
 
 # Validation
 
-- Baseline `pytest runtime/tests -q` was running before the fix; known suite already had pre-existing failures outside this doc scope.
-- Post-fix validation pending at packet write time; see terminal session / follow-up status before merge.
+- Baseline `pytest runtime/tests -q` completed with the known pre-existing 5 failures outside this doc scope.
+- Post-fix `pytest runtime/tests -q` rerun completed with the same known pre-existing 5 failures (`3178 passed, 5 failed, 6 skipped`), indicating no new regression from this surgical doc fix.
 
 # Changed Files
 
