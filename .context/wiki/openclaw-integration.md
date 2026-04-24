@@ -1,64 +1,60 @@
 ---
 source_docs:
-  - runtime/orchestration/coo/invoke.py
-  - config/coo/prompt_canonical.md
-  - config/agent_roles/coo.md
-last_updated: bf4d9ecd
+  - docs/02_protocols/OpenClaw_COO_Integration_v1.0.md
+  - docs/00_foundations/LifeOS Target Architecture v2.3c.md
+source_commit_max: 310aac1e0eda5cb96842d8a596bbadacbf4935f9
+authority: derived
+page_class: evergreen
 concepts:
   - OpenClaw
   - COO invocation
   - gateway
-  - gpt-5.3-codex
   - adapter
+  - COO Commons
 ---
-
-# OpenClaw Integration
 
 ## Summary
 
-OpenClaw is the external AI gateway running the live COO (model: gpt-5.3-codex).
-It exposes a local HTTP gateway at `127.0.0.1:18789`. LifeOS invokes it via the
-`openclaw` CLI; the runtime adapter in `invoke.py` normalizes responses and
-injects the output schema that the COO needs (it cannot access LifeOS schemas
-directly through the gateway).
+OpenClaw is the external AI gateway hosting the live COO agent. LifeOS invokes the COO
+via the local OpenClaw HTTP gateway. The target architecture (v2.3c) designates COO as
+replaceable via stable contracts provided by COO Commons — a substrate-independent shared
+services layer holding schemas, validators, policy data, and webhook ingress.
 
 ## Key Relationships
 
-- **[agent-roles](agent-roles.md)** — COO is the agent running inside OpenClaw.
-- **[coo-runtime](coo-runtime.md)** — the COO runtime calls invoke.py to dispatch to OpenClaw.
-- **Adapter**: `runtime/orchestration/coo/invoke.py`
-- **Commands**: `runtime/orchestration/coo/commands.py`
-- **Schema reference**: `artifacts/coo/schemas.md`
-- **Canonical prompt**: `config/coo/prompt_canonical.md`
+- [agent-roles](agent-roles.md) — COO role and autonomy model
+- [coo-runtime](coo-runtime.md) — COO runtime and orchestration specs
+- [target-architecture](target-architecture.md) — COO as replaceable operational layer; COO Commons design
+- Source: `docs/02_protocols/OpenClaw_COO_Integration_v1.0.md`
+- Source: `docs/00_foundations/LifeOS Target Architecture v2.3c.md`
 
-## Invocation Pattern
+## Authority Note
 
+Canonical source: `docs/02_protocols/OpenClaw_COO_Integration_v1.0.md`. That document
+wins on any conflict with this page. Implementation detail (adapter code, config files)
+is NOT a canonical source.
+
+## Current Truth
+
+**Gateway:** `127.0.0.1:18789` via `openclaw` CLI. Agent slot `main` = live COO.
+
+**Invocation:**
 ```bash
 openclaw agent --agent main --message '<json_str>' --json
+# response: result.payloads[0].text
 ```
 
-Response: `result.payloads[0].text`
+**CLI wrappers:** `lifeos coo propose` (backlog → task_proposal.v1), `lifeos coo direct`
+(CEO objective → escalation_packet.v1).
 
-Agent `main` = COO (gpt-5.3-codex). Gateway must be running before invocation.
+**Constraints:** Adapter injects `output_schema` on each call (COO cannot access schemas
+directly via gateway). Credentials at `~/.openclaw/.env`. COO output normalizer handles
+known gpt model formatting quirks. Verify current version with `openclaw --version`.
 
-## CLI Commands
-
-```bash
-lifeos coo propose   # COO reviews backlog → task_proposal.v1 YAML
-lifeos coo direct    # CEO objective → escalation_packet.v1 → queued to CEO
-```
-
-## Known Quirks
-
-- gpt-5.3-codex produces proposals with unindented sub-keys → normalizer in `invoke.py` handles this.
-- Must inject `output_schema` with concrete YAML example in context — COO cannot access `schemas.md` directly via gateway invocation.
-- Gateway token was revoked once (2026-03-25); refresh via `~/.openclaw/.env`. OpenClaw version: `2026.3.23-2`.
-
-## Current State
-
-Operational since 2026-03-08. Last upgrade: 2026.3.2 → 2026.3.23-2 (npm, 2026-03-25).
-Promotion-run tx `b0a9937e` recorded on main. Telegram bot reconnected with fresh token same date.
+**COO Commons (v2.3c):** Co-hosted with substrate in Phase 1. Provides webhook ingestion,
+schema validation library (in-process), and phase/policy config via local verified git clone.
+COO is fail-closed when Commons is unavailable.
 
 ## Open Questions
 
-None currently flagged.
+None.

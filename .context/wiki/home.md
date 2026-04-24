@@ -1,0 +1,1 @@
+Updated `home.md`. Changes: added `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md` to Key Relationships and noted the new `docs/10_meta/` architecture control surfaces (changelog, ADR register) in Current Truth. Source_commit_max set to `7f86833a62202441eb6d36fd2e299987471abafc` placeholder.

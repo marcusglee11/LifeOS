@@ -1,60 +1,57 @@
 ---
 source_docs:
-  - docs/02_protocols/
   - docs/INDEX.md
-last_updated: bf4d9ecd
+source_commit_max: 8175078b0331e68715e7c5d35bd960c9592322f6
+authority: derived
+page_class: evergreen
 concepts:
   - protocols
   - index
   - cross-reference
 ---
 
-# Protocols Index
-
 ## Summary
 
-Cross-reference of all active protocols in `docs/02_protocols/`. This page
-is a navigation aid for agents — it does not duplicate protocol content.
-Each entry links to the source doc and notes the primary concern.
+Navigation index of active protocols in `docs/02_protocols/`. This page is a navigation
+aid only — it does not duplicate protocol content. For full protocol text, read the source
+docs directly.
 
-## Active Protocols
+## Key Relationships
 
-| Protocol | File | Primary Concern |
-|----------|------|----------------|
-| AI Council Procedural | `AI_Council_Procedural_Spec_v1.1.md` | Council decision FSM, quorum, voting |
-| Build Artifact | `Build_Artifact_Protocol_v1.0.md` | Artifact packaging standards |
-| Build Handoff | `Build_Handoff_Protocol_v1.1.md` | Inter-agent handoff structure |
-| Core TDD Design | `Core_TDD_Design_Principles_v1.0.md` | TDD rules for all builds |
-| Council Context Pack | `Council_Context_Pack_Schema_v0.3.md` | Council packet schema |
-| Council Protocol | `Council_Protocol_v1.3.md` | Full Council decision process |
-| DAP (Deterministic Artefact) | `Deterministic_Artefact_Protocol_v2.0.md` | File naming, versioning |
-| Document Steward | `Document_Steward_Protocol_v1.1.md` | Doc operations, sync, index |
-| Emergency Declaration | `Emergency_Declaration_Protocol_v1.0.md` | Emergency override procedure |
-| EOL Policy | `EOL_Policy_v1.0.md` | End-of-line standards (LF enforced) |
-| Filesystem Error Boundary | `Filesystem_Error_Boundary_Protocol_v1.0.md` | FS error isolation |
-| G-CBS Standard | `G-CBS_Standard_v1.1.md` | Git-backed change batch spec |
-| Git Workflow | `Git_Workflow_Protocol_v1.1.md` | Branch, commit, merge rules |
-| Governance | `Governance_Protocol_v1.0.md` | Governance rules and escalation |
-| Intent Routing | `Intent_Routing_Rule_v1.1.md` | Route CEO intent to correct agent |
-| LifeOS Design Principles | `LifeOS_Design_Principles_Protocol_v1.1.md` | System design rules |
-| Packet Schema Versioning | `Packet_Schema_Versioning_Policy_v1.0.md` | Schema version management |
-| Project Planning | `Project_Planning_Protocol_v1.0.md` | Plan structure and review |
-| Test Protocol | `Test_Protocol_v2.0.md` | Testing standards, TDD gates |
-| Tier-2 API Evolution | `Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md` | API versioning |
-| TODO Standard | `TODO_Standard_v1.0.md` | `LIFEOS_TODO[P0|P1|P2]` format; no bare TODOs |
+- [governance-model](governance-model.md) — constitutional authority for protocols
+- [doc-stewardship](doc-stewardship.md) — document stewardship protocol
+- [build-workflow](build-workflow.md) — Git and build protocols
+- Source: `docs/INDEX.md` — authoritative protocol listing
 
-## Guides & Templates
+## Authority Note
 
-- `guides/OpenClaw_Codex_OAuth_Recovery_v1.0.md` — OAuth recovery runbook
-- `guides/plan_writing_guide.md` — Plan structure guidance
-- `templates/` — 9 templates: blocked_report, doc_draft, gap_analysis, governance_request, plan_packet, plan, review_packet, test_draft, walkthrough
+Canonical source: `docs/INDEX.md`. That document wins on any conflict with this page.
+Protocol versions and existence are determined by `docs/INDEX.md` and the actual files
+present in `docs/02_protocols/` — not by this wiki page.
 
-## Related Pages
+## Current Truth
 
-- [governance-model](governance-model.md) — Constitution and hard invariants
-- [doc-stewardship](doc-stewardship.md) — Document Steward Protocol detail
-- [build-workflow](build-workflow.md) — Git Workflow Protocol detail
+Key active protocols (see `docs/INDEX.md` for full list):
+
+| Protocol | Concern |
+|----------|---------|
+| `Build_Handoff_Protocol_v1.1.md` | Agent-to-agent handoff messaging |
+| `Document_Steward_Protocol_v1.1.md` | Document creation, indexing, sync |
+| `Git_Workflow_Protocol_v1.1.md` | Branch, merge, and commit invariants |
+| `Council_Protocol_v1.3.md` | Council composition and rulings |
+| `Governance_Protocol_v1.0.md` | Governance procedures |
+| `Deterministic_Artefact_Protocol_v2.0.md` | DAP validation |
+| `Build_Artifact_Protocol_v1.0.md` | Formal schemas/templates for build artifacts |
+| `Intent_Routing_Rule_v1.1.md` | COO agent routing decisions |
+| `LifeOS_Design_Principles_Protocol_v1.1.md` | "Prove then Harden" development principles |
+| `Emergency_Declaration_Protocol_v1.0.md` | Emergency override and auto-revert |
+| `Test_Protocol_v2.0.md` | TDD and test design standards |
+| `EOL_Policy_v1.0.md` | End-of-life handling for docs |
+| `Project_Planning_Protocol_v1.0.md` | Build mission plan requirements and review |
+| `OpenClaw_COO_Integration_v1.0.md` | OpenClaw gateway invocation and constraints |
+
+For packet schemas, templates, and operational guides, see subdirectories under `docs/02_protocols/`.
 
 ## Open Questions
 
-None currently flagged.
+None.

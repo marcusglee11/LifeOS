@@ -2,87 +2,57 @@
 source_docs:
   - docs/02_protocols/Git_Workflow_Protocol_v1.1.md
   - docs/02_protocols/Build_Handoff_Protocol_v1.1.md
-  - CLAUDE.md
-  - .claude/rules/agent-coordination.md
-  - .claude/rules/git-hygiene.md
-last_updated: bf4d9ecd
+source_commit_max: df4bb54bba3a499ef8a41f4ccb711e1f59862820
+authority: derived
+page_class: evergreen
 concepts:
   - worktree isolation
   - branch naming
-  - Article XIX
-  - close-build
-  - start_build
+  - build lifecycle
+  - handoff
   - sprint isolation
 ---
 
-# Build Workflow
-
 ## Summary
 
-All builds run in isolated git worktrees — never in the primary repo. This is
-a hard gate, not a soft instruction: shared working tree + concurrent agent
-writes causes Article XIX blocks, merge conflicts, and orphaned files. The
-`start_build.py` / `close_build.py` scripts are the canonical entry points.
+All LifeOS builds run in isolated git worktrees — never in the primary repo. This is a
+hard gate, not guidance. The `Git_Workflow_Protocol_v1.1.md` defines enforced invariants
+for branch naming, merge gating, and CI proof. Handoff semantics are defined by
+`Build_Handoff_Protocol_v1.1.md`.
 
 ## Key Relationships
 
-- **[agent-roles](agent-roles.md)** — sprint agents own builds; COO issues work orders.
-- **[doc-stewardship](doc-stewardship.md)** — doc changes follow this same workflow.
-- **Scripts**: `scripts/workflow/start_build.py`, `scripts/workflow/close_build.py`
-- **Dispatch wrapper**: `scripts/workflow/dispatch_codex.sh` (hard-gates on worktree existence)
+- [agent-roles](agent-roles.md) — sprint agent role (EA)
+- [doc-stewardship](doc-stewardship.md) — stewardship gates in close-build
+- Source: `docs/02_protocols/Git_Workflow_Protocol_v1.1.md` — branch, merge, CI invariants
+- Source: `docs/02_protocols/Build_Handoff_Protocol_v1.1.md` — handoff messaging
 
-## Branch Naming
+## Authority Note
 
-| Kind | Branch prefix | Command |
-|------|--------------|---------|
-| Feature | `build/<topic>` | default |
-| Fix | `fix/<topic>` | `--kind fix` |
-| Hotfix | `hotfix/<topic>` | `--kind hotfix` |
-| Spike | `spike/<topic>` | `--kind spike` |
+Canonical source: `docs/02_protocols/Git_Workflow_Protocol_v1.1.md`. That document wins
+on any conflict. Implementation-level build scripts and Article XIX hook details are in
+`CLAUDE.md` (operational rules) which agents read directly.
+
+## Current Truth
+
+**Branch naming (enforced by tooling):**
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Feature | `build/<topic>` | `build/coo-control-plane` |
+| Fix | `fix/<issue>` | `fix/test-failures` |
+| Hotfix | `hotfix/<issue>` | `hotfix/ci-regression` |
+| Spike | `spike/<topic>` | `spike/new-executor` |
 
 Never commit directly on `main`.
 
-## Start a Build
+**Build lifecycle:** start (`python3 scripts/workflow/start_build.py <topic>`) → work in
+worktree → tests + quality gate → close (`python3 scripts/workflow/close_build.py`).
 
-```bash
-python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]
-# → prints worktree path, e.g. .worktrees/<topic>/
-cd <worktree_path>
-```
-
-Atomically: creates branch + linked worktree from `main`. Tracks metadata in
-`artifacts/active_branches.json`.
-
-## Article XIX
-
-Pre-commit hook blocks commits when untracked files exist on the current
-branch. `--no-verify` exemption requires all three: (1) commit IS the
-resolution, (2) remaining untracked files belong to concurrent agent WIP,
-(3) file cannot be staged here. Document exemption in commit message body.
-
-## Close a Build
-
-Run from the linked worktree:
-```bash
-python3 scripts/workflow/close_build.py
-# or: /close-build skill
-```
-
-Gates: tests pass, quality gate green, git status clean, doc stewardship valid.
-
-## Handoff Rules
-
-- Never "wait for branch X to merge" in a handoff — provide a direct file path or commit SHA.
-- If a resource doesn't exist yet, don't write the handoff — wait until it does.
-- Git is the shared bus between agents: commits, diffs, files.
-
-## Current State
-
-Primary repo on `main`. 117 commits ahead of `origin/main` (Phase 7 pending
-remote sync). `close_build` performance note: `pytest runtime/tests` on NTFS
-takes 8–25 min; targeted test routing in `runtime/tools/workflow_pack.py`
-can reduce this to ~10s for config/doc-only changes.
+**Handoff semantics:** `Build_Handoff_Protocol_v1.1.md` defines the packetized handoff
+architecture — CONTEXT_REQUEST / CONTEXT_RESPONSE / HANDOFF_PACKET types, evidence requirements,
+and artifact bundling at `artifacts/for_ceo/`.
 
 ## Open Questions
 
-None currently flagged.
+None.

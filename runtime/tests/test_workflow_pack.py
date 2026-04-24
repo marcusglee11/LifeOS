@@ -20,6 +20,7 @@ from runtime.tools.workflow_pack import (
     discover_changed_files,
     merge_to_main,
     read_active_work,
+    route_quality_tools,
     route_targeted_tests,
     run_closure_tests,
     update_structured_backlog,
@@ -151,6 +152,27 @@ def test_route_targeted_tests_artifacts_status() -> None:
     # Pure artifact-only changes skip targeted pytest.
     commands = route_targeted_tests(["artifacts/status/runtime_status.json"])
     assert commands == []
+
+
+def test_route_targeted_tests_wiki_content() -> None:
+    # Wiki content changes route to wiki lint validator test, not the full suite.
+    commands = route_targeted_tests([".context/wiki/home.md"])
+    assert commands == ["pytest -q runtime/tests/test_wiki_lint_validator.py"]
+
+
+def test_route_targeted_tests_wiki_does_not_fallback_to_full_suite() -> None:
+    # Multiple wiki files must NOT trigger the full suite fallback.
+    commands = route_targeted_tests(
+        [".context/wiki/home.md", ".context/wiki/agent-roles.md", ".context/wiki/SCHEMA.md"]
+    )
+    assert "pytest -q runtime/tests" not in commands
+    assert "pytest -q runtime/tests/test_wiki_lint_validator.py" in commands
+
+
+def test_route_targeted_tests_wiki_with_explicit_wiki_tier() -> None:
+    # Explicit closure_tier="wiki" must not break wiki routing.
+    commands = route_targeted_tests([".context/wiki/home.md"], closure_tier="wiki")
+    assert commands == ["pytest -q runtime/tests/test_wiki_lint_validator.py"]
 
 
 def test_route_targeted_tests_coo_module() -> None:
@@ -1337,3 +1359,101 @@ def test_update_structured_backlog_missing_backlog_returns_error(tmp_path: Path)
 
     assert result["updated"] is False
     assert any("backlog.yaml not found" in err for err in result["errors"])
+
+
+_MINIMAL_MANIFEST = {
+    "tools": {
+        "ruff_check": {"enabled": True, "scopes": ["changed", "repo"], "mode": "blocking", "failure_class": "lint_error"},
+        "ruff_format": {"enabled": True, "scopes": ["changed", "repo"], "mode": "blocking", "failure_class": "format_error"},
+        "mypy": {"enabled": True, "scopes": ["changed", "repo"], "mode": "blocking", "failure_class": "type_error"},
+        "markdownlint": {"enabled": True, "scopes": ["changed", "repo"], "mode": "blocking", "failure_class": "lint_error"},
+        "yamllint": {"enabled": True, "scopes": ["changed", "repo"], "mode": "blocking", "failure_class": "lint_error"},
+        "shellcheck": {"enabled": True, "scopes": ["changed", "repo"], "mode": "advisory", "failure_class": "lint_error"},
+        "biome": {"enabled": False, "scopes": [], "mode": "advisory", "failure_class": "lint_error"},
+    },
+    "repo": {"exclude_prefixes": [], "python_targets": []},
+}
+
+
+def test_route_quality_tools_no_markdown_fan_out(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("runtime.tools.workflow_pack.load_quality_manifest", lambda _: _MINIMAL_MANIFEST)
+    changed = ["docs/02_protocols/some_doc.md"]
+    routed = route_quality_tools(tmp_path, changed, scope="changed")
+    md_files = routed.get("markdownlint", [])
+    assert md_files == changed, (
+        "markdownlint should receive only the changed file, not all tracked .md files"
+    )
+
+
+def test_route_quality_tools_no_yaml_fan_out(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("runtime.tools.workflow_pack.load_quality_manifest", lambda _: _MINIMAL_MANIFEST)
+    changed = ["config/governance/delegation_envelope.yaml"]
+    routed = route_quality_tools(tmp_path, changed, scope="changed")
+    yaml_files = routed.get("yamllint", [])
+    assert yaml_files == changed, (
+        "yamllint should receive only the changed file, not all tracked .yaml files"
+    )
+
+
+def test_route_quality_tools_markdown_config_only_does_not_expand(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("runtime.tools.workflow_pack.load_quality_manifest", lambda _: _MINIMAL_MANIFEST)
+    monkeypatch.setattr(
+        "runtime.tools.workflow_pack._git_tracked_files",
+        lambda repo_root: ["docs/other.md", "docs/another.md"],
+    )
+    routed = route_quality_tools(tmp_path, [".markdownlint.json"], scope="changed")
+    assert routed.get("markdownlint", []) == [], (
+        "markdownlint should not expand when config file changed but no .md files in change-set"
+    )
+
+
+def test_route_quality_tools_yaml_config_only_does_not_expand(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("runtime.tools.workflow_pack.load_quality_manifest", lambda _: _MINIMAL_MANIFEST)
+    monkeypatch.setattr(
+        "runtime.tools.workflow_pack._git_tracked_files",
+        lambda repo_root: ["config/a.yaml", "config/b.yml"],
+    )
+    routed = route_quality_tools(tmp_path, [".yamllint.yml"], scope="changed")
+    assert routed.get("yamllint", []) == [], (
+        "yamllint should not expand when config file changed but no .yaml files in change-set"
+    )
+
+
+def test_check_doc_stewardship_passes_paths_arg_for_admin_link_ban(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd, *args, **kwargs):
+        calls.append(list(cmd))
+        return subprocess.CompletedProcess(
+            args=cmd,
+            returncode=0,
+            stdout="",
+            stderr="",
+        )
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    check_doc_stewardship(Path("."), ["docs/11_admin/LIFEOS_STATE.md"])
+
+    admin_link_ban_calls = [c for c in calls if "admin-archive-link-ban-check" in c]
+    assert admin_link_ban_calls, "admin-archive-link-ban-check should have been called"
+    assert "--paths" in admin_link_ban_calls[0], (
+        "--paths should be passed to admin-archive-link-ban-check when admin .md files changed"
+    )
+    assert "docs/11_admin/LIFEOS_STATE.md" in admin_link_ban_calls[0]
+
+
+def test_check_doc_stewardship_no_paths_arg_when_no_changed_md_in_admin(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd, *args, **kwargs):
+        calls.append(list(cmd))
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    check_doc_stewardship(Path("."), ["docs/11_admin/"])
+
+    admin_link_ban_calls = [c for c in calls if "admin-archive-link-ban-check" in c]
+    assert admin_link_ban_calls, "admin-archive-link-ban-check should have been called"
+    assert "--paths" not in admin_link_ban_calls[0], (
+        "--paths should not be passed when no .md files are in changed admin paths"
+    )

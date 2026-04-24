@@ -2,72 +2,53 @@
 source_docs:
   - docs/11_admin/LIFEOS_STATE.md
   - docs/11_admin/BACKLOG.md
-  - config/tasks/backlog.yaml
-  - config/governance/delegation_envelope.yaml
-last_updated: bf4d9ecd
+  - docs/02_protocols/Intent_Routing_Rule_v1.1.md
+  - docs/00_foundations/LifeOS Target Architecture v2.3c.md
+source_commit_max: bf4d9ecd01e5124584e96a42b95f16c7f39e3fd2
+authority: derived
+page_class: status
 concepts:
   - backlog
   - task proposal
-  - delegation envelope
-  - LIFEOS_STATE
+  - delegation
   - COO workflow
 ---
 
-# Backlog & Task System
-
 ## Summary
 
-The COO reviews the structured backlog (`config/tasks/backlog.yaml`) and
-proposes tasks to the CEO via `lifeos coo propose`. Approved tasks become
-ExecutionOrders dispatched to sprint agents. `docs/11_admin/LIFEOS_STATE.md`
-is the canonical source of truth for current phase and active WIP.
+The COO reviews the structured backlog and proposes tasks. CEO approves proposals, which
+become ExecutionOrders dispatched to sprint agents. `docs/11_admin/LIFEOS_STATE.md` is the
+canonical source for current phase, active WIP, and blockers.
 
 ## Key Relationships
 
-- **[agent-roles](agent-roles.md)** — COO drives the task proposal loop.
-- **[openclaw-integration](openclaw-integration.md)** — live COO invocation produces proposals.
-- **[governance-model](governance-model.md)** — delegation envelope defines COO authority bounds.
-- **Backlog source**: `config/tasks/backlog.yaml`
-- **Delegation bounds**: `config/governance/delegation_envelope.yaml`
-- **State source of truth**: `docs/11_admin/LIFEOS_STATE.md`
-- **Task queue**: `docs/11_admin/BACKLOG.md`
+- [agent-roles](agent-roles.md) — COO autonomy levels that govern proposal routing
+- [openclaw-integration](openclaw-integration.md) — how COO proposals are invoked
+- [governance-model](governance-model.md) — CEO approval authority
+- Source: `docs/11_admin/LIFEOS_STATE.md` — current phase and WIP (volatile)
+- Source: `docs/11_admin/BACKLOG.md` — prioritized work items
+- Source: `docs/02_protocols/Intent_Routing_Rule_v1.1.md` — routing and autonomy rules
 
-## Task Proposal Flow
+## Authority Note
 
-```
-COO reads backlog.yaml
-  → proposes task_proposal.v1 YAML
-  → CEO approves → ExecutionOrder YAML
-  → sprint agent receives order + worktree path
-  → builds in isolation
-  → close_build gates
-  → merged to main
-```
+Canonical sources: `docs/11_admin/LIFEOS_STATE.md` (current state) and
+`docs/11_admin/BACKLOG.md` (backlog). This page summarizes structure only; read those
+docs directly for current operational state.
 
-## Delegation Envelope
+## Current Truth
 
-Defines which actions the COO can take autonomously (L0) vs. must escalate (L4).
-Key flags per task: `requires_approval` (bool), `risk` (low/medium/high).
-L0 auto-dispatch: `requires_approval=false` AND `risk=low`.
+**Proposal flow:**
+1. COO reads backlog → proposes `task_proposal.v1` YAML via `lifeos coo propose`
+2. CEO approves → `ExecutionOrder` YAML created
+3. Sprint agent receives order + worktree → builds in isolation
+4. `close_build` gates (tests, quality, doc stewardship) → merged to main
 
-## Current State (as of 2026-04-07)
+**Auto-dispatch (L0):** `requires_approval=false` AND `risk=low` per `Intent_Routing_Rule_v1.1.md`.
 
-- Active phase: Phase 7 `prod_ci` — canonical closure pending (117 commits ahead of `origin/main`).
-- All COO Bootstrap steps (1-9) complete.
-- Phase 10 Batch 1+2 merged (workspace inspection + repo artifact executors).
-- Phase 9 ratified (`workspace_mutation_v1` approved).
-- Agent Efficiency P0 (T-AE-01, T-AE-02, T-AE-03) closed; pytest PASS (3058 passed, 6 skipped).
-
-## Key Files
-
-| File | Role |
-|------|------|
-| `docs/11_admin/LIFEOS_STATE.md` | Canonical phase/WIP status |
-| `docs/11_admin/BACKLOG.md` | Prioritized task queue (human-readable) |
-| `config/tasks/backlog.yaml` | Machine-readable structured backlog |
-| `config/governance/delegation_envelope.yaml` | COO authority bounds |
-| `artifacts/plans/2026-03-05-coo-bootstrap-plan.md` | Superseded plan (historical) |
+**Key files:** `docs/11_admin/LIFEOS_STATE.md` (current phase), `docs/11_admin/BACKLOG.md`
+(prioritized queue), `artifacts/active_branches.json` (in-flight builds).
 
 ## Open Questions
 
-None currently flagged.
+For current active phase, blockers, and WIP, read `docs/11_admin/LIFEOS_STATE.md` directly —
+this page (page_class: status) only summarizes the structural flow, not current state values.

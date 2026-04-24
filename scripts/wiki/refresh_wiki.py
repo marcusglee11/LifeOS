@@ -44,14 +44,6 @@ def _repo_root() -> Path:
     return Path(result.stdout.strip())
 
 
-def _current_sha() -> str:
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        capture_output=True, text=True, check=True
-    )
-    return result.stdout.strip()
-
-
 def _parse_source_docs(text: str) -> list[str]:
     m = _FRONTMATTER_RE.match(text)
     if not m:
@@ -122,6 +114,39 @@ def _read_source_content(repo_root: Path, source_docs: list[str]) -> str:
     return "\n\n---\n\n".join(parts)
 
 
+def _validate_source_docs(page: Path, source_docs: list[str], repo_root: Path) -> list[str]:
+    """Return error strings for any invalid source_docs entry. Fail-closed checks."""
+    errors = []
+    for src in source_docs:
+        if not src.startswith("docs/"):
+            errors.append(f"{page.name}: source '{src}' is not under docs/ — rejected")
+            continue
+        abs_path = repo_root / src
+        if abs_path.is_dir():
+            errors.append(f"{page.name}: source '{src}' is a directory — rejected")
+        elif not abs_path.exists():
+            errors.append(f"{page.name}: source '{src}' not found — rejected")
+    return errors
+
+
+def _compute_source_commit_max(source_docs: list[str], repo_root: Path) -> str | None:
+    """Return the git SHA of the newest commit among source_docs files. Returns None on failure."""
+    valid = [s for s in source_docs if s.startswith("docs/") and (repo_root / s).is_file()]
+    if not valid:
+        return None  # no valid sources — caller must treat this as a rejection
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%H", "--"] + valid,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+        )
+        sha = result.stdout.strip()
+        return sha if sha else None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
 def _call_ea(schema_text: str, page_text: str, sources_text: str) -> str:
     prompt = (
         "You are a wiki maintainer for the LifeOS project. "
@@ -131,8 +156,10 @@ def _call_ea(schema_text: str, page_text: str, sources_text: str) -> str:
         "The following source documentation has changed. "
         "Update the wiki page to reflect the current state of the sources. "
         "Keep the page compact (200-400 tokens). "
-        "Preserve the frontmatter structure. Update last_updated to the placeholder "
-        "string CURRENT_SHA (the caller will substitute the real SHA). "
+        "Preserve the frontmatter structure. Required frontmatter fields are: "
+        "source_docs, source_commit_max, authority, page_class, concepts. "
+        "Update source_commit_max to the placeholder string CURRENT_SHA (the caller will "
+        "substitute the real SHA). Do NOT emit a last_updated field. "
         "Output ONLY the complete updated wiki page — no explanation, no code fences.\n\n"
         f"## Current wiki page\n\n{page_text}\n\n"
         f"## Changed source docs\n\n{sources_text}"
@@ -226,22 +253,43 @@ def main() -> int:
 
     print(f"Pages to refresh: {[p.name for p in pages]}")
 
+    # Pre-flight source validation — runs before --dry-run early return
+    preflight_errors: list[str] = []
+    for page in pages:
+        page_sources = _parse_source_docs(page.read_text(encoding="utf-8"))
+        preflight_errors.extend(_validate_source_docs(page, page_sources, repo_root))
+    if preflight_errors:
+        for err in preflight_errors:
+            print(f"[ERROR] {err}", file=sys.stderr)
+        return 1
+
     if args.dry_run:
         return 0
 
-    sha = _current_sha()
     all_diffs: list[str] = []
     errors: list[str] = []
 
     for page in pages:
         old_text = page.read_text(encoding="utf-8")
         sources = _parse_source_docs(old_text)
+        # In-loop guard: validate source_docs before EA call — fail closed
+        validation_errors = _validate_source_docs(page, sources, repo_root)
+        if validation_errors:
+            for err in validation_errors:
+                print(f"[ERROR] {err}", file=sys.stderr)
+            errors.append(f"{page.name}: skipped — invalid source_docs (see above)")
+            continue
         sources_text = _read_source_content(repo_root, sources)
 
         print(f"  Refreshing {page.name}...", end=" ", flush=True)
         try:
             new_text = _call_ea(schema_text, old_text, sources_text)
-            new_text = _substitute_sha(new_text, sha)
+            # Compute per-source SHA, fail closed if unavailable
+            source_commit_max = _compute_source_commit_max(sources, repo_root)
+            if source_commit_max is None:
+                errors.append(f"{page.name}: cannot compute source_commit_max — no valid sources resolved")
+                continue
+            new_text = _substitute_sha(new_text, source_commit_max)
             if not new_text.endswith("\n"):
                 new_text += "\n"
 
