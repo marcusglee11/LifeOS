@@ -148,8 +148,8 @@ def test_policy_schema_version():
     )
 
 
-def test_all_21_packages_declared():
-    """Policy must declare all 21 runtime packages — fail-closed."""
+def test_all_declared_packages_present():
+    """Policy must declare all runtime packages — fail-closed."""
     policy = load_policy()
     policy_packages = get_policy_packages(policy)
     discovered = discover_packages()
