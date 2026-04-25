@@ -13,9 +13,9 @@
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Phase 7 `prod_ci` canonical closure
-**Active WIP:** none
-**Last Updated:** 2026-04-07 (rev36)
+**Current Focus:** Architecture Normalization / COO Onboarding Reset
+**Active WIP:** targeted normalization decisions (see `docs/10_meta/Architecture_Normalization_Targeted_Issue_List_2026-04-24.md`)
+**Last Updated:** 2026-04-24 (rev37)
 
 ---
 
@@ -41,6 +41,7 @@
 
 | Status | Workstream | Owner | Deliverable |
 |--------|------------|-------|-------------|
+| **IN PROGRESS** | **Architecture Normalization / COO Onboarding Reset** | Claude Code | Control surfaces landed (4e8237cb); 6 targeted issues pending; decisions open |
 | **COMPLETE** | **COO Bootstrap (Steps 1-6)** | Antigravity | Full COO delegation pipeline — all 9 steps merged; live COO operational |
 | **MERGED** | **COO Brain (Step 2)** | Codex + Claude Code | System prompt, memory seed, brief — merged 51ef1466 + eedb0fa0 |
 | **MERGED** | **COO Jarda Parity v5** | Antigravity | OpenClaw verification tooling + workflow pack (8045e9c5) |
@@ -103,6 +104,7 @@
 
 ## 🟩 Recent Wins
 
+- **2026-04-24:** Architecture Normalization Reset landed — PR #28 (build/architecture-truth-structure) merged at `4e8237cb`; 4 control surfaces in `docs/10_meta/`; `Agent_Roles_Reference_v1.0.md` demoted to orientation reference; 6 targeted normalization issues queued.
 - **2026-04-07:** Agent Efficiency P0 closure reconciled — canon now records `T-AE-01`, `T-AE-02`, and `T-AE-03` done after scoped-worktree verification on `fix/ae-p0-closure`; baseline `pytest runtime/tests -q` PASS (`3058 passed, 6 skipped`) and focused AE suite PASS (`24 passed`).
 - **2026-04-04:** Phase 10 Batch 2 merged — `repo_artifact_v1` executor surface and tests landed on `main` (`2569ec53`); lane remains `ratification_pending`.
 - **2026-04-04:** Phase 10 Batch 1 merged — `workspace_inspection_v1` executor surface and tests landed on `main` (`8730916e`); lane remains `ratification_pending`.
