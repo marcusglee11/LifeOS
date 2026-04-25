@@ -265,12 +265,15 @@ class TestIsFullyAutoDispatchable:
         candidate = _make_task("T-010", decision_support_required=True)
         closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
         closures_dir.mkdir(parents=True)
+        requested_at = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat().replace("+00:00", "Z")
+        resolved_at = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat().replace("+00:00", "Z")
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=6)).isoformat().replace("+00:00", "Z")
         (closures_dir / "CR-001.yaml").write_text(
             yaml.dump(
                 {
                     "schema_version": "council_request.v1",
                     "request_id": "001",
-                    "requested_at": "2026-04-05T12:00:00Z",
+                    "requested_at": requested_at,
                     "trigger": "decision_support_needed",
                     "question": "Proceed?",
                     "context_summary": "Need decision support.",
@@ -279,9 +282,9 @@ class TestIsFullyAutoDispatchable:
                     "requires_quorum": True,
                     "related_tasks": ["T-010"],
                     "resolved": True,
-                    "resolved_at": "2026-04-05T12:10:00Z",
+                    "resolved_at": resolved_at,
                     "approval_ref": "docs/01_governance/approved.md",
-                    "expires_at": "2026-04-12T12:00:00Z",
+                    "expires_at": expires_at,
                 },
                 sort_keys=False,
             ),
@@ -295,12 +298,15 @@ class TestIsFullyAutoDispatchable:
         candidate = _make_task("T-010", decision_support_required=True)
         closures_dir = tmp_path / "artifacts" / "dispatch" / "closures"
         closures_dir.mkdir(parents=True)
+        requested_at = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat().replace("+00:00", "Z")
+        resolved_at = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat().replace("+00:00", "Z")
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=6)).isoformat().replace("+00:00", "Z")
         (closures_dir / "CR-001.yaml").write_text(
             yaml.dump(
                 {
                     "schema_version": "council_request.v1",
                     "request_id": "001",
-                    "requested_at": "2026-04-05T12:00:00Z",
+                    "requested_at": requested_at,
                     "trigger": "decision_support_needed",
                     "question": "Proceed?",
                     "context_summary": "Need decision support.",
@@ -309,9 +315,9 @@ class TestIsFullyAutoDispatchable:
                     "requires_quorum": True,
                     "related_tasks": ["T-010"],
                     "resolved": True,
-                    "resolved_at": "2026-04-05T12:30:00Z",
+                    "resolved_at": resolved_at,
                     "approval_ref": "docs/01_governance/missing.md",
-                    "expires_at": "2026-04-12T12:00:00Z",
+                    "expires_at": expires_at,
                 },
                 sort_keys=False,
             ),

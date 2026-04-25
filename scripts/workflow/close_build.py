@@ -45,7 +45,13 @@ def main() -> int:
         )
         return 0
     os.environ["_LIFEOS_CLOSE_BUILD_RUNNING"] = "1"
+    try:
+        return _main_impl()
+    finally:
+        os.environ.pop("_LIFEOS_CLOSE_BUILD_RUNNING", None)
 
+
+def _main_impl() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--repo-root", default=".", help="Repository/worktree root (default: current directory)"
