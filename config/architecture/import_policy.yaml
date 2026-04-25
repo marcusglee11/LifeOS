@@ -1,13 +1,15 @@
 schema_version: import_policy.v1
 bootstrap_source: .context/REPO_MAP.md
 
-# Flat per-module allowed-import declaration for all 21 runtime packages.
+# Flat per-module allowed-import declaration for all 22 runtime packages.
 # Cross-package imports not listed here are policy violations.
 # Same-package imports are always allowed and not checked.
 # Imports of non-policy targets (e.g. runtime.errors, stdlib, third-party) are skipped.
 modules:
   - name: runtime.agents
     allowed_imports: [runtime.receipts, runtime.util]
+  - name: runtime.channels
+    allowed_imports: [runtime.orchestration, runtime.util]
   - name: runtime.amu0
     allowed_imports: [runtime.governance, runtime.util]
   - name: runtime.api
@@ -30,6 +32,8 @@ modules:
     allowed_imports:
       - runtime.agents
       - runtime.api
+      - runtime.channels
+      - runtime.config
       - runtime.receipts
       - runtime.tools
       - runtime.util

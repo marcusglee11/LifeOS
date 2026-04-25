@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -972,12 +972,14 @@ def test_coo_process_closures_returns_summary(tmp_path: Path, capsys) -> None:
         ),
         encoding="utf-8",
     )
+    cr_requested_at = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat().replace("+00:00", "Z")
+    cr_expires_at = (datetime.now(timezone.utc) + timedelta(days=6)).isoformat().replace("+00:00", "Z")
     (closures_dir / "CR-REQ-1.yaml").write_text(
         yaml.dump(
             {
                 "schema_version": "council_request.v1",
                 "request_id": "REQ-1",
-                "requested_at": "2026-03-24T12:00:00Z",
+                "requested_at": cr_requested_at,
                 "trigger": "decision_support_needed",
                 "question": "Proceed?",
                 "context_summary": "Need approval",
@@ -987,7 +989,7 @@ def test_coo_process_closures_returns_summary(tmp_path: Path, capsys) -> None:
                 "related_tasks": ["T-030"],
                 "resolved": False,
                 "resolved_at": None,
-                "expires_at": "2026-04-12T12:00:00Z",
+                "expires_at": cr_expires_at,
             },
             sort_keys=False,
         ),
