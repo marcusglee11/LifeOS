@@ -1,16 +1,16 @@
 # LifeOS Universal Corpus
-**Generated**: 2026-04-24 11:35:44
+**Generated**: 2026-04-24 19:19:53
 **Steward**: Antigravity (Automated)
-**Version**: e20832b4
+**Version**: acd95ae9
 
 ---
 
 ## 📋 Table of Changes (Last 5 Commits)
-- `7f86833a` 2026-04-24: **docs: add architecture normalization control surfaces**
-- `310aac1e` 2026-04-24: **feat: Merge build/wiki-remediation (squashed)**
+- `acd95ae9` 2026-04-24: **docs: ratify COO authority amendment A1 (issues #31, #33)**
+- `8b2fa0d4` 2026-04-24: **chore: post-arch-normalization state refresh (squashed)**
+- `4e8237cb` 2026-04-24: **feat: Merge build/architecture-truth-structure (squashed)**
 - `bf4d9ecd` 2026-04-23: **chore: stage agent artifacts and config updates on main**
 - `6dd77841` 2026-04-22: **Merge branch 'main' of github.com:marcusglee11/LifeOS**
-- `9ee04eb8` 2026-04-22: **docs(governance): revise COO §3.4 — pragmatic repository discipline**
 
 ---
 
@@ -259,11 +259,13 @@ This document is the canonical governance agreement for how the COO operates, ma
 ## 1. Roles and Responsibilities
 
 ### 1.1 CEO
+
 - Defines identity, values, intent, direction, and non-negotiables.  
 - Sets objectives and approves major strategic changes.  
 - Provides clarification when escalation is required.
 
 ### 1.2 COO (AI System)
+
 - Translates CEO direction into structured plans, missions, and execution loops.
 - Drives momentum with minimal prompting.
 - Maintains situational awareness across all active workstreams.
@@ -272,6 +274,7 @@ This document is the canonical governance agreement for how the COO operates, ma
 - Surfaces risks early and maintains predictable operations.
 
 ### 1.3 Worker Agents
+
 - Execute scoped, bounded tasks under COO supervision.
 - Produce deterministic, verifiable outputs.
 - Have no strategic autonomy.
@@ -279,13 +282,17 @@ This document is the canonical governance agreement for how the COO operates, ma
 ## 2. Autonomy Levels
 
 ### Phase 0 — Bootstrapping
+
 COO requires confirmation before initiating new workstreams or structural changes.
 
 ### Phase 1 — Guided Autonomy
+
 COO may propose and initiate tasks unless they alter identity, strategy, or irreversible structures.
 
 ### Phase 2 — Operational Autonomy (Target State)
+
 COO runs independently:
+
 - Creates missions.
 - Allocates agents.
 - Schedules tasks.
@@ -295,6 +302,7 @@ Only escalates the categories defined in Section 3.
 ## 3. Escalation Rules
 
 The COO must escalate when:
+
 - **Identity / Values** changes arise.
 - **Strategy** decisions or long-term direction shifts occur.
 - **Irreversible or high-risk actions** are involved.
@@ -304,16 +312,19 @@ The COO must escalate when:
 ## 4. Reporting & Cadence
 
 ### Daily
+
 - Active missions summary.
 - Blockers.
 - Decisions taken autonomously.
 
 ### Weekly
+
 - Workstream progress.
 - Prioritisation suggestions.
 - Risks.
 
 ### Monthly
+
 - Structural improvements.
 - Workflow enhancements.
 - Autonomy phase review.
@@ -330,6 +341,82 @@ The COO must escalate when:
 
 The Operating Contract may be updated only with CEO approval and version logging.
 
+## 7. Active vs Standby COO and Sole-Writer Boundary
+
+Ratified: 2026-04-24. Closes normalization issue #31 (GitHub issue #31). Authority: CEO.
+
+### 7.1 One active COO rule
+
+Exactly one COO substrate is designated active at any time. The active COO is the sole writer of operational state.
+
+### 7.2 Operational state scope
+
+Operational state subject to the sole-writer rule includes:
+
+- Work-order issue body and state block
+- Labels used for routing or status
+- Projects v2 projections
+- Approval receipts
+- Promotion receipts
+- Reconciliation receipts
+- Completion and closure receipts
+
+### 7.3 Standby COO permissions
+
+Standby COO may: observe, rehearse, verify operational readiness, prepare switchover materials, and assess readiness.
+
+Standby COO may not: mutate any operational state while standby.
+
+### 7.4 Switchover sequence
+
+Activation of a standby COO requires completion of all steps in order:
+
+1. Stop forwarding to active COO.
+2. Drain in-flight deliveries.
+3. Quiesce mutation workers.
+4. Verify no open decision cycle.
+5. Activate standby.
+6. Resume forwarding.
+7. Log switchover event with timestamp and substrate identifiers.
+
+### 7.5 Change control for this section
+
+Section 7 may be amended only with CEO approval and version logging.
+
+## 8. Inter-Agent Directionality and Pushback Rules
+
+Ratified: 2026-04-24. Closes normalization issue #33 (GitHub issue #33). Authority: CEO.
+
+### 8.1 Advisory channel
+
+Hermes and OpenClaw may exchange advisory guidance, challenge packets, readiness assessments, and recommendations.
+
+### 8.2 Authority boundary
+
+Peer-to-peer direction between COO substrates is advisory only. It is not authoritative by itself.
+
+Cross-COO direction that would cause operational state mutation must be re-issued through the active
+COO authority path or explicitly stamped by the CEO. Neither COO substrate may unilaterally issue
+authoritative direction to the other while both are in a peer or standby-active topology.
+
+### 8.3 Pushback obligation
+
+Pushback is mandatory when authority, phase, approval, or writer boundary is unclear.
+
+A COO substrate must refuse or escalate any instruction that:
+
+- Claims authority beyond the requestor's current role or phase boundary.
+- Would cause a standby COO to mutate operational state.
+- Bypasses the active COO authority path for an operational decision.
+- Is ambiguous on phase, approval status, or writer responsibility.
+
+### 8.4 Escalation path
+
+Pushback escalates to CEO when the uncertainty cannot be resolved through documented policy.
+
+### 8.5 Change control for this section
+
+Section 8 may be amended only with CEO approval and version logging.
 
 <hr>
 
@@ -2538,8 +2625,9 @@ requester:
 
 # Agent Roles Reference v1.0
 
-**Status:** Active  
-**Applies To:** All agents in the LifeOS system
+**Status:** Active orientation reference — non-authoritative  
+**Authority:** Derived/supporting only. On conflict, `docs/00_foundations/LifeOS Target Architecture v2.3c.md`, `docs/01_governance/COO_Operating_Contract_v1.0.md`, and ratified governance docs win.  
+**Applies To:** Orientation for agents in the LifeOS system
 
 ---
 
@@ -2548,10 +2636,12 @@ requester:
 | Actor | Type | Authority |
 | ----- | ---- | --------- |
 | CEO | Human | Ultimate; sets strategic intent; approval authority |
-| COO | AI agent (OpenClaw) | Operational; bounded, phase-scoped discretion |
-| EA (Executing Agent) | AI agent (Claude Code, Codex) | Stateless worker; executes in worktrees |
-| Antigravity | AI agent | Primary builder; full-scope implementation |
-| Advisory | AI agents (Claude.ai, ChatGPT) | Read-only; not in operational loop |
+| COO | AI substrate / control-plane agent | Operational decision-maker with bounded, phase-scoped discretion; active substrate determined by canonical architecture and operating state |
+| COO substrates | OpenClaw, Hermes, or successor adapters | Candidate / replaceable substrates; only the active COO has mutation authority |
+| EA (Executing Agent) | AI execution worker | Stateless worker; executes bounded tasks in worktrees |
+| Advisory | AI agents such as Claude.ai / ChatGPT | Read-only advisory role; not in operational loop |
+
+This file is an orientation reference, not a ratification surface for substrate selection, actor activation, or authority expansion.
 
 ## COO Autonomy Levels
 
@@ -38972,6 +39062,23 @@ Purpose: Record architecture deltas over time without turning runtime state trac
 
 ## Entries
 
+### 2026-04-24 — Amendment A1: COO Authority and Inter-Agent Directionality (Issues #31, #33)
+
+- Change: Ratified active/standby COO sole-writer boundary (§7) and inter-agent directionality
+  and pushback rules (§8) into `COO_Operating_Contract_v1.0.md`. Registered ADR-001 and
+  ADR-002. Closed normalization blockers #3, #4, #5 in source-of-truth page.
+- Why: Normalization reset (PR #28) surfaced unresolved authority boundaries: sole-writer scope,
+  standby COO permissions, and whether Hermes/OpenClaw peer-to-peer direction is authoritative.
+  Issues #31 and #33 captured these gaps as acceptance criteria.
+- Affected docs:
+  - `docs/01_governance/COO_Operating_Contract_v1.0.md` — added §7 and §8
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md` — closed blockers #3, #4, #5; added §7 resolved table
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md` — this entry
+  - `docs/10_meta/architecture_decisions/INDEX.md` — added ADR-001, ADR-002
+- Related issue: GitHub #31, GitHub #33
+- Related ADR: ADR-001, ADR-002
+- Status: ratified
+
 ### 2026-04-24
 - Change: Installed architecture normalization control surfaces (`Architecture_Normalization_Reconciliation_Packet_2026-04-24.md`, `COO_Authority_Contract_Draft_2026-04-24.md`, `ARCHITECTURE_SOURCE_OF_TRUTH.md`, this changelog, ADR index skeleton, targeted issue list draft).
 - Why: Architecture truth had fragmented across canonical docs, draft docs, runtime trackers, and uncaptured onboarding discussions.
@@ -39049,13 +39156,19 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 
 1. Authoritative CEO approval form and capture path
 2. Drive / Workspace role: mirror only vs advisory ingress adapter
-3. Full operational-state sole-writer boundary
-4. Active vs standby COO semantics in governance surfaces
-5. Hermes ↔ OpenClaw directionality and pushback rules
 
-## 7. Change-control rule
+## 7. Normalization blockers resolved
+
+| # | Decision | Ratified | ADR | Governance surface |
+| --- | --- | --- | --- | --- |
+| 3 | Full operational-state sole-writer boundary | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
+| 4 | Active vs standby COO semantics in governance surfaces | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
+| 5 | Hermes ↔ OpenClaw directionality and pushback rules | 2026-04-24 | ADR-002 | `COO_Operating_Contract_v1.0.md` §8 |
+
+## 8. Change-control rule
 
 No architecture-affecting change is canonical until required repo surfaces are updated:
+
 - this source-of-truth page when canon classification changes
 - architecture changelog when architecture deltas occur
 - ADR register when ratified architecture decisions land
@@ -40174,6 +40287,7 @@ Owner: CEO / active COO stewardship
 Purpose: Record ratified architecture decisions only
 
 Use ADRs only for:
+
 - authority-boundary changes
 - truth-surface changes
 - writer-boundary changes
@@ -40181,6 +40295,7 @@ Use ADRs only for:
 - other ratified architectural decisions with operational consequences
 
 Do not use ADRs for:
+
 - every cleanup observation
 - speculative future-state ideas
 - uncaptured chat conclusions
@@ -40199,17 +40314,42 @@ Do not use ADRs for:
 ## Index
 
 | ADR | Title | Status | Date | Scope |
-|---|---|---|---|---|
-| _none yet_ | | | | |
+| --- | --- | --- | --- | --- |
+| ADR-001 | Active vs Standby COO and Sole-Writer Boundary | Ratified | 2026-04-24 | `COO_Operating_Contract_v1.0.md` §7 |
+| ADR-002 | Inter-Agent Directionality and Pushback Rules | Ratified | 2026-04-24 | `COO_Operating_Contract_v1.0.md` §8 |
+
+### ADR-001 — Active vs Standby COO and Sole-Writer Boundary
+
+- Date: 2026-04-24
+- Status: Ratified
+- Authority: CEO
+- Closes: normalization issues #3 (sole-writer boundary) and #4 (active/standby semantics);
+  GitHub issue #31
+- Decision: Exactly one COO substrate is active writer at a time. Active COO is sole writer of
+  operational state (issue body, labels, projections, receipts). Standby COO may observe,
+  rehearse, verify, and prepare switchover; may not mutate operational state. Activation
+  requires a seven-step switchover sequence.
+- Governance surface: `docs/01_governance/COO_Operating_Contract_v1.0.md` §7
+
+### ADR-002 — Inter-Agent Directionality and Pushback Rules
+
+- Date: 2026-04-24
+- Status: Ratified
+- Authority: CEO
+- Closes: normalization issue #5 (Hermes/OpenClaw directionality); GitHub issue #33
+- Decision: Hermes and OpenClaw may exchange advisory guidance, challenge packets, readiness
+  assessments, and recommendations. Peer-to-peer direction is advisory only; not authoritative
+  unless re-issued through the active COO authority path or explicitly stamped by CEO. Pushback
+  is mandatory when authority, phase, approval, or writer boundary is unclear.
+- Governance surface: `docs/01_governance/COO_Operating_Contract_v1.0.md` §8
 
 ---
 
 ## Next ADR candidates after normalization
 
-1. Authority / approval capture contract
-2. Active vs standby COO and sole-writer boundary
-3. Drive / Workspace role if elevated into canon
-4. Advisory lifecycle / receipt model if promoted from draft to canon
+1. Authority / approval capture contract (normalization issue #1)
+2. Drive / Workspace role if elevated into canon (normalization issue #2)
+3. Advisory lifecycle / receipt model if promoted from draft to canon
 
 <hr>
 
@@ -40489,7 +40629,20 @@ The system is designed to fail if:
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-04-07 (rev15)
+**Last Updated:** 2026-04-24 (rev16)
+
+## Architecture Normalization Decisions (unblocked; source: `docs/10_meta/Architecture_Normalization_Targeted_Issue_List_2026-04-24.md`)
+
+### P1 (High) — open only after PR #28 lands ✓ (landed 4e8237cb)
+
+- [ ] **Ratify human approval capture contract** — DoD: approval source channels named, receipt capture rule defined, minimum binding tuple ratified, re-approval invalidation explicit — Owner: CEO — Context: Issue 1 from normalization packet; required surfaces: canonical governance doc, `ARCHITECTURE_SOURCE_OF_TRUTH.md`, `ARCHITECTURE_CHANGELOG.md`, ADR if ratified
+- [ ] **Ratify active vs standby COO semantics and sole-writer boundary** — DoD: exactly-one-writer rule explicit, standby allowed/forbidden actions explicit, switchover trigger explicit, sole-writer scope explicit — Owner: CEO — Context: Issue 2; required surfaces: canonical governance/architecture docs, source-of-truth page, changelog, ADR
+- [ ] **Resolve Drive / Workspace role in canon** — DoD: canonical role chosen (mirror-only vs advisory ingress), proposal-only surfaces stay proposal unless ratified — Owner: CEO — Context: Issue 3; required surfaces: canonical architecture docs, source-of-truth page, changelog, ADR
+- [ ] **Resolve Hermes ↔ OpenClaw directionality and pushback rules** — DoD: peer directionality class explicit, active/standby interaction clear, pushback/escalation rules explicit — Owner: CEO — Context: Issue 4; required surfaces: canonical governance/architecture docs, source-of-truth page, changelog, ADR
+- [ ] **Reconcile communications draft with canon or mark proposal-only** — DoD: no silent conflict on approval semantics/Drive role/operational-state scope; status markers explicit — Owner: CEO — Context: Issue 5; doc: `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md`
+- [ ] **Install architecture-maintenance checks after canon is stable** — DoD: pre-merge checklist defined, trigger conditions for reconciliation defined, no bloat added — Owner: active COO — Context: Issue 6; blocked until Issues 1-5 resolved
+
+---
 
 ## Now (ready soon; not in WIP yet)
 
@@ -41047,9 +41200,9 @@ If any file in scope changes, doc steward mission must:
   - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
   - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
 
-**Current Focus:** Phase 7 `prod_ci` canonical closure
-**Active WIP:** none
-**Last Updated:** 2026-04-07 (rev36)
+**Current Focus:** Architecture Normalization / COO Onboarding Reset
+**Active WIP:** targeted normalization decisions (see `docs/10_meta/Architecture_Normalization_Targeted_Issue_List_2026-04-24.md`)
+**Last Updated:** 2026-04-24 (rev37)
 
 ---
 
@@ -41075,6 +41228,7 @@ If any file in scope changes, doc steward mission must:
 
 | Status | Workstream | Owner | Deliverable |
 |--------|------------|-------|-------------|
+| **IN PROGRESS** | **Architecture Normalization / COO Onboarding Reset** | Claude Code | Control surfaces landed (4e8237cb); 6 targeted issues pending; decisions open |
 | **COMPLETE** | **COO Bootstrap (Steps 1-6)** | Antigravity | Full COO delegation pipeline — all 9 steps merged; live COO operational |
 | **MERGED** | **COO Brain (Step 2)** | Codex + Claude Code | System prompt, memory seed, brief — merged 51ef1466 + eedb0fa0 |
 | **MERGED** | **COO Jarda Parity v5** | Antigravity | OpenClaw verification tooling + workflow pack (8045e9c5) |
@@ -41137,6 +41291,7 @@ If any file in scope changes, doc steward mission must:
 
 ## 🟩 Recent Wins
 
+- **2026-04-24:** Architecture Normalization Reset landed — PR #28 (build/architecture-truth-structure) merged at `4e8237cb`; 4 control surfaces in `docs/10_meta/`; `Agent_Roles_Reference_v1.0.md` demoted to orientation reference; 6 targeted normalization issues queued.
 - **2026-04-07:** Agent Efficiency P0 closure reconciled — canon now records `T-AE-01`, `T-AE-02`, and `T-AE-03` done after scoped-worktree verification on `fix/ae-p0-closure`; baseline `pytest runtime/tests -q` PASS (`3058 passed, 6 skipped`) and focused AE suite PASS (`24 passed`).
 - **2026-04-04:** Phase 10 Batch 2 merged — `repo_artifact_v1` executor surface and tests landed on `main` (`2569ec53`); lane remains `ratification_pending`.
 - **2026-04-04:** Phase 10 Batch 1 merged — `workspace_inspection_v1` executor surface and tests landed on `main` (`8730916e`); lane remains `ratification_pending`.

@@ -4,7 +4,7 @@ source_docs:
   - docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
   - docs/11_admin/LIFEOS_STATE.md
-source_commit_max: bf4d9ecd01e5124584e96a42b95f16c7f39e3fd2
+source_commit_max: 8b2fa0d4c94ffca6229b86fb83ad98970d27be1f
 authority: derived
 page_class: status
 concepts:

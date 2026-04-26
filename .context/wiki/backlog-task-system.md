@@ -4,7 +4,7 @@ source_docs:
   - docs/11_admin/BACKLOG.md
   - docs/02_protocols/Intent_Routing_Rule_v1.1.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: bf4d9ecd01e5124584e96a42b95f16c7f39e3fd2
+source_commit_max: 8b2fa0d4c94ffca6229b86fb83ad98970d27be1f
 authority: derived
 page_class: status
 concepts:
