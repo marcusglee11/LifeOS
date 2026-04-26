@@ -20,6 +20,25 @@ Purpose: Record architecture deltas over time without turning runtime state trac
 
 ## Entries
 
+### 2026-04-27 — Amendment A4: Communications Draft Reconciliation (Issue #34)
+
+- Change: Classified `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` as proposal-only / non-canonical and added explicit supersession markers against current canon.
+- Why: GitHub issue #34 required preventing agents from treating the communications draft as canonical after A1, A2, and A3 ratified active/standby COO authority, approval capture, and Drive / Workspace role.
+- Notes:
+  - Does not reopen issues #30, #31, #32, or #33.
+  - Does not promote the communications architecture into canon.
+  - Does not ratify Drive / Workspace advisory ingress.
+  - Does not ratify Drive polling, Drive push notifications, Google Workspace tooling, `gws`, OAuth credentials, or service accounts as runtime components.
+  - Does not ratify the advisory proposal schema, advisory lifecycle state machine, briefing refresh triggers, or Telegram-exclusive approval routing.
+  - Keeps issue #35 blocked until this reconciliation lands.
+- Affected docs:
+  - `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md`
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+- Related issue: GitHub #34
+- Related ADR: none
+- Status: implemented
+
 ### 2026-04-26 — Amendment A3: Drive / Workspace Canonical Role (Issue #32)
 
 - Change: Ratified Drive / Workspace as a non-canonical collaboration, drafting, advisory, and briefing surface. Registered ADR-004. Closed normalization blocker #2 in the source-of-truth page.

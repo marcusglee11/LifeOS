@@ -22,7 +22,7 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 
 | Repo path | Current status |
 | --- | --- |
-| `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` | Draft communications / advisory architecture |
+| `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` | Draft communications / advisory-ingress architecture; proposal-only; non-canonical; contains unratified Drive / Workspace ingress, advisory lifecycle, approval-channel, and briefing-trigger proposals; loses to canonical architecture, COO contract §§7–9, and ADR-001 through ADR-004 on conflict |
 | `docs/00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md` | Architecture proposal |
 | `docs/00_foundations/lifeos-agent-architecture.md` | Reference / bootstrap architecture |
 | `docs/00_foundations/lifeos-maximum-vision.md` | Vision / explainer |
@@ -54,6 +54,8 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 ## 6. Normalization blockers still open
 
 None.
+
+Issue #34 is a reconciliation/classification issue for `ARCH_Multi_Agent_Communication_Architecture.md`; it does not reopen issues #30, #31, #32, or #33 and does not promote the communications draft into canon.
 
 ## 7. Normalization blockers resolved
 

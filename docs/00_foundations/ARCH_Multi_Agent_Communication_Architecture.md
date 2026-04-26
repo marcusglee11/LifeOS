@@ -1,9 +1,39 @@
 # Multi-Agent Communication Architecture
 
-Status: Draft  
-Owner: CEO  
-Purpose: Define the authoritative communication architecture for advisory agents, the COO, EAs, and system buses/adapters.  
+Status: Draft — proposal-only / non-canonical
+Owner: CEO
+Purpose: Preserve a proposed communications and advisory-ingress architecture for future review. This document is not an authority source for operational state, approval capture, Drive / Workspace runtime role, work-order lifecycle, or execution truth.
+Canonicality: Non-canonical. On conflict, this document loses to `docs/00_foundations/LifeOS Target Architecture v2.3c.md`, `docs/01_governance/COO_Operating_Contract_v1.0.md`, and ratified ADRs in `docs/10_meta/architecture_decisions/INDEX.md`.
 Design posture: fail-closed, typed ingress, deterministic promotion, audit-first
+
+---
+
+## 0. Canonicality and supersession notice
+
+This document is a proposal-only draft.
+
+It does not ratify or authorize:
+
+- Drive / Workspace advisory ingress;
+- Drive polling or Drive push notifications;
+- Google Workspace tooling, `gws`, OAuth credentials, or service accounts as runtime components;
+- direct advisory-agent GitHub ingress;
+- Telegram-exclusive approval capture;
+- the advisory proposal schema in this document;
+- the advisory processing state machine in this document;
+- the briefing refresh trigger policy in this document;
+- any communications bus implementation change.
+
+Current canon is:
+
+- GitHub operational state remains canonical operational state and the canonical approval receipt store.
+- Drive / Workspace is a non-canonical collaboration, drafting, advisory, and briefing surface.
+- Drive / Workspace-origin material has no operational effect until captured into GitHub operational state by the active COO path or by an explicitly CEO-authorized operator acting for that path.
+- Approval capture is governed by `COO_Operating_Contract_v1.0.md` §9.
+- Active/standby COO and sole-writer semantics are governed by `COO_Operating_Contract_v1.0.md` §7.
+- Inter-agent directionality and pushback are governed by `COO_Operating_Contract_v1.0.md` §8.
+
+The remainder of this document should be read as a retained design proposal only.
 
 ---
 
@@ -625,7 +655,9 @@ Every completed advisory lifecycle is archived with enough metadata to reconstru
 
 ---
 
-## 14. Final design decisions
+## 14. Draft proposal decisions
+
+The items below are decisions proposed by this draft only. They are not ratified architecture decisions and must not be treated as canon unless separately promoted through architecture change control.
 
 1. GitHub is the sole primary operational bus.
 2. Drive is an adapter, not a peer bus.
