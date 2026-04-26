@@ -36,6 +36,7 @@ Do not use ADRs for:
 | ADR-001 | Active vs Standby COO and Sole-Writer Boundary | Ratified | 2026-04-24 | `COO_Operating_Contract_v1.0.md` §7 |
 | ADR-002 | Inter-Agent Directionality and Pushback Rules | Ratified | 2026-04-24 | `COO_Operating_Contract_v1.0.md` §8 |
 | ADR-003 | Human Approval Capture Contract | Ratified | 2026-04-26 | `COO_Operating_Contract_v1.0.md` §9 |
+| ADR-004 | Drive / Workspace Canonical Role | Ratified | 2026-04-26 | `LifeOS Target Architecture v2.3c.md` §2.7; `COO_Operating_Contract_v1.0.md` §9.6 |
 
 ### ADR-001 — Active vs Standby COO and Sole-Writer Boundary
 
@@ -83,9 +84,25 @@ Do not use ADRs for:
   - Closes GitHub issue #30 only. Does not resolve issues #32, #34, or #35.
 - Governance surface: `docs/01_governance/COO_Operating_Contract_v1.0.md` §9
 
+### ADR-004 — Drive / Workspace Canonical Role
+
+- Date: 2026-04-26
+- Status: Ratified
+- Authority: CEO
+- Closes: normalization issue #2 (Drive / Workspace role); GitHub issue #32
+- Decision:
+  - Drive / Workspace is a non-canonical collaboration, drafting, advisory, and briefing surface.
+  - Drive / Workspace may be used for shared documents, draft specs, review notes, planning material, advisory proposals, briefing packs, human/agent communication, and context sharing between the CEO, COO agents, advisory agents, and review agents.
+  - Drive / Workspace is not canonical operational state, not a canonical approval receipt store, not a work-order lifecycle store, not an execution gate, not a promotion source, not execution truth, and not a substitute for GitHub receipts.
+  - Drive / Workspace is not ratified as an automatic advisory ingress adapter.
+  - Material originating in Drive / Workspace may inform COO judgment and advisory review, but has no operational effect until captured into GitHub operational state by the active COO path or by an explicitly CEO-authorized operator acting for that path.
+  - Google Workspace tooling, including `gws`, OAuth credentials, Drive polling, Drive push notifications, and service accounts, is not part of the canonical runtime unless separately ratified.
+  - `ARCH_Multi_Agent_Communication_Architecture.md` remains draft/proposal-only and is not promoted by this ADR.
+- Architecture surface: `docs/00_foundations/LifeOS Target Architecture v2.3c.md` §2.7
+- Governance surface: `docs/01_governance/COO_Operating_Contract_v1.0.md` §9.6
+
 ---
 
 ## Next ADR candidates after normalization
 
-1. Drive / Workspace role if elevated into canon (normalization issue #2)
-2. Advisory lifecycle / receipt model if promoted from draft to canon
+1. Advisory lifecycle / receipt model if promoted from draft to canon

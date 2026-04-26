@@ -20,6 +20,29 @@ Purpose: Record architecture deltas over time without turning runtime state trac
 
 ## Entries
 
+### 2026-04-26 — Amendment A3: Drive / Workspace Canonical Role (Issue #32)
+
+- Change: Ratified Drive / Workspace as a non-canonical collaboration, drafting, advisory, and briefing surface. Registered ADR-004. Closed normalization blocker #2 in the source-of-truth page.
+- Why: Normalization issue #32 required choosing whether Drive / Workspace is mirror-only, advisory ingress, canonical operational state, or explicitly non-canonical. The settled role preserves Workspace as a low-friction collaboration surface while keeping GitHub operational state authoritative.
+- Notes:
+  - Drive / Workspace may be used for shared documents, draft specs, review notes, planning material, advisory proposals, briefing packs, human/agent communication, and context sharing.
+  - GitHub operational state remains the canonical operational state and approval receipt store.
+  - Drive / Workspace is not canonical operational state, not a canonical approval receipt store, not a work-order lifecycle store, not an execution gate, not a promotion source, not execution truth, and not a substitute for GitHub receipts.
+  - Drive / Workspace is not ratified as an automatic advisory ingress adapter.
+  - Drive / Workspace-origin material may inform COO judgment and advisory review, but has no operational effect until captured into GitHub operational state by the active COO path or explicitly CEO-authorized operator acting for that path.
+  - Google Workspace tooling, including `gws`, OAuth credentials, Drive polling, Drive push notifications, and service accounts, is not part of the canonical runtime unless separately ratified.
+  - Closes GitHub issue #32 only. Does not resolve issues #34 or #35.
+  - Does not promote `ARCH_Multi_Agent_Communication_Architecture.md` into canon.
+- Affected docs:
+  - `docs/00_foundations/LifeOS Target Architecture v2.3c.md` — replaced §2.7
+  - `docs/01_governance/COO_Operating_Contract_v1.0.md` — amended §9.6
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md` — closed blocker #2; added resolved row
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md` — this entry
+  - `docs/10_meta/architecture_decisions/INDEX.md` — added ADR-004
+- Related issue: GitHub #32
+- Related ADR: ADR-004
+- Status: ratified
+
 ### 2026-04-26 — Amendment A2: Human Approval Capture Contract (Issue #30)
 
 - Change: Ratified human approval capture contract (§9) into `COO_Operating_Contract_v1.0.md`.

@@ -235,11 +235,13 @@ applicable validation gates.
 
 ### 9.6 Canonical approval receipt store
 
-Until Drive / Workspace authority is separately ratified, the canonical approval receipt store
-is GitHub operational state.
+The canonical approval receipt store is GitHub operational state.
 
-Drive, Workspace, chat history, terminal scrollback, uncaptured conversation memory, and local
-notes are not canonical approval stores by themselves.
+Drive / Workspace is ratified as a non-canonical collaboration, drafting, advisory, and briefing surface. It is not a canonical approval receipt store.
+
+Drive, Workspace, chat history, terminal scrollback, uncaptured conversation memory, and local notes are not canonical approval stores by themselves.
+
+Any approval originating in those surfaces becomes operationally actionable only when captured into a durable approval receipt in GitHub operational state under this section.
 
 ### 9.7 Minimum approval binding tuple
 
