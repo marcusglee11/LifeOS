@@ -402,6 +402,8 @@ def _build_quality_command(
 
     if tool_name == "biome":
         targets = list(files) if files else (["."] if scope == "repo" else [])
+        if not targets:
+            return None
         cmd = ["biome", "check"]
         if fix:
             cmd.append("--write")

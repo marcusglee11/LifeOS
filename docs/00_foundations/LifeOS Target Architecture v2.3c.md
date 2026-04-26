@@ -711,5 +711,5 @@ Those capabilities are phased in with explicit qualification gates, not assumed.
 
 **END OF ARCHITECTURE v2.3c**
 
-```
+```text
 ```

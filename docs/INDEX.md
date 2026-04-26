@@ -262,7 +262,6 @@ LifeOS Constitution v2.0 (Supreme)
 
 ---
 
-
 ## 10_meta — Meta / Architecture Control
 
 | Document | Purpose |
