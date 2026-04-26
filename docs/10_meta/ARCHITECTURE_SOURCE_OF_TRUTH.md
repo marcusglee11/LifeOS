@@ -53,6 +53,8 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 
 ## 6. Normalization blockers still open
 
+None.
+
 ## 7. Normalization blockers resolved
 
 | # | Decision | Ratified | ADR | Governance surface |
