@@ -20,6 +20,24 @@ Purpose: Record architecture deltas over time without turning runtime state trac
 
 ## Entries
 
+### 2026-04-27 — Amendment A5: Lightweight Architecture Maintenance Checks (Issue #35)
+
+- Change: Installed an event-triggered pre-merge architecture capture rule and explicit update triggers for the source-of-truth page, architecture changelog, and ADR index.
+- Why: GitHub issue #35 required lightweight maintenance checks after architecture normalization blockers #30, #31, #32, #33, and #34 were resolved.
+- Notes:
+  - No monthly ritual or broad recurring architecture review is added.
+  - No communications bus semantics are changed.
+  - Drive / Workspace authority remains unchanged.
+  - Proposal-only documents remain proposal-only unless separately ratified.
+  - No ADR is added because this amendment installs maintenance discipline rather than ratifying a new architecture decision.
+  - Acceptance of this amendment completes the architecture normalization campaign.
+- Affected docs:
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+- Related issue: GitHub #35
+- Related ADR: none
+- Status: implemented
+
 ### 2026-04-27 — Amendment A4: Communications Draft Reconciliation (Issue #34)
 
 - Change: Classified `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` as proposal-only / non-canonical and added explicit supersession markers against current canon.

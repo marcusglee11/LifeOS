@@ -1,7 +1,7 @@
 ---
 source_docs:
   - docs/INDEX.md
-source_commit_max: 4e8237cba053b2cb10dba7467f463286d1711fd7
+source_commit_max: ec9ba476765cf2c981f03bea46eb189f30698366
 authority: derived
 page_class: evergreen
 concepts:
@@ -49,8 +49,10 @@ Key active protocols (see `docs/INDEX.md` for full list):
 | `EOL_Policy_v1.0.md` | End-of-life handling for docs |
 | `Project_Planning_Protocol_v1.0.md` | Build mission plan requirements and review |
 | `OpenClaw_COO_Integration_v1.0.md` | OpenClaw gateway invocation and constraints |
+| `Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md` | Tier-2 API versioning, deprecation, compatibility |
+| `Filesystem_Error_Boundary_Protocol_v1.0.md` | Fail-closed filesystem error boundaries (Draft) |
 
-For packet schemas, templates, and operational guides, see subdirectories under `docs/02_protocols/`.
+For packet schemas, templates, operational guides, and architecture decisions, see subdirectories under `docs/02_protocols/` and `docs/10_meta/`.
 
 ## Open Questions
 

@@ -3,7 +3,7 @@ source_docs:
   - docs/INDEX.md
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
   - docs/10_meta/architecture_decisions/INDEX.md
-source_commit_max: d13acbf888905d9964a340883674a2ec478b7eee
+source_commit_max: ec9ba476765cf2c981f03bea46eb189f30698366
 authority: derived
 page_class: evergreen
 concepts:
@@ -24,7 +24,7 @@ For current operational state, read `docs/11_admin/LIFEOS_STATE.md` directly.
 - `docs/00_foundations/LifeOS_Constitution_v2.0.md` — supreme governing document
 - `docs/11_admin/LIFEOS_STATE.md` — current phase and WIP (volatile; read directly)
 - `docs/INDEX.md` — navigation index for all canonical docs
-- `docs/10_meta/architecture_decisions/INDEX.md` — ratified architecture decision register (ADR-001, ADR-002, ADR-003)
+- `docs/10_meta/architecture_decisions/INDEX.md` — ratified architecture decision register (ADR-001 through ADR-004)
 
 **Wiki pages:**
 - [target-architecture](target-architecture.md) — CEO→COO→EA control-plane design
@@ -47,7 +47,7 @@ This page is a navigation aid only. All substantive claims require canonical doc
 
 `docs/INDEX.md` is the canonical navigation surface for the documentation corpus.
 Architecture decision records live in `docs/10_meta/architecture_decisions/INDEX.md`;
-ADR-003 (Human Approval Capture Contract) ratified 2026-04-26 is the newest entry.
+ADR-004 (Drive / Workspace Canonical Role) ratified 2026-04-26 is the newest entry.
 For active phase, blockers, and current operational state, read `docs/11_admin/LIFEOS_STATE.md`
 directly. This page is a derived landing page only.
 
