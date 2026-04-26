@@ -223,12 +223,37 @@ The Commons webhook ingestion service has no built-in redundancy in Phase 1. Sin
 
 Planned upgrade: separate Commons hosting for Phase 2 to enable substrate switchover without Commons downtime.
 
-### 2.7 Google Drive
+### 2.7 Google Drive / Workspace canonical role
 
-- Read-only mirror of key documents for human consumption
-- NOT a source of operational truth
-- NOT a shared state store
-- Sync is periodic and one-directional: GitHub → Drive
+Ratified: 2026-04-26. Closes normalization issue #32. Authority: CEO.
+
+Google Drive / Workspace is a non-canonical collaboration, drafting, advisory, and briefing surface.
+
+Drive / Workspace may be used for:
+- shared documents;
+- draft specs;
+- review notes;
+- planning material;
+- advisory proposals;
+- briefing packs;
+- human/agent communication;
+- context sharing between the CEO, COO agents, advisory agents, and review agents.
+
+Drive / Workspace is not:
+- canonical operational state;
+- a canonical approval receipt store;
+- a work-order lifecycle store;
+- an execution gate;
+- a promotion source;
+- execution truth;
+- a substitute for GitHub receipts;
+- an automatic advisory ingress adapter.
+
+Material originating in Drive / Workspace may inform COO judgment and advisory review, but it has no operational effect until captured into GitHub operational state by the active COO path or by an explicitly CEO-authorized operator acting for that path.
+
+Drive / Workspace may also contain GitHub-derived mirrors or briefing projections. Those projections are convenience/context surfaces only and do not override GitHub operational state.
+
+Google Workspace tooling, including `gws`, OAuth credentials, Drive polling, Drive push notifications, and service accounts, is not part of the canonical runtime unless separately ratified.
 
 ---
 
@@ -686,5 +711,5 @@ Those capabilities are phased in with explicit qualification gates, not assumed.
 
 **END OF ARCHITECTURE v2.3c**
 
-```
+```text
 ```

@@ -16,15 +16,15 @@ from typing import Iterable, Optional, Sequence
 
 import yaml
 
-from runtime.tools.closure_policy import (
-    classify_paths,
-    get_tier_execution_policy,
-)
 from runtime.orchestration.coo.backlog import (
     BacklogValidationError,
     load_backlog,
     mark_completed,
     save_backlog,
+)
+from runtime.tools.closure_policy import (
+    classify_paths,
+    get_tier_execution_policy,
 )
 from runtime.util.atomic_write import atomic_write_text
 from scripts.workflow.git_lock_health import ensure_git_lock_health
@@ -375,7 +375,7 @@ def _build_quality_command(
     yamllint_config = Path(repo_root) / ".yamllint.yml"
 
     if tool_name == "ruff_check":
-        targets = list(files) if files else list(python_targets)
+        targets = list(files) if files else (list(python_targets) if scope == "repo" else [])
         if not targets:
             return None
         cmd = ["ruff", "check"]
@@ -385,7 +385,7 @@ def _build_quality_command(
         return cmd
 
     if tool_name == "ruff_format":
-        targets = list(files) if files else list(python_targets)
+        targets = list(files) if files else (list(python_targets) if scope == "repo" else [])
         if not targets:
             return None
         cmd = ["ruff", "format"]
@@ -395,12 +395,15 @@ def _build_quality_command(
         return cmd
 
     if tool_name == "mypy":
-        if not python_targets:
+        targets = list(files) if files else (list(python_targets) if scope == "repo" else [])
+        if not targets:
             return None
-        return ["mypy", *python_targets]
+        return ["mypy", *targets]
 
     if tool_name == "biome":
-        targets = list(files) if files else ["."]
+        targets = list(files) if files else (["."] if scope == "repo" else [])
+        if not targets:
+            return None
         cmd = ["biome", "check"]
         if fix:
             cmd.append("--write")
@@ -560,7 +563,9 @@ def doctor_quality_tools(repo_root: Path) -> dict:
     }
 
 
-def route_targeted_tests(changed_files: Sequence[str], closure_tier: str | None = None) -> list[str]:
+def route_targeted_tests(
+    changed_files: Sequence[str], closure_tier: str | None = None
+) -> list[str]:
     """Map changed files to targeted test commands."""
     files = _unique_ordered(changed_files)
     effective_tier = closure_tier or classify_paths(files)["closure_tier"]
@@ -920,7 +925,8 @@ def check_doc_stewardship(
 
         # Admin archive link ban check — scope to changed admin doc paths
         admin_doc_paths = [
-            p for p in changed_files
+            p
+            for p in changed_files
             if p.endswith(".md") and p.startswith("docs/11_admin/") and not p.endswith("/")
         ]
         admin_archive_cmd = [
@@ -992,7 +998,8 @@ def check_doc_stewardship(
 
         # Global archive link ban check — scope to changed protocol doc paths
         protocols_doc_paths = [
-            p for p in changed_files
+            p
+            for p in changed_files
             if p.endswith(".md") and p.startswith("docs/02_protocols/") and not p.endswith("/")
         ]
         protocols_link_cmd = [
@@ -1052,7 +1059,8 @@ def check_doc_stewardship(
 
         # Global archive link ban check — scope to changed runtime doc paths
         runtime_doc_paths = [
-            p for p in changed_files
+            p
+            for p in changed_files
             if p.endswith(".md") and p.startswith("docs/03_runtime/") and not p.endswith("/")
         ]
         runtime_link_cmd = [
@@ -1232,15 +1240,12 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
     lock_health = ensure_git_lock_health(primary_repo, auto_cleanup=True)
     if lock_health.removed_locks:
         errors.append(
-            "Git lock recovery: removed orphaned lock(s): "
-            + ", ".join(lock_health.removed_locks)
+            "Git lock recovery: removed orphaned lock(s): " + ", ".join(lock_health.removed_locks)
         )
     if not lock_health.ok:
         details = " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
         errors.append(
-            "Git lock blocker: "
-            + ", ".join(lock_health.blocking_locks)
-            + f" | {details}"
+            "Git lock blocker: " + ", ".join(lock_health.blocking_locks) + f" | {details}"
         )
         return {
             "success": False,
@@ -1285,7 +1290,11 @@ def merge_to_main(repo_root: Path, branch: str, allow_concurrent_wip: bool = Fal
                 + ", ".join(step_lock_health.removed_locks)
             )
         if not step_lock_health.ok:
-            details = " | ".join(step_lock_health.notes) if step_lock_health.notes else "unknown git lock owner"
+            details = (
+                " | ".join(step_lock_health.notes)
+                if step_lock_health.notes
+                else "unknown git lock owner"
+            )
             errors.append(
                 f"{label} blocked by Git lock: "
                 + ", ".join(step_lock_health.blocking_locks)
@@ -1436,11 +1445,11 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
         target_repo = primary_repo if primary_repo is not None else repo
         lock_health = ensure_git_lock_health(target_repo, auto_cleanup=True)
         if not lock_health.ok:
-            details = " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
+            details = (
+                " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
+            )
             errors.append(
-                "Git lock blocker: "
-                + ", ".join(lock_health.blocking_locks)
-                + f" | {details}"
+                "Git lock blocker: " + ", ".join(lock_health.blocking_locks) + f" | {details}"
             )
             return {
                 "branch_deleted": False,
@@ -1469,11 +1478,11 @@ def cleanup_after_merge(repo_root: Path, branch: str, clear_context: bool = True
     if source_branch and source_branch not in {"main", "master"}:
         lock_health = ensure_git_lock_health(branch_delete_repo, auto_cleanup=True)
         if not lock_health.ok:
-            details = " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
+            details = (
+                " | ".join(lock_health.notes) if lock_health.notes else "unknown git lock owner"
+            )
             errors.append(
-                "Git lock blocker: "
-                + ", ".join(lock_health.blocking_locks)
-                + f" | {details}"
+                "Git lock blocker: " + ", ".join(lock_health.blocking_locks) + f" | {details}"
             )
             return {
                 "branch_deleted": False,

@@ -53,13 +53,14 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 
 ## 6. Normalization blockers still open
 
-1. Drive / Workspace role: mirror only vs advisory ingress adapter
+None.
 
 ## 7. Normalization blockers resolved
 
 | # | Decision | Ratified | ADR | Governance surface |
 | --- | --- | --- | --- | --- |
 | 1 | Human approval capture contract | 2026-04-26 | ADR-003 | `COO_Operating_Contract_v1.0.md` §9 |
+| 2 | Drive / Workspace canonical role | 2026-04-26 | ADR-004 | `LifeOS Target Architecture v2.3c.md` §2.7; `COO_Operating_Contract_v1.0.md` §9.6 |
 | 3 | Full operational-state sole-writer boundary | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
 | 4 | Active vs standby COO semantics in governance surfaces | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
 | 5 | Hermes ↔ OpenClaw directionality and pushback rules | 2026-04-24 | ADR-002 | `COO_Operating_Contract_v1.0.md` §8 |

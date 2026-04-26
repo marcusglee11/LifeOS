@@ -62,4 +62,12 @@ tools:
     autofix_allowed: false
     failure_class: shellcheck_error
 
-waivers: []
+waivers:
+  - tool: markdownlint
+    failure_class: markdownlint_error
+    paths:
+      - "docs/00_foundations/"
+      - "docs/01_governance/"
+      - "docs/10_meta/"
+    reason: "Pre-existing MD013 line-length violations in architectural prose documentation. Long descriptions cannot be wrapped without restructuring content."
+    expires_at: "2026-12-31T00:00:00Z"

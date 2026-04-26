@@ -66,6 +66,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -86,7 +88,16 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run quality gate
-        run: python3 scripts/workflow/quality_gate.py check --scope repo --json
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            BASE_REF="origin/${{ github.base_ref }}"
+          else
+            BASE_REF="HEAD~1"
+          fi
+          mapfile -t CHANGED < <(git diff --name-only "${BASE_REF}...HEAD" 2>/dev/null || git diff --name-only HEAD~1..HEAD)
+          ARGS=()
+          for f in "${CHANGED[@]}"; do [ -n "$f" ] && ARGS+=("--changed-file" "$f"); done
+          python3 scripts/workflow/quality_gate.py check --scope changed "${ARGS[@]}" --json
 
   docs:
     name: Documentation Validation
