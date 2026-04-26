@@ -2,7 +2,7 @@
 source_docs:
   - docs/02_protocols/OpenClaw_COO_Integration_v1.0.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: 4e8237cba053b2cb10dba7467f463286d1711fd7
+source_commit_max: c7df98632ed6dfee99daaada103cd613dc630501
 authority: derived
 page_class: evergreen
 concepts:
@@ -15,8 +15,8 @@ concepts:
 ## Summary
 
 OpenClaw is the external AI gateway hosting the live COO agent. LifeOS invokes the COO
-via the local OpenClaw HTTP gateway. The target architecture designates COO as replaceable
-via stable contracts provided by COO Commons.
+via the local OpenClaw HTTP gateway. The target architecture (v2.3c) designates COO as
+replaceable via stable contracts provided by COO Commons.
 
 ## Key Relationships
 
@@ -29,8 +29,8 @@ via stable contracts provided by COO Commons.
 ## Authority Note
 
 Canonical source: `docs/02_protocols/OpenClaw_COO_Integration_v1.0.md`. That document
-wins on any conflict with this page. Implementation detail (adapter code, config files)
-is NOT a canonical source.
+wins on any conflict with this page. Implementation details (adapter code, config files)
+are not canonical sources.
 
 ## Current Truth
 
@@ -43,10 +43,13 @@ openclaw agent --agent main --message '<json_str>' --json
 ```
 
 **CLI wrappers:** `lifeos coo propose` (backlog → task_proposal.v1), `lifeos coo direct`
-(CEO objective → escalation_packet.v1).
+(CEO objective → escalation_packet.v1 → CEO queue).
 
-**Constraints:** Adapter injects `output_schema` on each call (COO cannot access schemas
-directly via gateway). Credentials at `~/.openclaw/.env`.
+**Constraints:**
+- Adapter injects `output_schema` on each call (COO cannot access schemas via gateway directly).
+- Output normalizer handles gpt model formatting quirks (unindented sub-keys).
+- Credentials: `~/.openclaw/.env` (refresh token if expired).
+- Current version: see `LIFEOS_STATE.md` or run `openclaw --version`.
 
 ## Open Questions
 
