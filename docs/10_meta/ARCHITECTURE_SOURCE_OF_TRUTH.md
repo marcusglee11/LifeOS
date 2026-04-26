@@ -12,7 +12,7 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 ## 1. Canonical now
 
 | Class | Repo path | Role |
-|---|---|---|
+| --- | --- | --- |
 | Canonical operational architecture | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | Operational architecture authority |
 | Canonical governance contract | `docs/01_governance/COO_Operating_Contract_v1.0.md` | CEO/COO governance authority |
 | Canonical runtime state ledger | `docs/11_admin/LIFEOS_STATE.md` | Current operational state |
@@ -21,7 +21,7 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 ## 2. Proposal-only surfaces
 
 | Repo path | Current status |
-|---|---|
+| --- | --- |
 | `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` | Draft communications / advisory architecture |
 | `docs/00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md` | Architecture proposal |
 | `docs/00_foundations/lifeos-agent-architecture.md` | Reference / bootstrap architecture |
@@ -30,13 +30,13 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 ## 3. Supporting orientation / derived references
 
 | Repo path | Current status |
-|---|---|
+| --- | --- |
 | `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Active orientation reference; non-authoritative; loses to canonical architecture/governance docs on conflict |
 
 ## 4. Superseded or stale surfaces
 
 | Repo path | Current classification |
-|---|---|
+| --- | --- |
 | `docs/00_foundations/Architecture_Skeleton_v1.0.md` | Stale conceptual explainer |
 | `docs/10_meta/CHANGELOG.md` | Stale repository changelog surface |
 | `docs/11_admin/AUTONOMY_STATUS.md` | Derived and stale orientation surface |
@@ -53,13 +53,13 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 
 ## 6. Normalization blockers still open
 
-1. Authoritative CEO approval form and capture path
-2. Drive / Workspace role: mirror only vs advisory ingress adapter
+1. Drive / Workspace role: mirror only vs advisory ingress adapter
 
 ## 7. Normalization blockers resolved
 
 | # | Decision | Ratified | ADR | Governance surface |
 | --- | --- | --- | --- | --- |
+| 1 | Human approval capture contract | 2026-04-26 | ADR-003 | `COO_Operating_Contract_v1.0.md` §9 |
 | 3 | Full operational-state sole-writer boundary | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
 | 4 | Active vs standby COO semantics in governance surfaces | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
 | 5 | Hermes ↔ OpenClaw directionality and pushback rules | 2026-04-24 | ADR-002 | `COO_Operating_Contract_v1.0.md` §8 |
