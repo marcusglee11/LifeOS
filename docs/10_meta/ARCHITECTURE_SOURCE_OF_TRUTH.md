@@ -57,6 +57,8 @@ None.
 
 Issue #34 is a reconciliation/classification issue for `ARCH_Multi_Agent_Communication_Architecture.md`; it does not reopen issues #30, #31, #32, or #33 and does not promote the communications draft into canon.
 
+Architecture normalization issues #30, #31, #32, #33, and #34 are resolved. Issue #35 installs the lightweight maintenance rule; after #35 is accepted, the architecture normalization campaign is complete.
+
 ## 7. Normalization blockers resolved
 
 | # | Decision | Ratified | ADR | Governance surface |
@@ -74,3 +76,38 @@ No architecture-affecting change is canonical until required repo surfaces are u
 - this source-of-truth page when canon classification changes
 - architecture changelog when architecture deltas occur
 - ADR register when ratified architecture decisions land
+
+## 9. Lightweight architecture maintenance rule
+
+Architecture maintenance is event-triggered only. There is no monthly ritual, standing ceremony, or broad recurring architecture review by default.
+
+Before merge, any PR that changes architecture, governance, authority, truth surfaces, operational-state semantics, approval capture, writer boundaries, agent directionality, Drive / Workspace authority, receipt models, state-machine semantics, or canonical/proposal/stale classification must record one of the following in the PR body or closing issue:
+
+```text
+Architecture impact: none
+```
+
+or:
+
+```text
+Architecture impact: yes
+Architecture surfaces updated:
+- Source-of-truth page: yes/no + reason
+- Architecture changelog: yes/no + reason
+- ADR index: yes/no + reason
+Canonicality changed: yes/no
+Ratified decision added: yes/no
+```
+
+**Update triggers:**
+
+| Trigger | Required architecture-control update |
+| --- | --- |
+| Canonical / proposal-only / stale classification changes | Update this source-of-truth page |
+| A canonical architecture or governance surface is added, removed, renamed, promoted, or demoted | Update this source-of-truth page and architecture changelog |
+| Architecture semantics materially change | Update architecture changelog |
+| A ratified architecture decision changes authority boundaries, truth surfaces, writer boundaries, approval capture, receipt models, state-machine semantics, agent directionality, or canonical runtime role | Update the relevant canonical doc, architecture changelog, and ADR index |
+| A proposal-only document changes but remains proposal-only and does not alter current canon | Do not add an ADR; update this page only if classification or conflict rules change |
+| Typo, formatting, generated index refresh, or non-semantic cleanup | No architecture-control update required; mark Architecture impact: none |
+
+ADRs remain reserved for ratified architecture decisions with operational consequences. They are not required for checklist maintenance, cleanup observations, speculative ideas, or generic documentation churn.
