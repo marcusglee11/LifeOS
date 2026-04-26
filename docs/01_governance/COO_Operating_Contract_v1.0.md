@@ -1,6 +1,8 @@
 # COO Operating Contract
 
-This document is the canonical governance agreement for how the COO operates, makes decisions, escalates uncertainty, and interacts with the CEO. All other documents reference this as the source of truth.
+This document is the canonical governance agreement for how the COO operates, makes decisions,
+escalates uncertainty, and interacts with the CEO. All other documents reference this as the
+source of truth.
 
 ## 1. Roles and Responsibilities
 
@@ -163,3 +165,121 @@ Pushback escalates to CEO when the uncertainty cannot be resolved through docume
 ### 8.5 Change control for this section
 
 Section 8 may be amended only with CEO approval and version logging.
+
+## 9. Human Approval Capture Contract
+
+Ratified: 2026-04-26. Closes normalization issue #30 (GitHub issue #30). Authority: CEO.
+
+### 9.1 CEO supremacy
+
+The CEO is the supreme source of LifeOS authority.
+
+No COO substrate, agent, channel, receipt store, workflow, policy surface, or operational
+convention may narrow, transfer, override, or veto CEO authority.
+
+This section defines when CEO approval becomes operationally actionable inside LifeOS. It does
+not define the limits of CEO authority.
+
+### 9.2 Source-channel agnostic, storage-bound approval
+
+CEO approval is source-channel agnostic at origin but storage-bound for operational action.
+
+Approval may originate wherever the CEO directly communicates approval to an authorized LifeOS
+interface, COO-agent path, or operational channel.
+
+Approval becomes operationally actionable only when captured into a durable approval receipt in
+the canonical approval receipt store.
+
+### 9.3 Allowed approval source channels
+
+Allowed approval source channels currently include:
+
+- Direct CEO interaction with the active COO agent
+- Direct CEO interaction with a standby COO agent, provided the standby COO only captures or
+  relays approval and does not mutate operational state
+- ChatGPT conversation
+- CLI
+- Telegram
+- GitHub issue comment by CEO
+- GitHub pull request comment by CEO
+
+This list is not a limit on CEO authority. It is the current ratified list of channels from
+which approval may be captured without additional channel ratification.
+
+### 9.4 Direct COO-agent approval rule
+
+CEO approval given directly to a COO agent is a valid approval source event.
+
+If the receiving COO is the active COO, the active COO may capture the approval into the
+canonical approval receipt store.
+
+If the receiving COO is not the active COO, the receiving COO may only relay or prepare capture
+for the active COO workflow. It may not mutate operational state unless separately activated
+under the active/standby switchover rule.
+
+A COO-agent conversation is evidence of approval source. It is not the canonical approval store
+by itself.
+
+### 9.5 Approval receipt capture rule
+
+Approval is operationally actionable only when captured into a durable approval receipt by:
+
+- the active COO; or
+- an explicitly CEO-authorized human/operator acting for the active COO workflow.
+
+Approval captured by any other actor is not operationally actionable.
+
+Approval does not directly mutate operational state. Approval authorizes the active COO path to
+mutate operational state only subject to ratified policy, phase gates, sole-writer rules, and
+applicable validation gates.
+
+### 9.6 Canonical approval receipt store
+
+Until Drive / Workspace authority is separately ratified, the canonical approval receipt store
+is GitHub operational state.
+
+Drive, Workspace, chat history, terminal scrollback, uncaptured conversation memory, and local
+notes are not canonical approval stores by themselves.
+
+### 9.7 Minimum approval binding tuple
+
+Every approval receipt must bind to:
+
+- `proposal_id`
+- `proposal_fingerprint`
+- `rendered_summary_hash`
+- `approval_action`
+- `captured_from_channel`
+- `captured_at`
+- `captured_by`
+
+### 9.8 Contextual binding fields
+
+When applicable, the approval receipt must also bind to:
+
+- `policy_version`
+- `phase`
+- `work_order_id`
+- `issue_id`
+
+`work_order_id` or `issue_id` is required when a promotion target already exists.
+
+### 9.9 Re-approval invalidation rule
+
+Fresh CEO approval is required before promotion if any bound element changes after approval
+capture.
+
+Fresh CEO approval is also required if the rendered CEO-visible summary changes materially.
+A material change is any change that could alter the CEO's understanding of scope, target,
+authority, phase, risk, expected effect, or operational consequence.
+
+### 9.10 Ambiguity fails closed
+
+Ambiguous approval text is not operationally actionable approval.
+
+If approval text is unclear on proposal, action, target, phase, authority, or operational
+effect, the active COO must fail closed and obtain CEO clarification before promotion.
+
+### 9.11 Change control for this section
+
+Section 9 may be amended only with CEO approval and version logging.
