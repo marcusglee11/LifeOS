@@ -3,7 +3,7 @@ source_docs:
   - docs/03_runtime/COO_Runtime_Core_Spec_v1.0.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
   - docs/11_admin/LIFEOS_STATE.md
-source_commit_max: 8b2fa0d4c94ffca6229b86fb83ad98970d27be1f
+source_commit_max: CURRENT_SHA
 authority: derived
 page_class: status
 concepts:
@@ -45,12 +45,21 @@ These sources conflict — see Open Questions. Executor merge status sourced fro
 
 Executor types (per spec): `workspace_mutation_v1`, `workspace_inspection_v1`, `repo_artifact_v1`.
 Merge status per `docs/11_admin/LIFEOS_STATE.md`: `workspace_mutation_v1` ratified;
-`workspace_inspection_v1` and `repo_artifact_v1` merged (Phase 10).
+`workspace_inspection_v1` and `repo_artifact_v1` merged (Phase 10), both `ratification_pending`.
 
-**Canonical target (LifeOS Target Architecture v2.3c.md):**
+**Canonical target (LifeOS Target Architecture v2.3c — supersedes v2.3):**
 CEO→COO→EA via GitHub issues as work orders. EAs are stateless workers triggered by
 GitHub Actions. COO reconciles results and reports to CEO. COO Commons provides
-deterministic shared-services layer (webhook ingestion, schema validation, phase config).
+deterministic shared-services: webhook ingestion, in-process schema validation library
+(Phase 1 — not a network API), and phase/policy config read directly from the verified
+local clone.
+
+Key v2.3c additions:
+- `running → blocked` and `running → needs_decision` transitions restored
+- Malformed EA result while in `dispatched` or `running` → `needs_decision` (schema rejection, escalated)
+- `late_result` is an event classification (not a state): valid result arriving when issue is not in `running`/`dispatched` is logged and escalated, not applied
+- `attempt_id` required in EA result payload; `workflow_run_id` sourced from GitHub webhook metadata
+- Google Drive / Workspace ratified as non-canonical surface (Section 2.7, 2026-04-26): drafting and collaboration only, no operational authority
 
 ## Open Questions
 
