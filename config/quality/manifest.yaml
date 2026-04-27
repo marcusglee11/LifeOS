@@ -71,3 +71,9 @@ waivers:
       - "docs/10_meta/"
     reason: "Pre-existing MD013 line-length violations in architectural prose documentation. Long descriptions cannot be wrapped without restructuring content."
     expires_at: "2026-12-31T00:00:00Z"
+  - tool: markdownlint
+    failure_class: markdownlint_error
+    paths:
+      - "docs/audit/"
+    reason: "External audit artifacts committed verbatim with verified SHA-256. Line length and formatting cannot be altered without breaking integrity verification."
+    expires_at: "2027-12-31T00:00:00Z"
