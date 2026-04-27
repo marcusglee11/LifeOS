@@ -2,7 +2,7 @@
 
 Status: Pro-level audit context manifest
 Owner: CEO / active COO stewardship
-Audit target commit: `d94e51afd1c076393a32d7d7e94e893a33e82185`
+Audit target commit: `c2f558e3b9d5e60c4fac80ae9b251fb57f325966`
 Prepared for: cross-project authority, approval, delegation, pushback, evidence, and state-machine audit
 
 This manifest is a launch surface for a scarce Pro-level Thinking audit. It is not a new canonical architecture decision and does not modify authority semantics by itself.
@@ -15,7 +15,7 @@ This manifest is a launch surface for a scarce Pro-level Thinking audit. It is n
 | --- | --- |
 | Repo | `marcusglee11/LifeOS` |
 | Branch | `main` |
-| Commit SHA | `d94e51afd1c076393a32d7d7e94e893a33e82185` |
+| Commit SHA | `c2f558e3b9d5e60c4fac80ae9b251fb57f325966` |
 | Manifest path | `docs/audit/LIFEOS_AUTHORITY_AUDIT_MANIFEST.md` |
 | Scope | Authority, approval, proxy approval, StepGate, Council Runtime, OpenClaw/Hermes authority, work item lifecycle, receipts/evidence, state transitions |
 
