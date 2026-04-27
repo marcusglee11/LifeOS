@@ -44,7 +44,7 @@ Audit manifest and pro-prompt now distinguish these clearly. Do not conflate sou
 | File | Change |
 |---|---|
 | `docs/11_admin/LIFEOS_STATE.md` | Revised current focus; fixed malformed markdown table row in active workstreams; updated last-updated |
-| `docs/11_admin/BACKLOG.md` | Checked off architecture normalization decisions 1-5; updated last-updated |
+| `docs/11_admin/BACKLOG.md` | Checked off architecture normalization decisions 1-6; updated last-updated |
 | `docs/11_admin/RECONCILIATION_RECEIPT_2026-04-27_v1.md` | New — reconciliation pass documentation |
 | `docs/audit/LIFEOS_AUTHORITY_AUDIT_MANIFEST.md` | Updated: operative source baseline set to `c2e78d...`; audit result landing commit set to `c2f558e...` (PR #43 merge); added audit result artefact field |
 | `docs/audit/LIFEOS_AUTHORITY_AUDIT_PRO_PROMPT.md` | Updated: operative source baseline set to `c2e78d...`; audit result landing commit set to `c2f558e...` (PR #43 merge); added audit result artefact field |
