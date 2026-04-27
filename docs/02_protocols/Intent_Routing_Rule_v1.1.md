@@ -2,9 +2,10 @@
 
 <!-- LIFEOS_TODO[P1][area: docs/02_protocols/Intent_Routing_Rule_v1.1.md][exit: status change to ACTIVE + DAP validate] Finalize Intent_Routing_Rule v1.1: Remove WIP/Provisional markers, set effective date -->
 
-**Status**: WIP (Non-Canonical)
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
-**Effective**: TBD (Provisional)
+**Status**: WIP (Non-Canonical)  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+**Effective**: TBD (Provisional)  
+**Current protocol binding**: See `docs/01_governance/PROTOCOL_VERSION_REGISTER.md`
 
 ---
 
@@ -196,9 +197,18 @@ Logs are immutable. CEO has full access. Lower tiers have read access to own log
 
 ## 9. Cross-Reference
 
+- `docs/01_governance/PROTOCOL_VERSION_REGISTER.md`
 - CSO Role Constitution v1.0 (WIP)
-- Council Protocol v1.2
+- Council Protocol current binding per register
 - Governance Protocol v1.0
+
+---
+
+## 10. Amendment record
+
+**WP2 (2026-04-27)** — Authority Audit Implementation:
+- Added register reference for current protocol bindings.
+- Replaced hard-coded Council Protocol cross-reference with register-resolved binding.
 
 ---
 
