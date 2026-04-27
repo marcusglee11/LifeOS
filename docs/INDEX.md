@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-04-27 (rev22)
+Last Updated: 2026-04-28 (rev23)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -193,6 +193,12 @@ LifeOS Constitution v2.0 (Supreme)
 ---
 
 ## 03_runtime — Runtime Specification
+
+### Memory & Knowledge Architecture
+
+| Document | Purpose |
+|----------|---------|
+| [memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md](./03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md) | **Canonical** — Memory and knowledge architecture v0.5: authority model, logical stores, COO sole-writer rule, candidate packets, durable write receipts, retrieval model, phase split. Implementation: [#53](https://github.com/garfieldlsc/LifeOS/issues/53) |
 
 ### Core Specs
 

@@ -1156,6 +1156,8 @@ Fail-closed: unknown action category → L4. Everything not explicitly L0 defaul
 3. `docs/11_admin/LIFEOS_STATE.md` — current operational state
 4. `config/agent_roles/coo.md` — operational rules and invocation spec
 
+**Long-horizon memory architecture:** See [`docs/03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md`](./03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md) for the canonical architecture covering authority model, logical stores (agent memory, shared knowledge, canon, candidate packets, receipts), COO sole-writer rule, candidate packet transport, retrieval model, and phase split. Phase 1 implementation tracked in [#53](https://github.com/garfieldlsc/LifeOS/issues/53).
+
 ## Provider Routing
 
 | Provider | When to use |
