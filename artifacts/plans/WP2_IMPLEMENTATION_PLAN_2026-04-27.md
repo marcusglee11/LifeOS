@@ -20,8 +20,8 @@ Capture planning artifacts for WP2 authority-audit decisions D1–D4b. Planning 
 
 | # | Task | Files touched |
 |---|---|---|
-| D1.1 | Audit `Council_Protocol_v1.3.md` for binding G-CBS references | `docs/01_governance/Council_Protocol_v1.3.md` |
-| D1.2 | Patch or annotate binding G-CBS references as advisory | `docs/01_governance/Council_Protocol_v1.3.md` (and others as found) |
+| D1.1 | Audit `Council_Protocol_v1.3.md` for binding G-CBS references | `docs/02_protocols/Council_Protocol_v1.3.md` |
+| D1.2 | Patch or annotate binding G-CBS references as advisory | `docs/02_protocols/Council_Protocol_v1.3.md` (and others as found) |
 | D1.3 | Verify WP4 `closure_receipt.v1` schema exists and is referenced as the minimal closure-evidence standard (deferred until WP4 approval) | `artifacts/plans/WP4_LIFECYCLE_CLOSURE_DESIGN_2026-04-27.md` (reference only) |
 | D1.4 | Mark G-CBS status as `Draft / Advisory` in any authoritative index if not already | `docs/02_protocols/G-CBS_Standard_v1.1.md` (annotation only) |
 
@@ -45,8 +45,8 @@ Capture planning artifacts for WP2 authority-audit decisions D1–D4b. Planning 
 
 | # | Task | Files touched |
 |---|---|---|
-| D3.1 | Read current DAP (expect `docs/02_protocols/Deterministic_Artefact_Protocol_v1.0.md` or similar) | `docs/02_protocols/DAP_*.md` |
-| D3.2 | Add bounded Gate 3 exceptions for: authority-audit packets, reconciliation receipts, closure receipts, generated evidence bundles | same DAP doc |
+| D3.1 | Read current DAP | `docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md` |
+| D3.2 | Add bounded Gate 3 exceptions for: audit artefacts, result artefacts, proposal artefacts, receipt artefacts, evidence artefacts / evidence bundles | same DAP doc |
 | D3.3 | Normalise path/status references to reflect actual repo usage | same DAP doc |
 
 **Constraint:** No exhaustive artefact-path audit. Scope is bounded to adding the listed exceptions and correcting any immediately observable inconsistencies.
@@ -57,7 +57,7 @@ Capture planning artifacts for WP2 authority-audit decisions D1–D4b. Planning 
 
 | # | Task | Files touched |
 |---|---|---|
-| D4a.1 | Read `LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md` | `docs/architecture/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md` |
+| D4a.1 | Read `LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md` | `docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md` |
 | D4a.2 | Add canonicality header: canonical for build-loop design semantics and work-order flow; not canonical evidence of deployed runtime behaviour | same doc |
 | D4a.3 | Runtime truth remains: receipts, tests, CI, current main, operational state — make this explicit in header or a footnote | same doc |
 
@@ -89,10 +89,10 @@ Capture planning artifacts for WP2 authority-audit decisions D1–D4b. Planning 
 | File | Decision | Change |
 |---|---|---|
 | `artifacts/plans/WP2_CEO_DECISION_PACKET_2026-04-27.md` | (this plan) | Updated to ratified status (done in this branch) |
-| `docs/01_governance/Council_Protocol_v1.3.md` | D1 | Patch binding G-CBS references as advisory |
+| `docs/02_protocols/Council_Protocol_v1.3.md` | D1 | Patch binding G-CBS references as advisory |
 | `docs/02_protocols/G-CBS_Standard_v1.1.md` | D1 | Annotate status as Draft/Advisory |
-| `docs/02_protocols/DAP_*.md` | D3 | Add Gate 3 bounded exceptions; normalise path/status |
-| `docs/architecture/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md` | D4a | Add scoped canonicality header |
+| `docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md` | D3 | Add Gate 3 bounded exceptions; normalise path/status |
+| `docs/03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md` | D4a | Add scoped canonicality header |
 | `docs/02_protocols/Council_Invocation_Runtime_Binding_Spec_v1.1.md` | D2 | Add register reference (annotation, not version-bump) |
 | `docs/02_protocols/AI_Council_Procedural_Spec_v1.1.md` | D2 | Add register reference |
 | `docs/02_protocols/Council_Context_Pack_Schema_v0.3.md` | D2 | Add register reference |
@@ -119,7 +119,7 @@ The following are **not** in scope for WP2:
 
 - [ ] `PROTOCOL_VERSION_REGISTER.md` created in `docs/01_governance/`
 - [ ] `config/governance/active_coo.yaml` created (stub or initial value)
-- [ ] `Council_Protocol_v1.3.md` binding G-CBS references patched or annotated
+- [ ] `docs/02_protocols/Council_Protocol_v1.3.md` binding G-CBS references patched or annotated
 - [ ] G-CBS Standard annotated as Draft/Advisory
 - [ ] DAP doc has bounded Gate 3 exceptions for audit/result/proposal/receipt/evidence artefacts
 - [ ] Build Loop doc has scoped canonicality header

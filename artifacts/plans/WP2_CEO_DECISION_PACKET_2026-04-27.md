@@ -3,7 +3,7 @@
 **Status:** RATIFIED — CEO decisions incorporated
 **Ruling date:** 2026-04-27
 **Ruling source:** CEO ruling (this session)
-**Branch:** `wp2/ratify-ceo-decisions`
+**Recording branch:** `wp2/ratify-ceo-decisions`
 **Owner:** Active COO
 **Source:** `docs/audit/LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md` §H (C-003, C-008, C-009, C-010), §Open Decisions (OD-AUDIT-003, OD-AUDIT-004, OD-AUDIT-006)
 
@@ -54,10 +54,11 @@ The following five decisions are final and binding for WP2 planning and future i
 - DAP remains the canonical Deterministic Artefact Protocol.
 - Normalise DAP path/status to reflect actual repo usage.
 - Add bounded exceptions for the following artefact types so DAP Gate 3 does not incorrectly block them:
-  - Authority-audit packets
-  - Reconciliation receipts
-  - Closure receipts
-  - Generated evidence bundles
+  - audit artefacts
+  - result artefacts
+  - proposal artefacts
+  - receipt artefacts
+  - evidence artefacts / evidence bundles
 
 **Excluded from this work:** Exhaustive artefact-path audit. Do not run one in this WP.
 
