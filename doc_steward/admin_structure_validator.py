@@ -9,6 +9,7 @@ Enforces:
 
 Fail-closed: any unexpected file or directory is an error.
 """
+
 from __future__ import annotations
 
 import re
@@ -38,6 +39,8 @@ CANONICAL_OPTIONAL_FILES = {
     "TECH_DEBT_INVENTORY.md",
     # Repo-wide quality baseline summary (produced by quality audit passes)
     "QUALITY_AUDIT_BASELINE_v1.0.md",
+    # Canonical tracker reconciliation receipts (produced by WP1 reconciliation passes)
+    "RECONCILIATION_RECEIPT_2026-04-27_v1.md",
 }
 
 ALLOWED_ROOT_FILES = REQUIRED_FILES | CANONICAL_OPTIONAL_FILES
@@ -46,8 +49,8 @@ ALLOWED_ROOT_FILES = REQUIRED_FILES | CANONICAL_OPTIONAL_FILES
 ALLOWED_SUBDIRS = {"build_summaries", "archive"}
 
 # Naming patterns
-BUILD_SUMMARY_PATTERN = re.compile(r'^.*_Build_Summary_\d{4}-\d{2}-\d{2}\.md$')
-ARCHIVE_SUBDIR_PATTERN = re.compile(r'^\d{4}-\d{2}-\d{2}_[a-z0-9_]+$')
+BUILD_SUMMARY_PATTERN = re.compile(r"^.*_Build_Summary_\d{4}-\d{2}-\d{2}\.md$")
+ARCHIVE_SUBDIR_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}_[a-z0-9_]+$")
 
 
 def check_admin_structure(repo_root: str) -> list[str]:
@@ -110,8 +113,7 @@ def check_admin_structure(repo_root: str) -> list[str]:
             # Check root file allowlist
             if rel_name not in ALLOWED_ROOT_FILES:
                 errors.append(
-                    f"Unexpected file at root: docs/11_admin/{rel_name} "
-                    f"(not in allowlist)"
+                    f"Unexpected file at root: docs/11_admin/{rel_name} (not in allowlist)"
                 )
 
     # Validate build_summaries/ naming pattern

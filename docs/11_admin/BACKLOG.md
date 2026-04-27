@@ -1,5 +1,9 @@
 # BACKLOG (prune aggressively; target ≤ 40 items)
 
+<!-- DERIVED VIEW: This file is a human-readable summary of config/tasks/backlog.yaml (canonical).
+     Do not treat this file as authoritative. Canonical queue state lives in config/tasks/backlog.yaml.
+     Work item state transitions must be recorded in backlog.yaml, not here. -->
+
 <!-- markdownlint-disable MD012 MD013 -->
 
 ## Workflow Hook

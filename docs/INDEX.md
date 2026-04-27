@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-04-27 (rev22)
+Last Updated: 2026-04-28 (rev23)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -47,7 +47,7 @@ LifeOS Constitution v2.0 (Supreme)
 | Document | Purpose |
 |----------|---------|
 | [LIFEOS_STATE.md](./11_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions (auto-updated) |
-| [BACKLOG.md](./11_admin/BACKLOG.md) | **Canonical backlog** — Actionable backlog (Now/Next/Later), target ≤40 items (auto-updated) |
+| [BACKLOG.md](./11_admin/BACKLOG.md) | **Derived view** — Human-readable summary (non-canonical; `config/tasks/backlog.yaml` is canonical queue authority) |
 | [DECISIONS.md](./11_admin/DECISIONS.md) | **Append-only** — Decision log (low volume) |
 | [INBOX.md](./11_admin/INBOX.md) | Raw capture scratchpad for triage |
 | [Plan_Supersession_Register.md](./11_admin/Plan_Supersession_Register.md) | **Control** — Canonical register of superseded and active plans |
@@ -164,6 +164,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Filesystem_Error_Boundary_Protocol_v1.0.md](./02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md) | **Draft** — Fail-closed filesystem error boundaries, exception taxonomy |
 | [GitHub_Actions_Secrets_Setup.md](./02_protocols/GitHub_Actions_Secrets_Setup.md) | PAT creation, secrets config, and rotation for CI workflows |
 | [Project_Planning_Protocol_v1.0.md](./02_protocols/Project_Planning_Protocol_v1.0.md) | Build mission plan requirements, schema compliance, lifecycle, and review rubric |
+| [Work_Management_Framework_v0.1.md](./02_protocols/Work_Management_Framework_v0.1.md) | **NEW** — Work Management Framework v0.1: intake, prioritisation, dispatch, review, closure |
 | [OpenClaw_COO_Integration_v1.0.md](./02_protocols/OpenClaw_COO_Integration_v1.0.md) | OpenClaw gateway invocation, CLI wrappers, known constraints |
 
 ### Council Protocols
