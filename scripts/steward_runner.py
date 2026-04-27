@@ -40,27 +40,29 @@ from typing import Any
 
 import yaml
 
-
 # --- Logging Infrastructure ---
+
 
 class DeterministicLogger:
     """JSONL logger with content-addressed stream storage."""
-    
-    def __init__(self, log_dir: Path, streams_dir: Path, run_id: str, timestamps_enabled: bool = True):
+
+    def __init__(
+        self, log_dir: Path, streams_dir: Path, run_id: str, timestamps_enabled: bool = True
+    ):
         self.log_dir = log_dir
         self.streams_dir = streams_dir
         self.run_id = run_id
         self.timestamps_enabled = timestamps_enabled
         self.log_file = log_dir / f"{run_id}.jsonl"
-        
+
         # Ensure directories exist
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.streams_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Clear any existing log for this run_id (idempotent reruns)
         if self.log_file.exists():
             self.log_file.unlink()
-    
+
     def _store_stream(self, content: str, suffix: str) -> str:
         """Store content in content-addressed file, return hash."""
         if not content:
@@ -71,15 +73,15 @@ class DeterministicLogger:
         if not stream_file.exists():
             stream_file.write_bytes(content_bytes)
         return sha
-    
+
     def log(self, event: str, step: str, status: str, **kwargs: Any) -> None:
         """Write a JSONL event line."""
-        
+
         if self.timestamps_enabled:
             ts = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         else:
             ts = "1970-01-01T00:00:00Z"  # Deterministic fixed timestamp
-            
+
         record: dict[str, Any] = {
             "timestamp": ts,
             "run_id": self.run_id,
@@ -88,18 +90,26 @@ class DeterministicLogger:
             "status": status,
         }
         record.update(kwargs)
-        
+
         # P1-B: Enforce sorted file lists for determinism
-        for key in ("files", "changed_files", "staged_files", "validated_files", "unexpected_files", "disallowed_files", "commit_paths"):
+        for key in (
+            "files",
+            "changed_files",
+            "staged_files",
+            "validated_files",
+            "unexpected_files",
+            "disallowed_files",
+            "commit_paths",
+        ):
             if key in record and isinstance(record[key], list):
                 record[key] = sorted(record[key])
-        
+
         # Remove None values for cleaner logs
         record = {k: v for k, v in record.items() if v is not None}
-        
+
         with open(self.log_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n")
-    
+
     def log_command(
         self,
         step: str,
@@ -114,7 +124,7 @@ class DeterministicLogger:
         """Log a command execution with content-addressed streams."""
         stdout_hash = self._store_stream(stdout, ".out")
         stderr_hash = self._store_stream(stderr, ".err")
-        
+
         self.log(
             event="command",
             step=step,
@@ -129,6 +139,7 @@ class DeterministicLogger:
 
 
 # --- Pipeline Stages ---
+
 
 def get_repo_root() -> Path:
     """Get canonical repo root via git."""
@@ -171,7 +182,7 @@ def get_changed_files() -> list[str]:
     )
     if not result.stdout.strip():
         return []
-    
+
     files = []
     for line in result.stdout.strip().split("\n"):
         if line:
@@ -181,7 +192,7 @@ def get_changed_files() -> list[str]:
             # Normalize to forward slashes (B3)
             filename = filename.replace("\\", "/")
             files.append(filename)
-    
+
     return sorted(files)
 
 
@@ -198,7 +209,7 @@ def run_command(
         capture_output=True,
         text=True,
     )
-    
+
     status = "pass" if result.returncode == 0 else "fail"
     logger.log_command(
         step=step,
@@ -209,11 +220,12 @@ def run_command(
         stdout=result.stdout,
         stderr=result.stderr,
     )
-    
+
     return result.returncode, result.stdout, result.stderr
 
 
 # --- Pipeline Execution ---
+
 
 def run_preflight(
     config: dict[str, Any],
@@ -223,24 +235,28 @@ def run_preflight(
 ) -> tuple[bool, str]:
     """Preflight checks. Returns (success, git_head_before)."""
     git_head = get_git_head()
-    
+
     # C1: run_id is required (enforced by argparse, but double-check)
     if not run_id:
         logger.log("preflight", "preflight", "fail", reason="missing_run_id")
         return False, git_head
-    
+
     # C2: Check for clean start if required
     if config.get("git", {}).get("require_clean_start", False):
         if is_repo_dirty():
             logger.log(
-                "preflight", "preflight", "fail",
+                "preflight",
+                "preflight",
+                "fail",
                 reason="dirty_repo",
                 git_head_before=git_head,
             )
             return False, git_head
-    
+
     logger.log(
-        "preflight", "preflight", "pass",
+        "preflight",
+        "preflight",
+        "pass",
         repo_root=str(repo_root),
         git_head_before=git_head,
     )
@@ -256,10 +272,10 @@ def run_tests(
     tests_config = config.get("tests", {})
     command = tests_config.get("command", ["python", "-m", "pytest", "-q"])
     paths = tests_config.get("paths", [])
-    
+
     # P0-1: Append test paths to command argv
     argv = list(command) + list(paths)
-    
+
     exit_code, _, _ = run_command(argv, repo_root, logger, "tests")
     return exit_code == 0
 
@@ -272,12 +288,12 @@ def run_validators(
     """Run validators in order. Stops on first failure (E3). Returns success."""
     validators_config = config.get("validators", {})
     commands = validators_config.get("commands", [])
-    
+
     for i, command in enumerate(commands):
         exit_code, _, _ = run_command(command, repo_root, logger, f"validator_{i}")
         if exit_code != 0:
             return False
-    
+
     return True
 
 
@@ -290,26 +306,28 @@ def run_corpus(
     corpus_config = config.get("corpus", {})
     command = corpus_config.get("command", [])
     outputs_expected = corpus_config.get("outputs_expected", [])
-    
+
     if not command:
         logger.log("corpus", "corpus", "skip", reason="no_command")
         return True
-    
+
     exit_code, _, _ = run_command(command, repo_root, logger, "corpus")
     if exit_code != 0:
         return False
-    
+
     # F2: Verify expected outputs exist
     for output in outputs_expected:
         output_path = repo_root / output
         if not output_path.exists():
             logger.log(
-                "corpus", "corpus", "fail",
+                "corpus",
+                "corpus",
+                "fail",
                 reason="missing_output",
                 missing_file=output,
             )
             return False
-    
+
     return True
 
 
@@ -325,37 +343,38 @@ def run_change_detect(
     log_dir = log_dir.replace("\\", "/")
     if not log_dir.endswith("/"):
         log_dir += "/"
-    
+
     all_changed = get_changed_files()
-    
+
     # Filter out files in the log directory (runner's own artifacts)
     changed_files = [
-        f for f in all_changed 
-        if not f.startswith(log_dir) and f != log_dir.rstrip("/")
+        f for f in all_changed if not f.startswith(log_dir) and f != log_dir.rstrip("/")
     ]
-    
+
     if changed_files:
         logger.log(
-            "change_detect", "change_detect", "detected",
+            "change_detect",
+            "change_detect",
+            "detected",
             changed_files=changed_files,
         )
     else:
         logger.log("change_detect", "change_detect", "no_change")
-    
+
     return changed_files
 
 
 def normalize_commit_path(path: str) -> tuple[str, str | None]:
     r"""
     Normalize a commit_paths entry per Commit Paths Contract.
-    
+
     Returns (normalized_path, error_reason | None).
-    
+
     Contract:
     - Entries ending with / are directory prefixes
     - Entries not ending with / are exact files
     - Bare names (no / or .) are interpreted as directory prefixes (normalized + logged)
-    
+
     Fail-closed cases (error_reason is not None):
     - Absolute paths (Unix: /..., Windows: C:\, UNC: \\server, //server)
     - Path traversal (.. segment)
@@ -365,29 +384,29 @@ def normalize_commit_path(path: str) -> tuple[str, str | None]:
     original = path
     # Normalize backslashes to forward slashes
     normalized = path.replace("\\", "/")
-    
+
     # --- Fail-closed checks ---
-    
+
     # URL encoded chars rejection (P2-B)
     if "%" in normalized:
         return original, "url_encoded_chars"
-    
+
     # UNC path (//server or after backslash normalization) - check BEFORE Unix
     if normalized.startswith("//"):
         return original, "absolute_path_unc"
-    
+
     # Unix absolute path
     if normalized.startswith("/"):
         return original, "absolute_path_unix"
-    
+
     # Windows drive absolute (C:/ or C:)
     if len(normalized) >= 2 and normalized[1] == ":":
         return original, "absolute_path_windows"
-    
+
     # Glob patterns
     if "*" in normalized or "?" in normalized:
         return original, "glob_pattern"
-    
+
     # Segment-based path traversal and current-dir check
     segments = normalized.rstrip("/").split("/")
     for segment in segments:
@@ -395,16 +414,16 @@ def normalize_commit_path(path: str) -> tuple[str, str | None]:
             return original, "path_traversal"
         if segment == ".":
             return original, "current_dir_segment"
-    
+
     # --- Normalization ---
-    
+
     # Only normalize bare names (no / at all) that look like directories
     # Entries already containing / are treated as-is per contract
     if "/" not in path and not path.endswith("/"):
         # Bare name without extension → treat as directory prefix
         if "." not in path:
             normalized = normalized + "/"
-    
+
     return normalized, None
 
 
@@ -419,7 +438,7 @@ def run_commit(
 ) -> tuple[bool, str | None]:
     """
     Commit changes if allowed. Returns (success, git_head_after).
-    
+
     Implements Commit Paths Contract:
     - Directory prefixes (trailing /) or exact files
     - No globs, absolute paths, or path traversal
@@ -429,40 +448,45 @@ def run_commit(
     commit_enabled = git_config.get("commit_enabled", False)
     raw_commit_paths = git_config.get("commit_paths", [])
     commit_message_template = git_config.get(
-        "commit_message_template",
-        "[steward] Autonomous run {run_id}"
+        "commit_message_template", "[steward] Autonomous run {run_id}"
     )
-    
+
     # G2: No changes = no commit needed
     if not changed_files:
         return True, None
-    
+
     # Check if commit should be skipped
     if dry_run or no_commit or not commit_enabled:
         reason = "dry_run" if dry_run else ("no_commit" if no_commit else "disabled")
         logger.log(
-            "commit", "commit", "skipped",
+            "commit",
+            "commit",
+            "skipped",
             reason=reason,
             changed_files=changed_files,
         )
         return True, None
-    
+
     # C5: Verify commit_paths allowlist is non-empty
     if not raw_commit_paths:
         logger.log(
-            "commit", "commit", "fail",
+            "commit",
+            "commit",
+            "fail",
             reason="empty_commit_paths",
             changed_files=changed_files,
         )
         return False, None
-    
+
     # P1-2: Normalize and validate commit_paths
     commit_paths: list[str] = []
     for raw_path in raw_commit_paths:
         normalized, error_reason = normalize_commit_path(raw_path)
         if error_reason is not None:
             logger.log(
-                "commit", "commit", "fail",
+                "commit",
+                "commit",
+                "fail",
                 reason="invalid_commit_path",
                 error=error_reason,
                 invalid_path=raw_path,
@@ -470,7 +494,7 @@ def run_commit(
             )
             return False, None
         commit_paths.append(normalized)
-    
+
     # C5: Verify all changes are within allowlist
     disallowed = []
     for changed_file in changed_files:
@@ -487,29 +511,33 @@ def run_commit(
                     break
         if not allowed:
             disallowed.append(changed_file)
-    
+
     if disallowed:
         logger.log(
-            "commit", "commit", "fail",
+            "commit",
+            "commit",
+            "fail",
             reason="changes_outside_allowlist",
             disallowed_files=disallowed,
             changed_files=changed_files,
         )
         return False, None
-    
+
     # P1-1: Stage using git add -A with allowlisted roots
     # Derive unique roots from commit_paths
     roots = sorted(set(commit_paths))
-    
+
     message = commit_message_template.format(run_id=run_id)
-    
+
     # Stage all changes under allowed roots
     # P1-A: Re-check for dirty state before commit to prevent race conditions
     current_changed = get_changed_files()
     unexpected = set(current_changed) - set(changed_files)
     if unexpected:
         logger.log(
-            "commit", "commit", "fail",
+            "commit",
+            "commit",
+            "fail",
             reason="repo_dirty_during_run",
             unexpected_files=list(unexpected),
         )
@@ -524,12 +552,14 @@ def run_commit(
     )
     if result.returncode != 0:
         logger.log(
-            "commit", "commit", "fail",
+            "commit",
+            "commit",
+            "fail",
             reason="git_add_failed",
             stderr=result.stderr,
         )
         return False, None
-    
+
     # Commit
     result = subprocess.run(
         ["git", "commit", "-m", message],
@@ -539,20 +569,24 @@ def run_commit(
     )
     if result.returncode != 0:
         logger.log(
-            "commit", "commit", "fail",
+            "commit",
+            "commit",
+            "fail",
             reason="git_commit_failed",
             stderr=result.stderr,
         )
         return False, None
-    
+
     git_head_after = get_git_head()
     logger.log(
-        "commit", "commit", "pass",
+        "commit",
+        "commit",
+        "pass",
         git_head_after=git_head_after,
         changed_files=changed_files,
         commit_paths=commit_paths,
     )
-    
+
     return True, git_head_after
 
 
@@ -564,13 +598,16 @@ def run_postflight(
 ) -> None:
     """Final logging."""
     logger.log(
-        "postflight", "postflight", "complete" if success else "failed",
+        "postflight",
+        "postflight",
+        "complete" if success else "failed",
         git_head_before=git_head_before,
         git_head_after=git_head_after,
     )
 
 
 # --- Main Entry Point ---
+
 
 def load_config(config_path: Path) -> dict[str, Any]:
     """Load YAML configuration."""
@@ -593,7 +630,7 @@ def main() -> int:
         required=True,
         help="Required. Unique identifier for this run.",
     )
-    
+
     # P1-D: Mutually exclusive commit control
     commit_group = parser.add_mutually_exclusive_group()
     commit_group.add_argument(
@@ -606,52 +643,72 @@ def main() -> int:
         action="store_true",
         help="Actually commit changes (explicit opt-in required)",
     )
-    
+
     parser.add_argument(
         "--step",
-        choices=["preflight", "tests", "validators", "corpus", "change_detect", "commit", "postflight"],
+        choices=[
+            "preflight",
+            "tests",
+            "validators",
+            "corpus",
+            "change_detect",
+            "commit",
+            "postflight",
+        ],
         help="Run single step only (for debugging).",
     )
-    
+
+    parser.add_argument(
+        "--ingest",
+        type=Path,
+        default=None,
+        metavar="MANIFEST_PATH",
+        help="Path to doc_ingest manifest JSON. Adds deterministic doc ingestion stage.",
+    )
+
     args = parser.parse_args()
-    
+
     # Resolve repo root (A3)
     try:
         repo_root = get_repo_root()
     except RuntimeError as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
-    
+
     os.chdir(repo_root)
-    
+
     # Load config
     config_path = repo_root / args.config
     if not config_path.exists():
         print(f"Error: Config file not found: {config_path}", file=sys.stderr)
         return 1
-    
+
     config = load_config(config_path)
-    
+
     # Initialize logger
     logging_config = config.get("logging", {})
     log_dir = repo_root / logging_config.get("log_dir", "logs/steward_runner")
     streams_dir = repo_root / logging_config.get("streams_dir", "logs/steward_runner/streams")
-    
+
     logger = DeterministicLogger(
-        log_dir, 
-        streams_dir, 
+        log_dir,
+        streams_dir,
         args.run_id,
-        timestamps_enabled=config.get("determinism", {}).get("timestamps", True)
+        timestamps_enabled=config.get("determinism", {}).get("timestamps", True),
     )
-    
+
     # --- Pipeline Execution ---
-    
+
     single_step = args.step
     success = True
     git_head_before = ""
     git_head_after = None
     changed_files: list[str] = []
-    
+    ingest_result = None
+
+    # Compute commit intent once (used by doc_ingest and commit stages)
+    actually_commit = args.commit
+
     # PREFLIGHT
     if single_step is None or single_step == "preflight":
         success, git_head_before = run_preflight(config, logger, repo_root, args.run_id)
@@ -660,7 +717,45 @@ def main() -> int:
             return 1
         if single_step == "preflight":
             return 0
-    
+
+    # DOC_INGEST (after preflight, before validators — invariant 1)
+    if args.ingest is not None and single_step is None:
+        from runtime.stewardship.doc_ingest import emit_result_packet
+        from runtime.stewardship.doc_ingest import run as doc_ingest_run
+
+        manifest_path = repo_root / args.ingest if not args.ingest.is_absolute() else args.ingest
+        runner_ctx = {
+            "run_id": args.run_id,
+            "repo_root": repo_root,
+            "actually_commit": actually_commit,
+            "config": config,
+        }
+        ingest_result = doc_ingest_run(manifest_path, runner_ctx)
+        logger.log(
+            "doc_ingest",
+            "doc_ingest",
+            "pass" if ingest_result.success else "fail",
+            manifest=str(args.ingest),
+            fingerprint=ingest_result.manifest_fingerprint,
+            failure_reason=ingest_result.failure_reason,
+            failure_invariant=ingest_result.failure_invariant,
+            is_idempotent_noop=ingest_result.is_idempotent_noop,
+        )
+        if not ingest_result.success:
+            run_postflight(logger, False, git_head_before, None)
+            return 1
+        if ingest_result.is_idempotent_noop:
+            # Idempotent no-op: skip remaining pipeline stages
+            run_postflight(logger, True, git_head_before, None)
+            return 0
+        # Inject manifest commit intent into runner config so commit stage respects dual-key
+        if ingest_result.commit_enabled_for_runner:
+            config.setdefault("git", {})["commit_enabled"] = True
+            dl_doc_path = "artifacts/ledger/dl_doc/"
+            existing_paths = config.get("git", {}).get("commit_paths", [])
+            if dl_doc_path not in existing_paths:
+                config.setdefault("git", {}).setdefault("commit_paths", []).append(dl_doc_path)
+
     # TESTS
     if single_step is None or single_step == "tests":
         success = run_tests(config, logger, repo_root)
@@ -669,7 +764,7 @@ def main() -> int:
             return 1
         if single_step == "tests":
             return 0
-    
+
     # VALIDATORS
     if single_step is None or single_step == "validators":
         success = run_validators(config, logger, repo_root)
@@ -678,7 +773,7 @@ def main() -> int:
             return 1
         if single_step == "validators":
             return 0
-    
+
     # CORPUS
     if single_step is None or single_step == "corpus":
         success = run_corpus(config, logger, repo_root)
@@ -687,33 +782,61 @@ def main() -> int:
             return 1
         if single_step == "corpus":
             return 0
-    
+
     # CHANGE DETECT
     if single_step is None or single_step == "change_detect":
         changed_files = run_change_detect(config, logger)
         if single_step == "change_detect":
             return 0
-    
+
     # COMMIT
     if single_step is None or single_step == "commit":
         # P1-D: Default is dry-run. Commit requires explicit --commit flag.
-        actually_commit = args.commit
         # dry_run arg is redundant if commit arg is not present, but for compatibility/clarity:
         dry_run = args.dry_run or (not actually_commit)
-        
+
         success, git_head_after = run_commit(
-            config, logger, repo_root, args.run_id,
-            changed_files, dry_run, False, # no_commit removed, logic handled by dry_run
+            config,
+            logger,
+            repo_root,
+            args.run_id,
+            changed_files,
+            dry_run,
+            False,  # no_commit removed, logic handled by dry_run
         )
         if not success:
             run_postflight(logger, False, git_head_before, None)
             return 1
+
+        # Emit DOC_STEWARD_RESULT packet if ingest committed (invariant — result packet)
+        if (
+            args.ingest is not None
+            and ingest_result is not None
+            and ingest_result.commit_enabled_for_runner
+            and git_head_after
+        ):
+            import json as _json
+
+            manifest_path = (
+                repo_root / args.ingest if not args.ingest.is_absolute() else args.ingest
+            )
+            try:
+                manifest_data = _json.loads(manifest_path.read_bytes())
+            except (OSError, _json.JSONDecodeError):
+                manifest_data = {}
+            from runtime.stewardship.doc_ingest import emit_result_packet
+
+            packet_path = emit_result_packet(
+                args.run_id, repo_root, ingest_result, git_head_after, manifest_data
+            )
+            logger.log("doc_ingest_result", "doc_ingest", "pass", packet=str(packet_path))
+
         if single_step == "commit":
             return 0
-    
+
     # POSTFLIGHT
     run_postflight(logger, True, git_head_before, git_head_after)
-    
+
     return 0
 
 
