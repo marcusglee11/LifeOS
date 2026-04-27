@@ -10,18 +10,16 @@
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 
-**Last Updated:** 2026-04-24 (rev16)
+**Last Updated:** 2026-04-27 (rev17)
 
-## Architecture Normalization Decisions (unblocked; source: `docs/10_meta/Architecture_Normalization_Targeted_Issue_List_2026-04-24.md`)
+## Architecture Normalization — RESOLVED (per ADR-001 through ADR-004 and changelog A1-A5)
 
-### P1 (High) — open only after PR #28 lands ✓ (landed 4e8237cb)
-
-- [ ] **Ratify human approval capture contract** — DoD: approval source channels named, receipt capture rule defined, minimum binding tuple ratified, re-approval invalidation explicit — Owner: CEO — Context: Issue 1 from normalization packet; required surfaces: canonical governance doc, `ARCHITECTURE_SOURCE_OF_TRUTH.md`, `ARCHITECTURE_CHANGELOG.md`, ADR if ratified
-- [ ] **Ratify active vs standby COO semantics and sole-writer boundary** — DoD: exactly-one-writer rule explicit, standby allowed/forbidden actions explicit, switchover trigger explicit, sole-writer scope explicit — Owner: CEO — Context: Issue 2; required surfaces: canonical governance/architecture docs, source-of-truth page, changelog, ADR
-- [ ] **Resolve Drive / Workspace role in canon** — DoD: canonical role chosen (mirror-only vs advisory ingress), proposal-only surfaces stay proposal unless ratified — Owner: CEO — Context: Issue 3; required surfaces: canonical architecture docs, source-of-truth page, changelog, ADR
-- [ ] **Resolve Hermes ↔ OpenClaw directionality and pushback rules** — DoD: peer directionality class explicit, active/standby interaction clear, pushback/escalation rules explicit — Owner: CEO — Context: Issue 4; required surfaces: canonical governance/architecture docs, source-of-truth page, changelog, ADR
-- [ ] **Reconcile communications draft with canon or mark proposal-only** — DoD: no silent conflict on approval semantics/Drive role/operational-state scope; status markers explicit — Owner: CEO — Context: Issue 5; doc: `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md`
-- [ ] **Install architecture-maintenance checks after canon is stable** — DoD: pre-merge checklist defined, trigger conditions for reconciliation defined, no bloat added — Owner: active COO — Context: Issue 6; blocked until Issues 1-5 resolved
+- [x] **Ratify human approval capture contract** — ADR-003 ratified 2026-04-26 via PR #38. §9 in `COO_Operating_Contract_v1.0.md`.
+- [x] **Ratify active vs standby COO semantics and sole-writer boundary** — ADR-001 ratified 2026-04-24 via PR #36. §7 in `COO_Operating_Contract_v1.0.md`.
+- [x] **Resolve Drive / Workspace role in canon** — ADR-004 ratified 2026-04-26 via PR #39. Drive/Workspace = non-canonical collaboration surface.
+- [x] **Resolve Hermes ↔ OpenClaw directionality and pushback rules** — ADR-002 ratified 2026-04-24 via PR #36. §8 in `COO_Operating_Contract_v1.0.md`.
+- [x] **Reconcile communications draft with canon or mark proposal-only** — Changelog A4 implemented 2026-04-27 via PR #40. Communications draft classified proposal-only/non-canonical.
+- [x] **Install architecture-maintenance checks after canon is stable** — Changelog A5 implemented 2026-04-27 via PR #40. Event-triggered pre-merge architecture impact rule active.
 
 ---
 
@@ -40,6 +38,9 @@
 ### P1 (High)
 
 - [ ] **Phase 7 `prod_ci` canonical closure** — DoD: default-branch `Prod CI Proof` workflow dispatches and passes, `T-022` repeat-run proof is re-recorded from a clean worktree, and canon is reconciled — Owner: codex — Context: local `main` is 117 commits ahead of `origin/main`; `gh workflow run .github/workflows/prod_ci_proof.yml --ref main` currently returns 404 — Priority: P1
+- [ ] **Authority audit WP2: CEO decision packet** — G-CBS canonicality, Council protocol references, DAP consistency, Build Loop canonicality — Owner: active COO — Context: audit OD-AUDIT-003, C-003, C-008, C-009, C-010 — priority: P1 — See `artifacts/plans/WP2_CEO_DECISION_PACKET_2026-04-27.md`
+- [ ] **Authority audit WP3: approval/authority enforcement design** — `approval_receipt.v1` schema, `execution_order.v1` authority fields, parser guard plan — Owner: active COO — Context: audit C-006, C-007, APPROVAL-002 — priority: P1 — See `artifacts/plans/WP3_APPROVAL_ENFORCEMENT_DESIGN_2026-04-27.md`
+- [ ] **Authority audit WP4: lifecycle/closure semantics design** — `succeeded` disposition, `closed` requirements, closure receipt path — Owner: active COO — Context: audit C-016, STATE-002, OD-AUDIT-002 — priority: P1 — See `artifacts/plans/WP4_LIFECYCLE_CLOSURE_DESIGN_2026-04-27.md`
 - [ ] **T-027 COO closure packet schemas and loader** — DoD: `artifacts/coo/schemas.md` documents the new packet family; `closures.py` validates and loads close/context/council-request artifacts; targeted tests pass — Owner: codex — Context: first slice of the COO coordination loop; file-based artifacts only — Priority: P1
 - [ ] **T-028 decision-support backlog field and dispatch gate** — DoD: `decision_support_required` round-trips through backlog state transitions and blocks L0 auto-dispatch until the latest matching council request is resolved — Owner: codex — Context: second slice of the COO coordination loop — Priority: P1
 - [ ] **T-029 `coo process-closures` and orientation updates** — DoD: `python3 -m runtime.cli coo process-closures` validates and summarizes closure artifacts; COO brief now reads closures and `artifacts/for_ceo/` — Owner: codex — Context: third slice of the COO coordination loop — Priority: P1

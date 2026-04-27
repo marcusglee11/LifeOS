@@ -11,8 +11,10 @@ Use the connected GitHub repo as the source of truth.
 Audit target:
 - Repo: marcusglee11/LifeOS
 - Branch: main
-- Commit SHA: d94e51afd1c076393a32d7d7e94e893a33e82185
+- Operative source baseline: c2e78dab7f1e7eb0968c8edc177d6a9d047ee918
+- Audit result landing commit: c2f558e3b9d5e60c4fac80ae9b251fb57f325966 (PR #43 merge commit)
 - Manifest: docs/audit/LIFEOS_AUTHORITY_AUDIT_MANIFEST.md
+- Audit result artefact: docs/audit/LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md
 
 Before auditing, inspect the manifest and confirm context sufficiency.
 
