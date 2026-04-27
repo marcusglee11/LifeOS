@@ -66,10 +66,11 @@ A rule that major claims and proposed fixes must cite the AUR via explicit refer
 ### 2.4 Human control (StepGate)
 - The council does not infer "go". Any gating or irreversible action requires explicit CEO approval in the relevant StepGate, if StepGate is in force.
     
-### 2.5 Closure Discipline (G-CBS)
-- **DONE requires Validation**: A "Done" or "Go" ruling is VALID ONLY if accompanied by a G-CBS compliant closure bundle that passes `validate_closure_bundle.py`.
-- **No Ad-Hoc Bundles**: Ad-hoc zips are forbidden. All closures must be built via `build_closure_bundle.py`.
-- **Max Cycles**: A prompt/closure cycle is capped at 2 attempts. Residual issues must then be waived (with debt record) or blocked.
+### 2.5 Closure Discipline
+- G-CBS is **Draft / Advisory** unless and until it is activated through its stated governance process and recorded in the relevant governance index or protocol version register.
+- Council close-out may cite G-CBS as an advisory checklist, but a "Done" or "Go" ruling under this protocol does not require G-CBS compliance as a binding precondition.
+- Where a work package defines its own ratified closure evidence schema, that schema governs the closure requirement for that work package.
+- Closure evidence must still be auditable, complete, and linked to the AUR, Council Run Log, or execution receipt being closed.
 
 ---
 
@@ -428,6 +429,10 @@ If canonical prompt artefacts or canonical governance artefacts cannot be fetche
 ---
 
 ## 10. Amendment record (this document)
+
+**WP2 (2026-04-27)** — Authority Audit Implementation:
+- D1: Replaced binding G-CBS closure requirement with Draft / Advisory posture.
+- G-CBS may be cited as advisory checklist only until independently activated.
 
 **v1.3 (2026-01-08)** — Output-First Governance:
 - Added §7.2 P0 Blocker Criteria (tight definition for blocking findings)

@@ -5,9 +5,12 @@
 | **Version** | 1.1 |
 | **Date** | 2026-01-11 |
 | **Author** | Antigravity |
-| **Status** | DRAFT |
+| **Status** | DRAFT / ADVISORY |
 | **Governance** | CT-2 Council Review Required for Activation |
 | **Supersedes** | G-CBS v1.0 (backward compatible) |
+
+> [!NOTE]
+> WP2 authority audit decision D1 confirms this standard is not ratified. Until CT-2 activation occurs and the protocol is listed as active in the relevant governance index/register, G-CBS is advisory only. Binding closure requirements must not depend on this document as ratified authority.
 
 ---
 
@@ -15,7 +18,7 @@
 
 G-CBS v1.1 is a **strictly additive extension** of G-CBS v1.0. All v1.0 bundles remain valid. This version adds structured fields for inputs, outputs, and verification gate results to support Phase 5 automation (task intake, replay, audit).
 
-**Authority:** This protocol becomes binding when (1) approved via CT-2 council review and (2) listed in `docs/01_governance/ARTEFACT_INDEX.json`.
+**Authority:** This protocol becomes binding when (1) approved via CT-2 council review and (2) listed in `docs/01_governance/ARTEFACT_INDEX.json` or a superseding protocol version register.
 
 ---
 
@@ -99,7 +102,7 @@ Violation triggers: `V11_UNSAFE_PATH` failure.
 
 ## 4. StepGate Profile Gates
 
-When profile is `step_gate_closure`, these additional gates apply:
+When profile is `step_gate_closure`, these additional gates apply only if this protocol has been activated under §1 Authority:
 
 | Gate ID | Description | Scope |
 |---------|-------------|-------|
@@ -116,7 +119,7 @@ The validator accepts both versions:
 | `schema_version` | Behavior |
 |------------------|----------|
 | `G-CBS-1.0` | Validate against v1.0 schema; skip v1.1 field validation |
-| `G-CBS-1.1` | Validate against v1.1 schema; enforce v1.1 fields and SG-3 |
+| `G-CBS-1.1` | Validate against v1.1 schema; enforce v1.1 fields and SG-3 when activated by profile and authority |
 
 ---
 
@@ -176,4 +179,10 @@ For `--schema-version 1.1` + `step_gate_closure` profile: at least one of `--inp
 
 ---
 
-*This protocol was created under LifeOS governance. Changes require Council review (CT-2).*
+## 10. Advisory Status Record
+
+**2026-04-27 — WP2 authority audit implementation:** G-CBS v1.1 remains Draft / Advisory. Do not treat it as ratified closure authority until activation conditions in §1 are satisfied.
+
+---
+
+*This protocol was created under LifeOS governance. Changes require Council review (CT-2) before activation.*
