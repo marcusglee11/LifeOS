@@ -20,10 +20,12 @@ sys.path.insert(0, str(REPO_ROOT))
 from runtime.stewardship.doc_ingest import (  # noqa: E402
     SCHEMA_ID,
     SCHEMA_VERSION,
+    DocIngestResult,
     _compute_fingerprint,
     _detect_index_shape,
     _has_artefact_key_collision,
     _update_index,
+    emit_result_packet,
     run,
 )
 
@@ -83,6 +85,12 @@ def _make_dict_index() -> dict:
     }
 
 
+_DEFAULT_PERMITTED_INDEX_PATHS = [
+    "docs/02_protocols/ARTEFACT_INDEX.json",
+    "docs/03_runtime/ARTEFACT_INDEX.json",
+]
+
+
 def _make_runner_ctx(
     repo_root: Path,
     run_id: str = "test-run-001",
@@ -90,10 +98,19 @@ def _make_runner_ctx(
     allowed_dest_roots: list[str] | None = None,
     permitted_index_paths: list[str] | None = None,
 ) -> dict:
+    """
+    Build a runner context dict.
+    permitted_index_paths=None  → use v1 defaults (02_protocols, 03_runtime only)
+    permitted_index_paths=[]    → explicitly empty → fails closed for all index paths
+    """
     config: dict[str, Any] = {
         "doc_ingest": {
             "allowed_dest_roots": allowed_dest_roots or ["docs/02_protocols/"],
-            "permitted_target_index_paths": permitted_index_paths or [],
+            "permitted_target_index_paths": (
+                _DEFAULT_PERMITTED_INDEX_PATHS
+                if permitted_index_paths is None
+                else permitted_index_paths
+            ),
         },
         "git": {"commit_enabled": False},
     }
@@ -688,3 +705,94 @@ def test_update_index_array_shape():
     assert "docs/new.md" in paths
     old_entry = next(e for e in entries if isinstance(e, dict) and e.get("path") == "docs/old.md")
     assert old_entry.get("superseded_by") == "docs/new.md"
+
+
+# ─── Fix 1: permitted_target_index_paths semantics ───────────────────────────
+
+
+def test_governance_index_rejected_by_default_config(tmp_path):
+    """docs/01_governance/ARTEFACT_INDEX.json is rejected under default v1 config."""
+    repo_root, source_path, _ = _scaffold_repo(tmp_path)
+
+    gov_dir = repo_root / "docs" / "01_governance"
+    gov_dir.mkdir(parents=True, exist_ok=True)
+    gov_index = gov_dir / "ARTEFACT_INDEX.json"
+    gov_index.write_text(json.dumps(_make_dict_index(), indent=2), encoding="utf-8")
+
+    manifest = _make_manifest(
+        source_path=str(source_path),
+        dest_path="docs/02_protocols/Test_Protocol_v1.0.md",
+        target_index_path="docs/01_governance/ARTEFACT_INDEX.json",
+    )
+    manifest_path = _write_manifest(tmp_path, manifest)
+    # Default ctx uses _DEFAULT_PERMITTED_INDEX_PATHS (02_protocols, 03_runtime only)
+    ctx = _make_runner_ctx(repo_root)
+
+    result = run(manifest_path, ctx)
+
+    assert not result.success
+    assert result.failure_invariant == "INV-11-perm"
+
+
+def test_empty_permitted_index_paths_fails_closed(tmp_path):
+    """Empty permitted_target_index_paths fails closed for all target indexes."""
+    repo_root, source_path, _ = _scaffold_repo(tmp_path)
+
+    manifest = _make_manifest(
+        source_path=str(source_path),
+        dest_path="docs/02_protocols/Test_Protocol_v1.0.md",
+        target_index_path="docs/02_protocols/ARTEFACT_INDEX.json",
+    )
+    manifest_path = _write_manifest(tmp_path, manifest)
+    # Explicitly empty list → fail closed (no index is permitted)
+    ctx = _make_runner_ctx(repo_root, permitted_index_paths=[])
+
+    result = run(manifest_path, ctx)
+
+    assert not result.success
+    assert result.failure_invariant == "INV-11-perm"
+
+
+# ─── Fix 2: authoritative idempotency from dl_doc result packets ─────────────
+
+
+def test_idempotency_from_dl_doc_result_packet(tmp_path):
+    """Idempotency detected from DOC_STEWARD_RESULT in dl_doc, not only completed.json."""
+    repo_root, source_path, index_path = _scaffold_repo(tmp_path)
+    dest_rel = "docs/02_protocols/Test_Protocol_v1.0.md"
+
+    manifest = _make_manifest(
+        source_path=str(source_path),
+        dest_path=dest_rel,
+        target_index_path="docs/02_protocols/ARTEFACT_INDEX.json",
+        commit_enabled=True,
+    )
+    manifest_path = _write_manifest(tmp_path, manifest)
+    fingerprint = _compute_fingerprint(manifest)
+
+    # Plant a successful DOC_STEWARD_RESULT packet in dl_doc
+    prior_result = DocIngestResult(
+        success=True,
+        manifest_fingerprint=fingerprint,
+        dest_path_written=dest_rel,
+        staged_files=[dest_rel],
+    )
+    emit_result_packet(
+        run_id="prior-run-001",
+        repo_root=repo_root,
+        ingest_result=prior_result,
+        commit_sha="deadbeef001",
+        manifest=manifest,
+    )
+
+    # Ensure local completed.json cache does NOT exist
+    ledger_path = repo_root / "logs" / "steward_runner" / "doc_ingest" / "completed.json"
+    if ledger_path.exists():
+        ledger_path.unlink()
+
+    # Second run: should detect idempotency from dl_doc, NOT from local cache
+    ctx = _make_runner_ctx(repo_root, run_id="test-run-002", actually_commit=True)
+    result = run(manifest_path, ctx)
+
+    assert result.success, f"Expected idempotent success, got: {result.failure_reason}"
+    assert result.is_idempotent_noop

@@ -200,6 +200,21 @@ def _emit_index_diff(
     (log_dir / "index_diff.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _check_dl_doc_idempotency(repo_root: Path, fingerprint: str) -> bool:
+    """Scan dl_doc for a successful DOC_STEWARD_RESULT packet matching this fingerprint."""
+    dl_doc_dir = repo_root / "artifacts" / "ledger" / "dl_doc"
+    if not dl_doc_dir.exists():
+        return False
+    for result_file in dl_doc_dir.glob("**/doc_steward_result.json"):
+        try:
+            data = json.loads(result_file.read_bytes())
+            if data.get("manifest_fingerprint") == fingerprint and data.get("status") == "SUCCESS":
+                return True
+        except (json.JSONDecodeError, OSError):
+            continue
+    return False
+
+
 def _load_completed_ledger(ledger_path: Path) -> set[str]:
     if not ledger_path.exists():
         return set()
@@ -345,16 +360,25 @@ def _run_locked(
     trace("fingerprint_computed", fingerprint=fingerprint)
 
     # Idempotent check (invariant 17)
-    completed = _load_completed_ledger(ledger_path)
-    if fingerprint in completed:
-        trace("idempotent_noop", fingerprint=fingerprint)
-        result = DocIngestResult(
+    # Authoritative source: existing DOC_STEWARD_RESULT packets in dl_doc
+    if _check_dl_doc_idempotency(repo_root, fingerprint):
+        trace("idempotent_noop", fingerprint=fingerprint, source="dl_doc")
+        return DocIngestResult(
             success=True,
             manifest_fingerprint=fingerprint,
             is_idempotent_noop=True,
             log_dir=log_dir,
         )
-        return result
+    # Local cache: completed.json in logs/ (optimization, not authoritative)
+    completed = _load_completed_ledger(ledger_path)
+    if fingerprint in completed:
+        trace("idempotent_noop", fingerprint=fingerprint, source="local_cache")
+        return DocIngestResult(
+            success=True,
+            manifest_fingerprint=fingerprint,
+            is_idempotent_noop=True,
+            log_dir=log_dir,
+        )
 
     # Write normalized manifest for audit
     (log_dir / "manifest.normalized.json").write_text(
@@ -410,11 +434,10 @@ def _run_locked(
     if not target_index_path.exists():
         return fail(f"target_index_not_found:{raw_index}", "INV-11", fingerprint)
 
-    # Check permitted_target_index_paths config guard
-    if permitted_index_paths:
-        raw_index_norm = raw_index.lstrip("/")
-        if not any(raw_index_norm == p.lstrip("/") for p in permitted_index_paths):
-            return fail(f"target_index_not_permitted:{raw_index}", "INV-11-perm", fingerprint)
+    # Invariant 11-perm: permitted_target_index_paths whitelist — empty = fail closed
+    raw_index_norm = raw_index.lstrip("/")
+    if not any(raw_index_norm == p.lstrip("/") for p in permitted_index_paths):
+        return fail(f"target_index_not_permitted:{raw_index}", "INV-11-perm", fingerprint)
 
     # Invariant 12: detect index shape
     try:
