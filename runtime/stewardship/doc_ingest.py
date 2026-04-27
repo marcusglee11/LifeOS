@@ -72,6 +72,8 @@ class DocIngestResult:
     dest_path_written: str | None = None
     commit_enabled_for_runner: bool = False
     log_dir: Path | None = None
+    pre_ingest_index_path: str | None = None      # repo-relative, for rollback
+    pre_ingest_index_snapshot: str | None = None  # raw content before mutation, for rollback
 
     def to_dict(self) -> dict:
         return {
@@ -441,9 +443,12 @@ def _run_locked(
 
     # Invariant 12: detect index shape
     try:
-        index_data = json.loads(target_index_path.read_bytes())
+        raw_index_bytes = target_index_path.read_bytes()
+        index_data = json.loads(raw_index_bytes)
     except (json.JSONDecodeError, OSError) as exc:
         return fail(f"target_index_parse_failed:{exc}", "INV-12", fingerprint)
+    # Save snapshot before any mutation (used by rollback on downstream failure)
+    pre_ingest_index_snapshot = raw_index_bytes.decode("utf-8")
 
     shape = _detect_index_shape(index_data)
     if shape == "unknown":
@@ -552,6 +557,8 @@ def _run_locked(
         dest_path_written=dest_rel_str,
         commit_enabled_for_runner=True,
         log_dir=log_dir,
+        pre_ingest_index_path=raw_index.lstrip("/"),
+        pre_ingest_index_snapshot=pre_ingest_index_snapshot,
     )
 
 
@@ -588,6 +595,48 @@ def emit_result_packet(
     out_path = out_dir / "doc_steward_result.json"
     out_path.write_text(json.dumps(packet, indent=2) + "\n", encoding="utf-8")
     return out_path
+
+
+def rollback_worktree_mutations(
+    ingest_result: DocIngestResult,
+    repo_root: Path,
+    trace: Any = None,
+) -> bool:
+    """
+    Restore worktree to pre-ingest state after a downstream pipeline failure.
+    Returns True if rollback fully succeeded, False if any step failed.
+    Only meaningful when ingest_result.commit_enabled_for_runner is True.
+    """
+    if not ingest_result.commit_enabled_for_runner:
+        return True  # Dry-run path: no mutations occurred
+
+    overall_success = True
+
+    # Remove newly created dest_path (did not exist before ingest)
+    if ingest_result.dest_path_written:
+        dest = repo_root / ingest_result.dest_path_written
+        try:
+            if dest.exists():
+                dest.unlink()
+        except OSError as exc:
+            if trace:
+                trace("rollback_step_fail", step="dest_unlink", reason=str(exc))
+            overall_success = False
+
+    # Restore target index to pre-ingest content
+    if (
+        ingest_result.pre_ingest_index_path
+        and ingest_result.pre_ingest_index_snapshot is not None
+    ):
+        index_path = repo_root / ingest_result.pre_ingest_index_path
+        try:
+            index_path.write_text(ingest_result.pre_ingest_index_snapshot, encoding="utf-8")
+        except OSError as exc:
+            if trace:
+                trace("rollback_step_fail", step="index_restore", reason=str(exc))
+            overall_success = False
+
+    return overall_success
 
 
 def _is_dest_allowed(dest_rel_str: str, allowed_dest_roots: list[str]) -> bool:

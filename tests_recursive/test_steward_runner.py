@@ -917,3 +917,307 @@ class TestAT18ExplicitDryRun:
         commit_skipped = find_event(events, "commit", "skipped")
         assert commit_skipped is not None
         assert commit_skipped.get("reason") == "dry_run"
+
+
+# ─── AT-19 through AT-25: doc_ingest two-commit model + rollback ─────────────
+
+
+INGEST_SCHEMA_ID = "doc_steward.protocol_v1_1.ingest_manifest.v1"
+
+
+def _make_ingest_manifest_data(worktree: Path) -> dict:
+    return {
+        "schema": INGEST_SCHEMA_ID,
+        "schema_version": "1.0",
+        "source_path": "staging/Test_Protocol_v1.0.md",
+        "dest_path": "docs/02_protocols/Test_Protocol_v1.0.md",
+        "title": "Test Protocol v1.0",
+        "description": "Integration test protocol.",
+        "artefact_key": "test_protocol_v1",
+        "target_index_path": "docs/02_protocols/ARTEFACT_INDEX.json",
+        "binding_class": "PROTOCOL",
+        "canonicality": "draft",
+        "supersedes": [],
+        "related": {"issues": [], "prs": [], "adrs": []},
+        "commit": {"enabled": True, "message": "test: ingest"},
+    }
+
+
+def _scaffold_ingest_env(worktree: Path) -> tuple[Path, Path, Path, Path]:
+    """
+    Create staging doc, ARTEFACT_INDEX, and manifest. Commit so worktree is clean.
+    Returns (source_path, dest_path, index_path, manifest_path).
+    """
+    staging = worktree / "staging"
+    staging.mkdir(exist_ok=True)
+    source = staging / "Test_Protocol_v1.0.md"
+    source.write_text(
+        "# Test Protocol v1.0\n\n**Status**: Draft\n**Authority**: Test\n\nContent.\n",
+        encoding="utf-8",
+    )
+
+    proto_dir = worktree / "docs" / "02_protocols"
+    proto_dir.mkdir(parents=True, exist_ok=True)
+    index_path = proto_dir / "ARTEFACT_INDEX.json"
+    index_path.write_text(
+        json.dumps({"meta": {"version": "1.0.0"}, "artefacts": [{"_comment": "protocols"}]},
+                   indent=2),
+        encoding="utf-8",
+    )
+
+    manifest_data = _make_ingest_manifest_data(worktree)
+    manifest_path = worktree / "manifest_test.json"
+    manifest_path.write_text(json.dumps(manifest_data), encoding="utf-8")
+
+    subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "[test] scaffold ingest env"],
+        cwd=worktree, capture_output=True,
+    )
+
+    dest = worktree / "docs" / "02_protocols" / "Test_Protocol_v1.0.md"
+    return source, dest, index_path, manifest_path
+
+
+def _ingest_config(
+    worktree: Path,
+    fail_tests: bool = False,
+    fail_validators: bool = False,
+    fail_corpus: bool = False,
+) -> Path:
+    tests_cmd = (
+        '["python3", "-c", "import sys; sys.exit(1)"]' if fail_tests
+        else '["python3", "-c", "print(\'ok\')"]'
+    )
+    validators_block = (
+        'commands:\n    - ["python3", "-c", "import sys; sys.exit(1)"]' if fail_validators
+        else "commands: []"
+    )
+    corpus_cmd = (
+        '["python3", "-c", "import sys; sys.exit(1)"]' if fail_corpus
+        else 'null'
+    )
+
+    content = f"""
+tests:
+  command: {tests_cmd}
+  paths: []
+
+validators:
+  {validators_block}
+
+corpus:
+  command: {corpus_cmd}
+  outputs_expected: []
+
+git:
+  require_clean_start: false
+  commit_enabled: false
+  commit_message_template: "[test] {{run_id}}"
+  commit_paths:
+    - "docs/"
+    - "staging/"
+
+logging:
+  log_dir: "logs/steward_runner"
+  streams_dir: "logs/steward_runner/streams"
+  format: "jsonl"
+
+determinism:
+  run_id_required: true
+  timestamps: false
+
+doc_ingest:
+  allowed_dest_roots:
+    - "docs/02_protocols/"
+  permitted_target_index_paths:
+    - "docs/02_protocols/ARTEFACT_INDEX.json"
+"""
+    cfg = worktree / "config" / "ingest_test.yaml"
+    cfg.parent.mkdir(exist_ok=True)
+    cfg.write_text(content, encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "[test] add ingest config"],
+        cwd=worktree, capture_output=True,
+    )
+    return cfg
+
+
+def _run_runner_with_ingest(
+    worktree: Path,
+    cfg: Path,
+    manifest_path: Path,
+    run_id: str,
+    commit: bool = True,
+) -> subprocess.CompletedProcess:
+    runner = worktree / "scripts" / "steward_runner.py"
+    cmd = [
+        PYTHON, str(runner),
+        "--config", str(cfg.relative_to(worktree)),
+        "--run-id", run_id,
+        "--ingest", str(manifest_path.relative_to(worktree)),
+    ]
+    if commit:
+        cmd.append("--commit")
+    return subprocess.run(cmd, cwd=worktree, capture_output=True, text=True)
+
+
+class TestDocIngestTwoCommitModel:
+    """AT-19 to AT-21: Two-commit ledger model — clean worktree + committed packet."""
+
+    def test_AT_19_successful_commit_leaves_clean_worktree(self, worktree, repo_root):
+        """Successful committed ingest leaves git status --short empty."""
+        _, dest, _, manifest_path = _scaffold_ingest_env(worktree)
+        cfg = _ingest_config(worktree)
+
+        result = _run_runner_with_ingest(worktree, cfg, manifest_path, "at19")
+
+        assert result.returncode == 0, f"Runner failed:\n{result.stderr}"
+
+        status = subprocess.run(
+            ["git", "status", "--short"],
+            cwd=worktree, capture_output=True, text=True,
+        )
+        assert status.stdout.strip() == "", (
+            f"Worktree must be clean after successful ingest commit. "
+            f"Dirty files:\n{status.stdout}"
+        )
+
+    def test_AT_20_result_packet_is_committed_not_dirty(self, worktree, repo_root):
+        """DOC_STEWARD_RESULT packet is tracked in HEAD, not just written to disk."""
+        _, dest, _, manifest_path = _scaffold_ingest_env(worktree)
+        cfg = _ingest_config(worktree)
+
+        result = _run_runner_with_ingest(worktree, cfg, manifest_path, "at20")
+
+        assert result.returncode == 0, f"Runner failed:\n{result.stderr}"
+
+        packet_path = worktree / "artifacts" / "ledger" / "dl_doc" / "at20" / "doc_steward_result.json"
+        assert packet_path.exists(), "Packet must exist on disk"
+
+        rel = str(packet_path.relative_to(worktree))
+        git_show = subprocess.run(
+            ["git", "show", f"HEAD:{rel}"],
+            cwd=worktree, capture_output=True, text=True,
+        )
+        assert git_show.returncode == 0, (
+            f"Packet must be committed in HEAD. git show stderr: {git_show.stderr}"
+        )
+
+    def test_AT_21_result_packet_records_doc_change_sha(self, worktree, repo_root):
+        """Packet commit_sha equals commit A (doc+index), not commit B (packet)."""
+        _, dest, _, manifest_path = _scaffold_ingest_env(worktree)
+        cfg = _ingest_config(worktree)
+
+        result = _run_runner_with_ingest(worktree, cfg, manifest_path, "at21")
+
+        assert result.returncode == 0, f"Runner failed:\n{result.stderr}"
+
+        log_file = worktree / "logs" / "steward_runner" / "at21.jsonl"
+        events = read_log_events(log_file)
+        result_event = next(
+            (e for e in events
+             if e.get("event") == "doc_ingest_result" and e.get("status") == "pass"),
+            None,
+        )
+        assert result_event is not None, "doc_ingest_result pass event must be in log"
+        commit_sha_a = result_event.get("commit_sha_a")
+        assert commit_sha_a, "commit_sha_a must be logged"
+
+        packet_path = worktree / "artifacts" / "ledger" / "dl_doc" / "at21" / "doc_steward_result.json"
+        packet = json.loads(packet_path.read_bytes())
+        assert packet["commit_sha"] == commit_sha_a, (
+            f"Packet commit_sha {packet['commit_sha']!r} must equal "
+            f"logged commit_sha_a {commit_sha_a!r}"
+        )
+
+        # commit A must be parent of HEAD (commit B)
+        parent = subprocess.run(
+            ["git", "rev-parse", "HEAD^"],
+            cwd=worktree, capture_output=True, text=True,
+        ).stdout.strip()
+        assert commit_sha_a == parent, (
+            f"commit A ({commit_sha_a}) must be the parent of HEAD (commit B)"
+        )
+
+
+class TestDocIngestRollbackOnFailure:
+    """AT-22 to AT-25: Rollback on downstream failure after doc_ingest mutation."""
+
+    def _assert_clean(self, worktree: Path) -> None:
+        status = subprocess.run(
+            ["git", "status", "--short"],
+            cwd=worktree, capture_output=True, text=True,
+        )
+        assert status.stdout.strip() == "", (
+            f"Worktree must be clean after rollback.\nDirty files:\n{status.stdout}"
+        )
+
+    def _assert_ingest_reversed(self, dest: Path, index_path: Path) -> None:
+        assert not dest.exists(), "dest_path must be absent after rollback"
+        index = json.loads(index_path.read_bytes())
+        paths = [
+            e.get("path") for e in index.get("artefacts", [])
+            if isinstance(e, dict) and "path" in e
+        ]
+        assert "docs/02_protocols/Test_Protocol_v1.0.md" not in paths, (
+            "Index must not contain ingested doc path after rollback"
+        )
+
+    def test_AT_22_validator_failure_rolls_back_ingest(self, worktree, repo_root):
+        """Validator failure after doc_ingest mutation restores the repo tree."""
+        _, dest, index_path, manifest_path = _scaffold_ingest_env(worktree)
+        cfg = _ingest_config(worktree, fail_validators=True)
+
+        result = _run_runner_with_ingest(worktree, cfg, manifest_path, "at22")
+
+        assert result.returncode != 0
+        self._assert_clean(worktree)
+        self._assert_ingest_reversed(dest, index_path)
+
+    def test_AT_23_corpus_failure_rolls_back_ingest(self, worktree, repo_root):
+        """Corpus failure after doc_ingest mutation restores the repo tree."""
+        _, dest, index_path, manifest_path = _scaffold_ingest_env(worktree)
+        cfg = _ingest_config(worktree, fail_corpus=True)
+
+        result = _run_runner_with_ingest(worktree, cfg, manifest_path, "at23")
+
+        assert result.returncode != 0
+        self._assert_clean(worktree)
+        self._assert_ingest_reversed(dest, index_path)
+
+    def test_AT_24_test_failure_rolls_back_ingest(self, worktree, repo_root):
+        """Test-suite failure after doc_ingest mutation restores the repo tree."""
+        _, dest, index_path, manifest_path = _scaffold_ingest_env(worktree)
+        cfg = _ingest_config(worktree, fail_tests=True)
+
+        result = _run_runner_with_ingest(worktree, cfg, manifest_path, "at24")
+
+        assert result.returncode != 0
+        self._assert_clean(worktree)
+        self._assert_ingest_reversed(dest, index_path)
+
+    def test_AT_25_rollback_logged_on_downstream_failure(self, worktree, repo_root):
+        """Downstream failure records rollback_success or rollback_failed in log."""
+        _, dest, index_path, manifest_path = _scaffold_ingest_env(worktree)
+        cfg = _ingest_config(worktree, fail_validators=True)
+
+        _run_runner_with_ingest(worktree, cfg, manifest_path, "at25")
+
+        log_file = worktree / "logs" / "steward_runner" / "at25.jsonl"
+        assert log_file.exists(), "Runner log must exist"
+        events = read_log_events(log_file)
+
+        rollback_event = next(
+            (e for e in events
+             if e.get("event") == "rollback" and e.get("step") == "doc_ingest"),
+            None,
+        )
+        assert rollback_event is not None, (
+            f"rollback event must be in log. Events: {[e.get('event') for e in events]}"
+        )
+        assert rollback_event.get("status") in ("rollback_success", "rollback_failed"), (
+            f"rollback status must be rollback_success or rollback_failed, "
+            f"got: {rollback_event.get('status')!r}"
+        )

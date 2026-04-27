@@ -796,3 +796,150 @@ def test_idempotency_from_dl_doc_result_packet(tmp_path):
 
     assert result.success, f"Expected idempotent success, got: {result.failure_reason}"
     assert result.is_idempotent_noop
+
+
+# ─── Fix 3: rollback_worktree_mutations ──────────────────────────────────────
+
+
+from runtime.stewardship.doc_ingest import rollback_worktree_mutations  # noqa: E402
+
+
+def test_commit_path_result_has_index_snapshot(tmp_path):
+    """Commit-path run populates pre_ingest_index_snapshot for rollback."""
+    repo_root, source_path, index_path = _scaffold_repo(tmp_path)
+    dest_rel = "docs/02_protocols/Test_Protocol_v1.0.md"
+    original_index = index_path.read_text(encoding="utf-8")
+
+    manifest = _make_manifest(
+        source_path=str(source_path),
+        dest_path=dest_rel,
+        target_index_path="docs/02_protocols/ARTEFACT_INDEX.json",
+        commit_enabled=True,
+    )
+    manifest_path = _write_manifest(tmp_path, manifest)
+    ctx = _make_runner_ctx(repo_root, actually_commit=True)
+
+    result = run(manifest_path, ctx)
+
+    assert result.success
+    assert result.commit_enabled_for_runner
+    assert result.pre_ingest_index_snapshot is not None
+    assert result.pre_ingest_index_path == "docs/02_protocols/ARTEFACT_INDEX.json"
+    # Snapshot must equal the original content before mutation
+    assert result.pre_ingest_index_snapshot == original_index
+
+
+def test_rollback_restores_dest_and_index(tmp_path):
+    """rollback_worktree_mutations removes dest_path and restores index."""
+    repo_root, source_path, index_path = _scaffold_repo(tmp_path)
+    dest_rel = "docs/02_protocols/Test_Protocol_v1.0.md"
+    index_before = _make_array_index()
+
+    manifest = _make_manifest(
+        source_path=str(source_path),
+        dest_path=dest_rel,
+        target_index_path="docs/02_protocols/ARTEFACT_INDEX.json",
+        commit_enabled=True,
+    )
+    manifest_path = _write_manifest(tmp_path, manifest)
+    ctx = _make_runner_ctx(repo_root, actually_commit=True)
+
+    result = run(manifest_path, ctx)
+    assert result.success and result.commit_enabled_for_runner
+
+    # Precondition: mutations are visible
+    assert (repo_root / dest_rel).exists()
+    assert json.loads(index_path.read_bytes()) != index_before
+
+    ok = rollback_worktree_mutations(result, repo_root)
+
+    assert ok, "Rollback must return True on success"
+    assert not (repo_root / dest_rel).exists(), "dest_path must be removed by rollback"
+    assert json.loads(index_path.read_bytes()) == index_before, "index must be restored"
+
+
+def test_rollback_noop_for_dry_run(tmp_path):
+    """rollback_worktree_mutations is a no-op when commit_enabled_for_runner is False."""
+    repo_root, source_path, index_path = _scaffold_repo(tmp_path)
+    dest_rel = "docs/02_protocols/Test_Protocol_v1.0.md"
+
+    manifest = _make_manifest(
+        source_path=str(source_path),
+        dest_path=dest_rel,
+        target_index_path="docs/02_protocols/ARTEFACT_INDEX.json",
+        commit_enabled=False,
+    )
+    manifest_path = _write_manifest(tmp_path, manifest)
+    ctx = _make_runner_ctx(repo_root, actually_commit=False)
+
+    result = run(manifest_path, ctx)
+    assert result.success
+    assert not result.commit_enabled_for_runner
+
+    ok = rollback_worktree_mutations(result, repo_root)
+
+    assert ok
+    assert not (repo_root / dest_rel).exists()  # no mutation happened
+
+
+def test_validator_failure_after_ingest_records_reason(tmp_path):
+    """
+    Failure result from an invariant violation records failure_reason and failure_invariant.
+    This proves the failure path populates the relevant invariant for rollback logging.
+    """
+    repo_root, _, index_path = _scaffold_repo(tmp_path)
+
+    bad_source = repo_root / "staging" / "Bad_v1.0.md"
+    bad_source.write_text("# No status header\n\nContent.\n", encoding="utf-8")
+
+    manifest = _make_manifest(
+        source_path=str(bad_source),
+        dest_path="docs/02_protocols/Bad_v1.0.md",
+        target_index_path="docs/02_protocols/ARTEFACT_INDEX.json",
+        commit_enabled=True,
+    )
+    manifest_path = _write_manifest(tmp_path, manifest)
+    ctx = _make_runner_ctx(repo_root, actually_commit=True)
+
+    result = run(manifest_path, ctx)
+
+    assert not result.success
+    assert result.failure_reason is not None
+    assert result.failure_invariant is not None
+    # No mutation occurred — rollback not needed but must be safe
+    assert not (repo_root / "docs/02_protocols/Bad_v1.0.md").exists()
+    assert json.loads(index_path.read_bytes()) == _make_array_index()
+
+
+def test_rollback_cleans_partial_mutation_dest_only(tmp_path):
+    """
+    If index restore fails, rollback still removes dest_path and returns False.
+    Simulates partial rollback failure scenario.
+    """
+    repo_root, source_path, index_path = _scaffold_repo(tmp_path)
+    dest_rel = "docs/02_protocols/Test_Protocol_v1.0.md"
+
+    manifest = _make_manifest(
+        source_path=str(source_path),
+        dest_path=dest_rel,
+        target_index_path="docs/02_protocols/ARTEFACT_INDEX.json",
+        commit_enabled=True,
+    )
+    manifest_path = _write_manifest(tmp_path, manifest)
+    ctx = _make_runner_ctx(repo_root, actually_commit=True)
+
+    result = run(manifest_path, ctx)
+    assert result.success
+
+    # Corrupt the result snapshot so index restore will fail
+    from dataclasses import replace
+    broken_result = replace(
+        result,
+        pre_ingest_index_path="nonexistent/path/INDEX.json",
+    )
+
+    ok = rollback_worktree_mutations(broken_result, repo_root)
+
+    assert not ok, "Rollback with bad index path must return False"
+    # dest_path must still be removed despite index restore failure
+    assert not (repo_root / dest_rel).exists(), "dest_path must be removed even on partial failure"

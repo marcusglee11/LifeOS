@@ -606,6 +606,84 @@ def run_postflight(
     )
 
 
+# --- Doc-Ingest Helpers ---
+
+
+def _commit_result_packet(
+    packet_path: Path,
+    run_id: str,
+    logger: DeterministicLogger,
+    repo_root: Path,
+) -> tuple[bool, str | None]:
+    """Stage and commit the DOC_STEWARD_RESULT packet as a dedicated second commit."""
+    rel_packet = str(packet_path.relative_to(repo_root))
+
+    result = subprocess.run(
+        ["git", "add", "--", rel_packet],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        logger.log(
+            "commit_packet", "doc_ingest", "fail",
+            reason="git_add_packet_failed",
+            stderr=result.stderr,
+            packet=rel_packet,
+        )
+        return False, None
+
+    result = subprocess.run(
+        ["git", "commit", "-m", f"[steward] result packet {run_id}"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        logger.log(
+            "commit_packet", "doc_ingest", "fail",
+            reason="git_commit_packet_failed",
+            stderr=result.stderr,
+            packet=rel_packet,
+        )
+        return False, None
+
+    sha = get_git_head()
+    logger.log("commit_packet", "doc_ingest", "pass", commit_sha_b=sha, packet=rel_packet)
+    return True, sha
+
+
+def _rollback_ingest_if_needed(
+    ingest_result: Any,
+    repo_root: Path,
+    logger: DeterministicLogger,
+) -> None:
+    """Rollback doc_ingest worktree mutations when a downstream pipeline stage fails."""
+    if not ingest_result or not ingest_result.commit_enabled_for_runner:
+        return
+
+    from runtime.stewardship.doc_ingest import rollback_worktree_mutations
+
+    def _trace(event: str, **kw: Any) -> None:
+        logger.log(event, "doc_ingest_rollback", "fail", **kw)
+
+    rollback_ok = rollback_worktree_mutations(ingest_result, repo_root, trace=_trace)
+    status = "rollback_success" if rollback_ok else "rollback_failed"
+    logger.log("rollback", "doc_ingest", status, dest_path=ingest_result.dest_path_written)
+
+    if not rollback_ok:
+        git_status = subprocess.run(
+            ["git", "status", "--short"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+        )
+        logger.log(
+            "rollback_evidence", "doc_ingest", "rollback_failed",
+            git_status=git_status.stdout.strip(),
+        )
+
+
 # --- Main Entry Point ---
 
 
@@ -748,18 +826,15 @@ def main() -> int:
             # Idempotent no-op: skip remaining pipeline stages
             run_postflight(logger, True, git_head_before, None)
             return 0
-        # Inject manifest commit intent into runner config so commit stage respects dual-key
+        # Enable commit for doc+index first commit; result packet gets its own second commit
         if ingest_result.commit_enabled_for_runner:
             config.setdefault("git", {})["commit_enabled"] = True
-            dl_doc_path = "artifacts/ledger/dl_doc/"
-            existing_paths = config.get("git", {}).get("commit_paths", [])
-            if dl_doc_path not in existing_paths:
-                config.setdefault("git", {}).setdefault("commit_paths", []).append(dl_doc_path)
 
     # TESTS
     if single_step is None or single_step == "tests":
         success = run_tests(config, logger, repo_root)
         if not success:
+            _rollback_ingest_if_needed(ingest_result, repo_root, logger)
             run_postflight(logger, False, git_head_before, None)
             return 1
         if single_step == "tests":
@@ -769,6 +844,7 @@ def main() -> int:
     if single_step is None or single_step == "validators":
         success = run_validators(config, logger, repo_root)
         if not success:
+            _rollback_ingest_if_needed(ingest_result, repo_root, logger)
             run_postflight(logger, False, git_head_before, None)
             return 1
         if single_step == "validators":
@@ -778,6 +854,7 @@ def main() -> int:
     if single_step is None or single_step == "corpus":
         success = run_corpus(config, logger, repo_root)
         if not success:
+            _rollback_ingest_if_needed(ingest_result, repo_root, logger)
             run_postflight(logger, False, git_head_before, None)
             return 1
         if single_step == "corpus":
@@ -792,7 +869,6 @@ def main() -> int:
     # COMMIT
     if single_step is None or single_step == "commit":
         # P1-D: Default is dry-run. Commit requires explicit --commit flag.
-        # dry_run arg is redundant if commit arg is not present, but for compatibility/clarity:
         dry_run = args.dry_run or (not actually_commit)
 
         success, git_head_after = run_commit(
@@ -805,10 +881,11 @@ def main() -> int:
             False,  # no_commit removed, logic handled by dry_run
         )
         if not success:
+            _rollback_ingest_if_needed(ingest_result, repo_root, logger)
             run_postflight(logger, False, git_head_before, None)
             return 1
 
-        # Emit DOC_STEWARD_RESULT packet if ingest committed (invariant — result packet)
+        # Two-commit model: after commit A (doc+index), emit packet then commit B (packet).
         if (
             args.ingest is not None
             and ingest_result is not None
@@ -826,10 +903,31 @@ def main() -> int:
                 manifest_data = {}
             from runtime.stewardship.doc_ingest import emit_result_packet
 
+            # Emit packet with commit-A SHA included
             packet_path = emit_result_packet(
                 args.run_id, repo_root, ingest_result, git_head_after, manifest_data
             )
-            logger.log("doc_ingest_result", "doc_ingest", "pass", packet=str(packet_path))
+
+            # Commit B: dedicated commit for the result packet
+            commit_b_ok, git_head_b = _commit_result_packet(
+                packet_path, args.run_id, logger, repo_root
+            )
+            if not commit_b_ok:
+                logger.log(
+                    "doc_ingest_result", "doc_ingest", "fail",
+                    packet=str(packet_path),
+                    commit_sha_a=git_head_after,
+                )
+                run_postflight(logger, False, git_head_before, git_head_after)
+                return 1
+
+            logger.log(
+                "doc_ingest_result", "doc_ingest", "pass",
+                packet=str(packet_path),
+                commit_sha_a=git_head_after,
+                commit_sha_b=git_head_b,
+            )
+            git_head_after = git_head_b  # final HEAD is the packet commit
 
         if single_step == "commit":
             return 0

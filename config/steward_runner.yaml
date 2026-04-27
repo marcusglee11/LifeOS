@@ -42,7 +42,6 @@ git:
   #   - No globs, absolute paths, or ".." allowed
   commit_paths:
     - "docs/"
-    - "artifacts/ledger/dl_doc/"
 
 logging:
   # Directory for JSONL logs (J2)
@@ -74,7 +73,7 @@ doc_ingest:
     - "docs/11_admin/"
     - "docs/12_productisation/"
   # Allowed target_index_path values (invariant 11-perm).
-  # Empty list = no restriction beyond existence check.
+  # Empty list = fail closed; no target indexes are permitted.
   permitted_target_index_paths:
     - "docs/02_protocols/ARTEFACT_INDEX.json"
     - "docs/03_runtime/ARTEFACT_INDEX.json"
