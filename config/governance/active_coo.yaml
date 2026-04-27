@@ -1,0 +1,22 @@
+# Authoritative active COO registry
+# Created by WP2 authority audit implementation on 2026-04-27.
+#
+# This file is the source of truth for active COO identity. GitHub issue state,
+# labels, PR status, and GitHub Actions variables may mirror this state, but are
+# not authoritative unless a later protocol explicitly delegates authority.
+
+schema_version: active_coo.v1
+status: active
+registry_authority: docs/01_governance/PROTOCOL_VERSION_REGISTER.md
+ratification_ref: artifacts/plans/WP2_CEO_DECISION_PACKET_2026-04-27.md
+created_date: 2026-04-27
+active_coo_id: openclaw
+active_coo_name: OpenClaw
+recording_branch: main
+mirrors:
+  github_issues: advisory
+  github_actions_variables: advisory
+  github_pr_state: advisory
+notes:
+  - WP3 parser guards must fail closed if active_coo_id is missing or inconsistent with this registry.
+  - WP3 parser-guard implementation is outside WP2 scope.
