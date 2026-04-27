@@ -29,9 +29,13 @@
 
 ## 2. Audit baseline normalisation (contradiction C-001)
 
-**Observed stale state:** `LIFEOS_AUTHORITY_AUDIT_MANIFEST.md` and `LIFEOS_AUTHORITY_AUDIT_PRO_PROMPT.md` pinned audit target at `d94e51a...`, while the actual operative audit baseline after PR #42 was `c2e78da...` and after PR #43 (this audit result) is `c2f558e...`.
+**Observed stale state:** `LIFEOS_AUTHORITY_AUDIT_MANIFEST.md` and `LIFEOS_AUTHORITY_AUDIT_PRO_PROMPT.md` pinned the audit target to `c2f558e...`, conflated with the audit result landing commit (PR #43 merge commit).
 
-**Resolution:** Audit manifest and pro-prompt target commit updated to `c2f558e3b9d5e60c4fac80ae9b251fb57f325966` (current HEAD post-PR #43 merge). CANON-002 baseline pin invariant satisfied.
+**Resolution:** Separated into two distinct commit references:
+- `c2e78dab7f1e7eb0968c8edc177d6a9d047ee918` — operative source baseline (the commit that was audited)
+- `c2f558e3b9d5e60c4fac80ae9b251fb57f325966` — audit result landing commit (PR #43 merge commit; the commit where the audit artefact was added)
+
+Audit manifest and pro-prompt now distinguish these clearly. Do not conflate source baseline audited with the commit where the audit artefact landed. CANON-002 baseline pin invariant satisfied.
 
 ---
 
@@ -39,10 +43,14 @@
 
 | File | Change |
 |---|---|
-| `docs/11_admin/LIFEOS_STATE.md` | Revised current focus, resolved normalization, updated last-updated |
-| `docs/11_admin/BACKLOG.md` | Checked off architecture normalization decisions 1-5, updated last-updated |
-| `docs/audit/LIFEOS_AUTHORITY_AUDIT_MANIFEST.md` | Updated target SHA from `d94e51a...` to `c2f558e...` |
-| `docs/audit/LIFEOS_AUTHORITY_AUDIT_PRO_PROMPT.md` | Updated target SHA from `d94e51a...` to `c2f558e...` |
+| `docs/11_admin/LIFEOS_STATE.md` | Revised current focus; fixed malformed markdown table row in active workstreams; updated last-updated |
+| `docs/11_admin/BACKLOG.md` | Checked off architecture normalization decisions 1-5; updated last-updated |
+| `docs/11_admin/RECONCILIATION_RECEIPT_2026-04-27_v1.md` | New — reconciliation pass documentation |
+| `docs/audit/LIFEOS_AUTHORITY_AUDIT_MANIFEST.md` | Updated: operative source baseline set to `c2e78d...`; audit result landing commit set to `c2f558e...` (PR #43 merge); added audit result artefact field |
+| `docs/audit/LIFEOS_AUTHORITY_AUDIT_PRO_PROMPT.md` | Updated: operative source baseline set to `c2e78d...`; audit result landing commit set to `c2f558e...` (PR #43 merge); added audit result artefact field |
+| `artifacts/plans/WP2_CEO_DECISION_PACKET_2026-04-27.md` | New — 5 CEO decisions: G-CBS, Council Protocol, DAP, Build Loop canonicality, active COO registry |
+| `artifacts/plans/WP3_APPROVAL_ENFORCEMENT_DESIGN_2026-04-27.md` | New — approval_receipt.v1 schema, execution_order.v1 authority fields, 6 parser guards, test plan |
+| `artifacts/plans/WP4_LIFECYCLE_CLOSURE_DESIGN_2026-04-27.md` | New — succeeded disposition, closed requirements, closure_receipt.v1, lifecycle_state.v1 FSM |
 
 ---
 

@@ -41,7 +41,7 @@
 
 | Status | Workstream | Owner | Deliverable |
 |--------|------------|-------|-------------|
-|| **COMPLETE** | **Architecture Normalization / COO Onboarding Reset** | Claude Code | Control surfaces landed (4e8237cb); all 6 issues resolved; ADR-001 through ADR-004 ratified; authority audit complete |
+| **COMPLETE** | **Architecture Normalization / COO Onboarding Reset** | Claude Code | Control surfaces landed (4e8237cb); all 6 issues resolved; ADR-001 through ADR-004 ratified; authority audit complete |
 | **COMPLETE** | **COO Bootstrap (Steps 1-6)** | Antigravity | Full COO delegation pipeline — all 9 steps merged; live COO operational |
 | **MERGED** | **COO Brain (Step 2)** | Codex + Claude Code | System prompt, memory seed, brief — merged 51ef1466 + eedb0fa0 |
 | **MERGED** | **COO Jarda Parity v5** | Antigravity | OpenClaw verification tooling + workflow pack (8045e9c5) |

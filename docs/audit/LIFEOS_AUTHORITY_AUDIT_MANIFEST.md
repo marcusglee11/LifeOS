@@ -2,7 +2,14 @@
 
 Status: Pro-level audit context manifest
 Owner: CEO / active COO stewardship
-Audit target commit: `c2f558e3b9d5e60c4fac80ae9b251fb57f325966`
+
+## 1. Audit target
+
+> **Operative source baseline (what was audited):** `c2e78dab7f1e7eb0968c8edc177d6a9d047ee918`
+> **Audit result landing commit:** `c2f558e3b9d5e60c4fac80ae9b251fb57f325966` (PR #43 merge commit — where the audit artefact was added; do not conflate with the source baseline audited)
+> **Audit result artefact:** `docs/audit/LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md`
+
+---
 Prepared for: cross-project authority, approval, delegation, pushback, evidence, and state-machine audit
 
 This manifest is a launch surface for a scarce Pro-level Thinking audit. It is not a new canonical architecture decision and does not modify authority semantics by itself.
@@ -15,8 +22,10 @@ This manifest is a launch surface for a scarce Pro-level Thinking audit. It is n
 | --- | --- |
 | Repo | `marcusglee11/LifeOS` |
 | Branch | `main` |
-| Commit SHA | `c2f558e3b9d5e60c4fac80ae9b251fb57f325966` |
+| Operative source baseline | `c2e78dab7f1e7eb0968c8edc177d6a9d047ee918` |
+| Audit result landing commit | `c2f558e3b9d5e60c4fac80ae9b251fb57f325966` (PR #43 merge commit) |
 | Manifest path | `docs/audit/LIFEOS_AUTHORITY_AUDIT_MANIFEST.md` |
+| Audit result artefact | `docs/audit/LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md` |
 | Scope | Authority, approval, proxy approval, StepGate, Council Runtime, OpenClaw/Hermes authority, work item lifecycle, receipts/evidence, state transitions |
 
 ## 2. Canonicality rule for the auditor
