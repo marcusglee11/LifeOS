@@ -815,7 +815,7 @@ def discover_changed_files(repo_root: Path, branch: str | None = None) -> list[s
                     continue
                 candidate_path = repo / candidate
                 if candidate_path.is_dir():
-                    for nested in candidate_path.rglob("*"):
+                    for nested in sorted(candidate_path.rglob("*")):
                         if nested.is_file():
                             files.append(str(nested.relative_to(repo)).replace(os.sep, "/"))
                     continue
