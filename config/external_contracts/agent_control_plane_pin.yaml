@@ -1,0 +1,76 @@
+schema_version: external_contract_pin.v1
+name: agent-control-plane
+status: active
+owner: LifeOS
+last_updated_utc: 2026-04-28T08:00:03Z
+
+source:
+  repo: marcusglee11/agent-control-plane
+  url: https://github.com/marcusglee11/agent-control-plane
+  visibility: private
+  branch: master
+  pinned_commit: df1c4411242c99d65b54775c50aa1fc179f22c0b
+  pinned_commit_url: https://github.com/marcusglee11/agent-control-plane/commit/df1c4411242c99d65b54775c50aa1fc179f22c0b
+
+relationship:
+  control_plane_repo_owns:
+    - reusable OpenClaw-Hermes delegated-authority protocol primitives
+    - GitHub bus wire protocol and label/state contracts
+    - shared machine schemas for authority, evidence, delegation, invocation, and receipts
+    - watcher behavior contracts and protocol probes
+  lifeos_repo_owns:
+    - LifeOS governance canon and constitutional authority
+    - LifeOS roadmap, backlog, and state
+    - LifeOS runtime/build-loop implementation
+    - LifeOS-specific architecture decisions
+  extraction_rule: LifeOS-specific decisions land in LifeOS first; reusable primitives are extracted to agent-control-plane and re-enter LifeOS through this pin.
+
+consumed_artifacts:
+  - source_path: docs/delegated-authority-protocol-v0.3-ratified.md
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: Delegated authority protocol for OpenClaw-Hermes execution authority, receipts, and channel discipline.
+  - source_path: docs/protocol.md
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: GitHub bus wire protocol and routing/status label semantics.
+  - source_path: docs/hermes-watcher-contract.md
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: Hermes watcher behavioral contract against the live bus.
+  - source_path: docs/lifeos-contract-pinning.md
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: Upstream consumer-rule statement for this pinned relationship.
+  - source_path: schemas/envelope-v1.json
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: Transport envelope schema.
+  - source_path: schemas/delegation-v1.json
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: Delegated execution authority schema.
+  - source_path: schemas/receipt-v1.json
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: Receipt chain schema.
+  - source_path: schemas/authority-assertion-v1.json
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: Machine-checkable authority assertion schema.
+  - source_path: schemas/evidence-meta-v1.json
+    local_path: null
+    local_policy: referenced_not_mirrored
+    purpose: Machine-checkable evidence metadata schema.
+
+update_policy:
+  required_steps:
+    - Inspect upstream diff between previous pin and candidate pin.
+    - Update this manifest with the candidate commit and changed artifact list.
+    - Update mirrored LifeOS artefacts if local_policy is mirrored.
+    - Run the compatibility check below.
+    - Record evidence in the LifeOS PR or issue.
+  compatibility_check:
+    command: python3 scripts/workflow/check_agent_control_plane_pin.py --manifest config/external_contracts/agent_control_plane_pin.yaml
+    optional_source_worktree_command: python3 scripts/workflow/check_agent_control_plane_pin.py --manifest config/external_contracts/agent_control_plane_pin.yaml --source-worktree /home/cabra/.openclaw/workspace/agent-control-plane
+  drift_rule: Missing or stale pin evidence is a dependency drift defect, not a runtime authority source.

@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-04-28 (rev25)
+Last Updated: 2026-04-28 (rev26)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -166,6 +166,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Project_Planning_Protocol_v1.0.md](./02_protocols/Project_Planning_Protocol_v1.0.md) | Build mission plan requirements, schema compliance, lifecycle, and review rubric |
 | [Work_Management_Framework_v0.1.md](./02_protocols/Work_Management_Framework_v0.1.md) | **NEW** — Work Management Framework v0.1: intake, prioritisation, dispatch, review, closure |
 | [OpenClaw_COO_Integration_v1.0.md](./02_protocols/OpenClaw_COO_Integration_v1.0.md) | OpenClaw gateway invocation, CLI wrappers, known constraints |
+| [Agent_Control_Plane_Pin_v1.0.md](./02_protocols/Agent_Control_Plane_Pin_v1.0.md) | **Dependency contract** — pins LifeOS to the external `agent-control-plane` protocol/control-plane source |
 
 ### Council Protocols
 
