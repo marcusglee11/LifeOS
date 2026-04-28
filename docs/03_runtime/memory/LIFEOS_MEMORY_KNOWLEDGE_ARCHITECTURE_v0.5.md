@@ -15,7 +15,7 @@ https://docs.google.com/document/d/1-tg9pYdP7Sje1RD0jlBU79qHzDxpsMUPOBsrSTb0dbs/
 -->
 
 > **Next step:** Implementation of Phase 1 is tracked in
-> [GitHub issue #53 — Implement Phase 1 of the LifeOS memory and knowledge architecture v0.5](https://github.com/garfieldlsc/LifeOS/issues/53).
+> [GitHub issue #53 — Implement Phase 1 of the LifeOS memory and knowledge architecture v0.5](https://github.com/marcusglee11/LifeOS/issues/53).
 > This document is the planning source for that work. Do not implement runtime,
 > schema, or tooling behavior from this file until #53 is actioned.
 

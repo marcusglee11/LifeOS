@@ -1155,6 +1155,7 @@ Fail-closed: unknown action category → L4. Everything not explicitly L0 defaul
 2. `.context/wiki/` — derived context layer
 3. `docs/11_admin/LIFEOS_STATE.md` — current operational state
 4. `config/agent_roles/coo.md` — operational rules and invocation spec
+5. `docs/03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md` — canonical memory and knowledge architecture; implementation tracked in [#53](https://github.com/marcusglee11/LifeOS/issues/53)
 
 ## Provider Routing
 
