@@ -679,16 +679,23 @@ def call_agent_cli(
         logger.info("Role %s not configured for CLI; falling back to API", call.role)
         return call_agent(call, run_id, logger_instance, config)
 
+    agent_cfg = get_agent_config(call.role, config)
+    allow_api_fallback = getattr(agent_cfg, "allow_api_fallback", True)
+
     # CLI providers do not currently expose token usage in a canonical schema.
-    # Preserve call_agent() semantics by using the API path when usage is required.
+    # Preserve call_agent() semantics by using the API path when fallback is allowed.
     if call.require_usage:
+        if not allow_api_fallback:
+            raise AgentAPIError(
+                f"Role {call.role!r} requires token usage, but CLI dispatch cannot provide "
+                "canonical usage and API fallback disabled."
+            )
         logger.info(
             "Role %s requested require_usage; falling back to API for token accounting",
             call.role,
         )
         return call_agent(call, run_id, logger_instance, config)
 
-    agent_cfg = get_agent_config(call.role, config)
     cli_provider_name = agent_cfg.cli_provider
 
     # Compute deterministic IDs
@@ -715,8 +722,16 @@ def call_agent_cli(
         result = _try_cli_dispatch(prompt, agent_cfg.cli_fallback, config, run_id=run_id)
         used_provider = agent_cfg.cli_fallback
 
-    # All CLI providers failed → fall back to API
+    # All CLI providers failed → fall back to API only when policy allows it
     if result is None:
+        if not allow_api_fallback:
+            attempted = [cli_provider_name]
+            if agent_cfg.cli_fallback:
+                attempted.append(agent_cfg.cli_fallback)
+            raise AgentAPIError(
+                f"CLI dispatch failed for role {call.role!r}; API fallback disabled "
+                f"(attempted: {', '.join(attempted)})"
+            )
         logger.warning("All CLI providers failed for %s; falling back to API", call.role)
         return call_agent(call, run_id, logger_instance, config)
 

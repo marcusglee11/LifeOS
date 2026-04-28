@@ -58,10 +58,13 @@ model_selection:
 
 
 agents:
+  # COO-dispatched EA policy: Codex is the only execution lane.
+  # Fail closed instead of silently falling back to Claude/Gemini/API dispatch.
   steward:
     dispatch_mode: cli
-    cli_provider: gemini
-    cli_fallback: claude_code
+    cli_provider: codex
+    cli_fallback: ""
+    allow_api_fallback: false
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -77,7 +80,8 @@ agents:
   builder:
     dispatch_mode: cli
     cli_provider: codex
-    cli_fallback: claude_code
+    cli_fallback: ""
+    allow_api_fallback: false
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -92,8 +96,9 @@ agents:
 
   designer:
     dispatch_mode: cli
-    cli_provider: claude_code
-    cli_fallback: gemini
+    cli_provider: codex
+    cli_fallback: ""
+    allow_api_fallback: false
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -121,8 +126,9 @@ agents:
 
   build_cycle:
     dispatch_mode: cli
-    cli_provider: claude_code
-    cli_fallback: codex
+    cli_provider: codex
+    cli_fallback: ""
+    allow_api_fallback: false
     provider: zen
     model: "claude-sonnet-4-5"
     endpoint: "https://opencode.ai/zen/v1/messages"
@@ -179,22 +185,22 @@ cli_providers:
     default_model: ""
     timeout_seconds: 600
     sandbox: true
-    enabled: true
+    enabled: false
   claude_code:
     binary: "claude"
     default_model: ""
     timeout_seconds: 600
     sandbox: true
-    enabled: true
+    enabled: false
 
 council:
   topology: HYBRID
   provider_overrides:
-    Architecture: claude_code
-    Risk: claude_code
-    Governance: claude_code
-    Implementation: claude_code
-    Strategy: claude_code
+    Architecture: codex
+    Risk: codex
+    Governance: codex
+    Implementation: codex
+    Strategy: codex
     Pragmatism: codex
 
 # Zen configuration (Primary)

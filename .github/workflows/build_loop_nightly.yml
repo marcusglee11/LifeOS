@@ -56,36 +56,17 @@ jobs:
           git config core.autocrlf false
 
       # ── CLI tool validation ────────────────────────────────
-      - name: Validate CLI tools
+      - name: Validate Codex CLI
         id: cli_check
         run: |
-          missing=()
-          present=()
-
-          for tool in claude codex gemini; do
-            if command -v "$tool" > /dev/null 2>&1; then
-              echo "${tool}: OK"
-              present+=("$tool")
-            else
-              echo "::warning::CLI tool not found: ${tool}"
-              missing+=("$tool")
-            fi
-          done
-
-          if [ ${#present[@]} -eq 0 ]; then
-            echo "::error::No CLI tools available. At least one of (claude, codex, gemini) is required."
+          if command -v codex > /dev/null 2>&1; then
+            echo "codex: OK"
+            echo "has_cli=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Codex CLI is required for COO-dispatched EA execution. No Claude/Gemini fallback is allowed."
             echo "has_cli=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-
-          if [ ${#missing[@]} -gt 0 ]; then
-            MISSING_LIST=$(IFS=,; echo "${missing[*]}")
-            echo "CLI_DEGRADED=1" >> "$GITHUB_ENV"
-            echo "CLI_MISSING=${MISSING_LIST}" >> "$GITHUB_ENV"
-            echo "::warning::Degraded CLI mode — missing tools: ${MISSING_LIST}"
-          fi
-
-          echo "has_cli=true" >> "$GITHUB_OUTPUT"
 
       # ── Pre-flight checks ─────────────────────────────────
       - name: Pre-flight test suite
@@ -115,7 +96,8 @@ jobs:
 
           if [ -f /tmp/nightly_order.yaml ]; then
             echo "has_task=true" >> "$GITHUB_OUTPUT"
-            echo "task_ref=$(python -c "import yaml; print(yaml.safe_load(open('/tmp/nightly_order.yaml'))['task_ref'])")" >> "$GITHUB_OUTPUT"
+            TASK_REF=$(python -c "import yaml; print(yaml.safe_load(open('/tmp/nightly_order.yaml'))['task_ref'])")
+            echo "task_ref=$TASK_REF" >> "$GITHUB_OUTPUT"
           else
             echo "has_task=false" >> "$GITHUB_OUTPUT"
             echo "::warning::No tasks available in inbox or queue"
@@ -141,7 +123,8 @@ jobs:
         if: steps.resolve.outputs.has_task == 'true' && inputs.dry_run != 'true'
         run: |
           set +e
-          python -m runtime.cli dispatch submit /tmp/nightly_order.yaml --json > /tmp/dispatch_result.json 2>/tmp/dispatch_stderr.log
+          python -m runtime.cli dispatch submit /tmp/nightly_order.yaml --json \
+            > /tmp/dispatch_result.json 2>/tmp/dispatch_stderr.log
           EXIT_CODE=$?
           set -e
 
@@ -154,8 +137,14 @@ jobs:
           fi
 
           # Extract outcome for issue labeling
-          OUTCOME=$(python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('outcome','UNKNOWN'))" 2>/dev/null || echo "UNKNOWN")
-          REASON=$(python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('reason',''))" 2>/dev/null || echo "")
+          OUTCOME=$(
+            python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('outcome','UNKNOWN'))" \
+              2>/dev/null || echo "UNKNOWN"
+          )
+          REASON=$(
+            python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('reason',''))" \
+              2>/dev/null || echo ""
+          )
           echo "dispatch_outcome=$OUTCOME" >> "$GITHUB_OUTPUT"
           echo "dispatch_reason=$REASON" >> "$GITHUB_OUTPUT"
 

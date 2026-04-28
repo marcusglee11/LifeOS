@@ -155,6 +155,7 @@ class AgentConfig:
     )
     cli_provider: str = ""  # e.g. "codex", "gemini", "claude_code"
     cli_fallback: str = ""  # secondary CLI provider name for fallback
+    allow_api_fallback: bool = True  # false = fail closed if CLI dispatch cannot run
 
 
 @dataclass
@@ -253,6 +254,7 @@ def load_model_config(config_path: Optional[str] = None) -> ModelConfig:
             dispatch_mode=cfg.get("dispatch_mode", "api"),
             cli_provider=cfg.get("cli_provider", ""),
             cli_fallback=cfg.get("cli_fallback", ""),
+            allow_api_fallback=cfg.get("allow_api_fallback", True),
         )
 
     # Load CLI provider configs

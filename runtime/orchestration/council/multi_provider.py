@@ -112,6 +112,7 @@ def build_multi_provider_executor(
                     api_key_env="",
                     dispatch_mode="cli",
                     cli_provider=cli_provider_name,
+                    allow_api_fallback=False,
                 )
                 config_copy = copy.copy(config)
                 config_copy.agents = dict(config.agents)
