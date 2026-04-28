@@ -1,5 +1,7 @@
 # Reconciliation Receipt — 2026-04-27 v1
 
+<!-- markdownlint-disable MD013 MD032 MD060 -->
+
 **Trigger:** Post-authority-audit autonomous preparation pass (WP1)
 **Source:** `docs/audit/LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md` §L1 steps 1-2
 **Scope:** Tracker/audit baseline metadata reconciliation against ratified ADR/changelog/source-of-truth state
@@ -45,7 +47,7 @@ Audit manifest and pro-prompt now distinguish these clearly. Do not conflate sou
 |---|---|
 | `docs/11_admin/LIFEOS_STATE.md` | Revised current focus; fixed malformed markdown table row in active workstreams; updated last-updated |
 | `docs/11_admin/BACKLOG.md` | Checked off architecture normalization decisions 1-6; updated last-updated |
-| `docs/11_admin/RECONCILIATION_RECEIPT_2026-04-27_v1.md` | New — reconciliation pass documentation |
+| `docs/11_admin/archive/2026-04-27_wp1_reconciliation/RECONCILIATION_RECEIPT_2026-04-27_v1.md` | New — reconciliation pass documentation |
 | `docs/audit/LIFEOS_AUTHORITY_AUDIT_MANIFEST.md` | Updated: operative source baseline set to `c2e78d...`; audit result landing commit set to `c2f558e...` (PR #43 merge); added audit result artefact field |
 | `docs/audit/LIFEOS_AUTHORITY_AUDIT_PRO_PROMPT.md` | Updated: operative source baseline set to `c2e78d...`; audit result landing commit set to `c2f558e...` (PR #43 merge); added audit result artefact field |
 | `artifacts/plans/WP2_CEO_DECISION_PACKET_2026-04-27.md` | New — 5 CEO decisions: G-CBS, Council Protocol, DAP, Build Loop canonicality, active COO registry |

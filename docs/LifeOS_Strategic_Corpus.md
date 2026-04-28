@@ -1155,6 +1155,7 @@ Fail-closed: unknown action category → L4. Everything not explicitly L0 defaul
 2. `.context/wiki/` — derived context layer
 3. `docs/11_admin/LIFEOS_STATE.md` — current operational state
 4. `config/agent_roles/coo.md` — operational rules and invocation spec
+5. `docs/03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md` — canonical memory and knowledge architecture; implementation tracked in [#53](https://github.com/marcusglee11/LifeOS/issues/53)
 
 ## Provider Routing
 
@@ -3353,6 +3354,73 @@ LifeOS targets server/CI environments (Linux) and developer machines (Linux/macO
 
 ---
 
+# File: 01_governance/PROTOCOL_VERSION_REGISTER.md
+
+# Protocol Version Register
+
+**Status:** Canonical governance register
+**Effective date:** 2026-04-27
+**Authority:** WP2 CEO decisions D1-D4b, ratified in `artifacts/plans/WP2_CEO_DECISION_PACKET_2026-04-27.md`
+**Audit baseline:** `043c3f1d6b98f3cf713d3a29783e23383851dfa0`
+
+---
+
+## 1. Purpose
+
+This register is the source of truth for current protocol version bindings where subordinate or procedural documents contain older local references.
+
+It does not silently ratify stale subordinate text. Where a document references an older protocol version, the register records the current binding and the compatibility posture until that document is semantically reviewed and amended.
+
+---
+
+## 2. Current protocol bindings
+
+| Protocol surface | Current binding | Status | Notes |
+|---|---:|---|---|
+| Council Protocol | `docs/02_protocols/Council_Protocol_v1.3.md` | Canonical | Binding constitutional Council Review procedure. |
+| AI Council Procedural Specification | `docs/02_protocols/AI_Council_Procedural_Spec_v1.1.md` | Active procedural layer | Operationalises Council procedure; local references to older Council Protocol versions are superseded by this register. |
+| Council Invocation Runtime Binding Spec | `docs/01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md` | Active runtime binding | Runtime invocation binding remains active; Council Protocol references are interpreted through this register. |
+| Council Context Pack Schema | `docs/02_protocols/Council_Context_Pack_Schema_v0.3.md` | Template / pre-v1.0 | Template references are non-ratifying and interpreted through this register. |
+| Intent Routing Rule | `docs/02_protocols/Intent_Routing_Rule_v1.1.md` | WIP / Non-Canonical | Routing rule remains subordinate to CEO authority and higher governance documents; Council Protocol references are interpreted through this register. |
+| Deterministic Artefact Protocol | `docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md` | Canonical governance specification | Current repo placement is `docs/02_protocols/`; older path text is normalised in the DAP document. |
+| Generic Closure Bundle Standard | `docs/02_protocols/G-CBS_Standard_v1.1.md` | Draft / Advisory | Not ratified. Binding references must be interpreted as advisory unless and until CT-2 activation occurs. |
+
+---
+
+## 3. Stale-reference handling rule
+
+When a binding or procedural document references a non-current Council Protocol version:
+
+1. The document is not automatically amended by implication.
+2. The current binding is resolved through this register.
+3. Any semantic incompatibility must be handled by a targeted amendment, not by bulk version-bump.
+4. If the stale reference would change runtime behaviour, fail closed and escalate for governance review.
+
+---
+
+## 4. Mirrors and non-authoritative surfaces
+
+GitHub issue state, labels, PR status, and GitHub Actions variables may mirror governance state, but they are not authoritative unless a specific protocol designates them as such.
+
+For active COO identity, the authoritative registry is:
+
+- `config/governance/active_coo.yaml`
+
+WP3 parser guards may consume that registry in a later work package, but parser-guard implementation is outside WP2 scope.
+
+---
+
+## 5. Amendment record
+
+**2026-04-27 — WP2 authority audit implementation**
+- Created protocol version register.
+- Established Council Protocol v1.3 as current binding for Council behaviour.
+- Recorded G-CBS as Draft / Advisory rather than ratified.
+- Recorded `config/governance/active_coo.yaml` as authoritative active COO registry.
+
+
+---
+
 # File: 01_governance/Tier1_Hardening_Council_Ruling_v0.1.md
 
 # Tier-1 Hardening Council Ruling v0.1
@@ -4353,7 +4421,7 @@ No functionality is "DONE" until:
 
 # Council Context Pack — Schema v0.3 (Template)
 
-This file is a template for assembling a CCP that satisfies Council Protocol v1.2.
+This file is a template for assembling a CCP that satisfies the current Council Protocol binding resolved through `docs/01_governance/PROTOCOL_VERSION_REGISTER.md`.
 
 ---
 
@@ -4382,6 +4450,7 @@ council_run:
   reversibility: "easy|moderate|hard"
   safety_critical: false
   uncertainty: "low|medium|high"
+  protocol_binding_ref: "docs/01_governance/PROTOCOL_VERSION_REGISTER.md"
   override:
     mode: null
     topology: null
@@ -4483,6 +4552,10 @@ Attach or embed the AUR. If embedded, include clear section headings for referen
 
 ## Amendment record
 
+**WP2 (2026-04-27)** — Authority Audit Implementation:
+- Replaced hard-coded Council Protocol version reference with register-resolved binding.
+- Added `protocol_binding_ref` to CCP YAML header template.
+
 **v0.3 (2026-01-06)** — Fix Pack AUR_20260105_council_process_review:
 - F7: Added Promotion Criteria section with v1.0 requirements
 - Updated to reference Council Protocol v1.2
@@ -4561,10 +4634,11 @@ A rule that major claims and proposed fixes must cite the AUR via explicit refer
 ### 2.4 Human control (StepGate)
 - The council does not infer "go". Any gating or irreversible action requires explicit CEO approval in the relevant StepGate, if StepGate is in force.
     
-### 2.5 Closure Discipline (G-CBS)
-- **DONE requires Validation**: A "Done" or "Go" ruling is VALID ONLY if accompanied by a G-CBS compliant closure bundle that passes `validate_closure_bundle.py`.
-- **No Ad-Hoc Bundles**: Ad-hoc zips are forbidden. All closures must be built via `build_closure_bundle.py`.
-- **Max Cycles**: A prompt/closure cycle is capped at 2 attempts. Residual issues must then be waived (with debt record) or blocked.
+### 2.5 Closure Discipline
+- G-CBS is **Draft / Advisory** unless and until it is activated through its stated governance process and recorded in the relevant governance index or protocol version register.
+- Council close-out may cite G-CBS as an advisory checklist, but a "Done" or "Go" ruling under this protocol does not require G-CBS compliance as a binding precondition.
+- Where a work package defines its own ratified closure evidence schema, that schema governs the closure requirement for that work package.
+- Closure evidence must still be auditable, complete, and linked to the AUR, Council Run Log, or execution receipt being closed.
 
 ---
 
@@ -4625,10 +4699,6 @@ mode_selection_rules_v1:
     - touches includes "tier_activation"
     - touches includes "runtime_core"
     - safety_critical == true
-    - (blast_radius in ["system","ecosystem"] and reversibility == "hard")
-    - (uncertainty == "high" and blast_radius != "local")
-  M0_FAST_if_all:
-    - aur_type in ["doc","plan","other"]
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
@@ -4643,7 +4713,7 @@ mode_selection_rules_v1:
 
 ## Placement
 
-`/docs/01_governance/Deterministic_Artefact_Protocol_v2.0.md`
+`/docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md`
 
 ## Status
 
@@ -4653,21 +4723,37 @@ Canonical governance specification.
 
 ## 1. Purpose
 
-The Deterministic Artefact Protocol (DAP) v2.0 defines the mandatory rules and constraints governing the creation, modification, storage, naming, indexing, validation, and execution of all artefacts produced within the LifeOS environment. Its goals include determinism, auditability, reproducibility, immutability of historical artefacts, and elimination of conversational drift.
+The Deterministic Artefact Protocol (DAP) v2.0 defines the mandatory rules and constraints governing the creation, modification, storage, naming, indexing, validation, and execution of artefacts produced within the LifeOS environment. Its goals include determinism, auditability, reproducibility, immutability of historical artefacts, and elimination of conversational drift.
 
 ## 2. Scope
 
-DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit reports, ZIP archives, tool-generated files, and directory structure modifications. It applies to all assistant behaviour, tool invocations, and agents within LifeOS.
+DAP v2.0 governs markdown artefacts, script files, indexes, logs, audit reports, ZIP archives, tool-generated files, and directory structure modifications, subject to the bounded exceptions in §2.1 and M-2.
+
+It applies to assistant behaviour, tool invocations, and agents within LifeOS unless a more specific ratified protocol overrides it.
+
+### 2.1 Bounded Gate 3 exceptions
+
+The following artefact classes may be created or updated outside formal StepGate Gate 3 when they are produced as part of bounded operational execution, review, audit, or evidence capture:
+
+| Artefact class | Typical paths | Gate 3 posture |
+|---|---|---|
+| Audit artefacts | `docs/audit/`, `artifacts/reports/` | Exception permitted when recording audit findings or audit evidence. |
+| Result artefacts | `artifacts/results/`, `artifacts/reports/`, tool result outputs | Exception permitted when recording deterministic execution results. |
+| Proposal artefacts | `artifacts/plans/`, `artifacts/for_ceo/`, `artifacts/review_packets/` | Exception permitted when capturing proposals, plans, packets, or review materials. |
+| Receipt artefacts | `artifacts/receipts/`, `artifacts/reports/`, closure/build receipts | Exception permitted when recording execution receipts or close-build evidence. |
+| Evidence artefacts / evidence bundles | `artifacts/evidence/`, `logs/`, `artifacts/reports/captures/` | Exception permitted when preserving test output, command output, transcripts, or other evidence. |
+
+These exceptions do not authorize changes to canonical governance documents, runtime code, schemas, parser guards, FSMs, or archive contents without the governing approval path for those surfaces.
 
 ## 3. Definitions
 
 - **Artefact**: Deterministic file created or modified under DAP.
 - **Deterministic State**: A reproducible filesystem state.
-- **Canonical Artefact**: The authoritative version stored under `/docs`.
-- **Non-Canonical Artefact**: Any artefact outside `/docs`.
+- **Canonical Artefact**: The authoritative version stored under `/docs`, subject to repo-specific canonicality notes.
+- **Non-Canonical Artefact**: Any artefact outside `/docs` unless explicitly promoted by a governing protocol.
 - **Immutable Artefact**: Any file within `/docs/99_archive`.
 - **DAP Operation**: Any assistant operation affecting artefacts.
-- **Operational File**: Non-canonical ephemeral/operational file (e.g., mission logs, inter-agent packets, scratchpads) stored in `/artifacts`. These are exempted from formal Gate 3 requirements and versioning discipline.
+- **Operational File**: Non-canonical ephemeral/operational file stored outside canonical governance roots, commonly under `/artifacts` or `/logs`.
 
 ## 4. Core Principles
 
@@ -4682,26 +4768,26 @@ DAP v2.0 governs all markdown artefacts, script files, indexes, logs, audit repo
 
 ## 5. Mandatory Workflow Rules
 
-- Artefacts may only be created at StepGate Gate 3.
+- Canonical artefacts may only be created through the appropriate approved governance or execution gate.
 - All artefacts must include complete content.
 - Tool calls must embed full content.
 - ZIP generation must be deterministic.
-- Any structural change requires index regeneration.
+- Any structural change requires index regeneration when the relevant index declares that requirement.
 - Archive folders are immutable.
-- Strict filename pattern enforcement.
-- Forbidden behaviours include guessing filenames, modifying artefacts without approval, creating placeholders, relying on conversational memory, or generating artefacts outside StepGate.
+- Strict filename pattern enforcement applies where a protocol or index declares that pattern binding.
+- Forbidden behaviours include guessing filenames, modifying artefacts without approval, creating placeholders, relying on conversational memory, or generating artefacts outside the authorized scope.
 
 ## 6. Interaction with StepGate
 
-DAP references StepGate but does not merge with it. All DAP operations require Gate 3; violations require halting and returning to Gate 0.
+DAP references StepGate but does not merge with it. Canonical DAP operations require the relevant approved gate. Bounded operational artefact classes listed in §2.1 may be captured outside formal Gate 3 when they preserve auditability and do not alter protected governance/runtime surfaces.
 
 ## 7. Error Handling
 
-Hard failures include overwriting archive files, missing approval, missing paths, ambiguous targets, or context degradation. On detection, the assistant must declare a contamination event and require a fresh project.
+Hard failures include overwriting archive files, missing approval for protected surfaces, missing paths, ambiguous targets, or context degradation. On detection, the assistant must halt and surface the failure rather than silently proceeding.
 
 ## 8. Canonical Status
 
-DAP v2.0 becomes binding upon placement at the specified path.
+DAP v2.0 is binding as placed at `docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md`.
 
 ---
 
@@ -4709,54 +4795,15 @@ DAP v2.0 becomes binding upon placement at the specified path.
 
 ## M-1. Inputs
 
-Assistant must not act without explicit filename, path, content, StepGate Gate 3 status.
+Assistant must not act without explicit filename, path, content, and governing authorization status.
 
 ## M-2. Artefact Creation Algorithm
 
-IF Gate != 3 AND Path NOT START WITH "/artifacts" (excluding formal subdirs) → refuse.  
-(Note: Operational Files in `/artifacts` are allowed outside Gate 3).
-Require filename, path, full content.  
-Write file.  
-Verify file exists and contains no placeholders.
+IF path is a protected canonical/governance/runtime surface AND required approval is absent → refuse.
 
-## M-3. Naming Rules
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
 
-`<BASE>_v<MAJOR>.<MINOR>[.<PATCH>].md`
-
-## M-4. Archive Rules
-
-Immutable; may not be rewritten.
-
-## M-5. Index Regeneration Rules
-
-Structural changes require new index version with diff summary.
-
-## M-6. Forbidden Operations
-
-Guessing paths, relying on memory, placeholder generation, modifying archive files, or creating artefacts outside Gate 3.
-
-## M-7. Deterministic ZIP Generation
-
-Sort filenames, preserve ordering, include only approved artefacts.
-
-## M-8. Contamination Detection
-
-Placeholder or truncated output requires contamination event and new project.
-
-## M-9. Resolution
-
-Return to Gate 0, regenerate plan deterministically.
-
-## M-10. Gitignore Discipline
-
-To ensure AI tool access (read/write) required by these protocols, the following paths MUST NOT be git-ignored:
-
-- `artifacts/plans/` (Formal governance)
-- `artifacts/review_packets/` (Formal governance)
-- `artifacts/for_ceo/` (Operational handoff)
-- `artifacts/context_packs/` (Operational handoff)
-
-If git exclusion is desired, it must be handled via manual `git add` exclusion or other mechanisms that do not block AI tool-level visibility.
 
 
 ---
@@ -5245,9 +5292,12 @@ When adding new filesystem operations:
 | **Version** | 1.1 |
 | **Date** | 2026-01-11 |
 | **Author** | Antigravity |
-| **Status** | DRAFT |
+| **Status** | DRAFT / ADVISORY |
 | **Governance** | CT-2 Council Review Required for Activation |
 | **Supersedes** | G-CBS v1.0 (backward compatible) |
+
+> [!NOTE]
+> WP2 authority audit decision D1 confirms this standard is not ratified. Until CT-2 activation occurs and the protocol is listed as active in the relevant governance index/register, G-CBS is advisory only. Binding closure requirements must not depend on this document as ratified authority.
 
 ---
 
@@ -5255,7 +5305,7 @@ When adding new filesystem operations:
 
 G-CBS v1.1 is a **strictly additive extension** of G-CBS v1.0. All v1.0 bundles remain valid. This version adds structured fields for inputs, outputs, and verification gate results to support Phase 5 automation (task intake, replay, audit).
 
-**Authority:** This protocol becomes binding when (1) approved via CT-2 council review and (2) listed in `docs/01_governance/ARTEFACT_INDEX.json`.
+**Authority:** This protocol becomes binding when (1) approved via CT-2 council review and (2) listed in `docs/01_governance/ARTEFACT_INDEX.json` or a superseding protocol version register.
 
 ---
 
@@ -5339,7 +5389,7 @@ Violation triggers: `V11_UNSAFE_PATH` failure.
 
 ## 4. StepGate Profile Gates
 
-When profile is `step_gate_closure`, these additional gates apply:
+When profile is `step_gate_closure`, these additional gates apply only if this protocol has been activated under §1 Authority:
 
 | Gate ID | Description | Scope |
 |---------|-------------|-------|
@@ -5356,7 +5406,7 @@ The validator accepts both versions:
 | `schema_version` | Behavior |
 |------------------|----------|
 | `G-CBS-1.0` | Validate against v1.0 schema; skip v1.1 field validation |
-| `G-CBS-1.1` | Validate against v1.1 schema; enforce v1.1 fields and SG-3 |
+| `G-CBS-1.1` | Validate against v1.1 schema; enforce v1.1 fields and SG-3 when activated by profile and authority |
 
 ---
 
@@ -5391,18 +5441,6 @@ python scripts/closure/build_closure_bundle.py \
 | `--outputs-file` | One line per entry: `path|sha256|role` |
 | `--gates-file` | JSON array of gate objects |
 
-For `--schema-version 1.1` + `step_gate_closure` profile: at least one of `--inputs-file` or `--outputs-file` is required (fail-closed, no heuristics).
-
----
-
-## 8. Implementation Files
-
-| Component | Path |
-|-----------|------|
-| **V1.1 Schema** | `schemas/closure_manifest_v1_1.json` |
-| **Validator** | `scripts/closure/validate_closure_bundle.py` |
-| **StepGate Profile** | `scripts/closure/profiles/step_gate_closure.py` |
-| **Builder** | `scripts/closure/build_closure_bundle.py` |
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
@@ -5674,6 +5712,7 @@ Command:
 **Status**: WIP (Non-Canonical)
 **Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
 **Effective**: TBD (Provisional)
+**Current protocol binding**: See `docs/01_governance/PROTOCOL_VERSION_REGISTER.md`
 
 ---
 
@@ -5778,7 +5817,6 @@ CSO escalates to CEO when:
 
 When CSO handles (not escalates), the primary function is **not to decide**, but to enable decision. In order of preference:
 
-1. **Reframe** - Reformulate the question to dissolve the disagreement
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
@@ -6583,6 +6621,158 @@ The following parameters are derived from the canonical schema YAML (no hardcodi
 - `REQUIRED_KEYS(ptype)` = `envelope.required` + `payloads.<ptype>.required`
 - Any key not in `ALLOWED_KEYS` → `EXIT_SCHEMA_VIOLATION`
 - Any key missing from `REQUIRED_KEYS` → `EXIT_SCHEMA_VIOLATION`
+
+
+---
+
+# File: 02_protocols/Work_Management_Framework_v0.1.md
+
+# Work Management Framework v0.1
+
+<!-- markdownlint-disable MD013 MD040 MD060 -->
+
+**Status**: Active
+**Version**: 0.1
+**Effective**: 2026-04-27
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
+
+---
+
+## Purpose
+
+Provides a lightweight repo-backed project management layer for COO-managed work. Uses existing repo surfaces to support intake, prioritisation, dispatch, review, and closure of work items without a PM app, dashboard, or runtime orchestration changes.
+
+---
+
+## Surfaces
+
+| Surface | Role |
+|---------|------|
+| GitHub issues | Intake and coordination bus |
+| `config/tasks/backlog.yaml` | Canonical queue state |
+| `docs/11_admin/BACKLOG.md` | Derived, view-only summary (non-canonical) |
+| `artifacts/workstreams.yaml` | Workstream taxonomy |
+| `docs/02_protocols/Project_Planning_Protocol_v1.0.md` | Planning protocol reference |
+| `execution_order.v1` | Dispatch authority |
+| Closure evidence | Completion proof |
+
+---
+
+## ID Model
+
+- WMF work items use `id: WI-YYYY-NNN` as the primary identifier.
+  - `YYYY` is the 4-digit calendar year.
+  - `NNN` is a 3-digit zero-padded sequence number within that year (e.g., `001`, `042`).
+  - Example: `WI-2026-001`.
+- IDs are minted at `TRIAGED` state, atomically with the backlog write.
+- Legacy COO tasks use `id: T-NNN` format and are not WMF-managed.
+- No separate `wi_id` field. The `id` field is the canonical WMF identifier.
+
+---
+
+## backlog.v1 Compatibility
+
+Until `backlog.v2` or a dedicated `WorkItemEntry` schema exists, WI-* records in
+`config/tasks/backlog.yaml` are stored as `backlog.v1 TaskEntry`-compatible records.
+They must include the existing `backlog.v1` required fields **in addition to** WMF fields:
+
+| Required legacy field | Allowed values |
+|-----------------------|----------------|
+| `id` | `WI-YYYY-NNN` |
+| `title` | non-empty string |
+| `priority` | `P0 \| P1 \| P2 \| P3` |
+| `risk` | `low \| med \| high` |
+| `status` | WMF state (see §State Machine) |
+| `task_type` | `build \| content \| hygiene` |
+| `objective_ref` | non-empty string |
+| `created_at` | ISO 8601 timestamp |
+| `scope_paths` | list (may be empty) |
+| `tags` | list (may be empty) |
+
+Do not omit required legacy fields or introduce hidden defaults. A WI item that passes
+the WMF validator must also be loadable by `runtime/orchestration/coo/backlog.py`
+without error.
+
+---
+
+## WMF Field Schema
+
+Fields specific to WMF work items (`id: WI-YYYY-NNN`):
+
+| Field | Required | Type | Notes |
+|-------|----------|------|-------|
+| `github_issue` | at `TRIAGED`+ | `int` | GitHub issue number |
+| `workstream` | always | `str` | Key from `artifacts/workstreams.yaml` |
+| `acceptance_criteria` | at `READY`/`DISPATCHED` | `list[str]` or `str` | Or use `acceptance_ref` |
+| `acceptance_ref` | at `READY`/`DISPATCHED` | `str` | Pointer to external AC doc; alternative to `acceptance_criteria` |
+| `plan_mode` | always | `none \| plan_lite \| formal` | |
+| `plan_path` | if `formal` | `str` | Required when `plan_mode=formal` (no exceptions) |
+| `plan_followup_required` | no | `bool` | `true` = plan deferred; P0 expedited path |
+| `followup_backlog_item` | if P0 expedited | `WI-YYYY-NNN` | Required before `CLOSED` if P0 expedited |
+| `closure_evidence` | at `CLOSED` | `list[{type,ref,note}]` | All three keys required per entry |
+
+`class` is explicitly not required at any stage.
+
+`acceptance_criteria` accepts:
+
+- A non-empty string.
+- A non-empty `list[str]` (all entries non-empty). **Preferred format.**
+
+---
+
+## State Machine
+
+Work items progress through the following states:
+
+| State | Meaning |
+|-------|---------|
+| `INTAKE` | Captured but not yet assessed |
+| `TRIAGED` | Assessed, ID minted, github_issue assigned |
+| `READY` | Acceptance criteria defined, ready to dispatch |
+| `DISPATCHED` | Assigned to an agent or executor |
+| `REVIEW` | Work complete, under review |
+| `CLOSED` | Accepted and closed; closure evidence recorded |
+| `BLOCKED` | Progress blocked; blocker documented in evidence |
+| `DEFERRED` | Intentionally deferred |
+| `REJECTED` | Rejected after assessment |
+| `DUPLICATE` | Duplicate of an existing item |
+| `SUPERSEDED` | Replaced by another item |
+
+### Legal Transitions
+
+```
+INTAKE       → TRIAGED | REJECTED | DUPLICATE
+TRIAGED      → READY | DEFERRED | REJECTED | BLOCKED
+READY        → DISPATCHED | BLOCKED | DEFERRED
+DISPATCHED   → REVIEW | BLOCKED
+REVIEW       → CLOSED | DISPATCHED  ← fixes-requested returns here
+CLOSED       → (terminal)
+BLOCKED      → READY | TRIAGED | DEFERRED
+DEFERRED     → TRIAGED | REJECTED
+REJECTED     → (terminal)
+DUPLICATE    → (terminal)
+SUPERSEDED   → (terminal)
+```
+
+`REVIEW` fixes-requested returns to `DISPATCHED` (not `READY`), as the executor
+must address the review findings before re-submitting.
+
+---
+
+## Plan Mode Rules
+
+Every WMF item must declare a `plan_mode`. Allowed values:
+
+| Value | Meaning |
+|-------|---------|
+| `none` | No plan required |
+| `plan_lite` | Lightweight inline plan |
+| `formal` | Formal plan document required |
+
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
 
 
 ---

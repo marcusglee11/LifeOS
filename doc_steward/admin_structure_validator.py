@@ -39,8 +39,6 @@ CANONICAL_OPTIONAL_FILES = {
     "TECH_DEBT_INVENTORY.md",
     # Repo-wide quality baseline summary (produced by quality audit passes)
     "QUALITY_AUDIT_BASELINE_v1.0.md",
-    # Canonical tracker reconciliation receipts (produced by WP1 reconciliation passes)
-    "RECONCILIATION_RECEIPT_2026-04-27_v1.md",
 }
 
 ALLOWED_ROOT_FILES = REQUIRED_FILES | CANONICAL_OPTIONAL_FILES
