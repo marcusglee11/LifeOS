@@ -58,6 +58,23 @@ This is a natural-language operational query about COO build dispatch and Codex 
 
 Downstream URL: https://github.com/marcusglee11/LifeOS/issues/69#issuecomment-4333405725
 
+Created UTC: 2026-04-28T08:04:13Z
+
+Downstream comment body excerpt:
+
+```text
+Issue #70 vertical-slice retrieval was run before touching this operationalisation issue:
+python3 tools/memory/retrieve.py --query "COO build dispatch Codex" --scope workflow --authority-floor observation --include-sensitive false --json
+
+Returned durable record on branch `build/memory-operational-effect-70`:
+- `memory/workflows/coo-ea-dispatch-codex-only.md`
+- `MEM-20260428-CODEX-EA-LANE`
+- receipt: `memory/receipts/rcp-20260428-codex-ea-lane.md`
+
+Actual behaviour after retrieval:
+- Keep this issue on `lane:codex`; use Codex as the COO-dispatched EA lane for implementation work.
+```
+
 Expected behaviour without retrieved memory:
 - Treat #69 as a generic repo implementation issue and risk routing to the current assistant/Claude/OpenClaw path by habit.
 
