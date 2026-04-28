@@ -96,7 +96,8 @@ jobs:
 
           if [ -f /tmp/nightly_order.yaml ]; then
             echo "has_task=true" >> "$GITHUB_OUTPUT"
-            echo "task_ref=$(python -c "import yaml; print(yaml.safe_load(open('/tmp/nightly_order.yaml'))['task_ref'])")" >> "$GITHUB_OUTPUT"
+            TASK_REF=$(python -c "import yaml; print(yaml.safe_load(open('/tmp/nightly_order.yaml'))['task_ref'])")
+            echo "task_ref=$TASK_REF" >> "$GITHUB_OUTPUT"
           else
             echo "has_task=false" >> "$GITHUB_OUTPUT"
             echo "::warning::No tasks available in inbox or queue"
@@ -122,7 +123,8 @@ jobs:
         if: steps.resolve.outputs.has_task == 'true' && inputs.dry_run != 'true'
         run: |
           set +e
-          python -m runtime.cli dispatch submit /tmp/nightly_order.yaml --json > /tmp/dispatch_result.json 2>/tmp/dispatch_stderr.log
+          python -m runtime.cli dispatch submit /tmp/nightly_order.yaml --json \
+            > /tmp/dispatch_result.json 2>/tmp/dispatch_stderr.log
           EXIT_CODE=$?
           set -e
 
@@ -135,8 +137,14 @@ jobs:
           fi
 
           # Extract outcome for issue labeling
-          OUTCOME=$(python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('outcome','UNKNOWN'))" 2>/dev/null || echo "UNKNOWN")
-          REASON=$(python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('reason',''))" 2>/dev/null || echo "")
+          OUTCOME=$(
+            python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('outcome','UNKNOWN'))" \
+              2>/dev/null || echo "UNKNOWN"
+          )
+          REASON=$(
+            python -c "import json; d=json.load(open('/tmp/dispatch_result.json')); print(d.get('reason',''))" \
+              2>/dev/null || echo ""
+          )
           echo "dispatch_outcome=$OUTCOME" >> "$GITHUB_OUTPUT"
           echo "dispatch_reason=$REASON" >> "$GITHUB_OUTPUT"
 
