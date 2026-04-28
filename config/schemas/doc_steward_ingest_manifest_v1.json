@@ -54,12 +54,7 @@
     },
     "binding_class": {
       "type": "string",
-      "enum": [
-        "FOUNDATIONAL",
-        "GOVERNANCE",
-        "PROTOCOL",
-        "RUNTIME"
-      ],
+      "enum": ["FOUNDATIONAL", "GOVERNANCE", "PROTOCOL", "RUNTIME"],
       "description": "Pulled from docs/01_governance/ARTEFACT_INDEX.json meta.binding_classes."
     },
     "canonicality": {
@@ -108,10 +103,7 @@
     },
     "commit": {
       "type": "object",
-      "required": [
-        "enabled",
-        "message"
-      ],
+      "required": ["enabled", "message"],
       "additionalProperties": false,
       "properties": {
         "enabled": {
