@@ -6633,141 +6633,96 @@ The following parameters are derived from the canonical schema YAML (no hardcodi
 **Status**: Active
 **Version**: 0.1
 **Effective**: 2026-04-27
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0 → active COO execution order
 
 ---
 
-## Purpose
+## 1. Purpose
 
-Provides a lightweight repo-backed project management layer for COO-managed work. Uses existing repo surfaces to support intake, prioritisation, dispatch, review, and closure of work items without a PM app, dashboard, or runtime orchestration changes.
+The Work Management Framework (WMF) is the lightweight repo-backed project-management layer for COO-managed LifeOS work. It uses existing repository surfaces to support intake, prioritisation, dispatch, review, and closure without introducing a PM application or runtime orchestration changes.
 
----
-
-## Surfaces
-
-| Surface | Role |
-|---------|------|
-| GitHub issues | Intake and coordination bus |
-| `config/tasks/backlog.yaml` | Canonical queue state |
-| `docs/11_admin/BACKLOG.md` | Derived, view-only summary (non-canonical) |
-| `artifacts/workstreams.yaml` | Workstream taxonomy |
-| `docs/02_protocols/Project_Planning_Protocol_v1.0.md` | Planning protocol reference |
-| `execution_order.v1` | Dispatch authority |
-| Closure evidence | Completion proof |
+WMF v0.1 answers one operational question: what is the canonical state of each COO-managed work item, and what evidence is required to move it forward?
 
 ---
 
-## ID Model
+## 2. Non-goals
+
+WMF v0.1 does **not** implement:
+
+- PM dashboards or application UI.
+- GitHub API reconciliation.
+- Automated GitHub issue creation or closing.
+- WIP limits or capacity planning.
+- Full transition-matrix enforcement.
+- `BACKLOG.md` auto-generation.
+- Parallel COO locking or transactional ID services.
+- Runtime execution behavior changes.
+- Broad architecture normalization.
+
+---
+
+## 3. Operating model
+
+### 3.1 Role boundaries
+
+| Role | WMF responsibility |
+|------|--------------------|
+| CEO | Approves kickoff, answers judgment blockers, accepts or rejects final result |
+| Active COO | Sole operational coordinator; owns dispatch, scope control, backlog writes, evidence review, and escalation |
+| EA/build agent | Makes repo edits, runs validator/tests, and reports evidence |
+| Reviewer | Reviews PR/diff/evidence and returns accept or fixes-requested |
+| Standby COO | May review or advise; must not write operational state unless explicitly promoted |
+
+### 3.2 Active-COO substrate semantics
+
+Only the active COO writes WMF operational state. Standby COOs, reviewers, and build agents may propose changes, but state transitions are not canonical until the active COO records them in `config/tasks/backlog.yaml`.
+
+Current v0.1 limitation: WMF assumes one active writer. It does not provide concurrent ID minting, file locking, or transaction semantics. If parallel operational writers are introduced, v0.2 must add a locked or transactional mint/write mechanism before more than one writer can mutate WMF state.
+
+---
+
+## 4. Authority matrix
+
+| Surface | Role | Authority |
+|---------|------|-----------|
+| GitHub issues | Intake and coordination bus | Non-canonical coordination; useful for discussion, acceptance criteria, PR links, and external visibility |
+| `config/tasks/backlog.yaml` | Canonical queue state | Authoritative for work-item status, priority, workstream, dispatch readiness, blockers, and closure evidence |
+| `docs/11_admin/BACKLOG.md` | Derived, view-only human summary | Non-canonical; must not contain unique work-item state |
+| `artifacts/workstreams.yaml` | Workstream taxonomy | Authoritative source for valid `workstream` values |
+| `docs/02_protocols/Project_Planning_Protocol_v1.0.md` | Formal planning protocol | Authoritative for formal plan content and review expectations |
+| `execution_order.v1` | Dispatch authority | Authorizes an executor to perform bounded work |
+| `closure_evidence` | Completion proof | Required evidence bundle for `CLOSED` work |
+
+Conflict rule: if GitHub issues, `BACKLOG.md`, or status summaries disagree with `config/tasks/backlog.yaml`, `backlog.yaml` wins for WMF queue state.
+
+---
+
+## 5. ID model
 
 - WMF work items use `id: WI-YYYY-NNN` as the primary identifier.
-  - `YYYY` is the 4-digit calendar year.
-  - `NNN` is a 3-digit zero-padded sequence number within that year (e.g., `001`, `042`).
+  - `YYYY` is the four-digit calendar year.
+  - `NNN` is a three-digit zero-padded sequence number within that year.
   - Example: `WI-2026-001`.
-- IDs are minted at `TRIAGED` state, atomically with the backlog write.
-- Legacy COO tasks use `id: T-NNN` format and are not WMF-managed.
-- No separate `wi_id` field. The `id` field is the canonical WMF identifier.
+- IDs are minted at `TRIAGED`, not `INTAKE`.
+- ID minting is valid only when the new ID and item state are written atomically to `config/tasks/backlog.yaml` in the same operational update.
+- Legacy COO tasks use `id: T-NNN`; they coexist in `config/tasks/backlog.yaml` and are not WMF-managed.
+- No separate `wi_id` field exists. The `id` field is canonical.
 
 ---
 
-## backlog.v1 Compatibility
+## 6. State machine
 
-Until `backlog.v2` or a dedicated `WorkItemEntry` schema exists, WI-* records in
-`config/tasks/backlog.yaml` are stored as `backlog.v1 TaskEntry`-compatible records.
-They must include the existing `backlog.v1` required fields **in addition to** WMF fields:
+### 6.1 Active v0.1 states
 
-| Required legacy field | Allowed values |
-|-----------------------|----------------|
-| `id` | `WI-YYYY-NNN` |
-| `title` | non-empty string |
-| `priority` | `P0 \| P1 \| P2 \| P3` |
-| `risk` | `low \| med \| high` |
-| `status` | WMF state (see §State Machine) |
-| `task_type` | `build \| content \| hygiene` |
-| `objective_ref` | non-empty string |
-| `created_at` | ISO 8601 timestamp |
-| `scope_paths` | list (may be empty) |
-| `tags` | list (may be empty) |
-
-Do not omit required legacy fields or introduce hidden defaults. A WI item that passes
-the WMF validator must also be loadable by `runtime/orchestration/coo/backlog.py`
-without error.
-
----
-
-## WMF Field Schema
-
-Fields specific to WMF work items (`id: WI-YYYY-NNN`):
-
-| Field | Required | Type | Notes |
-|-------|----------|------|-------|
-| `github_issue` | at `TRIAGED`+ | `int` | GitHub issue number |
-| `workstream` | always | `str` | Key from `artifacts/workstreams.yaml` |
-| `acceptance_criteria` | at `READY`/`DISPATCHED` | `list[str]` or `str` | Or use `acceptance_ref` |
-| `acceptance_ref` | at `READY`/`DISPATCHED` | `str` | Pointer to external AC doc; alternative to `acceptance_criteria` |
-| `plan_mode` | always | `none \| plan_lite \| formal` | |
-| `plan_path` | if `formal` | `str` | Required when `plan_mode=formal` (no exceptions) |
-| `plan_followup_required` | no | `bool` | `true` = plan deferred; P0 expedited path |
-| `followup_backlog_item` | if P0 expedited | `WI-YYYY-NNN` | Required before `CLOSED` if P0 expedited |
-| `closure_evidence` | at `CLOSED` | `list[{type,ref,note}]` | All three keys required per entry |
-
-`class` is explicitly not required at any stage.
-
-`acceptance_criteria` accepts:
-
-- A non-empty string.
-- A non-empty `list[str]` (all entries non-empty). **Preferred format.**
-
----
-
-## State Machine
-
-Work items progress through the following states:
-
-| State | Meaning |
-|-------|---------|
-| `INTAKE` | Captured but not yet assessed |
-| `TRIAGED` | Assessed, ID minted, github_issue assigned |
-| `READY` | Acceptance criteria defined, ready to dispatch |
-| `DISPATCHED` | Assigned to an agent or executor |
-| `REVIEW` | Work complete, under review |
-| `CLOSED` | Accepted and closed; closure evidence recorded |
-| `BLOCKED` | Progress blocked; blocker documented in evidence |
-| `DEFERRED` | Intentionally deferred |
-| `REJECTED` | Rejected after assessment |
-| `DUPLICATE` | Duplicate of an existing item |
-| `SUPERSEDED` | Replaced by another item |
-
-### Legal Transitions
-
-```
-INTAKE       → TRIAGED | REJECTED | DUPLICATE
-TRIAGED      → READY | DEFERRED | REJECTED | BLOCKED
-READY        → DISPATCHED | BLOCKED | DEFERRED
-DISPATCHED   → REVIEW | BLOCKED
-REVIEW       → CLOSED | DISPATCHED  ← fixes-requested returns here
-CLOSED       → (terminal)
-BLOCKED      → READY | TRIAGED | DEFERRED
-DEFERRED     → TRIAGED | REJECTED
-REJECTED     → (terminal)
-DUPLICATE    → (terminal)
-SUPERSEDED   → (terminal)
-```
-
-`REVIEW` fixes-requested returns to `DISPATCHED` (not `READY`), as the executor
-must address the review findings before re-submitting.
-
----
-
-## Plan Mode Rules
-
-Every WMF item must declare a `plan_mode`. Allowed values:
-
-| Value | Meaning |
-|-------|---------|
-| `none` | No plan required |
-| `plan_lite` | Lightweight inline plan |
-| `formal` | Formal plan document required |
-
+| State | Meaning | Entry requirement | Exit requirement |
+|-------|---------|-------------------|------------------|
+| `INTAKE` | Captured but not yet assessed | Issue, note, or request exists | Triage decision |
+| `TRIAGED` | Assessed and accepted for tracking | `WI-YYYY-NNN` minted and `github_issue` recorded | Priority/workstream/next action clear |
+| `READY` | Ready to dispatch | Acceptance criteria or acceptance reference exists | Executor selected or blocker found |
+| `DISPATCHED` | Assigned to an executor | Dispatch authority exists, usually `execution_order.v1` | Work complete, blocked, or deferred |
+| `REVIEW` | Work submitted for review | Evidence or PR exists | Accepted/closed or fixes requested |
+| `CLOSED` | Accepted and complete | Closure evidence recorded | Terminal |
+| `BLOCKED` | Progress is blocked | `blocked_reason` or equivalent evidence exists | Unblocked, deferred, or re-triaged |
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.

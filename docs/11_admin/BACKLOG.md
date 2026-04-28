@@ -2,7 +2,10 @@
 
 <!-- DERIVED VIEW: This file is a human-readable summary of config/tasks/backlog.yaml (canonical).
      Do not treat this file as authoritative. Canonical queue state lives in config/tasks/backlog.yaml.
-     Work item state transitions must be recorded in backlog.yaml, not here. -->
+     Work item status, priority, workstream assignment, dispatch readiness, and closure evidence
+     must be recorded in backlog.yaml, not here.
+     No canonical work-item state may exist only in docs/11_admin/BACKLOG.md.
+     Phase 1 target: generate this file from backlog.yaml or remove it if the generated view is not useful. -->
 
 <!-- markdownlint-disable MD012 MD013 -->
 
