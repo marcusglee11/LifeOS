@@ -933,6 +933,7 @@ def test_rollback_cleans_partial_mutation_dest_only(tmp_path):
 
     # Corrupt the result snapshot so index restore will fail
     from dataclasses import replace
+
     broken_result = replace(
         result,
         pre_ingest_index_path="nonexistent/path/INDEX.json",

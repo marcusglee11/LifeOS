@@ -15,17 +15,17 @@ when run as a suite due to cumulative fixture cleanup overhead.
 See W0-T05 for tracking.
 """
 
+import importlib.util
 import json
 import os
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
-import importlib.util
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+
 
 # Skip entire module on WSL due to git worktree performance issues
 # Individual tests work, but full suite hangs due to cleanup overhead on /mnt/c/ paths
@@ -37,14 +37,21 @@ def _is_wsl():
     except (OSError, IOError):
         return False
 
+
 pytestmark = pytest.mark.skipif(
-    _is_wsl(),
-    reason="WSL git worktree operations too slow for full suite (W0-T05)"
+    _is_wsl(), reason="WSL git worktree operations too slow for full suite (W0-T05)"
 )
 
 PYTHON = sys.executable
+CORPUS_PRINT_COMMAND = 'command: ["python3", "-c", "print(\'corpus generated\')"]'
+DOC_WRITE_COMMAND = (
+    'command: ["python3", "-c", '
+    "\"import os; os.makedirs('docs', exist_ok=True); "
+    "open('docs/test.md', 'w').write('test')\"]"
+)
 
 # --- Test Fixtures ---
+
 
 @pytest.fixture
 def repo_root() -> Path:
@@ -61,29 +68,29 @@ def repo_root() -> Path:
 def worktree(repo_root: Path, tmp_path: Path):
     """
     Create a git worktree for isolated testing (H1).
-    
+
     Copies untracked/modified steward runner files to worktree so tests
     work before the runner is committed. Commits them so worktree is clean.
-    
+
     Yields the worktree path and cleans up after.
     """
     worktree_path = tmp_path / "test_worktree"
     branch_name = f"test-steward-{os.getpid()}"
-    
+
     # Create orphan branch for isolation
     subprocess.run(
         ["git", "branch", branch_name, "HEAD"],
         cwd=repo_root,
         capture_output=True,
     )
-    
+
     # Create worktree
     subprocess.run(
         ["git", "worktree", "add", str(worktree_path), branch_name],
         cwd=repo_root,
         capture_output=True,
     )
-    
+
     # Copy untracked/modified files needed for running tests
     # These files may not be committed yet during development
     files_to_copy = [
@@ -91,7 +98,7 @@ def worktree(repo_root: Path, tmp_path: Path):
         "config/steward_runner.yaml",
         "doc_steward/cli.py",
     ]
-    
+
     copied_any = False
     for rel_path in files_to_copy:
         src = repo_root / rel_path
@@ -100,7 +107,7 @@ def worktree(repo_root: Path, tmp_path: Path):
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dst)
             copied_any = True
-    
+
     # Commit copied files so worktree starts clean
     if copied_any:
         subprocess.run(
@@ -113,9 +120,9 @@ def worktree(repo_root: Path, tmp_path: Path):
             cwd=worktree_path,
             capture_output=True,
         )
-    
+
     yield worktree_path
-    
+
     # Cleanup
     subprocess.run(
         ["git", "worktree", "remove", "--force", str(worktree_path)],
@@ -134,7 +141,7 @@ def test_config(worktree: Path) -> Path:
     """Create a minimal test config in the worktree and commit it."""
     config_dir = worktree / "config"
     config_dir.mkdir(exist_ok=True)
-    
+
     config_content = """
 repo_root: "."
 
@@ -164,10 +171,10 @@ determinism:
   run_id_required: true
   timestamps: false
 """
-    
+
     config_path = config_dir / "test_runner.yaml"
     config_path.write_text(config_content)
-    
+
     # Commit the config so worktree starts clean
     subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
     subprocess.run(
@@ -175,7 +182,7 @@ determinism:
         cwd=worktree,
         capture_output=True,
     )
-    
+
     return config_path
 
 
@@ -190,33 +197,33 @@ def run_steward(
 ) -> tuple[int, Path | None]:
     """
     Run the steward runner in the worktree.
-    
+
     Returns (exit_code, log_file_path or None).
     """
     runner_path = worktree / "scripts" / "steward_runner.py"
-    
+
     cmd = [PYTHON, str(runner_path)]
     cmd.extend(["--config", str(config_path.relative_to(worktree))])
-    
+
     if run_id:
         cmd.extend(["--run-id", run_id])
-    
+
     if dry_run:
         cmd.append("--dry-run")
-    
+
     if no_commit:
         cmd.append("--no-commit")
-        
+
     if commit:
         cmd.append("--commit")
-    
+
     result = subprocess.run(
         cmd,
         cwd=worktree,
         capture_output=True,
         text=True,
     )
-    
+
     # Find log file
     log_dir = worktree / "logs" / "steward_runner"
     log_file = None
@@ -224,7 +231,7 @@ def run_steward(
         expected_log = log_dir / f"{run_id}.jsonl"
         if expected_log.exists():
             log_file = expected_log
-    
+
     return result.returncode, log_file
 
 
@@ -247,44 +254,44 @@ def find_event(events: list[dict], step: str, status: str) -> dict | None:
 
 # --- Acceptance Tests ---
 
+
 class TestAT01MissingRunId:
     """AT-01: Missing run-id fails closed."""
-    
+
     def test_missing_run_id_fails(self, worktree: Path, test_config: Path):
         """Invoke without --run-id → exit != 0."""
         runner_path = worktree / "scripts" / "steward_runner.py"
-        
+
         result = subprocess.run(
             [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree))],
             cwd=worktree,
             capture_output=True,
             text=True,
         )
-        
+
         assert result.returncode != 0, "Should fail without --run-id"
         assert "required" in result.stderr.lower() or "run-id" in result.stderr.lower()
 
 
 class TestAT02DirtyRepoStart:
     """AT-02: Dirty repo start fails when required."""
-    
+
     def test_dirty_repo_fails_with_require_clean(self, worktree: Path, test_config: Path):
         """With uncommitted change and require_clean_start=true → exit != 0."""
         # Update config to require clean start
         config_content = test_config.read_text().replace(
-            "require_clean_start: false",
-            "require_clean_start: true"
+            "require_clean_start: false", "require_clean_start: true"
         )
         test_config.write_text(config_content)
-        
+
         # Create uncommitted file
         dirty_file = worktree / "dirty_file.txt"
         dirty_file.write_text("uncommitted content")
-        
+
         exit_code, log_file = run_steward(worktree, test_config, run_id="at02-test")
-        
+
         assert exit_code != 0, "Should fail with dirty repo"
-        
+
         if log_file:
             events = read_log_events(log_file)
             fail_event = find_event(events, "preflight", "fail")
@@ -294,26 +301,26 @@ class TestAT02DirtyRepoStart:
 
 class TestAT03TestsFailureBlocksDownstream:
     """AT-03: Tests failure blocks downstream."""
-    
+
     def test_tests_failure_blocks_validators(self, worktree: Path, test_config: Path):
         """Make tests return non-zero → validators/corpus/commit never run."""
         # Update config with failing tests
         config_content = test_config.read_text().replace(
             'command: ["python3", "-c", "print(\'tests pass\')"]',
-            'command: ["python3", "-c", "import sys; sys.exit(1)"]'
+            'command: ["python3", "-c", "import sys; sys.exit(1)"]',
         )
         test_config.write_text(config_content)
-        
+
         exit_code, log_file = run_steward(worktree, test_config, run_id="at03-test")
-        
+
         assert exit_code != 0, "Should fail when tests fail"
-        
+
         if log_file:
             events = read_log_events(log_file)
             # Should have tests.fail
             tests_fail = find_event(events, "tests", "fail")
             assert tests_fail is not None, "Should have tests.fail event"
-            
+
             # Should NOT have validators or corpus events
             for event in events:
                 assert "validator" not in event.get("step", ""), "Validators should not run"
@@ -322,26 +329,26 @@ class TestAT03TestsFailureBlocksDownstream:
 
 class TestAT04ValidatorFailureBlocksCorpus:
     """AT-04: Validator failure blocks corpus."""
-    
+
     def test_validator_failure_blocks_corpus(self, worktree: Path, test_config: Path):
         """Tests pass, validator returns non-zero → corpus not executed."""
         # Update config with failing validator
         config_content = test_config.read_text().replace(
             "validators:\n  commands: []",
-            'validators:\n  commands:\n    - ["python3", "-c", "import sys; sys.exit(1)"]'
+            'validators:\n  commands:\n    - ["python3", "-c", "import sys; sys.exit(1)"]',
         )
         test_config.write_text(config_content)
-        
+
         exit_code, log_file = run_steward(worktree, test_config, run_id="at04-test")
-        
+
         assert exit_code != 0, "Should fail when validator fails"
-        
+
         if log_file:
             events = read_log_events(log_file)
             # Should have validator fail
             validator_fail = find_event(events, "validator_0", "fail")
             assert validator_fail is not None, "Should have validator.fail event"
-            
+
             # Should NOT have corpus event
             for event in events:
                 assert event.get("step") != "corpus", "Corpus should not run"
@@ -349,20 +356,19 @@ class TestAT04ValidatorFailureBlocksCorpus:
 
 class TestAT05CorpusExpectedOutputsEnforced:
     """AT-05: Corpus expected outputs enforced."""
-    
+
     def test_missing_corpus_output_fails(self, worktree: Path, test_config: Path):
         """Corpus exits 0 but any outputs_expected missing → fail."""
         # Update config to expect an output that won't be created
         config_content = test_config.read_text().replace(
-            "outputs_expected: []",
-            'outputs_expected: ["docs/nonexistent.md"]'
+            "outputs_expected: []", 'outputs_expected: ["docs/nonexistent.md"]'
         )
         test_config.write_text(config_content)
-        
+
         exit_code, log_file = run_steward(worktree, test_config, run_id="at05-test")
-        
+
         assert exit_code != 0, "Should fail when expected output missing"
-        
+
         if log_file:
             events = read_log_events(log_file)
             corpus_fail = find_event(events, "corpus", "fail")
@@ -372,13 +378,13 @@ class TestAT05CorpusExpectedOutputsEnforced:
 
 class TestAT06NoChangeNoCommit:
     """AT-06: No change = no commit."""
-    
+
     def test_no_change_exits_success(self, worktree: Path, test_config: Path):
         """Corpus runs, no changes → exit 0; no commit."""
         exit_code, log_file = run_steward(worktree, test_config, run_id="at06-test")
-        
+
         assert exit_code == 0, "Should succeed with no changes"
-        
+
         if log_file:
             events = read_log_events(log_file)
             no_change = find_event(events, "change_detect", "no_change")
@@ -387,25 +393,23 @@ class TestAT06NoChangeNoCommit:
 
 class TestAT07ChangeWithinAllowedPathsCommits:
     """AT-07: Change within allowed paths commits once."""
-    
+
     def test_allowed_change_commits(self, worktree: Path, test_config: Path):
         """Corpus creates diff only within commit_paths → exactly one commit."""
         # Enable commit and create a change in allowed path
         config_content = test_config.read_text().replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
+            "commit_enabled: false", "commit_enabled: true"
         )
         # Make corpus create a file in docs/
         config_content = config_content.replace(
             'command: ["python3", "-c", "print(\'corpus generated\')"]',
-            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            DOC_WRITE_COMMAND,
         )
         config_content = config_content.replace(
-            "commit_paths: [\"docs/\"]",
-            'commit_paths: ["docs/"]'
+            'commit_paths: ["docs/"]', 'commit_paths: ["docs/"]'
         )
         test_config.write_text(config_content)
-        
+
         # Commit the config change so only docs/ changes are uncommitted
         subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
         subprocess.run(
@@ -413,29 +417,29 @@ class TestAT07ChangeWithinAllowedPathsCommits:
             cwd=worktree,
             capture_output=True,
         )
-        
+
         # Ensure docs dir exists
         (worktree / "docs").mkdir(exist_ok=True)
-        
+
         head_before = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             cwd=worktree,
             capture_output=True,
             text=True,
         ).stdout.strip()
-        
+
         exit_code, log_file = run_steward(worktree, test_config, run_id="at07-test", commit=True)
-        
+
         head_after = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             cwd=worktree,
             capture_output=True,
             text=True,
         ).stdout.strip()
-        
+
         assert exit_code == 0, "Should succeed with allowed changes"
         assert head_after != head_before, "HEAD should change after commit"
-        
+
         if log_file:
             events = read_log_events(log_file)
             commit_pass = find_event(events, "commit", "pass")
@@ -444,42 +448,39 @@ class TestAT07ChangeWithinAllowedPathsCommits:
 
 class TestAT08ChangeOutsideAllowedPathsFails:
     """AT-08: Change outside allowed paths fails closed."""
-    
+
     def test_disallowed_change_fails(self, worktree: Path, test_config: Path):
         """Diff touches any path outside commit_paths → exit != 0; no commit."""
         # Enable commit but create change outside allowed path
         config_content = test_config.read_text().replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
+            "commit_enabled: false", "commit_enabled: true"
         )
         # Make corpus create a file outside docs/
         config_content = config_content.replace(
             'command: ["python3", "-c", "print(\'corpus generated\')"]',
-            'command: ["python3", "-c", "open(\'outside.txt\', \'w\').write(\'disallowed\')"]'
+            "command: [\"python3\", \"-c\", \"open('outside.txt', 'w').write('disallowed')\"]",
         )
         test_config.write_text(config_content)
-        
+
         head_before = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             cwd=worktree,
             capture_output=True,
             text=True,
         ).stdout.strip()
-        
 
-        
         exit_code, log_file = run_steward(worktree, test_config, run_id="at08-test", commit=True)
-        
+
         head_after = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             cwd=worktree,
             capture_output=True,
             text=True,
         ).stdout.strip()
-        
+
         assert exit_code != 0, "Should fail with disallowed changes"
         assert head_after == head_before, "HEAD should not change"
-        
+
         if log_file:
             events = read_log_events(log_file)
             commit_fail = find_event(events, "commit", "fail")
@@ -489,42 +490,41 @@ class TestAT08ChangeOutsideAllowedPathsFails:
 
 class TestAT09DryRunNeverCommits:
     """AT-09: Dry run never commits."""
-    
+
     def test_dry_run_skips_commit(self, worktree: Path, test_config: Path):
         """With allowable diff and --dry-run → exit 0; commit skipped."""
         # Enable commit and create allowed change
         config_content = test_config.read_text().replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
+            "commit_enabled: false", "commit_enabled: true"
         )
         config_content = config_content.replace(
             'command: ["python3", "-c", "print(\'corpus generated\')"]',
-            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            DOC_WRITE_COMMAND,
         )
         test_config.write_text(config_content)
-        
+
         (worktree / "docs").mkdir(exist_ok=True)
-        
+
         head_before = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             cwd=worktree,
             capture_output=True,
             text=True,
         ).stdout.strip()
-        
+
         # Run with --dry-run
         exit_code, log_file = run_steward(worktree, test_config, run_id="at09-test", dry_run=True)
-        
+
         head_after = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             cwd=worktree,
             capture_output=True,
             text=True,
         ).stdout.strip()
-        
+
         assert exit_code == 0, "Should succeed with dry-run"
         assert head_after == head_before, "HEAD should not change with dry-run"
-        
+
         if log_file:
             events = read_log_events(log_file)
             commit_skipped = find_event(events, "commit", "skipped")
@@ -534,43 +534,42 @@ class TestAT09DryRunNeverCommits:
 
 class TestAT10LogDeterminism:
     """AT-10: Log determinism."""
-    
+
     def test_logs_are_deterministic(self, worktree: Path, test_config: Path):
         """Same repo state + same run_id → byte-identical JSONL."""
         run_id = "at10-determinism"
-        
+
         # First run
         exit_code1, log_file1 = run_steward(worktree, test_config, run_id=run_id)
         assert exit_code1 == 0
         assert log_file1 is not None
         content1 = log_file1.read_text()
-        
+
         # Delete log for second run
         log_file1.unlink()
-        
+
         # Second run with same state and run_id
         exit_code2, log_file2 = run_steward(worktree, test_config, run_id=run_id)
         assert exit_code2 == 0
         assert log_file2 is not None
         content2 = log_file2.read_text()
-        
+
         # H2: byte-identical
         assert content1 == content2, "Logs should be byte-identical for same state/run_id"
 
 
 class TestAT11TestScopeEnforcement:
     """AT-11: Test scope enforcement (P0-1)."""
-    
+
     def test_tests_argv_includes_paths(self, worktree: Path, test_config: Path):
         """tests.paths must appear in the tests step argv."""
         # Update config to have specific test paths
         config_content = test_config.read_text()
         config_content = config_content.replace(
-            "paths: []",
-            'paths: ["path_a", "path_b", "path_c"]'
+            "paths: []", 'paths: ["path_a", "path_b", "path_c"]'
         )
         test_config.write_text(config_content)
-        
+
         # Commit config change
         subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
         subprocess.run(
@@ -578,43 +577,46 @@ class TestAT11TestScopeEnforcement:
             cwd=worktree,
             capture_output=True,
         )
-        
+
         exit_code, log_file = run_steward(worktree, test_config, run_id="at11-test")
-        
+
         # Test passes or fails, but we need to check the argv
         assert log_file is not None, "Should have log file"
-        
+
         events = read_log_events(log_file)
-        
+
         # Find the tests command event
         tests_event = None
         for event in events:
             if event.get("step") == "tests" and event.get("event") == "command":
                 tests_event = event
                 break
-        
+
         assert tests_event is not None, "Should have tests command event"
-        
+
         argv = tests_event.get("argv", [])
-        
+
         # Assert all paths are in argv in order
         assert "path_a" in argv, "path_a should be in argv"
         assert "path_b" in argv, "path_b should be in argv"
         assert "path_c" in argv, "path_c should be in argv"
-        
+
         # Assert paths appear after the command part
         path_a_idx = argv.index("path_a")
         path_b_idx = argv.index("path_b")
         path_c_idx = argv.index("path_c")
-        
+
         assert path_a_idx < path_b_idx < path_c_idx, "Paths should appear in config order"
 
 
 class TestAT12AllowlistNormalization:
     """AT-12: Allowlist normalization (bare names → directories)."""
-    
+
     @pytest.mark.xfail(
-        reason="Waived: governance/mission-registry-v0.1 — steward runner repair tracked separately. Remove when AT-12 is fixed.",
+        reason=(
+            "Waived: governance/mission-registry-v0.1 — steward runner repair "
+            "tracked separately. Remove when AT-12 is fixed."
+        ),
         strict=True,
     )
     def test_bare_name_normalized_to_directory(self, worktree: Path, test_config: Path):
@@ -623,18 +625,15 @@ class TestAT12AllowlistNormalization:
         config_content = test_config.read_text()
         config_content = config_content.replace(
             'commit_paths: ["docs/"]',
-            'commit_paths: ["docs"]'  # No trailing slash
+            'commit_paths: ["docs"]',  # No trailing slash
         )
-        config_content = config_content.replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
-        )
+        config_content = config_content.replace("commit_enabled: false", "commit_enabled: true")
         config_content = config_content.replace(
             'command: ["python3", "-c", "print(\'corpus generated\')"]',
-            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            DOC_WRITE_COMMAND,
         )
         test_config.write_text(config_content)
-        
+
         # Commit config changes
         subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
         subprocess.run(
@@ -642,18 +641,18 @@ class TestAT12AllowlistNormalization:
             cwd=worktree,
             capture_output=True,
         )
-        
+
         (worktree / "docs").mkdir(exist_ok=True)
-        
+
         exit_code, log_file = run_steward(worktree, test_config, run_id="at12-test")
-        
+
         assert exit_code == 0, "Should succeed with bare name normalized"
         assert log_file is not None
-        
+
         events = read_log_events(log_file)
         commit_event = find_event(events, "commit", "pass")
         assert commit_event is not None, "Should have commit.pass event"
-        
+
         # Normalized paths should have trailing /
         commit_paths = commit_event.get("commit_paths", [])
         assert "docs/" in commit_paths, "Bare name 'docs' should normalize to 'docs/'"
@@ -661,49 +660,52 @@ class TestAT12AllowlistNormalization:
 
 class TestAT13FailClosedUnsafePaths:
     """AT-13: Fail-closed on unsafe commit paths."""
-    
-    @pytest.mark.parametrize("unsafe_path,expected_error", [
-        ("../docs/", "path_traversal"),
-        ("docs/../other/", "path_traversal"),
-        ("docs/*.md", "glob_pattern"),
-        ("docs/?.md", "glob_pattern"),
-        ("C:/temp/", "absolute_path_windows"),
-        ("C:\\temp\\", "absolute_path_windows"),
-        ("/absolute/path/", "absolute_path_unix"),
-        ("/absolute/path/", "absolute_path_unix"),
-        ("//server/share/", "absolute_path_unc"),
-        ("docs%2Ffolder", "url_encoded_chars"),  # P2-B
-    ])
-    def test_unsafe_path_fails(self, worktree: Path, test_config: Path, unsafe_path: str, expected_error: str):
+
+    @pytest.mark.parametrize(
+        "unsafe_path,expected_error",
+        [
+            ("../docs/", "path_traversal"),
+            ("docs/../other/", "path_traversal"),
+            ("docs/*.md", "glob_pattern"),
+            ("docs/?.md", "glob_pattern"),
+            ("C:/temp/", "absolute_path_windows"),
+            ("C:\\temp\\", "absolute_path_windows"),
+            ("/absolute/path/", "absolute_path_unix"),
+            ("/absolute/path/", "absolute_path_unix"),
+            ("//server/share/", "absolute_path_unc"),
+            ("docs%2Ffolder", "url_encoded_chars"),  # P2-B
+        ],
+    )
+    def test_unsafe_path_fails(
+        self, worktree: Path, test_config: Path, unsafe_path: str, expected_error: str
+    ):
         """Unsafe paths fail closed with clear error reason."""
         # Update config with unsafe path
         config_content = test_config.read_text()
         # Escape for YAML
         escaped_path = unsafe_path.replace("\\", "\\\\")
         config_content = config_content.replace(
-            'commit_paths: ["docs/"]',
-            f'commit_paths: ["{escaped_path}"]'
+            'commit_paths: ["docs/"]', f'commit_paths: ["{escaped_path}"]'
         )
-        config_content = config_content.replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
-        )
+        config_content = config_content.replace("commit_enabled: false", "commit_enabled: true")
         # Create a change so commit is attempted
         config_content = config_content.replace(
             'command: ["python3", "-c", "print(\'corpus generated\')"]',
-            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            DOC_WRITE_COMMAND,
         )
         test_config.write_text(config_content)
-        
+
         (worktree / "docs").mkdir(exist_ok=True)
-        
+
         (worktree / "docs").mkdir(exist_ok=True)
-        
-        exit_code, log_file = run_steward(worktree, test_config, run_id=f"at13-{expected_error}", commit=True)
-        
+
+        exit_code, log_file = run_steward(
+            worktree, test_config, run_id=f"at13-{expected_error}", commit=True
+        )
+
         assert exit_code != 0, f"Should fail with unsafe path: {unsafe_path}"
         assert log_file is not None
-        
+
         events = read_log_events(log_file)
         commit_fail = find_event(events, "commit", "fail")
         assert commit_fail is not None, "Should have commit.fail event"
@@ -717,7 +719,7 @@ class TestAT14DirtyDuringRun:
     def test_dirty_during_run_rejected(self, worktree: Path, test_config: Path):
         """
         Simulate race condition where repo becomes dirty between change_detect and commit.
-        
+
         Since existing tests use subprocess which makes patching hard, this test
         dynamically loads the runner module and tests run_commit directly.
         """
@@ -726,45 +728,46 @@ class TestAT14DirtyDuringRun:
         spec = importlib.util.spec_from_file_location("steward_runner", runner_path)
         runner_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(runner_module)
-        
+
         # Setup mocks
         logger = MagicMock()
         config = {"git": {"commit_enabled": True, "commit_paths": ["docs/"]}}
         repo_root = worktree
         run_id = "at14-test"
-        
+
         # Initial changed files (detected by change_detect step)
         initial_changes = ["docs/valid_change.md"]
-        
+
         # Mock get_changed_files to return new dirty file on second call (inside run_commit)
         # First call is explicitly by our test (simulating change_detect)
         # Second call is inside run_commit -> triggers race condition check
-        with patch.object(runner_module, 'get_changed_files') as mock_get_changed:
+        with patch.object(runner_module, "get_changed_files") as mock_get_changed:
             # P1-A logic checks current_changed vs passed changed_files
             # We pass initial_changes to run_commit
             # verify_dirty_state calls get_changed_files()
-            
+
             # Scenario: get_changed_files returns extra file "injected.txt"
             mock_get_changed.return_value = ["docs/valid_change.md", "injected.txt"]
-            
+
             success, _ = runner_module.run_commit(
-                config, logger, repo_root, run_id,
-                initial_changes, False, False
+                config, logger, repo_root, run_id, initial_changes, False, False
             )
-            
+
             assert not success, "Should fail when new dirty file appears"
-            
+
             # Verify log call
             logger.log.assert_called_with(
-                "commit", "commit", "fail",
+                "commit",
+                "commit",
+                "fail",
                 reason="repo_dirty_during_run",
-                unexpected_files=["injected.txt"]
+                unexpected_files=["injected.txt"],
             )
 
 
 class TestAT15LogFieldSorting:
     """AT-15: Log field sorting (P1-B)."""
-    
+
     def test_log_lists_are_sorted(self, worktree: Path, test_config: Path):
         """File lists in logs must be sorted lexicographically."""
         # Create files in unsorted order
@@ -772,26 +775,25 @@ class TestAT15LogFieldSorting:
         filenames = ["z_file.md", "a_file.md", "m_file.md"]
         for name in filenames:
             (worktree / "docs" / name).write_text("test")
-            
+
         # Add them so they show up in changed_files (if committed, verify validated/staged)
         # We need commit_enabled=True to check staged_files/commit_paths
         config_content = test_config.read_text().replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
+            "commit_enabled: false", "commit_enabled: true"
         )
         test_config.write_text(config_content)
-        
+
         # We need to make them dirty first (change_detect)
         # But for 'staged_files' inside commit event, they need to be valid
         # Let's clean worktree first then modify them?
         # fixture creates clean worktree.
         # newly created files are untracked.
-        
+
         exit_code, log_file = run_steward(worktree, test_config, run_id="at15-test", dry_run=True)
         assert exit_code == 0
-        
+
         events = read_log_events(log_file)
-        
+
         checked_any = False
         for event in events:
             for key in ("files", "changed_files", "commit_paths", "disallowed_files"):
@@ -800,44 +802,50 @@ class TestAT15LogFieldSorting:
                     if len(val) > 1:
                         assert val == sorted(val), f"{key} not sorted in {event['step']}"
                         checked_any = True
-        
+
         assert checked_any, "Should have checked at least one list"
 
 
 class TestAT16DefaultDryRun:
     """AT-16: Default is dry-run (P1-D)."""
-    
+
     def test_no_flags_is_dry_run(self, worktree: Path, test_config: Path):
         """Run without flags -> dry run, no commit."""
         # Enable commit in config, but CLI default should override
         config_content = test_config.read_text().replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
+            "commit_enabled: false", "commit_enabled: true"
         )
         config_content = config_content.replace(
             'command: ["python3", "-c", "print(\'corpus generated\')"]',
-            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            DOC_WRITE_COMMAND,
         )
         test_config.write_text(config_content)
-        
+
         # Don't pass dry_run=True, leave as default
         # But run_steward helper might need adjustment or allow None
         runner_path = worktree / "scripts" / "steward_runner.py"
-        
+
         # Manual run without helper to ensure no flags
         result = subprocess.run(
-            [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree)), "--run-id", "at16"],
+            [
+                PYTHON,
+                str(runner_path),
+                "--config",
+                str(test_config.relative_to(worktree)),
+                "--run-id",
+                "at16",
+            ],
             cwd=worktree,
             capture_output=True,
             text=True,
         )
         assert result.returncode == 0
-        
+
         # Check log for skipped reason
         log_dir = worktree / "logs" / "steward_runner"
         log_file = log_dir / "at16.jsonl"
         events = read_log_events(log_file)
-        
+
         commit_skipped = find_event(events, "commit", "skipped")
         assert commit_skipped is not None
         assert commit_skipped.get("reason") == "dry_run"
@@ -845,19 +853,18 @@ class TestAT16DefaultDryRun:
 
 class TestAT17CommitFlagEnables:
     """AT-17: --commit flag enables commit (P1-D)."""
-    
+
     def test_commit_flag_enables(self, worktree: Path, test_config: Path):
         """Run with --commit -> commit happens."""
         config_content = test_config.read_text().replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
+            "commit_enabled: false", "commit_enabled: true"
         )
         config_content = config_content.replace(
             'command: ["python3", "-c", "print(\'corpus generated\')"]',
-            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            DOC_WRITE_COMMAND,
         )
         test_config.write_text(config_content)
-        
+
         # Commit config change so only docs/ changes are uncommitted
         subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
         subprocess.run(
@@ -865,55 +872,64 @@ class TestAT17CommitFlagEnables:
             cwd=worktree,
             capture_output=True,
         )
-        
+
         # Pass --commit
         exit_code, log_file = run_steward(worktree, test_config, run_id="at17", commit=True)
         assert exit_code == 0
-        
+
         log_dir = worktree / "logs" / "steward_runner"
         log_file = log_dir / "at17.jsonl"
         events = read_log_events(log_file)
-        
+
         # Debug: Check change detection
         change_event = find_event(events, "change_detect", "detected")
         assert change_event is not None, f"Change detection failed. Events: {events}"
         assert "docs/test.md" in change_event.get("changed_files", []), "docs/test.md not detected"
-        
+
         commit_pass = find_event(events, "commit", "pass")
-        assert commit_pass is not None, f"Should have committed with --commit flag. Events: {events}"
+        assert commit_pass is not None, (
+            f"Should have committed with --commit flag. Events: {events}"
+        )
 
 
 class TestAT18ExplicitDryRun:
     """AT-18: Explicit --dry-run (P1-D)."""
-    
+
     def test_explicit_dry_run(self, worktree: Path, test_config: Path):
         """Run with --dry-run -> no commit."""
         # Same setup
         config_content = test_config.read_text().replace(
-            "commit_enabled: false",
-            "commit_enabled: true"
+            "commit_enabled: false", "commit_enabled: true"
         )
         config_content = config_content.replace(
             'command: ["python3", "-c", "print(\'corpus generated\')"]',
-            'command: ["python3", "-c", "import os; os.makedirs(\'docs\', exist_ok=True); open(\'docs/test.md\', \'w\').write(\'test\')"]'
+            DOC_WRITE_COMMAND,
         )
         test_config.write_text(config_content)
-        
+
         runner_path = worktree / "scripts" / "steward_runner.py"
-        
+
         # Pass --dry-run
         result = subprocess.run(
-            [PYTHON, str(runner_path), "--config", str(test_config.relative_to(worktree)), "--run-id", "at18", "--dry-run"],
+            [
+                PYTHON,
+                str(runner_path),
+                "--config",
+                str(test_config.relative_to(worktree)),
+                "--run-id",
+                "at18",
+                "--dry-run",
+            ],
             cwd=worktree,
             capture_output=True,
             text=True,
         )
         assert result.returncode == 0
-        
+
         log_dir = worktree / "logs" / "steward_runner"
         log_file = log_dir / "at18.jsonl"
         events = read_log_events(log_file)
-        
+
         commit_skipped = find_event(events, "commit", "skipped")
         assert commit_skipped is not None
         assert commit_skipped.get("reason") == "dry_run"
@@ -960,8 +976,9 @@ def _scaffold_ingest_env(worktree: Path) -> tuple[Path, Path, Path, Path]:
     proto_dir.mkdir(parents=True, exist_ok=True)
     index_path = proto_dir / "ARTEFACT_INDEX.json"
     index_path.write_text(
-        json.dumps({"meta": {"version": "1.0.0"}, "artefacts": [{"_comment": "protocols"}]},
-                   indent=2),
+        json.dumps(
+            {"meta": {"version": "1.0.0"}, "artefacts": [{"_comment": "protocols"}]}, indent=2
+        ),
         encoding="utf-8",
     )
 
@@ -972,7 +989,8 @@ def _scaffold_ingest_env(worktree: Path) -> tuple[Path, Path, Path, Path]:
     subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "[test] scaffold ingest env"],
-        cwd=worktree, capture_output=True,
+        cwd=worktree,
+        capture_output=True,
     )
 
     dest = worktree / "docs" / "02_protocols" / "Test_Protocol_v1.0.md"
@@ -986,17 +1004,16 @@ def _ingest_config(
     fail_corpus: bool = False,
 ) -> Path:
     tests_cmd = (
-        '["python3", "-c", "import sys; sys.exit(1)"]' if fail_tests
+        '["python3", "-c", "import sys; sys.exit(1)"]'
+        if fail_tests
         else '["python3", "-c", "print(\'ok\')"]'
     )
     validators_block = (
-        'commands:\n    - ["python3", "-c", "import sys; sys.exit(1)"]' if fail_validators
+        'commands:\n    - ["python3", "-c", "import sys; sys.exit(1)"]'
+        if fail_validators
         else "commands: []"
     )
-    corpus_cmd = (
-        '["python3", "-c", "import sys; sys.exit(1)"]' if fail_corpus
-        else 'null'
-    )
+    corpus_cmd = '["python3", "-c", "import sys; sys.exit(1)"]' if fail_corpus else "null"
 
     content = f"""
 tests:
@@ -1039,7 +1056,8 @@ doc_ingest:
     subprocess.run(["git", "add", "-A"], cwd=worktree, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "[test] add ingest config"],
-        cwd=worktree, capture_output=True,
+        cwd=worktree,
+        capture_output=True,
     )
     return cfg
 
@@ -1053,10 +1071,14 @@ def _run_runner_with_ingest(
 ) -> subprocess.CompletedProcess:
     runner = worktree / "scripts" / "steward_runner.py"
     cmd = [
-        PYTHON, str(runner),
-        "--config", str(cfg.relative_to(worktree)),
-        "--run-id", run_id,
-        "--ingest", str(manifest_path.relative_to(worktree)),
+        PYTHON,
+        str(runner),
+        "--config",
+        str(cfg.relative_to(worktree)),
+        "--run-id",
+        run_id,
+        "--ingest",
+        str(manifest_path.relative_to(worktree)),
     ]
     if commit:
         cmd.append("--commit")
@@ -1077,11 +1099,12 @@ class TestDocIngestTwoCommitModel:
 
         status = subprocess.run(
             ["git", "status", "--short"],
-            cwd=worktree, capture_output=True, text=True,
+            cwd=worktree,
+            capture_output=True,
+            text=True,
         )
         assert status.stdout.strip() == "", (
-            f"Worktree must be clean after successful ingest commit. "
-            f"Dirty files:\n{status.stdout}"
+            f"Worktree must be clean after successful ingest commit. Dirty files:\n{status.stdout}"
         )
 
     def test_AT_20_result_packet_is_committed_not_dirty(self, worktree, repo_root):
@@ -1093,13 +1116,17 @@ class TestDocIngestTwoCommitModel:
 
         assert result.returncode == 0, f"Runner failed:\n{result.stderr}"
 
-        packet_path = worktree / "artifacts" / "ledger" / "dl_doc" / "at20" / "doc_steward_result.json"
+        packet_path = (
+            worktree / "artifacts" / "ledger" / "dl_doc" / "at20" / "doc_steward_result.json"
+        )
         assert packet_path.exists(), "Packet must exist on disk"
 
         rel = str(packet_path.relative_to(worktree))
         git_show = subprocess.run(
             ["git", "show", f"HEAD:{rel}"],
-            cwd=worktree, capture_output=True, text=True,
+            cwd=worktree,
+            capture_output=True,
+            text=True,
         )
         assert git_show.returncode == 0, (
             f"Packet must be committed in HEAD. git show stderr: {git_show.stderr}"
@@ -1117,15 +1144,20 @@ class TestDocIngestTwoCommitModel:
         log_file = worktree / "logs" / "steward_runner" / "at21.jsonl"
         events = read_log_events(log_file)
         result_event = next(
-            (e for e in events
-             if e.get("event") == "doc_ingest_result" and e.get("status") == "pass"),
+            (
+                e
+                for e in events
+                if e.get("event") == "doc_ingest_result" and e.get("status") == "pass"
+            ),
             None,
         )
         assert result_event is not None, "doc_ingest_result pass event must be in log"
         commit_sha_a = result_event.get("commit_sha_a")
         assert commit_sha_a, "commit_sha_a must be logged"
 
-        packet_path = worktree / "artifacts" / "ledger" / "dl_doc" / "at21" / "doc_steward_result.json"
+        packet_path = (
+            worktree / "artifacts" / "ledger" / "dl_doc" / "at21" / "doc_steward_result.json"
+        )
         packet = json.loads(packet_path.read_bytes())
         assert packet["commit_sha"] == commit_sha_a, (
             f"Packet commit_sha {packet['commit_sha']!r} must equal "
@@ -1135,7 +1167,9 @@ class TestDocIngestTwoCommitModel:
         # commit A must be parent of HEAD (commit B)
         parent = subprocess.run(
             ["git", "rev-parse", "HEAD^"],
-            cwd=worktree, capture_output=True, text=True,
+            cwd=worktree,
+            capture_output=True,
+            text=True,
         ).stdout.strip()
         assert commit_sha_a == parent, (
             f"commit A ({commit_sha_a}) must be the parent of HEAD (commit B)"
@@ -1148,7 +1182,9 @@ class TestDocIngestRollbackOnFailure:
     def _assert_clean(self, worktree: Path) -> None:
         status = subprocess.run(
             ["git", "status", "--short"],
-            cwd=worktree, capture_output=True, text=True,
+            cwd=worktree,
+            capture_output=True,
+            text=True,
         )
         assert status.stdout.strip() == "", (
             f"Worktree must be clean after rollback.\nDirty files:\n{status.stdout}"
@@ -1158,8 +1194,7 @@ class TestDocIngestRollbackOnFailure:
         assert not dest.exists(), "dest_path must be absent after rollback"
         index = json.loads(index_path.read_bytes())
         paths = [
-            e.get("path") for e in index.get("artefacts", [])
-            if isinstance(e, dict) and "path" in e
+            e.get("path") for e in index.get("artefacts", []) if isinstance(e, dict) and "path" in e
         ]
         assert "docs/02_protocols/Test_Protocol_v1.0.md" not in paths, (
             "Index must not contain ingested doc path after rollback"
@@ -1210,8 +1245,7 @@ class TestDocIngestRollbackOnFailure:
         events = read_log_events(log_file)
 
         rollback_event = next(
-            (e for e in events
-             if e.get("event") == "rollback" and e.get("step") == "doc_ingest"),
+            (e for e in events if e.get("event") == "rollback" and e.get("step") == "doc_ingest"),
             None,
         )
         assert rollback_event is not None, (

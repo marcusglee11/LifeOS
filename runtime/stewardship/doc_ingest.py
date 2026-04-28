@@ -72,7 +72,7 @@ class DocIngestResult:
     dest_path_written: str | None = None
     commit_enabled_for_runner: bool = False
     log_dir: Path | None = None
-    pre_ingest_index_path: str | None = None      # repo-relative, for rollback
+    pre_ingest_index_path: str | None = None  # repo-relative, for rollback
     pre_ingest_index_snapshot: str | None = None  # raw content before mutation, for rollback
 
     def to_dict(self) -> dict:
@@ -624,10 +624,7 @@ def rollback_worktree_mutations(
             overall_success = False
 
     # Restore target index to pre-ingest content
-    if (
-        ingest_result.pre_ingest_index_path
-        and ingest_result.pre_ingest_index_snapshot is not None
-    ):
+    if ingest_result.pre_ingest_index_path and ingest_result.pre_ingest_index_snapshot is not None:
         index_path = repo_root / ingest_result.pre_ingest_index_path
         try:
             index_path.write_text(ingest_result.pre_ingest_index_snapshot, encoding="utf-8")

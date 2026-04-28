@@ -626,7 +626,9 @@ def _commit_result_packet(
     )
     if result.returncode != 0:
         logger.log(
-            "commit_packet", "doc_ingest", "fail",
+            "commit_packet",
+            "doc_ingest",
+            "fail",
             reason="git_add_packet_failed",
             stderr=result.stderr,
             packet=rel_packet,
@@ -641,7 +643,9 @@ def _commit_result_packet(
     )
     if result.returncode != 0:
         logger.log(
-            "commit_packet", "doc_ingest", "fail",
+            "commit_packet",
+            "doc_ingest",
+            "fail",
             reason="git_commit_packet_failed",
             stderr=result.stderr,
             packet=rel_packet,
@@ -679,7 +683,9 @@ def _rollback_ingest_if_needed(
             text=True,
         )
         logger.log(
-            "rollback_evidence", "doc_ingest", "rollback_failed",
+            "rollback_evidence",
+            "doc_ingest",
+            "rollback_failed",
             git_status=git_status.stdout.strip(),
         )
 
@@ -914,7 +920,9 @@ def main() -> int:
             )
             if not commit_b_ok:
                 logger.log(
-                    "doc_ingest_result", "doc_ingest", "fail",
+                    "doc_ingest_result",
+                    "doc_ingest",
+                    "fail",
                     packet=str(packet_path),
                     commit_sha_a=git_head_after,
                 )
@@ -922,7 +930,9 @@ def main() -> int:
                 return 1
 
             logger.log(
-                "doc_ingest_result", "doc_ingest", "pass",
+                "doc_ingest_result",
+                "doc_ingest",
+                "pass",
                 packet=str(packet_path),
                 commit_sha_a=git_head_after,
                 commit_sha_b=git_head_b,

@@ -54,12 +54,25 @@
     },
     "binding_class": {
       "type": "string",
-      "enum": ["FOUNDATIONAL", "GOVERNANCE", "PROTOCOL", "RUNTIME"],
+      "enum": [
+        "FOUNDATIONAL",
+        "GOVERNANCE",
+        "PROTOCOL",
+        "RUNTIME"
+      ],
       "description": "Pulled from docs/01_governance/ARTEFACT_INDEX.json meta.binding_classes."
     },
     "canonicality": {
       "type": "string",
-      "enum": ["canonical", "derived", "proposal", "draft", "stale", "archive", "external"],
+      "enum": [
+        "canonical",
+        "derived",
+        "proposal",
+        "draft",
+        "stale",
+        "archive",
+        "external"
+      ],
       "description": "Pulled from live repo audit (LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md)."
     },
     "supersedes": {
@@ -72,15 +85,33 @@
     "related": {
       "type": "object",
       "properties": {
-        "issues": {"type": "array", "items": {"type": "string"}},
-        "prs": {"type": "array", "items": {"type": "string"}},
-        "adrs": {"type": "array", "items": {"type": "string"}}
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "adrs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       },
       "additionalProperties": false
     },
     "commit": {
       "type": "object",
-      "required": ["enabled", "message"],
+      "required": [
+        "enabled",
+        "message"
+      ],
       "additionalProperties": false,
       "properties": {
         "enabled": {
