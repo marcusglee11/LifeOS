@@ -45,13 +45,7 @@
       "minLength": 1
     },
     "proposed_action": {
-      "enum": [
-        "create",
-        "update",
-        "supersede",
-        "conflict_open",
-        "archive"
-      ]
+      "enum": ["create", "update", "supersede", "conflict_open", "archive"]
     },
     "proposed_record_kind": {
       "enum": [
@@ -73,45 +67,22 @@
       ]
     },
     "scope": {
-      "enum": [
-        "global",
-        "project",
-        "agent",
-        "workflow",
-        "infrastructure"
-      ]
+      "enum": ["global", "project", "agent", "workflow", "infrastructure"]
     },
     "requires_human_review": {
       "type": "boolean"
     },
     "authority_impact": {
-      "enum": [
-        "none",
-        "low",
-        "medium",
-        "high"
-      ]
+      "enum": ["none", "low", "medium", "high"]
     },
     "personal_inference": {
       "type": "boolean"
     },
     "sensitivity": {
-      "enum": [
-        "public",
-        "internal",
-        "private",
-        "sensitive",
-        "secret"
-      ]
+      "enum": ["public", "internal", "private", "sensitive", "secret"]
     },
     "retention_class": {
-      "enum": [
-        "session",
-        "short",
-        "medium",
-        "long",
-        "permanent"
-      ]
+      "enum": ["session", "short", "medium", "long", "permanent"]
     },
     "classification": {
       "enum": [
@@ -159,11 +130,7 @@
     "source": {
       "type": "object",
       "additionalProperties": true,
-      "required": [
-        "source_type",
-        "locator",
-        "captured_utc"
-      ],
+      "required": ["source_type", "locator", "captured_utc"],
       "properties": {
         "source_type": {
           "enum": [

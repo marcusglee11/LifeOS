@@ -56,12 +56,7 @@
             "minLength": 1
           },
           "disposition": {
-            "enum": [
-              "accepted",
-              "rejected",
-              "staged",
-              "merged"
-            ]
+            "enum": ["accepted", "rejected", "staged", "merged"]
           },
           "target_record_id": {
             "type": "string"

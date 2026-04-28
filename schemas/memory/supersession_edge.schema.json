@@ -23,13 +23,7 @@
       "minLength": 1
     },
     "supersession_type": {
-      "enum": [
-        "replaces",
-        "narrows",
-        "broadens",
-        "corrects",
-        "archives"
-      ]
+      "enum": ["replaces", "narrows", "broadens", "corrects", "archives"]
     },
     "reason": {
       "type": "string",

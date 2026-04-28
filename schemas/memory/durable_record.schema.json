@@ -48,13 +48,7 @@
       ]
     },
     "scope": {
-      "enum": [
-        "global",
-        "project",
-        "agent",
-        "workflow",
-        "infrastructure"
-      ]
+      "enum": ["global", "project", "agent", "workflow", "infrastructure"]
     },
     "agent": {
       "type": "string"
@@ -63,22 +57,10 @@
       "type": "string"
     },
     "sensitivity": {
-      "enum": [
-        "public",
-        "internal",
-        "private",
-        "sensitive",
-        "secret"
-      ]
+      "enum": ["public", "internal", "private", "sensitive", "secret"]
     },
     "retention_class": {
-      "enum": [
-        "session",
-        "short",
-        "medium",
-        "long",
-        "permanent"
-      ]
+      "enum": ["session", "short", "medium", "long", "permanent"]
     },
     "lifecycle_state": {
       "enum": [
@@ -99,10 +81,7 @@
       "minLength": 1
     },
     "review_after": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "owner": {
       "type": "string",
@@ -124,12 +103,7 @@
       "type": "boolean"
     },
     "authority_impact": {
-      "enum": [
-        "none",
-        "low",
-        "medium",
-        "high"
-      ]
+      "enum": ["none", "low", "medium", "high"]
     },
     "personal_inference": {
       "type": "boolean"
@@ -151,10 +125,7 @@
       }
     },
     "superseded_by": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "conflicts": {
       "type": "array"
@@ -180,15 +151,10 @@
             "const": "state"
           }
         },
-        "required": [
-          "record_kind"
-        ]
+        "required": ["record_kind"]
       },
       "then": {
-        "required": [
-          "state_subject",
-          "state_observed_utc"
-        ]
+        "required": ["state_subject", "state_observed_utc"]
       }
     },
     {
@@ -198,14 +164,10 @@
             "const": "agent"
           }
         },
-        "required": [
-          "scope"
-        ]
+        "required": ["scope"]
       },
       "then": {
-        "required": [
-          "agent"
-        ]
+        "required": ["agent"]
       }
     }
   ],
@@ -213,11 +175,7 @@
     "source": {
       "type": "object",
       "additionalProperties": true,
-      "required": [
-        "source_type",
-        "locator",
-        "captured_utc"
-      ],
+      "required": ["source_type", "locator", "captured_utc"],
       "properties": {
         "source_type": {
           "enum": [

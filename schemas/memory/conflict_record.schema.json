@@ -23,23 +23,14 @@
       "minLength": 1
     },
     "status": {
-      "enum": [
-        "open",
-        "acknowledged",
-        "blocked",
-        "resolved",
-        "archived"
-      ]
+      "enum": ["open", "acknowledged", "blocked", "resolved", "archived"]
     },
     "records_in_conflict": {
       "type": "array",
       "minItems": 2,
       "items": {
         "type": "object",
-        "required": [
-          "path",
-          "id"
-        ],
+        "required": ["path", "id"],
         "properties": {
           "path": {
             "type": "string",
@@ -63,11 +54,7 @@
       ]
     },
     "materiality": {
-      "enum": [
-        "low",
-        "medium",
-        "high"
-      ]
+      "enum": ["low", "medium", "high"]
     },
     "opened_utc": {
       "type": "string",
@@ -93,16 +80,10 @@
       "minItems": 1
     },
     "resolution": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "resolved_utc": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "supersession_edges": {
       "type": "array"
