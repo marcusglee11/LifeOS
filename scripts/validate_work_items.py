@@ -48,14 +48,61 @@ STATUSES_REQUIRING_ACCEPTANCE = {"READY", "DISPATCHED"}
 DERIVED_HEADER_MARKER = "DERIVED VIEW"
 
 
+def _infer_error_code(field: str, message: str) -> str:
+    """Map validator fields to stable Phase 0 error codes."""
+    if field == "id":
+        return "WM002_DUPLICATE_ID" if "duplicate" in message.lower() else "WM001_INVALID_ID_FORMAT"
+    if field == "status":
+        return "WM003_INVALID_STATUS"
+    if field == "priority":
+        return "WM004_INVALID_PRIORITY"
+    if field == "github_issue":
+        return "WM005_MISSING_GITHUB_ISSUE"
+    if field == "workstream":
+        return "WM006_INVALID_WORKSTREAM"
+    if field == "acceptance_criteria":
+        return "WM007_MISSING_ACCEPTANCE"
+    if field == "plan_path":
+        return "WM008_MISSING_PLAN_PATH"
+    if field == "followup_backlog_item":
+        return "WM009_MISSING_P0_FOLLOWUP"
+    if field == "closure_evidence":
+        return "WM010_MISSING_CLOSURE_EVIDENCE"
+    if field.startswith("closure_evidence["):
+        return "WM011_INVALID_CLOSURE_EVIDENCE"
+    if field == "header":
+        return "WM012_BACKLOG_MD_NOT_DERIVED"
+    if field in {"yaml", "backlog", "schema_version", "tasks", "workstreams"}:
+        return "WM013_INVALID_SOURCE_SHAPE"
+    return "WM014_INVALID_WMF_FIELD"
+
+
 @dataclass
 class WMFViolation:
     item_id: str
     field: str
     message: str
+    code: str = ""
+    severity: str = "error"
+    file_path: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.code:
+            self.code = _infer_error_code(self.field, self.message)
 
     def __str__(self) -> str:
-        return f"[{self.item_id}] {self.field}: {self.message}"
+        location = f"{self.file_path}:" if self.file_path else ""
+        return (
+            f"{self.severity.upper()} {self.code} "
+            f"{location}[{self.item_id}] {self.field}: {self.message}"
+        )
+
+
+def _sort_violations(violations: List[WMFViolation]) -> List[WMFViolation]:
+    return sorted(
+        violations,
+        key=lambda v: (v.file_path, v.item_id, v.field, v.code, v.message),
+    )
 
 
 def _find_repo_root() -> Optional[Path]:
@@ -135,11 +182,30 @@ def validate_backlog(
     """Validate all WMF candidates in backlog_path. Return list of violations."""
     violations: List[WMFViolation] = []
 
-    with open(backlog_path, "r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
+    try:
+        with open(backlog_path, "r", encoding="utf-8") as f:
+            raw = yaml.safe_load(f)
+    except yaml.YAMLError as exc:
+        return [
+            WMFViolation(
+                str(backlog_path),
+                "yaml",
+                f"malformed YAML: {exc}",
+                file_path=str(backlog_path),
+            )
+        ]
 
     if not isinstance(raw, dict):
-        return [WMFViolation(str(backlog_path), "backlog", "must be a YAML mapping")]
+        return _sort_violations(
+            [
+                WMFViolation(
+                    str(backlog_path),
+                    "backlog",
+                    "must be a YAML mapping",
+                    file_path=str(backlog_path),
+                )
+            ]
+        )
 
     schema_version = raw.get("schema_version")
     if schema_version != "backlog.v1":
@@ -155,15 +221,45 @@ def validate_backlog(
     if tasks is None:
         tasks = []
     elif not isinstance(tasks, list):
-        return violations + [WMFViolation(str(backlog_path), "tasks", "must be a list")]
+        return _sort_violations(
+            violations
+            + [
+                WMFViolation(
+                    str(backlog_path),
+                    "tasks",
+                    "must be a list",
+                    file_path=str(backlog_path),
+                )
+            ]
+        )
 
     # Load valid workstream slugs.
     valid_workstreams: set[str] = set()
     if workstreams_path.exists():
-        with open(workstreams_path, "r", encoding="utf-8") as f:
-            ws_raw = yaml.safe_load(f)
+        try:
+            with open(workstreams_path, "r", encoding="utf-8") as f:
+                ws_raw = yaml.safe_load(f)
+        except yaml.YAMLError as exc:
+            violations.append(
+                WMFViolation(
+                    str(workstreams_path),
+                    "yaml",
+                    f"malformed YAML: {exc}",
+                    file_path=str(workstreams_path),
+                )
+            )
+            ws_raw = None
         if isinstance(ws_raw, dict):
             valid_workstreams = set(ws_raw.keys())
+        elif ws_raw is not None:
+            violations.append(
+                WMFViolation(
+                    str(workstreams_path),
+                    "workstreams",
+                    "must be a YAML mapping of workstream slugs",
+                    file_path=str(workstreams_path),
+                )
+            )
 
     seen_ids: set[str] = set()
 
@@ -270,7 +366,16 @@ def validate_backlog(
                 )
 
         # Check 10: P0 expedited + CLOSED requires followup_backlog_item.
-        plan_followup_required = bool(item.get("plan_followup_required", False))
+        raw_plan_followup_required = item.get("plan_followup_required", False)
+        if "plan_followup_required" in item and not isinstance(raw_plan_followup_required, bool):
+            violations.append(
+                WMFViolation(
+                    item_id,
+                    "plan_followup_required",
+                    "must be boolean when present",
+                )
+            )
+        plan_followup_required = raw_plan_followup_required is True
         is_p0_expedited = (
             priority == "P0"
             and isinstance(plan_mode, str)
@@ -324,7 +429,7 @@ def validate_backlog(
                                 )
                             )
 
-    return violations
+    return _sort_violations(violations)
 
 
 def validate_backlog_md_header(backlog_md_path: Path) -> List[WMFViolation]:
@@ -346,6 +451,11 @@ def validate_backlog_md_header(backlog_md_path: Path) -> List[WMFViolation]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Run validation and exit (default behavior; retained for CI command clarity)",
+    )
     parser.add_argument(
         "--backlog", default=None, help="Path to backlog.yaml (default: auto-detect from repo root)"
     )

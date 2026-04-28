@@ -238,6 +238,13 @@ class TestBacklogV1Compat:
         violations = validate_backlog(backlog, ws)
         assert violations == []
 
+    def test_class_field_presence_does_not_fail(self, tmp_path: Path) -> None:
+        item = {**VALID_WMF_ITEM, "class": "build"}
+        backlog = _write_backlog(tmp_path, [item])
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert violations == []
+
 
 # ---------------------------------------------------------------------------
 # github_issue
@@ -362,6 +369,17 @@ class TestAcceptanceCriteria:
         violations = validate_backlog(backlog, ws)
         assert not any("acceptance_criteria" in v.field for v in violations)
 
+    def test_dispatched_without_ac_or_ar_flagged(self, tmp_path: Path) -> None:
+        item = {
+            k: v
+            for k, v in {**VALID_WMF_ITEM, "status": "DISPATCHED"}.items()
+            if k not in ("acceptance_criteria", "acceptance_ref")
+        }
+        backlog = _write_backlog(tmp_path, [item])
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("acceptance_criteria" in v.field for v in violations)
+
 
 # ---------------------------------------------------------------------------
 # plan_mode
@@ -451,6 +469,13 @@ class TestPlanMode:
         ws = _write_workstreams(tmp_path)
         violations = validate_backlog(backlog, ws)
         assert not any("plan_path" in v.field for v in violations)
+
+    def test_plan_followup_required_non_bool_flagged(self, tmp_path: Path) -> None:
+        item = {**VALID_WMF_ITEM, "plan_followup_required": "true"}
+        backlog = _write_backlog(tmp_path, [item])
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("plan_followup_required" in v.field for v in violations)
 
 
 # ---------------------------------------------------------------------------
@@ -575,6 +600,13 @@ class TestBacklogMdHeader:
 
 
 class TestBacklogYamlShape:
+    def test_malformed_yaml_flagged(self, tmp_path: Path) -> None:
+        backlog = tmp_path / "backlog.yaml"
+        backlog.write_text("tasks:\n  - id: [unterminated\n", encoding="utf-8")
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any(v.code == "WM013_INVALID_SOURCE_SHAPE" and v.field == "yaml" for v in violations)
+
     def test_non_mapping_backlog_flagged(self, tmp_path: Path) -> None:
         backlog = tmp_path / "backlog.yaml"
         backlog.write_text("- not\n- a mapping\n", encoding="utf-8")
@@ -614,7 +646,7 @@ class TestRealRepo:
         import subprocess
 
         result = subprocess.run(
-            [sys.executable, "scripts/validate_work_items.py"],
+            [sys.executable, "scripts/validate_work_items.py", "--check"],
             capture_output=True,
             text=True,
             check=False,

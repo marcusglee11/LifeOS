@@ -2,6 +2,14 @@ schema_version: backlog.v1
 # WMF v0.1: items with id: WI-YYYY-NNN are Work Management Framework items.
 # See docs/02_protocols/Work_Management_Framework_v0.1.md for field schema and compatibility rules.
 # Legacy items use id: T-NNN and are not subject to WMF validation.
+# Canonical WMF fields supported here include: github_issue, status, priority,
+# priority_rationale, workstream, owner, blocked_by, plan_mode, plan_path,
+# acceptance_criteria, acceptance_ref, dispatch_ready, and closure_evidence.
+# Optional WMF fields include: size, risk, updated_at, awaiting_decision_by,
+# blocked_reason, unblock_condition, defer_until, defer_reason, duplicate_of,
+# superseded_by, plan_followup_required, followup_backlog_item, related_prs,
+# related_commits, and last_material_update_at.
+# The field "class" is not required.
 tasks:
 - id: T-001
   title: 'COO Bootstrap: Structured backlog (Step 1A)'
