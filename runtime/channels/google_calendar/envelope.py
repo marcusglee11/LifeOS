@@ -31,8 +31,11 @@ class GoogleCalendarEvent:
     def from_api(cls, payload: dict[str, Any]) -> "GoogleCalendarEvent":
         raw_attendees = payload.get("attendees") or []
         attendees = tuple(item for item in raw_attendees if isinstance(item, dict))
+        event_id = str(payload.get("id", "")).strip()
+        if not event_id:
+            raise ValueError("google_calendar_event_missing_id")
         return cls(
-            event_id=str(payload.get("id", "")).strip(),
+            event_id=event_id,
             status=str(payload.get("status", "confirmed")).strip() or "confirmed",
             summary=payload.get("summary") if isinstance(payload.get("summary"), str) else None,
             html_link=payload.get("htmlLink") if isinstance(payload.get("htmlLink"), str) else None,

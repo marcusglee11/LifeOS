@@ -116,7 +116,52 @@ def test_initial_sync_noise_suppressed_but_sync_token_persisted(tmp_path: Path) 
     assert result.initial_sync_suppressed is True
     assert result.envelopes == ()
     assert store.load().channels["chan-1"].sync_token == "sync-initial"
+    assert store.load().channels["chan-1"].initial_sync_seen is True
     assert client.calls == [{"calendar_id": "primary", "sync_token": None}]
+
+
+def test_sync_notification_with_existing_token_does_not_fetch_or_drop_changes(
+    tmp_path: Path,
+) -> None:
+    client = FakeCalendarClient([])
+    store = _store(tmp_path)
+    processor = CalendarWebhookProcessor(state_store=store, events_client=client)
+    processor.register_channel(channel_id="chan-1", resource_id="res-1", sync_token="sync-a")
+
+    result = processor.process_notification(_notification(resource_state="sync"))
+
+    assert result.status == "initial_sync"
+    assert result.initial_sync_suppressed is True
+    assert client.calls == []
+    loaded_channel = store.load().channels["chan-1"]
+    assert loaded_channel.sync_token == "sync-a"
+    assert loaded_channel.initial_sync_seen is True
+
+
+def test_invalid_event_does_not_advance_sync_token_or_dedupe(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    processor = CalendarWebhookProcessor(
+        state_store=store,
+        events_client=FakeCalendarClient(
+            [
+                CalendarEventChangeBatch(
+                    events=({"summary": "missing id"},), next_sync_token="sync-b"
+                )
+            ]
+        ),
+    )
+    processor.register_channel(channel_id="chan-1", resource_id="res-1", sync_token="sync-a")
+
+    try:
+        processor.process_notification(_notification())
+    except ValueError as exc:
+        assert str(exc) == "google_calendar_event_missing_id"
+    else:
+        raise AssertionError("expected missing event id to fail")
+
+    loaded_state = store.load()
+    assert loaded_state.channels["chan-1"].sync_token == "sync-a"
+    assert not loaded_state.has_processed("chan-1:res-1:1")
 
 
 def test_envelope_privacy_minimizes_attendees_and_description(tmp_path: Path) -> None:
@@ -232,3 +277,20 @@ def test_processor_accepts_raw_google_webhook_headers(tmp_path: Path) -> None:
 
     assert result.status == "processed"
     assert result.dedupe_key == "chan-1:res-1:4"
+
+
+def test_processor_rejects_incomplete_raw_google_webhook_headers(tmp_path: Path) -> None:
+    processor = CalendarWebhookProcessor(
+        state_store=_store(tmp_path),
+        events_client=FakeCalendarClient([]),
+    )
+
+    try:
+        processor.process_headers({"X-Goog-Channel-ID": "chan-1"})
+    except ValueError as exc:
+        assert str(exc) == (
+            "missing_google_calendar_headers:"
+            "x-goog-resource-id,x-goog-resource-state,x-goog-message-number"
+        )
+    else:
+        raise AssertionError("expected missing headers to fail")

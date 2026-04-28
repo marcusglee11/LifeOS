@@ -23,11 +23,24 @@ class GoogleCalendarNotification:
     @classmethod
     def from_headers(cls, headers: dict[str, str]) -> "GoogleCalendarNotification":
         normalized = {key.lower(): value for key, value in headers.items()}
+        required_headers = (
+            "x-goog-channel-id",
+            "x-goog-resource-id",
+            "x-goog-resource-state",
+            "x-goog-message-number",
+        )
+        missing_headers = [header for header in required_headers if header not in normalized]
+        if missing_headers:
+            raise ValueError(f"missing_google_calendar_headers:{','.join(missing_headers)}")
+        try:
+            message_number = int(normalized["x-goog-message-number"])
+        except ValueError as exc:
+            raise ValueError("invalid_google_calendar_message_number") from exc
         return cls(
             channel_id=normalized["x-goog-channel-id"].strip(),
             resource_id=normalized["x-goog-resource-id"].strip(),
             resource_state=normalized["x-goog-resource-state"].strip(),
-            message_number=int(normalized["x-goog-message-number"]),
+            message_number=message_number,
             resource_uri=normalized.get("x-goog-resource-uri"),
             channel_expiration=normalized.get("x-goog-channel-expiration"),
         )
@@ -134,11 +147,40 @@ class CalendarWebhookProcessor:
             )
 
         previous_sync_token = channel.sync_token
+        if notification.resource_state == "sync" and previous_sync_token is not None:
+            channel.initial_sync_seen = True
+            if notification.channel_expiration:
+                channel.channel_expiration = notification.channel_expiration
+            state.channels[notification.channel_id] = channel
+            state.mark_processed(notification.dedupe_key)
+            self._state_store.save(state)
+            return WebhookProcessResult(
+                status="initial_sync",
+                calendar_id=channel.calendar_id,
+                dedupe_key=notification.dedupe_key,
+                reason="initial_sync_suppressed",
+                initial_sync_suppressed=True,
+            )
+
         batch = self._events_client.list_event_changes(
             calendar_id=channel.calendar_id,
             sync_token=previous_sync_token,
         )
+        envelopes = ()
+        if notification.resource_state != "sync" and previous_sync_token is not None:
+            envelopes = tuple(
+                build_event_envelope(
+                    calendar_id=channel.calendar_id,
+                    event=GoogleCalendarEvent.from_api(event_payload),
+                    previous_sync_token=previous_sync_token,
+                    privacy=self._privacy,
+                )
+                for event_payload in batch.events
+            )
+
         channel.sync_token = batch.next_sync_token
+        if notification.resource_state == "sync" or previous_sync_token is None:
+            channel.initial_sync_seen = True
         if notification.channel_expiration:
             channel.channel_expiration = notification.channel_expiration
         state.channels[notification.channel_id] = channel
@@ -154,15 +196,6 @@ class CalendarWebhookProcessor:
                 initial_sync_suppressed=True,
             )
 
-        envelopes = tuple(
-            build_event_envelope(
-                calendar_id=channel.calendar_id,
-                event=GoogleCalendarEvent.from_api(event_payload),
-                previous_sync_token=previous_sync_token,
-                privacy=self._privacy,
-            )
-            for event_payload in batch.events
-        )
         return WebhookProcessResult(
             status="processed",
             calendar_id=channel.calendar_id,
