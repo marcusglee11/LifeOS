@@ -50,12 +50,17 @@ QUALITY_TOOL_EXECUTABLES = {
     "markdownlint": "markdownlint",
     "yamllint": "yamllint",
     "shellcheck": "shellcheck",
+    "agent_control_plane_pin": "python3",
 }
 QUALITY_PYTHON_CONFIG_FILES = {"pyproject.toml", "requirements.txt", "requirements-dev.txt"}
 QUALITY_BIOME_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc"}
 QUALITY_BIOME_CONFIG_FILES = {"biome.json"}
 QUALITY_MARKDOWN_CONFIG_FILES = {".markdownlint.json", ".markdownlint.yaml", ".markdownlint.yml"}
 QUALITY_YAML_CONFIG_FILES = {".yamllint", ".yamllint.yml", ".yamllint.yaml"}
+QUALITY_AGENT_CONTROL_PLANE_PIN_FILES = {
+    "config/external_contracts/agent_control_plane_pin.yaml",
+    "scripts/workflow/check_agent_control_plane_pin.py",
+}
 BACKLOG_METADATA_CONTINUATION_PATTERN = re.compile(
     r"^\s+[—-]+\s*(?:DoD|Why\s*Now|Owner|Context):",
     re.IGNORECASE,
@@ -243,6 +248,8 @@ def route_quality_tools(
     yaml_files: list[str] = []
     yaml_trigger = False
     shell_files: list[str] = []
+    agent_control_plane_pin_files: list[str] = []
+    agent_control_plane_pin_trigger = False
 
     for file_path in files:
         path = Path(file_path)
@@ -277,6 +284,10 @@ def route_quality_tools(
         if suffix == ".sh":
             shell_files.append(file_path)
 
+        if file_path in QUALITY_AGENT_CONTROL_PLANE_PIN_FILES:
+            agent_control_plane_pin_files.append(file_path)
+            agent_control_plane_pin_trigger = True
+
     if python_trigger:
         routed["ruff_check"] = _unique_ordered(python_files)
         routed["ruff_format"] = _unique_ordered(python_files)
@@ -289,6 +300,8 @@ def route_quality_tools(
         routed["yamllint"] = _unique_ordered(yaml_files)
     if shell_files:
         routed["shellcheck"] = _unique_ordered(shell_files)
+    if agent_control_plane_pin_trigger and "agent_control_plane_pin" in routed:
+        routed["agent_control_plane_pin"] = _unique_ordered(agent_control_plane_pin_files)
 
     return routed
 
@@ -434,6 +447,17 @@ def _build_quality_command(
         if not files:
             return None
         return ["shellcheck", *files]
+
+    if tool_name == "agent_control_plane_pin":
+        manifest_path = Path("config/external_contracts/agent_control_plane_pin.yaml")
+        script_path = Path("scripts/workflow/check_agent_control_plane_pin.py")
+        if scope != "repo" and not files:
+            return None
+        if not (Path(repo_root) / manifest_path).exists():
+            return None
+        if not (Path(repo_root) / script_path).exists():
+            return None
+        return [sys.executable, str(script_path), "--manifest", str(manifest_path)]
 
     return None
 
