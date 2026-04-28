@@ -28,6 +28,15 @@ def test_route_quality_tools_markdown_is_style_only() -> None:
     assert routed["mypy"] == []
 
 
+def test_route_quality_tools_agent_control_plane_pin_manifest() -> None:
+    routed = route_quality_tools(
+        Path("."), ["config/external_contracts/agent_control_plane_pin.yaml"], scope="changed"
+    )
+    assert routed["agent_control_plane_pin"] == [
+        "config/external_contracts/agent_control_plane_pin.yaml"
+    ]
+
+
 def test_route_quality_tools_config_only_markdown_change_no_fan_out(monkeypatch) -> None:
     monkeypatch.setattr(
         "runtime.tools.workflow_pack._git_tracked_files",
@@ -86,6 +95,26 @@ def test_run_quality_gates_allows_advisory_failure(monkeypatch) -> None:
     assert any(
         row["tool"] == "yamllint" and row["mode"] == "advisory" and not row["passed"]
         for row in result["results"]
+    )
+
+
+def test_run_quality_gates_runs_agent_control_plane_pin(monkeypatch) -> None:
+    commands: list[list[str]] = []
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        commands.append(cmd)
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="OK", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = run_quality_gates(
+        Path("."), ["config/external_contracts/agent_control_plane_pin.yaml"], scope="changed"
+    )
+
+    assert result["passed"] is True
+    assert any(row["tool"] == "agent_control_plane_pin" for row in result["results"])
+    assert any(
+        "scripts/workflow/check_agent_control_plane_pin.py" in command for command in commands
     )
 
 

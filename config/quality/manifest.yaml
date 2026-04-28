@@ -61,6 +61,12 @@ tools:
     scopes: ["changed", "repo"]
     autofix_allowed: false
     failure_class: shellcheck_error
+  agent_control_plane_pin:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: agent_control_plane_pin_error
 
 waivers:
   - tool: markdownlint
