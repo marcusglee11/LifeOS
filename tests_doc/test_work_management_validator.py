@@ -634,6 +634,12 @@ class TestBacklogYamlShape:
         violations = validate_backlog(backlog, ws)
         assert any("tasks" in v.field for v in violations)
 
+    def test_non_mapping_task_entry_flagged(self, tmp_path: Path) -> None:
+        backlog = _write_backlog(tmp_path, ["not a task mapping"])
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any(v.item_id == "tasks[0]" and v.field == "tasks" for v in violations)
+
 
 # ---------------------------------------------------------------------------
 # Real-repo smoke test

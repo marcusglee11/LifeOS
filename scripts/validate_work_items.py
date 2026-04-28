@@ -263,8 +263,16 @@ def validate_backlog(
 
     seen_ids: set[str] = set()
 
-    for item in tasks:
+    for index, item in enumerate(tasks):
         if not isinstance(item, dict):
+            violations.append(
+                WMFViolation(
+                    f"tasks[{index}]",
+                    "tasks",
+                    "each tasks entry must be a YAML mapping",
+                    file_path=str(backlog_path),
+                )
+            )
             continue
         item_id = str(item.get("id", "")).strip()
 
