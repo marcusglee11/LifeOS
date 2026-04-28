@@ -88,13 +88,13 @@ def retrieve(
                 continue
             if scope != "any" and payload.get("scope") not in {scope, "global"}:
                 continue
+            if terms and not _text_match(terms, payload, record.body):
+                continue
             conflict_state = _conflict_state(payload)
             if conflict_state["has_medium_high_conflict"]:
                 result = _record_result(path, repo, payload)
                 result["excluded_reason"] = "medium_high_conflict"
                 results.append(result)
-                continue
-            if terms and not _text_match(terms, payload, record.body):
                 continue
             results.append(_record_result(path, repo, payload))
 

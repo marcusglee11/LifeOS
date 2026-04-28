@@ -105,7 +105,7 @@ def _validate_sources(errors: list[str], payload: dict[str, Any], prefix: str = 
 
 
 def validate_durable(path: Path, payload: dict[str, Any], repo: Path) -> list[str]:
-    errors: list[str] = []
+    errors = validate_json_schema(repo, "durable_record.schema.json", payload)
     _require(errors, payload, DURABLE_REQUIRED)
     for field, allowed in (
         ("record_kind", RECORD_KINDS),

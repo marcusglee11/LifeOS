@@ -81,6 +81,14 @@ def test_schema_required_fields_and_enum_enforcement(tmp_path: Path) -> None:
     assert any("invalid enum record_kind" in err for err in errors)
 
 
+def test_durable_records_use_json_schema_validation(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+    path = repo / "memory" / "workflows" / "bad-schema.md"
+    _front(path, _durable(sources=[]))
+    errors = _errors(path, repo)
+    assert any("sources" in err and "should be non-empty" in err for err in errors)
+
+
 def test_state_record_special_rules(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
     path = repo / "memory" / "projects" / "state.md"
@@ -195,6 +203,28 @@ def test_retrieval_ordering_and_hard_filters(tmp_path: Path) -> None:
     conflict = next(item for item in results if item["record_id"] == "MEM-CONFLICT")
     assert conflict["has_medium_high_conflict"] is True
     assert conflict["excluded_reason"] == "medium_high_conflict"
+
+
+def test_retrieval_does_not_return_unmatched_conflicted_records(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+    _front(
+        repo / "memory" / "workflows" / "unmatched-conflict.md",
+        _durable(
+            id="MEM-UNMATCHED-CONFLICT",
+            title="unmatched synthetic conflict topic",
+            lifecycle_state="conflicted",
+            conflicts=[{"id": "CONFLICT-SYN", "status": "open", "materiality": "high"}],
+        ),
+    )
+
+    results = retrieve(
+        repo,
+        query="absent retrieval term",
+        scope="workflow",
+        authority_floor="agent_memory",
+        include_sensitive=False,
+    )
+    assert results == []
 
 
 def test_generator_output_validity(tmp_path: Path) -> None:
