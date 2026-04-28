@@ -1155,7 +1155,6 @@ Fail-closed: unknown action category → L4. Everything not explicitly L0 defaul
 2. `.context/wiki/` — derived context layer
 3. `docs/11_admin/LIFEOS_STATE.md` — current operational state
 4. `config/agent_roles/coo.md` — operational rules and invocation spec
-5. `docs/03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md` — canonical memory and knowledge architecture; implementation tracked in [#53](https://github.com/marcusglee11/LifeOS/issues/53)
 
 ## Provider Routing
 
@@ -3358,9 +3357,9 @@ LifeOS targets server/CI environments (Linux) and developer machines (Linux/macO
 
 # Protocol Version Register
 
-**Status:** Canonical governance register
-**Effective date:** 2026-04-27
-**Authority:** WP2 CEO decisions D1-D4b, ratified in `artifacts/plans/WP2_CEO_DECISION_PACKET_2026-04-27.md`
+**Status:** Canonical governance register  
+**Effective date:** 2026-04-27  
+**Authority:** WP2 CEO decisions D1-D4b, ratified in `artifacts/plans/WP2_CEO_DECISION_PACKET_2026-04-27.md`  
 **Audit baseline:** `043c3f1d6b98f3cf713d3a29783e23383851dfa0`
 
 ---
@@ -4799,7 +4798,7 @@ Assistant must not act without explicit filename, path, content, and governing a
 
 ## M-2. Artefact Creation Algorithm
 
-IF path is a protected canonical/governance/runtime surface AND required approval is absent → refuse.
+IF path is a protected canonical/governance/runtime surface AND required approval is absent → refuse.  
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
@@ -5709,9 +5708,9 @@ Command:
 
 <!-- LIFEOS_TODO[P1][area: docs/02_protocols/Intent_Routing_Rule_v1.1.md][exit: status change to ACTIVE + DAP validate] Finalize Intent_Routing_Rule v1.1: Remove WIP/Provisional markers, set effective date -->
 
-**Status**: WIP (Non-Canonical)
-**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0
-**Effective**: TBD (Provisional)
+**Status**: WIP (Non-Canonical)  
+**Authority**: LifeOS Constitution v2.0 → Governance Protocol v1.0  
+**Effective**: TBD (Provisional)  
 **Current protocol binding**: See `docs/01_governance/PROTOCOL_VERSION_REGISTER.md`
 
 ---

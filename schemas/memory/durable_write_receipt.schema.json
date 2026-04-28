@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/memory/durable_write_receipt.schema.json",
+  "title": "LifeOS Phase 1 Durable Write Receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "receipt_id",
+    "candidate_id",
+    "disposition",
+    "target_record_id",
+    "target_record_path",
+    "decided_by",
+    "decided_utc",
+    "rationale",
+    "source_agent",
+    "source_packet_id"
+  ],
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "disposition": {
+      "enum": ["accepted", "rejected", "staged", "merged"]
+    },
+    "target_record_id": {
+      "type": "string"
+    },
+    "target_record_path": {
+      "type": "string"
+    },
+    "decided_by": {
+      "const": "COO"
+    },
+    "decided_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_agent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_packet_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/memory/batched_durable_write_receipt.schema.json",
+  "title": "LifeOS Phase 1 Batched Durable Write Receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "receipt_id",
+    "receipt_type",
+    "review_session_id",
+    "source_packet_id",
+    "decided_by",
+    "decided_utc",
+    "entries"
+  ],
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "receipt_type": {
+      "const": "batch"
+    },
+    "review_session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_packet_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decided_by": {
+      "const": "COO"
+    },
+    "decided_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "candidate_id",
+          "disposition",
+          "target_record_id",
+          "target_record_path",
+          "rationale",
+          "source_agent"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "disposition": {
+            "enum": ["accepted", "rejected", "staged", "merged"]
+          },
+          "target_record_id": {
+            "type": "string"
+          },
+          "target_record_path": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_agent": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
