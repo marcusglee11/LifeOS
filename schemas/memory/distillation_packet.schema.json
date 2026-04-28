@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/memory/distillation_packet.schema.json",
+  "title": "LifeOS Phase 1 Distillation Packet",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["workorder_id", "project", "date_utc", "summary", "outcomes", "facts_learned", "preferences_observed", "workflow_lessons", "decisions", "patterns", "contradictions", "followups", "candidate_memory_writes", "candidate_promotions", "candidate_archivals"],
+  "properties": {
+    "distillation_id": { "type": "string" },
+    "workorder_id": { "type": "string", "minLength": 1 },
+    "project": { "type": "string", "minLength": 1 },
+    "date_utc": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "outcomes": { "type": "array" },
+    "facts_learned": { "type": "array" },
+    "preferences_observed": { "type": "array" },
+    "workflow_lessons": { "type": "array" },
+    "decisions": { "type": "array" },
+    "patterns": { "type": "array" },
+    "contradictions": { "type": "array" },
+    "followups": { "type": "array" },
+    "candidate_memory_writes": { "type": "array" },
+    "candidate_promotions": { "type": "array" },
+    "candidate_archivals": { "type": "array" }
+  }
+}

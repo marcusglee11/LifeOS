@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/memory/durable_record.schema.json",
+  "title": "LifeOS Phase 1 Durable Memory Record",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "id",
+    "title",
+    "record_kind",
+    "authority_class",
+    "scope",
+    "sensitivity",
+    "retention_class",
+    "lifecycle_state",
+    "created_utc",
+    "updated_utc",
+    "owner",
+    "writer",
+    "sources"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "record_kind": { "enum": ["fact", "preference", "rule", "decision", "state", "lesson", "pattern"] },
+    "authority_class": { "enum": ["observation", "agent_memory", "shared_knowledge", "canonical_doctrine"] },
+    "scope": { "enum": ["global", "project", "agent", "workflow", "infrastructure"] },
+    "agent": { "type": "string" },
+    "project": { "type": "string" },
+    "sensitivity": { "enum": ["public", "internal", "private", "sensitive", "secret"] },
+    "retention_class": { "enum": ["session", "short", "medium", "long", "permanent"] },
+    "lifecycle_state": { "enum": ["draft", "active", "stale", "archived", "superseded", "conflicted"] },
+    "created_utc": { "type": "string", "minLength": 1 },
+    "updated_utc": { "type": "string", "minLength": 1 },
+    "review_after": { "type": ["string", "null"] },
+    "owner": { "type": "string", "minLength": 1 },
+    "writer": { "const": "COO" },
+    "derived_from_candidate": { "type": "boolean" },
+    "state_subject": { "type": "string" },
+    "state_observed_utc": { "type": "string" },
+    "requires_human_review": { "type": "boolean" },
+    "authority_impact": { "enum": ["none", "low", "medium", "high"] },
+    "personal_inference": { "type": "boolean" },
+    "promotion_basis": { "type": "string" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "supersedes": { "type": "array", "items": { "type": "string" } },
+    "superseded_by": { "type": ["string", "null"] },
+    "conflicts": { "type": "array" },
+    "write_receipts": { "type": "array", "items": { "type": "string" } },
+    "tags": { "type": "array", "items": { "type": "string" } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "record_kind": { "const": "state" } }, "required": ["record_kind"] },
+      "then": { "required": ["state_subject", "state_observed_utc"] }
+    },
+    {
+      "if": { "properties": { "scope": { "const": "agent" } }, "required": ["scope"] },
+      "then": { "required": ["agent"] }
+    }
+  ],
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source_type", "locator", "captured_utc"],
+      "properties": {
+        "source_type": {
+          "enum": ["conversation", "workorder", "repo_file", "commit", "issue", "pull_request", "receipt", "manual_note", "external_doc"]
+        },
+        "locator": { "type": "string", "minLength": 1 },
+        "quoted_evidence": { "type": "string" },
+        "captured_utc": { "type": "string", "minLength": 1 },
+        "content_hash": { "type": "string" },
+        "commit_sha": { "type": "string" }
+      }
+    }
+  }
+}
