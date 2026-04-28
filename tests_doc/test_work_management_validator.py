@@ -260,6 +260,20 @@ class TestGithubIssue:
         violations = validate_backlog(backlog, ws)
         assert not any("github_issue" in v.field for v in violations)
 
+    def test_triaged_with_string_github_issue_flagged(self, tmp_path: Path) -> None:
+        item = {**VALID_WMF_ITEM, "status": "TRIAGED", "github_issue": "48"}
+        backlog = _write_backlog(tmp_path, [item])
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("github_issue" in v.field and "integer" in v.message for v in violations)
+
+    def test_triaged_with_boolean_github_issue_flagged(self, tmp_path: Path) -> None:
+        item = {**VALID_WMF_ITEM, "status": "TRIAGED", "github_issue": True}
+        backlog = _write_backlog(tmp_path, [item])
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("github_issue" in v.field and "integer" in v.message for v in violations)
+
     def test_intake_without_github_issue_ok(self, tmp_path: Path) -> None:
         item = {**VALID_WMF_ITEM, "status": "INTAKE"}
         item.pop("github_issue", None)
@@ -397,6 +411,13 @@ class TestPlanMode:
         violations = validate_backlog(backlog, ws)
         assert any("plan_path" in v.field for v in violations)
 
+    def test_formal_with_blank_plan_path_flagged(self, tmp_path: Path) -> None:
+        item = {**VALID_WMF_ITEM, "plan_mode": "formal", "plan_path": "   "}
+        backlog = _write_backlog(tmp_path, [item])
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("plan_path" in v.field for v in violations)
+
     def test_formal_with_plan_path_passes(self, tmp_path: Path) -> None:
         item = {**VALID_WMF_ITEM, "plan_mode": "formal", "plan_path": "artifacts/plans/PLAN_WMF.md"}
         backlog = _write_backlog(tmp_path, [item])
@@ -469,6 +490,18 @@ class TestP0ExpeditedClosure:
         violations = validate_backlog(backlog, ws)
         assert not any("followup_backlog_item" in v.field for v in violations)
 
+    def test_p0_expedited_closed_with_malformed_followup_flagged(self, tmp_path: Path) -> None:
+        item = {
+            **self._p0_expedited(),
+            "status": "CLOSED",
+            "followup_backlog_item": "T-999",
+            "closure_evidence": [{"type": "commit", "ref": "abc123", "note": "done"}],
+        }
+        backlog = _write_backlog(tmp_path, [item])
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("followup_backlog_item" in v.field for v in violations)
+
 
 # ---------------------------------------------------------------------------
 # Closure evidence
@@ -534,6 +567,40 @@ class TestBacklogMdHeader:
         md = tmp_path / "NONEXISTENT_BACKLOG.md"
         violations = validate_backlog_md_header(md)
         assert violations == []
+
+
+# ---------------------------------------------------------------------------
+# backlog.yaml shape
+# ---------------------------------------------------------------------------
+
+
+class TestBacklogYamlShape:
+    def test_non_mapping_backlog_flagged(self, tmp_path: Path) -> None:
+        backlog = tmp_path / "backlog.yaml"
+        backlog.write_text("- not\n- a mapping\n", encoding="utf-8")
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("backlog" in v.field for v in violations)
+
+    def test_wrong_schema_version_flagged(self, tmp_path: Path) -> None:
+        backlog = tmp_path / "backlog.yaml"
+        backlog.write_text(
+            yaml.dump({"schema_version": "backlog.v99", "tasks": []}),
+            encoding="utf-8",
+        )
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("schema_version" in v.field for v in violations)
+
+    def test_tasks_not_list_flagged(self, tmp_path: Path) -> None:
+        backlog = tmp_path / "backlog.yaml"
+        backlog.write_text(
+            yaml.dump({"schema_version": BACKLOG_SCHEMA_VERSION, "tasks": {"id": "WI-2026-001"}}),
+            encoding="utf-8",
+        )
+        ws = _write_workstreams(tmp_path)
+        violations = validate_backlog(backlog, ws)
+        assert any("tasks" in v.field for v in violations)
 
 
 # ---------------------------------------------------------------------------

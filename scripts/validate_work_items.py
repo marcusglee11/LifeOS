@@ -78,6 +78,14 @@ def _acceptance_criteria_valid(value: Any) -> bool:
     return False
 
 
+def _non_empty_string(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _github_issue_valid(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value > 0
+
+
 def _check_backlog_v1_compat(item: Dict[str, Any], item_id: str) -> List[WMFViolation]:
     """Check that a WMF item has all backlog.v1 required fields."""
     violations: List[WMFViolation] = []
@@ -130,7 +138,24 @@ def validate_backlog(
     with open(backlog_path, "r", encoding="utf-8") as f:
         raw = yaml.safe_load(f)
 
-    tasks = raw.get("tasks") or [] if isinstance(raw, dict) else []
+    if not isinstance(raw, dict):
+        return [WMFViolation(str(backlog_path), "backlog", "must be a YAML mapping")]
+
+    schema_version = raw.get("schema_version")
+    if schema_version != "backlog.v1":
+        violations.append(
+            WMFViolation(
+                str(backlog_path),
+                "schema_version",
+                f"{schema_version!r} must be 'backlog.v1'",
+            )
+        )
+
+    tasks = raw.get("tasks")
+    if tasks is None:
+        tasks = []
+    elif not isinstance(tasks, list):
+        return violations + [WMFViolation(str(backlog_path), "tasks", "must be a list")]
 
     # Load valid workstream slugs.
     valid_workstreams: set[str] = set()
@@ -183,9 +208,14 @@ def validate_backlog(
 
         # Check 5: github_issue required at TRIAGED+.
         if status in STATUSES_REQUIRING_GITHUB_ISSUE:
-            if not item.get("github_issue"):
+            github_issue = item.get("github_issue")
+            if github_issue is None or github_issue == "":
                 violations.append(
                     WMFViolation(item_id, "github_issue", f"required at status {status!r}")
+                )
+            elif not _github_issue_valid(github_issue):
+                violations.append(
+                    WMFViolation(item_id, "github_issue", "must be a positive integer")
                 )
 
         # Check 6: workstream required and must be valid.
@@ -232,9 +262,11 @@ def validate_backlog(
             plan_mode = str(plan_mode).strip()
 
             # Check 9: plan_mode=formal requires plan_path. No exceptions.
-            if plan_mode == "formal" and not item.get("plan_path"):
+            if plan_mode == "formal" and not _non_empty_string(item.get("plan_path")):
                 violations.append(
-                    WMFViolation(item_id, "plan_path", "required when plan_mode=formal")
+                    WMFViolation(
+                        item_id, "plan_path", "required non-empty string when plan_mode=formal"
+                    )
                 )
 
         # Check 10: P0 expedited + CLOSED requires followup_backlog_item.
@@ -246,12 +278,21 @@ def validate_backlog(
             and plan_followup_required
         )
         if is_p0_expedited and status == "CLOSED":
-            if not item.get("followup_backlog_item"):
+            followup_backlog_item = item.get("followup_backlog_item")
+            if not _non_empty_string(followup_backlog_item):
                 violations.append(
                     WMFViolation(
                         item_id,
                         "followup_backlog_item",
                         "required before CLOSED on P0 expedited items",
+                    )
+                )
+            elif not _WMF_ID_RE.match(str(followup_backlog_item).strip()):
+                violations.append(
+                    WMFViolation(
+                        item_id,
+                        "followup_backlog_item",
+                        "must match WI-YYYY-NNN",
                     )
                 )
 
