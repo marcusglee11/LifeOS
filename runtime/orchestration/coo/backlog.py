@@ -21,10 +21,32 @@ BACKLOG_SCHEMA_VERSION = "backlog.v1"
 
 VALID_PRIORITIES = {"P0", "P1", "P2", "P3"}
 VALID_RISKS = {"low", "med", "high"}
-VALID_STATUSES = {"pending", "in_progress", "completed", "blocked"}
 VALID_TASK_TYPES = {"build", "content", "hygiene"}
 
+# Legacy COO statuses (lowercase) — used for T-NNN items.
+VALID_LEGACY_STATUSES = {"pending", "in_progress", "completed", "blocked"}
+
+# WMF v0.1 statuses (uppercase) — used for WI-YYYY-NNN items only.
+# These are pass-through for storage/round-trip; semantic checks are in the WMF validator.
+VALID_WMF_STATUSES = {
+    "INTAKE",
+    "TRIAGED",
+    "READY",
+    "DISPATCHED",
+    "REVIEW",
+    "CLOSED",
+    "BLOCKED",
+    "DEFERRED",
+    "REJECTED",
+    "DUPLICATE",
+    "SUPERSEDED",
+}
+
 _TASK_ID_RE = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
+_WMF_ID_RE = re.compile(r"^WI-\d{4}-\d{3}$")
+
+# Allowed plan_mode values for WMF items.
+VALID_WMF_PLAN_MODES = {"none", "plan_lite", "formal"}
 
 
 class BacklogValidationError(ValueError):
@@ -50,6 +72,16 @@ class TaskEntry:
     created_at: str
     completed_at: Optional[str] = None
     decision_support_required: bool = False
+    # WMF v0.1 optional fields — None on legacy T-NNN items; present on WI-YYYY-NNN items.
+    github_issue: Optional[int] = None
+    workstream: Optional[str] = None
+    acceptance_criteria: Optional[Any] = None  # str or list[str]
+    acceptance_ref: Optional[str] = None
+    plan_mode: Optional[str] = None  # none | plan_lite | formal
+    plan_path: Optional[str] = None
+    plan_followup_required: bool = False
+    followup_backlog_item: Optional[str] = None
+    closure_evidence: Optional[List[Dict[str, Any]]] = None
 
 
 def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
@@ -67,6 +99,13 @@ def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
             f"Task[{index}] 'id' must match [A-Za-z0-9_-]{{1,64}}, got {task_id!r}"
         )
 
+    # WMF candidate: id starts with "WI-" — validate full WMF ID format.
+    is_wmf = task_id.startswith("WI-")
+    if is_wmf and not _WMF_ID_RE.match(task_id):
+        raise BacklogValidationError(
+            f"Task '{task_id}' invalid WMF id format. Expected WI-YYYY-NNN"
+        )
+
     priority = str(_req("priority")).strip()
     if priority not in VALID_PRIORITIES:
         raise BacklogValidationError(
@@ -81,9 +120,12 @@ def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
         )
 
     status = str(_req("status")).strip()
-    if status not in VALID_STATUSES:
+    valid_statuses = VALID_WMF_STATUSES if is_wmf else VALID_LEGACY_STATUSES
+    if status not in valid_statuses:
+        item_kind = "WMF" if is_wmf else "legacy"
         raise BacklogValidationError(
-            f"Task '{task_id}' invalid status {status!r}. Must be one of {sorted(VALID_STATUSES)}"
+            f"Task '{task_id}' invalid status {status!r} for {item_kind} item. "
+            f"Must be one of {sorted(valid_statuses)}"
         )
 
     task_type = str(_req("task_type")).strip()
@@ -100,6 +142,18 @@ def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
     tags = raw.get("tags") or []
     if not isinstance(tags, list):
         raise BacklogValidationError(f"Task '{task_id}' 'tags' must be a list")
+
+    # github_issue: guarded int coercion — reject malformed values.
+    _raw_gi = raw.get("github_issue")
+    if _raw_gi is not None and _raw_gi != "":
+        try:
+            github_issue: Optional[int] = int(_raw_gi)
+        except (ValueError, TypeError) as exc:
+            raise BacklogValidationError(
+                f"Task '{task_id}' field 'github_issue' must be an integer, got {_raw_gi!r}"
+            ) from exc
+    else:
+        github_issue = None
 
     return TaskEntry(
         id=task_id,
@@ -119,6 +173,18 @@ def _validate_task(raw: Dict[str, Any], index: int) -> TaskEntry:
         objective_ref=str(_req("objective_ref")).strip(),
         created_at=str(_req("created_at")).strip(),
         completed_at=raw.get("completed_at"),
+        # WMF optional fields — parsed regardless of item type; None for legacy items.
+        github_issue=github_issue,
+        workstream=str(raw["workstream"]).strip() if raw.get("workstream") else None,
+        acceptance_criteria=raw.get("acceptance_criteria"),
+        acceptance_ref=str(raw["acceptance_ref"]).strip() if raw.get("acceptance_ref") else None,
+        plan_mode=str(raw["plan_mode"]).strip() if raw.get("plan_mode") else None,
+        plan_path=str(raw["plan_path"]).strip() if raw.get("plan_path") else None,
+        plan_followup_required=bool(raw.get("plan_followup_required", False)),
+        followup_backlog_item=(
+            str(raw["followup_backlog_item"]).strip() if raw.get("followup_backlog_item") else None
+        ),
+        closure_evidence=raw.get("closure_evidence") or None,
     )
 
 
@@ -149,7 +215,7 @@ def load_backlog(path: Path) -> list[TaskEntry]:
 
 
 def _task_to_dict(task: TaskEntry) -> Dict[str, Any]:
-    return {
+    d: Dict[str, Any] = {
         "id": task.id,
         "title": task.title,
         "description": task.description,
@@ -168,6 +234,26 @@ def _task_to_dict(task: TaskEntry) -> Dict[str, Any]:
         "created_at": task.created_at,
         "completed_at": task.completed_at,
     }
+    # WMF fields: include only when set so T-NNN output stays unchanged.
+    if task.github_issue is not None:
+        d["github_issue"] = task.github_issue
+    if task.workstream is not None:
+        d["workstream"] = task.workstream
+    if task.acceptance_criteria is not None:
+        d["acceptance_criteria"] = task.acceptance_criteria
+    if task.acceptance_ref is not None:
+        d["acceptance_ref"] = task.acceptance_ref
+    if task.plan_mode is not None:
+        d["plan_mode"] = task.plan_mode
+    if task.plan_path is not None:
+        d["plan_path"] = task.plan_path
+    if task.plan_followup_required:
+        d["plan_followup_required"] = task.plan_followup_required
+    if task.followup_backlog_item is not None:
+        d["followup_backlog_item"] = task.followup_backlog_item
+    if task.closure_evidence is not None:
+        d["closure_evidence"] = task.closure_evidence
+    return d
 
 
 def save_backlog(path: Path, tasks: list[TaskEntry]) -> None:
@@ -192,13 +278,18 @@ def filter_actionable(tasks: list[TaskEntry]) -> list[TaskEntry]:
 def mark_in_progress(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> list[TaskEntry]:
     """Return a new list with the specified task marked in_progress.
 
-    Raises BacklogValidationError if task_id is not found.
+    Raises BacklogValidationError if task_id is not found or is a WMF item.
     """
     found = False
     result = []
     for task in tasks:
         if task.id == task_id:
             found = True
+            if task.id.startswith("WI-"):
+                raise BacklogValidationError(
+                    f"Task '{task.id}' is a WMF item; legacy mark_* helpers do not manage "
+                    "WMF lifecycle states. Use WMF state management to transition this item."
+                )
             updated = TaskEntry(
                 id=task.id,
                 title=task.title,
@@ -230,13 +321,18 @@ def mark_in_progress(tasks: list[TaskEntry], task_id: str, evidence: str = "") -
 def mark_blocked(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> list[TaskEntry]:
     """Return a new list with the specified task marked blocked.
 
-    Raises BacklogValidationError if task_id is not found.
+    Raises BacklogValidationError if task_id is not found or is a WMF item.
     """
     found = False
     result = []
     for task in tasks:
         if task.id == task_id:
             found = True
+            if task.id.startswith("WI-"):
+                raise BacklogValidationError(
+                    f"Task '{task.id}' is a WMF item; legacy mark_* helpers do not manage "
+                    "WMF lifecycle states. Use WMF state management to transition this item."
+                )
             updated = TaskEntry(
                 id=task.id,
                 title=task.title,
@@ -268,7 +364,7 @@ def mark_blocked(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> li
 def mark_completed(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> list[TaskEntry]:
     """Return a new list with the specified task marked completed.
 
-    Raises BacklogValidationError if task_id is not found.
+    Raises BacklogValidationError if task_id is not found or is a WMF item.
     """
     from datetime import datetime, timezone
 
@@ -277,6 +373,11 @@ def mark_completed(tasks: list[TaskEntry], task_id: str, evidence: str = "") -> 
     for task in tasks:
         if task.id == task_id:
             found = True
+            if task.id.startswith("WI-"):
+                raise BacklogValidationError(
+                    f"Task '{task.id}' is a WMF item; legacy mark_* helpers do not manage "
+                    "WMF lifecycle states. Use WMF state management to transition this item."
+                )
             updated = TaskEntry(
                 id=task.id,
                 title=task.title,

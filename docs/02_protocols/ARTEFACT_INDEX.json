@@ -34,6 +34,7 @@
     },
     { "path": "docs/02_protocols/TODO_Standard_v1.0.md" },
     { "path": "docs/02_protocols/VALIDATION_IMPLEMENTATION_NOTES.md" },
+    { "path": "docs/02_protocols/Work_Management_Framework_v0.1.md" },
     { "_comment": "Archived Versions (superseded)" },
     {
       "path": "docs/02_protocols/archive/2026-02_versioning/G-CBS_Standard_v1.0.md",

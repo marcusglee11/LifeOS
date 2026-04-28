@@ -37,7 +37,26 @@ def main() -> int:
     # Guard against recursive invocation (e.g. test_council_runner_integration
     # calls close_build.py --dry-run, which would re-run the full test suite
     # including that test again).
-    if os.environ.get("_LIFEOS_CLOSE_BUILD_RUNNING"):
+    if os.environ.get("_LIFEOS_CLOSE_BUILD_RUNNING") and "--dry-run" in sys.argv:
+        if "--json" in sys.argv:
+            print(
+                json.dumps(
+                    {
+                        "ok": True,
+                        "exit_code": 0,
+                        "closure_policy_version": "recursive-guard",
+                        "closure_tier": "no_changes",
+                        "selected_checks": [],
+                        "skipped_checks": ["recursive_close_build"],
+                        "post_merge_updates_suppressed": True,
+                        "what_done": ["Recursive close-build dry-run skipped."],
+                        "what_remains": [],
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
         print(
             "close_build: recursive invocation detected "
             "(_LIFEOS_CLOSE_BUILD_RUNNING is set) — exiting immediately.",
@@ -63,8 +82,7 @@ def _main_impl() -> int:
         "--allow-concurrent-wip",
         action="store_true",
         help=(
-            "Skip untracked-file gate when concurrent agent WIP is present "
-            "(Article XIX exemption)."
+            "Skip untracked-file gate when concurrent agent WIP is present (Article XIX exemption)."
         ),
     )
     parser.add_argument(

@@ -1,6 +1,6 @@
 # Council Context Pack — Schema v0.3 (Template)
 
-This file is a template for assembling a CCP that satisfies Council Protocol v1.2.
+This file is a template for assembling a CCP that satisfies the current Council Protocol binding resolved through `docs/01_governance/PROTOCOL_VERSION_REGISTER.md`.
 
 ---
 
@@ -29,6 +29,7 @@ council_run:
   reversibility: "easy|moderate|hard"
   safety_critical: false
   uncertainty: "low|medium|high"
+  protocol_binding_ref: "docs/01_governance/PROTOCOL_VERSION_REGISTER.md"
   override:
     mode: null
     topology: null
@@ -129,6 +130,10 @@ Attach or embed the AUR. If embedded, include clear section headings for referen
 ---
 
 ## Amendment record
+
+**WP2 (2026-04-27)** — Authority Audit Implementation:
+- Replaced hard-coded Council Protocol version reference with register-resolved binding.
+- Added `protocol_binding_ref` to CCP YAML header template.
 
 **v0.3 (2026-01-06)** — Fix Pack AUR_20260105_council_process_review:
 - F7: Added Promotion Criteria section with v1.0 requirements

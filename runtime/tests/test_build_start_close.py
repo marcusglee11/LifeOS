@@ -9,8 +9,8 @@ import pytest
 
 from scripts import repo_safety_gate as safety_gate
 from scripts.workflow import close_build as close_build
-from scripts.workflow.git_lock_health import GitLockHealth
 from scripts.workflow import start_build as start_build
+from scripts.workflow.git_lock_health import GitLockHealth
 
 
 @pytest.fixture(autouse=True)
@@ -177,7 +177,10 @@ def test_start_build_blocks_on_active_git_lock(monkeypatch, capsys) -> None:
 
 
 def test_start_build_reports_recovered_orphaned_locks_in_json(monkeypatch, capsys) -> None:
-    fake_out = "✓ Worktree ready at: /tmp/repo/.worktrees/auth-token\n  Run: cd /tmp/repo/.worktrees/auth-token\n"
+    fake_out = (
+        "✓ Worktree ready at: /tmp/repo/.worktrees/auth-token\n"
+        "  Run: cd /tmp/repo/.worktrees/auth-token\n"
+    )
 
     def fake_run(*args, **kwargs):
         return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=fake_out, stderr="")
@@ -214,7 +217,10 @@ def test_start_build_reports_recovered_orphaned_locks_in_json(monkeypatch, capsy
 
 
 def test_start_build_json_includes_repo_map_warning(monkeypatch, capsys) -> None:
-    fake_out = "✓ Worktree ready at: /tmp/repo/.worktrees/auth-token\n  Run: cd /tmp/repo/.worktrees/auth-token\n"
+    fake_out = (
+        "✓ Worktree ready at: /tmp/repo/.worktrees/auth-token\n"
+        "  Run: cd /tmp/repo/.worktrees/auth-token\n"
+    )
 
     def fake_run(*args, **kwargs):
         return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=fake_out, stderr="")
@@ -347,6 +353,19 @@ def test_close_build_json_output(monkeypatch, capsys) -> None:
     assert payload["exit_code"] == 0
     assert payload["closure_policy_version"] == "v1"
     assert payload["closure_tier"] == "no_changes"
+
+
+def test_close_build_recursive_dry_run_json_outputs_valid_payload(monkeypatch, capsys) -> None:
+    monkeypatch.setenv("_LIFEOS_CLOSE_BUILD_RUNNING", "1")
+    monkeypatch.setattr(sys, "argv", ["close_build.py", "--dry-run", "--json"])
+
+    rc = close_build.main()
+    payload = json.loads(capsys.readouterr().out)
+
+    assert rc == 0
+    assert payload["ok"] is True
+    assert payload["exit_code"] == 0
+    assert payload["closure_policy_version"] == "recursive-guard"
 
 
 def test_close_build_json_pushes_on_success(monkeypatch, capsys) -> None:

@@ -20,6 +20,30 @@ from runtime.orchestration.coo.backlog import (
     save_backlog,
 )
 
+MINIMAL_WMF_TASK = {
+    "id": "WI-2026-001",
+    "title": "WMF test item",
+    "description": "A WMF test work item",
+    "dod": "Tests pass",
+    "priority": "P1",
+    "risk": "low",
+    "scope_paths": ["docs/"],
+    "status": "READY",
+    "requires_approval": False,
+    "decision_support_required": False,
+    "owner": "claude-code",
+    "evidence": "",
+    "task_type": "build",
+    "tags": ["wmf"],
+    "objective_ref": "work-management",
+    "created_at": "2026-04-27T00:00:00Z",
+    "completed_at": None,
+    "workstream": "mission_registry",
+    "acceptance_criteria": ["Framework doc exists", "Validator passes"],
+    "plan_mode": "none",
+    "github_issue": 48,
+}
+
 
 def _find_repo_root() -> Path:
     result = _subprocess.run(
@@ -385,3 +409,226 @@ class TestMarkCompletedDecisionSupport:
         tasks[0].decision_support_required = True
         result = mark_completed(tasks, "T-014")
         assert result[0].decision_support_required is True
+
+
+class TestWMFIdValidation:
+    """WMF ID format is validated in backlog.py, not only in the standalone validator."""
+
+    def test_valid_wmf_id_loads(self, tmp_path: Path) -> None:
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([MINIMAL_WMF_TASK]))
+        tasks = load_backlog(path)
+        assert tasks[0].id == "WI-2026-001"
+
+    def test_wmf_short_year_raises(self, tmp_path: Path) -> None:
+        bad = {**MINIMAL_WMF_TASK, "id": "WI-26-001"}
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([bad]))
+        with pytest.raises(BacklogValidationError, match="WMF id format"):
+            load_backlog(path)
+
+    def test_wmf_short_sequence_raises(self, tmp_path: Path) -> None:
+        bad = {**MINIMAL_WMF_TASK, "id": "WI-2026-01"}
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([bad]))
+        with pytest.raises(BacklogValidationError, match="WMF id format"):
+            load_backlog(path)
+
+    def test_legacy_id_remains_valid(self, tmp_path: Path) -> None:
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([MINIMAL_VALID_TASK]))
+        tasks = load_backlog(path)
+        assert tasks[0].id == "T-001"
+
+
+class TestWMFStatusRouting:
+    """Status validation routes to WMF set for WI-* items, legacy set for T-* items."""
+
+    def test_legacy_pending_passes(self, tmp_path: Path) -> None:
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([MINIMAL_VALID_TASK]))
+        tasks = load_backlog(path)
+        assert tasks[0].status == "pending"
+
+    def test_legacy_wmf_status_raises(self, tmp_path: Path) -> None:
+        bad = {**MINIMAL_VALID_TASK, "status": "READY"}
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([bad]))
+        with pytest.raises(BacklogValidationError, match="status"):
+            load_backlog(path)
+
+    def test_wmf_ready_passes(self, tmp_path: Path) -> None:
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([MINIMAL_WMF_TASK]))
+        tasks = load_backlog(path)
+        assert tasks[0].status == "READY"
+
+    def test_wmf_legacy_status_raises(self, tmp_path: Path) -> None:
+        bad = {**MINIMAL_WMF_TASK, "status": "pending"}
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([bad]))
+        with pytest.raises(BacklogValidationError, match="status"):
+            load_backlog(path)
+
+    def test_wmf_all_statuses_valid(self, tmp_path: Path) -> None:
+        statuses = [
+            "INTAKE",
+            "TRIAGED",
+            "READY",
+            "DISPATCHED",
+            "REVIEW",
+            "CLOSED",
+            "BLOCKED",
+            "DEFERRED",
+            "REJECTED",
+            "DUPLICATE",
+            "SUPERSEDED",
+        ]
+        for status in statuses:
+            task = {**MINIMAL_WMF_TASK, "status": status}
+            path = tmp_path / f"backlog_{status}.yaml"
+            path.write_text(_make_backlog_yaml([task]))
+            tasks = load_backlog(path)
+            assert tasks[0].status == status
+
+
+class TestGithubIssueCoercion:
+    """github_issue field coercion: int accepted, string digits accepted, bad strings rejected."""
+
+    def test_int_github_issue_loads(self, tmp_path: Path) -> None:
+        task = {**MINIMAL_WMF_TASK, "github_issue": 48}
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([task]))
+        tasks = load_backlog(path)
+        assert tasks[0].github_issue == 48
+
+    def test_string_github_issue_coerced(self, tmp_path: Path) -> None:
+        task = {**MINIMAL_WMF_TASK, "github_issue": "48"}
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([task]))
+        tasks = load_backlog(path)
+        assert tasks[0].github_issue == 48
+
+    def test_invalid_github_issue_raises(self, tmp_path: Path) -> None:
+        task = {**MINIMAL_WMF_TASK, "github_issue": "abc"}
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([task]))
+        with pytest.raises(BacklogValidationError, match="github_issue"):
+            load_backlog(path)
+
+    def test_absent_github_issue_loads_as_none(self, tmp_path: Path) -> None:
+        task = {k: v for k, v in MINIMAL_WMF_TASK.items() if k != "github_issue"}
+        path = tmp_path / "backlog.yaml"
+        path.write_text(_make_backlog_yaml([task]))
+        tasks = load_backlog(path)
+        assert tasks[0].github_issue is None
+
+
+def _make_wmf_task_entry() -> TaskEntry:
+    return TaskEntry(
+        id="WI-2026-001",
+        title="WMF test item",
+        description="A WMF test work item",
+        dod="Tests pass",
+        priority="P1",
+        risk="low",
+        scope_paths=["docs/"],
+        status="READY",
+        requires_approval=False,
+        owner="claude-code",
+        evidence="",
+        task_type="build",
+        tags=["wmf"],
+        objective_ref="work-management",
+        created_at="2026-04-27T00:00:00Z",
+        completed_at=None,
+        decision_support_required=False,
+        github_issue=48,
+        workstream="mission_registry",
+        acceptance_criteria=["Framework doc exists", "Validator passes"],
+        plan_mode="none",
+    )
+
+
+class TestLegacyMarkHelpersRejectWMF:
+    """mark_in_progress/blocked/completed must raise for WI-* items."""
+
+    def test_mark_in_progress_rejects_wmf(self) -> None:
+        tasks = [_make_wmf_task_entry()]
+        with pytest.raises(BacklogValidationError, match="WMF item"):
+            mark_in_progress(tasks, "WI-2026-001")
+
+    def test_mark_blocked_rejects_wmf(self) -> None:
+        tasks = [_make_wmf_task_entry()]
+        with pytest.raises(BacklogValidationError, match="WMF item"):
+            mark_blocked(tasks, "WI-2026-001")
+
+    def test_mark_completed_rejects_wmf(self) -> None:
+        tasks = [_make_wmf_task_entry()]
+        with pytest.raises(BacklogValidationError, match="WMF item"):
+            mark_completed(tasks, "WI-2026-001")
+
+    def test_mark_in_progress_legacy_still_works(self) -> None:
+        tasks = [_make_task("T-001", "pending")]
+        result = mark_in_progress(tasks, "T-001")
+        assert result[0].status == "in_progress"
+
+
+class TestWMFRoundTrip:
+    """WMF items with optional fields survive save_backlog → load_backlog without field loss."""
+
+    def test_wmf_fields_preserved_on_roundtrip(self, tmp_path: Path) -> None:
+        original = [
+            TaskEntry(
+                id="WI-2026-001",
+                title="WMF roundtrip item",
+                description="Round-trip test",
+                dod="Fields preserved",
+                priority="P0",
+                risk="low",
+                scope_paths=["docs/02_protocols/"],
+                status="DISPATCHED",
+                requires_approval=False,
+                owner="claude-code",
+                evidence="",
+                task_type="build",
+                tags=["wmf", "roundtrip"],
+                objective_ref="work-management",
+                created_at="2026-04-27T00:00:00Z",
+                completed_at=None,
+                decision_support_required=False,
+                github_issue=48,
+                workstream="mission_registry",
+                acceptance_criteria=["Validator passes", "Framework doc exists"],
+                acceptance_ref=None,
+                plan_mode="plan_lite",
+                plan_path=None,
+                plan_followup_required=True,
+                followup_backlog_item="WI-2026-002",
+                closure_evidence=None,
+            )
+        ]
+        path = tmp_path / "backlog.yaml"
+        save_backlog(path, original)
+        loaded = load_backlog(path)
+        assert len(loaded) == 1
+        t = loaded[0]
+        assert t.id == "WI-2026-001"
+        assert t.status == "DISPATCHED"
+        assert t.github_issue == 48
+        assert t.workstream == "mission_registry"
+        assert t.acceptance_criteria == ["Validator passes", "Framework doc exists"]
+        assert t.plan_mode == "plan_lite"
+        assert t.plan_followup_required is True
+        assert t.followup_backlog_item == "WI-2026-002"
+        assert t.closure_evidence is None
+
+    def test_legacy_task_unaffected_by_wmf_fields(self, tmp_path: Path) -> None:
+        original = [_make_task("T-001", "pending")]
+        path = tmp_path / "backlog.yaml"
+        save_backlog(path, original)
+        loaded = load_backlog(path)
+        assert loaded[0].id == "T-001"
+        assert loaded[0].github_issue is None
+        assert loaded[0].workstream is None
+        assert loaded[0].plan_mode is None

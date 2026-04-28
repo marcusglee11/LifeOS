@@ -3,14 +3,14 @@
 **System**: LifeOS Governance Hub  
 **Status**: Proposed for Canonical Promotion (operational layer)  
 **Effective date**: 2026-01-06 (upon CEO promotion)  
-**Scope**: Runbook for executing Council Protocol v1.2
+**Scope**: Runbook for executing Council Protocol; current binding resolved via `docs/01_governance/PROTOCOL_VERSION_REGISTER.md`  
 **Amends**: AI_Council_Procedural_Spec_v1.0 (Fix Pack AUR_20260105_council_process_review)
 
 ---
 
 ## 1. Purpose
 
-This document operationalises **Council Protocol v1.2**. It specifies how to:
+This document operationalises the current Council Protocol binding as resolved through `docs/01_governance/PROTOCOL_VERSION_REGISTER.md`. It specifies how to:
 - assemble a Council Context Pack (CCP),
 - select mode/topology deterministically,
 - run council reviews under MONO, HYBRID, or DISTRIBUTED topologies,
@@ -26,7 +26,7 @@ You need:
 2. CCP header YAML (machine-discernable).
 3. Seat prompt artefacts (Chair, Co-Chair, reviewers).
 
-If canonical artefacts are unavailable, use **BOOTSTRAP CCP** (Protocol §9).
+If canonical artefacts are unavailable, use **BOOTSTRAP CCP** under the current Council Protocol binding.
 
 ---
 
@@ -194,6 +194,7 @@ council_run_log:
   aur_id: "<AUR_ID>"
   mode: "M0_FAST|M1_STANDARD|M2_FULL"
   topology: "MONO|HYBRID|DISTRIBUTED"
+  protocol_binding_ref: "docs/01_governance/PROTOCOL_VERSION_REGISTER.md"
   models_used:
     - role: "Chair"
       model: "<model_name>"
@@ -220,6 +221,10 @@ council_run_log:
 ---
 
 ## 11. Amendment record
+
+**WP2 (2026-04-27)** — Authority Audit Implementation:
+- Added protocol version register reference for current Council Protocol binding.
+- Added `protocol_binding_ref` to Council Run Log template.
 
 **v1.1 (2026-01-06)** — Fix Pack AUR_20260105_council_process_review:
 - F4 (partial): Added `independence_waived` and `waiver_reason` fields to Council Run Log template
