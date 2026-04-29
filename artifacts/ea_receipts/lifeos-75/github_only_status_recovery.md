@@ -30,6 +30,6 @@ Telegram was not used or required.
 
 Local TUI was not used or required.
 
-GitHub PR URL: pending until PR create/update.
+GitHub PR URL: https://github.com/marcusglee11/LifeOS/pull/85
 
-GitHub comment URL: pending until PR or issue comment.
+GitHub comment URL: https://github.com/marcusglee11/LifeOS/issues/75#issuecomment-4341452461
