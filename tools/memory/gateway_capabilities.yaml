@@ -1,0 +1,9 @@
+version: "0.1"
+sensitive_retrieval_allowlist: []
+transport:
+  allowed:
+    - stdio
+    - local_socket
+tool_surface:
+  - memory.retrieve
+  - memory.capture_candidate
