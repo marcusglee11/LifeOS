@@ -4418,6 +4418,116 @@ CEO clears `artifacts/for_ceo/` after pickup. Agent MUST NOT delete from this fo
 
 ---
 
+# File: 02_protocols/COO_EA_Dispatch_Pipeline_Protocol_v0.1.md
+
+# COO to EA Dispatch Pipeline Protocol v0.1
+
+<!-- markdownlint-disable MD013 MD040 MD060 -->
+
+**Status:** Design packet, not runtime-active
+**Version:** 0.1
+**Issue:** #62
+**Last updated:** 2026-04-29
+**Authority:** LifeOS Target Architecture v2.3c; Work Management Framework v0.1; Git Workflow Protocol v1.1; active delegation envelope
+**Next executable slice:** #79
+
+---
+
+## 1. Purpose
+
+This packet defines the automated COO to EA dispatch pipeline for repository and build work.
+It is a design/specification deliverable only. It does not implement dispatcher runtime code.
+
+The pipeline moves LifeOS from manual EA CLI invocation toward governed automation where:
+
+- COO selects, orchestrates, verifies, and reconciles.
+- Codex EA executes repository/build work in isolated worktrees by default.
+- GitHub issue/PR/CI state is the v0 control surface and completion truth.
+- Wrapper process success is transport-only. Actual success requires a validated
+  `ea_receipt.v0` plus GitHub, PR, and CI evidence.
+
+## 2. Non-goals
+
+This packet does not:
+
+- Implement #79, #76, #77, or #78.
+- Add runtime scripts, validators, schemas, GitHub workflows, or dispatch wrappers.
+- Ratify OpenClaw, Telegram, or local TUI output as completion truth.
+- Replace the Work Management Framework queue model in this issue.
+- Change protected governance or foundation documents.
+- Authorize provider routing away from Codex for repo/build execution.
+
+## 3. Design Packet
+
+### 3.1 Control surfaces
+
+| Surface | v0 role | Completion authority |
+|---|---|---|
+| GitHub issue | Canonical automated work-order object and state thread | Yes |
+| GitHub issue labels/state block | Machine-readable lifecycle state and routing | Yes |
+| GitHub PR | Code-review and diff evidence | Yes |
+| GitHub CI checks | Latest-head execution proof | Yes |
+| `ea_receipt.v0` | Structured EA execution receipt | Required, but not sufficient alone |
+| Wrapper exit code | Transport health only | No |
+| OpenClaw chat/output | COO substrate context and message transport | No |
+| Telegram messages | Notification or operator convenience only | No |
+| Local TUI/session transcript | Debug context only | No |
+| `config/tasks/backlog.yaml` | Current WMF queue source before migration | Not completion truth for automated runs |
+
+GitHub is the v0 control surface because it already binds issues, PRs, commits, review,
+and CI into one auditable plane. Local files may stage or mirror facts, but automated
+completion is not true until GitHub evidence passes verification.
+
+### 3.2 Role boundary
+
+| Actor | Responsibilities | Must not do |
+|---|---|---|
+| CEO/Marcus | Sets strategy, approves gated dispatches, approves provider rule changes | Supply internal paths or manually mutate automation truth as routine operation |
+| COO | Selects work, checks eligibility, opens/updates GitHub work orders, dispatches, verifies receipts and GitHub evidence, escalates | Directly execute repo/build work, edit code as EA, treat wrapper success as task success |
+| Codex EA | Executes repo/build work, edits files, runs tests, opens/updates PR, emits `ea_receipt.v0`, posts result payload | Mutate COO state block directly, self-approve completion, bypass CI evidence |
+| GitHub/CI | Carries issue, PR, commit, workflow, and check evidence | Interpret task semantics alone |
+| Reviewer | Reviews PR/diff/evidence when required | Replace COO verification or CEO approval gates |
+
+Codex is the default and only repo/build execution lane unless Marcus explicitly changes
+the rule. Provider changes are CEO-gated because they alter execution authority and
+evidence semantics.
+
+### 3.3 Dispatch flow
+
+1. COO selects a candidate work item from GitHub issue state or WMF backlog mirror.
+2. COO applies auto-dispatch eligibility rules or records CEO approval reference.
+3. COO creates or updates a GitHub work-order issue with a validated dispatch request.
+4. COO writes `attempt_id`, dispatch timestamp, expected executor `codex`, and timeout.
+5. GitHub workflow or dispatch wrapper starts Codex EA in an isolated build worktree.
+6. Codex EA performs repo/build work, runs verification, opens or updates a PR, and emits
+   `ea_receipt.v0`.
+7. Codex EA posts a structured result payload to the GitHub issue.
+8. COO verifier validates result payload, receipt, PR evidence, and CI status on the PR
+   latest head SHA.
+9. COO updates GitHub state, mirrors any WMF/backlog state if still needed, and reports
+   outcome to CEO.
+
+No terminal success transition occurs at step 5 or because a wrapper returned exit code 0.
+
+## 4. Minimal Payload Specs
+
+### 4.1 `coo_ea_dispatch_request.v0`
+
+The dispatch request is the minimum object the COO passes to GitHub/workflow/Codex EA.
+It may live in the issue body, workflow inputs, or both. #79 should choose exact storage
+after implementation discovery, but fields below are required for v0.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `schema_version` | string | yes | Exactly `coo_ea_dispatch_request.v0` |
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
 # File: 02_protocols/Core_TDD_Design_Principles_v1.0.md
 
 # Core Track — TDD Design Principles v1.0
