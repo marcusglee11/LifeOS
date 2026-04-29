@@ -1,0 +1,2 @@
+VALID ea_receipt.v0 artifacts/ea_receipts/lifeos-75/failure.ea_receipt.v0.json status=failure
+VALID ea_receipt.v0 artifacts/ea_receipts/lifeos-75/success.ea_receipt.v0.json status=success
