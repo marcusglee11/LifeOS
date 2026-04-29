@@ -1,0 +1,27 @@
+{
+  "schema": "ea_receipt.v0",
+  "issue": "marcusglee11/LifeOS#75",
+  "attempt_id": "codex-ea-75-20260429T063443Z-failure",
+  "executor": "codex-cli",
+  "workdir_path": "/tmp/lifeos-75-codex-ea-live.vJv7Bh/LifeOS",
+  "workdir_class": "writable_temp_clone",
+  "branch": "proof/codex-ea-substrate-75",
+  "status": "failure",
+  "commands": [
+    "python3 -c 'import sys; sys.exit(23)'"
+  ],
+  "inner_exit_codes": [
+    23
+  ],
+  "failure_summary": "Intentional inner failure exited with code 23; outer Codex EA run continued to prove substrate handling.",
+  "completion_truth": {
+    "openclaw_used": false,
+    "telegram_used": false,
+    "local_tui_used": false
+  },
+  "artifacts": {
+    "validator": "artifacts/ea_receipts/lifeos-75/validate_ea_receipt_v0.py",
+    "validation_output": "artifacts/ea_receipts/lifeos-75/validation_output.txt",
+    "github_only_status_recovery": "artifacts/ea_receipts/lifeos-75/github_only_status_recovery.md"
+  }
+}
