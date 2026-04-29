@@ -1209,6 +1209,72 @@ def main() -> int:
     )
     p_coo_prompt_status.add_argument("--json", action="store_true", help="Output as JSON")
 
+    p_coo_ea_dispatch = coo_subs.add_parser(
+        "ea-dispatch",
+        help="Build and verify GitHub Codex EA dispatch payloads",
+    )
+    coo_ea_dispatch_subs = p_coo_ea_dispatch.add_subparsers(
+        dest="ea_dispatch_cmd",
+        required=True,
+    )
+    p_coo_ea_build = coo_ea_dispatch_subs.add_parser(
+        "build-request",
+        help="Build coo_ea_dispatch_request.v0",
+    )
+    p_coo_ea_build.add_argument("--repo", required=True, help="GitHub repo owner/name")
+    p_coo_ea_build.add_argument("--issue-number", required=True, type=int)
+    p_coo_ea_build.add_argument("--command-id", required=True)
+    p_coo_ea_build.add_argument("--attempt-id", required=True)
+    p_coo_ea_build.add_argument("--task-ref", required=True)
+    p_coo_ea_build.add_argument(
+        "--task-type",
+        required=True,
+        choices=("build", "fix", "hotfix", "spike", "stewardship"),
+    )
+    p_coo_ea_build.add_argument("--base-ref", required=True)
+    p_coo_ea_build.add_argument("--branch-name", required=True)
+    p_coo_ea_build.add_argument("--scope-path", action="append", required=True)
+    p_coo_ea_build.add_argument("--acceptance-criterion", action="append", required=True)
+    p_coo_ea_build.add_argument("--verification-command", action="append", required=True)
+    p_coo_ea_build.add_argument("--approval-ref")
+    p_coo_ea_build.add_argument("--auto-dispatch-basis-json")
+    p_coo_ea_build.add_argument("--timeout-seconds", type=int, default=3600)
+
+    p_coo_ea_plan = coo_ea_dispatch_subs.add_parser(
+        "plan-codex",
+        help="Render Codex clone/worktree command plan without executing it",
+    )
+    p_coo_ea_plan.add_argument("--request-file", required=True)
+    p_coo_ea_plan.add_argument("--workspace-root")
+
+    p_coo_ea_verify = coo_ea_dispatch_subs.add_parser(
+        "verify-result",
+        help="Evaluate coo_ea_result.v0 against dispatch request and GitHub evidence",
+    )
+    p_coo_ea_verify.add_argument("--request-file", required=True)
+    p_coo_ea_verify.add_argument("--result-file")
+    p_coo_ea_verify.add_argument("--issue-state", default="running")
+    p_coo_ea_verify.add_argument("--pr-url")
+    p_coo_ea_verify.add_argument("--pr-base-ref")
+    p_coo_ea_verify.add_argument("--pr-head-sha")
+    p_coo_ea_verify.add_argument("--ci-url")
+    p_coo_ea_verify.add_argument(
+        "--ci-status",
+        choices=("success", "failure", "cancelled", "skipped"),
+    )
+    p_coo_ea_verify.add_argument(
+        "--worktree-clean",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+    )
+    p_coo_ea_verify.add_argument("--partial-commit-marker", action="append")
+    p_coo_ea_verify.add_argument("--wrapper-exit-code", type=int)
+    p_coo_ea_verify.add_argument("--timed-out", action="store_true")
+    p_coo_ea_verify.add_argument("--terminal-state")
+    p_coo_ea_verify.add_argument("--issue-artifact-url", action="append")
+    p_coo_ea_verify.add_argument("--pr-artifact-url", action="append")
+    p_coo_ea_verify.add_argument("--receipt-artifact-url", action="append")
+
     # spine group (Phase 4A0)
     p_spine = subparsers.add_parser("spine", help="Loop Spine (A1 Chain Controller) commands")
     spine_subs = p_spine.add_subparsers(dest="spine_cmd", required=True)
@@ -1323,6 +1389,8 @@ def main() -> int:
                     return coo_commands.cmd_coo_telegram_status(args, repo_root)
             elif args.coo_cmd == "prompt-status":
                 return coo_commands.cmd_coo_prompt_status(args, repo_root)
+            elif args.coo_cmd == "ea-dispatch":
+                return coo_commands.cmd_coo_ea_dispatch(args, repo_root)
 
         if args.subcommand == "spine":
             if args.spine_cmd == "run":
