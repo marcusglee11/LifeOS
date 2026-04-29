@@ -86,7 +86,8 @@ def test_durable_records_use_json_schema_validation(tmp_path: Path) -> None:
     path = repo / "memory" / "workflows" / "bad-schema.md"
     _front(path, _durable(sources=[]))
     errors = _errors(path, repo)
-    assert any("sources" in err and "should be non-empty" in err for err in errors)
+    assert any(err.startswith("sources:") for err in errors)
+    assert "sources must be a non-empty list" in errors
 
 
 def test_state_record_special_rules(tmp_path: Path) -> None:

@@ -35,6 +35,14 @@ from validate import validate_candidate  # noqa: E402
 TOOL_RETRIEVE = "memory.retrieve"
 TOOL_CAPTURE = "memory.capture_candidate"
 EXPOSED_TOOL_NAMES = (TOOL_RETRIEVE, TOOL_CAPTURE)
+MCP_PROTOCOL_VERSION = "2025-11-25"
+MCP_SERVER_INFO = {"name": "lifeos-memory-gateway", "version": "0.1"}
+JSONRPC_VERSION = "2.0"
+JSONRPC_PARSE_ERROR = -32700
+JSONRPC_INVALID_REQUEST = -32600
+JSONRPC_METHOD_NOT_FOUND = -32601
+JSONRPC_INVALID_PARAMS = -32602
+JSONRPC_SERVER_NOT_INITIALIZED = -32002
 
 GATEWAY_AUTHORITY_FLOORS = (
     "observation",
@@ -518,6 +526,18 @@ def _write_packet(path: Path, repo: Path, payload: dict[str, Any], body: str) ->
     write_front_matter(path, payload, body)
 
 
+def _candidate_collision_findings(path: Path, repo: Path) -> list[dict[str, str]]:
+    _assert_allowed_write(path, repo)
+    if not path.exists():
+        return []
+    return [
+        _finding(
+            "candidate_collision",
+            f"candidate path already exists; refusing overwrite: {relpath(path, repo)}",
+        )
+    ]
+
+
 def _validation_findings(errors: list[str]) -> list[dict[str, str]]:
     return [_finding("candidate_validation_failed", error) for error in errors]
 
@@ -647,6 +667,28 @@ def memory_capture_candidate(
 
     if findings:
         failed_path = _failed_dir(repo_path) / f"{candidate_id}.md"
+        collision_findings = _candidate_collision_findings(failed_path, repo_path)
+        if collision_findings:
+            findings.extend(collision_findings)
+            session_path = _append_session_log(
+                repo_path,
+                session_id=session_id,
+                tool=TOOL_CAPTURE,
+                agent_claim=agent or None,
+                transport_identity=transport_identity,
+                query_or_summary=summary,
+                candidate_id=candidate_id,
+                candidate_path=None,
+                result_ok=False,
+                findings=findings,
+            )
+            return {
+                "ok": False,
+                "candidate_id": candidate_id,
+                "candidate_path": "",
+                "session_log_path": relpath(session_path, repo_path),
+                "findings": findings,
+            }
         failed_payload = dict(payload)
         failed_payload["gateway_findings"] = findings
         body = "Candidate packet failed gateway validation. Human review required before reuse.\n"
@@ -672,6 +714,28 @@ def memory_capture_candidate(
         }
 
     candidate_path = _candidate_path(repo_path, agent, iso_timestamp, candidate_id)
+    collision_findings = _candidate_collision_findings(candidate_path, repo_path)
+    if collision_findings:
+        findings.extend(collision_findings)
+        session_path = _append_session_log(
+            repo_path,
+            session_id=session_id,
+            tool=TOOL_CAPTURE,
+            agent_claim=agent,
+            transport_identity=transport_identity,
+            query_or_summary=summary,
+            candidate_id=candidate_id,
+            candidate_path=None,
+            result_ok=False,
+            findings=findings,
+        )
+        return {
+            "ok": False,
+            "candidate_id": candidate_id,
+            "candidate_path": "",
+            "session_log_path": relpath(session_path, repo_path),
+            "findings": findings,
+        }
     body = "Gateway candidate packet. Requires human review before durable memory disposition.\n"
     _write_packet(candidate_path, repo_path, payload, body)
     session_path = _append_session_log(
@@ -714,24 +778,121 @@ def call_tool(
     }
 
 
-def _run_jsonl_stdio() -> int:
+def _jsonrpc_result(request_id: Any, result: dict[str, Any]) -> dict[str, Any]:
+    return {"jsonrpc": JSONRPC_VERSION, "id": request_id, "result": result}
+
+
+def _jsonrpc_error(
+    request_id: Any, code: int, message: str, data: Any | None = None
+) -> dict[str, Any]:
+    error: dict[str, Any] = {"code": code, "message": message}
+    if data is not None:
+        error["data"] = data
+    return {"jsonrpc": JSONRPC_VERSION, "id": request_id, "error": error}
+
+
+def _mcp_initialize(params: Any) -> dict[str, Any]:
+    requested_version = MCP_PROTOCOL_VERSION
+    if isinstance(params, dict) and isinstance(params.get("protocolVersion"), str):
+        requested_version = params["protocolVersion"]
+    return {
+        "protocolVersion": requested_version,
+        "capabilities": {"tools": {"listChanged": False}},
+        "serverInfo": MCP_SERVER_INFO,
+    }
+
+
+def _mcp_call_tool_payload(name: str, args: dict[str, Any]) -> dict[str, Any]:
+    payload = call_tool(name, args)
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": json.dumps(payload, indent=2, sort_keys=True),
+            }
+        ],
+        "structuredContent": payload,
+        "isError": payload.get("ok") is False,
+    }
+
+
+def _handle_mcp_request(
+    request: dict[str, Any], *, initialized: bool
+) -> tuple[dict[str, Any] | None, bool]:
+    request_id = request.get("id")
+    method = request.get("method")
+    is_notification = "id" not in request
+    if request.get("jsonrpc") != JSONRPC_VERSION or not isinstance(method, str):
+        if is_notification:
+            return None, initialized
+        return (
+            _jsonrpc_error(request_id, JSONRPC_INVALID_REQUEST, "invalid JSON-RPC request"),
+            initialized,
+        )
+    if is_notification:
+        if method == "notifications/initialized":
+            return None, True
+        return None, initialized
+    params = request.get("params")
+    if method == "initialize":
+        return _jsonrpc_result(request_id, _mcp_initialize(params)), True
+    if method == "ping":
+        return _jsonrpc_result(request_id, {}), initialized
+    if not initialized:
+        return (
+            _jsonrpc_error(
+                request_id,
+                JSONRPC_SERVER_NOT_INITIALIZED,
+                "server not initialized",
+            ),
+            initialized,
+        )
+    if method == "tools/list":
+        return _jsonrpc_result(request_id, {"tools": tool_definitions()}), initialized
+    if method == "tools/call":
+        if not isinstance(params, dict):
+            return (
+                _jsonrpc_error(request_id, JSONRPC_INVALID_PARAMS, "params must be an object"),
+                initialized,
+            )
+        name = params.get("name")
+        args = params.get("arguments", {})
+        if not isinstance(name, str) or not isinstance(args, dict):
+            return (
+                _jsonrpc_error(
+                    request_id,
+                    JSONRPC_INVALID_PARAMS,
+                    "tools/call requires string name and object arguments",
+                ),
+                initialized,
+            )
+        return _jsonrpc_result(request_id, _mcp_call_tool_payload(name, args)), initialized
+    return (
+        _jsonrpc_error(request_id, JSONRPC_METHOD_NOT_FOUND, f"method not found: {method}"),
+        initialized,
+    )
+
+
+def _run_mcp_stdio() -> int:
+    initialized = False
     for line in sys.stdin:
         line = line.strip()
         if not line:
             continue
         try:
             request = json.loads(line)
-            name = request.get("tool") or request.get("name")
-            args = request.get("arguments") or request.get("args") or {}
-            if not isinstance(args, dict):
-                raise ValueError("arguments must be an object")
-            response = call_tool(str(name), args)
+            if not isinstance(request, dict):
+                response = _jsonrpc_error(
+                    None, JSONRPC_INVALID_REQUEST, "request must be an object"
+                )
+            else:
+                response, initialized = _handle_mcp_request(request, initialized=initialized)
+                if response is None:
+                    continue
+        except json.JSONDecodeError as exc:
+            response = _jsonrpc_error(None, JSONRPC_PARSE_ERROR, "parse error", str(exc))
         except Exception as exc:
-            response = {
-                "ok": False,
-                "findings": [_finding("request_failed", str(exc))],
-                "session_log_path": "",
-            }
+            response = _jsonrpc_error(None, JSONRPC_INVALID_REQUEST, "request failed", str(exc))
         sys.stdout.write(json.dumps(response, sort_keys=True) + "\n")
         sys.stdout.flush()
     return 0
@@ -752,7 +913,7 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit("--arguments must decode to an object")
         print(json.dumps(call_tool(args.call, payload), indent=2, sort_keys=True))
         return 0
-    return _run_jsonl_stdio()
+    return _run_mcp_stdio()
 
 
 if __name__ == "__main__":

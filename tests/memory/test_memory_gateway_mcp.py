@@ -101,6 +101,49 @@ def _session_lines(repo: Path, session_id: str) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
 
 
+def _mcp_request(request_id: int, method: str, params: dict | None = None) -> dict:
+    request = {"jsonrpc": "2.0", "id": request_id, "method": method}
+    if params is not None:
+        request["params"] = params
+    return request
+
+
+def _mcp_exchange(repo: Path, messages: list[dict]) -> list[dict]:
+    input_text = "\n".join(json.dumps(message) for message in messages) + "\n"
+    process = subprocess.Popen(
+        [sys.executable, str(repo / "tools" / "memory" / "mcp_server.py")],
+        cwd=repo,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    stdout, stderr = process.communicate(input_text, timeout=10)
+    assert process.returncode == 0, stderr
+    return [json.loads(line) for line in stdout.splitlines()]
+
+
+def _mcp_session_prefix() -> list[dict]:
+    return [
+        _mcp_request(
+            1,
+            "initialize",
+            {
+                "protocolVersion": "2025-11-25",
+                "capabilities": {},
+                "clientInfo": {"name": "pytest", "version": "0"},
+            },
+        ),
+        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+    ]
+
+
+def _structured_tool_result(response: dict) -> dict:
+    result = response["result"]
+    assert result["content"][0]["type"] == "text"
+    return result["structuredContent"]
+
+
 def test_exposes_only_v01_memory_tools() -> None:
     assert mcp_server.exposed_tool_names() == [
         "memory.retrieve",
@@ -110,6 +153,110 @@ def test_exposes_only_v01_memory_tools() -> None:
         "memory.retrieve",
         "memory.capture_candidate",
     ]
+
+
+def test_mcp_stdio_lists_exact_v01_memory_tools(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+
+    responses = _mcp_exchange(
+        repo,
+        [
+            *_mcp_session_prefix(),
+            _mcp_request(2, "tools/list"),
+        ],
+    )
+
+    assert responses[0]["result"]["capabilities"] == {"tools": {"listChanged": False}}
+    assert [tool["name"] for tool in responses[1]["result"]["tools"]] == [
+        "memory.retrieve",
+        "memory.capture_candidate",
+    ]
+
+
+def test_mcp_stdio_retrieve_appends_session_log(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+    _front(
+        repo / "memory" / "workflows" / "agent.md",
+        _durable(id="MEM-MCP-RETRIEVE", authority_class="agent_memory"),
+    )
+
+    responses = _mcp_exchange(
+        repo,
+        [
+            *_mcp_session_prefix(),
+            _mcp_request(
+                2,
+                "tools/call",
+                {
+                    "name": "memory.retrieve",
+                    "arguments": {
+                        "session_id": "sess-mcp-retrieve",
+                        "query": "gateway retrieval topic",
+                        "scope": "workflow",
+                        "authority_floor": "observation",
+                        "limit": 5,
+                    },
+                },
+            ),
+        ],
+    )
+
+    payload = _structured_tool_result(responses[1])
+    assert payload["ok"] is True
+    assert [item["record_id"] for item in payload["results"]] == ["MEM-MCP-RETRIEVE"]
+    log = _session_lines(repo, "sess-mcp-retrieve")[-1]
+    assert log["tool"] == "memory.retrieve"
+    assert log["result_ok"] is True
+
+
+def test_mcp_stdio_capture_candidate_writes_candidate_and_session(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+
+    responses = _mcp_exchange(
+        repo,
+        [
+            *_mcp_session_prefix(),
+            _mcp_request(
+                2,
+                "tools/call",
+                {"name": "memory.capture_candidate", "arguments": _capture_args()},
+            ),
+        ],
+    )
+
+    payload = _structured_tool_result(responses[1])
+    assert payload["ok"] is True
+    assert (repo / payload["candidate_path"]).exists()
+    log = _session_lines(repo, "sess-capture")[-1]
+    assert log["tool"] == "memory.capture_candidate"
+    assert log["candidate_path"] == payload["candidate_path"]
+
+
+def test_mcp_stdio_unknown_tool_fails_closed(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+
+    responses = _mcp_exchange(
+        repo,
+        [
+            *_mcp_session_prefix(),
+            _mcp_request(
+                2,
+                "tools/call",
+                {
+                    "name": "memory.promote",
+                    "arguments": {
+                        "session_id": "sess-unknown",
+                        "query": "gateway",
+                    },
+                },
+            ),
+        ],
+    )
+
+    assert responses[1]["result"]["isError"] is True
+    payload = _structured_tool_result(responses[1])
+    assert payload["ok"] is False
+    assert any(item["code"] == "unknown_tool" for item in payload["findings"])
 
 
 def test_gateway_calls_do_not_invoke_subprocess(tmp_path: Path, monkeypatch) -> None:
@@ -155,6 +302,38 @@ def test_capture_writes_only_knowledge_staging_and_session_log(tmp_path: Path) -
     assert (repo / result["candidate_path"]).exists()
     assert sorted(path.relative_to(repo) for path in (repo / "memory").rglob("*")) == durable_before
     assert _session_lines(repo, "sess-capture")[-1]["candidate_path"] == result["candidate_path"]
+
+
+def test_capture_candidate_collision_fails_closed_without_overwrite(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+    args = _capture_args(session_id="sess-collision")
+    first = mcp_server.memory_capture_candidate(args, repo=repo)
+    candidate_path = repo / first["candidate_path"]
+    before = candidate_path.read_text(encoding="utf-8")
+
+    second = mcp_server.memory_capture_candidate(args, repo=repo)
+
+    assert second["ok"] is False
+    assert second["candidate_path"] == ""
+    assert candidate_path.read_text(encoding="utf-8") == before
+    assert any(item["code"] == "candidate_collision" for item in second["findings"])
+    assert len(_session_lines(repo, "sess-collision")) == 2
+
+
+def test_failed_candidate_collision_fails_closed_without_overwrite(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+    args = _capture_args(session_id="sess-failed-collision", sources=[])
+    first = mcp_server.memory_capture_candidate(args, repo=repo)
+    failed_path = repo / first["candidate_path"]
+    before = failed_path.read_text(encoding="utf-8")
+
+    second = mcp_server.memory_capture_candidate(args, repo=repo)
+
+    assert second["ok"] is False
+    assert second["candidate_path"] == ""
+    assert failed_path.read_text(encoding="utf-8") == before
+    assert any(item["code"] == "candidate_collision" for item in second["findings"])
+    assert len(_session_lines(repo, "sess-failed-collision")) == 2
 
 
 def test_retrieve_denies_sensitive_with_empty_allowlist_and_logs(tmp_path: Path) -> None:
