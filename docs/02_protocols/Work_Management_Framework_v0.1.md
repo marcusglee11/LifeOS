@@ -51,6 +51,21 @@ Only the active COO writes WMF operational state. Standby COOs, reviewers, and b
 
 Current v0.1 limitation: WMF assumes one active writer. It does not provide concurrent ID minting, file locking, or transaction semantics. If parallel operational writers are introduced, v0.2 must add a locked or transactional mint/write mechanism before more than one writer can mutate WMF state.
 
+### 3.3 Minimum manual loop
+
+New COO-managed work defaults to a `WI-YYYY-NNN` entry in `config/tasks/backlog.yaml`.
+
+The minimum manual operating loop is:
+
+1. Intake issue or request.
+2. Triage and mint `WI-YYYY-NNN`.
+3. Update `config/tasks/backlog.yaml` state.
+4. Dispatch through an execution order or approved manual handoff.
+5. Review diff, PR, receipt, or evidence.
+6. Close by recording `closure_evidence` in `config/tasks/backlog.yaml`.
+
+`docs/11_admin/BACKLOG.md` may summarize this loop but must not originate or uniquely store any step.
+
 ---
 
 ## 4. Authority matrix
@@ -318,7 +333,7 @@ Phase 1 target: `BACKLOG.md` should either be generated from `config/tasks/backl
 The Phase 0 validator lives at `scripts/validate_work_items.py` and runs locally with:
 
 ```bash
-python scripts/validate_work_items.py --check
+python3 scripts/validate_work_items.py --check
 ```
 
 It must check:
@@ -345,6 +360,14 @@ Implementation constraints:
 - No network or GitHub API access.
 - Narrow v0.1 scope; no dashboard or full transition enforcement.
 - Non-zero exit on blocking validation failures.
+
+The standard repo quality gate runs the same validator for relevant WMF changes:
+
+```bash
+python3 scripts/workflow/quality_gate.py check --scope changed --json
+```
+
+Relevant changes include `config/tasks/backlog.yaml`, `artifacts/workstreams.yaml`, `docs/11_admin/BACKLOG.md`, this framework document, and `scripts/validate_work_items.py`.
 
 ---
 

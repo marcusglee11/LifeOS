@@ -97,7 +97,8 @@ Each phase produces a typed packet. See `runtime/orchestration/missions/` for im
 | What | Where |
 |------|-------|
 | Current state & WIP | `docs/11_admin/LIFEOS_STATE.md` |
-| Prioritized backlog | `docs/11_admin/BACKLOG.md` |
+| Canonical task queue | `config/tasks/backlog.yaml` |
+| Backlog summary view | `docs/11_admin/BACKLOG.md` |
 | Doc navigation | `docs/INDEX.md` |
 | Model config | `config/models.yaml` |
 | Role prompts | `config/agent_roles/` |

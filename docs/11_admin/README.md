@@ -2,7 +2,7 @@
 
 **Purpose:** Lightweight control plane for project state, backlog, and decisions.
 
-**Last Updated:** 2026-02-14 (consolidation v1.0)
+**Last Updated:** 2026-04-29 (WMF v0.1 alignment)
 
 ---
 
@@ -10,11 +10,11 @@
 
 When statements conflict, resolve by this precedence (highest → lowest):
 
-1. **`LIFEOS_STATE.md` + `BACKLOG.md`** (canonical, auto-updated)
+1. **`LIFEOS_STATE.md`** (canonical project state) and **`config/tasks/backlog.yaml`** (canonical task queue)
 2. **`DECISIONS.md`** (append-only; decisions override intent/spec drift)
 3. **`Plan_Supersession_Register.md` + referenced plan** (plan authority)
 4. **Specs in `docs/11_admin/`** (e.g., `Doc_Freshness_Gate_Spec_v1.0.md`)
-5. **Derived views** (e.g., `AUTONOMY_STATUS.md`) — must cite sources + derived-from timestamp
+5. **Derived views** (e.g., `BACKLOG.md`, `AUTONOMY_STATUS.md`) — must cite sources + derived-from timestamp
 6. **Strategic context** (e.g., `lifeos-master-operating-manual-v2.1.md`)
 7. **Archive** (historical reference only; no inbound links; immutable)
 
@@ -27,7 +27,7 @@ When statements conflict, resolve by this precedence (highest → lowest):
 These files **MUST** exist at `docs/11_admin/` root:
 
 - `LIFEOS_STATE.md` — Single source of truth for current focus, WIP, blockers (auto-updated)
-- `BACKLOG.md` — Actionable backlog (Now/Next/Later), target ≤40 items (auto-updated)
+- `BACKLOG.md` — Derived/view-only summary of `config/tasks/backlog.yaml`; not canonical queue state
 - `INBOX.md` — Raw capture scratchpad for triage
 - `DECISIONS.md` — Append-only decision log
 
@@ -61,15 +61,18 @@ Only these subdirectories are permitted under `docs/11_admin/`:
 ## Archive Policy
 
 **Archived files are immutable.** Only allowed modifications:
+
 - Typo fixes in the archive README itself
 - Mechanical path corrections if repo structure changes (rare)
 
 **Link hygiene:**
+
 - Active docs MUST NOT link to archived files
 - Exception: `docs/11_admin/README.md` (this file) may link to archive subdir READMEs only
 - Archive subdirectory READMEs may link to archived files within their own subdir
 
-See [archive/2026-02-14_consolidation/README.md](./archive/2026-02-14_consolidation/README.md) for the consolidation disposition table.
+See [archive/2026-02-14_consolidation/README.md](./archive/2026-02-14_consolidation/README.md)
+for the consolidation disposition table.
 
 ---
 
@@ -93,11 +96,13 @@ python3 -m doc_steward.cli link-check .
 ```
 
 **Freshness mode:**
+
 - `off` (default): No freshness checking
 - `warn`: Emit warnings but do not fail
 - `block`: Fail on violations
 
 Freshness checks:
+
 - `artifacts/status/runtime_status.json` must be <24h old
 - Structured contradictions field must be empty (or only "warn" severity in warn mode)
 
@@ -114,6 +119,7 @@ If you need to add a new admin doc (rare):
 4. **Run validation** to confirm structure is still valid
 
 **Default answer: Don't add new docs.** The admin directory is intentionally thin. Most content belongs in:
+
 - `docs/00_foundations/` (core principles)
 - `docs/01_governance/` (governance & contracts)
 - `docs/02_protocols/` (protocols & procedures)
@@ -124,9 +130,10 @@ If you need to add a new admin doc (rare):
 
 ## Maintenance Workflow
 
-### When modifying admin docs:
+### When modifying admin docs
 
 1. **Pre-flight:**
+
    ```bash
    git status
    python3 -m doc_steward.cli admin-structure-check .
@@ -135,6 +142,7 @@ If you need to add a new admin doc (rare):
 2. **Make changes** (following authority hierarchy)
 
 3. **Post-flight:**
+
    ```bash
    python3 -m doc_steward.cli admin-structure-check .
    python3 -m doc_steward.cli admin-archive-link-ban-check .
@@ -143,12 +151,33 @@ If you need to add a new admin doc (rare):
    git status --porcelain=v1
    ```
 
-### When auto-update fails:
+### When auto-update fails
 
 If `LIFEOS_STATE.md` or `BACKLOG.md` auto-update fails, investigate:
+
 - Check `runtime/tools/workflow_pack.py` (`update_state_and_backlog()`)
 - Review recent commits for conflicts
-- Manually sync if needed, but preserve auto-update capability
+- Manually sync if needed, but keep canonical work-item state in `config/tasks/backlog.yaml`
+
+### Work Item Loop
+
+COO-managed work defaults to `WI-YYYY-NNN` entries in `config/tasks/backlog.yaml`.
+Use `docs/11_admin/BACKLOG.md` only as a derived human-readable summary.
+
+Minimum manual loop:
+
+1. Intake issue or request.
+2. Triage and mint `WI-YYYY-NNN`.
+3. Update `config/tasks/backlog.yaml` state.
+4. Dispatch through an execution order or approved manual handoff.
+5. Review diff, PR, receipt, or evidence.
+6. Close by recording `closure_evidence` in `config/tasks/backlog.yaml`.
+
+Validation:
+
+```bash
+python3 scripts/validate_work_items.py --check
+```
 
 ---
 

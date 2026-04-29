@@ -88,6 +88,9 @@ pytest runtime/tests -q
 # Run the canonical changed-file quality gate
 python3 scripts/workflow/quality_gate.py check --scope changed --json
 
+# Validate Work Management Framework backlog entries
+python3 scripts/validate_work_items.py --check
+
 # Apply only safe, deterministic quality fixes
 python3 scripts/workflow/quality_gate.py fix --scope changed --json
 
@@ -100,7 +103,10 @@ pytest
 # Check current project state
 cat docs/11_admin/LIFEOS_STATE.md
 
-# View backlog
+# View canonical task queue
+cat config/tasks/backlog.yaml
+
+# View derived backlog summary
 cat docs/11_admin/BACKLOG.md
 
 # Validate docs if you modified them
@@ -122,6 +128,13 @@ python -m doc_steward.cli dap-validate .
 7. **Match code style** - Follow conventions in the existing codebase
 8. **Always start builds in a worktree** - Use `/new-build <topic>` (runs `python3 scripts/workflow/start_build.py <topic> [--kind build|fix|hotfix|spike]`) to atomically create branch + isolated worktree. `build` is default; fixes use `--kind fix`. If work already started on a scoped branch in primary, recover it with `python3 scripts/workflow/start_build.py --recover-primary`. `/close-build` maps to `python3 scripts/workflow/close_build.py` and must be run from linked worktrees. Shared working tree + concurrent agents = Article XIX blocks, merge conflicts, and stash pop failures.
 9. **For dispatched build/content work, emit sprint-close before handoff** - write `artifacts/dispatch/closures/SC-<order_id>.yaml` using `sprint_close_packet.v1` before handoff. If packet emission or validation fails, treat the handoff as blocked.
+
+### COO-Managed Work Items
+
+- New COO-managed work defaults to a `WI-YYYY-NNN` entry in `config/tasks/backlog.yaml`.
+- `docs/11_admin/BACKLOG.md` is derived/view-only. Do not treat it as source of truth or place unique work-item state there.
+- Minimum manual loop: intake issue -> triage and mint WI -> update backlog state -> dispatch -> review -> close with evidence.
+- WMF validator is part of the quality gate for relevant changes; run `python3 scripts/validate_work_items.py --check` directly when touching backlog/workstream state.
 
 ### TODO & Documentation Discipline
 
@@ -218,7 +231,8 @@ When reviewing builds (from Codex, Claude Code, or any agent), **fix obvious iss
 | What | Where |
 |------|-------|
 | Current state & WIP | `docs/11_admin/LIFEOS_STATE.md` |
-| Prioritized backlog | `docs/11_admin/BACKLOG.md` |
+| Canonical task queue | `config/tasks/backlog.yaml` |
+| Backlog summary view | `docs/11_admin/BACKLOG.md` |
 | Doc navigation | `docs/INDEX.md` |
 | Constitution (deep context) | `docs/00_foundations/LifeOS_Constitution_v2.0.md` |
 | Strategic corpus | `docs/LifeOS_Strategic_Corpus.md` |

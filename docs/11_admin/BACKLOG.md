@@ -13,7 +13,7 @@
 
 **"Done means" checklist:**
 
-- [ ] Update BACKLOG item status + evidence pointer (commit/packet)
+- [ ] Update `config/tasks/backlog.yaml` WI status + evidence pointer (commit/packet)
 - [ ] Update `LIFEOS_STATE.md` (Current Focus/Blockers/Recent Wins)
 - [ ] Refresh baseline pack pointer + sha (`artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`)
 

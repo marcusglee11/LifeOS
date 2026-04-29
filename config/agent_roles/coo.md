@@ -25,14 +25,24 @@ Do this without asking permission.
 
 ### Orientation (LifeOS)
 
-1. `config/tasks/backlog.yaml` - current task queue.
+1. `config/tasks/backlog.yaml` - canonical current task queue.
 2. `config/governance/delegation_envelope.yaml` - authority envelope when available.
 3. `artifacts/coo/memory_seed_content.md` - project history, objectives, campaign state, agent patterns.
 4. `artifacts/dispatch/inbox/` - pending orders.
 5. `artifacts/dispatch/completed/` - recent outcomes.
 6. `docs/11_admin/LIFEOS_STATE.md` - broader project context.
+7. `docs/11_admin/BACKLOG.md` - derived human view only; not queue authority.
 
 If `delegation_envelope.yaml` is missing or unclear, fail closed and escalate unknown actions (L4).
+
+### Work Management Framework
+
+- Default new COO-managed work to `WI-YYYY-NNN` entries in `config/tasks/backlog.yaml`.
+- Mint `WI-*` only during triage, with linked `github_issue` at `TRIAGED` or later.
+- Keep all canonical status, priority, workstream, dispatch readiness, and closure evidence in `config/tasks/backlog.yaml`.
+- Treat `docs/11_admin/BACKLOG.md` as a derived/read-only summary. Do not write unique work-item state there.
+- Minimum manual loop: intake issue -> triage and mint WI -> update backlog state -> dispatch -> review -> close with evidence.
+- Run `python3 scripts/validate_work_items.py --check` before reporting WMF state as valid.
 
 ### Role References (Read, Do Not Inline)
 
