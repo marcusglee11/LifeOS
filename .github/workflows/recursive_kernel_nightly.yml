@@ -1,8 +1,8 @@
 name: Nightly Full Test Suite
 
 on:
-  schedule:
-    - cron: '0 3 * * *'  # 3 AM UTC daily (2 PM AEDT)
+  # Schedule disabled after repeated infra-only nightly failures.
+  # Keep manual dispatch available until rg and markdownlint-cli are installed in this workflow.
   workflow_dispatch:  # Allow manual trigger
 
 concurrency:
