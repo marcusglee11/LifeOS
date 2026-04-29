@@ -1,0 +1,118 @@
+{
+  "agent": "Hermes",
+  "compaction": {
+    "mutated_native_files": false,
+    "recommendation_only": true
+  },
+  "entries": [
+    {
+      "compaction_recommendation": "candidate staged through gateway; review before any durable memory promotion",
+      "disposition": "candidate_handoff",
+      "entry_id": "HNA-0001",
+      "handoff": {
+        "attempted": true,
+        "candidate_id": "CAND-a94a0692e6ba2b11",
+        "candidate_path": "knowledge-staging/cand-20260429-hermes-a94a0692e6ba2b11.md",
+        "findings": [],
+        "ok": true,
+        "session_log_path": "knowledge-staging/_sessions/sess-issue-81-hermes-gateway-proof.jsonl",
+        "tool": "memory.capture_candidate"
+      },
+      "line_start": 3,
+      "proposed_authority_class": "shared_knowledge",
+      "proposed_record_kind": "lesson",
+      "reasons": [
+        "explicit_disposition"
+      ],
+      "redacted_text": "[candidate_handoff] class=shared_knowledge kind=lesson scope=workflow Gateway v0.1 keeps Hermes native memory non-canonical; candidate evidence requires human review before durable promotion.",
+      "retrieval": {
+        "called": true,
+        "ok": true,
+        "result_count": 0,
+        "session_log_path": "knowledge-staging/_sessions/sess-issue-81-hermes-gateway-proof.jsonl",
+        "tool": "memory.retrieve"
+      },
+      "scope": "workflow",
+      "source": "artifacts/hermes_gateway_proof/issue_81_hermes_native_memory_sample.md"
+    },
+    {
+      "compaction_recommendation": "replace native detail with pointer only after operator review",
+      "disposition": "pointer_only",
+      "entry_id": "HNA-0002",
+      "handoff": {
+        "attempted": false,
+        "ok": null,
+        "tool": "memory.capture_candidate"
+      },
+      "line_start": 4,
+      "proposed_authority_class": null,
+      "proposed_record_kind": "lesson",
+      "reasons": [
+        "explicit_disposition"
+      ],
+      "redacted_text": "[pointer_only] See memory/workflows/coo-ea-dispatch-codex-only.md for related LifeOS context; do not copy native detail into durable memory.",
+      "retrieval": {
+        "called": true,
+        "ok": true,
+        "result_count": 0,
+        "session_log_path": "knowledge-staging/_sessions/sess-issue-81-hermes-gateway-proof.jsonl",
+        "tool": "memory.retrieve"
+      },
+      "scope": "workflow",
+      "source": "artifacts/hermes_gateway_proof/issue_81_hermes_native_memory_sample.md"
+    },
+    {
+      "compaction_recommendation": "operator may archive native entry after review; no native file mutation performed",
+      "disposition": "archive_observation",
+      "entry_id": "HNA-0003",
+      "handoff": {
+        "attempted": false,
+        "ok": null,
+        "tool": "memory.capture_candidate"
+      },
+      "line_start": 5,
+      "proposed_authority_class": "observation",
+      "proposed_record_kind": "lesson",
+      "reasons": [
+        "explicit_disposition"
+      ],
+      "redacted_text": "[archive_observation] stale native-memory note about retired direct candidate emission; operator may archive after review.",
+      "retrieval": {
+        "called": true,
+        "ok": true,
+        "result_count": 0,
+        "session_log_path": "knowledge-staging/_sessions/sess-issue-81-hermes-gateway-proof.jsonl",
+        "tool": "memory.retrieve"
+      },
+      "scope": "workflow",
+      "source": "artifacts/hermes_gateway_proof/issue_81_hermes_native_memory_sample.md"
+    }
+  ],
+  "gateway_boundary": {
+    "allowed_candidate_authority_classes": [
+      "agent_memory",
+      "observation",
+      "shared_knowledge"
+    ],
+    "capture_tool": "memory.capture_candidate",
+    "compaction_mutates_native": false,
+    "direct_candidate_emission": false,
+    "durable_memory_write": false,
+    "retrieval_tool": "memory.retrieve"
+  },
+  "schema": "hermes_native_audit.v1",
+  "session_id": "sess-issue-81-hermes-gateway-proof",
+  "summary": {
+    "by_disposition": {
+      "archive_observation": 1,
+      "candidate_handoff": 1,
+      "discard": 0,
+      "keep_native": 0,
+      "pointer_only": 1
+    },
+    "candidate_handoff_attempted": 1,
+    "candidate_handoff_succeeded": 1,
+    "entries": 3
+  },
+  "timestamp_utc": "2026-04-29T00:00:00Z"
+}
