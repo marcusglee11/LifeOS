@@ -6782,6 +6782,21 @@ Only the active COO writes WMF operational state. Standby COOs, reviewers, and b
 
 Current v0.1 limitation: WMF assumes one active writer. It does not provide concurrent ID minting, file locking, or transaction semantics. If parallel operational writers are introduced, v0.2 must add a locked or transactional mint/write mechanism before more than one writer can mutate WMF state.
 
+### 3.3 Minimum manual loop
+
+New COO-managed work defaults to a `WI-YYYY-NNN` entry in `config/tasks/backlog.yaml`.
+
+The minimum manual operating loop is:
+
+1. Intake issue or request.
+2. Triage and mint `WI-YYYY-NNN`.
+3. Update `config/tasks/backlog.yaml` state.
+4. Dispatch through an execution order or approved manual handoff.
+5. Review diff, PR, receipt, or evidence.
+6. Close by recording `closure_evidence` in `config/tasks/backlog.yaml`.
+
+`docs/11_admin/BACKLOG.md` may summarize this loop but must not originate or uniquely store any step.
+
 ---
 
 ## 4. Authority matrix
@@ -6821,11 +6836,6 @@ Conflict rule: if GitHub issues, `BACKLOG.md`, or status summaries disagree with
 |-------|---------|-------------------|------------------|
 | `INTAKE` | Captured but not yet assessed | Issue, note, or request exists | Triage decision |
 | `TRIAGED` | Assessed and accepted for tracking | `WI-YYYY-NNN` minted and `github_issue` recorded | Priority/workstream/next action clear |
-| `READY` | Ready to dispatch | Acceptance criteria or acceptance reference exists | Executor selected or blocker found |
-| `DISPATCHED` | Assigned to an executor | Dispatch authority exists, usually `execution_order.v1` | Work complete, blocked, or deferred |
-| `REVIEW` | Work submitted for review | Evidence or PR exists | Accepted/closed or fixes requested |
-| `CLOSED` | Accepted and complete | Closure evidence recorded | Terminal |
-| `BLOCKED` | Progress is blocked | `blocked_reason` or equivalent evidence exists | Unblocked, deferred, or re-triaged |
 
 > [!IMPORTANT]
 > **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
