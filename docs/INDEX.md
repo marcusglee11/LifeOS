@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-04-29 (rev27)
+Last Updated: 2026-04-29 (rev28)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -165,6 +165,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [GitHub_Actions_Secrets_Setup.md](./02_protocols/GitHub_Actions_Secrets_Setup.md) | PAT creation, secrets config, and rotation for CI workflows |
 | [Project_Planning_Protocol_v1.0.md](./02_protocols/Project_Planning_Protocol_v1.0.md) | Build mission plan requirements, schema compliance, lifecycle, and review rubric |
 | [Work_Management_Framework_v0.1.md](./02_protocols/Work_Management_Framework_v0.1.md) | **NEW** — Work Management Framework v0.1: intake, prioritisation, dispatch, review, closure |
+| [COO_EA_Dispatch_Pipeline_Protocol_v0.1.md](./02_protocols/COO_EA_Dispatch_Pipeline_Protocol_v0.1.md) | **Design packet** — GitHub-controlled COO to Codex EA dispatch pipeline, payloads, state machine, failure matrix, and #79 plan |
 | [OpenClaw_COO_Integration_v1.0.md](./02_protocols/OpenClaw_COO_Integration_v1.0.md) | OpenClaw gateway invocation, CLI wrappers, known constraints |
 | [Agent_Control_Plane_Pin_v1.0.md](./02_protocols/Agent_Control_Plane_Pin_v1.0.md) | **Dependency contract** — pins LifeOS to the external `agent-control-plane` protocol/control-plane source |
 
