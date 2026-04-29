@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -35,6 +36,16 @@ def test_route_quality_tools_agent_control_plane_pin_manifest() -> None:
     assert routed["agent_control_plane_pin"] == [
         "config/external_contracts/agent_control_plane_pin.yaml"
     ]
+
+
+def test_route_quality_tools_wmf_backlog_change() -> None:
+    routed = route_quality_tools(Path("."), ["config/tasks/backlog.yaml"], scope="changed")
+    assert routed["wmf_validator"] == ["config/tasks/backlog.yaml"]
+
+
+def test_route_quality_tools_wmf_workstreams_change_bypasses_artifacts_exclusion() -> None:
+    routed = route_quality_tools(Path("."), ["artifacts/workstreams.yaml"], scope="changed")
+    assert routed["wmf_validator"] == ["artifacts/workstreams.yaml"]
 
 
 def test_route_quality_tools_config_only_markdown_change_no_fan_out(monkeypatch) -> None:
@@ -115,6 +126,74 @@ def test_run_quality_gates_runs_agent_control_plane_pin(monkeypatch) -> None:
     assert any(row["tool"] == "agent_control_plane_pin" for row in result["results"])
     assert any(
         "scripts/workflow/check_agent_control_plane_pin.py" in command for command in commands
+    )
+
+
+def test_run_quality_gates_blocks_on_broken_wmf_backlog(tmp_path: Path) -> None:
+    (tmp_path / "config" / "quality").mkdir(parents=True)
+    (tmp_path / "config" / "tasks").mkdir(parents=True)
+    (tmp_path / "docs" / "11_admin").mkdir(parents=True)
+    (tmp_path / "artifacts").mkdir()
+    (tmp_path / "scripts").mkdir()
+
+    shutil.copyfile(
+        Path("scripts/validate_work_items.py"),
+        tmp_path / "scripts" / "validate_work_items.py",
+    )
+    (tmp_path / "config" / "quality" / "manifest.yaml").write_text(
+        """
+version: 1
+repo:
+  exclude_prefixes: []
+  python_targets: []
+tools:
+  wmf_validator:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: wmf_validation_error
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (tmp_path / "config" / "tasks" / "backlog.yaml").write_text(
+        """
+schema_version: backlog.v1
+tasks:
+- id: WI-2026-001
+  title: Broken WMF item
+  priority: P1
+  risk: low
+  status: BROKEN
+  task_type: build
+  objective_ref: test
+  created_at: test-created-at
+  workstream: test
+  plan_mode: none
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (tmp_path / "artifacts" / "workstreams.yaml").write_text(
+        "test:\n  human_name: Test\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "docs" / "11_admin" / "BACKLOG.md").write_text(
+        "<!-- DERIVED VIEW -->\n",
+        encoding="utf-8",
+    )
+
+    result = run_quality_gates(tmp_path, ["config/tasks/backlog.yaml"], scope="changed")
+
+    assert result["passed"] is False
+    assert result["commands_run"] == [
+        "python3 scripts/validate_work_items.py --check --repo-root ."
+    ]
+    assert any(
+        row["tool"] == "wmf_validator"
+        and row["mode"] == "blocking"
+        and not row["passed"]
+        and "WM003_INVALID_STATUS" in str(row["details"])
+        for row in result["results"]
     )
 
 

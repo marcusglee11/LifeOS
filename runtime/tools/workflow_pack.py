@@ -51,6 +51,7 @@ QUALITY_TOOL_EXECUTABLES = {
     "yamllint": "yamllint",
     "shellcheck": "shellcheck",
     "agent_control_plane_pin": "python3",
+    "wmf_validator": "python3",
 }
 QUALITY_PYTHON_CONFIG_FILES = {"pyproject.toml", "requirements.txt", "requirements-dev.txt"}
 QUALITY_BIOME_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc"}
@@ -60,6 +61,13 @@ QUALITY_YAML_CONFIG_FILES = {".yamllint", ".yamllint.yml", ".yamllint.yaml"}
 QUALITY_AGENT_CONTROL_PLANE_PIN_FILES = {
     "config/external_contracts/agent_control_plane_pin.yaml",
     "scripts/workflow/check_agent_control_plane_pin.py",
+}
+QUALITY_WMF_VALIDATOR_FILES = {
+    "artifacts/workstreams.yaml",
+    "config/tasks/backlog.yaml",
+    "docs/02_protocols/Work_Management_Framework_v0.1.md",
+    "docs/11_admin/BACKLOG.md",
+    "scripts/validate_work_items.py",
 }
 BACKLOG_METADATA_CONTINUATION_PATTERN = re.compile(
     r"^\s+[—-]+\s*(?:DoD|Why\s*Now|Owner|Context):",
@@ -212,7 +220,9 @@ def _filter_quality_scope_files(files: Sequence[str], manifest: dict) -> list[st
     exclude_prefixes = manifest.get("repo", {}).get("exclude_prefixes", []) or []
     filtered = []
     for file_path in _unique_ordered(files):
-        if any(file_path.startswith(prefix) for prefix in exclude_prefixes):
+        if file_path not in QUALITY_WMF_VALIDATOR_FILES and any(
+            file_path.startswith(prefix) for prefix in exclude_prefixes
+        ):
             continue
         filtered.append(file_path)
     return filtered
@@ -250,6 +260,8 @@ def route_quality_tools(
     shell_files: list[str] = []
     agent_control_plane_pin_files: list[str] = []
     agent_control_plane_pin_trigger = False
+    wmf_validator_files: list[str] = []
+    wmf_validator_trigger = False
 
     for file_path in files:
         path = Path(file_path)
@@ -288,6 +300,10 @@ def route_quality_tools(
             agent_control_plane_pin_files.append(file_path)
             agent_control_plane_pin_trigger = True
 
+        if file_path in QUALITY_WMF_VALIDATOR_FILES:
+            wmf_validator_files.append(file_path)
+            wmf_validator_trigger = True
+
     if python_trigger:
         routed["ruff_check"] = _unique_ordered(python_files)
         routed["ruff_format"] = _unique_ordered(python_files)
@@ -302,6 +318,8 @@ def route_quality_tools(
         routed["shellcheck"] = _unique_ordered(shell_files)
     if agent_control_plane_pin_trigger and "agent_control_plane_pin" in routed:
         routed["agent_control_plane_pin"] = _unique_ordered(agent_control_plane_pin_files)
+    if wmf_validator_trigger and "wmf_validator" in routed:
+        routed["wmf_validator"] = _unique_ordered(wmf_validator_files)
 
     return routed
 
@@ -458,6 +476,14 @@ def _build_quality_command(
         if not (Path(repo_root) / script_path).exists():
             return None
         return [sys.executable, str(script_path), "--manifest", str(manifest_path)]
+
+    if tool_name == "wmf_validator":
+        script_path = Path("scripts/validate_work_items.py")
+        if scope != "repo" and not files:
+            return None
+        if not (Path(repo_root) / script_path).exists():
+            return None
+        return ["python3", str(script_path), "--check", "--repo-root", "."]
 
     return None
 
