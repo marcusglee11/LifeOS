@@ -66,6 +66,82 @@ native product memory. This Phase 1 implementation reduces repo-side risk by
 replacing direct durable-write behavior with candidate-packet transport, but
 does not change Hermes native memory capacity.
 
+## Hermes Native-Memory Adoption Runbook
+
+References:
+
+- [#80 closure](https://github.com/marcusglee11/LifeOS/issues/80)
+- [#81 Gateway/control issue](https://github.com/marcusglee11/LifeOS/issues/81)
+- [PR #84](https://github.com/marcusglee11/LifeOS/pull/84)
+- [Post-merge proof](https://github.com/marcusglee11/LifeOS/issues/80#issuecomment-4341510317)
+
+### Boundary
+
+This runbook is documentation-only operator guidance for the already-merged Hermes native-memory
+audit/classification bridge from PR #84.
+It does not create new Gateway tools, MCP tools, transport modes, lifecycle states, promotion APIs,
+durable-memory write paths, native-memory mutation paths, cron/scheduled execution, vector search,
+reranking, or auto-promotion.
+The #81 Gateway/control issue remains the sole authority for Gateway candidate-emission/control
+semantics.
+Hermes must not directly emit #80-style candidate packets, write durable memory, mutate native
+memory, promote memory, or bypass the Gateway.
+
+### Permitted Use
+
+Hermes may run the native-memory audit/classification bridge only to classify, inspect, and prepare
+operator-reviewable evidence.
+Gateway `memory.retrieve` may be used only through the Gateway when an operator or approved workflow
+needs existing memory context.
+Gateway `memory.capture_candidate` may be used only through the Gateway to prepare candidate evidence
+for later review. It is not a durable write, not a promotion, and not acceptance into memory.
+
+### Operator Flow
+
+Run the native-memory audit/classification bridge when an operator has a deterministic Hermes
+native-memory snapshot/export, or explicit entry text, and needs classification before review:
+
+```bash
+python3 tools/memory/hermes_native_audit.py \
+  --snapshot <path-to-hermes-memory-export> \
+  --report artifacts/hermes-native-audit.json \
+  --session-id <operator-session-id>
+```
+
+Use `--entry <text>` for a single operator-supplied observation. Use `--no-capture-candidates` for
+classification-only review. Use `--no-retrieve-context` when Gateway retrieval is not needed or not
+approved for the workflow.
+
+Use Gateway `memory.retrieve` only when existing LifeOS memory context is needed to decide whether
+Hermes native-memory evidence is duplicate, stale, conflicting, already captured, or review-worthy.
+The bridge may request this context through the Gateway; operators must not treat retrieval output as
+promotion approval.
+
+Use Gateway `memory.capture_candidate` only when the audit result identifies candidate evidence worth
+later review. Candidate capture must preserve source surface, source locator, timestamp, content hash,
+redaction status, proposed authority class, and rationale. `memory.capture_candidate` emits candidate
+evidence only; it does not write durable memory, mutate native memory, accept memory, or promote memory.
+
+Treat compaction output as recommendation-only. The bridge may label entries as `keep_native`,
+`pointer_only`, `archive_observation`, `candidate_handoff`, or `discard`, but those labels do not
+authorize deletion, native-memory mutation, durable-memory writes, or promotion. Operator review and
+the #81 Gateway/control issue remain authoritative.
+
+### Stop Rule
+
+Stop immediately and escalate back to design review if the runbook needs any of the following:
+
+- new Gateway or MCP tools
+- new authority or lifecycle semantics
+- direct Hermes candidate emission
+- durable memory writes
+- native-memory mutation
+- promotion or auto-promotion
+- vector search, reranking, or ranking policy
+- remote transport
+- cron or scheduled execution
+- Phase 2/3 behaviour
+
 ## Tool Usage
 
 Validator:
