@@ -1,0 +1,5 @@
+/tools/memory/mcp_server.py @marcusglee11
+/tools/memory/gateway_capabilities.yaml @marcusglee11
+/schemas/memory/* @marcusglee11
+/knowledge-staging/_sessions/* @marcusglee11
+/knowledge-staging/_failed/* @marcusglee11

@@ -16,6 +16,7 @@ packages = ["runtime", "recursive_kernel", "doc_steward", "opencode_governance",
 minversion = "6.0"
 testpaths = [
     "runtime/tests",
+    "tests/memory",
     "tests_doc",
     "tests_recursive"
 ]
