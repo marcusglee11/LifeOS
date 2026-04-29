@@ -624,6 +624,95 @@ def cmd_coo_prompt_status(args: argparse.Namespace, repo_root: Path) -> int:
     return 0 if payload["in_sync"] else 1
 
 
+def cmd_coo_ea_dispatch(args: argparse.Namespace, repo_root: Path) -> int:
+    """Build Codex EA dispatch payloads, plans, and verifier decisions."""
+    from runtime.orchestration.coo.ea_dispatch import (
+        GitHubDispatchEvidence,
+        build_codex_launch_plan,
+        build_dispatch_request,
+        evaluate_attempt_result,
+    )
+
+    try:
+        if args.ea_dispatch_cmd == "build-request":
+            auto_dispatch_basis = None
+            if getattr(args, "auto_dispatch_basis_json", None):
+                auto_dispatch_basis = json.loads(args.auto_dispatch_basis_json)
+                if not isinstance(auto_dispatch_basis, dict):
+                    raise ValueError("--auto-dispatch-basis-json must decode to an object")
+
+            request = build_dispatch_request(
+                repo=args.repo,
+                issue_number=args.issue_number,
+                command_id=args.command_id,
+                attempt_id=args.attempt_id,
+                task_ref=args.task_ref,
+                task_type=args.task_type,
+                base_ref=args.base_ref,
+                branch_name=args.branch_name,
+                scope_paths=list(args.scope_path),
+                acceptance_criteria=list(args.acceptance_criterion),
+                verification_commands=list(args.verification_command),
+                approval_ref=args.approval_ref,
+                auto_dispatch_basis=auto_dispatch_basis,
+                timeout_seconds=args.timeout_seconds,
+            )
+            print(json.dumps(request, indent=2, sort_keys=True))
+            return 0
+
+        if args.ea_dispatch_cmd == "plan-codex":
+            request = _load_json_object(Path(args.request_file), "dispatch request")
+            workspace_root = Path(args.workspace_root) if args.workspace_root else repo_root
+            plan = build_codex_launch_plan(request, workspace_root=workspace_root)
+            print(json.dumps(plan.to_dict(), indent=2, sort_keys=True))
+            return 0
+
+        if args.ea_dispatch_cmd == "verify-result":
+            request = _load_json_object(Path(args.request_file), "dispatch request")
+            result = (
+                _load_json_object(Path(args.result_file), "dispatch result")
+                if args.result_file
+                else None
+            )
+            evidence = GitHubDispatchEvidence(
+                issue_state=args.issue_state,
+                pr_url=args.pr_url,
+                pr_base_ref=args.pr_base_ref,
+                pr_head_sha=args.pr_head_sha,
+                ci_url=args.ci_url,
+                ci_status=args.ci_status,
+                worktree_clean=args.worktree_clean,
+                partial_commit_markers=tuple(args.partial_commit_marker or ()),
+                wrapper_exit_code=args.wrapper_exit_code,
+                timed_out=bool(args.timed_out),
+                terminal_state=args.terminal_state,
+                issue_artifact_urls=tuple(args.issue_artifact_url or ()),
+                pr_artifact_urls=tuple(args.pr_artifact_url or ()),
+                receipt_artifact_urls=tuple(args.receipt_artifact_url or ()),
+            )
+            evaluation = evaluate_attempt_result(request, result, evidence=evidence)
+            print(json.dumps(evaluation.to_dict(), indent=2, sort_keys=True))
+            return 0 if evaluation.success else 1
+    except Exception as exc:
+        _print_error(f"Error: {type(exc).__name__}: {exc}")
+        return 1
+
+    _print_error(f"Error: unknown ea-dispatch command {args.ea_dispatch_cmd!r}")
+    return 1
+
+
+def _load_json_object(path: Path, label: str) -> dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValueError(f"{label} file not found: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{label} file is not valid JSON: {exc.msg}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"{label} file must contain a JSON object")
+    return payload
+
+
 def cmd_coo_direct(args: argparse.Namespace, repo_root: Path) -> int:
     """Invoke live COO with direct intent and route escalation or operation output."""
     try:
