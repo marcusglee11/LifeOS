@@ -1,8 +1,8 @@
 name: Build Loop Nightly
 
 on:
-  schedule:
-    - cron: '0 2 * * *'  # 02:00 UTC daily (1 PM AEDT)
+  # Scheduled runs disabled: CEO does not want unattended nightly build-loop runs.
+  # Keep manual dispatch for explicit, supervised use only.
   workflow_dispatch:
     inputs:
       task_spec:

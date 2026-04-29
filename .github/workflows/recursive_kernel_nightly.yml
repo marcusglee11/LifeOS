@@ -1,8 +1,8 @@
 name: Nightly Full Test Suite
 
 on:
-  schedule:
-    - cron: '0 3 * * *'  # Run nightly at 3 AM UTC
+  # Scheduled runs disabled: CEO does not want unattended nightly test runs.
+  # Keep manual dispatch for explicit verification only.
   workflow_dispatch:  # Allow manual trigger
 
 concurrency:
