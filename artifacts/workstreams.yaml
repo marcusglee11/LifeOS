@@ -58,3 +58,13 @@ context_v1:
     - "context management"
     - "workstream context"
     - "hermes context"
+
+continuation_audit_retention:
+  component_human_name: "Continuation Audit Retention"
+  status: PROVISIONAL
+  created_at: "2026-04-30"
+  description: "Issue #100 workstream for bounded retention of continuation hook audit logs"
+  aliases:
+    - "continuation audit retention"
+    - "continuation hook audit log retention"
+    - "issue 100"
