@@ -48,3 +48,13 @@ autonomous-work-chain-v0:
   aliases:
     - "autonomous work chain"
     - "final proof"
+
+context_v1:
+  component_human_name: "Context Management v1"
+  status: PROVISIONAL
+  created_at: "2026-04-30"
+  description: "Workstream context management substrate — canonical continuation state, preflight validation, and resume prompt emission"
+  aliases:
+    - "context management"
+    - "workstream context"
+    - "hermes context"

@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/workstreams/workstream_state.schema.json",
+  "title": "Workstream Context State v1",
+  "description": "Canonical continuation state for a LifeOS workstream. artifacts/workstreams/<slug>/state.yaml is the authoritative source; .context/active_work.yaml is advisory/generated and must never be treated as competing truth.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "slug",
+    "lifecycle_state",
+    "status",
+    "repo_full_name",
+    "default_branch",
+    "last_verified_at",
+    "completion_truth",
+    "tool_preflight"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "workstream-context-v1"
+    },
+    "slug": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must be a key present in artifacts/workstreams.yaml"
+    },
+    "lifecycle_state": {
+      "enum": ["ACTIVE", "PAUSED", "BLOCKED", "COMPLETE", "CLOSED"]
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Freeform operational status label"
+    },
+    "repo_full_name": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$",
+      "description": "GitHub repository in owner/repo format"
+    },
+    "default_branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "current_head_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "SHA of the current feature branch HEAD. Required once implementation starts."
+    },
+    "observed_main_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "SHA of main branch observed at last verification."
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp of last human or agent verification"
+    },
+    "active_issue": {
+      "type": "object",
+      "required": ["number", "phase", "next_action"],
+      "additionalProperties": true,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Current lifecycle phase (e.g. pre-implementation, implementation, pre-merge, merged)"
+        },
+        "next_action": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "completion_truth": {
+      "type": "object",
+      "required": ["required", "refs"],
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Conditions that must hold for this workstream to be considered done"
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "External refs (GitHub issue/PR URLs, commit SHAs) that are authoritative for completion. state.yaml alone does not prove done/merged/closed."
+        }
+      }
+    },
+    "tool_preflight": {
+      "type": "array",
+      "description": "Ordered list of required/optional tool checks. Semantic rules enforced by workstream_context.py validate.",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "checked_at",
+          "evidence_ref",
+          "required",
+          "scope",
+          "phase",
+          "failure_reason"
+        ],
+        "oneOf": [
+          {"required": ["stale_after"]},
+          {"required": ["valid_until"]}
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": ["PASS", "FAIL", "UNKNOWN", "SKIPPED"]
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evidence_ref": {
+            "type": ["string", "null"],
+            "description": "Short reference to evidence (e.g. test run summary). Required when status=PASS and required=true. Must not be the full evidence body."
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "phase": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Phase at which this check becomes required. Before this phase, UNKNOWN is valid."
+          },
+          "failure_reason": {
+            "type": ["string", "null"]
+          },
+          "stale_after": {
+            "type": "string",
+            "pattern": "^[0-9]+[smhd]$",
+            "description": "Duration after checked_at at which this result is considered stale. Format: <N><unit> where unit is s/m/h/d."
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Absolute expiry timestamp. Alternative to stale_after."
+          }
+        }
+      }
+    },
+    "local_paths": {
+      "type": "object",
+      "description": "Filesystem path hints for local tooling. Not authority. Do not use for completion proof or canonical state.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "additionalProperties": true,
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ref": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": ["P0", "P1", "P2", "P3"]
+          }
+        }
+      }
+    },
+    "do_not_start": {
+      "type": "array",
+      "description": "Typed entries for work explicitly excluded from this workstream scope.",
+      "items": {
+        "type": "object",
+        "required": ["type", "description"],
+        "additionalProperties": true,
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
