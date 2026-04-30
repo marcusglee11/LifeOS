@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "doc_steward.protocol_v1_1.ingest_manifest.v1",
+  "title": "Document Steward Ingest Manifest v1",
+  "description": "Manifest for deterministic doc_ingest stage in the Stewardship Runner.",
+  "type": "object",
+  "required": [
+    "schema",
+    "schema_version",
+    "source_path",
+    "dest_path",
+    "title",
+    "description",
+    "artefact_key",
+    "target_index_path",
+    "binding_class",
+    "canonicality",
+    "supersedes",
+    "related",
+    "commit"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "doc_steward.protocol_v1_1.ingest_manifest.v1"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "source_path": {
+      "type": "string",
+      "description": "Absolute or repo-relative path to source document."
+    },
+    "dest_path": {
+      "type": "string",
+      "description": "Repo-relative destination path. Must satisfy DSP naming convention."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description for suggested INDEX.md diff only."
+    },
+    "artefact_key": {
+      "type": "string",
+      "description": "Unique key within target index (for dict-shaped indices) or path identifier."
+    },
+    "target_index_path": {
+      "type": "string",
+      "pattern": "^docs/[^/]+/ARTEFACT_INDEX\\.json$",
+      "description": "Repo-relative path to target ARTEFACT_INDEX.json."
+    },
+    "binding_class": {
+      "type": "string",
+      "enum": ["FOUNDATIONAL", "GOVERNANCE", "PROTOCOL", "RUNTIME"],
+      "description": "Pulled from docs/01_governance/ARTEFACT_INDEX.json meta.binding_classes."
+    },
+    "canonicality": {
+      "type": "string",
+      "enum": [
+        "canonical",
+        "derived",
+        "proposal",
+        "draft",
+        "stale",
+        "archive",
+        "external"
+      ],
+      "description": "Pulled from live repo audit (LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md)."
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Repo-relative paths of documents superseded by this ingestion."
+    },
+    "related": {
+      "type": "object",
+      "properties": {
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "adrs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "commit": {
+      "type": "object",
+      "required": ["enabled", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Must be true AND CLI --commit must be present for commit to proceed."
+        },
+        "message": {
+          "type": "string",
+          "description": "Conventional commit message. Excluded from fingerprint computation."
+        }
+      }
+    }
+  }
+}
