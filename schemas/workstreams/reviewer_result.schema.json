@@ -4,13 +4,7 @@
   "title": "Workstream Reviewer Result v1",
   "description": "Verdict record emitted by a reviewer after examining a workstream build.",
   "type": "object",
-  "required": [
-    "schema_version",
-    "slug",
-    "reviewer",
-    "verdict",
-    "created_at"
-  ],
+  "required": ["schema_version", "slug", "reviewer", "verdict", "created_at"],
   "additionalProperties": true,
   "properties": {
     "schema_version": {

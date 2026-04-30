@@ -124,8 +124,8 @@
           "failure_reason"
         ],
         "oneOf": [
-          {"required": ["stale_after"]},
-          {"required": ["valid_until"]}
+          { "required": ["stale_after"] },
+          { "required": ["valid_until"] }
         ],
         "additionalProperties": true,
         "properties": {
