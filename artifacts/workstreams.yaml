@@ -39,3 +39,12 @@ opencode_integration:
   aliases:
     - "opencode"
     - "opencode ci"
+
+autonomous-work-chain-v0:
+  component_human_name: "Autonomous Work Chain v0"
+  status: PROVISIONAL
+  created_at: "2026-04-30"
+  description: "Evidence-only final proof lane for LifeOS autonomous work chain v0"
+  aliases:
+    - "autonomous work chain"
+    - "final proof"
