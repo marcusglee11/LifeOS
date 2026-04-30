@@ -1,0 +1,78 @@
+# Workstream context state fixture for context_v1.
+# Canonical production path: artifacts/workstreams/context_v1/state.yaml.
+# .context/active_work.yaml is advisory/generated, not competing truth.
+schema_version: workstream-context-v1
+slug: context_v1
+lifecycle_state: ACTIVE
+status: IN_FLIGHT
+repo_full_name: marcusglee11/LifeOS
+default_branch: main
+current_head_sha: f89c76c2068322f6923fa42be0a296434fce52f5
+observed_main_sha: f89c76c2068322f6923fa42be0a296434fce52f5
+last_verified_at: "2026-04-30T12:00:00Z"
+active_issue:
+  number: 102
+  url: https://github.com/marcusglee11/LifeOS/issues/102
+  title: "Context Management v1 substrate"
+  phase: implementation
+  next_action: "Implement v1 schemas, validator, resume prompt, tests, and routing"
+completion_truth:
+  required:
+    - "PR merged to main verified via GitHub API or PR page, not state.yaml alone"
+    - "CI/check readback and exact main-branch SHA readback prove final state"
+    - "Issue receipt links PR URL, head SHA, validation evidence, and AA approval"
+  refs:
+    - "https://github.com/marcusglee11/LifeOS/issues/102"
+    - "https://github.com/marcusglee11/LifeOS/issues/102#issuecomment-4350173430"
+tool_preflight:
+  - name: claude_code_auth
+    status: PASS
+    checked_at: "2026-04-30T12:00:00Z"
+    evidence_ref: "claude auth status --text + OK_CLAUDE_CODE_AUTH_CHECK"
+    required: true
+    scope: execution_lane
+    phase: implementation
+    failure_reason: null
+    valid_until: "2099-12-31T00:00:00Z"
+  - name: quality_gate_changed_scope
+    status: UNKNOWN
+    checked_at: "2026-04-30T12:00:00Z"
+    evidence_ref: null
+    required: true
+    scope: changed
+    phase: pre-merge
+    failure_reason: null
+    stale_after: "24h"
+  - name: doc_stewardship_gate
+    status: UNKNOWN
+    checked_at: "2026-04-30T12:00:00Z"
+    evidence_ref: null
+    required: true
+    scope: docs
+    phase: pre-merge
+    failure_reason: null
+    stale_after: "24h"
+evidence_packets:
+  - ref: "issue-102-aa-approval"
+    summary: "AA approved revised spec for constrained Context Management v1 slice."
+    body: "FULL_EVIDENCE_BODY_SHOULD_NOT_APPEAR_IN_RESUME_PROMPT"
+local_paths:
+  worktree: /tmp/lifeos-102-context-v1
+  primary: /home/cabra/LifeOS
+blockers: []
+do_not_start:
+  - type: chained_jobs
+    description: "Do not build chained jobs or Hermes command-session automation."
+    reason: "Non-goal per AA spec."
+  - type: scheduler_cron
+    description: "Do not build scheduler or cron."
+    reason: "Non-goal per AA spec."
+  - type: completion_truth_via_openclaw
+    description: "Do not use OpenClaw/TUI/Telegram as completion truth."
+    reason: "Non-goal per AA spec."
+  - type: retention_work
+    description: "Do not pull in issue #100 retention work."
+    reason: "Non-goal per AA spec."
+  - type: hermes_skill_wrapper
+    description: "Do not create or update a Hermes skill wrapper yet."
+    reason: "Non-goal per AA spec."

@@ -52,6 +52,7 @@ QUALITY_TOOL_EXECUTABLES = {
     "shellcheck": "shellcheck",
     "agent_control_plane_pin": "python3",
     "wmf_validator": "python3",
+    "workstream_context": "python3",
 }
 QUALITY_PYTHON_CONFIG_FILES = {"pyproject.toml", "requirements.txt", "requirements-dev.txt"}
 QUALITY_BIOME_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc"}
@@ -69,6 +70,19 @@ QUALITY_WMF_VALIDATOR_FILES = {
     "docs/11_admin/BACKLOG.md",
     "scripts/validate_work_items.py",
 }
+QUALITY_WORKSTREAM_CONTEXT_FILES = {
+    "artifacts/workstreams.yaml",
+    "schemas/workstreams/workstream_state.schema.json",
+    "schemas/workstreams/reviewer_result.schema.json",
+    "docs/02_protocols/workstream_context_v1.md",
+    "scripts/workflow/workstream_context.py",
+    "runtime/tests/test_workstream_context.py",
+}
+QUALITY_WORKSTREAM_CONTEXT_PREFIXES = (
+    "artifacts/workstreams/",
+    "schemas/workstreams/",
+    "runtime/tests/fixtures/workstreams/",
+)
 BACKLOG_METADATA_CONTINUATION_PATTERN = re.compile(
     r"^\s+[—-]+\s*(?:DoD|Why\s*Now|Owner|Context):",
     re.IGNORECASE,
@@ -178,6 +192,12 @@ def _matches(file_path: str, prefixes: Sequence[str]) -> bool:
     return any(file_path == prefix or file_path.startswith(prefix) for prefix in prefixes)
 
 
+def _is_workstream_context_file(file_path: str) -> bool:
+    return file_path in QUALITY_WORKSTREAM_CONTEXT_FILES or any(
+        file_path.startswith(prefix) for prefix in QUALITY_WORKSTREAM_CONTEXT_PREFIXES
+    )
+
+
 def load_quality_manifest(repo_root: Path) -> dict:
     """Load the canonical quality manifest."""
     manifest_path = Path(repo_root) / QUALITY_MANIFEST_RELATIVE_PATH
@@ -220,8 +240,10 @@ def _filter_quality_scope_files(files: Sequence[str], manifest: dict) -> list[st
     exclude_prefixes = manifest.get("repo", {}).get("exclude_prefixes", []) or []
     filtered = []
     for file_path in _unique_ordered(files):
-        if file_path not in QUALITY_WMF_VALIDATOR_FILES and any(
-            file_path.startswith(prefix) for prefix in exclude_prefixes
+        if (
+            file_path not in QUALITY_WMF_VALIDATOR_FILES
+            and not _is_workstream_context_file(file_path)
+            and any(file_path.startswith(prefix) for prefix in exclude_prefixes)
         ):
             continue
         filtered.append(file_path)
@@ -262,6 +284,8 @@ def route_quality_tools(
     agent_control_plane_pin_trigger = False
     wmf_validator_files: list[str] = []
     wmf_validator_trigger = False
+    workstream_context_files: list[str] = []
+    workstream_context_trigger = False
 
     for file_path in files:
         path = Path(file_path)
@@ -304,6 +328,10 @@ def route_quality_tools(
             wmf_validator_files.append(file_path)
             wmf_validator_trigger = True
 
+        if _is_workstream_context_file(file_path):
+            workstream_context_files.append(file_path)
+            workstream_context_trigger = True
+
     if python_trigger:
         routed["ruff_check"] = _unique_ordered(python_files)
         routed["ruff_format"] = _unique_ordered(python_files)
@@ -320,6 +348,8 @@ def route_quality_tools(
         routed["agent_control_plane_pin"] = _unique_ordered(agent_control_plane_pin_files)
     if wmf_validator_trigger and "wmf_validator" in routed:
         routed["wmf_validator"] = _unique_ordered(wmf_validator_files)
+    if workstream_context_trigger and "workstream_context" in routed:
+        routed["workstream_context"] = _unique_ordered(workstream_context_files)
 
     return routed
 
@@ -484,6 +514,28 @@ def _build_quality_command(
         if not (Path(repo_root) / script_path).exists():
             return None
         return ["python3", str(script_path), "--check", "--repo-root", "."]
+
+    if tool_name == "workstream_context":
+        script_path = Path("scripts/workflow/workstream_context.py")
+        if scope != "repo" and not files:
+            return None
+        if not (Path(repo_root) / script_path).exists():
+            return None
+        explicit_state_files = [
+            file_path
+            for file_path in files
+            if file_path.startswith("artifacts/workstreams/")
+            and file_path.endswith((".yaml", ".yml"))
+        ]
+        state_paths = (
+            explicit_state_files
+            if explicit_state_files
+            else ["runtime/tests/fixtures/workstreams/context_v1/state.yaml"]
+        )
+        cmd = ["python3", str(script_path), "validate"]
+        for state_path in state_paths:
+            cmd.extend(["--state", state_path])
+        return cmd
 
     return None
 

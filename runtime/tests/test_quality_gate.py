@@ -48,6 +48,24 @@ def test_route_quality_tools_wmf_workstreams_change_bypasses_artifacts_exclusion
     assert routed["wmf_validator"] == ["artifacts/workstreams.yaml"]
 
 
+def test_route_quality_tools_workstream_context_bypasses_artifacts_exclusion() -> None:
+    routed = route_quality_tools(
+        Path("."), ["artifacts/workstreams/context_v1/state.yaml"], scope="changed"
+    )
+    assert routed["workstream_context"] == ["artifacts/workstreams/context_v1/state.yaml"]
+
+
+def test_route_quality_tools_workstream_context_schema_doc_script_and_fixture() -> None:
+    changed = [
+        "schemas/workstreams/workstream_state.schema.json",
+        "docs/02_protocols/workstream_context_v1.md",
+        "scripts/workflow/workstream_context.py",
+        "runtime/tests/fixtures/workstreams/context_v1/state.yaml",
+    ]
+    routed = route_quality_tools(Path("."), changed, scope="changed")
+    assert routed["workstream_context"] == changed
+
+
 def test_route_quality_tools_config_only_markdown_change_no_fan_out(monkeypatch) -> None:
     monkeypatch.setattr(
         "runtime.tools.workflow_pack._git_tracked_files",

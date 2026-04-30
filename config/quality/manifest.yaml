@@ -73,6 +73,12 @@ tools:
     scopes: ["changed", "repo"]
     autofix_allowed: false
     failure_class: wmf_validation_error
+  workstream_context:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: workstream_context_error
 
 waivers:
   - tool: markdownlint

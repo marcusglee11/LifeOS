@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/workstreams/reviewer_result.schema.json",
+  "title": "Workstream Reviewer Result v1",
+  "description": "Verdict record emitted by a reviewer after examining a workstream build.",
+  "type": "object",
+  "required": ["schema_version", "slug", "reviewer", "verdict", "created_at"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "reviewer-result-v1"
+    },
+    "slug": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must match a key in artifacts/workstreams.yaml"
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Agent or human role that issued this verdict"
+    },
+    "verdict": {
+      "enum": ["PASS", "REVISE", "BLOCK"],
+      "description": "PASS: work accepted. REVISE: fixes requested, not blocking. BLOCK: work blocked, must not merge."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-paragraph human-readable verdict summary"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "description"],
+        "additionalProperties": true,
+        "properties": {
+          "severity": {
+            "enum": ["P0", "P1", "P2", "P3"]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ref": {
+            "type": "string",
+            "description": "File path, line reference, or external URL relevant to this finding"
+          },
+          "resolution": {
+            "type": "string",
+            "description": "How this finding was or should be resolved"
+          }
+        }
+      }
+    }
+  }
+}
