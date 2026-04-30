@@ -1,0 +1,28 @@
+{
+  "schema_version": "ea_receipt.v0",
+  "status": "success",
+  "commands_run": [
+    "python3 scripts/validate_work_items.py --check --repo-root .",
+    "python3 -m pytest runtime/tests/receipts/test_ea_receipt.py runtime/tests/orchestration/coo/test_ea_dispatch.py runtime/tests/orchestration/coo/test_followups.py -q",
+    "python3 scripts/workflow/quality_gate.py check --scope changed --json"
+  ],
+  "inner_exit_codes": [
+    0,
+    0,
+    0
+  ],
+  "files_changed": [
+    "config/tasks/backlog.yaml",
+    "artifacts/workstreams.yaml",
+    "artifacts/evidence/autonomous_work_chain_v0_final_proof.md",
+    "artifacts/ea_receipts/lifeos-78/success.ea_receipt.v0.json",
+    "artifacts/ea_receipts/lifeos-78/README.md"
+  ],
+  "tests_run": [
+    "scripts/validate_work_items.py",
+    "runtime/tests/receipts/test_ea_receipt.py",
+    "runtime/tests/orchestration/coo/test_ea_dispatch.py",
+    "runtime/tests/orchestration/coo/test_followups.py"
+  ],
+  "blockers": []
+}
