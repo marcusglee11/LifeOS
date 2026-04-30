@@ -1,0 +1,160 @@
+schema_version: workstream-context-v1
+slug: continuation_audit_retention
+lifecycle_state: ACTIVE
+status: retention implementation committed in Hermes Agent worktree; LifeOS tracking
+  PR pending
+repo_full_name: marcusglee11/LifeOS
+default_branch: main
+current_head_sha: d7d6e23c4a2cf413a1512b382d3ed49b3348bb37
+observed_main_sha: d7d6e23c4a2cf413a1512b382d3ed49b3348bb37
+last_verified_at: '2026-04-30T12:20:10.816769Z'
+active_issue:
+  number: 100
+  url: https://github.com/marcusglee11/LifeOS/issues/100
+  title: Add retention for continuation hook audit log
+  phase: implementation
+  next_action: run final verification gates, commit, push, open PR, and post evidence
+    receipt
+local_paths:
+  repo_worktree: /home/cabra/LifeOS/.worktrees/issue-100-continuation-audit-retention
+  canonical_state: artifacts/workstreams/continuation_audit_retention/state.yaml
+  legacy_active_work: .context/active_work.yaml
+  hermes_agent_worktree: /home/cabra/.hermes/hermes-agent/.worktrees/issue-100-continuation-audit-retention-upgrade
+blockers: []
+do_not_start:
+- type: scope_boundary
+  description: do not implement scheduler/cron/chained jobs
+  reason: Issue
+- type: context_boundary
+  description: do not treat .context/active_work.yaml as canonical
+  reason: Context Management v1 makes artifacts/workstreams/<slug>/state.yaml canonical.
+- type: completion_boundary
+  description: do not close
+  reason: state.yaml alone never proves completion.
+completion_truth:
+  required:
+  - PR merged
+  - CI/checks green or exact-head local equivalent documented
+  - origin/main readback contains merge commit
+  - issue receipt posted
+  - retention tests pass
+  - state.yaml validates
+  - state.yaml alone never proves done, merged, or closed
+  refs:
+  - https://github.com/marcusglee11/LifeOS/issues/100
+  - origin/main@d7d6e23c4a2cf413a1512b382d3ed49b3348bb37
+  - branch build/issue-100-continuation-audit-retention
+  - state.yaml alone never proves completion; GitHub PR/CI/main-readback/issue receipt
+    remain authoritative
+  - hermes-agent branch build/issue-100-continuation-audit-retention-upgrade based
+    on fork/upgrade/hermes-runtime-20260428@2dd67d001c39d53a58bf9e5772ae8c4c2a2bdcdb
+  - 'implementation files: agent/workstream_continuation_hook.py; tests/agent/test_workstream_continuation_hook.py'
+  - 'retention policy: append-time JSONL max-record cleanup via HERMES_WORKSTREAM_AUDIT_LOG_MAX_RECORDS;
+    default 2000; file lock serializes append+retention'
+  - hermes-agent implementation commit 1ffb7eeb27370f645abeb34591aa06ff92e97f4e
+tool_preflight:
+- name: issue-100-readback
+  status: PASS
+  checked_at: '2026-04-30T11:59:14Z'
+  evidence_ref: 'gh issue view 100 -R marcusglee11/LifeOS: OPEN, title Add retention
+    for continuation hook audit log, no comments'
+  required: true
+  scope: github issue
+  phase: pre-implementation
+  failure_reason: null
+  stale_after: 24h
+- name: origin-main-fetch
+  status: PASS
+  checked_at: '2026-04-30T11:59:14Z'
+  evidence_ref: git fetch origin main --prune; origin/main=d7d6e23c4a2cf413a1512b382d3ed49b3348bb37
+  required: true
+  scope: repository baseline
+  phase: pre-implementation
+  failure_reason: null
+  stale_after: 24h
+- name: clean-worktree-created
+  status: PASS
+  checked_at: '2026-04-30T11:59:14Z'
+  evidence_ref: git worktree add -b build/issue-100-continuation-audit-retention ...
+    origin/main; HEAD d7d6e23c4a2cf413a1512b382d3ed49b3348bb37
+  required: true
+  scope: build worktree isolation
+  phase: pre-implementation
+  failure_reason: null
+  stale_after: 24h
+- name: context-v1-files-present
+  status: PASS
+  checked_at: '2026-04-30T11:59:14Z'
+  evidence_ref: verified scripts/workflow/workstream_context.py, docs/02_protocols/workstream_context_v1.md,
+    schemas/workstreams/workstream_state.schema.json, runtime/tests/test_workstream_context.py,
+    config/quality/manifest.yaml
+  required: true
+  scope: context management v1 substrate
+  phase: pre-implementation
+  failure_reason: null
+  stale_after: 24h
+- name: state-validate-pre-implementation
+  status: PASS
+  checked_at: '2026-04-30T11:59:14Z'
+  evidence_ref: 'python3 scripts/workflow/workstream_context.py validate --state artifacts/workstreams/continuation_audit_retention/state.yaml:
+    ok=true'
+  required: true
+  scope: canonical workstream state
+  phase: review
+  failure_reason: null
+  stale_after: 24h
+- name: resume-prompt-pre-implementation
+  status: PASS
+  checked_at: '2026-04-30T11:59:14Z'
+  evidence_ref: 'python3 scripts/workflow/workstream_context.py emit-resume-prompt
+    --state artifacts/workstreams/continuation_audit_retention/state.yaml: emitted
+    refs/summaries-only resume prompt'
+  required: true
+  scope: canonical workstream state resume prompt
+  phase: review
+  failure_reason: null
+  stale_after: 24h
+- name: retention-focused-tests
+  status: PASS
+  checked_at: '2026-04-30T12:18:35.503264Z'
+  evidence_ref: 'Hermes Agent worktree: 13 passed in tests/agent/test_workstream_continuation_hook.py;
+    ruff check passed for touched files; git diff --check passed'
+  required: true
+  scope: continuation audit log retention tests
+  phase: review
+  failure_reason: null
+  stale_after: 24h
+- name: changed-scope-quality-gate
+  status: PASS
+  checked_at: '2026-04-30T12:18:54.853704Z'
+  evidence_ref: 'python3 scripts/workflow/quality_gate.py check --scope changed with
+    explicit artifacts/workstreams.yaml and state.yaml args: passed; 0 blocking failures,
+    yamllint advisory unavailable'
+  required: true
+  scope: changed files
+  phase: pre-merge
+  failure_reason: null
+  stale_after: 24h
+- name: fresh-context-blocker-review
+  status: PASS
+  checked_at: '2026-04-30T12:18:35.503264Z'
+  evidence_ref: 'delegate_task fresh-context re-review: no merge blockers; noted runner
+    log also capped via shared helper'
+  required: true
+  scope: stable diff blocker review
+  phase: pre-merge
+  failure_reason: null
+  stale_after: 24h
+dogfood_observations:
+  helped:
+  - state.yaml made the cross-repo scope ambiguity explicit without treating .context/active_work.yaml
+    as authority
+  - validate/emit-resume-prompt gave a compact restart surface after context compression
+  friction:
+  - v1 has no mutation command, so status/preflight updates required hand-editing
+    YAML
+  - 'schema tracks one repo cleanly; issue #100 needed an external Hermes Agent implementation
+    worktree as additional context'
+  recommended_follow_up:
+  - add mutation commands for status, preflight result, refs, and phase transitions
+  - add first-class multi-repo implementation refs or external-worktree evidence fields
