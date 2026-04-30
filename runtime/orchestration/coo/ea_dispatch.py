@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from runtime.orchestration.coo.review_gate import build_review_packet, evaluate_review_gate
 from runtime.receipts.ea_receipt import validate_ea_receipt
 
 DISPATCH_REQUEST_SCHEMA_VERSION = "coo_ea_dispatch_request.v0"
@@ -669,6 +670,19 @@ def evaluate_attempt_result(
             evidence=evidence,
         )
 
+    review_gate = evaluate_review_gate(result, request=request)
+    if not review_gate["ok"]:
+        return _evaluation(
+            state=str(review_gate["state"]),
+            success=False,
+            reason=str(review_gate["reason"]),
+            blockers=tuple(str(blocker) for blocker in review_gate["blockers"]),
+            result_valid=True,
+            request=request,
+            result=result,
+            evidence=evidence,
+        )
+
     return _evaluation(
         state="succeeded",
         success=True,
@@ -690,6 +704,12 @@ def build_github_recovery_data(
     result = result if isinstance(result, dict) else {}
     receipt = result.get("receipt") if isinstance(result.get("receipt"), dict) else {}
     evidence_urls = tuple(result.get("evidence_urls") or ())
+    review_packet: dict[str, Any] | None = None
+    if result.get("review_result") is not None or result.get("review_not_required") is not None:
+        try:
+            review_packet = build_review_packet(request, result)
+        except ValueError as exc:
+            review_packet = {"error": str(exc)}
     return {
         "schema_version": RECOVERY_DATA_SCHEMA_VERSION,
         "control_plane": "github",
@@ -732,6 +752,11 @@ def build_github_recovery_data(
             "created_at": result.get("created_at"),
             "summary": result.get("summary"),
             "evidence_urls": list(evidence_urls),
+        },
+        "review": {
+            "review_packet": review_packet,
+            "review_result": result.get("review_result"),
+            "review_not_required": result.get("review_not_required"),
         },
         "recovery_policy": {
             "retry_requires_ceo_approval_v0": True,
