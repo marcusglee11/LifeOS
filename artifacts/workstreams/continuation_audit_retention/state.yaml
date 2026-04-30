@@ -1,20 +1,19 @@
 schema_version: workstream-context-v1
 slug: continuation_audit_retention
 lifecycle_state: ACTIVE
-status: retention implementation committed in Hermes Agent worktree; LifeOS tracking
-  PR pending
+status: implementation and tracking PRs opened; awaiting CI/review/readback before
+  completion
 repo_full_name: marcusglee11/LifeOS
 default_branch: main
 current_head_sha: d7d6e23c4a2cf413a1512b382d3ed49b3348bb37
 observed_main_sha: d7d6e23c4a2cf413a1512b382d3ed49b3348bb37
-last_verified_at: '2026-04-30T12:20:10.816769Z'
+last_verified_at: '2026-04-30T12:21:50.140840Z'
 active_issue:
   number: 100
   url: https://github.com/marcusglee11/LifeOS/issues/100
   title: Add retention for continuation hook audit log
   phase: implementation
-  next_action: run final verification gates, commit, push, open PR, and post evidence
-    receipt
+  next_action: 'monitor PR CI/review; do not merge or close #100 without Marcus approval'
 local_paths:
   repo_worktree: /home/cabra/LifeOS/.worktrees/issue-100-continuation-audit-retention
   canonical_state: artifacts/workstreams/continuation_audit_retention/state.yaml
@@ -52,6 +51,8 @@ completion_truth:
   - 'retention policy: append-time JSONL max-record cleanup via HERMES_WORKSTREAM_AUDIT_LOG_MAX_RECORDS;
     default 2000; file lock serializes append+retention'
   - hermes-agent implementation commit 1ffb7eeb27370f645abeb34591aa06ff92e97f4e
+  - Hermes Agent PR https://github.com/marcusglee11/hermes-agent/pull/11 head 1ffb7eeb27370f645abeb34591aa06ff92e97f4e
+  - LifeOS tracking PR https://github.com/marcusglee11/LifeOS/pull/105 head e5692d045d265a54963e4630bf01c070d21d5691
 tool_preflight:
 - name: issue-100-readback
   status: PASS
@@ -158,3 +159,12 @@ dogfood_observations:
   recommended_follow_up:
   - add mutation commands for status, preflight result, refs, and phase transitions
   - add first-class multi-repo implementation refs or external-worktree evidence fields
+opened_prs:
+- repo: marcusglee11/hermes-agent
+  url: https://github.com/marcusglee11/hermes-agent/pull/11
+  head_sha: 1ffb7eeb27370f645abeb34591aa06ff92e97f4e
+  role: actual continuation hook retention implementation
+- repo: marcusglee11/LifeOS
+  url: https://github.com/marcusglee11/LifeOS/pull/105
+  head_sha: e5692d045d265a54963e4630bf01c070d21d5691
+  role: canonical Context Management v1 tracking state
