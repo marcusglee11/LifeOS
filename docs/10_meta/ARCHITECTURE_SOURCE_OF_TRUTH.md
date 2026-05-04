@@ -15,6 +15,8 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 | --- | --- | --- |
 | Canonical operational architecture | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | Operational architecture authority |
 | Canonical governance contract | `docs/01_governance/COO_Operating_Contract_v1.0.md` | CEO/COO governance authority |
+| Canonical memory and knowledge architecture | `docs/03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md` | Durable memory, knowledge, candidate-packet, and COO writer-authority architecture |
+| Canonical Obsidian bridge boundary | `docs/03_runtime/memory/Agent_Memory_Bridge_v0.1.md` | Obsidian navigation-only role, authority precedence, and explicit promotion controls |
 | Canonical runtime state ledger | `docs/11_admin/LIFEOS_STATE.md` | Current operational state |
 | Canonical runtime work tracker | `docs/11_admin/BACKLOG.md` | Actionable work tracker |
 
