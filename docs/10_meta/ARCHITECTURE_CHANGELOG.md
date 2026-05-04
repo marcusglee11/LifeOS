@@ -20,6 +20,25 @@ Purpose: Record architecture deltas over time without turning runtime state trac
 
 ## Entries
 
+### 2026-05-04 — Obsidian Agent Memory Bridge Canonical Promotion (operational-bus #33)
+
+- Change: Added `docs/03_runtime/memory/Agent_Memory_Bridge_v0.1.md` as the LifeOS repo documentation surface for the AA-satisfied Obsidian agent memory bridge and registered it in the source-of-truth/index surfaces.
+- Why: `lifeos-operational-bus#33` required canonical LifeOS promotion of the AA-satisfied local note/navigation bridge from `lifeos-operational-bus#31` without adding watcher automation, auto-sync, runtime ingestion, or Obsidian authority.
+- Notes:
+  - Obsidian remains a human-facing navigation and working-note layer only.
+  - Authority precedence remains GitHub/LifeOS repo docs > COO structured memory > OpenClaw runtime grounding > Hermes compact hints/skills > Obsidian.
+  - Promotion tags are triage/request metadata only and never trigger automatic writes.
+  - Promotion requires review, mechanical secret/classification scan, path plus hash evidence, explicit gate invocation, and readback.
+  - No ADR is added because this PR documents and registers an AA-satisfied bridge boundary without ratifying a new architecture decision beyond the existing memory authority model.
+- Affected docs:
+  - `docs/03_runtime/memory/Agent_Memory_Bridge_v0.1.md`
+  - `docs/INDEX.md`
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+- Related issue: `lifeos-operational-bus#33`; review evidence `lifeos-operational-bus#31`
+- Related ADR: none
+- Status: implemented
+
 ### 2026-04-27 — Amendment A5: Lightweight Architecture Maintenance Checks (Issue #35)
 
 - Change: Installed an event-triggered pre-merge architecture capture rule and explicit update triggers for the source-of-truth page, architecture changelog, and ADR index.
