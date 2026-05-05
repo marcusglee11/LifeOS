@@ -1,0 +1,69 @@
+schema_version: cabra_readiness_manifest.v1
+issue_ref: "https://github.com/marcusglee11/LifeOS/issues/108"
+amendment_approval_ref: "https://github.com/marcusglee11/LifeOS/issues/108#issuecomment-4371225116"
+dispatch_approval_ref: "https://github.com/marcusglee11/LifeOS/issues/108#issuecomment-4371334165"
+timestamp_utc: "2026-05-04T13:24:36Z"
+ea_agent: "claude-sonnet-4-6 (Claude Code)"
+scope: "Phase 0-3 first-slice readiness inspection"
+
+authority_constraints:
+  approved:
+    - read_only_inspection
+    - create_evidence_files_under_artifacts
+    - run_non_destructive_commands
+    - create_readiness_smoke_gate_artifact
+  not_approved:
+    - openclaw_update
+    - openclaw_restart
+    - provider_model_config_mutation
+    - cron_re_enable
+    - external_message_send_test
+    - messaging_channel_expansion
+    - native_subagent_ea_authority_expansion
+    - delete_existing_automation_config_state
+    - commits_pushes_prs_merges
+
+files_produced:
+  - manifest.yaml
+  - baseline.md
+  - smoke-report.md
+  - config-hashes.md
+  - command-transcript.md
+  - blockers.md
+
+commands_run:
+  - "date -u"
+  - "cat .context/REPO_MAP.md"
+  - "cat docs/11_admin/LIFEOS_STATE.md"
+  - "ls artifacts/evidence/"
+  - "ls config/tasks/ && ls config/governance/"
+  - "ls artifacts/dispatch/ && ls artifacts/dispatch/inbox/"
+  - "ls artifacts/evidence/openclaw/"
+  - "find config -name *.yaml -o -name *.json"
+  - "cat config/governance/active_coo.yaml"
+  - "cat config/models.yaml"
+  - "cat config/openclaw/instance_profiles/coo.json"
+  - "ls -la artifacts/dispatch/inbox/"
+  - "cat config/governance/delegation_envelope.yaml"
+  - "cat config/tasks/backlog.yaml"
+  - "cat config/dispatch.yaml"
+  - "cat artifacts/dispatch/nightly_queue.yaml"
+  - "ls .claude/ && cat .claude/settings.json"
+  - "gh auth status && gh api user --jq .login"
+  - "cat artifacts/status/runtime_status.json"
+  - "python3 -c 'import sys; print(sys.version)'"
+  - "python3 -m pytest runtime/tests -q --no-header --co"
+  - "ls runtime/orchestration/coo/"
+  - "/home/cabra/bin/openclaw --version"
+  - "env | grep ZEN|ANTHROPIC|GITHUB | sed redacted"
+  - "cat .claude/settings.json | python3 cron check"
+  - "cat config/coo/telegram_model.json"
+  - "cat config/policy/posture.yaml"
+  - "cat artifacts/health/provider_state.json"
+  - "ls COO/memory/"
+  - "git log --oneline -5"
+  - "git show HEAD --stat"
+
+repo_root: "/mnt/c/Users/cabra/Projects/LifeOS"
+branch: "fix/codex-only-ea-dispatch"
+head_commit: "7729cde490307aa8fd72b949e5d96fec199de712"
