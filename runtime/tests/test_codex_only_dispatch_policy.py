@@ -7,7 +7,6 @@ from runtime.agents.api import AgentAPIError, AgentCall, call_agent_cli
 from runtime.agents.cli_dispatch import CLIDispatchResult, CLIProvider
 from runtime.agents.models import load_model_config
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -15,9 +14,7 @@ def test_configured_cli_dispatch_policy_is_codex_only() -> None:
     config = load_model_config(str(REPO_ROOT / "config" / "models.yaml"))
 
     cli_roles = {
-        role: agent
-        for role, agent in config.agents.items()
-        if agent.dispatch_mode == "cli"
+        role: agent for role, agent in config.agents.items() if agent.dispatch_mode == "cli"
     }
     assert cli_roles, "expected at least one CLI-dispatched role"
 
@@ -56,7 +53,7 @@ def test_cli_dispatch_can_fail_closed_when_api_fallback_is_disabled(
     config = load_model_config(str(REPO_ROOT / "config" / "models.yaml"))
     agent = config.agents["builder"]
     assert agent.cli_provider == "codex"
-    setattr(agent, "allow_api_fallback", False)
+    agent.allow_api_fallback = False
 
     mock_dispatch.return_value = CLIDispatchResult(
         output="",
