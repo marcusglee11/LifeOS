@@ -56,3 +56,24 @@ logging:
 determinism:
   # Run ID is required (C1)
   run_id_required: true
+
+doc_ingest:
+  # Roots under which ingested docs may land (invariant 7).
+  # Protected areas (00_foundations, 01_governance, 99_archive) are excluded.
+  allowed_dest_roots:
+    - "docs/02_protocols/"
+    - "docs/03_runtime/"
+    - "docs/04_project_builder/"
+    - "docs/05_agents/"
+    - "docs/06_user_surface/"
+    - "docs/07_testing/"
+    - "docs/08_manuals/"
+    - "docs/09_prompts/"
+    - "docs/10_meta/"
+    - "docs/11_admin/"
+    - "docs/12_productisation/"
+  # Allowed target_index_path values (invariant 11-perm).
+  # Empty list = fail closed; no target indexes are permitted.
+  permitted_target_index_paths:
+    - "docs/02_protocols/ARTEFACT_INDEX.json"
+    - "docs/03_runtime/ARTEFACT_INDEX.json"
