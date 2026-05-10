@@ -21,10 +21,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "enum": [
-        "intent_fidelity_bypass.v1",
-        "intent_fidelity_bypass_v1"
-      ]
+      "enum": ["intent_fidelity_bypass.v1", "intent_fidelity_bypass_v1"]
     },
     "work_item_id": {
       "type": "string",
@@ -36,10 +33,7 @@
     },
     "authorized_by": {
       "type": "string",
-      "enum": [
-        "conductor",
-        "ceo"
-      ]
+      "enum": ["conductor", "ceo"]
     },
     "reason": {
       "type": "string",

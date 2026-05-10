@@ -18,10 +18,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "enum": [
-        "intent_source_manifest.v1",
-        "intent_source_manifest_v1"
-      ]
+      "enum": ["intent_source_manifest.v1", "intent_source_manifest_v1"]
     },
     "work_item_id": {
       "type": "string",
@@ -37,12 +34,7 @@
     },
     "created_by": {
       "type": "string",
-      "enum": [
-        "conductor",
-        "worker",
-        "ea",
-        "tool"
-      ]
+      "enum": ["conductor", "worker", "ea", "tool"]
     },
     "source_discovery": {
       "type": "object",
@@ -84,12 +76,7 @@
         },
         "completeness_claimed_by": {
           "type": "string",
-          "enum": [
-            "conductor",
-            "worker",
-            "ea",
-            "tool"
-          ]
+          "enum": ["conductor", "worker", "ea", "tool"]
         }
       }
     },
@@ -141,10 +128,7 @@
           "$ref": "#/$defs/blocking_strength"
         },
         "guard_triggered": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "enum": [
             "negation",
             "historical",
@@ -236,11 +220,7 @@
     },
     "missing_source": {
       "type": "object",
-      "required": [
-        "expected_source",
-        "reason_missing",
-        "disposition"
-      ],
+      "required": ["expected_source", "reason_missing", "disposition"],
       "additionalProperties": false,
       "properties": {
         "expected_source": {
@@ -251,20 +231,13 @@
         },
         "disposition": {
           "type": "string",
-          "enum": [
-            "fail_closed",
-            "not_required"
-          ]
+          "enum": ["fail_closed", "not_required"]
         }
       }
     },
     "blocking_strength": {
       "type": "string",
-      "enum": [
-        "blocking",
-        "warning",
-        "requires_conductor_review"
-      ]
+      "enum": ["blocking", "warning", "requires_conductor_review"]
     }
   }
 }

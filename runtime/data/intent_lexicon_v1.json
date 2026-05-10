@@ -53,11 +53,7 @@
         "proceed",
         "go ahead"
       ],
-      "negation_guards": [
-        "not pausing",
-        "do not pause",
-        "not waiting"
-      ],
+      "negation_guards": ["not pausing", "do not pause", "not waiting"],
       "examples": []
     },
     {
@@ -124,10 +120,7 @@
         "destructive cleanup",
         "cannot be undone"
       ],
-      "negation_guards": [
-        "not required to be reversible",
-        "irreversible ok"
-      ],
+      "negation_guards": ["not required to be reversible", "irreversible ok"],
       "examples": []
     },
     {
@@ -163,11 +156,7 @@
         "only use"
       ],
       "default_blocking": "warning",
-      "inversion_terms": [
-        "new channel",
-        "different platform",
-        "another tool"
-      ],
+      "inversion_terms": ["new channel", "different platform", "another tool"],
       "negation_guards": [],
       "examples": []
     },

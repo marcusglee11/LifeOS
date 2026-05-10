@@ -17,10 +17,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "enum": [
-        "intent_review_report.v1",
-        "intent_review_report_v1"
-      ]
+      "enum": ["intent_review_report.v1", "intent_review_report_v1"]
     },
     "work_item_id": {
       "type": "string",
@@ -28,12 +25,7 @@
     },
     "reviewer_surface": {
       "type": "string",
-      "enum": [
-        "openclaw",
-        "aa",
-        "ea",
-        "other"
-      ]
+      "enum": ["openclaw", "aa", "ea", "other"]
     },
     "reviewer_session": {
       "type": "string",
@@ -41,31 +33,18 @@
     },
     "verdict": {
       "type": "string",
-      "enum": [
-        "reject",
-        "amend",
-        "approve"
-      ]
+      "enum": ["reject", "amend", "approve"]
     },
     "findings": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": [
-          "severity",
-          "title",
-          "recommendation"
-        ],
+        "required": ["severity", "title", "recommendation"],
         "additionalProperties": false,
         "properties": {
           "severity": {
             "type": "string",
-            "enum": [
-              "p0",
-              "p1",
-              "p2",
-              "note"
-            ]
+            "enum": ["p0", "p1", "p2", "note"]
           },
           "title": {
             "type": "string"
