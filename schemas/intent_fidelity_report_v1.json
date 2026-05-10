@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/intent_fidelity_report_v1.json",
+  "title": "Intent Fidelity Report v1",
+  "schema_version": "intent_fidelity_report_v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "work_item_id",
+    "brief_type",
+    "brief_hash_sha256",
+    "source_manifest_uri",
+    "decision",
+    "checks",
+    "false_positive_fixtures_passed"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["intent_fidelity_report.v1", "intent_fidelity_report_v1"]
+    },
+    "work_item_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "brief_type": {
+      "$ref": "#/$defs/brief_type"
+    },
+    "brief_uri": {
+      "type": "string"
+    },
+    "brief_hash_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "source_manifest_uri": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail_closed",
+        "requires_ceo_clarification",
+        "requires_conductor_review",
+        "warning_only"
+      ]
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/check"
+      }
+    },
+    "false_positive_fixtures_passed": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "brief_type": {
+      "type": "string",
+      "enum": [
+        "worker_prompt",
+        "dispatch_packet",
+        "build_packet",
+        "implementation_plan",
+        "pr_body",
+        "issue_comment",
+        "closure_packet",
+        "other"
+      ]
+    },
+    "check": {
+      "type": "object",
+      "required": ["status", "details"],
+      "additionalProperties": true,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "warn",
+            "fail",
+            "requires_conductor_review",
+            "requires_ceo_clarification"
+          ]
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

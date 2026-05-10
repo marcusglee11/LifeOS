@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/intent_source_manifest_v1.json",
+  "title": "Intent Source Manifest v1",
+  "schema_version": "intent_source_manifest_v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "work_item_id",
+    "lexicon_version",
+    "created_at",
+    "created_by",
+    "source_discovery",
+    "sources",
+    "missing_sources"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["intent_source_manifest.v1", "intent_source_manifest_v1"]
+    },
+    "work_item_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lexicon_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string",
+      "enum": ["conductor", "worker", "ea", "tool"]
+    },
+    "source_discovery": {
+      "type": "object",
+      "required": [
+        "mode",
+        "commands_or_uris",
+        "command_output_hashes_sha256",
+        "cutoff_timestamp",
+        "completeness_claimed_by"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "github",
+            "local_file",
+            "google_doc",
+            "obsidian",
+            "chat",
+            "mixed"
+          ]
+        },
+        "commands_or_uris": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "command_output_hashes_sha256": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "cutoff_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completeness_claimed_by": {
+          "type": "string",
+          "enum": ["conductor", "worker", "ea", "tool"]
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "missing_sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/missing_source"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "intent": {
+      "type": "object",
+      "required": [
+        "intent_class",
+        "phrase",
+        "line_or_offset",
+        "surrounding_context",
+        "blocking_strength"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "intent_class": {
+          "type": "string"
+        },
+        "phrase": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "line_or_offset": {
+          "type": "string"
+        },
+        "surrounding_context": {
+          "type": "string"
+        },
+        "blocking_strength": {
+          "$ref": "#/$defs/blocking_strength"
+        },
+        "guard_triggered": {
+          "type": ["string", "null"],
+          "enum": [
+            "negation",
+            "historical",
+            "hypothetical",
+            "third_party_quote",
+            null
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "source_type",
+        "uri",
+        "retrieved_at",
+        "retrieval_method",
+        "content_hash_sha256",
+        "source_of_source_hash_sha256",
+        "authority_tier",
+        "extracted_intents"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_type": {
+          "type": "string",
+          "enum": [
+            "issue_body",
+            "issue_comment",
+            "pr_review",
+            "pr_comment",
+            "local_file",
+            "google_doc",
+            "obsidian_note",
+            "chat",
+            "plan",
+            "ratified_doc",
+            "transcript"
+          ]
+        },
+        "uri": {
+          "type": "string"
+        },
+        "retrieved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "retrieval_method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content_hash_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_of_source_hash_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "authority_tier": {
+          "type": "string",
+          "enum": [
+            "current_ceo_instruction",
+            "acceptance_criteria",
+            "ratified_doc",
+            "plan",
+            "lesson",
+            "memory",
+            "other"
+          ]
+        },
+        "extracted_intents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/intent"
+          }
+        }
+      }
+    },
+    "missing_source": {
+      "type": "object",
+      "required": ["expected_source", "reason_missing", "disposition"],
+      "additionalProperties": false,
+      "properties": {
+        "expected_source": {
+          "type": "string"
+        },
+        "reason_missing": {
+          "type": "string"
+        },
+        "disposition": {
+          "type": "string",
+          "enum": ["fail_closed", "not_required"]
+        }
+      }
+    },
+    "blocking_strength": {
+      "type": "string",
+      "enum": ["blocking", "warning", "requires_conductor_review"]
+    }
+  }
+}

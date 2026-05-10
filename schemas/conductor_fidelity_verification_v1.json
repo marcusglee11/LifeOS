@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/conductor_fidelity_verification_v1.json",
+  "title": "Conductor Fidelity Verification v1",
+  "schema_version": "conductor_fidelity_verification_v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "work_item_id",
+    "brief_type",
+    "brief_hash_sha256",
+    "brief_author_session",
+    "conductor_verification_session",
+    "source_manifest_hash_sha256",
+    "fidelity_report_hash_sha256",
+    "conductor_independently_confirmed",
+    "fidelity_status",
+    "handoff_candidate",
+    "implementation_authority_granted",
+    "required_next_gate",
+    "forbidden_next_steps",
+    "verified_by",
+    "verified_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "conductor_fidelity_verification.v1",
+        "conductor_fidelity_verification_v1"
+      ]
+    },
+    "work_item_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "brief_type": {
+      "type": "string"
+    },
+    "brief_hash_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "brief_author_session": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conductor_verification_session": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_manifest_hash_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "fidelity_report_hash_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "conductor_independently_confirmed": {
+      "type": "boolean"
+    },
+    "fidelity_status": {
+      "type": "string",
+      "enum": [
+        "preserved_intent",
+        "not_preserved",
+        "needs_clarification",
+        "requires_review",
+        "warning_only"
+      ]
+    },
+    "handoff_candidate": {
+      "type": "boolean"
+    },
+    "implementation_authority_granted": {
+      "type": "boolean",
+      "const": false
+    },
+    "required_next_gate": {
+      "type": "string",
+      "enum": [
+        "none",
+        "dispatch_gate",
+        "ceo_clarification",
+        "ceo_approval",
+        "repo_gate",
+        "runtime_gate"
+      ]
+    },
+    "forbidden_next_steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "contains": {
+        "const": "implementation_without_reload"
+      }
+    },
+    "verified_by": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

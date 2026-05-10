@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/intent_review_report_v1.json",
+  "title": "Intent Review Report v1",
+  "schema_version": "intent_review_report_v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "work_item_id",
+    "reviewer_surface",
+    "reviewer_session",
+    "verdict",
+    "findings",
+    "authority_note"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["intent_review_report.v1", "intent_review_report_v1"]
+    },
+    "work_item_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewer_surface": {
+      "type": "string",
+      "enum": ["openclaw", "aa", "ea", "other"]
+    },
+    "reviewer_session": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["reject", "amend", "approve"]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "title", "recommendation"],
+        "additionalProperties": false,
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["p0", "p1", "p2", "note"]
+          },
+          "title": {
+            "type": "string"
+          },
+          "recommendation": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "authority_note": {
+      "type": "string",
+      "const": "reviewer_output_is_evidence_only"
+    }
+  }
+}
