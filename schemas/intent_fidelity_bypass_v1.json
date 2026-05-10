@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/intent_fidelity_bypass_v1.json",
+  "title": "Intent Fidelity Bypass v1",
+  "schema_version": "intent_fidelity_bypass_v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "work_item_id",
+    "requested_by",
+    "authorized_by",
+    "reason",
+    "sources_skipped",
+    "risk_accepted",
+    "scope",
+    "expires_at",
+    "single_use",
+    "not_authorized_for"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "intent_fidelity_bypass.v1",
+        "intent_fidelity_bypass_v1"
+      ]
+    },
+    "work_item_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authorized_by": {
+      "type": "string",
+      "enum": [
+        "conductor",
+        "ceo"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sources_skipped": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_accepted": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "single_use": {
+      "type": "boolean",
+      "const": true
+    },
+    "not_authorized_for": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "const": "external_send"
+          }
+        },
+        {
+          "contains": {
+            "const": "runtime_activation"
+          }
+        },
+        {
+          "contains": {
+            "const": "credential_change"
+          }
+        },
+        {
+          "contains": {
+            "const": "destructive_cleanup"
+          }
+        }
+      ]
+    }
+  }
+}

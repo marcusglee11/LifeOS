@@ -1,0 +1,237 @@
+{
+  "schema_version": "intent_lexicon_v1",
+  "version": "1.0.0",
+  "intent_classes": [
+    {
+      "class": "absence",
+      "phrases": [
+        "remove",
+        "delete",
+        "hide",
+        "strip",
+        "eliminate",
+        "no longer show",
+        "start from scratch",
+        "start over"
+      ],
+      "default_blocking": "blocking",
+      "inversion_terms": [
+        "polish",
+        "clean up",
+        "rework",
+        "iterate",
+        "preserve",
+        "retain",
+        "maintain existing",
+        "keep most",
+        "leave structure"
+      ],
+      "negation_guards": [
+        "do not remove",
+        "do not delete",
+        "do not hide",
+        "not remove",
+        "not delete"
+      ],
+      "examples": []
+    },
+    {
+      "class": "pause",
+      "phrases": [
+        "do not implement yet",
+        "wait",
+        "pause",
+        "hold",
+        "stop",
+        "not yet"
+      ],
+      "default_blocking": "blocking",
+      "inversion_terms": [
+        "implement",
+        "start",
+        "begin work",
+        "proceed",
+        "go ahead"
+      ],
+      "negation_guards": [
+        "not pausing",
+        "do not pause",
+        "not waiting"
+      ],
+      "examples": []
+    },
+    {
+      "class": "approval_before_action",
+      "phrases": [
+        "ask me first",
+        "before changing",
+        "needs approval",
+        "check with me",
+        "confirm first",
+        "must approve"
+      ],
+      "default_blocking": "blocking",
+      "inversion_terms": [
+        "proceed without asking",
+        "assume approval",
+        "go ahead"
+      ],
+      "negation_guards": [
+        "does not need approval",
+        "no approval needed",
+        "do not ask"
+      ],
+      "examples": []
+    },
+    {
+      "class": "privacy",
+      "phrases": [
+        "keep private",
+        "do not send",
+        "no public post",
+        "internal only",
+        "do not share externally",
+        "confidential"
+      ],
+      "default_blocking": "blocking",
+      "inversion_terms": [
+        "share publicly",
+        "post externally",
+        "publish",
+        "make public",
+        "send to"
+      ],
+      "negation_guards": [
+        "not private",
+        "can be shared",
+        "do not keep private"
+      ],
+      "examples": []
+    },
+    {
+      "class": "reversibility",
+      "phrases": [
+        "reversible only",
+        "no destructive cleanup",
+        "no irreversible action",
+        "must be undoable",
+        "safe to revert"
+      ],
+      "default_blocking": "blocking",
+      "inversion_terms": [
+        "irreversible",
+        "permanent",
+        "destructive cleanup",
+        "cannot be undone"
+      ],
+      "negation_guards": [
+        "not required to be reversible",
+        "irreversible ok"
+      ],
+      "examples": []
+    },
+    {
+      "class": "automation_boundary",
+      "phrases": [
+        "no automation",
+        "no unattended trigger",
+        "supervised only",
+        "do not automate",
+        "manual only"
+      ],
+      "default_blocking": "blocking",
+      "inversion_terms": [
+        "automate",
+        "unattended",
+        "schedule automatically",
+        "trigger without check"
+      ],
+      "negation_guards": [
+        "allow automation",
+        "automation ok",
+        "automation is fine"
+      ],
+      "examples": []
+    },
+    {
+      "class": "channel_authority",
+      "phrases": [
+        "use github only",
+        "use this doc",
+        "do not create another channel",
+        "stick to",
+        "only use"
+      ],
+      "default_blocking": "warning",
+      "inversion_terms": [
+        "new channel",
+        "different platform",
+        "another tool"
+      ],
+      "negation_guards": [],
+      "examples": []
+    },
+    {
+      "class": "scope_minimisation",
+      "phrases": [
+        "minimum viable",
+        "no overbuilding",
+        "only x",
+        "just the basics",
+        "smallest possible",
+        "simplest"
+      ],
+      "default_blocking": "warning",
+      "inversion_terms": [
+        "full featured",
+        "comprehensive",
+        "all the bells",
+        "complete rewrite",
+        "robust"
+      ],
+      "negation_guards": [
+        "not minimal",
+        "do more than minimal",
+        "expand scope"
+      ],
+      "examples": []
+    },
+    {
+      "class": "softening_inversion",
+      "phrases": [
+        "polish",
+        "clean up",
+        "iterate",
+        "retain",
+        "preserve",
+        "maintain existing",
+        "keep most",
+        "leave structure",
+        "rework"
+      ],
+      "default_blocking": "warning",
+      "inversion_terms": [],
+      "negation_guards": [],
+      "context_becomes_blocking_when": "absence intent exists in same source set",
+      "examples": []
+    }
+  ],
+  "false_positive_guards": {
+    "negation": {
+      "enabled": true,
+      "description": "Skip phrase match if immediately preceded by 'not', 'no', 'never', 'don't', 'do not', 'does not', 'did not', 'won't' within 5 characters before the phrase."
+    },
+    "historical": {
+      "enabled": true,
+      "description": "Skip phrase match if preceded by 'previously', 'before', 'used to', 'was', 'were', 'had', 'past', 'originally', 'earlier', 'once', 'former' within 15 characters before the phrase."
+    },
+    "hypothetical": {
+      "enabled": true,
+      "description": "Skip phrase match if preceded by 'if', 'what if', 'suppose', 'imagine', 'might', 'could', 'would', 'maybe', 'perhaps', 'consider', 'option' within 20 characters before the phrase."
+    },
+    "third_party_quote": {
+      "enabled": true,
+      "description": "Skip phrase match if the match falls within a quotation block (text between matching \"...\" or '...' delimiters) and the surrounding context does not indicate adoption of the quoted intent."
+    }
+  }
+}

@@ -121,6 +121,101 @@ def cmd_certify_ops(args: argparse.Namespace, repo_root: Path) -> int:
     return result.returncode
 
 
+def cmd_intent_fidelity_check(args: argparse.Namespace, repo_root: Path) -> int:
+    """Run inert Founder Intent Fidelity dry-run check."""
+    from dataclasses import asdict
+
+    from runtime.orchestration.intent_fidelity import (
+        build_source_manifest,
+        check_fidelity,
+        fidelity_report_to_dict,
+        hash_text,
+        load_lexicon,
+        manifest_to_dict,
+    )
+    from runtime.receipts.intent_fidelity import build_conductor_verification
+
+    source_path = Path(args.source)
+    brief_path = Path(args.brief)
+    if not source_path.exists():
+        print(f"Error: source file not found: {source_path}", file=sys.stderr)
+        return 1
+    if not brief_path.exists():
+        print(f"Error: brief file not found: {brief_path}", file=sys.stderr)
+        return 1
+
+    source_text = source_path.read_text(encoding="utf-8")
+    brief_text = brief_path.read_text(encoding="utf-8")
+    lexicon = load_lexicon(repo_root / "runtime" / "data" / "intent_lexicon_v1.json")
+
+    manifest = build_source_manifest(
+        work_item_id=source_path.stem,
+        lexicon_version=lexicon.data["version"],
+        source_discovery={
+            "mode": "local_file",
+            "commands_or_uris": [str(source_path)],
+            "command_output_hashes_sha256": [hash_text(source_text)],
+            "completeness_claimed_by": "tool",
+        },
+        sources=[
+            {
+                "source_id": source_path.stem,
+                "source_type": "local_file",
+                "uri": str(source_path),
+                "retrieval_method": "local_file",
+                "authority_tier": "current_ceo_instruction",
+                "content": source_text,
+            }
+        ],
+    )
+    report = check_fidelity(brief_text, args.brief_type, manifest, lexicon)
+    manifest_payload = manifest_to_dict(manifest)
+    report_payload = fidelity_report_to_dict(report)
+    source_manifest_hash = hash_text(_canonical_json(manifest_payload))
+    fidelity_report_hash = hash_text(_canonical_json(report_payload))
+    fidelity_status = {
+        "pass": "preserved_intent",
+        "warning_only": "warning_only",
+        "fail_closed": "not_preserved",
+        "requires_ceo_clarification": "needs_clarification",
+        "requires_conductor_review": "requires_review",
+    }[report.decision]
+    verification = build_conductor_verification(
+        work_item_id=manifest.work_item_id,
+        brief_type=args.brief_type,
+        brief_hash=report.brief_hash_sha256,
+        brief_author_session="cli-brief-author",
+        conductor_session="cli-conductor-dry-run",
+        source_manifest_hash=source_manifest_hash,
+        fidelity_report_hash=fidelity_report_hash,
+        fidelity_status=fidelity_status,
+    )
+    verification_payload = asdict(verification)
+    payload = {
+        "schema_version": "intent_fidelity_cli_dry_run.v1",
+        "dry_run": True,
+        "implementation_authority_granted": False,
+        "source_manifest": manifest_payload,
+        "fidelity_report": report_payload,
+        "conductor_verification": verification_payload,
+    }
+
+    allowed = report.decision in {"pass", "warning_only"}
+    if args.json:
+        print(_canonical_json(payload))
+    else:
+        print(f"intent_fidelity_decision: {report.decision}")
+        print(f"brief_hash_sha256: {report.brief_hash_sha256}")
+        print(f"source_manifest_hash_sha256: {source_manifest_hash}")
+        print(f"handoff_candidate: {verification.handoff_candidate}")
+        print("implementation_authority_granted: false")
+        for name, check in report.checks.items():
+            print(f"{name}: {check.status}")
+            for detail in check.details:
+                print(f"  - {detail}")
+    return 0 if allowed else 1
+
+
 def _baseline_commit(repo_root: Path) -> str | None:
     try:
         result = subprocess.run(
@@ -1120,6 +1215,37 @@ def main() -> int:
     )
     p_certify_ops.add_argument("--profile", choices=("local", "ci", "live"), required=True)
 
+    # intent-fidelity group (Founder Intent Fidelity Gate v0.3 dry-run)
+    p_intent_fidelity = subparsers.add_parser(
+        "intent-fidelity",
+        help="Founder Intent Fidelity Gate dry-run commands",
+    )
+    intent_fidelity_subs = p_intent_fidelity.add_subparsers(
+        dest="intent_fidelity_cmd",
+        required=True,
+    )
+    p_intent_fidelity_check = intent_fidelity_subs.add_parser(
+        "check",
+        help="Check a brief against a source file without granting authority",
+    )
+    p_intent_fidelity_check.add_argument("--source", required=True, help="Path to source file")
+    p_intent_fidelity_check.add_argument("--brief", required=True, help="Path to brief file")
+    p_intent_fidelity_check.add_argument(
+        "--brief-type",
+        required=True,
+        choices=(
+            "worker_prompt",
+            "dispatch_packet",
+            "build_packet",
+            "implementation_plan",
+            "pr_body",
+            "issue_comment",
+            "closure_packet",
+            "other",
+        ),
+    )
+    p_intent_fidelity_check.add_argument("--json", action="store_true", help="Output as JSON")
+
     # coo group
     p_coo = subparsers.add_parser("coo", help="COO orchestration commands")
     coo_subs = p_coo.add_subparsers(dest="coo_cmd", required=True)
@@ -1360,6 +1486,10 @@ def main() -> int:
                 return cmd_certify_pipeline(args, repo_root)
             if args.certify_cmd == "ops":
                 return cmd_certify_ops(args, repo_root)
+
+        if args.subcommand == "intent-fidelity":
+            if args.intent_fidelity_cmd == "check":
+                return cmd_intent_fidelity_check(args, repo_root)
 
         if args.subcommand == "coo":
             from runtime.orchestration.coo import commands as coo_commands
