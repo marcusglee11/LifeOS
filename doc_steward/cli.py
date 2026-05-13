@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E501
 """
 doc_steward CLI — Stable command-line interface for documentation validators.
 
@@ -16,34 +17,36 @@ import argparse
 import sys
 from pathlib import Path
 
+from .admin_archive_link_ban_validator import check_admin_archive_link_ban
+from .admin_structure_validator import check_admin_structure
+from .archive_structure_validator import check_archive_structure
+from .artefact_index_validator import check_artefact_index
 from .dap_validator import check_dap_compliance
+from .doc_authority_manifest import check_doc_authority_manifest
+from .freshness_validator import check_freshness, get_freshness_mode
+from .global_archive_link_ban_validator import check_global_archive_link_ban
 from .index_checker import check_index
 from .link_checker import check_links
-from .admin_structure_validator import check_admin_structure
-from .admin_archive_link_ban_validator import check_admin_archive_link_ban
-from .freshness_validator import check_freshness, get_freshness_mode
 from .protocols_structure_validator import check_protocols_structure
 from .runtime_structure_validator import check_runtime_structure
-from .archive_structure_validator import check_archive_structure
-from .global_archive_link_ban_validator import check_global_archive_link_ban
 from .version_duplicate_detector import check_version_duplicates_with_lineage
-from .artefact_index_validator import check_artefact_index
 from .wiki_lint_validator import check_wiki_lint
+
 
 def cmd_opencode_validate(args: argparse.Namespace) -> int:
     """Run OpenCode artefact validation."""
     # args.doc_root is historically named, but here acts as repo_root or context root
     root = Path(args.doc_root).resolve()
     target = root / "artifacts" / "opencode"
-    
+
     if not target.exists():
         print(f"[FAILED] Missing required directory: {target}")
         return 1
-        
+
     if not target.is_dir():
         print(f"[FAILED] Target is not a directory: {target}")
         return 1
-        
+
     print(f"[PASSED] OpenCode artefact root exists: {target}")
     return 0
 
@@ -52,7 +55,7 @@ def cmd_dap_validate(args: argparse.Namespace) -> int:
     """Run DAP compliance validation."""
     doc_root = str(Path(args.doc_root).resolve())
     errors = check_dap_compliance(doc_root)
-    
+
     if errors:
         print(f"[FAILED] DAP validation failed ({len(errors)} errors):\n")
         for err in errors:
@@ -68,7 +71,7 @@ def cmd_index_check(args: argparse.Namespace) -> int:
     doc_root = str(Path(args.doc_root).resolve())
     index_path = str(Path(args.index_path).resolve())
     errors = check_index(doc_root, index_path)
-    
+
     if errors:
         print(f"[FAILED] Index check failed ({len(errors)} errors):\n")
         for err in errors:
@@ -219,7 +222,7 @@ def cmd_docs_archive_link_ban_check(args: argparse.Namespace) -> int:
 def cmd_artefact_index_check(args: argparse.Namespace) -> int:
     """Run artefact index validation."""
     repo_root = str(Path(args.repo_root).resolve())
-    directory = args.directory if hasattr(args, 'directory') else None
+    directory = args.directory if hasattr(args, "directory") else None
     errors = check_artefact_index(repo_root, directory)
 
     if errors:
@@ -259,24 +262,42 @@ def cmd_version_duplicate_scan(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_check_manifest(args: argparse.Namespace) -> int:
+    """Validate the central documentation authority manifest."""
+    repo_root = Path(args.repo_root).resolve()
+    errors = check_doc_authority_manifest(
+        repo_root,
+        manifest_path=args.manifest,
+        previous_manifest_path=args.previous_manifest,
+    )
+
+    if errors:
+        print(f"[FAILED] Documentation authority manifest check failed ({len(errors)} errors):\n")
+        for err in errors:
+            print(f"  * {err}")
+        return 1
+
+    print("[PASSED] Documentation authority manifest check passed.")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="doc_steward.cli",
-        description="LifeOS Documentation Steward CLI"
+        prog="doc_steward.cli", description="LifeOS Documentation Steward CLI"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
-    
+
     # dap-validate
     p_dap = subparsers.add_parser("dap-validate", help="Check DAP naming compliance")
     p_dap.add_argument("doc_root", help="Root directory to validate")
     p_dap.set_defaults(func=cmd_dap_validate)
-    
+
     # index-check
     p_idx = subparsers.add_parser("index-check", help="Check index consistency")
     p_idx.add_argument("doc_root", help="Root directory of documentation")
     p_idx.add_argument("index_path", help="Path to INDEX.md file")
     p_idx.set_defaults(func=cmd_index_check)
-    
+
     # link-check
     p_link = subparsers.add_parser("link-check", help="Check for broken links")
     p_link.add_argument("doc_root", help="Root directory to validate")
@@ -288,14 +309,20 @@ def main() -> int:
     p_oc.set_defaults(func=cmd_opencode_validate)
 
     # admin-structure-check
-    p_admin_struct = subparsers.add_parser("admin-structure-check", help="Validate docs/11_admin/ structure")
+    p_admin_struct = subparsers.add_parser(
+        "admin-structure-check", help="Validate docs/11_admin/ structure"
+    )
     p_admin_struct.add_argument("repo_root", help="Repository root directory")
     p_admin_struct.set_defaults(func=cmd_admin_structure_check)
 
     # admin-archive-link-ban-check
-    p_admin_archive = subparsers.add_parser("admin-archive-link-ban-check", help="Check for links to archived docs")
+    p_admin_archive = subparsers.add_parser(
+        "admin-archive-link-ban-check", help="Check for links to archived docs"
+    )
     p_admin_archive.add_argument("repo_root", help="Repository root directory")
-    p_admin_archive.add_argument("--paths", nargs="+", default=None, help="Repo-relative paths to restrict scanning to")
+    p_admin_archive.add_argument(
+        "--paths", nargs="+", default=None, help="Repo-relative paths to restrict scanning to"
+    )
     p_admin_archive.set_defaults(func=cmd_admin_archive_link_ban_check)
 
     # freshness-check
@@ -304,30 +331,44 @@ def main() -> int:
     p_freshness.set_defaults(func=cmd_freshness_check)
 
     # protocols-structure-check
-    p_protocols = subparsers.add_parser("protocols-structure-check", help="Validate docs/02_protocols/ structure")
+    p_protocols = subparsers.add_parser(
+        "protocols-structure-check", help="Validate docs/02_protocols/ structure"
+    )
     p_protocols.add_argument("repo_root", help="Repository root directory")
     p_protocols.set_defaults(func=cmd_protocols_structure_check)
 
     # runtime-structure-check
-    p_runtime = subparsers.add_parser("runtime-structure-check", help="Validate docs/03_runtime/ structure")
+    p_runtime = subparsers.add_parser(
+        "runtime-structure-check", help="Validate docs/03_runtime/ structure"
+    )
     p_runtime.add_argument("repo_root", help="Repository root directory")
     p_runtime.set_defaults(func=cmd_runtime_structure_check)
 
     # archive-structure-check
-    p_archive = subparsers.add_parser("archive-structure-check", help="Validate docs/99_archive/ structure")
+    p_archive = subparsers.add_parser(
+        "archive-structure-check", help="Validate docs/99_archive/ structure"
+    )
     p_archive.add_argument("repo_root", help="Repository root directory")
     p_archive.set_defaults(func=cmd_archive_structure_check)
 
     # docs-archive-link-ban-check
-    p_link_ban = subparsers.add_parser("docs-archive-link-ban-check", help="Check for links to archived docs (global)")
+    p_link_ban = subparsers.add_parser(
+        "docs-archive-link-ban-check", help="Check for links to archived docs (global)"
+    )
     p_link_ban.add_argument("repo_root", help="Repository root directory")
-    p_link_ban.add_argument("--paths", nargs="+", default=None, help="Repo-relative paths to restrict scanning to")
+    p_link_ban.add_argument(
+        "--paths", nargs="+", default=None, help="Repo-relative paths to restrict scanning to"
+    )
     p_link_ban.set_defaults(func=cmd_docs_archive_link_ban_check)
 
     # artefact-index-check
-    p_artefact = subparsers.add_parser("artefact-index-check", help="Validate ARTEFACT_INDEX.json files")
+    p_artefact = subparsers.add_parser(
+        "artefact-index-check", help="Validate ARTEFACT_INDEX.json files"
+    )
     p_artefact.add_argument("repo_root", help="Repository root directory")
-    p_artefact.add_argument("--directory", help="Optional specific directory to check", default=None)
+    p_artefact.add_argument(
+        "--directory", help="Optional specific directory to check", default=None
+    )
     p_artefact.set_defaults(func=cmd_artefact_index_check)
 
     # wiki-lint
@@ -336,9 +377,28 @@ def main() -> int:
     p_wiki.set_defaults(func=cmd_wiki_lint)
 
     # version-duplicate-scan
-    p_version = subparsers.add_parser("version-duplicate-scan", help="Report version duplicates (warn-only)")
+    p_version = subparsers.add_parser(
+        "version-duplicate-scan", help="Report version duplicates (warn-only)"
+    )
     p_version.add_argument("repo_root", help="Repository root directory")
     p_version.set_defaults(func=cmd_version_duplicate_scan)
+
+    # check-manifest
+    p_manifest = subparsers.add_parser(
+        "check-manifest", help="Validate central docs authority manifest"
+    )
+    p_manifest.add_argument("repo_root", help="Repository root directory")
+    p_manifest.add_argument(
+        "--manifest",
+        default=None,
+        help="Optional manifest path; defaults to config/docs/authority_registry.yaml",
+    )
+    p_manifest.add_argument(
+        "--previous-manifest",
+        default=None,
+        help="Optional prior manifest path for protected transition checks; defaults to origin/main when available",
+    )
+    p_manifest.set_defaults(func=cmd_check_manifest)
 
     args = parser.parse_args()
     return args.func(args)

@@ -1,0 +1,157 @@
+version: 1
+schema: config/schemas/doc_authority_registry_v1.json
+policy_source: https://github.com/marcusglee11/LifeOS/issues/117#issuecomment-4442005302
+notes:
+  - Central manifest is the machine authority for documentation authority class.
+  - Optional frontmatter is derivative/advisory and must match this manifest.
+  - Authority transitions use one authority_transitions record per changed path.
+baseline_lint_noise:
+  path: docs/11_admin/QUALITY_AUDIT_BASELINE_v1.0.md
+  status: advisory_for_later_work_packages
+valid_approval_evidence_types:
+  human: Human maintainer approval in GitHub issue/PR context.
+  aa: Architecture Authority review approval in GitHub issue/PR context.
+  ceo: CEO-level approval in GitHub issue/PR context.
+doc_groups:
+  - id: canonical-foundations
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/00_foundations/*.md
+      - docs/00_foundations/**/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+      - docs/INDEX.md
+  - id: canonical-governance
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/01_governance/*.md
+      - docs/01_governance/**/*.md
+    exclude_paths:
+      - docs/01_governance/_archive/**/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+      - docs/INDEX.md
+  - id: canonical-protocols
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/02_protocols/*.md
+      - docs/02_protocols/**/*.md
+    exclude_paths:
+      - docs/02_protocols/archive/**/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+      - docs/INDEX.md
+  - id: canonical-runtime
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/03_runtime/*.md
+      - docs/03_runtime/**/*.md
+    exclude_paths:
+      - docs/03_runtime/archive/**/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+      - docs/INDEX.md
+  - id: canonical-builder-agents-surface-manuals-prompts-meta-admin-product
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/04_project_builder/*.md
+      - docs/04_project_builder/**/*.md
+      - docs/05_agents/*.md
+      - docs/05_agents/**/*.md
+      - docs/06_user_surface/*.md
+      - docs/06_user_surface/**/*.md
+      - docs/08_manuals/*.md
+      - docs/08_manuals/**/*.md
+      - docs/09_prompts/*.md
+      - docs/09_prompts/**/*.md
+      - docs/10_meta/*.md
+      - docs/10_meta/**/*.md
+      - docs/11_admin/*.md
+      - docs/11_admin/**/*.md
+      - docs/12_productisation/*.md
+      - docs/12_productisation/**/*.md
+    exclude_paths:
+      - docs/10_meta/archive/**/*.md
+      - docs/11_admin/archive/**/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+      - docs/INDEX.md
+  - id: canonical-root-navigation
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/INDEX.md
+  - id: derived-strategic-corpus
+    authority: derived
+    steward: Docs Steward
+    paths:
+      - docs/LifeOS_Strategic_Corpus.md
+    source_paths:
+      - docs/00_foundations/*.md
+      - docs/00_foundations/**/*.md
+      - docs/01_governance/*.md
+      - docs/01_governance/**/*.md
+      - docs/02_protocols/*.md
+      - docs/02_protocols/**/*.md
+      - docs/03_runtime/*.md
+      - docs/03_runtime/**/*.md
+      - docs/04_project_builder/*.md
+      - docs/04_project_builder/**/*.md
+      - docs/05_agents/*.md
+      - docs/05_agents/**/*.md
+      - docs/06_user_surface/*.md
+      - docs/06_user_surface/**/*.md
+      - docs/08_manuals/*.md
+      - docs/08_manuals/**/*.md
+      - docs/09_prompts/*.md
+      - docs/09_prompts/**/*.md
+      - docs/10_meta/*.md
+      - docs/10_meta/**/*.md
+      - docs/11_admin/*.md
+      - docs/11_admin/**/*.md
+      - docs/12_productisation/*.md
+      - docs/12_productisation/**/*.md
+      - docs/INDEX.md
+    source_exclude_paths:
+      - docs/01_governance/_archive/**/*.md
+      - docs/02_protocols/archive/**/*.md
+      - docs/03_runtime/archive/**/*.md
+      - docs/10_meta/archive/**/*.md
+      - docs/11_admin/archive/**/*.md
+    check_commands:
+      - python3 docs/scripts/generate_strategic_context.py
+  - id: discarded-archives
+    authority: discarded
+    steward: Docs Steward
+    paths:
+      - docs/99_archive/*.md
+      - docs/99_archive/**/*.md
+      - docs/01_governance/_archive/**/*.md
+      - docs/02_protocols/archive/**/*.md
+      - docs/03_runtime/archive/**/*.md
+      - docs/10_meta/archive/**/*.md
+      - docs/11_admin/archive/**/*.md
+  - id: proposal-and-working-material
+    authority: proposal-only
+    steward: Docs Steward
+    paths:
+      - docs/audit/*.md
+      - docs/audit/**/*.md
+      - docs/internal/*.md
+      - docs/internal/**/*.md
+      - docs/plans/*.md
+      - docs/plans/**/*.md
+      - docs/superpowers/plans/*.md
+      - docs/superpowers/plans/**/*.md
+      - docs/test/*.md
+      - docs/test/**/*.md
+      - docs/zz_scratch/*.md
+      - docs/zz_scratch/**/*.md
+      - docs/.pending_root_files/*.md
+      - docs/.pending_root_files/**/*.md
+authority_transitions: []

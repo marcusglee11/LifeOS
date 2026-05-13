@@ -53,6 +53,7 @@ QUALITY_TOOL_EXECUTABLES = {
     "agent_control_plane_pin": "python3",
     "wmf_validator": "python3",
     "workstream_context": "python3",
+    "doc_authority_manifest": "python3",
 }
 QUALITY_PYTHON_CONFIG_FILES = {"pyproject.toml", "requirements.txt", "requirements-dev.txt"}
 QUALITY_BIOME_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc"}
@@ -83,6 +84,12 @@ QUALITY_WORKSTREAM_CONTEXT_PREFIXES = (
     "schemas/workstreams/",
     "runtime/tests/fixtures/workstreams/",
 )
+QUALITY_DOC_AUTHORITY_MANIFEST_FILES = {
+    "config/docs/authority_registry.yaml",
+    "config/schemas/doc_authority_registry_v1.json",
+    "doc_steward/doc_authority_manifest.py",
+    "tests_doc/test_doc_authority_manifest.py",
+}
 BACKLOG_METADATA_CONTINUATION_PATTERN = re.compile(
     r"^\s+[—-]+\s*(?:DoD|Why\s*Now|Owner|Context):",
     re.IGNORECASE,
@@ -286,6 +293,8 @@ def route_quality_tools(
     wmf_validator_trigger = False
     workstream_context_files: list[str] = []
     workstream_context_trigger = False
+    doc_authority_manifest_files: list[str] = []
+    doc_authority_manifest_trigger = False
 
     for file_path in files:
         path = Path(file_path)
@@ -332,6 +341,12 @@ def route_quality_tools(
             workstream_context_files.append(file_path)
             workstream_context_trigger = True
 
+        if file_path in QUALITY_DOC_AUTHORITY_MANIFEST_FILES or (
+            suffix == ".md" and file_path.startswith("docs/")
+        ):
+            doc_authority_manifest_files.append(file_path)
+            doc_authority_manifest_trigger = True
+
     if python_trigger:
         routed["ruff_check"] = _unique_ordered(python_files)
         routed["ruff_format"] = _unique_ordered(python_files)
@@ -350,6 +365,8 @@ def route_quality_tools(
         routed["wmf_validator"] = _unique_ordered(wmf_validator_files)
     if workstream_context_trigger and "workstream_context" in routed:
         routed["workstream_context"] = _unique_ordered(workstream_context_files)
+    if doc_authority_manifest_trigger and "doc_authority_manifest" in routed:
+        routed["doc_authority_manifest"] = _unique_ordered(doc_authority_manifest_files)
 
     return routed
 
@@ -536,6 +553,11 @@ def _build_quality_command(
         for state_path in state_paths:
             cmd.extend(["--state", state_path])
         return cmd
+
+    if tool_name == "doc_authority_manifest":
+        if scope != "repo" and not files:
+            return None
+        return ["python3", "-m", "doc_steward.cli", "check-manifest", "."]
 
     return None
 
