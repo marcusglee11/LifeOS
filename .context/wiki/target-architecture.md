@@ -1,7 +1,7 @@
 ---
 source_docs:
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: c7df98632ed6dfee99daaada103cd613dc630501
+source_commit_max: 786d84b1846104b28b8bd0a718188cb2520bc057
 authority: derived
 page_class: evergreen
 concepts:

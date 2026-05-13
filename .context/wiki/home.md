@@ -3,7 +3,7 @@ source_docs:
   - docs/INDEX.md
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
   - docs/10_meta/architecture_decisions/INDEX.md
-source_commit_max: ec9ba476765cf2c981f03bea46eb189f30698366
+source_commit_max: 560164c7180b5ce4e0e4ed7f6a0fe47407554ff8
 authority: derived
 page_class: evergreen
 concepts:
@@ -14,9 +14,7 @@ concepts:
 
 ## Summary
 
-Agent navigation landing page for the LifeOS wiki layer. Start here. The wiki is a
-**derived, non-authoritative** layer — canonical docs under `docs/**` always win.
-For current operational state, read `docs/11_admin/LIFEOS_STATE.md` directly.
+Agent navigation landing page for the LifeOS wiki layer. Start here, then verify substantive claims against canonical docs under `docs/**`. The wiki is **derived and non-authoritative**; canonical docs and live GitHub readback win.
 
 ## Key Relationships
 
@@ -24,7 +22,8 @@ For current operational state, read `docs/11_admin/LIFEOS_STATE.md` directly.
 - `docs/00_foundations/LifeOS_Constitution_v2.0.md` — supreme governing document
 - `docs/11_admin/LIFEOS_STATE.md` — current phase and WIP (volatile; read directly)
 - `docs/INDEX.md` — navigation index for all canonical docs
-- `docs/10_meta/architecture_decisions/INDEX.md` — ratified architecture decision register (ADR-001 through ADR-004)
+- `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md` — architecture authority map, including bus/hub/runtime reconciliation
+- `docs/10_meta/architecture_decisions/INDEX.md` — ratified architecture decision register
 
 **Wiki pages:**
 - [target-architecture](target-architecture.md) — CEO→COO→EA control-plane design
@@ -40,16 +39,13 @@ For current operational state, read `docs/11_admin/LIFEOS_STATE.md` directly.
 
 ## Authority Note
 
-Canonical source: `docs/INDEX.md` and `docs/00_foundations/LifeOS_Constitution_v2.0.md`.
-This page is a navigation aid only. All substantive claims require canonical doc verification.
+Canonical source: `docs/INDEX.md` and `docs/00_foundations/LifeOS_Constitution_v2.0.md`. This page is a navigation aid only. All architecture, governance, and completion claims require canonical doc or GitHub readback.
 
 ## Current Truth
 
-`docs/INDEX.md` is the canonical navigation surface for the documentation corpus.
-Architecture decision records live in `docs/10_meta/architecture_decisions/INDEX.md`;
-ADR-004 (Drive / Workspace Canonical Role) ratified 2026-04-26 is the newest entry.
-For active phase, blockers, and current operational state, read `docs/11_admin/LIFEOS_STATE.md`
-directly. This page is a derived landing page only.
+`docs/INDEX.md` is the canonical navigation surface for the documentation corpus. Current bus/hub/runtime reconciliation is represented in canonical LifeOS meta/admin docs and linked review packets; generated corpora and wiki pages remain derived.
+
+Architecture decision records live in `docs/10_meta/architecture_decisions/INDEX.md`. For active phase, blockers, and current operational state, read `docs/11_admin/LIFEOS_STATE.md` directly.
 
 ## Open Questions
 
