@@ -3,6 +3,9 @@ source_docs:
   - docs/02_protocols/Git_Workflow_Protocol_v1.1.md
   - docs/02_protocols/Build_Handoff_Protocol_v1.1.md
 source_commit_max: 786d84b1846104b28b8bd0a718188cb2520bc057
+derived_edit_mode: generated
+source_command: python3 scripts/wiki/refresh_wiki.py
+source_change_ref: https://github.com/marcusglee11/LifeOS/issues/120
 authority: derived
 page_class: evergreen
 concepts:

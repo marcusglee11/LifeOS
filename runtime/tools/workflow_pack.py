@@ -54,6 +54,7 @@ QUALITY_TOOL_EXECUTABLES = {
     "wmf_validator": "python3",
     "workstream_context": "python3",
     "doc_authority_manifest": "python3",
+    "derived_outputs": "python3",
 }
 QUALITY_PYTHON_CONFIG_FILES = {"pyproject.toml", "requirements.txt", "requirements-dev.txt"}
 QUALITY_BIOME_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".json", ".jsonc"}
@@ -90,6 +91,12 @@ QUALITY_DOC_AUTHORITY_MANIFEST_FILES = {
     "doc_steward/doc_authority_manifest.py",
     "tests_doc/test_doc_authority_manifest.py",
 }
+QUALITY_DERIVED_OUTPUT_FILES = {
+    "scripts/wiki/refresh_wiki.py",
+    "scripts/wiki/check_derived_outputs.py",
+    "doc_steward/wiki_lint_validator.py",
+}
+QUALITY_DERIVED_OUTPUT_PREFIXES = (".context/wiki/",)
 BACKLOG_METADATA_CONTINUATION_PATTERN = re.compile(
     r"^\s+[—-]+\s*(?:DoD|Why\s*Now|Owner|Context):",
     re.IGNORECASE,
@@ -295,6 +302,8 @@ def route_quality_tools(
     workstream_context_trigger = False
     doc_authority_manifest_files: list[str] = []
     doc_authority_manifest_trigger = False
+    derived_output_files: list[str] = []
+    derived_output_trigger = False
 
     for file_path in files:
         path = Path(file_path)
@@ -347,6 +356,15 @@ def route_quality_tools(
             doc_authority_manifest_files.append(file_path)
             doc_authority_manifest_trigger = True
 
+        if (
+            file_path in QUALITY_DERIVED_OUTPUT_FILES
+            or any(file_path.startswith(prefix) for prefix in QUALITY_DERIVED_OUTPUT_PREFIXES)
+            or (suffix == ".md" and file_path.startswith("docs/"))
+            or file_path == "docs/LifeOS_Strategic_Corpus.md"
+        ):
+            derived_output_files.append(file_path)
+            derived_output_trigger = True
+
     if python_trigger:
         routed["ruff_check"] = _unique_ordered(python_files)
         routed["ruff_format"] = _unique_ordered(python_files)
@@ -367,6 +385,8 @@ def route_quality_tools(
         routed["workstream_context"] = _unique_ordered(workstream_context_files)
     if doc_authority_manifest_trigger and "doc_authority_manifest" in routed:
         routed["doc_authority_manifest"] = _unique_ordered(doc_authority_manifest_files)
+    if derived_output_trigger and "derived_outputs" in routed:
+        routed["derived_outputs"] = _unique_ordered(derived_output_files)
 
     return routed
 
@@ -558,6 +578,11 @@ def _build_quality_command(
         if scope != "repo" and not files:
             return None
         return ["python3", "-m", "doc_steward.cli", "check-manifest", "."]
+
+    if tool_name == "derived_outputs":
+        if scope != "repo" and not files:
+            return None
+        return ["python3", "scripts/wiki/check_derived_outputs.py"]
 
     return None
 

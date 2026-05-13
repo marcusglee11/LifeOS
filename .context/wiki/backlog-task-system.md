@@ -5,6 +5,9 @@ source_docs:
   - docs/02_protocols/Intent_Routing_Rule_v1.1.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
 source_commit_max: 560164c7180b5ce4e0e4ed7f6a0fe47407554ff8
+derived_edit_mode: generated
+source_command: python3 scripts/wiki/refresh_wiki.py
+source_change_ref: https://github.com/marcusglee11/LifeOS/issues/120
 authority: derived
 page_class: status
 concepts:

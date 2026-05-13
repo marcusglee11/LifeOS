@@ -4,6 +4,9 @@ source_docs:
   - docs/02_protocols/Council_Protocol_v1.3.md
   - docs/02_protocols/Governance_Protocol_v1.0.md
 source_commit_max: 9eb65264ef948a4335892ab4b99d13e036019b23
+derived_edit_mode: generated
+source_command: python3 scripts/wiki/refresh_wiki.py
+source_change_ref: https://github.com/marcusglee11/LifeOS/issues/120
 authority: derived
 page_class: evergreen
 concepts:

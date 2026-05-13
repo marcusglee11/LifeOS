@@ -85,6 +85,12 @@ tools:
     scopes: ["changed", "repo"]
     autofix_allowed: false
     failure_class: doc_authority_manifest_error
+  derived_outputs:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: derived_output_freshness_error
 
 waivers:
   - tool: markdownlint

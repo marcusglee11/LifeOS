@@ -55,6 +55,34 @@ def test_route_quality_tools_doc_change_runs_doc_authority_manifest() -> None:
     assert routed["doc_authority_manifest"] == ["docs/02_protocols/example.md"]
 
 
+def test_route_quality_tools_doc_change_runs_derived_outputs() -> None:
+    routed = route_quality_tools(Path("."), ["docs/02_protocols/example.md"], scope="changed")
+    assert routed["derived_outputs"] == ["docs/02_protocols/example.md"]
+
+
+def test_route_quality_tools_wiki_change_runs_derived_outputs() -> None:
+    routed = route_quality_tools(Path("."), [".context/wiki/home.md"], scope="changed")
+    assert routed["derived_outputs"] == [".context/wiki/home.md"]
+
+
+def test_run_quality_gates_runs_derived_outputs(monkeypatch) -> None:
+    commands: list[list[str]] = []
+
+    def fake_run(*args, **kwargs):
+        cmd = args[0]
+        commands.append(cmd)
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="OK", stderr="")
+
+    monkeypatch.setattr("runtime.tools.workflow_pack.subprocess.run", fake_run)
+    result = run_quality_gates(Path("."), [".context/wiki/home.md"], scope="changed")
+
+    assert result["passed"] is True
+    assert any(row["tool"] == "derived_outputs" for row in result["results"])
+    assert any(
+        command == ["python3", "scripts/wiki/check_derived_outputs.py"] for command in commands
+    )
+
+
 def test_route_quality_tools_wmf_workstreams_change_bypasses_artifacts_exclusion() -> None:
     routed = route_quality_tools(Path("."), ["artifacts/workstreams.yaml"], scope="changed")
     assert routed["wmf_validator"] == ["artifacts/workstreams.yaml"]
