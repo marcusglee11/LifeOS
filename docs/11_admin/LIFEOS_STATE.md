@@ -15,7 +15,8 @@
 
 **Current Focus:** Authority Audit Follow-Up / Schema and Lifecycle Hardening
 **Active WIP:** WP2-4 design packets for authority enforcement, approval receipts, and closure semantics (see `docs/audit/LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md`)
-**Last Updated:** 2026-04-27 (rev38)
+**Documentation Drift Note (May 2026):** LifeOS documentation is reconciling implemented bus/hub/runtime surfaces; issue `lifeos-operational-bus#154` owns the remaining work.
+**Last Updated:** 2026-05-13 (rev39)
 
 ---
 

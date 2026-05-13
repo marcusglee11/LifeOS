@@ -20,6 +20,26 @@ Purpose: Record architecture deltas over time without turning runtime state trac
 
 ## Entries
 
+### 2026-05-13 — Bus/hub/runtime documentation drift reconciliation (operational-bus #154)
+
+- Change: Added a bounded reconciliation entry for May 2026 bus/hub/runtime authority boundaries to the source-of-truth page and state ledger.
+- Why: `lifeos-operational-bus#154` tracks documentation drift after implemented operational-bus, common-hub, and runtime/control-plane surfaces moved ahead of LifeOS programme docs. The update makes the current boundaries discoverable without converting the audit packet into a canon promotion.
+- Notes:
+  - `lifeos-operational-bus` remains the canonical live work-order state and dispatch/status surface; issue labels are authoritative operational state.
+  - `lifeos-common-hub` remains the shared home for schemas, standards, canon, fixtures, adapters, memory manifests, reusable contracts, and pinned hub SHAs.
+  - Kanban and dashboards remain projections/workflow cockpit surfaces, not canonical operational state.
+  - `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` remains proposal-only/non-canonical.
+  - No ADR is added because this PR records a reconciliation boundary and does not ratify a new architecture decision.
+- Affected docs:
+  - `docs/11_admin/LIFEOS_STATE.md`
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+  - `docs/INDEX.md`
+  - `docs/10_meta/Review_Packet_Canonical_Doc_Reconciliation_2026-05-13_v1.0.md`
+- Related issue: `lifeos-operational-bus#154`
+- Related ADR: none
+- Status: proposed
+
 ### 2026-05-04 — Obsidian Agent Memory Bridge Canonical Promotion (operational-bus #33)
 
 - Change: Added `docs/03_runtime/memory/Agent_Memory_Bridge_v0.1.md` as the LifeOS repo documentation surface for the AA-satisfied Obsidian agent memory bridge and registered it in the source-of-truth/index surfaces.

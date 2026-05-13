@@ -35,7 +35,21 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 | --- | --- |
 | `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Active orientation reference; non-authoritative; loses to canonical architecture/governance docs on conflict |
 
-## 4. Superseded or stale surfaces
+## 4. Bus/hub/runtime authority boundaries under reconciliation (May 2026)
+
+**Status:** Implementation/documentation drift identified; reconciliation in progress via `lifeos-operational-bus#154`.
+
+**Boundaries:**
+
+- **Operational bus (`lifeos-operational-bus`):** Canonical live work-order state and dispatch/status surface. Bus issue labels are authoritative operational state.
+- **Common hub (`lifeos-common-hub`):** Shared schemas, standards, canon, fixtures, adapters, memory manifests, and reusable contracts. Hub SHAs provide dispatch traceability.
+- **LifeOS programme repo:** Programme canon, architecture orientation, execution trackers, and governance surfaces.
+- **Kanban/dashboards:** Projections and workflow cockpit surfaces, not canonical operational state.
+- **Proposal-only communications architecture:** `ARCH_Multi_Agent_Communication_Architecture.md` remains proposal-only/non-canonical.
+
+**Current gap:** The May drift audit packet (`docs/10_meta/Implementation_Documentation_Drift_Audit_2026-05-13.md`) records implemented bus/hub/runtime surfaces now reflected here at orientation level. This is a reconciliation update only: it does not ratify a new architecture decision, does not promote proposal-only communications architecture, and does not move live operational state out of the bus.
+
+## 5. Superseded or stale surfaces
 
 | Repo path | Current classification |
 | --- | --- |
@@ -43,17 +57,18 @@ Important: this page is an orientation surface. It is not itself the deepest aut
 | `docs/10_meta/CHANGELOG.md` | Stale repository changelog surface |
 | `docs/11_admin/AUTONOMY_STATUS.md` | Derived and stale orientation surface |
 
-## 5. Truth hierarchy
+## 6. Truth hierarchy
 
 1. Constitution and governance rulings
 2. Canonical governance contract + canonical operational architecture
 3. Canonical execution trackers (`LIFEOS_STATE.md`, `BACKLOG.md`)
 4. Supporting orientation / derived references
-5. Derived projections and indexes
-6. Proposal / explainer docs
-7. Conversation memory and uncaptured notes — never canonical by themselves
+5. Bus/hub/runtime authority boundaries (under reconciliation)
+6. Derived projections and indexes
+7. Proposal / explainer docs
+8. Conversation memory and uncaptured notes — never canonical by themselves
 
-## 6. Normalization blockers still open
+## 7. Normalization blockers still open
 
 None.
 
@@ -61,7 +76,7 @@ Issue #34 is a reconciliation/classification issue for `ARCH_Multi_Agent_Communi
 
 Architecture normalization issues #30, #31, #32, #33, and #34 are resolved. Issue #35 installs the lightweight maintenance rule; after #35 is accepted, the architecture normalization campaign is complete.
 
-## 7. Normalization blockers resolved
+## 8. Normalization blockers resolved
 
 | # | Decision | Ratified | ADR | Governance surface |
 | --- | --- | --- | --- | --- |
@@ -71,7 +86,7 @@ Architecture normalization issues #30, #31, #32, #33, and #34 are resolved. Issu
 | 4 | Active vs standby COO semantics in governance surfaces | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
 | 5 | Hermes ↔ OpenClaw directionality and pushback rules | 2026-04-24 | ADR-002 | `COO_Operating_Contract_v1.0.md` §8 |
 
-## 8. Change-control rule
+## 9. Change-control rule
 
 No architecture-affecting change is canonical until required repo surfaces are updated:
 
@@ -79,7 +94,7 @@ No architecture-affecting change is canonical until required repo surfaces are u
 - architecture changelog when architecture deltas occur
 - ADR register when ratified architecture decisions land
 
-## 9. Lightweight architecture maintenance rule
+## 10. Lightweight architecture maintenance rule
 
 Architecture maintenance is event-triggered only. There is no monthly ritual, standing ceremony, or broad recurring architecture review by default.
 
