@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-05-13 (rev32)
+Last Updated: 2026-05-14 (rev33)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -26,7 +26,20 @@ LifeOS Constitution v2.0 (Supreme)
 
 | Document | Purpose |
 |----------|---------|
-| [LifeOS_Strategic_Corpus.md](./LifeOS_Strategic_Corpus.md) | **Primary Context for the LifeOS Project** |
+| [LifeOS_Strategic_Corpus.md](./LifeOS_Strategic_Corpus.md) | **Derived context snapshot** — useful for orientation; canonical repo docs and live GitHub evidence win on conflict |
+
+---
+
+## New Operator / AI Entry Chain
+
+1. [`../README.md`](../README.md) — current system map and authority warning.
+2. This index — authoritative documentation navigation.
+3. [`08_manuals/LifeOS_Operator_Onboarding.md`](./08_manuals/LifeOS_Operator_Onboarding.md) — operator roles, surfaces, and safe-start rules.
+4. [`LifeOS_Strategic_Corpus.md`](./LifeOS_Strategic_Corpus.md) — derived high-context snapshot.
+5. [`11_admin/LIFEOS_STATE.md`](./11_admin/LIFEOS_STATE.md) — current focus, WIP, blockers, and state.
+6. [`00_foundations/LifeOS Target Architecture v2.3c.md`](./00_foundations/LifeOS%20Target%20Architecture%20v2.3c.md) — current canonical target architecture.
+7. Root guidance files: [`CLAUDE.md`](../CLAUDE.md), [`AGENTS.md`](../AGENTS.md), [`GEMINI.md`](../GEMINI.md).
+8. [`.context/REPO_MAP.md`](../.context/REPO_MAP.md) — repository map when present.
 
 ---
 
@@ -283,6 +296,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [Implementation_Documentation_Drift_Audit_2026-05-13.md](./10_meta/Implementation_Documentation_Drift_Audit_2026-05-13.md) | **Reconciliation packet** — May 2026 bus/hub/runtime implementation vs LifeOS documentation drift audit; no canon promotion |
 | [Review_Packet_Drift_Audit_2026-05-13_v1.0.md](./10_meta/Review_Packet_Drift_Audit_2026-05-13_v1.0.md) | **Review packet** — Flattened review materials for the May 2026 drift audit packet |
 | [Review_Packet_Canonical_Doc_Reconciliation_2026-05-13_v1.0.md](./10_meta/Review_Packet_Canonical_Doc_Reconciliation_2026-05-13_v1.0.md) | **Review packet** — Flattened review materials for the May 2026 canonical-doc reconciliation slice |
+| [Review_Packet_Operator_Entrypoint_Docs_2026-05-14_v1.0.md](./10_meta/Review_Packet_Operator_Entrypoint_Docs_2026-05-14_v1.0.md) | **Review packet** — Flattened changed files for the operator entrypoint documentation refresh |
 | [Architecture_Normalization_Reconciliation_Packet_2026-04-24.md](./10_meta/Architecture_Normalization_Reconciliation_Packet_2026-04-24.md) | **Normalization packet** — Canon, authority, writer boundaries, mismatch matrix |
 | [COO_Authority_Contract_Draft_2026-04-24.md](./10_meta/COO_Authority_Contract_Draft_2026-04-24.md) | **Decision draft** — Approval, proxy authority, active/standby, sole-writer boundaries |
 | [architecture_decisions/INDEX.md](./10_meta/architecture_decisions/INDEX.md) | **ADR register** — Ratified architecture decisions only |
@@ -319,6 +333,7 @@ Archived documents are in `99_archive/`. Key locations:
 
 | Document | Purpose |
 |----------|---------|
+| [LifeOS_Operator_Onboarding.md](./08_manuals/LifeOS_Operator_Onboarding.md) | **Operator entrypoint** — repo surfaces, authority order, role boundaries, and safe-start workflow for new operators or AI agents |
 | [COO_Doc_Management_Manual_v1.0.md](./08_manuals/COO_Doc_Management_Manual_v1.0.md) | **Executable runbook** — Doc stewardship operations, validators, governance boundaries |
 | [Governance_Runtime_Manual_v1.0.md](./08_manuals/Governance_Runtime_Manual_v1.0.md) | Governance runtime operations |
 
