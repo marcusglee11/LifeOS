@@ -3,7 +3,7 @@ source_docs:
   - docs/02_protocols/Document_Steward_Protocol_v1.1.md
   - docs/02_protocols/Deterministic_Artefact_Protocol_v2.0.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: bf4d9ecd01e5124584e96a42b95f16c7f39e3fd2
+source_commit_max: 9eb65264ef948a4335892ab4b99d13e036019b23
 authority: derived
 page_class: evergreen
 concepts:

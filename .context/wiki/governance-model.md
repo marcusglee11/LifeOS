@@ -3,7 +3,7 @@ source_docs:
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
   - docs/02_protocols/Council_Protocol_v1.3.md
   - docs/02_protocols/Governance_Protocol_v1.0.md
-source_commit_max: e1a968bd4087d4cbe5000c04753f66b04a1594f7
+source_commit_max: 9eb65264ef948a4335892ab4b99d13e036019b23
 authority: derived
 page_class: evergreen
 concepts:

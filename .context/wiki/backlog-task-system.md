@@ -4,7 +4,7 @@ source_docs:
   - docs/11_admin/BACKLOG.md
   - docs/02_protocols/Intent_Routing_Rule_v1.1.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: 8b2fa0d4c94ffca6229b86fb83ad98970d27be1f
+source_commit_max: 560164c7180b5ce4e0e4ed7f6a0fe47407554ff8
 authority: derived
 page_class: status
 concepts:
@@ -16,9 +16,7 @@ concepts:
 
 ## Summary
 
-The COO reviews the structured backlog and proposes tasks. CEO approves proposals, which
-become ExecutionOrders dispatched to sprint agents. `docs/11_admin/LIFEOS_STATE.md` is the
-canonical source for current phase, active WIP, and blockers.
+The COO reviews canonical backlog/state docs, proposes bounded tasks, and routes approved work to build or stewardship lanes. `docs/11_admin/LIFEOS_STATE.md` remains the canonical current-state surface; `docs/11_admin/BACKLOG.md` is the backlog summary view, not a replacement for live issue/PR readback.
 
 ## Key Relationships
 
@@ -31,24 +29,20 @@ canonical source for current phase, active WIP, and blockers.
 
 ## Authority Note
 
-Canonical sources: `docs/11_admin/LIFEOS_STATE.md` (current state) and
-`docs/11_admin/BACKLOG.md` (backlog). This page summarizes structure only; read those
-docs directly for current operational state.
+Canonical sources: `docs/11_admin/LIFEOS_STATE.md` for current operating state and `docs/11_admin/BACKLOG.md` for backlog orientation. This wiki page is derived and compact; it must not be used as completion, dispatch, or closure truth.
 
 ## Current Truth
 
 **Proposal flow:**
-1. COO reads backlog → proposes `task_proposal.v1` YAML via `lifeos coo propose`
-2. CEO approves → `ExecutionOrder` YAML created
-3. Sprint agent receives order + worktree → builds in isolation
-4. `close_build` gates (tests, quality, doc stewardship) → merged to main
+1. COO reads current state/backlog and GitHub issue evidence.
+2. CEO or governing policy approves the next bounded action when required.
+3. Build/stewardship work runs in isolated branches or worktrees.
+4. Completion requires PR/issue/check/readback evidence, not wiki text.
 
-**Auto-dispatch (L0):** `requires_approval=false` AND `risk=low` per `Intent_Routing_Rule_v1.1.md`.
+**Routing guard:** low-risk, reversible work may proceed under existing autonomy rules; CEO-level decisions still include canon promotion, financial/billing changes, external/public commitments, or irreversible operational changes.
 
-**Key files:** `docs/11_admin/LIFEOS_STATE.md` (current phase), `docs/11_admin/BACKLOG.md`
-(prioritized queue), `artifacts/active_branches.json` (in-flight builds).
+**Doc reconciliation note:** after issue #154, bus/hub/runtime documentation truth is split across LifeOS canonical docs, the operational bus issue/PR receipts, and hub accounting docs. The wiki only points to those sources.
 
 ## Open Questions
 
-For current active phase, blockers, and WIP, read `docs/11_admin/LIFEOS_STATE.md` directly —
-this page (page_class: status) only summarizes the structural flow, not current state values.
+For current active phase, blockers, and WIP, read `docs/11_admin/LIFEOS_STATE.md` and live GitHub issue/PR state directly.
