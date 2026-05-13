@@ -2,7 +2,10 @@
 source_docs:
   - docs/02_protocols/OpenClaw_COO_Integration_v1.0.md
   - docs/00_foundations/LifeOS Target Architecture v2.3c.md
-source_commit_max: 786d84b1846104b28b8bd0a718188cb2520bc057
+source_commit_max: c7df98632ed6dfee99daaada103cd613dc630501
+derived_edit_mode: generated
+source_command: python3 scripts/wiki/refresh_wiki.py
+source_change_ref: https://github.com/marcusglee11/LifeOS/issues/120
 authority: derived
 page_class: evergreen
 concepts:

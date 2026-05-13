@@ -25,7 +25,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 WIKI_DIR_REL = ".context/wiki"
 SCHEMA_FILE = "SCHEMA.md"
 PENDING_DIFF = "_pending_diff.patch"
@@ -38,8 +37,7 @@ _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---", re.DOTALL)
 
 def _repo_root() -> Path:
     result = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        capture_output=True, text=True, check=True
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
     )
     return Path(result.stdout.strip())
 
@@ -157,9 +155,13 @@ def _call_ea(schema_text: str, page_text: str, sources_text: str) -> str:
         "Update the wiki page to reflect the current state of the sources. "
         "Keep the page compact (200-400 tokens). "
         "Preserve the frontmatter structure. Required frontmatter fields are: "
-        "source_docs, source_commit_max, authority, page_class, concepts. "
+        "source_docs, source_commit_max, derived_edit_mode, source_command, "
+        "source_change_ref, authority, page_class, concepts. "
         "Update source_commit_max to the placeholder string CURRENT_SHA (the caller will "
-        "substitute the real SHA). Do NOT emit a last_updated field. "
+        "substitute the real SHA). Set derived_edit_mode to generated, "
+        "source_command to python3 scripts/wiki/refresh_wiki.py, and "
+        "source_change_ref to CURRENT_CHANGE_REF (the caller will substitute a real ref). "
+        "Do NOT emit a last_updated field. "
         "Output ONLY the complete updated wiki page — no explanation, no code fences.\n\n"
         f"## Current wiki page\n\n{page_text}\n\n"
         f"## Changed source docs\n\n{sources_text}"
@@ -167,22 +169,25 @@ def _call_ea(schema_text: str, page_text: str, sources_text: str) -> str:
 
     result = subprocess.run(
         ["claude", "-p", prompt, "--output-format", "text"],
-        capture_output=True, text=True, timeout=120
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or f"exit {result.returncode}")
     return result.stdout.strip()
 
 
-def _substitute_sha(text: str, sha: str) -> str:
-    return text.replace("CURRENT_SHA", sha)
+def _substitute_generated_placeholders(text: str, sha: str, change_ref: str) -> str:
+    return text.replace("CURRENT_SHA", sha).replace("CURRENT_CHANGE_REF", change_ref)
 
 
 def _build_diff(old_text: str, new_text: str, filename: str) -> str:
     old_lines = old_text.splitlines(keepends=True)
     new_lines = new_text.splitlines(keepends=True)
     diff = difflib.unified_diff(
-        old_lines, new_lines,
+        old_lines,
+        new_lines,
         fromfile=f"a/{filename}",
         tofile=f"b/{filename}",
     )
@@ -193,16 +198,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Refresh LifeOS wiki pages via EA")
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
-        "--changed-files", nargs="+", metavar="FILE",
-        help="Repo-relative paths of changed source docs"
+        "--changed-files",
+        nargs="+",
+        metavar="FILE",
+        help="Repo-relative paths of changed source docs",
     )
-    group.add_argument(
-        "--full", action="store_true",
-        help="Regenerate all wiki pages"
+    group.add_argument("--full", action="store_true", help="Regenerate all wiki pages")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Print which pages would be updated, then exit"
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
-        help="Print which pages would be updated, then exit"
+        "--source-change-ref",
+        default="pending",
+        help="PR URL, commit SHA, or issue URL recorded in generated provenance",
     )
     args = parser.parse_args()
 
@@ -287,9 +295,13 @@ def main() -> int:
             # Compute per-source SHA, fail closed if unavailable
             source_commit_max = _compute_source_commit_max(sources, repo_root)
             if source_commit_max is None:
-                errors.append(f"{page.name}: cannot compute source_commit_max — no valid sources resolved")
+                errors.append(
+                    f"{page.name}: cannot compute source_commit_max — no valid sources resolved"
+                )
                 continue
-            new_text = _substitute_sha(new_text, source_commit_max)
+            new_text = _substitute_generated_placeholders(
+                new_text, source_commit_max, args.source_change_ref
+            )
             if not new_text.endswith("\n"):
                 new_text += "\n"
 

@@ -12,12 +12,19 @@ Checks:
   Current Truth, Open Questions
 - All pages listed in SCHEMA.md page index exist; no orphaned pages
 """
+
 import re
 import subprocess
 from pathlib import Path
 
-
-_REQUIRED_FRONTMATTER = {"source_docs", "source_commit_max", "authority", "page_class", "concepts"}
+_REQUIRED_FRONTMATTER = {
+    "source_docs",
+    "source_commit_max",
+    "authority",
+    "page_class",
+    "concepts",
+    "derived_edit_mode",
+}
 _REQUIRED_SECTIONS = (
     "## Summary",
     "## Key Relationships",
@@ -26,6 +33,7 @@ _REQUIRED_SECTIONS = (
     "## Open Questions",
 )
 _VALID_PAGE_CLASSES = frozenset({"evergreen", "status"})
+_VALID_DERIVED_EDIT_MODES = frozenset({"generated", "emergency-manual-repair"})
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---", re.DOTALL)
 _FIELD_RE = re.compile(r"^(\w+):", re.MULTILINE)
 _PAGE_TABLE_RE = re.compile(r"`([a-z0-9_-]+\.md)`")
@@ -164,11 +172,66 @@ def _validate_source_commit_max(
     return errors
 
 
+def _validate_provenance(page_name: str, text: str) -> list[str]:
+    """Validate derived-output provenance metadata for generated/manual edits."""
+    errors = []
+    mode = _parse_field(text, "derived_edit_mode")
+    if mode not in _VALID_DERIVED_EDIT_MODES:
+        errors.append(
+            f"{page_name}: derived_edit_mode must be 'generated' or "
+            f"'emergency-manual-repair', got '{mode}'"
+        )
+        return errors
+
+    if mode == "generated":
+        source_command = _parse_field(text, "source_command")
+        source_change_ref = _parse_field(text, "source_change_ref")
+        if source_command != "python3 scripts/wiki/refresh_wiki.py":
+            errors.append(
+                f"{page_name}: generated provenance requires source_command "
+                f"'python3 scripts/wiki/refresh_wiki.py'"
+            )
+        if not source_change_ref or source_change_ref == "pending":
+            errors.append(
+                f"{page_name}: generated provenance requires source_change_ref with a PR, "
+                f"commit, or issue URL/SHA; 'pending' is invalid"
+            )
+        return errors
+
+    reason = _parse_field(text, "reason")
+    follow_up_required = _parse_field(text, "follow_up_required")
+    follow_up_issue = _parse_field(text, "follow_up_issue")
+    approval_evidence = _parse_field(text, "approval_evidence")
+    if not reason:
+        errors.append(f"{page_name}: emergency manual repair requires reason")
+    if follow_up_required != "true":
+        errors.append(f"{page_name}: emergency manual repair requires follow_up_required: true")
+    if (
+        not follow_up_issue
+        or follow_up_issue == "pending"
+        or not follow_up_issue.startswith("https://github.com/")
+    ):
+        errors.append(
+            f"{page_name}: emergency manual repair requires actual follow_up_issue "
+            f"GitHub URL; 'pending' is invalid"
+        )
+    if (
+        not approval_evidence
+        or approval_evidence == "pending"
+        or not approval_evidence.startswith("https://github.com/")
+    ):
+        errors.append(
+            f"{page_name}: emergency manual repair requires actual approval_evidence "
+            f"GitHub URL; 'pending' is invalid"
+        )
+    return errors
+
+
 def _validate_required_sections(page_name: str, text: str) -> list[str]:
     """Check that required body sections exist in order."""
     errors = []
     positions = [text.find(s) for s in _REQUIRED_SECTIONS]
-    for section, pos in zip(_REQUIRED_SECTIONS, positions):
+    for section, pos in zip(_REQUIRED_SECTIONS, positions, strict=True):
         if pos == -1:
             errors.append(f"{page_name}: missing required section '{section}'")
     if errors:
@@ -223,10 +286,7 @@ def check_wiki_lint(repo_root: str) -> list[str]:
     indexed_names = _index_page_names(schema_text)
 
     # Collect actual wiki pages (exclude SCHEMA.md and _pending_diff.patch)
-    wiki_pages = [
-        p for p in wiki_dir.glob("*.md")
-        if p.name != "SCHEMA.md"
-    ]
+    wiki_pages = [p for p in wiki_dir.glob("*.md") if p.name != "SCHEMA.md"]
     wiki_page_names = {p.name for p in wiki_pages}
 
     # Check for pages in index that don't exist
@@ -247,10 +307,7 @@ def check_wiki_lint(repo_root: str) -> list[str]:
         # Required frontmatter fields
         missing = _REQUIRED_FRONTMATTER - fields
         if missing:
-            errors.append(
-                f"{page.name}: missing frontmatter fields: {', '.join(sorted(missing))}"
-            )
-            continue
+            errors.append(f"{page.name}: missing frontmatter fields: {', '.join(sorted(missing))}")
 
         # Validate frontmatter values
         errors.extend(_validate_frontmatter_values(page.name, text))
@@ -259,6 +316,9 @@ def check_wiki_lint(repo_root: str) -> list[str]:
 
         # Validate source_docs paths (docs/** files only, no directories)
         errors.extend(_validate_source_paths(page.name, source_docs, repo_path))
+
+        # Validate derived-output provenance
+        errors.extend(_validate_provenance(page.name, text))
 
         # Validate source_commit_max freshness
         errors.extend(_validate_source_commit_max(page.name, text, source_docs, repo_path))
