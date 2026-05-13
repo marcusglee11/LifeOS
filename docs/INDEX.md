@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-05-13 (rev31)
+Last Updated: 2026-05-13 (rev32)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -282,6 +282,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [ARCHITECTURE_CHANGELOG.md](./10_meta/ARCHITECTURE_CHANGELOG.md) | **Control log** — Architecture deltas and their status |
 | [Implementation_Documentation_Drift_Audit_2026-05-13.md](./10_meta/Implementation_Documentation_Drift_Audit_2026-05-13.md) | **Reconciliation packet** — May 2026 bus/hub/runtime implementation vs LifeOS documentation drift audit; no canon promotion |
 | [Review_Packet_Drift_Audit_2026-05-13_v1.0.md](./10_meta/Review_Packet_Drift_Audit_2026-05-13_v1.0.md) | **Review packet** — Flattened review materials for the May 2026 drift audit packet |
+| [Review_Packet_Canonical_Doc_Reconciliation_2026-05-13_v1.0.md](./10_meta/Review_Packet_Canonical_Doc_Reconciliation_2026-05-13_v1.0.md) | **Review packet** — Flattened review materials for the May 2026 canonical-doc reconciliation slice |
 | [Architecture_Normalization_Reconciliation_Packet_2026-04-24.md](./10_meta/Architecture_Normalization_Reconciliation_Packet_2026-04-24.md) | **Normalization packet** — Canon, authority, writer boundaries, mismatch matrix |
 | [COO_Authority_Contract_Draft_2026-04-24.md](./10_meta/COO_Authority_Contract_Draft_2026-04-24.md) | **Decision draft** — Approval, proxy authority, active/standby, sole-writer boundaries |
 | [architecture_decisions/INDEX.md](./10_meta/architecture_decisions/INDEX.md) | **ADR register** — Ratified architecture decisions only |

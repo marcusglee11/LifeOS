@@ -1,3 +1,899 @@
+<!-- markdownlint-disable MD013 MD031 MD040 MD060 -->
+
+# Review Packet — Canonical Doc Reconciliation Slice — 2026-05-13 v1.0
+
+Status: Review packet for PR slice; not a merge receipt
+Owner: CEO / COO stewardship
+Related tracker: `marcusglee11/lifeos-operational-bus#154`
+Prior packet: `docs/10_meta/Implementation_Documentation_Drift_Audit_2026-05-13.md`
+
+---
+
+## 1. Objective
+
+Update the minimal LifeOS canonical/orientation surfaces needed after the merged May 2026 drift audit packet:
+
+- `docs/11_admin/LIFEOS_STATE.md`
+- `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+- `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+- `docs/INDEX.md`
+- generated strategic corpus refresh required by doc stewardship
+
+This slice records bus/hub/runtime authority boundaries at orientation level only. It does not close `lifeos-operational-bus#154`.
+
+---
+
+## 2. Explicit non-goals / authority boundaries
+
+- Do not merge this PR without Marcus's explicit approval.
+- Do not close `lifeos-operational-bus#154` in this slice.
+- Do not promote `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md`.
+- Do not execute the old `lifeos-operational-bus#8` promotion path.
+- Treat generated corpus files as derived/non-authoritative.
+- Do not add an ADR: this reconciliation does not ratify a new architecture decision.
+
+---
+
+## 3. Acceptance checks
+
+- [ ] State ledger has a concise May 2026 documentation-drift note.
+- [ ] Source-of-truth page names bus/hub/runtime authority boundaries under reconciliation.
+- [ ] Architecture changelog has one proposed entry for `lifeos-operational-bus#154`.
+- [ ] Index discovers this packet and the prior drift audit packet.
+- [ ] Strategic corpus is refreshed, but remains derived.
+- [ ] Proposal-only communications architecture remains proposal-only/non-canonical.
+- [ ] Kanban/dashboards remain projections, not canonical operational state.
+- [ ] Bus issue labels remain authoritative operational state.
+
+---
+
+## 4. Changed-file summary
+
+| File | Purpose |
+| --- | --- |
+| `docs/11_admin/LIFEOS_STATE.md` | Adds concise May 2026 drift note and rev bump. |
+| `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md` | Adds bounded bus/hub/runtime authority-boundary orientation. |
+| `docs/10_meta/ARCHITECTURE_CHANGELOG.md` | Adds proposed reconciliation changelog entry. |
+| `docs/INDEX.md` | Refreshes timestamp and indexes this review packet. |
+| `docs/LifeOS_Strategic_Corpus.md` | Regenerated/refreshed derived strategic corpus. |
+
+---
+
+## Appendix A — Flattened changed files
+
+### docs/11_admin/LIFEOS_STATE.md
+
+```text
+# LifeOS State
+
+<!-- markdownlint-disable MD013 MD032 MD037 MD060 -->
+
+## Canonical Spine
+
+- **Canonical Sources:**
+  - [LIFEOS_STATE.md](docs/11_admin/LIFEOS_STATE.md)
+  - [BACKLOG.md](docs/11_admin/BACKLOG.md)
+- **Derived View:**
+  - [AUTONOMY_STATUS.md](docs/11_admin/AUTONOMY_STATUS.md) (derived; canon wins on conflict)
+- **Latest Baseline Pack (main HEAD):**
+  - `artifacts/packets/status/Repo_Autonomy_Status_Pack__Main.zip`
+  - **sha256:** `42772f641a15ba9bf1869dd0c20dcbce0c7ffe6314e73cd5dc396cace86272dd`
+
+**Current Focus:** Authority Audit Follow-Up / Schema and Lifecycle Hardening
+**Active WIP:** WP2-4 design packets for authority enforcement, approval receipts, and closure semantics (see `docs/audit/LIFEOS_AUTHORITY_AUDIT_RESULT_2026-04-27.md`)
+**Documentation Drift Note (May 2026):** LifeOS documentation is reconciling implemented bus/hub/runtime surfaces; issue `lifeos-operational-bus#154` owns the remaining work.
+**Last Updated:** 2026-05-13 (rev39)
+
+---
+
+## COO Bootstrap Campaign (Steps 1-6)
+
+1. ✓ Step 1A: Structured backlog (`backlog.py`, `config/tasks/backlog.yaml`) — merged 23cd2143
+2. ✓ Step 1B: Delegation envelope (`config/governance/delegation_envelope.yaml`) — merged eb75f2e8
+3. ✓ Step 2: COO Brain — system prompt, memory seed, brief — merged 51ef1466 + review fixes eedb0fa0
+4. ✓ Step 3D: Context builder + parser (`runtime/orchestration/coo/context.py`, `parser.py`) — merged cf7740f1
+5. ✓ Step 3E: Templates (`config/tasks/order_templates/`, `templates.py`) — merged 5a7425b3
+6. ✓ Step 3F: CLI commands (`runtime/orchestration/coo/commands.py`, `cli.py` extended) — merged 1d6d208c
+7. ✓ Step 4G: Post-execution state updater hooks — merged 72548d7e
+8. ✓ Step 5: Burn-in (proxy COO validates, CEO observes) — merged 4483fdf0, CEO-approved 2026-03-08
+9. ✓ Step 6: Live COO (first real OpenClaw invocation) — build/coo-step6-wiring, 2026-03-08
+
+**Campaign status: ALL 9 STEPS COMPLETE** — live OpenClaw COO operational
+
+**Canonical Plan Authority:** `artifacts/plans/2026-03-05-coo-bootstrap-plan.md` (see `docs/11_admin/Plan_Supersession_Register.md`)
+
+---
+
+## 🟧 Active Workstreams (WIP)
+
+| Status | Workstream | Owner | Deliverable |
+|--------|------------|-------|-------------|
+| **COMPLETE** | **Architecture Normalization / COO Onboarding Reset** | Claude Code | Control surfaces landed (4e8237cb); all 6 issues resolved; ADR-001 through ADR-004 ratified; authority audit complete |
+| **COMPLETE** | **COO Bootstrap (Steps 1-6)** | Antigravity | Full COO delegation pipeline — all 9 steps merged; live COO operational |
+| **MERGED** | **COO Brain (Step 2)** | Codex + Claude Code | System prompt, memory seed, brief — merged 51ef1466 + eedb0fa0 |
+| **MERGED** | **COO Jarda Parity v5** | Antigravity | OpenClaw verification tooling + workflow pack (8045e9c5) |
+| **MERGED** | **CLI-First Dispatch** | Antigravity | Dispatch engine CLI surface (0938bf0f) |
+| **MERGED** | **Sprint 1 Stop-the-Bleeding** | Antigravity | Dead code cleanup, root junk, CI hardening (f8e590fe) |
+| **MERGED** | **GitHub Actions Build Loop** | Antigravity | CI automation (0875e5db) |
+| **CLOSED** | **Trusted Builder Mode v1.1** | Antigravity | `Council_Ruling_Trusted_Builder_Mode_v1.1.md` (RATIFIED) |
+| **CLOSED** | **Policy Engine Authoritative Gating** | Antigravity | `Closure_Record_Policy_Engine_FixPass_v1.0.md` |
+| **CLOSED** | **CSO Role Constitution** | Antigravity | `CSO_Role_Constitution_v1.0.md` (Finalized) |
+| **WAITING** | OpenCode Deletion Logic | Council | Review Ruling |
+| **CLOSED** | **Sprint S1 Phase B (B1-B3)** | Antigravity | Refined Evidence + Boundaries (ACCEPTED + committed) |
+| **MERGED** | **Phase 4 (4A0-4D) Full Stack** | Antigravity | CEO Queue, Loop Spine, Test Executor, Code Autonomy - All in main (commit 9f4ee41) |
+
+---
+
+## 🟦 Roadmap Context
+
+- **Phase 1 (Foundation):** DONE
+- **Phase 2 (Governance):** DONE
+- **Phase 3 (Optimization):** **RATIFIED (APPROVE_WITH_CONDITIONS)** — Council Ruling Phase3 Closure v1.0
+  - **Condition C1:** CSO Role Constitution v1.0 (RESOLVED 2026-01-23)
+  - **Condition C2:** F3/F4/F7 evidence deferred (RESOLVED 2026-01-27) — Review packets: `artifacts/review_packets/Review_Packet_F3_Tier2.5_Activation_v1.0.md`, `artifacts/review_packets/Review_Packet_F4_Tier2.5_Deactivation_v1.0.md`, `artifacts/review_packets/Review_Packet_F7_Runtime_Antigrav_Protocol_v1.0.md`
+- **Phase 4 (Autonomous Construction):** MERGED TO MAIN (2026-02-03)
+  - **P0 Pre-req:** Trusted Builder Mode v1.1 (RATIFIED 2026-01-26)
+  - **Phase 4A0 (Loop Spine):** MERGED - CLI surface, policy hash, ledger, chain execution
+  - **Phase 4A (CEO Queue):** MERGED - Checkpoint resolution backend with escalation
+  - **Phase 4B (Backlog Selection):** MERGED - Task selection integration + closure evidence v1.3
+  - **Phase 4C (OpenCode Test Execution):** MERGED - Pytest runner with P0-2 hardening
+  - **Phase 4D (Code Autonomy Hardening):** MERGED - Protected paths, syntax validation, bypass seam closure
+- **Phase 5 (COO Bootstrap):** COMPLETE (2026-03-05 → 2026-03-08)
+  - All 9 steps merged; live OpenClaw COO (gpt-5.3-codex) operational via gateway
+  - `lifeos coo propose` invokes live COO; Stage A parity + Stage B real-backlog = PASS
+- **Phase 6 (`prod_local` Engineering Certification):** COMPLETE (2026-03-31)
+  - `T-021` closed with 3-run local proof at `artifacts/evidence/T_021_prod_local_certification_proof.md`
+- **Phase 7 (`prod_ci` Engineering Certification):** LOCAL BAR MET, CANONICAL CLOSURE STILL PENDING
+  - `lifeos certify pipeline --profile ci` reached `prod_ci` on current `main` state in this closure pass
+  - default-branch `Prod CI Proof` dispatch is still blocked because the workflow is absent on `origin/main`
+- **Phase 8 (COO Control-Plane Completion):** COMPLETE (2026-04-02)
+  - `T-016`, `T-019`, and `T-020` are closed in structured backlog; direct-path parity and prompt/schema authority cleanup are in main
+- **Phase 9 (Ops-Autonomy Ratification):** RATIFIED (2026-04-03)
+  - `workspace_mutation_v1` approved by [Council_Ruling_Phase9_Ops_Ratification_v1.0.md](../01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md)
+- **Phase 10 (Ops Executor Expansion):** PARTIALLY MERGED (2026-04-04)
+  - `workspace_inspection_v1` and `repo_artifact_v1` are implemented on `main`
+  - both new lanes remain `ratification_pending`; no Phase 11 burn-in has started
+- **Agent Efficiency Initiative (2026-04-06):** P0 VERIFIED ON MAIN (2026-04-07)
+  - Living doc at `artifacts/plans/2026-04-06-agent-efficiency-improvements.md`
+  - `T-AE-01`, `T-AE-02`, and `T-AE-03` are reconciled closed in canon after scoped-worktree verification on `fix/ae-p0-closure`
+  - Verification evidence: `pytest runtime/tests -q` PASS (`3058 passed, 6 skipped`); focused AE suite PASS (`24 passed`)
+  - Landed P0 slices now reflected in `BACKLOG.md`: run-level token ledger + CLI estimation, COO context telemetry + stable block reuse, REPO_MAP freshness gate
+
+---
+
+## ⚠️ System Blockers
+
+- **Phase 7 canonical proof dispatch blocked on GitHub default-branch state**
+  - `gh workflow run .github/workflows/prod_ci_proof.yml --ref main` returned `HTTP 404` on 2026-04-05
+  - after `git fetch origin main`, local `main` is `117` commits ahead of `origin/main`, so the local workflow file is not yet registered on the remote default branch
+
+---
+
+## 🟩 Recent Wins
+
+- **2026-04-27:** Authority audit result merged (PR #43) — 17 contradictions identified, minimal schema amendments defined, 32-item invariant set established; WP1 tracker reconciliation complete; WP2-4 design packets prepared.
+- **2026-04-07:** Agent Efficiency P0 closure reconciled — canon now records `T-AE-01`, `T-AE-02`, and `T-AE-03` done after scoped-worktree verification on `fix/ae-p0-closure`; baseline `pytest runtime/tests -q` PASS (`3058 passed, 6 skipped`) and focused AE suite PASS (`24 passed`).
+- **2026-04-04:** Phase 10 Batch 2 merged — `repo_artifact_v1` executor surface and tests landed on `main` (`2569ec53`); lane remains `ratification_pending`.
+- **2026-04-04:** Phase 10 Batch 1 merged — `workspace_inspection_v1` executor surface and tests landed on `main` (`8730916e`); lane remains `ratification_pending`.
+- **2026-04-03:** Phase 9 ops ratification COMPLETE — `workspace_mutation_v1` formally ratified by [Council_Ruling_Phase9_Ops_Ratification_v1.0.md](../01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md); `T-023` is decision-complete.
+- **2026-04-02:** Phase 8 control-plane closure reconciled — structured backlog now records `T-016`, `T-019`, and `T-020` complete; the direct COO parity and schema-authority cleanup are in main.
+- **2026-03-31:** Phase 6 `prod_local` proof closure COMPLETE — `T-021` metadata reconciled after the proof-only follow-up: structured backlog marked done, durable proof receipt committed at `artifacts/evidence/T_021_prod_local_certification_proof.md`, and the 3-run local certification proof remains PASS (`prod_local` on all three runs, zero leaks).
+- **2026-03-24:** COO C4 Gate-6 UAT PASS — 5/5 prompts verified on gpt-5.3-codex, manifest activated (approved → active), surface verification PASS. Fixes applied: direct-mode schema example in invoke.py, fallback chain update (openai-codex OAuth re-auth), config permissions hardening. COO unsandboxed promotion COMPLETE.
+- **2026-03-24:** COO C3 PASS — Gate-5 soak complete (16 runs / 4 sessions / 2 calendar days); validator PASS (0 violations). invoke.py hardening merged (commit `5c82de02`): explicit schema mapping + `[MACHINE_API mode=...]` instruction blocks per mode. Advancing to C4 Gate-6 CEO UAT.
+- **2026-03-20:** COO Unsandboxed Promotion C2 PASS — Council V2 `Accept` verdict (all 4 lenses) at commit `45973858`. Wave fixes merged: PROFILE_NAME bypass (wave1), posture-aware check + ruling structured marker + profile exception_justification (wave2+3), gate validation / path containment / dead logic / artifact hygiene (wave4). Council ruling already in `docs/01_governance/Council_Ruling_COO_Unsandboxed_Prod_L3_v1.0.md`. Escalation ESC-0004 queued. Next: C3 Gate-5 soak (16 runs / 4 sessions / 2 calendar days).
+- **2026-03-09:** OpenClaw distill lane operational rollout packet defined — canonical runbook now specifies session-scoped shadow enablement, 12-run / 2-session shadow window, blocker policy, CEO-approved shadow receipt, forced-failure drill, and active re-approval after fingerprint drift. Backlog and state now track rollout as an explicit operational work item.
+- **2026-03-08:** COO Bootstrap Step 6 COMPLETE — `lifeos coo propose` invokes live OpenClaw COO (gpt-5.3-codex); `lifeos coo direct` wired with escalation packet parsing; Stage A (propose+NTP) PASS; Stage B real-backlog CEO verdict = PASS; 60 tests; BIN fixtures removed. Evidence: `artifacts/coo/step6_shadow_validation.md`.
+- **2026-03-08:** COO Bootstrap Step 5 COMPLETE — proxy COO validated 7/7 scenarios on frozen substrate; zero defects; CEO-approved. (merge commit 4483fdf0)
+- **2026-03-06:** COO Jarda Parity v5 — OpenClaw verification tooling + workflow pack improvements (merge commit 8045e9c5)
+- **2026-03-05:** COO 3F CLI — `lifeos coo {propose,approve,status,report,direct}` commands (merge commit 1d6d208c)
+- **2026-03-05:** COO 3D Context/Parser — context builder + proposal parser with retry/escalation (merge commit cf7740f1)
+- **2026-03-05:** COO 3E Templates — order templates for build/content/hygiene task types (merge commit 5a7425b3)
+- **2026-03-05:** COO 4G State Updater — post-execution backlog + state update hooks (merge commit 72548d7e)
+- **2026-03-05:** Dispatch Codex Fixes — dispatch engine hardening (merge commit 62d74ecc)
+- **2026-03-05:** COO 1B Delegation Envelope — autonomy level config (merge commit eb75f2e8)
+- **2026-03-05:** COO 1A Structured Backlog — TaskEntry schema + seed data (merge commit 23cd2143)
+- **2026-03-05:** COO Bootstrap Review — council-reviewed plan (Codex + Gemini) (merge commit 212bff24)
+- **2026-03-04:** Bypass Monitor Wiring — spine bypass monitoring integration (merge commit f953093c)
+- **2026-03-04:** Fix Steward Runner — steward config fix (merge commit a1f67490)
+- **2026-03-03:** Sprint Deferments D1-D3 — review deferments batch (merge commit 84f0f608)
+- **2026-03-03:** CLI-First Dispatch — dispatch engine CLI surface (merge commit 0938bf0f)
+- **2026-03-02:** Sprint 1 Stop-the-Bleeding — dead code cleanup, root junk, CI hardening (merge commit f8e590fe)
+- **2026-03-01:** GitHub Actions Build Loop — CI automation (merge commit 0875e5db)
+- **2026-02-28:** Worktree-First Build Architecture — mandatory isolation for build/fix/hotfix/spike branches; `start_build.py` with topic-first CLI + `--recover-primary`; `close_build.py` with isolation hard-block; DispatchEngine auto-remediation loop; safety gate isolation check; 97 targeted tests. Review fix: missing `import subprocess` in dispatch/engine.py. (merge commit df4bb54)
+- **2026-02-27:** Batch2 Burn In — chore: refresh runtime_status.json (closure); fix(steward): add burn-in reports and tech debt inventory to admin allowlist; chore: refresh runtime_status.json (closure); chore(burn-in): stage TECH_DEBT_INVENTORY.md from concurrent audit session; docs(burn-in): Batch 2 closure report + Council V2 evaluation (and 6 more) — 1/1 targeted test command(s) passed. (merge commit 1a5db9f)
+- **2026-02-27:** Batch 1 Burn-In COMPLETE (`78473e3`) — 6 spine runs; 40 new tests (2147 total, 0 regressions); `BudgetConfig.__post_init__` validation; `workflow_pack.py` worktree fix; 7 key findings documented for Batch 2 procedure improvement. Report: `docs/11_admin/Batch1_BurnIn_Report.md`
+- **2026-02-23:** Council V2 Wave2 Integration — chore: refresh runtime_status.json (closure); fix: review-agent hardening pass — FSMv2 mission-safe + schema tightening; feat: Wave 2 — FSM wiring, A6 synthesis, A8 fidelity, A9 advisory, review.py; feat: A7 Challenger review with rework loop; test: A5 lens dispatch TDD tests (red phase) — 1/1 targeted test command(s) passed. (merge commit 38d5b28)
+- **2026-02-23:** Council V2 A1 Fsm — chore: refresh runtime_status.json (closure); feat(council): A1 - CouncilFSMv2 with 12-state machine; feat(council): A2 - v2.2.1 schemas, models, and validators; feat(council): A3+A4 - tier routing, lens selection, independence v2.2.1 — 1/1 targeted test command(s) passed. (merge commit 5215cd3)
+- **2026-02-22:** Repo Hygiene Sprint 20260221 — chore: refresh runtime_status.json (closure); chore(dead-code): remove unused spine imports + strengthen hygiene tests; chore: bump backlog date + enable superpowers plugin in settings; chore(config): fix pytest constraint + un-ignore passing smoke tests; chore(test): tighten test_state_hygiene.py (remove unused import, assert row found) (and 6 more) — 1/1 targeted test command(s) passed. (merge commit e6ee997)
+- **2026-02-21:** Opencode Loop Stabilization 20260220 — chore: refresh runtime_status.json (closure); fix(steward): correct _commit_code_changes return type annotation; fix(opencode): implement retrospective stabilization batch — 1/1 targeted test command(s) passed. (merge commit 8f6287e)
+- **2026-02-19:** **W5-T02 Checkpoint/Resume E2E Proof COMPLETE** — 6 integration tests proving full checkpoint/resume cycle: escalation → checkpoint YAML on disk → resolution seam → resume with policy hash continuity → terminal packet with ledger anchor. Evidence: `artifacts/evidence/W5_T02_checkpoint_resume_proof.txt`
+- **2026-02-18:** Worktree Outside Repo Resolution 20260218 — chore: refresh runtime_status.json (closure); fix(worktree): resolve repo root from script location when invoked outside repo — 1/1 targeted test command(s) passed. (merge commit ba63f57)
+- **2026-02-18:** W4-T03/T04 OpenClaw Integration — feat: OpenClaw->Spine execution bridge, clean-worktree enforcement, CLI command spine run-openclaw-job — 1/1 targeted test command(s) passed. (merge commit c53bdcc)
+- **2026-02-18:** Openclaw Boundary Enforcement 20260218 — chore: refresh runtime_status.json (closure); feat: OpenClaw boundary enforcement gap-fill (dmScope, AuthHealth, break-glass) — 1/1 targeted test command(s) passed. (merge commit 9230ac7)
+- **2026-02-18:** Openclaw Security Hardening 20260218 — chore: refresh runtime_status.json (closure); feat(openclaw): security hardening — fail-closed startup, cron egress parking, policy alignment — 1/1 targeted test command(s) passed. (merge commit 446c6dc)
+- **2026-02-17:** W7 T02 T03 Stabilization 20260216 — chore: refresh runtime_status.json (closure); fix: commit regenerated runtime_status.json during closure; chore: refresh runtime_status.json (pre-merge); chore: normalize CRLF→LF in test_packet_dir_isolation.py; fix: remove -uall flag from cleanliness_gate.py (WSL timeout) (and 3 more) — 1/1 targeted test command(s) passed. (merge commit e566dc3)
+- **2026-02-16:** Openclaw Closure Routing Fix 20260216 — fix: stabilize openclaw closure preflight routing — 2/2 targeted test command(s) passed. (merge commit e5b0cb1)
+- **2026-02-16:** W7 T01 Ledger Hash Chain — fix: W7-T01 review fixes — numeric schema parsing + fail-closed append hardening; feat: W7-T01 Ledger hash-chain hardening with fail-closed v1.1 enforcement — 1/1 targeted test command(s) passed. (merge commit 558c375)
+- **2026-02-14:** E2e Spine Proof — chore: gitignore agent workspace metadata files; Fix review findings: stale blocker, artifact path, doc stewardship; docs: Add E2E Spine Proof build summary; docs: Update STATE and BACKLOG after E2E spine proof; feat: Finalize Emergency_Declaration_Protocol v1.0 (E2E Spine Proof) (and 4 more) — 1/1 targeted test command(s) passed. (merge commit 55a362b)
+- **2026-02-14:** **E2E Spine Proof COMPLETE (W5-T01)** — First successful autonomous build loop execution: `run_20260214_053357` finalized Emergency_Declaration_Protocol v1.0 through full 6-phase chain (hydrate→policy→design→build→review→steward). Evidence: `artifacts/terminal/TP_run_20260214_053357.yaml`, commit `195bd4d`. Discovered/fixed 2 blockers: obsolete model names (`glm-4.7-free`, `minimax-m2.1-free`) and insufficient timeout (120s→300s). **Core spine infrastructure validated.**
+- **2026-02-14:** Auto State Backlog Update — feat: automatic STATE/BACKLOG updates during build closure — 1/1 targeted test command(s) passed. (merge commit b7a879e)
+- **2026-02-12:** Canonical plan v1.1 refreshed with granular task IDs and supersession lock; runtime status generator now emits both `artifacts/status/runtime_status.json` and `artifacts/packets/status/checkpoint_report_<YYYYMMDD>.json`.
+- **2026-02-12:** Doc stewardship gate executed successfully for all modified docs (`python3 scripts/claude_doc_stewardship_gate.py` PASS).
+- **2026-02-10:** EOL Clean Invariant Hardening — Root cause fixed (system `core.autocrlf=true` conflicted with `.gitattributes eol=lf`), 289-file mechanical renormalization, config-aware clean gate (`coo_land_policy clean-check`), acceptance closure validator (`coo_acceptance_policy`), EOL_Policy_v1.0 canonical doc, 37 new tests.
+- **2026-02-11:** OpenClaw COO acceptance verified — OpenClaw installed/configured and P1 acceptance probe passed in local WSL2 runtime.
+- **2026-02-08:** Manual v2.1 Reconciliation — CRLF root-cause fix (.gitattributes), 36 tests re-enabled (1335→1371), free Zen models configured, manual v2.1 corrected (StewardMission & LLM backend gaps were already closed).
+- **2026-02-08:** Deletion Safety Hardening — Article XIX enforcement, safe_cleanup.py guards, 8 integration tests.
+- **2026-02-08:** Documentation Stewardship - Relocated 5 root documentation files to canonical locations in `docs/11_admin`, `docs/00_foundations`, and `docs/99_archive`. Updated project index and state.
+- **2026-02-03:** Repository Branch Cleanup - Assessed and cleaned 9 local branches, archived 8 with tags, deleted 1 obsolete WIP branch, cleared 7 stashes. All work verified in main. Single canonical branch (main) with 11 archive tags.
+- **2026-02-03:** Phase 4 (4A0-4D) MERGED TO MAIN - Full autonomous build loop stack canonical (merge commit 9f4ee41, 1327 passing tests)
+- **2026-02-02:** Phase 4A0 Loop Spine P0 fixes complete - CLI surface (lifeos/coo spine), real policy hash, ledger integration, chain execution
+- **2026-01-29:** Sprint S1 Phase B (B1-B3) refinements ACCEPTED and committed. No regressions (22 baseline failures preserved).
+- **2026-01-29:** P0 Repo Cleanup and Commit (滿足 Preflight Check).
+- **2026-01-26:** Trusted Builder Mode v1.1 Ratified (Council Ruling).
+- **2026-01-23:** Policy Engine Authoritative Gating — FixPass v1.0 (Council PASS).
+- **2026-01-18:** Raw Capture Primitive Standardized (Evidence Capture v0.1).
+- **2026-01-17:** Git Workflow v1.1 Accepted (Fail-Closed, Evidence-True).
+- **2026-01-16:** Phase 3 technical deliverables complete (Council ratification pending).
+
+```
+
+### docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md
+
+```text
+# Architecture Source of Truth
+
+Status: Active orientation surface
+Owner: CEO / active COO stewardship
+Purpose: One-page map of what is canonical now, what is proposal only, and what is superseded or stale
+Related packet: `docs/10_meta/Architecture_Normalization_Reconciliation_Packet_2026-04-24.md`
+
+Important: this page is an orientation surface. It is not itself the deepest authority for operational architecture or governance.
+
+---
+
+## 1. Canonical now
+
+| Class | Repo path | Role |
+| --- | --- | --- |
+| Canonical operational architecture | `docs/00_foundations/LifeOS Target Architecture v2.3c.md` | Operational architecture authority |
+| Canonical governance contract | `docs/01_governance/COO_Operating_Contract_v1.0.md` | CEO/COO governance authority |
+| Canonical memory and knowledge architecture | `docs/03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md` | Durable memory, knowledge, candidate-packet, and COO writer-authority architecture |
+| Canonical Obsidian bridge boundary | `docs/03_runtime/memory/Agent_Memory_Bridge_v0.1.md` | Obsidian navigation-only role, authority precedence, and explicit promotion controls |
+| Canonical runtime state ledger | `docs/11_admin/LIFEOS_STATE.md` | Current operational state |
+| Canonical runtime work tracker | `docs/11_admin/BACKLOG.md` | Actionable work tracker |
+
+## 2. Proposal-only surfaces
+
+| Repo path | Current status |
+| --- | --- |
+| `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` | Draft communications / advisory-ingress architecture; proposal-only; non-canonical; contains unratified Drive / Workspace ingress, advisory lifecycle, approval-channel, and briefing-trigger proposals; loses to canonical architecture, COO contract §§7–9, and ADR-001 through ADR-004 on conflict |
+| `docs/00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md` | Architecture proposal |
+| `docs/00_foundations/lifeos-agent-architecture.md` | Reference / bootstrap architecture |
+| `docs/00_foundations/lifeos-maximum-vision.md` | Vision / explainer |
+
+## 3. Supporting orientation / derived references
+
+| Repo path | Current status |
+| --- | --- |
+| `docs/00_foundations/Agent_Roles_Reference_v1.0.md` | Active orientation reference; non-authoritative; loses to canonical architecture/governance docs on conflict |
+
+## 4. Bus/hub/runtime authority boundaries under reconciliation (May 2026)
+
+**Status:** Implementation/documentation drift identified; reconciliation in progress via `lifeos-operational-bus#154`.
+
+**Boundaries:**
+
+- **Operational bus (`lifeos-operational-bus`):** Canonical live work-order state and dispatch/status surface. Bus issue labels are authoritative operational state.
+- **Common hub (`lifeos-common-hub`):** Shared schemas, standards, canon, fixtures, adapters, memory manifests, and reusable contracts. Hub SHAs provide dispatch traceability.
+- **LifeOS programme repo:** Programme canon, architecture orientation, execution trackers, and governance surfaces.
+- **Kanban/dashboards:** Projections and workflow cockpit surfaces, not canonical operational state.
+- **Proposal-only communications architecture:** `ARCH_Multi_Agent_Communication_Architecture.md` remains proposal-only/non-canonical.
+
+**Current gap:** The May drift audit packet (`docs/10_meta/Implementation_Documentation_Drift_Audit_2026-05-13.md`) records implemented bus/hub/runtime surfaces now reflected here at orientation level. This is a reconciliation update only: it does not ratify a new architecture decision, does not promote proposal-only communications architecture, and does not move live operational state out of the bus.
+
+## 5. Superseded or stale surfaces
+
+| Repo path | Current classification |
+| --- | --- |
+| `docs/00_foundations/Architecture_Skeleton_v1.0.md` | Stale conceptual explainer |
+| `docs/10_meta/CHANGELOG.md` | Stale repository changelog surface |
+| `docs/11_admin/AUTONOMY_STATUS.md` | Derived and stale orientation surface |
+
+## 6. Truth hierarchy
+
+1. Constitution and governance rulings
+2. Canonical governance contract + canonical operational architecture
+3. Canonical execution trackers (`LIFEOS_STATE.md`, `BACKLOG.md`)
+4. Supporting orientation / derived references
+5. Bus/hub/runtime authority boundaries (under reconciliation)
+6. Derived projections and indexes
+7. Proposal / explainer docs
+8. Conversation memory and uncaptured notes — never canonical by themselves
+
+## 7. Normalization blockers still open
+
+None.
+
+Issue #34 is a reconciliation/classification issue for `ARCH_Multi_Agent_Communication_Architecture.md`; it does not reopen issues #30, #31, #32, or #33 and does not promote the communications draft into canon.
+
+Architecture normalization issues #30, #31, #32, #33, and #34 are resolved. Issue #35 installs the lightweight maintenance rule; after #35 is accepted, the architecture normalization campaign is complete.
+
+## 8. Normalization blockers resolved
+
+| # | Decision | Ratified | ADR | Governance surface |
+| --- | --- | --- | --- | --- |
+| 1 | Human approval capture contract | 2026-04-26 | ADR-003 | `COO_Operating_Contract_v1.0.md` §9 |
+| 2 | Drive / Workspace canonical role | 2026-04-26 | ADR-004 | `LifeOS Target Architecture v2.3c.md` §2.7; `COO_Operating_Contract_v1.0.md` §9.6 |
+| 3 | Full operational-state sole-writer boundary | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
+| 4 | Active vs standby COO semantics in governance surfaces | 2026-04-24 | ADR-001 | `COO_Operating_Contract_v1.0.md` §7 |
+| 5 | Hermes ↔ OpenClaw directionality and pushback rules | 2026-04-24 | ADR-002 | `COO_Operating_Contract_v1.0.md` §8 |
+
+## 9. Change-control rule
+
+No architecture-affecting change is canonical until required repo surfaces are updated:
+
+- this source-of-truth page when canon classification changes
+- architecture changelog when architecture deltas occur
+- ADR register when ratified architecture decisions land
+
+## 10. Lightweight architecture maintenance rule
+
+Architecture maintenance is event-triggered only. There is no monthly ritual, standing ceremony, or broad recurring architecture review by default.
+
+Before merge, any PR that changes architecture, governance, authority, truth surfaces, operational-state semantics, approval capture, writer boundaries, agent directionality, Drive / Workspace authority, receipt models, state-machine semantics, or canonical/proposal/stale classification must record one of the following in the PR body or closing issue:
+
+```text
+Architecture impact: none
+```
+
+or:
+
+```text
+Architecture impact: yes
+Architecture surfaces updated:
+- Source-of-truth page: yes/no + reason
+- Architecture changelog: yes/no + reason
+- ADR index: yes/no + reason
+Canonicality changed: yes/no
+Ratified decision added: yes/no
+```
+
+**Update triggers:**
+
+| Trigger | Required architecture-control update |
+| --- | --- |
+| Canonical / proposal-only / stale classification changes | Update this source-of-truth page |
+| A canonical architecture or governance surface is added, removed, renamed, promoted, or demoted | Update this source-of-truth page and architecture changelog |
+| Architecture semantics materially change | Update architecture changelog |
+| A ratified architecture decision changes authority boundaries, truth surfaces, writer boundaries, approval capture, receipt models, state-machine semantics, agent directionality, or canonical runtime role | Update the relevant canonical doc, architecture changelog, and ADR index |
+| A proposal-only document changes but remains proposal-only and does not alter current canon | Do not add an ADR; update this page only if classification or conflict rules change |
+| Typo, formatting, generated index refresh, or non-semantic cleanup | No architecture-control update required; mark Architecture impact: none |
+
+ADRs remain reserved for ratified architecture decisions with operational consequences. They are not required for checklist maintenance, cleanup observations, speculative ideas, or generic documentation churn.
+
+```
+
+### docs/10_meta/ARCHITECTURE_CHANGELOG.md
+
+```text
+# Architecture Changelog
+
+Status: Active control surface
+Owner: CEO / active COO stewardship
+Purpose: Record architecture deltas over time without turning runtime state trackers into architecture junk drawers
+
+---
+
+## Entry format
+
+- Date:
+- Change:
+- Why:
+- Affected docs:
+- Related issue:
+- Related ADR:
+- Status: `proposed | ratified | implemented | superseded`
+
+---
+
+## Entries
+
+### 2026-05-13 — Bus/hub/runtime documentation drift reconciliation (operational-bus #154)
+
+- Change: Added a bounded reconciliation entry for May 2026 bus/hub/runtime authority boundaries to the source-of-truth page and state ledger.
+- Why: `lifeos-operational-bus#154` tracks documentation drift after implemented operational-bus, common-hub, and runtime/control-plane surfaces moved ahead of LifeOS programme docs. The update makes the current boundaries discoverable without converting the audit packet into a canon promotion.
+- Notes:
+  - `lifeos-operational-bus` remains the canonical live work-order state and dispatch/status surface; issue labels are authoritative operational state.
+  - `lifeos-common-hub` remains the shared home for schemas, standards, canon, fixtures, adapters, memory manifests, reusable contracts, and pinned hub SHAs.
+  - Kanban and dashboards remain projections/workflow cockpit surfaces, not canonical operational state.
+  - `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` remains proposal-only/non-canonical.
+  - No ADR is added because this PR records a reconciliation boundary and does not ratify a new architecture decision.
+- Affected docs:
+  - `docs/11_admin/LIFEOS_STATE.md`
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+  - `docs/INDEX.md`
+  - `docs/10_meta/Review_Packet_Canonical_Doc_Reconciliation_2026-05-13_v1.0.md`
+- Related issue: `lifeos-operational-bus#154`
+- Related ADR: none
+- Status: proposed
+
+### 2026-05-04 — Obsidian Agent Memory Bridge Canonical Promotion (operational-bus #33)
+
+- Change: Added `docs/03_runtime/memory/Agent_Memory_Bridge_v0.1.md` as the LifeOS repo documentation surface for the AA-satisfied Obsidian agent memory bridge and registered it in the source-of-truth/index surfaces.
+- Why: `lifeos-operational-bus#33` required canonical LifeOS promotion of the AA-satisfied local note/navigation bridge from `lifeos-operational-bus#31` without adding watcher automation, auto-sync, runtime ingestion, or Obsidian authority.
+- Notes:
+  - Obsidian remains a human-facing navigation and working-note layer only.
+  - Authority precedence remains GitHub/LifeOS repo docs > COO structured memory > OpenClaw runtime grounding > Hermes compact hints/skills > Obsidian.
+  - Promotion tags are triage/request metadata only and never trigger automatic writes.
+  - Promotion requires review, mechanical secret/classification scan, path plus hash evidence, explicit gate invocation, and readback.
+  - No ADR is added because this PR documents and registers an AA-satisfied bridge boundary without ratifying a new architecture decision beyond the existing memory authority model.
+- Affected docs:
+  - `docs/03_runtime/memory/Agent_Memory_Bridge_v0.1.md`
+  - `docs/INDEX.md`
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+- Related issue: `lifeos-operational-bus#33`; review evidence `lifeos-operational-bus#31`
+- Related ADR: none
+- Status: implemented
+
+### 2026-04-27 — Amendment A5: Lightweight Architecture Maintenance Checks (Issue #35)
+
+- Change: Installed an event-triggered pre-merge architecture capture rule and explicit update triggers for the source-of-truth page, architecture changelog, and ADR index.
+- Why: GitHub issue #35 required lightweight maintenance checks after architecture normalization blockers #30, #31, #32, #33, and #34 were resolved.
+- Notes:
+  - No monthly ritual or broad recurring architecture review is added.
+  - No communications bus semantics are changed.
+  - Drive / Workspace authority remains unchanged.
+  - Proposal-only documents remain proposal-only unless separately ratified.
+  - No ADR is added because this amendment installs maintenance discipline rather than ratifying a new architecture decision.
+  - Acceptance of this amendment completes the architecture normalization campaign.
+- Affected docs:
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+- Related issue: GitHub #35
+- Related ADR: none
+- Status: implemented
+
+### 2026-04-27 — Amendment A4: Communications Draft Reconciliation (Issue #34)
+
+- Change: Classified `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md` as proposal-only / non-canonical and added explicit supersession markers against current canon.
+- Why: GitHub issue #34 required preventing agents from treating the communications draft as canonical after A1, A2, and A3 ratified active/standby COO authority, approval capture, and Drive / Workspace role.
+- Notes:
+  - Does not reopen issues #30, #31, #32, or #33.
+  - Does not promote the communications architecture into canon.
+  - Does not ratify Drive / Workspace advisory ingress.
+  - Does not ratify Drive polling, Drive push notifications, Google Workspace tooling, `gws`, OAuth credentials, or service accounts as runtime components.
+  - Does not ratify the advisory proposal schema, advisory lifecycle state machine, briefing refresh triggers, or Telegram-exclusive approval routing.
+  - Keeps issue #35 blocked until this reconciliation lands.
+- Affected docs:
+  - `docs/00_foundations/ARCH_Multi_Agent_Communication_Architecture.md`
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+- Related issue: GitHub #34
+- Related ADR: none
+- Status: implemented
+
+### 2026-04-26 — Amendment A3: Drive / Workspace Canonical Role (Issue #32)
+
+- Change: Ratified Drive / Workspace as a non-canonical collaboration, drafting, advisory, and briefing surface. Registered ADR-004. Closed normalization blocker #2 in the source-of-truth page.
+- Why: Normalization issue #32 required choosing whether Drive / Workspace is mirror-only, advisory ingress, canonical operational state, or explicitly non-canonical. The settled role preserves Workspace as a low-friction collaboration surface while keeping GitHub operational state authoritative.
+- Notes:
+  - Drive / Workspace may be used for shared documents, draft specs, review notes, planning material, advisory proposals, briefing packs, human/agent communication, and context sharing.
+  - GitHub operational state remains the canonical operational state and approval receipt store.
+  - Drive / Workspace is not canonical operational state, not a canonical approval receipt store, not a work-order lifecycle store, not an execution gate, not a promotion source, not execution truth, and not a substitute for GitHub receipts.
+  - Drive / Workspace is not ratified as an automatic advisory ingress adapter.
+  - Drive / Workspace-origin material may inform COO judgment and advisory review, but has no operational effect until captured into GitHub operational state by the active COO path or explicitly CEO-authorized operator acting for that path.
+  - Google Workspace tooling, including `gws`, OAuth credentials, Drive polling, Drive push notifications, and service accounts, is not part of the canonical runtime unless separately ratified.
+  - Closes GitHub issue #32 only. Does not resolve issues #34 or #35.
+  - Does not promote `ARCH_Multi_Agent_Communication_Architecture.md` into canon.
+- Affected docs:
+  - `docs/00_foundations/LifeOS Target Architecture v2.3c.md` — replaced §2.7
+  - `docs/01_governance/COO_Operating_Contract_v1.0.md` — amended §9.6
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md` — closed blocker #2; added resolved row
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md` — this entry
+  - `docs/10_meta/architecture_decisions/INDEX.md` — added ADR-004
+- Related issue: GitHub #32
+- Related ADR: ADR-004
+- Status: ratified
+
+### 2026-04-26 — Amendment A2: Human Approval Capture Contract (Issue #30)
+
+- Change: Ratified human approval capture contract (§9) into `COO_Operating_Contract_v1.0.md`.
+  Registered ADR-003. Closed normalization blocker #1 in source-of-truth page.
+- Why: Normalization campaign identified approval capture as unresolved blocker #1: no ratified
+  definition of valid approval source channels, canonical receipt store, or minimum binding tuple.
+  GitHub issue #30 captured this gap as acceptance criteria.
+- Notes:
+  - CEO supremacy is preserved and unrestricted. §9 defines operational admissibility only.
+  - Approval channels are capture sources, not limits on CEO authority.
+  - Direct COO-agent approval is a valid source event when receipted into canonical store.
+  - GitHub operational state remains canonical approval receipt store until issue #32 resolves
+    Drive / Workspace authority. Drive, Workspace, chat history, and local notes are not
+    canonical stores by themselves.
+  - Closes GitHub issue #30 only. Does not resolve issues #32, #34, or #35.
+  - Does not promote `ARCH_Multi_Agent_Communication_Architecture.md` into canon.
+- Affected docs:
+  - `docs/01_governance/COO_Operating_Contract_v1.0.md` — added §9
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md` — closed blocker #1; added §7 resolved row
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md` — this entry
+  - `docs/10_meta/architecture_decisions/INDEX.md` — added ADR-003
+- Related issue: GitHub #30
+- Related ADR: ADR-003
+- Status: ratified
+
+### 2026-04-24 — Amendment A1: COO Authority and Inter-Agent Directionality (Issues #31, #33)
+
+- Change: Ratified active/standby COO sole-writer boundary (§7) and inter-agent directionality
+  and pushback rules (§8) into `COO_Operating_Contract_v1.0.md`. Registered ADR-001 and
+  ADR-002. Closed normalization blockers #3, #4, #5 in source-of-truth page.
+- Why: Normalization reset (PR #28) surfaced unresolved authority boundaries: sole-writer scope,
+  standby COO permissions, and whether Hermes/OpenClaw peer-to-peer direction is authoritative.
+  Issues #31 and #33 captured these gaps as acceptance criteria.
+- Affected docs:
+  - `docs/01_governance/COO_Operating_Contract_v1.0.md` — added §7 and §8
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md` — closed blockers #3, #4, #5; added §7 resolved table
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md` — this entry
+  - `docs/10_meta/architecture_decisions/INDEX.md` — added ADR-001, ADR-002
+- Related issue: GitHub #31, GitHub #33
+- Related ADR: ADR-001, ADR-002
+- Status: ratified
+
+### 2026-04-24
+
+- Change: Installed architecture normalization control surfaces
+  (`Architecture_Normalization_Reconciliation_Packet_2026-04-24.md`,
+  `COO_Authority_Contract_Draft_2026-04-24.md`, `ARCHITECTURE_SOURCE_OF_TRUTH.md`,
+  this changelog, ADR index skeleton, targeted issue list draft).
+- Why: Architecture truth had fragmented across canonical docs, draft docs, runtime trackers,
+  and uncaptured onboarding discussions.
+- Affected docs:
+  - `docs/10_meta/Architecture_Normalization_Reconciliation_Packet_2026-04-24.md`
+  - `docs/10_meta/COO_Authority_Contract_Draft_2026-04-24.md`
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+  - `docs/10_meta/architecture_decisions/INDEX.md`
+  - `docs/10_meta/Architecture_Normalization_Targeted_Issue_List_2026-04-24.md`
+- Related issue: not opened yet — targeted issue list drafted first
+- Related ADR: none yet
+- Status: proposed
+
+```
+
+### docs/INDEX.md
+
+```text
+# LifeOS Strategic Corpus [P26-02-28 (rev12)]
+
+<!-- markdownlint-disable MD013 MD040 MD060 -->
+
+Last Updated: 2026-05-13 (rev32)
+
+**Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
+
+---
+
+## Authority Chain
+
+```
+LifeOS Constitution v2.0 (Supreme)
+        │
+        └── Governance Protocol v1.0
+                │
+                ├── COO Operating Contract v1.0
+                ├── DAP v2.0
+                └── COO Runtime Spec v1.0
+```
+
+---
+
+## Strategic Context
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Strategic_Corpus.md](./LifeOS_Strategic_Corpus.md) | **Primary Context for the LifeOS Project** |
+
+---
+
+## Agent Guidance (Root Level)
+
+| File | Purpose |
+|------|---------|
+| [CLAUDE.md](../CLAUDE.md) | Claude Code (claude.ai/code) agent guidance |
+| [AGENTS.md](../AGENTS.md) | OpenCode agent instructions (Doc Steward subset) |
+| [GEMINI.md](../GEMINI.md) | Gemini agent constitution |
+
+---
+
+## 00_admin — Project Admin (Thin Control Plane)
+
+### Canonical Files
+
+| Document | Purpose |
+|----------|---------|
+| [LIFEOS_STATE.md](./11_admin/LIFEOS_STATE.md) | **Single source of truth** — Current focus, WIP, blockers, next actions (auto-updated) |
+| [BACKLOG.md](./11_admin/BACKLOG.md) | **Derived view** — Human-readable summary (non-canonical; `config/tasks/backlog.yaml` is canonical queue authority) |
+| [DECISIONS.md](./11_admin/DECISIONS.md) | **Append-only** — Decision log (low volume) |
+| [INBOX.md](./11_admin/INBOX.md) | Raw capture scratchpad for triage |
+| [Plan_Supersession_Register.md](./11_admin/Plan_Supersession_Register.md) | **Control** — Canonical register of superseded and active plans |
+| [LifeOS_Build_Loop_Production_Plan_v2.1.md](./11_admin/LifeOS_Build_Loop_Production_Plan_v2.1.md) | **Canonical plan** — Production readiness plan (per supersession register) |
+| [LifeOS_Master_Execution_Plan_v1.1.md](./11_admin/LifeOS_Master_Execution_Plan_v1.1.md) | (superseded by v2.1) — Historical master execution plan W0–W7 |
+| [Doc_Freshness_Gate_Spec_v1.0.md](./11_admin/Doc_Freshness_Gate_Spec_v1.0.md) | **Control** — Runtime-backed doc freshness and contradiction gate spec |
+| [AUTONOMY_STATUS.md](./11_admin/AUTONOMY_STATUS.md) | **Derived view** — Autonomy capability matrix (derived from canonical sources) |
+| [WIP_LOG.md](./11_admin/WIP_LOG.md) | **WIP tracker** — Work-in-progress log with controlled status enum |
+| [lifeos-master-operating-manual-v2.1.md](./11_admin/lifeos-master-operating-manual-v2.1.md) | **Strategic context** — Master Operating Manual v2.1 |
+| [TECH_DEBT_INVENTORY.md](./11_admin/TECH_DEBT_INVENTORY.md) | **Tech debt tracker** — Structural debt items with explicit trigger conditions |
+| [QUALITY_AUDIT_BASELINE_v1.0.md](./11_admin/QUALITY_AUDIT_BASELINE_v1.0.md) | **Audit baseline** — Repo-wide quality findings, evidence, and promotion recommendations |
+| [build_summaries/COO_Step6_LiveWiring_Build_Summary_2026-03-08.md](./11_admin/build_summaries/COO_Step6_LiveWiring_Build_Summary_2026-03-08.md) | COO Step 6 build summary — live wiring, shadow validation, gaps, workflow |
+
+### Subdirectories
+
+| Directory | Purpose | Naming Rule |
+|-----------|---------|-------------|
+| `build_summaries/` | Timestamped build evidence summaries | `*_Build_Summary_YYYY-MM-DD.md` |
+| `archive/` | Historical documents (reference only; immutable) | Archive subdirs: `YYYY-MM-DD_<topic>/` |
+
+---
+
+## 00_foundations — Core Principles
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Constitution_v2.0.md](./00_foundations/LifeOS_Constitution_v2.0.md) | **Supreme governing document** — Raison d'être, invariants, principles |
+| [LifeOS Target Architecture v2.3c](./00_foundations/LifeOS%20Target%20Architecture%20v2.3c.md) | **Current canonical target architecture** — CEO→COO→EA control-plane, COO Commons, phased authority expansion |
+| [Agent_Roles_Reference_v1.0.md](./00_foundations/Agent_Roles_Reference_v1.0.md) | Orientation reference — actor taxonomy, COO autonomy levels, provider routing (non-authoritative; canon wins on conflict) |
+| [Anti_Failure_Operational_Packet_v0.1.md](./00_foundations/Anti_Failure_Operational_Packet_v0.1.md) | Anti-failure mechanisms, human preservation, workflow constraints |
+| [Architecture_Skeleton_v1.0.md](./00_foundations/Architecture_Skeleton_v1.0.md) | High-level conceptual architecture (CEO/COO/Worker layers) |
+| [Tier_Definition_Spec_v1.1.md](./00_foundations/Tier_Definition_Spec_v1.1.md) | **Canonical** — Tier progression model, definitions, and capabilities |
+| [ARCH_Future_Build_Automation_Operating_Model_v0.2.md](./00_foundations/ARCH_Future_Build_Automation_Operating_Model_v0.2.md) | **Architecture Proposal** — Future Build Automation Operating Model v0.2 |
+| [lifeos-agent-architecture.md](./00_foundations/lifeos-agent-architecture.md) | **Architecture** — Non-canonical agent architecture |
+| [lifeos-maximum-vision.md](./00_foundations/lifeos-maximum-vision.md) | **Vision** — Non-canonical maximum vision architecture |
+
+---
+
+## 01_governance — Governance & Contracts
+
+### Core Governance
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Operating_Contract_v1.0.md](./01_governance/COO_Operating_Contract_v1.0.md) | CEO/COO role boundaries and interaction rules |
+| [AgentConstitution_GEMINI_Template_v1.0.md](./01_governance/AgentConstitution_GEMINI_Template_v1.0.md) | Template for agent GEMINI.md files |
+| [DOC_STEWARD_Constitution_v1.0.md](./01_governance/DOC_STEWARD_Constitution_v1.0.md) | Document Steward constitutional boundaries |
+
+### Council & Review
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Invocation_Runtime_Binding_Spec_v1.1.md](./01_governance/Council_Invocation_Runtime_Binding_Spec_v1.1.md) | Council invocation and runtime binding |
+| [Antigravity_Council_Review_Packet_Spec_v1.0.md](./01_governance/Antigravity_Council_Review_Packet_Spec_v1.0.md) | Council review packet format |
+| [ALIGNMENT_REVIEW_TEMPLATE_v1.0.md](./01_governance/ALIGNMENT_REVIEW_TEMPLATE_v1.0.md) | Monthly/quarterly alignment review template |
+
+### Policies & Logs
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Expectations_Log_v1.0.md](./01_governance/COO_Expectations_Log_v1.0.md) | Working preferences and behavioral refinements |
+| [Antigrav_Output_Hygiene_Policy_v0.1.md](./01_governance/Antigrav_Output_Hygiene_Policy_v0.1.md) | Output path rules for Antigravity |
+| [OpenCode_First_Stewardship_Policy_v1.1.md](./01_governance/OpenCode_First_Stewardship_Policy_v1.1.md) | **Mandatory** OpenCode routing for in-envelope docs |
+
+### Active Rulings
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md](./01_governance/Council_Ruling_OpenCode_DocSteward_CT2_Phase2_v1.1.md) | **ACTIVE** — OpenCode Document Steward CT-2 Phase 2 Activation |
+| [Council_Ruling_OpenCode_First_Stewardship_v1.1.md](./01_governance/Council_Ruling_OpenCode_First_Stewardship_v1.1.md) | **ACTIVE** — OpenCode-First Doc Stewardship Adoption |
+| [Council_Ruling_Build_Handoff_v1.0.md](./01_governance/Council_Ruling_Build_Handoff_v1.0.md) | **Approved**: Build Handoff Protocol v1.0 activation-canonical |
+| [Council_Ruling_Build_Loop_Architecture_v1.0.md](./01_governance/Council_Ruling_Build_Loop_Architecture_v1.0.md) | **ACTIVE**: Build Loop Architecture v0.3 authorised for Phase 1 |
+| [Council_Ruling_Phase9_Ops_Ratification_v1.0.md](./01_governance/Council_Ruling_Phase9_Ops_Ratification_v1.0.md) | **ACTIVE** — Phase 9 constrained ops ratification for `workspace_mutation_v1` |
+| [Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md](./01_governance/Tier3_Reactive_Task_Layer_Council_Ruling_v0.1.md) | **Active**: Reactive Task Layer v0.1 Signoff |
+| [Council_Review_Stewardship_Runner_v1.0.md](./01_governance/Council_Review_Stewardship_Runner_v1.0.md) | **Approved**: Stewardship Runner cleared for agent-triggered runs |
+
+### Historical Rulings
+
+| Document | Purpose |
+|----------|---------|
+| [Tier1_Hardening_Council_Ruling_v0.1.md](./01_governance/Tier1_Hardening_Council_Ruling_v0.1.md) | Historical: Tier-1 ratification ruling |
+| [Tier1_Tier2_Activation_Ruling_v0.2.md](./01_governance/Tier1_Tier2_Activation_Ruling_v0.2.md) | Historical: Tier-2 activation ruling |
+| [Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md](./01_governance/Tier1_Tier2_Conditions_Manifest_FP4x_v0.1.md) | Historical: Tier transition conditions |
+| [Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md](./01_governance/Tier2_Completion_Tier2.5_Activation_Ruling_v1.0.md) | Historical: Tier-2.5 activation ruling |
+
+---
+
+## 02_protocols — Protocols & Agent Communication
+
+### Batch 1 Runtime Protocols
+
+> **Note:** The 5 Batch 1 runtime modules (`run_lock`, `invocation_receipt`, `invocation_schema`, `shadow_runner`, `shadow_capture`) do not yet have dedicated protocol docs in `02_protocols/`. Their protocol definitions are captured in:
+
+| Document | Coverage |
+|----------|---------|
+| [LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md](./03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md) | **Batch 1**: run_lock, invocation_receipt, invocation_schema, shadow_runner, shadow_capture — autonomous build loop protocol definitions |
+
+### Core Protocols
+
+| Document | Purpose |
+|----------|---------|
+| [Governance_Protocol_v1.0.md](./02_protocols/Governance_Protocol_v1.0.md) | Envelopes, escalation rules, council model |
+| [Git_Workflow_Protocol_v1.1.md](./02_protocols/Git_Workflow_Protocol_v1.1.md) | **Fail-Closed**: Branch conventions, CI proof merging, receipts |
+| [Document_Steward_Protocol_v1.1.md](./02_protocols/Document_Steward_Protocol_v1.1.md) | Document creation, indexing, GitHub/Drive sync |
+| [Deterministic_Artefact_Protocol_v2.0.md](./02_protocols/Deterministic_Artefact_Protocol_v2.0.md) | DAP — artefact creation, versioning, and storage rules |
+| [Build_Artifact_Protocol_v1.0.md](./02_protocols/Build_Artifact_Protocol_v1.0.md) | **NEW** — Formal schemas/templates for Plans, Review Packets, Walkthroughs, etc. |
+| [Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md](./02_protocols/Tier-2_API_Evolution_and_Versioning_Strategy_v1.0.md) | Tier-2 API Versioning, Deprecation, and Compatibility Rules |
+| [Build_Handoff_Protocol_v1.1.md](./02_protocols/Build_Handoff_Protocol_v1.1.md) | Messaging & handoff architecture for agent coordination |
+| [Intent_Routing_Rule_v1.1.md](./02_protocols/Intent_Routing_Rule_v1.1.md) | Decision routing (CEO/CSO/Council/Runtime) |
+| [LifeOS_Design_Principles_Protocol_v1.1.md](./02_protocols/LifeOS_Design_Principles_Protocol_v1.1.md) | **Canonical** — "Prove then Harden" development principles, Output-First governance, sandbox workflow |
+| [Emergency_Declaration_Protocol_v1.0.md](./02_protocols/Emergency_Declaration_Protocol_v1.0.md) | **Canonical** — Emergency override and auto-revert procedures |
+| [Test_Protocol_v2.0.md](./02_protocols/Test_Protocol_v2.0.md) | **WIP** — Test categories, coverage, and flake policy |
+| [EOL_Policy_v1.0.md](./02_protocols/EOL_Policy_v1.0.md) | **Canonical** — LF line endings, config compliance, clean invariant enforcement |
+| [Filesystem_Error_Boundary_Protocol_v1.0.md](./02_protocols/Filesystem_Error_Boundary_Protocol_v1.0.md) | **Draft** — Fail-closed filesystem error boundaries, exception taxonomy |
+| [GitHub_Actions_Secrets_Setup.md](./02_protocols/GitHub_Actions_Secrets_Setup.md) | PAT creation, secrets config, and rotation for CI workflows |
+| [Project_Planning_Protocol_v1.0.md](./02_protocols/Project_Planning_Protocol_v1.0.md) | Build mission plan requirements, schema compliance, lifecycle, and review rubric |
+| [Work_Management_Framework_v0.1.md](./02_protocols/Work_Management_Framework_v0.1.md) | **NEW** — Work Management Framework v0.1: intake, prioritisation, dispatch, review, closure |
+| [workstream_context_v1.md](./02_protocols/workstream_context_v1.md) | Context Management v1: canonical workstream state, preflight validation, resume prompt emission |
+| [COO_EA_Dispatch_Pipeline_Protocol_v0.1.md](./02_protocols/COO_EA_Dispatch_Pipeline_Protocol_v0.1.md) | **Design packet** — GitHub-controlled COO to Codex EA dispatch pipeline, payloads, state machine, failure matrix, and #79 plan |
+| [OpenClaw_COO_Integration_v1.0.md](./02_protocols/OpenClaw_COO_Integration_v1.0.md) | OpenClaw gateway invocation, CLI wrappers, known constraints |
+| [Agent_Control_Plane_Pin_v1.0.md](./02_protocols/Agent_Control_Plane_Pin_v1.0.md) | **Dependency contract** — pins LifeOS to the external `agent-control-plane` protocol/control-plane source |
+
+### Council Protocols
+
+| Document | Purpose |
+|----------|---------|
+| [Council_Protocol_v1.3.md](./02_protocols/Council_Protocol_v1.3.md) | **Canonical** — Council review procedure, modes, topologies, P0 criteria, complexity budget |
+| [AI_Council_Procedural_Spec_v1.1.md](./02_protocols/AI_Council_Procedural_Spec_v1.1.md) | Runbook for executing Council Protocol v1.2 |
+| [Council_Context_Pack_Schema_v0.3.md](./02_protocols/Council_Context_Pack_Schema_v0.3.md) | CCP template schema for council reviews |
+
+### Packet & Artifact Schemas
+
+| Document | Purpose |
+|----------|---------|
+| [lifeos_packet_schemas_v1.yaml](./02_protocols/lifeos_packet_schemas_v1.yaml) | Agent packet schema definitions (13 packet types) |
+| [lifeos_packet_templates_v1.yaml](./02_protocols/lifeos_packet_templates_v1.yaml) | Ready-to-use packet templates |
+| [build_artifact_schemas_v1.yaml](./02_protocols/build_artifact_schemas_v1.yaml) | **NEW** — Build artifact schema definitions (6 artifact types) |
+| [templates/](./02_protocols/templates/) | **NEW** — Markdown templates for all artifact types |
+| [example_converted_antigravity_packet.yaml](./02_protocols/example_converted_antigravity_packet.yaml) | Example: converted Antigravity review packet |
+
+### Operational Guides
+
+| Document | Purpose |
+|----------|---------|
+| [guides/OpenClaw_Codex_OAuth_Recovery_v1.0.md](./02_protocols/guides/OpenClaw_Codex_OAuth_Recovery_v1.0.md) | Recovery flow for stale `openai-codex` auth ordering, `refresh_token_reused`, and secrets reload validation |
+
+---
+
+## 03_runtime — Runtime Specification
+
+### Memory & Knowledge Architecture
+
+| Document | Purpose |
+|----------|---------|
+| [memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md](./03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md) | **Canonical** — Memory and knowledge architecture v0.5: authority model, logical stores, COO sole-writer rule, candidate packets, durable write receipts, retrieval model, phase split. Implementation: [#53](https://github.com/marcusglee11/LifeOS/issues/53) |
+| [memory/Agent_Memory_Bridge_v0.1.md](./03_runtime/memory/Agent_Memory_Bridge_v0.1.md) | **Canonical boundary** — Obsidian bridge authority boundary: navigation-only vault role, authority precedence, promotion preflights, and no watcher/runtime-ingestion rule |
+| [memory/LIFEOS_MEMORY_PHASE1_OPERATING_CONTRACT.md](./03_runtime/memory/LIFEOS_MEMORY_PHASE1_OPERATING_CONTRACT.md) | **Operating contract** — Phase 1 repo-backed memory tools, candidate transport, manual COO review flow, Hermes/OpenClaw native-memory posture, validator/generator/retrieval usage |
+
+### Core Specs
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Runtime_Spec_v1.0.md](./03_runtime/COO_Runtime_Spec_v1.0.md) | Mechanical execution contract, FSM, determinism rules |
+| [COO_Runtime_Implementation_Packet_v1.0.md](./03_runtime/COO_Runtime_Implementation_Packet_v1.0.md) | Implementation details for Antigravity |
+| [COO_Runtime_Core_Spec_v1.0.md](./03_runtime/COO_Runtime_Core_Spec_v1.0.md) | Extended core specification |
+| [COO_Runtime_Spec_Index_v1.0.md](./03_runtime/COO_Runtime_Spec_Index_v1.0.md) | Spec index and patch log |
+| [LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md](./03_runtime/LifeOS_Autonomous_Build_Loop_Architecture_v0.3.md) | **Canonical**: Autonomous Build Loop Architecture (Council-authorised) |
+| [Council_Agent_Design_v1.0.md](./03_runtime/Council_Agent_Design_v1.0.md) | **Information Only** — Conceptual design for the Council Agent |
+
+### Roadmaps & Plans
+
+| Document | Purpose |
+|----------|---------|
+| [LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md](./03_runtime/LifeOS_Programme_Roadmap_CoreFuelPlumbing_v1.0.md) | **Current roadmap** — Core/Fuel/Plumbing tracks |
+| [LifeOS_Recursive_Improvement_Architecture_v0.2.md](./03_runtime/LifeOS_Recursive_Improvement_Architecture_v0.2.md) | Recursive improvement architecture |
+| [LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md](./03_runtime/LifeOS_Router_and_Executor_Adapter_Spec_v0.1.md) | Future router and executor adapter spec |
+| [LifeOS_Plan_SelfBuilding_Loop_v2.2.md](./03_runtime/LifeOS_Plan_SelfBuilding_Loop_v2.2.md) | **Plan**: Self-Building LifeOS — CEO Out of the Execution Loop (Milestone) |
+
+### Work Plans & Fix Packs
+
+| Document | Purpose |
+|----------|---------|
+| [Hardening_Backlog_v0.1.md](./03_runtime/Hardening_Backlog_v0.1.md) | Hardening work backlog |
+| [Tier1_Hardening_Work_Plan_v0.1.md](./03_runtime/Tier1_Hardening_Work_Plan_v0.1.md) | Tier-1 hardening work plan |
+| [Tier2.5_Unified_Fix_Plan_v1.0.md](./03_runtime/Tier2.5_Unified_Fix_Plan_v1.0.md) | Tier-2.5 unified fix plan |
+| [F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md](./03_runtime/F3_Tier2.5_Activation_Conditions_Checklist_v1.0.md) | Tier-2.5 activation conditions checklist (F3) |
+| [F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md](./03_runtime/F4_Tier2.5_Deactivation_Rollback_Conditions_v1.0.md) | Tier-2.5 deactivation and rollback conditions (F4) |
+| [F7_Runtime_Antigrav_Mission_Protocol_v1.0.md](./03_runtime/F7_Runtime_Antigrav_Mission_Protocol_v1.0.md) | Runtime↔Antigrav mission protocol (F7) |
+| [Runtime_Hardening_Fix_Pack_v0.1.md](./03_runtime/Runtime_Hardening_Fix_Pack_v0.1.md) | Runtime hardening fix pack |
+| [fixpacks/FP-4x_Implementation_Packet_v0.1.md](./03_runtime/fixpacks/FP-4x_Implementation_Packet_v0.1.md) | FP-4x implementation |
+
+### Templates & Tools
+
+| Document | Purpose |
+|----------|---------|
+| [BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md](./03_runtime/BUILD_STARTER_PROMPT_TEMPLATE_v1.0.md) | Build starter prompt template |
+| [CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md](./03_runtime/CODE_REVIEW_PROMPT_TEMPLATE_v1.0.md) | Code review prompt template |
+| [COO_Runtime_Walkthrough_v1.0.md](./03_runtime/COO_Runtime_Walkthrough_v1.0.md) | Runtime walkthrough |
+| [COO_Runtime_Clean_Build_Spec_v1.1.md](./03_runtime/COO_Runtime_Clean_Build_Spec_v1.1.md) | Clean build specification |
+
+### Other
+
+| Document | Purpose |
+|----------|---------|
+| [Automation_Proposal_v0.1.md](./03_runtime/Automation_Proposal_v0.1.md) | Automation proposal |
+| [Runtime_Complexity_Constraints_v0.1.md](./03_runtime/Runtime_Complexity_Constraints_v0.1.md) | Complexity constraints |
+| [README_Recursive_Kernel_v0.1.md](./03_runtime/README_Recursive_Kernel_v0.1.md) | Recursive kernel readme |
+
+---
+
+## 12_productisation — Productisation & Marketing
+
+| Document | Purpose |
+|----------|---------|
+| [An_OS_for_Life.mp4](./12_productisation/assets/An_OS_for_Life.mp4) | **Promotional Video** — An introduction to LifeOS |
+
+---
+
+## internal — Internal Reports
+
+| Document | Purpose |
+|----------|---------|
+| [OpenCode_Phase0_Completion_Report_v1.0.md](./internal/OpenCode_Phase0_Completion_Report_v1.0.md) | OpenCode Phase 0 API connectivity validation — PASSED |
+
+---
+
+## 10_meta — Meta / Architecture Control
+
+| Document | Purpose |
+|----------|---------|
+| [ARCHITECTURE_SOURCE_OF_TRUTH.md](./10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md) | **Orientation surface** — Current canon / proposal / stale map for architecture control |
+| [ARCHITECTURE_CHANGELOG.md](./10_meta/ARCHITECTURE_CHANGELOG.md) | **Control log** — Architecture deltas and their status |
+| [Implementation_Documentation_Drift_Audit_2026-05-13.md](./10_meta/Implementation_Documentation_Drift_Audit_2026-05-13.md) | **Reconciliation packet** — May 2026 bus/hub/runtime implementation vs LifeOS documentation drift audit; no canon promotion |
+| [Review_Packet_Drift_Audit_2026-05-13_v1.0.md](./10_meta/Review_Packet_Drift_Audit_2026-05-13_v1.0.md) | **Review packet** — Flattened review materials for the May 2026 drift audit packet |
+| [Review_Packet_Canonical_Doc_Reconciliation_2026-05-13_v1.0.md](./10_meta/Review_Packet_Canonical_Doc_Reconciliation_2026-05-13_v1.0.md) | **Review packet** — Flattened review materials for the May 2026 canonical-doc reconciliation slice |
+| [Architecture_Normalization_Reconciliation_Packet_2026-04-24.md](./10_meta/Architecture_Normalization_Reconciliation_Packet_2026-04-24.md) | **Normalization packet** — Canon, authority, writer boundaries, mismatch matrix |
+| [COO_Authority_Contract_Draft_2026-04-24.md](./10_meta/COO_Authority_Contract_Draft_2026-04-24.md) | **Decision draft** — Approval, proxy authority, active/standby, sole-writer boundaries |
+| [architecture_decisions/INDEX.md](./10_meta/architecture_decisions/INDEX.md) | **ADR register** — Ratified architecture decisions only |
+| [Architecture_Normalization_Targeted_Issue_List_2026-04-24.md](./10_meta/Architecture_Normalization_Targeted_Issue_List_2026-04-24.md) | **Issue draft** — Targeted follow-on issues derived from reconciliation packet |
+
+---
+
+## 99_archive — Historical Documents
+
+Archived documents are in `99_archive/`. Key locations:
+
+- `99_archive/superseded_by_constitution_v2/` — Documents superseded by Constitution v2.0
+- `99_archive/legacy_structures/` — Legacy governance and specs
+- `99_archive/lifeos-master-operating-manual-v2.md` — Preceding version of the master operations manual
+- `99_archive/lifeos-operations-manual.md` — First version of the master operations manual
+
+---
+
+## Other Directories
+
+| Directory | Contents |
+|-----------|----------|
+| `04_project_builder/` | Project builder specs |
+| `05_agents/` | Agent architecture |
+| `06_user_surface/` | User surface specs |
+| `08_manuals/` | Operational manuals (COO Doc Management, Governance Runtime) |
+| `09_prompts/v1.0/` | Legacy v1.0 prompt templates |
+| `09_prompts/v1.2/` | **Current** — Council role prompts (Chair, Co-Chair, 10 reviewer seats) |
+| `10_meta/` | Meta documents, reviews, tasks |
+
+---
+
+## 08_manuals — Operational Manuals
+
+| Document | Purpose |
+|----------|---------|
+| [COO_Doc_Management_Manual_v1.0.md](./08_manuals/COO_Doc_Management_Manual_v1.0.md) | **Executable runbook** — Doc stewardship operations, validators, governance boundaries |
+| [Governance_Runtime_Manual_v1.0.md](./08_manuals/Governance_Runtime_Manual_v1.0.md) | Governance runtime operations |
+
+<!-- markdownlint-enable MD013 MD040 MD060 -->
+
+```
+
+### docs/LifeOS_Strategic_Corpus.md
+
+```text
 <!-- markdownlint-disable -->
 
 # ⚡ LifeOS Strategic Dashboard
@@ -10245,3 +11141,5 @@ One of: **Accept / Go with Fixes / Reject**
 
 
 ---
+
+```
