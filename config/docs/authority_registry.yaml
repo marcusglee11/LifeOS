@@ -92,7 +92,37 @@ doc_groups:
     paths:
       - docs/LifeOS_Strategic_Corpus.md
     source_paths:
-      - docs/**/*.md
+      - docs/00_foundations/*.md
+      - docs/00_foundations/**/*.md
+      - docs/01_governance/*.md
+      - docs/01_governance/**/*.md
+      - docs/02_protocols/*.md
+      - docs/02_protocols/**/*.md
+      - docs/03_runtime/*.md
+      - docs/03_runtime/**/*.md
+      - docs/04_project_builder/*.md
+      - docs/04_project_builder/**/*.md
+      - docs/05_agents/*.md
+      - docs/05_agents/**/*.md
+      - docs/06_user_surface/*.md
+      - docs/06_user_surface/**/*.md
+      - docs/08_manuals/*.md
+      - docs/08_manuals/**/*.md
+      - docs/09_prompts/*.md
+      - docs/09_prompts/**/*.md
+      - docs/10_meta/*.md
+      - docs/10_meta/**/*.md
+      - docs/11_admin/*.md
+      - docs/11_admin/**/*.md
+      - docs/12_productisation/*.md
+      - docs/12_productisation/**/*.md
+      - docs/INDEX.md
+    source_exclude_paths:
+      - docs/01_governance/_archive/**/*.md
+      - docs/02_protocols/archive/**/*.md
+      - docs/03_runtime/archive/**/*.md
+      - docs/10_meta/archive/**/*.md
+      - docs/11_admin/archive/**/*.md
     check_commands:
       - python3 docs/scripts/generate_strategic_context.py
   - id: discarded-archives

@@ -42,6 +42,10 @@
             "type": "array",
             "items": { "type": "string", "minLength": 1 }
           },
+          "source_exclude_paths": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
           "derived_surfaces": {
             "type": "array",
             "items": { "type": "string", "minLength": 1 }

@@ -7,13 +7,13 @@ this manifest.
 
 from __future__ import annotations
 
-import fnmatch
 import re
 import subprocess
 from pathlib import Path
 from typing import Any
 
 import yaml
+from jsonschema import Draft202012Validator
 
 ALLOWED_AUTHORITIES = {"canonical", "derived", "proposal-only", "deferred", "discarded"}
 ALLOWED_APPROVAL_TYPES = {"human", "aa", "ceo"}
@@ -64,6 +64,8 @@ def check_doc_authority_manifest(
         return [f"{_rel(manifest_file, root)}: doc_groups must be a list"]
 
     coverage, authorities = _manifest_path_authorities(payload, root, errors)
+    errors.extend(_check_schema(payload, root, manifest_file))
+    errors.extend(_check_derived_source_authority(payload, root, authorities))
 
     previous_payload = _load_previous_manifest_payload(root, rel_manifest, previous_manifest_path)
     if previous_payload is not None:
@@ -155,6 +157,59 @@ def _manifest_path_authorities(
                     authorities[rel_path] = authority
 
     return coverage, authorities
+
+
+def _check_schema(payload: dict[str, Any], root: Path, manifest_file: Path) -> list[str]:
+    schema_path = payload.get("schema")
+    if schema_path is None:
+        return []
+    if not isinstance(schema_path, str):
+        return [f"{_rel(manifest_file, root)}: schema must be a repo-relative path string."]
+    schema_file = root / schema_path
+    if not schema_file.exists():
+        return [f"{schema_path}: missing authority registry JSON schema; restore schema file."]
+    try:
+        schema = yaml.safe_load(schema_file.read_text(encoding="utf-8")) or {}
+        Draft202012Validator.check_schema(schema)
+        validator = Draft202012Validator(schema)
+        return [
+            f"{_rel(manifest_file, root)}: schema violation at "
+            f"{'.'.join(str(part) for part in error.absolute_path) or '<root>'}: {error.message}"
+            for error in sorted(validator.iter_errors(payload), key=str)
+        ]
+    except Exception as exc:
+        return [f"{schema_path}: invalid authority registry schema: {exc}"]
+
+
+def _check_derived_source_authority(
+    payload: dict[str, Any], root: Path, authorities: dict[str, str]
+) -> list[str]:
+    errors: list[str] = []
+    groups = payload.get("doc_groups", [])
+    if not isinstance(groups, list):
+        return errors
+    for index, group in enumerate(groups):
+        if not isinstance(group, dict) or group.get("authority") != "derived":
+            continue
+        group_id = str(group.get("id") or f"index-{index}")
+        source_paths = group.get("source_paths", []) or []
+        source_exclude_paths = group.get("source_exclude_paths", []) or []
+        if not isinstance(source_paths, list):
+            continue
+        if not isinstance(source_exclude_paths, list):
+            source_exclude_paths = []
+        for pattern in source_paths:
+            if not isinstance(pattern, str):
+                continue
+            for rel_path in _matching_docs(root, pattern, source_exclude_paths):
+                source_authority = authorities.get(rel_path)
+                if source_authority and source_authority != "canonical":
+                    errors.append(
+                        f"doc_groups[{index}]/{group_id}: source_paths pattern {pattern} "
+                        f"matches {rel_path} with authority {source_authority}; "
+                        "derived source_paths must resolve only to canonical docs."
+                    )
+    return errors
 
 
 def _load_previous_manifest_payload(
@@ -308,8 +363,29 @@ def _matching_docs(
     return [
         rel
         for rel in _active_doc_paths(root)
-        if fnmatch.fnmatch(rel, pattern) and not any(fnmatch.fnmatch(rel, ex) for ex in excludes)
+        if _path_matches(rel, pattern) and not any(_path_matches(rel, ex) for ex in excludes)
     ]
+
+
+def _path_matches(rel_path: str, pattern: str) -> bool:
+    regex = ""
+    index = 0
+    while index < len(pattern):
+        char = pattern[index]
+        if char == "*":
+            if index + 1 < len(pattern) and pattern[index + 1] == "*":
+                regex += ".*"
+                index += 2
+            else:
+                regex += "[^/]*"
+                index += 1
+        elif char == "?":
+            regex += "[^/]"
+            index += 1
+        else:
+            regex += re.escape(char)
+            index += 1
+    return re.fullmatch(regex, rel_path) is not None
 
 
 def _is_generated_or_vendor_path(rel_path: str) -> bool:

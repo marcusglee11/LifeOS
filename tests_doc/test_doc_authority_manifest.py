@@ -142,6 +142,66 @@ authority_transitions:
     )
 
 
+def test_derived_source_paths_must_resolve_to_canonical_docs(tmp_path):
+    _write(tmp_path / "docs" / "plans" / "Draft.md")
+    _write(tmp_path / "docs" / "LifeOS_Strategic_Corpus.md")
+    _manifest(
+        tmp_path,
+        """
+version: 1
+doc_groups:
+  - id: corpus
+    authority: derived
+    steward: Docs Steward
+    paths:
+      - docs/LifeOS_Strategic_Corpus.md
+    source_paths:
+      - docs/plans/*.md
+  - id: plans
+    authority: proposal-only
+    steward: Docs Steward
+    paths:
+      - docs/plans/*.md
+""",
+    )
+
+    errors = check_doc_authority_manifest(tmp_path)
+
+    assert any(
+        "source_paths pattern docs/plans/*.md matches docs/plans/Draft.md" in error
+        and "must resolve only to canonical docs" in error
+        for error in errors
+    )
+
+
+def test_manifest_schema_validation_fails_with_path(tmp_path):
+    _write(tmp_path / "docs" / "02_protocols" / "Runbook.md")
+    schema = tmp_path / "config" / "schemas" / "doc_authority_registry_v1.json"
+    schema.parent.mkdir(parents=True, exist_ok=True)
+    schema.write_text(
+        '{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object",'
+        '"required":["version"],"properties":{"version":{"const":1}}}',
+        encoding="utf-8",
+    )
+    _manifest(
+        tmp_path,
+        """
+schema: config/schemas/doc_authority_registry_v1.json
+version: 2
+doc_groups:
+  - id: protocols
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/02_protocols/*.md
+""",
+    )
+
+    errors = check_doc_authority_manifest(tmp_path)
+
+    assert any("schema violation at version" in error for error in errors)
+
+
 def test_duplicate_transition_records_for_same_path_fail(tmp_path):
     _write(tmp_path / "docs" / "02_protocols" / "Runbook.md")
     _manifest(

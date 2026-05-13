@@ -341,7 +341,9 @@ def route_quality_tools(
             workstream_context_files.append(file_path)
             workstream_context_trigger = True
 
-        if file_path in QUALITY_DOC_AUTHORITY_MANIFEST_FILES:
+        if file_path in QUALITY_DOC_AUTHORITY_MANIFEST_FILES or (
+            suffix == ".md" and file_path.startswith("docs/")
+        ):
             doc_authority_manifest_files.append(file_path)
             doc_authority_manifest_trigger = True
 
