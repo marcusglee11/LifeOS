@@ -9,7 +9,6 @@ import pytest
 
 from doc_steward.wiki_lint_validator import check_wiki_lint
 
-
 _MINIMAL_SCHEMA = """\
 ---
 type: schema
@@ -31,6 +30,9 @@ _VALID_PAGE = """\
 source_docs:
   - docs/some_doc.md
 source_commit_max: abc1234
+derived_edit_mode: generated
+source_command: python3 scripts/wiki/refresh_wiki.py
+source_change_ref: abc1234
 authority: derived
 page_class: evergreen
 concepts:
@@ -73,9 +75,7 @@ def wiki_root(tmp_path: Path) -> tuple[Path, Path, str]:
     subprocess.run(["git", "config", "user.email", "t@t.com"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "config", "user.name", "T"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "add", "docs/some_doc.md"], cwd=tmp_path, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True)
     sha_result = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=tmp_path, capture_output=True, text=True
     )
@@ -120,6 +120,9 @@ def test_missing_frontmatter_field(wiki_root: tuple[Path, Path, str]) -> None:
         f"---\n"
         f"source_docs:\n  - docs/some_doc.md\n"
         f"source_commit_max: {sha}\n"
+        f"derived_edit_mode: generated\n"
+        f"source_command: python3 scripts/wiki/refresh_wiki.py\n"
+        f"source_change_ref: {sha}\n"
         f"authority: derived\n"
         f"page_class: evergreen\n"
         f"---\n\n## Summary\n\nNo concepts field.\n"
@@ -133,9 +136,9 @@ def test_missing_frontmatter_field(wiki_root: tuple[Path, Path, str]) -> None:
 def test_source_doc_not_found(wiki_root: tuple[Path, Path, str]) -> None:
     root, wiki_dir, sha = wiki_root
     (wiki_dir / "SCHEMA.md").write_text(_MINIMAL_SCHEMA)
-    page_missing_source = _VALID_PAGE.replace(
-        "docs/some_doc.md", "docs/nonexistent.md"
-    ).replace("abc1234", sha)
+    page_missing_source = _VALID_PAGE.replace("docs/some_doc.md", "docs/nonexistent.md").replace(
+        "abc1234", sha
+    )
     (wiki_dir / "alpha.md").write_text(page_missing_source)
     (wiki_dir / "beta.md").write_text(_VALID_PAGE.replace("abc1234", sha))
     errors = check_wiki_lint(str(root))
@@ -154,6 +157,7 @@ def test_valid_wiki_passes(wiki_root: tuple[Path, Path, str]) -> None:
 
 # ── NEW TESTS (added in wiki remediation) ─────────────────────────────────────
 
+
 def _schema_with_pages(*page_names: str) -> str:
     """Return a minimal SCHEMA.md that indexes the given page names in a proper table."""
     rows = "\n".join(f"| `{name}` | Test |" for name in page_names)
@@ -170,6 +174,9 @@ def _compliant_page(sha: str) -> str:
         f"source_docs:\n"
         f"  - docs/some_doc.md\n"
         f"source_commit_max: {sha}\n"
+        f"derived_edit_mode: generated\n"
+        f"source_command: python3 scripts/wiki/refresh_wiki.py\n"
+        f"source_change_ref: {sha}\n"
         f"authority: derived\n"
         f"page_class: evergreen\n"
         f"concepts:\n"
@@ -200,9 +207,7 @@ def test_directory_source_rejected(wiki_root):
     tmp_path, wiki_dir, real_sha = wiki_root
     (tmp_path / "docs" / "subdir").mkdir(exist_ok=True)
     (wiki_dir / "SCHEMA.md").write_text(_schema_with_pages("dir_source.md"))
-    content = _compliant_page(real_sha).replace(
-        "  - docs/some_doc.md", "  - docs/subdir"
-    )
+    content = _compliant_page(real_sha).replace("  - docs/some_doc.md", "  - docs/subdir")
     (wiki_dir / "dir_source.md").write_text(content)
     errors = check_wiki_lint(str(tmp_path))
     assert any("dir_source.md" in e and "directory" in e.lower() for e in errors)
@@ -252,6 +257,7 @@ def test_compliant_page_passes_all_new_checks(wiki_root):
 
 
 # ── Value-validation regression tests ─────────────────────────────────────────
+
 
 def test_rejects_authority_not_derived(wiki_root):
     tmp_path, wiki_dir, real_sha = wiki_root
@@ -330,6 +336,9 @@ def test_multi_source_commit_max_uses_newest_commit(wiki_root):
         f"  - docs/some_doc.md\n"
         f"  - docs/second_doc.md\n"
         f"source_commit_max: {real_sha}\n"
+        f"derived_edit_mode: generated\n"
+        f"source_command: python3 scripts/wiki/refresh_wiki.py\n"
+        f"source_change_ref: {newer_sha}\n"
         f"authority: derived\n"
         f"page_class: evergreen\n"
         f"concepts:\n  - test\n"

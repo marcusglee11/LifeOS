@@ -308,7 +308,6 @@ def check_wiki_lint(repo_root: str) -> list[str]:
         missing = _REQUIRED_FRONTMATTER - fields
         if missing:
             errors.append(f"{page.name}: missing frontmatter fields: {', '.join(sorted(missing))}")
-            continue
 
         # Validate frontmatter values
         errors.extend(_validate_frontmatter_values(page.name, text))
