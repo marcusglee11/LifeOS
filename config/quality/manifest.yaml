@@ -79,6 +79,12 @@ tools:
     scopes: ["changed", "repo"]
     autofix_allowed: false
     failure_class: workstream_context_error
+  doc_authority_manifest:
+    enabled: true
+    mode: blocking
+    scopes: ["changed", "repo"]
+    autofix_allowed: false
+    failure_class: doc_authority_manifest_error
 
 waivers:
   - tool: markdownlint

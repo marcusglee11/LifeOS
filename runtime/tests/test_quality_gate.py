@@ -43,6 +43,13 @@ def test_route_quality_tools_wmf_backlog_change() -> None:
     assert routed["wmf_validator"] == ["config/tasks/backlog.yaml"]
 
 
+def test_route_quality_tools_doc_authority_manifest_change() -> None:
+    routed = route_quality_tools(
+        Path("."), ["config/docs/authority_registry.yaml"], scope="changed"
+    )
+    assert routed["doc_authority_manifest"] == ["config/docs/authority_registry.yaml"]
+
+
 def test_route_quality_tools_wmf_workstreams_change_bypasses_artifacts_exclusion() -> None:
     routed = route_quality_tools(Path("."), ["artifacts/workstreams.yaml"], scope="changed")
     assert routed["wmf_validator"] == ["artifacts/workstreams.yaml"]

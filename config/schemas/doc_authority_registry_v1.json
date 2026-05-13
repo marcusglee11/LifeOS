@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifeos.local/schemas/doc_authority_registry_v1.json",
+  "title": "LifeOS Documentation Authority Registry v1",
+  "type": "object",
+  "required": ["version", "doc_groups"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "const": 1 },
+    "schema": { "type": "string" },
+    "policy_source": { "type": "string" },
+    "baseline_lint_noise": { "type": "object" },
+    "valid_approval_evidence_types": { "type": "object" },
+    "doc_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "authority", "steward", "paths"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "authority": {
+            "enum": [
+              "canonical",
+              "derived",
+              "proposal-only",
+              "deferred",
+              "discarded"
+            ]
+          },
+          "steward": { "type": "string", "minLength": 1 },
+          "paths": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "exclude_paths": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "source_paths": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "derived_surfaces": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "check_commands": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "last_reviewed": { "type": "string" }
+        }
+      }
+    },
+    "authority_transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["changed_paths", "from", "to", "approval_evidence"],
+        "properties": {
+          "changed_paths": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "from": {
+            "enum": [
+              "canonical",
+              "derived",
+              "proposal-only",
+              "deferred",
+              "discarded"
+            ]
+          },
+          "to": {
+            "enum": [
+              "canonical",
+              "derived",
+              "proposal-only",
+              "deferred",
+              "discarded"
+            ]
+          },
+          "approval_evidence": {
+            "type": "object",
+            "required": ["type", "url", "verdict"],
+            "properties": {
+              "type": { "enum": ["human", "aa", "ceo"] },
+              "url": {
+                "type": "string",
+                "pattern": "^https://github\\.com/.+"
+              },
+              "verdict": { "const": "approved" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
