@@ -10,13 +10,27 @@ from __future__ import annotations
 import re
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable, Sequence
 
 import yaml
 from jsonschema import Draft202012Validator
 
 ALLOWED_AUTHORITIES = {"canonical", "derived", "proposal-only", "deferred", "discarded"}
 ALLOWED_APPROVAL_TYPES = {"human", "aa", "ceo"}
+ALLOWED_RECONCILIATION_EXEMPTIONS = {
+    "typo",
+    "formatting",
+    "link-fix",
+    "generated-refresh-only",
+}
+RECONCILIATION_PACKET_PREFIX = "docs/10_meta/reconciliation_packets/"
+RECONCILIATION_PACKET_REQUIRED_FIELDS = {
+    "changed_canonical_paths",
+    "affected_derived_surfaces",
+    "regeneration_required",
+    "authority_class_changes",
+    "post_merge_verification_commands",
+}
 PROTECTED_TRANSITIONS = {
     ("proposal-only", "canonical"),
     ("deferred", "canonical"),
@@ -34,10 +48,22 @@ class AuthorityManifestError(ValueError):
     """Raised when the manifest cannot be parsed as a mapping."""
 
 
+def _unique_ordered(values: Iterable[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        out.append(value)
+    return out
+
+
 def check_doc_authority_manifest(
     repo_root: str | Path,
     manifest_path: str | Path | None = None,
     previous_manifest_path: str | Path | None = None,
+    changed_paths: Sequence[str] | None = None,
 ) -> list[str]:
     """Return validation errors for the documentation authority manifest."""
     root = Path(repo_root).resolve()
@@ -92,6 +118,7 @@ def check_doc_authority_manifest(
                 )
 
     errors.extend(_check_transitions(payload, root))
+    errors.extend(_check_canonical_doc_reconciliation(payload, root, authorities, changed_paths))
     return errors
 
 
@@ -390,6 +417,205 @@ def _path_matches(rel_path: str, pattern: str) -> bool:
 
 def _is_generated_or_vendor_path(rel_path: str) -> bool:
     return rel_path.startswith("docs/LifeOS_Universal_Corpus.md")
+
+
+def _check_canonical_doc_reconciliation(
+    payload: dict[str, Any],
+    root: Path,
+    authorities: dict[str, str],
+    changed_paths: Sequence[str] | None,
+) -> list[str]:
+    changed = _normalize_changed_paths(changed_paths, root)
+    canonical_changed = [
+        path
+        for path in changed
+        if authorities.get(path) == "canonical" and not _is_reconciliation_packet_path(path)
+    ]
+    if not canonical_changed:
+        return []
+
+    packet_paths = [path for path in changed if _is_reconciliation_packet_path(path)]
+    packets = [_load_reconciliation_packet(root, path) for path in packet_paths]
+    packets = [packet for packet in packets if packet is not None]
+    if not packets:
+        return [
+            f"{path}: missing reconciliation packet or non-semantic exemption for "
+            "canonical documentation change; add a packet under "
+            "docs/10_meta/reconciliation_packets/."
+            for path in canonical_changed
+        ]
+
+    errors: list[str] = []
+    valid_covered_paths: set[str] = set()
+    saw_structurally_valid_packet = False
+    for packet_path, packet in packets:
+        packet_errors = _validate_reconciliation_exemption(packet_path, packet)
+        if packet_errors:
+            errors.extend(packet_errors)
+            continue
+        if "reconciliation_exemption" in packet:
+            valid_covered_paths.update(canonical_changed)
+            saw_structurally_valid_packet = True
+            continue
+
+        packet_errors = _validate_reconciliation_packet(packet_path, packet)
+        if packet_errors:
+            errors.extend(packet_errors)
+            continue
+        saw_structurally_valid_packet = True
+        valid_covered_paths.update(
+            path for path in packet.get("changed_canonical_paths", []) if isinstance(path, str)
+        )
+
+    missing = [path for path in canonical_changed if path not in valid_covered_paths]
+    if missing and saw_structurally_valid_packet:
+        errors.extend(
+            f"{path}: reconciliation packet present but stale/irrelevant to changed paths; "
+            "changed_canonical_paths must include this canonical doc."
+            for path in missing
+        )
+    elif missing and not errors:
+        errors.extend(
+            f"{path}: invalid packet; no valid reconciliation packet or exemption "
+            "covers this canonical doc."
+            for path in missing
+        )
+    return errors
+
+
+def _normalize_changed_paths(changed_paths: Sequence[str] | None, root: Path) -> list[str]:
+    if changed_paths is None:
+        changed_paths = _discover_changed_paths(root)
+    return _unique_ordered(
+        path.strip().replace("\\", "/")
+        for path in changed_paths
+        if path and path.strip().endswith(".md") and path.strip().startswith("docs/")
+    )
+
+
+def _discover_changed_paths(root: Path) -> list[str]:
+    commands = [
+        ["git", "diff", "--name-only", "--diff-filter=ACMR", "origin/main...HEAD"],
+        ["git", "diff", "--name-only", "--diff-filter=ACMR"],
+        ["git", "diff", "--name-only", "--diff-filter=ACMR", "--cached"],
+    ]
+    paths: list[str] = []
+    for command in commands:
+        try:
+            result = subprocess.run(
+                command,
+                cwd=root,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if result.returncode == 0:
+            paths.extend(line.strip() for line in result.stdout.splitlines() if line.strip())
+    return _unique_ordered(paths)
+
+
+def _is_reconciliation_packet_path(path: str) -> bool:
+    return path.startswith(RECONCILIATION_PACKET_PREFIX) and path.endswith(".md")
+
+
+def _load_reconciliation_packet(root: Path, rel_path: str) -> tuple[str, dict[str, Any]] | None:
+    path = root / rel_path
+    if not path.exists():
+        return rel_path, {}
+    text = path.read_text(encoding="utf-8")
+    data = _frontmatter_mapping(text)
+    if data is None:
+        data = _first_yaml_code_block_mapping(text)
+    return rel_path, (data if isinstance(data, dict) else {})
+
+
+def _frontmatter_mapping(text: str) -> dict[str, Any] | None:
+    if not text.startswith("---\n"):
+        return None
+    end = text.find("\n---\n", 4)
+    if end == -1:
+        return None
+    try:
+        loaded = yaml.safe_load(text[4:end]) or {}
+    except yaml.YAMLError:
+        return None
+    return loaded if isinstance(loaded, dict) else None
+
+
+def _first_yaml_code_block_mapping(text: str) -> dict[str, Any] | None:
+    match = re.search(r"```ya?ml\n(.*?)\n```", text, flags=re.DOTALL | re.IGNORECASE)
+    if not match:
+        return None
+    try:
+        loaded = yaml.safe_load(match.group(1)) or {}
+    except yaml.YAMLError:
+        return None
+    return loaded if isinstance(loaded, dict) else None
+
+
+def _validate_reconciliation_exemption(packet_path: str, packet: dict[str, Any]) -> list[str]:
+    if "reconciliation_exemption" not in packet:
+        return []
+    exemption = packet.get("reconciliation_exemption")
+    if not isinstance(exemption, dict):
+        return [f"{packet_path}: invalid packet; reconciliation_exemption must be a mapping."]
+    errors: list[str] = []
+    reason = exemption.get("reason")
+    if reason not in ALLOWED_RECONCILIATION_EXEMPTIONS:
+        errors.append(
+            f"{packet_path}: invalid reconciliation_exemption.reason '{reason}'; "
+            f"use one of {', '.join(sorted(ALLOWED_RECONCILIATION_EXEMPTIONS))}."
+        )
+    if exemption.get("affected_derived_surfaces") != "none":
+        errors.append(
+            f"{packet_path}: invalid packet; "
+            "reconciliation_exemption.affected_derived_surfaces must be none."
+        )
+    if exemption.get("semantic_change") is not False:
+        errors.append(
+            f"{packet_path}: invalid packet; "
+            "reconciliation_exemption.semantic_change must be false."
+        )
+    if reason == "generated-refresh-only" and not exemption.get("source_change_ref"):
+        errors.append(
+            f"{packet_path}: generated-refresh-only exemption requires source_change_ref."
+        )
+    return errors
+
+
+def _validate_reconciliation_packet(packet_path: str, packet: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    missing = sorted(RECONCILIATION_PACKET_REQUIRED_FIELDS - set(packet))
+    if missing:
+        errors.append(
+            f"{packet_path}: invalid packet; missing required field(s): {', '.join(missing)}."
+        )
+        return errors
+    if (
+        not isinstance(packet.get("changed_canonical_paths"), list)
+        or not packet["changed_canonical_paths"]
+    ):
+        errors.append(
+            f"{packet_path}: invalid packet; changed_canonical_paths must be a non-empty list."
+        )
+    if not isinstance(packet.get("affected_derived_surfaces"), list):
+        errors.append(f"{packet_path}: invalid packet; affected_derived_surfaces must be a list.")
+    if not isinstance(packet.get("regeneration_required"), bool):
+        errors.append(
+            f"{packet_path}: invalid packet; regeneration_required must be true or false."
+        )
+    for field in ("authority_class_changes", "post_merge_verification_commands"):
+        if not isinstance(packet.get(field), list):
+            errors.append(f"{packet_path}: invalid packet; {field} must be a list.")
+    if packet.get("affected_derived_surfaces") == [] and not packet.get("not_affected_reason"):
+        errors.append(
+            f"{packet_path}: invalid packet; not_affected_reason is required when "
+            "derived surfaces are unaffected."
+        )
+    return errors
 
 
 def _frontmatter_authority(path: Path) -> str | None:
