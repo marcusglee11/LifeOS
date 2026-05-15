@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-05-14 (rev33)
+Last Updated: 2026-05-15 (rev34)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -218,6 +218,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md](./03_runtime/memory/LIFEOS_MEMORY_KNOWLEDGE_ARCHITECTURE_v0.5.md) | **Canonical** — Memory and knowledge architecture v0.5: authority model, logical stores, COO sole-writer rule, candidate packets, durable write receipts, retrieval model, phase split. Implementation: [#53](https://github.com/marcusglee11/LifeOS/issues/53) |
 | [memory/Agent_Memory_Bridge_v0.1.md](./03_runtime/memory/Agent_Memory_Bridge_v0.1.md) | **Canonical boundary** — Obsidian bridge authority boundary: navigation-only vault role, authority precedence, promotion preflights, and no watcher/runtime-ingestion rule |
 | [memory/LIFEOS_MEMORY_PHASE1_OPERATING_CONTRACT.md](./03_runtime/memory/LIFEOS_MEMORY_PHASE1_OPERATING_CONTRACT.md) | **Operating contract** — Phase 1 repo-backed memory tools, candidate transport, manual COO review flow, Hermes/OpenClaw native-memory posture, validator/generator/retrieval usage |
+| [memory/HERMES_OPENCLAW_MEMORY_GATEWAY_ADOPTION_v0.1.md](./03_runtime/memory/HERMES_OPENCLAW_MEMORY_GATEWAY_ADOPTION_v0.1.md) | **Adoption runbook** — Hermes/OpenClaw Memory Gateway v0.1 usage flow, smoke checklist, candidate-packet boundary, and no-direct-durable-write proof path |
 
 ### Core Specs
 

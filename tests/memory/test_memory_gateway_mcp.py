@@ -227,9 +227,20 @@ def test_mcp_stdio_capture_candidate_writes_candidate_and_session(tmp_path: Path
     payload = _structured_tool_result(responses[1])
     assert payload["ok"] is True
     assert (repo / payload["candidate_path"]).exists()
+    assert payload["candidate_path"].startswith("knowledge-staging/cand-")
+    assert not (repo / "memory").exists()
     log = _session_lines(repo, "sess-capture")[-1]
     assert log["tool"] == "memory.capture_candidate"
     assert log["candidate_path"] == payload["candidate_path"]
+
+
+def test_hermes_openclaw_adoption_tools_have_no_durable_write_authority() -> None:
+    tool_names = mcp_server.exposed_tool_names()
+    assert tool_names == ["memory.retrieve", "memory.capture_candidate"]
+    forbidden_fragments = ("promote", "durable", "receipt", "write", "git", "gh", "subprocess")
+    assert not any(
+        fragment in tool_name for tool_name in tool_names for fragment in forbidden_fragments
+    )
 
 
 def test_mcp_stdio_unknown_tool_fails_closed(tmp_path: Path) -> None:
