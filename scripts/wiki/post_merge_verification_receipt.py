@@ -6,11 +6,11 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
@@ -49,24 +49,21 @@ SENSITIVE_PATTERNS = (
         r"(?i)(api[_-]?key|access[_-]?token|refresh[_-]?token|secret|password|credential)"
         r"([\s:=]+)([^\s,;]+)"
     ),
+    re.compile(r"(?i)bearer\s+[A-Za-z0-9._~+/=-]{16,}"),
     re.compile(r"ghp_[A-Za-z0-9_]{20,}"),
     re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
     re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),
+    re.compile(
+        r"-----BEGIN (?:OPENSSH|RSA|EC|DSA)? ?PRIVATE KEY-----.*?"
+        r"-----END (?:OPENSSH|RSA|EC|DSA)? ?PRIVATE KEY-----",
+        re.DOTALL,
+    ),
 )
 
 
-@dataclass(frozen=True)
-class CommandResult:
-    command: str
-    status: str
-    summary: str
-    failure_classification: str | None = None
-
-
 def _run(cmd: Sequence[str] | str, cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        cmd, cwd=cwd, capture_output=True, text=True, check=False, shell=isinstance(cmd, str)
-    )
+    argv = shlex.split(cmd) if isinstance(cmd, str) else list(cmd)
+    return subprocess.run(argv, cwd=cwd, capture_output=True, text=True, check=False)
 
 
 def redact_sensitive(text: str) -> str:

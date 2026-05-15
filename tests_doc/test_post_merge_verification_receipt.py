@@ -18,12 +18,13 @@ def test_classify_failure_distinguishes_drift_baseline_and_tooling() -> None:
 def test_summary_redacts_sensitive_command_output() -> None:
     summary = receipt._summarise(
         "api_key=abc123 ghp_abcdefghijklmnopqrstuvwxyz123456",
-        "password: hunter2",
+        "password: hunter2\nAuthorization: Bearer abcdefghijklmnopqrstuvwxyz",
     )
 
     assert "abc123" not in summary
     assert "hunter2" not in summary
     assert "ghp_" not in summary
+    assert "Bearer abcdef" not in summary
     assert "[REDACTED]" in summary
 
 
