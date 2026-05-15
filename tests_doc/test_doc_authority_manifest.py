@@ -330,6 +330,212 @@ authority_transitions:
     )
 
 
+def test_canonical_doc_change_requires_reconciliation_packet_or_exemption(tmp_path):
+    _write(tmp_path / "docs" / "02_protocols" / "Runbook.md")
+    _manifest(
+        tmp_path,
+        """
+version: 1
+doc_groups:
+  - id: protocols
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/02_protocols/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+""",
+    )
+
+    errors = check_doc_authority_manifest(tmp_path, changed_paths=["docs/02_protocols/Runbook.md"])
+
+    assert any(
+        "missing reconciliation packet or non-semantic exemption" in error
+        and "docs/02_protocols/Runbook.md" in error
+        for error in errors
+    )
+
+
+def test_reconciliation_exemption_rejects_other_reason(tmp_path):
+    _write(tmp_path / "docs" / "02_protocols" / "Runbook.md")
+    _write(
+        tmp_path / "docs" / "10_meta" / "reconciliation_packets" / "2026-05-14-runbook.md",
+        """---
+reconciliation_exemption:
+  reason: other
+  affected_derived_surfaces: none
+  semantic_change: false
+---
+# Exemption
+""",
+    )
+    _manifest(
+        tmp_path,
+        """
+version: 1
+doc_groups:
+  - id: protocols
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/02_protocols/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+""",
+    )
+
+    errors = check_doc_authority_manifest(
+        tmp_path,
+        changed_paths=[
+            "docs/02_protocols/Runbook.md",
+            "docs/10_meta/reconciliation_packets/2026-05-14-runbook.md",
+        ],
+    )
+
+    assert any("invalid reconciliation_exemption.reason 'other'" in error for error in errors)
+
+
+def test_generated_refresh_only_exemption_requires_source_change_ref(tmp_path):
+    _write(tmp_path / "docs" / "02_protocols" / "Runbook.md")
+    _write(
+        tmp_path / "docs" / "10_meta" / "reconciliation_packets" / "2026-05-14-runbook.md",
+        """---
+reconciliation_exemption:
+  reason: generated-refresh-only
+  affected_derived_surfaces: none
+  semantic_change: false
+---
+# Exemption
+""",
+    )
+    _manifest(
+        tmp_path,
+        """
+version: 1
+doc_groups:
+  - id: protocols
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/02_protocols/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+""",
+    )
+
+    errors = check_doc_authority_manifest(
+        tmp_path,
+        changed_paths=[
+            "docs/02_protocols/Runbook.md",
+            "docs/10_meta/reconciliation_packets/2026-05-14-runbook.md",
+        ],
+    )
+
+    assert any(
+        "generated-refresh-only exemption requires source_change_ref" in error for error in errors
+    )
+
+
+def test_reconciliation_packet_must_cover_changed_canonical_path(tmp_path):
+    _write(tmp_path / "docs" / "02_protocols" / "Runbook.md")
+    _write(tmp_path / "docs" / "03_runtime" / "Runtime.md")
+    _write(
+        tmp_path / "docs" / "10_meta" / "reconciliation_packets" / "2026-05-14-runbook.md",
+        """---
+changed_canonical_paths:
+  - docs/03_runtime/Runtime.md
+affected_derived_surfaces:
+  - docs/LifeOS_Strategic_Corpus.md
+regeneration_required: false
+authority_class_changes: []
+post_merge_verification_commands: []
+not_affected_reason: No semantic changes to derived surfaces.
+---
+# Packet
+""",
+    )
+    _manifest(
+        tmp_path,
+        """
+version: 1
+doc_groups:
+  - id: protocols
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/02_protocols/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+  - id: runtime
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/03_runtime/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+""",
+    )
+
+    errors = check_doc_authority_manifest(
+        tmp_path,
+        changed_paths=[
+            "docs/02_protocols/Runbook.md",
+            "docs/10_meta/reconciliation_packets/2026-05-14-runbook.md",
+        ],
+    )
+
+    assert any("reconciliation packet present but stale/irrelevant" in error for error in errors)
+
+
+def test_valid_reconciliation_packet_passes(tmp_path):
+    _write(tmp_path / "docs" / "02_protocols" / "Runbook.md")
+    _write(
+        tmp_path / "docs" / "10_meta" / "reconciliation_packets" / "2026-05-14-runbook.md",
+        """---
+changed_canonical_paths:
+  - docs/02_protocols/Runbook.md
+affected_derived_surfaces:
+  - docs/LifeOS_Strategic_Corpus.md
+regeneration_required: false
+authority_class_changes: []
+post_merge_verification_commands: []
+not_affected_reason: No semantic changes to derived surfaces.
+---
+# Packet
+""",
+    )
+    _manifest(
+        tmp_path,
+        """
+version: 1
+doc_groups:
+  - id: protocols
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/02_protocols/*.md
+    derived_surfaces:
+      - docs/LifeOS_Strategic_Corpus.md
+  - id: meta
+    authority: canonical
+    steward: Docs Steward
+    paths:
+      - docs/10_meta/**/*.md
+""",
+    )
+
+    assert (
+        check_doc_authority_manifest(
+            tmp_path,
+            changed_paths=[
+                "docs/02_protocols/Runbook.md",
+                "docs/10_meta/reconciliation_packets/2026-05-14-runbook.md",
+            ],
+        )
+        == []
+    )
+
+
 def test_valid_manifest_passes(tmp_path):
     _write(tmp_path / "docs" / "02_protocols" / "Runbook.md")
     _write(tmp_path / "docs" / "LifeOS_Strategic_Corpus.md")
