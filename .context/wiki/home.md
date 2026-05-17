@@ -3,10 +3,10 @@ source_docs:
   - docs/INDEX.md
   - docs/00_foundations/LifeOS_Constitution_v2.0.md
   - docs/10_meta/architecture_decisions/INDEX.md
-source_commit_max: 595f8ca55165785d3fc88b6b21700cb2a1842fc9
+source_commit_max: d20b026591ace96ba926735b1f48bd6c8c5c19f5
 derived_edit_mode: generated
 source_command: python3 scripts/wiki/refresh_wiki.py
-source_change_ref: https://github.com/marcusglee11/LifeOS/pull/130
+source_change_ref: https://github.com/marcusglee11/LifeOS/pull/134
 authority: derived
 page_class: evergreen
 concepts:
