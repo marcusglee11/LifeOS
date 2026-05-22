@@ -6167,6 +6167,134 @@ This definition is consistent with §5.5 (Governance Surface Definition).
 
 ---
 
+# File: 02_protocols/LifeOS_Multi_Agent_Protocol_v1.0.md
+
+# LifeOS Multi-Agent Protocol v1.0 — Message Schema & Communication Spec
+
+**Status:** Active reference — PROTOCOL
+**Version:** v1.0
+**Binding class:** PROTOCOL (binding for agents and runtime per ratified parent components)
+**Canonical source:** This document
+**Consolidates:** TransportEnvelope schema, compact YAML protocol (protocol.md), Delegated Authority Protocol v0.3 governance rules, bilateral protocol requirements, current-protocol.json surface map
+**Supersedes:** `protocol.md` (minimal agent conversation protocol v1)
+**Governance parent:** Delegated Authority Protocol v0.3 (ratified)
+
+---
+
+## Table of Contents
+
+1. [Purpose & Scope](#1-purpose--scope)
+2. [Agent Identity & Addressing](#2-agent-identity--addressing)
+3. [Message Envelope](#3-message-envelope)
+4. [Message Types](#4-message-types)
+5. [Payload Contracts](#5-payload-contracts)
+6. [Addressing & Routing](#6-addressing--routing)
+7. [Message Lifecycle](#7-message-lifecycle)
+8. [Transport Bindings](#8-transport-bindings)
+9. [Security & Authority Integration](#9-security--authority-integration)
+10. [Registry Requirements](#10-registry-requirements)
+11. [Normative References](#11-normative-references)
+
+---
+
+## 1. Purpose & Scope
+
+### 1.1 Purpose
+
+This document defines the **message schema and communication protocol** for all inter-agent communication within LifeOS. It provides:
+
+- A formal JSON Schema for message envelopes and payloads
+- A typed message system (request, response, event) mapped to transport turn types
+- An addressing scheme for agent identity and routing
+- A message lifecycle state machine
+- Transport bindings for each supported channel
+- Integration rules with the Delegated Authority Protocol
+
+### 1.2 Relationship to Existing Protocols
+
+| Document | Role | Relationship |
+|---|---|---|
+| Delegated Authority Protocol v0.3 (ratified) | Governance | Parent protocol — defines sovereignty, channel classes, authority modes, admission rules. This spec implements those rules at the message level. |
+| `protocol.md` (compact YAML) | Wire format | Superseded by this spec. The compact YAML is preserved as one **compact serialization profile** of this spec's envelope. |
+| `current-protocol.json` | Surface map | Registry of communication surfaces, claim tags, and probe policy. This spec references and extends the surface map. |
+| `schemas/transport_envelope.schema.json` | Schema | Canonical JSON Schema for the transport envelope. This spec lifts it to a full specification. |
+| `standards/bilateral-protocol/REQUIREMENTS.md` | Requirements | Normative requirements adopted and expanded here. |
+
+### 1.3 Key Design Principles
+
+1. **Transport neutrality** — The same message schema works across GitHub Issues, direct CLI, webhooks, or file handoffs.
+2. **Layered interpretation** — Every message carries transport turn type, semantic class, and authority mode (per DAP §5).
+3. **Fail-closed by default** — Missing fields, unknown types, expired messages → reject.
+4. **Exact matching** — Agent identities, targets, and registries use exact string matching (DAP §11.5).
+5. **Auditability** — Every message carries causation chain, correlation, and idempotency key for replay-safe audit.
+
+---
+
+## 2. Agent Identity & Addressing
+
+### 2.1 Agent Identities
+
+Each LifeOS agent has a canonical **agent id** — a short, stable string registered in the LifeOS agent registry:
+
+| Agent ID | Display Name | Role |
+|---|---|---|
+| `cabra` | Marcus (CEO) | Sovereign operator |
+| `hermes` | Hermes | Execution surface |
+| `openclaw` | OpenClaw | Coordination surface |
+| `codex` | Codex | Execution agent |
+| `claude-code` | Claude Code | Execution agent |
+| `hermes-gw` | Hermes Gateway | Gateway daemon |
+
+Agent IDs are:
+- Globally unique within LifeOS
+- Case-sensitive, kebab-case, max 32 chars
+- Declared in the agent identity registry (see §10)
+
+### 2.2 Addressing Format
+
+Messages use a simple direct addressing scheme:
+
+```
+agent_id[/subcomponent]
+```
+
+Examples:
+- `hermes` — addressed to the Hermes surface
+- `hermes/bus-watcher` — addressed to Hermes's bus-watcher subcomponent
+- `codex` — addressed to the Codex EA lane
+
+### 2.3 Addressing Properties
+
+| Property | Schema | Description |
+|---|---|---|
+| `sender_actor` | `string` (agent_id) | Who sent this message |
+| `sender_role` | `string` | Role at time of dispatch (e.g. `coordinator`, `executor`, `ceo`) |
+| `intended_recipient` | `string` (agent_id[/sub]) | Intended target |
+| `cc_recipients` | `string[]` (agent_id) | CC list for visibility (optional) |
+
+### 2.4 Message Threading
+
+Messages are threaded by **correlation_id** + **thread_id**:
+
+| Field | Purpose |
+|---|---|
+| `correlation_id` | Groups all messages in one logical conversation or workflow |
+| `causation_id` | Points to the `message_id` of the message that caused this one |
+| `root_objective_id` | Top-level LifeOS objective this message serves |
+| `thread_id` | Human-readable short thread label (e.g. `s004`, `pr-issue-72`) |
+
+---
+
+## 3. Message Envelope
+
+
+> [!IMPORTANT]
+> **STRATEGIC TRUNCATION**: Content exceedes 5000 characters. Only strategic overview included. See full text in Universal Corpus.
+
+
+
+---
+
 # File: 02_protocols/OpenClaw_COO_Integration_v1.0.md
 
 # OpenClaw COO Integration v1.0
