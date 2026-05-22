@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 MD040 MD060 -->
 
-Last Updated: 2026-05-15 (rev34)
+Last Updated: 2026-05-21 (rev35)
 
 **Authority**: [LifeOS Constitution v2.0](./00_foundations/LifeOS_Constitution_v2.0.md)
 
@@ -182,6 +182,7 @@ LifeOS Constitution v2.0 (Supreme)
 | [COO_EA_Dispatch_Pipeline_Protocol_v0.1.md](./02_protocols/COO_EA_Dispatch_Pipeline_Protocol_v0.1.md) | **Design packet** — GitHub-controlled COO to Codex EA dispatch pipeline, payloads, state machine, failure matrix, and #79 plan |
 | [OpenClaw_COO_Integration_v1.0.md](./02_protocols/OpenClaw_COO_Integration_v1.0.md) | OpenClaw gateway invocation, CLI wrappers, known constraints |
 | [Agent_Control_Plane_Pin_v1.0.md](./02_protocols/Agent_Control_Plane_Pin_v1.0.md) | **Dependency contract** — pins LifeOS to the external `agent-control-plane` protocol/control-plane source |
+| [LifeOS_Multi_Agent_Protocol_v1.0.md](./02_protocols/LifeOS_Multi_Agent_Protocol_v1.0.md) | **Active protocol** — Multi-agent message schema, addressing, lifecycle, transport bindings, and DAP authority integration. Consolidates ratified DAP, transport envelope, and bilateral protocol components. |
 
 ### Council Protocols
 

@@ -20,6 +20,26 @@ Purpose: Record architecture deltas over time without turning runtime state trac
 
 ## Entries
 
+### 2026-05-21 — Multi-Agent Protocol v1.0 promotion (lifeos-operational-bus #8)
+
+- Change: Added `docs/02_protocols/LifeOS_Multi_Agent_Protocol_v1.0.md` as an active protocol reference consolidating the ratified multi-agent communication architecture components (DAP v0.3, transport envelope schema, compact YAML protocol, bilateral protocol requirements) into a single referenceable spec covering: formal JSON envelope schema, three canonical message types (request/response/event), agent identity and addressing, message lifecycle state machine, transport bindings for GitHub Issues/CLI/webhooks/file handoff, and DAP authority integration.
+- Why: Issue #8 required LifeOS promotion of the ratified multi-agent communication architecture. The previous Google-imported doc (`ARCH_Multi_Agent_Communication_Architecture.md`) was classified as proposal-only by later LifeOS canon (#34). This new protocol spec compiles only already-ratified components rather than promoting the old proposal, providing a single referenceable surface for the in-use multi-agent protocol without contradicting current LifeOS governance.
+- Notes:
+  - The old `ARCH_Multi_Agent_Communication_Architecture.md` remains proposal-only/non-canonical as classified by Amendment A4.
+  - The new spec does not ratify new architecture decisions; it consolidates and documents already-ratified components.
+  - The compact YAML protocol (`protocol.md`) is preserved as a serialization profile of this spec's envelope.
+  - CLi delegation projection rules and admission gate rules follow DAP v0.3 without modification.
+  - No new ADR is added because this PR documents an existing protocol surface rather than ratifying a new architecture decision.
+- Affected docs:
+  - `docs/02_protocols/LifeOS_Multi_Agent_Protocol_v1.0.md`
+  - `docs/INDEX.md`
+  - `docs/10_meta/ARCHITECTURE_CHANGELOG.md`
+  - `docs/10_meta/ARCHITECTURE_SOURCE_OF_TRUTH.md`
+  - `docs/01_governance/ARTEFACT_INDEX.json`
+- Related issue: `lifeos-operational-bus#8`; design evidence `lifeos-operational-bus#106`, kanban task `t_4f9e040c`
+- Related ADR: none
+- Status: proposed
+
 ### 2026-05-13 — Bus/hub/runtime documentation drift reconciliation (operational-bus #154)
 
 - Change: Added a bounded reconciliation entry for May 2026 bus/hub/runtime authority boundaries to the source-of-truth page and state ledger.
