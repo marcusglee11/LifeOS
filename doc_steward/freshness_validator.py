@@ -10,10 +10,21 @@ Modes:
 
 Mode is controlled by env var LIFEOS_DOC_FRESHNESS_MODE (default: off)
 """
+
 import json
 import os
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import yaml
+
+ENTRYPOINT_REQUIRED_LINKS = (
+    "docs/INDEX.md",
+    "docs/08_manuals/LifeOS_Operator_Onboarding.md",
+    "docs/11_admin/LIFEOS_STATE.md",
+    "docs/00_foundations/LifeOS Target Architecture v2.3c.md",
+)
 
 
 def get_freshness_mode() -> str:
@@ -23,6 +34,171 @@ def get_freshness_mode() -> str:
         # Invalid mode, default to off
         return "off"
     return mode
+
+
+def _read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _normalize_markdown_link_target(target: str) -> str:
+    return target.replace("%20", " ").strip("./")
+
+
+def _markdown_links(text: str) -> set[str]:
+    links = set()
+    for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", text):
+        links.add(_normalize_markdown_link_target(target.split("#", 1)[0]))
+    return links
+
+
+def _authority_registry_declares(path: str, registry_text: str, authority: str) -> bool:
+    """Return whether the YAML authority registry declares path with authority."""
+    try:
+        registry = yaml.safe_load(registry_text) or {}
+    except yaml.YAMLError:
+        return False
+    if not isinstance(registry, dict):
+        return False
+    doc_groups = registry.get("doc_groups", [])
+    if not isinstance(doc_groups, list):
+        return False
+    for group in doc_groups:
+        if not isinstance(group, dict):
+            continue
+        paths = group.get("paths", [])
+        if not isinstance(paths, list):
+            continue
+        if group.get("authority") == authority and path in paths:
+            return True
+    return False
+
+
+def check_entrypoint_freshness(repo_root: str | Path) -> list[dict[str, object]]:
+    """Detect low-noise README/operator entrypoint drift for maintenance sweeps.
+
+    The check is read-only and issue-creator friendly: each finding contains stable
+    fields suitable for a single deduped sweep issue. It does not decide semantic
+    authority disputes or mutate docs.
+    """
+    repo_path = Path(repo_root).resolve()
+    findings: list[dict[str, object]] = []
+
+    readme_path = repo_path / "README.md"
+    state_path = repo_path / "docs" / "11_admin" / "LIFEOS_STATE.md"
+    registry_path = repo_path / "config" / "docs" / "authority_registry.yaml"
+
+    required_paths = (readme_path, state_path, registry_path)
+    missing = [str(p.relative_to(repo_path)) for p in required_paths if not p.exists()]
+    if missing:
+        findings.append(
+            {
+                "id": "entrypoint-required-file-missing",
+                "severity": "warning",
+                "paths": missing,
+                "evidence": "Required entrypoint freshness input file is missing.",
+                "recommended_recovery": (
+                    "Restore the missing file before running README entrypoint drift checks."
+                ),
+                "authority_class": "canonical",
+            }
+        )
+        return findings
+
+    readme = _read_text(readme_path)
+    state = _read_text(state_path)
+    registry = _read_text(registry_path)
+    links = _markdown_links(readme)
+
+    missing_links = [target for target in ENTRYPOINT_REQUIRED_LINKS if target not in links]
+    if missing_links:
+        findings.append(
+            {
+                "id": "entrypoint-read-order-missing-links",
+                "severity": "warning",
+                "paths": ["README.md"],
+                "evidence": f"README operator read-order is missing: {', '.join(missing_links)}",
+                "recommended_recovery": "Add the missing canonical read-order links to README.md.",
+                "authority_class": "canonical",
+            }
+        )
+
+    stale_status_markers = (
+        "Phase 4 Preparation",
+        "Tier-3 Authorized",
+        "Phase 4 — Tier-3",
+    )
+    if any(marker in readme for marker in stale_status_markers) and "COO Bootstrap" in state:
+        findings.append(
+            {
+                "id": "entrypoint-readme-status-contradicts-lifeos-state",
+                "severity": "warning",
+                "paths": ["README.md", "docs/11_admin/LIFEOS_STATE.md"],
+                "evidence": (
+                    "README status still describes old Phase 4/Tier-3 state while "
+                    "LIFEOS_STATE records later COO bootstrap/live COO state."
+                ),
+                "recommended_recovery": (
+                    "Refresh README current-status wording from LIFEOS_STATE.md "
+                    "before enabling freshness automation."
+                ),
+                "authority_class": "canonical",
+            }
+        )
+
+    if "derived" not in readme.lower() or "Repo canon wins" not in readme:
+        findings.append(
+            {
+                "id": "entrypoint-derived-surface-boundary-missing",
+                "severity": "warning",
+                "paths": ["README.md", "docs/LifeOS_Strategic_Corpus.md"],
+                "evidence": (
+                    "README does not clearly state that strategic corpus/wiki "
+                    "surfaces are derived and repo canon wins on conflict."
+                ),
+                "recommended_recovery": (
+                    "State the canonical-vs-derived conflict rule in README.md."
+                ),
+                "authority_class": "canonical/derived",
+            }
+        )
+
+    if not _authority_registry_declares("docs/INDEX.md", registry, "canonical"):
+        findings.append(
+            {
+                "id": "entrypoint-index-authority-registry-mismatch",
+                "severity": "warning",
+                "paths": ["config/docs/authority_registry.yaml", "docs/INDEX.md"],
+                "evidence": (
+                    "authority_registry.yaml does not declare docs/INDEX.md "
+                    "as canonical root navigation."
+                ),
+                "recommended_recovery": (
+                    "Reconcile docs/INDEX.md authority classification before "
+                    "relying on README read-order checks."
+                ),
+                "authority_class": "canonical",
+            }
+        )
+
+    if not _authority_registry_declares("docs/LifeOS_Strategic_Corpus.md", registry, "derived"):
+        findings.append(
+            {
+                "id": "entrypoint-corpus-authority-registry-mismatch",
+                "severity": "warning",
+                "paths": ["config/docs/authority_registry.yaml", "docs/LifeOS_Strategic_Corpus.md"],
+                "evidence": (
+                    "authority_registry.yaml does not declare "
+                    "docs/LifeOS_Strategic_Corpus.md as derived."
+                ),
+                "recommended_recovery": (
+                    "Reconcile strategic corpus authority classification before "
+                    "relying on README derived-surface checks."
+                ),
+                "authority_class": "derived",
+            }
+        )
+
+    return findings
 
 
 def check_freshness(repo_root: str) -> tuple[list[str], list[str]]:
@@ -66,10 +242,7 @@ def check_freshness(repo_root: str) -> tuple[list[str], list[str]]:
 
         if age > sla_threshold:
             hours_stale = int(age.total_seconds() / 3600)
-            msg = (
-                f"Runtime status file is stale: {status_file} "
-                f"(age: {hours_stale}h, SLA: 24h)"
-            )
+            msg = f"Runtime status file is stale: {status_file} (age: {hours_stale}h, SLA: 24h)"
             if mode == "warn":
                 warnings.append(msg)
             elif mode == "block":
@@ -99,10 +272,7 @@ def check_freshness(repo_root: str) -> tuple[list[str], list[str]]:
             refs = contradiction.get("refs", [])
 
             refs_str = ", ".join(refs) if refs else "no references"
-            full_msg = (
-                f"Contradiction [{contradiction_id}]: {message} "
-                f"(refs: {refs_str})"
-            )
+            full_msg = f"Contradiction [{contradiction_id}]: {message} (refs: {refs_str})"
 
             if severity == "block" and mode == "block":
                 # Blocking contradiction in block mode

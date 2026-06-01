@@ -1,14 +1,230 @@
 """Tests for freshness validator."""
+
 import json
 import os
-import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
-import pytest
+from doc_steward.freshness_validator import (
+    check_entrypoint_freshness,
+    check_freshness,
+    get_freshness_mode,
+)
 
-from doc_steward.freshness_validator import check_freshness, get_freshness_mode
+
+def _write_entrypoint_fixture(
+    root: Path, readme: str | None = None, registry: str | None = None
+) -> None:
+    (root / "docs" / "11_admin").mkdir(parents=True)
+    (root / "docs" / "08_manuals").mkdir(parents=True)
+    (root / "docs" / "00_foundations").mkdir(parents=True)
+    (root / "config" / "docs").mkdir(parents=True)
+    (root / "docs" / "INDEX.md").write_text("# Index\n", encoding="utf-8")
+    (root / "docs" / "LifeOS_Strategic_Corpus.md").write_text(
+        "# Derived corpus\n", encoding="utf-8"
+    )
+    (root / "docs" / "11_admin" / "LIFEOS_STATE.md").write_text(
+        "# LifeOS State\n\n## COO Bootstrap Campaign\nLive COO operational.\n",
+        encoding="utf-8",
+    )
+    (root / "README.md").write_text(
+        readme
+        or """# LifeOS
+
+**Current Status**: Live COO operations.
+
+Repo canon wins on conflict. The strategic corpus and wiki are derived.
+
+1. [docs/INDEX.md](docs/INDEX.md)
+2. [onboarding](docs/08_manuals/LifeOS_Operator_Onboarding.md)
+3. [state](docs/11_admin/LIFEOS_STATE.md)
+4. [architecture](docs/00_foundations/LifeOS%20Target%20Architecture%20v2.3c.md)
+""",
+        encoding="utf-8",
+    )
+    (root / "config" / "docs" / "authority_registry.yaml").write_text(
+        registry
+        or """doc_groups:
+  - id: canonical-root-navigation
+    authority: canonical
+    paths:
+      - docs/INDEX.md
+  - id: derived-strategic-corpus
+    authority: derived
+    paths:
+      - docs/LifeOS_Strategic_Corpus.md
+""",
+        encoding="utf-8",
+    )
+
+
+def test_entrypoint_freshness_clean_fixture_has_no_findings(tmp_path):
+    _write_entrypoint_fixture(tmp_path)
+
+    assert check_entrypoint_freshness(tmp_path) == []
+
+
+def test_entrypoint_freshness_detects_missing_read_order_links(tmp_path):
+    _write_entrypoint_fixture(
+        tmp_path,
+        readme="# LifeOS\n\nRepo canon wins on conflict. The strategic corpus is derived.\n",
+    )
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    assert {finding["id"] for finding in findings} >= {"entrypoint-read-order-missing-links"}
+    missing = next(f for f in findings if f["id"] == "entrypoint-read-order-missing-links")
+    assert "docs/INDEX.md" in str(missing["evidence"])
+    assert missing["paths"] == ["README.md"]
+
+
+def test_entrypoint_freshness_detects_stale_phase4_status(tmp_path):
+    _write_entrypoint_fixture(
+        tmp_path,
+        readme="""# LifeOS
+
+**Current Status**: Phase 4 Preparation — Tier-3 Authorized.
+
+Repo canon wins on conflict. The strategic corpus is derived.
+
+[docs/INDEX.md](docs/INDEX.md)
+[onboarding](docs/08_manuals/LifeOS_Operator_Onboarding.md)
+[state](docs/11_admin/LIFEOS_STATE.md)
+[architecture](docs/00_foundations/LifeOS%20Target%20Architecture%20v2.3c.md)
+""",
+    )
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    assert any(f["id"] == "entrypoint-readme-status-contradicts-lifeos-state" for f in findings)
+
+
+def test_entrypoint_freshness_detects_authority_registry_mismatch(tmp_path):
+    _write_entrypoint_fixture(
+        tmp_path,
+        registry="""doc_groups:
+  - id: wrong-root-navigation
+    authority: derived
+    paths:
+      - docs/INDEX.md
+""",
+    )
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    ids = {finding["id"] for finding in findings}
+    assert "entrypoint-index-authority-registry-mismatch" in ids
+    assert "entrypoint-corpus-authority-registry-mismatch" in ids
+
+
+def test_entrypoint_freshness_parses_quoted_yaml_registry_paths(tmp_path):
+    _write_entrypoint_fixture(
+        tmp_path,
+        registry="""doc_groups:
+  - id: canonical-root-navigation
+    authority: "canonical"
+    paths:
+      - "docs/INDEX.md"
+  - id: derived-strategic-corpus
+    authority: "derived"
+    paths:
+      - "docs/LifeOS_Strategic_Corpus.md"
+""",
+    )
+
+    assert check_entrypoint_freshness(tmp_path) == []
+
+
+def test_entrypoint_freshness_malformed_registry_fails_closed(tmp_path):
+    _write_entrypoint_fixture(tmp_path, registry="doc_groups: [unterminated")
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    ids = {finding["id"] for finding in findings}
+    assert "entrypoint-index-authority-registry-mismatch" in ids
+    assert "entrypoint-corpus-authority-registry-mismatch" in ids
+
+
+def test_entrypoint_freshness_non_list_registry_groups_fail_closed(tmp_path):
+    _write_entrypoint_fixture(tmp_path, registry="doc_groups: 1")
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    ids = {finding["id"] for finding in findings}
+    assert "entrypoint-index-authority-registry-mismatch" in ids
+    assert "entrypoint-corpus-authority-registry-mismatch" in ids
+
+
+def test_entrypoint_freshness_non_mapping_registry_root_fails_closed(tmp_path):
+    _write_entrypoint_fixture(tmp_path, registry="- not-a-mapping")
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    ids = {finding["id"] for finding in findings}
+    assert "entrypoint-index-authority-registry-mismatch" in ids
+    assert "entrypoint-corpus-authority-registry-mismatch" in ids
+
+
+def test_entrypoint_freshness_non_mapping_registry_group_fails_closed(tmp_path):
+    _write_entrypoint_fixture(
+        tmp_path,
+        registry="""doc_groups:
+  - not-a-mapping
+""",
+    )
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    ids = {finding["id"] for finding in findings}
+    assert "entrypoint-index-authority-registry-mismatch" in ids
+    assert "entrypoint-corpus-authority-registry-mismatch" in ids
+
+
+def test_entrypoint_freshness_non_list_registry_paths_fail_closed(tmp_path):
+    _write_entrypoint_fixture(
+        tmp_path,
+        registry="""doc_groups:
+  - id: bad-paths
+    authority: canonical
+    paths: docs/INDEX.md
+""",
+    )
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    assert any(f["id"] == "entrypoint-index-authority-registry-mismatch" for f in findings)
+
+
+def test_entrypoint_freshness_detects_missing_derived_boundary(tmp_path):
+    _write_entrypoint_fixture(
+        tmp_path,
+        readme="""# LifeOS
+
+**Current Status**: Live COO operations.
+
+1. [docs/INDEX.md](docs/INDEX.md)
+2. [onboarding](docs/08_manuals/LifeOS_Operator_Onboarding.md)
+3. [state](docs/11_admin/LIFEOS_STATE.md)
+4. [architecture](docs/00_foundations/LifeOS%20Target%20Architecture%20v2.3c.md)
+""",
+    )
+
+    findings = check_entrypoint_freshness(tmp_path)
+
+    assert any(f["id"] == "entrypoint-derived-surface-boundary-missing" for f in findings)
+
+
+def test_entrypoint_freshness_missing_required_input_returns_single_finding(tmp_path):
+    findings = check_entrypoint_freshness(tmp_path)
+
+    assert len(findings) == 1
+    assert findings[0]["id"] == "entrypoint-required-file-missing"
+    assert findings[0]["paths"] == [
+        "README.md",
+        "docs/11_admin/LIFEOS_STATE.md",
+        "config/docs/authority_registry.yaml",
+    ]
 
 
 def test_freshness_mode_off_by_default():
@@ -116,12 +332,7 @@ def test_freshness_check_contradictions_warn_severity(tmp_path):
 
     status_data = {
         "contradictions": [
-            {
-                "id": "C1",
-                "severity": "warn",
-                "message": "Test warning",
-                "refs": ["ref1.md"]
-            }
+            {"id": "C1", "severity": "warn", "message": "Test warning", "refs": ["ref1.md"]}
         ]
     }
     status_file.write_text(json.dumps(status_data))
@@ -142,12 +353,7 @@ def test_freshness_check_contradictions_block_severity_warn_mode(tmp_path):
 
     status_data = {
         "contradictions": [
-            {
-                "id": "C1",
-                "severity": "block",
-                "message": "Test blocking issue",
-                "refs": ["ref1.md"]
-            }
+            {"id": "C1", "severity": "block", "message": "Test blocking issue", "refs": ["ref1.md"]}
         ]
     }
     status_file.write_text(json.dumps(status_data))
@@ -171,7 +377,7 @@ def test_freshness_check_contradictions_block_severity_block_mode(tmp_path):
                 "id": "C1",
                 "severity": "block",
                 "message": "Test blocking issue",
-                "refs": ["ref1.md", "ref2.md"]
+                "refs": ["ref1.md", "ref2.md"],
             }
         ]
     }
