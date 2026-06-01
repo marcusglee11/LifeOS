@@ -23,6 +23,7 @@ from .archive_structure_validator import check_archive_structure
 from .artefact_index_validator import check_artefact_index
 from .dap_validator import check_dap_compliance
 from .doc_authority_manifest import check_doc_authority_manifest
+from .entrypoint_freshness_sweep import run as run_entrypoint_freshness_sweep
 from .freshness_validator import check_freshness, get_freshness_mode
 from .global_archive_link_ban_validator import check_global_archive_link_ban
 from .index_checker import check_index
@@ -155,6 +156,19 @@ def cmd_freshness_check(args: argparse.Namespace) -> int:
     elif mode == "warn":
         print(f"\n[PASSED] Freshness check passed with warnings (mode: {mode}).")
 
+    return 0
+
+
+def cmd_entrypoint_freshness_sweep(args: argparse.Namespace) -> int:
+    """Run entrypoint freshness issue-creator adapter."""
+    run_entrypoint_freshness_sweep(
+        Path(args.repo_root).resolve(),
+        repo=args.repo,
+        create_issue=args.create_issue,
+        dry_run=args.dry_run,
+        json_output=args.json,
+        record_run=args.record_run,
+    )
     return 0
 
 
@@ -329,6 +343,23 @@ def main() -> int:
     p_freshness = subparsers.add_parser("freshness-check", help="Check doc freshness (mode-gated)")
     p_freshness.add_argument("repo_root", help="Repository root directory")
     p_freshness.set_defaults(func=cmd_freshness_check)
+
+    # entrypoint-freshness-sweep
+    p_entrypoint_sweep = subparsers.add_parser(
+        "entrypoint-freshness-sweep",
+        help="Run read-only entrypoint freshness sweep issue-creator adapter",
+    )
+    p_entrypoint_sweep.add_argument("repo_root", help="Repository root directory")
+    p_entrypoint_sweep.add_argument("--repo", default="marcusglee11/lifeos-operational-bus")
+    p_entrypoint_sweep.add_argument("--dry-run", action="store_true")
+    p_entrypoint_sweep.add_argument("--create-issue", action="store_true")
+    p_entrypoint_sweep.add_argument(
+        "--record-run",
+        action="store_true",
+        help="write a sweep_lib run receipt; rejected with --dry-run",
+    )
+    p_entrypoint_sweep.add_argument("--json", action="store_true")
+    p_entrypoint_sweep.set_defaults(func=cmd_entrypoint_freshness_sweep)
 
     # protocols-structure-check
     p_protocols = subparsers.add_parser(
