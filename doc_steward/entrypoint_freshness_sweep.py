@@ -105,6 +105,41 @@ def _as_int(value: object) -> int:
     return value if isinstance(value, int) else 0
 
 
+def gh_list_labels(repo: str) -> set[str]:
+    """Read live GitHub labels for explicit preflight validation."""
+    proc = subprocess.run(
+        ["gh", "label", "list", "-R", repo, "--limit", "200", "--json", "name"],
+        text=True,
+        capture_output=True,
+        timeout=90,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(proc.stderr.strip() or proc.stdout.strip())
+    raw = json.loads(proc.stdout or "[]")
+    return {str(item.get("name")) for item in raw if item.get("name")}
+
+
+def validate_repo_labels(
+    repo: str,
+    labels: list[str],
+    *,
+    existing_labels: set[str] | None = None,
+) -> dict[str, object]:
+    """Validate configured issue labels before an issue-creating run.
+
+    This is read-only. It prevents a late `gh issue create` failure and gives the
+    sweep a deterministic label preflight receipt.
+    """
+    available = existing_labels if existing_labels is not None else gh_list_labels(repo)
+    missing = [label for label in labels if label not in available]
+    return {
+        "repo": repo,
+        "labels": labels,
+        "missing_labels": missing,
+        "valid": not missing,
+    }
+
+
 def gh_create_issue(repo: str, title: str, body: str, labels: list[str]) -> int:
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as handle:
         handle.write(body)
@@ -188,6 +223,12 @@ def process_findings(
         updated = 0
         if action == "created":
             if create_issue:
+                label_result = validate_repo_labels(repo, labels)
+                if not label_result["valid"]:
+                    raise RuntimeError(
+                        "missing GitHub labels for doc-entrypoint freshness issue: "
+                        + ", ".join(str(label) for label in label_result["missing_labels"])
+                    )
                 issue_num = gh_create_issue(repo, title, body, labels)
                 db.upsert_finding(
                     fingerprint,
@@ -282,9 +323,26 @@ def main(argv: list[str] | None = None) -> int:
         help="write a sweep_lib run receipt; rejected with --dry-run",
     )
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--validate-labels",
+        action="store_true",
+        help="read-only preflight that configured GitHub labels exist",
+    )
     args = parser.parse_args(argv)
     if args.dry_run and args.record_run:
         parser.error("--record-run mutates sweep receipts and cannot be combined with --dry-run")
+    if args.validate_labels:
+        payload = validate_repo_labels(args.repo, list(DEFAULT_LABELS))
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            message = (
+                "[PASSED] entrypoint freshness labels valid"
+                if payload["valid"]
+                else "[FAILED] entrypoint freshness labels missing"
+            )
+            print(message)
+        return 0 if payload["valid"] else 1
     run(
         args.repo_root,
         repo=args.repo,
