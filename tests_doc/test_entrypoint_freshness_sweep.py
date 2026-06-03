@@ -12,6 +12,7 @@ from doc_steward.entrypoint_freshness_sweep import (
     normalize_error,
     process_findings,
     run,
+    validate_repo_labels,
 )
 
 
@@ -97,6 +98,29 @@ def test_process_findings_created_records_one_finding_without_issue_creation():
     assert db.closed is True
 
 
+def test_process_findings_create_issue_validates_labels_before_upsert(monkeypatch):
+    db = FakeDB(action="created")
+    import doc_steward.entrypoint_freshness_sweep as sweep
+
+    monkeypatch.setattr(
+        sweep,
+        "validate_repo_labels",
+        lambda repo, labels: {
+            "repo": repo,
+            "labels": labels,
+            "missing_labels": ["severity:warning"],
+            "valid": False,
+        },
+    )
+
+    import pytest
+
+    with pytest.raises(RuntimeError, match="missing GitHub labels"):
+        process_findings([finding()], dry_run=False, create_issue=True, sweep_lib=fake_lib(db))
+
+    assert db.calls == []
+
+
 def test_process_findings_updated_skips_duplicate_creation():
     db = FakeDB(action="updated")
 
@@ -107,6 +131,32 @@ def test_process_findings_updated_skips_duplicate_creation():
     rows = cast(list[dict[str, Any]], result["rows"])
     assert rows[0]["action"] == "updated"
     assert db.closed is True
+
+
+def test_validate_repo_labels_reports_missing_without_mutation():
+    result = validate_repo_labels(
+        "marcusglee11/lifeos-operational-bus",
+        ["sweep:inventory-hygiene", "severity:warning"],
+        existing_labels={"sweep:inventory-hygiene"},
+    )
+
+    assert result == {
+        "repo": "marcusglee11/lifeos-operational-bus",
+        "labels": ["sweep:inventory-hygiene", "severity:warning"],
+        "missing_labels": ["severity:warning"],
+        "valid": False,
+    }
+
+
+def test_validate_repo_labels_accepts_configured_labels():
+    result = validate_repo_labels(
+        "marcusglee11/lifeos-operational-bus",
+        ["sweep:inventory-hygiene", "severity:warning"],
+        existing_labels={"sweep:inventory-hygiene", "severity:warning"},
+    )
+
+    assert result["valid"] is True
+    assert result["missing_labels"] == []
 
 
 def test_process_findings_clean_state_has_no_rows():
@@ -140,6 +190,19 @@ def test_run_dirty_dry_run_does_not_load_sweep_lib(monkeypatch, tmp_path):
     assert result["findings"] == 1
     rows = cast(list[dict[str, Any]], result["rows"])
     assert rows[0]["action"] == "dry-run"
+
+
+def test_run_clean_dry_run_is_quiet_and_does_not_record_receipt(monkeypatch, tmp_path, capsys):
+    import doc_steward.entrypoint_freshness_sweep as sweep
+
+    monkeypatch.setattr(sweep, "check_entrypoint_freshness", lambda repo_root: [])
+    result = run(tmp_path, dry_run=True, json_output=False, record_run=False)
+    captured = capsys.readouterr()
+
+    assert captured.out.strip() == "[SILENT]"
+    assert result["findings"] == 0
+    assert result["rows"] == []
+    assert result["receipt"] is None
 
 
 def test_cli_rejects_dry_run_record_run(tmp_path):

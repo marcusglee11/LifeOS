@@ -23,7 +23,15 @@ from .archive_structure_validator import check_archive_structure
 from .artefact_index_validator import check_artefact_index
 from .dap_validator import check_dap_compliance
 from .doc_authority_manifest import check_doc_authority_manifest
-from .entrypoint_freshness_sweep import run as run_entrypoint_freshness_sweep
+from .entrypoint_freshness_sweep import (
+    DEFAULT_LABELS as ENTRYPOINT_FRESHNESS_LABELS,
+)
+from .entrypoint_freshness_sweep import (
+    run as run_entrypoint_freshness_sweep,
+)
+from .entrypoint_freshness_sweep import (
+    validate_repo_labels as validate_entrypoint_freshness_labels,
+)
 from .freshness_validator import check_freshness, get_freshness_mode
 from .global_archive_link_ban_validator import check_global_archive_link_ban
 from .index_checker import check_index
@@ -161,6 +169,19 @@ def cmd_freshness_check(args: argparse.Namespace) -> int:
 
 def cmd_entrypoint_freshness_sweep(args: argparse.Namespace) -> int:
     """Run entrypoint freshness issue-creator adapter."""
+    if args.validate_labels:
+        payload = validate_entrypoint_freshness_labels(args.repo, list(ENTRYPOINT_FRESHNESS_LABELS))
+        if args.json:
+            import json
+
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(
+                "[PASSED] entrypoint freshness labels valid"
+                if payload["valid"]
+                else "[FAILED] entrypoint freshness labels missing"
+            )
+        return 0 if payload["valid"] else 1
     run_entrypoint_freshness_sweep(
         Path(args.repo_root).resolve(),
         repo=args.repo,
@@ -359,6 +380,11 @@ def main() -> int:
         help="write a sweep_lib run receipt; rejected with --dry-run",
     )
     p_entrypoint_sweep.add_argument("--json", action="store_true")
+    p_entrypoint_sweep.add_argument(
+        "--validate-labels",
+        action="store_true",
+        help="read-only preflight that configured GitHub labels exist",
+    )
     p_entrypoint_sweep.set_defaults(func=cmd_entrypoint_freshness_sweep)
 
     # protocols-structure-check
