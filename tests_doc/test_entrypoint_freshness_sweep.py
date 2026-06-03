@@ -98,7 +98,7 @@ def test_process_findings_created_records_one_finding_without_issue_creation():
     assert db.closed is True
 
 
-def test_process_findings_create_issue_validates_labels_before_upsert(monkeypatch):
+def test_process_findings_create_issue_validates_labels_before_issue_creation(monkeypatch):
     db = FakeDB(action="created")
     import doc_steward.entrypoint_freshness_sweep as sweep
 
@@ -118,7 +118,8 @@ def test_process_findings_create_issue_validates_labels_before_upsert(monkeypatc
     with pytest.raises(RuntimeError, match="missing GitHub labels"):
         process_findings([finding()], dry_run=False, create_issue=True, sweep_lib=fake_lib(db))
 
-    assert db.calls == []
+    assert len(db.calls) == 1
+    assert db.calls[0][0][0].startswith("fp:inventory-hygiene-sweep:lifeos-doc-entrypoint")
 
 
 def test_process_findings_updated_skips_duplicate_creation():

@@ -206,13 +206,6 @@ def process_findings(
     libs = sweep_lib or _load_sweep_lib()
     fingerprint = libs["make_fingerprint"](SWEEP_ID, TARGET, CHECK_ID, normalized, "warning")
     libs["validate_issue_payload"](title, body, labels)
-    if create_issue:
-        label_result = validate_repo_labels(repo, labels)
-        if not label_result["valid"]:
-            raise RuntimeError(
-                "missing GitHub labels for doc-entrypoint freshness issue: "
-                + ", ".join(str(label) for label in label_result["missing_labels"])
-            )
 
     row = {
         "fingerprint": fingerprint,
@@ -230,6 +223,12 @@ def process_findings(
         updated = 0
         if action == "created":
             if create_issue:
+                label_result = validate_repo_labels(repo, labels)
+                if not label_result["valid"]:
+                    raise RuntimeError(
+                        "missing GitHub labels for doc-entrypoint freshness issue: "
+                        + ", ".join(str(label) for label in label_result["missing_labels"])
+                    )
                 issue_num = gh_create_issue(repo, title, body, labels)
                 db.upsert_finding(
                     fingerprint,
