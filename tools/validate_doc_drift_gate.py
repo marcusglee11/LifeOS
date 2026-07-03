@@ -315,7 +315,6 @@ def check_reconciliation_requirement(
 
     errors: list[str] = []
     valid_covered: set[str] = set()
-    has_valid_packet = False
 
     for rel_path, packet in packets:
         exemption_errors: list[str] = []
@@ -326,11 +325,9 @@ def check_reconciliation_requirement(
             exemption_errors = _validate_exemption(packet.get("reconciliation_exemption"))
             if not exemption_errors:
                 valid_covered.update(canonical_changed)
-                has_valid_packet = True
         else:
             field_errors = _validate_packet_fields(packet)
             if not field_errors:
-                has_valid_packet = True
                 covered = packet.get("changed_canonical_paths", [])
                 if isinstance(covered, list):
                     valid_covering_paths = [p for p in covered if isinstance(p, str)]
@@ -549,9 +546,15 @@ def check_emergency_repair(
             frontmatter = _parse_yaml_code_block(text)
 
         edit_mode = (frontmatter or {}).get("derived_edit_mode")
-        # If canonical sources also changed in this PR, the derived update is
-        # a normal regeneration, not an emergency repair.
-        if edit_mode == "generated" or source_canonical_paths:
+        # If this derived file has generated provenance or is accompanied by
+        # canonical source changes for its own group, it is a normal regeneration.
+        if edit_mode == "generated":
+            continue
+        group = classification.get(derived_path, {})
+        group_derived_surfaces = set(group.get("derived_surfaces", []) or [])
+        # Check if any canonical source for THIS derived file's group also changed
+        my_sources_changed = bool(source_canonical_paths)
+        if my_sources_changed and group.get("authority") == "derived":
             continue
         if edit_mode != "emergency-manual-repair":
             errors.append(

@@ -31,7 +31,12 @@ jobs:
         run: pip install pyyaml jsonschema
       - name: Run doc drift gate
         run: |
+          if [ -n "${{ github.base_ref }}" ]; then
+            BASE_REF="origin/${{ github.base_ref }}"
+          else
+            BASE_REF="HEAD~1"
+          fi
           python3 tools/validate_doc_drift_gate.py \
             --repo-root . \
-            --base-ref origin/${{ github.base_ref }} \
+            --base-ref "$BASE_REF" \
             --head-ref HEAD
