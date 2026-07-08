@@ -1,0 +1,42 @@
+name: Doc Drift Gate
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'config/docs/**'
+      - '.github/workflows/doc_drift_gate.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'docs/**'
+      - 'config/docs/**'
+
+concurrency:
+  group: doc-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift-gate:
+    name: Documentation Drift Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install pyyaml jsonschema
+      - name: Run doc drift gate
+        run: |
+          if [ -n "${{ github.base_ref }}" ]; then
+            BASE_REF="origin/${{ github.base_ref }}"
+          else
+            BASE_REF="HEAD~1"
+          fi
+          python3 tools/validate_doc_drift_gate.py \
+            --repo-root . \
+            --base-ref "$BASE_REF" \
+            --head-ref HEAD
