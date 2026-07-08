@@ -23,6 +23,7 @@ from .archive_structure_validator import check_archive_structure
 from .artefact_index_validator import check_artefact_index
 from .dap_validator import check_dap_compliance
 from .doc_authority_manifest import check_doc_authority_manifest
+from .drift_sweep_issue_creator import run as run_drift_sweep_issue_creator
 from .entrypoint_freshness_sweep import (
     DEFAULT_LABELS as ENTRYPOINT_FRESHNESS_LABELS,
 )
@@ -316,6 +317,17 @@ def cmd_check_manifest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_drift_sweep_preview(args: argparse.Namespace) -> int:
+    """Run drift sweep preview (dry-run only, no GitHub mutation)."""
+    run_drift_sweep_issue_creator(
+        Path(args.repo_root).resolve(),
+        output_dir=args.output_dir,
+        print_json=args.json,
+        parent_link=args.parent_link,
+    )
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="doc_steward.cli", description="LifeOS Documentation Steward CLI"
@@ -386,6 +398,17 @@ def main() -> int:
         help="read-only preflight that configured GitHub labels exist",
     )
     p_entrypoint_sweep.set_defaults(func=cmd_entrypoint_freshness_sweep)
+
+    # drift-sweep-preview
+    p_drift = subparsers.add_parser(
+        "drift-sweep-preview",
+        help="Preview advisory documentation drift sweep issues (dry-run only, no GitHub mutation)",
+    )
+    p_drift.add_argument("repo_root", help="Repository root directory")
+    p_drift.add_argument("--output-dir", default=None, help="Output dir for preview files")
+    p_drift.add_argument("--json", action="store_true", help="Print JSON preview to stdout")
+    p_drift.add_argument("--parent-link", default=None, help="URL to parent tracking issue")
+    p_drift.set_defaults(func=cmd_drift_sweep_preview)
 
     # protocols-structure-check
     p_protocols = subparsers.add_parser(
