@@ -39,16 +39,20 @@ REQUIRED_PACKET_FIELDS = {
 # Git helpers
 # ---------------------------------------------------------------------------
 
+
 def _run_git(cmd: list[str], repo_root: Path, timeout: int = 30) -> str:
     try:
         result = subprocess.run(
-            cmd, cwd=repo_root, capture_output=True, text=True, check=True, timeout=timeout,
+            cmd,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=timeout,
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as exc:
-        raise RuntimeError(
-            f"git command failed: {' '.join(cmd)}\n{exc.stderr.strip()}"
-        ) from exc
+        raise RuntimeError(f"git command failed: {' '.join(cmd)}\n{exc.stderr.strip()}") from exc
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError(f"git command timed out: {' '.join(cmd)}") from exc
 
@@ -74,7 +78,9 @@ def get_changed_files(repo_root: Path, base_ref: str, head_ref: str) -> list[str
     return [f for f in output.split("\n") if f.strip()]
 
 
-def get_registry_at_ref(repo_root: Path, ref: str, rel_path: str = "config/docs/authority_registry.yaml") -> dict[str, Any] | None:
+def get_registry_at_ref(
+    repo_root: Path, ref: str, rel_path: str = "config/docs/authority_registry.yaml"
+) -> dict[str, Any] | None:
     """Load authority registry YAML at a given git ref."""
     try:
         output = _run_git(["git", "show", f"{ref}:{rel_path}"], repo_root)
@@ -92,6 +98,7 @@ def get_registry_at_ref(repo_root: Path, ref: str, rel_path: str = "config/docs/
 # ---------------------------------------------------------------------------
 # Path matching
 # ---------------------------------------------------------------------------
+
 
 def path_matches(rel_path: str, pattern: str) -> bool:
     """Match file path against glob-style pattern.
@@ -121,6 +128,7 @@ def path_matches(rel_path: str, pattern: str) -> bool:
 # ---------------------------------------------------------------------------
 # Registry loading & file classification
 # ---------------------------------------------------------------------------
+
 
 def load_authority_registry(repo_root: Path) -> dict[str, Any]:
     """Load and return the authority registry YAML."""
@@ -187,16 +195,15 @@ def classify_file(rel_path: str, doc_groups: list[dict[str, Any]]) -> dict[str, 
                 continue
             if not path_matches(rel_path, pattern):
                 continue
-            excluded = any(
-                isinstance(ex, str) and path_matches(rel_path, ex) for ex in excludes
-            )
+            excluded = any(isinstance(ex, str) and path_matches(rel_path, ex) for ex in excludes)
             if not excluded:
                 return group
     return None
 
 
 def classify_files(
-    changed_files: list[str], doc_groups: list[dict[str, Any]],
+    changed_files: list[str],
+    doc_groups: list[dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:
     """Return {rel_path: group_dict} for each changed file."""
     result: dict[str, dict[str, Any]] = {}
@@ -210,6 +217,7 @@ def classify_files(
 # ---------------------------------------------------------------------------
 # Reconciliation packet helpers
 # ---------------------------------------------------------------------------
+
 
 def _is_reconciliation_packet_path(path: str) -> bool:
     return path.startswith(RECONCILIATION_PACKET_DIR) and path.endswith(".md")
@@ -240,7 +248,8 @@ def _parse_yaml_code_block(text: str) -> dict[str, Any] | None:
 
 
 def load_reconciliation_packets(
-    changed_files: list[str], repo_root: Path,
+    changed_files: list[str],
+    repo_root: Path,
 ) -> list[tuple[str, dict[str, Any]]]:
     """Load and parse reconciliation packets from changed files."""
     packets: list[tuple[str, dict[str, Any]]] = []
@@ -305,7 +314,8 @@ def check_reconciliation_requirement(
 ) -> dict[str, Any]:
     """Check A — every changed canonical doc needs a reconciliation packet or exemption."""
     canonical_changed = [
-        p for p, g in classification.items()
+        p
+        for p, g in classification.items()
         if g.get("authority") == "canonical" and not _is_reconciliation_packet_path(p)
     ]
     if not canonical_changed:
@@ -342,18 +352,12 @@ def check_reconciliation_requirement(
 
     uncovered = [p for p in canonical_changed if p not in valid_covered]
     if uncovered and not errors:
-        errors.extend(
-            f"{p}: missing valid reconciliation packet or exemption" for p in uncovered
-        )
+        errors.extend(f"{p}: missing valid reconciliation packet or exemption" for p in uncovered)
     elif uncovered:
-        errors.extend(
-            f"{p}: packet present but does not cover this path" for p in uncovered
-        )
+        errors.extend(f"{p}: packet present but does not cover this path" for p in uncovered)
 
     if not packets and uncovered:
-        errors.extend(
-            f"{p}: missing reconciliation packet" for p in uncovered
-        )
+        errors.extend(f"{p}: missing reconciliation packet" for p in uncovered)
 
     passed = len(errors) == 0
     return {
@@ -367,8 +371,11 @@ def check_reconciliation_requirement(
 # Check B — Authority transitions
 # ---------------------------------------------------------------------------
 
+
 def check_authority_transitions(
-    repo_root: Path, base_ref: str, head_ref: str,
+    repo_root: Path,
+    base_ref: str,
+    head_ref: str,
 ) -> dict[str, Any]:
     """Check B — authority_registry.yaml changes must have approved transitions."""
     rel_path = "config/docs/authority_registry.yaml"
@@ -409,7 +416,8 @@ def check_authority_transitions(
         if old_authorities[gid] == new_authorities[gid]:
             continue
         matching = [
-            t for t in transitions
+            t
+            for t in transitions
             if isinstance(t, dict)
             and t.get("from") == old_authorities[gid]
             and t.get("to") == new_authorities[gid]
@@ -423,20 +431,14 @@ def check_authority_transitions(
         for record in matching:
             evidence = record.get("approval_evidence") or {}
             if not isinstance(evidence, dict):
-                errors.append(
-                    f"Transition for '{gid}': approval_evidence must be a mapping"
-                )
+                errors.append(f"Transition for '{gid}': approval_evidence must be a mapping")
                 continue
             etype = evidence.get("type")
             if etype not in ("human", "aa", "ceo"):
-                errors.append(
-                    f"Transition for '{gid}': invalid approval_evidence.type '{etype}'"
-                )
+                errors.append(f"Transition for '{gid}': invalid approval_evidence.type '{etype}'")
             url = evidence.get("url")
             if not isinstance(url, str) or not re.match(r"^https://github\.com/.+", url):
-                errors.append(
-                    f"Transition for '{gid}': approval_evidence.url must be GitHub URL"
-                )
+                errors.append(f"Transition for '{gid}': approval_evidence.url must be GitHub URL")
             if evidence.get("verdict") != "approved":
                 errors.append(
                     f"Transition for '{gid}': approval_evidence.verdict must be 'approved'"
@@ -453,6 +455,7 @@ def check_authority_transitions(
 # Check C — Derived surface freshness
 # ---------------------------------------------------------------------------
 
+
 def check_derived_freshness(
     changed_files: list[str],
     classification: dict[str, dict[str, Any]],
@@ -461,7 +464,8 @@ def check_derived_freshness(
 ) -> dict[str, Any]:
     """Check C — canonical changes must refresh their derived surfaces."""
     canonical_changed = [
-        p for p, g in classification.items()
+        p
+        for p, g in classification.items()
         if g.get("authority") == "canonical" and not _is_reconciliation_packet_path(p)
     ]
     if not canonical_changed:
@@ -493,7 +497,10 @@ def check_derived_freshness(
                         break
                 if "reconciliation_exemption" in packet:
                     exempt = packet.get("reconciliation_exemption", {})
-                    if isinstance(exempt, dict) and exempt.get("affected_derived_surfaces") == "none":
+                    if (
+                        isinstance(exempt, dict)
+                        and exempt.get("affected_derived_surfaces") == "none"
+                    ):
                         exempted = True
                         break
 
@@ -514,16 +521,14 @@ def check_derived_freshness(
 # Check D — Emergency manual repair
 # ---------------------------------------------------------------------------
 
+
 def check_emergency_repair(
     changed_files: list[str],
     classification: dict[str, dict[str, Any]],
     repo_root: Path,
 ) -> dict[str, Any]:
     """Check D — manually-edited derived files must declare emergency-manual-repair."""
-    derived_changed = [
-        p for p, g in classification.items()
-        if g.get("authority") == "derived"
-    ]
+    derived_changed = [p for p, g in classification.items() if g.get("authority") == "derived"]
     if not derived_changed:
         return {"passed": True, "details": "No derived docs changed"}
 
@@ -551,7 +556,6 @@ def check_emergency_repair(
         if edit_mode == "generated":
             continue
         group = classification.get(derived_path, {})
-        group_derived_surfaces = set(group.get("derived_surfaces", []) or [])
         # Check if any canonical source for THIS derived file's group also changed
         my_sources_changed = bool(source_canonical_paths)
         if my_sources_changed and group.get("authority") == "derived":
@@ -575,9 +579,7 @@ def check_emergency_repair(
 
         issue = (frontmatter or {}).get("follow_up_issue", "pending")
         if issue == "pending":
-            errors.append(
-                f"{derived_path}: follow_up_issue must not be 'pending'"
-            )
+            errors.append(f"{derived_path}: follow_up_issue must not be 'pending'")
 
         approval = (frontmatter or {}).get("approval_evidence")
         if not isinstance(approval, str):
@@ -594,6 +596,7 @@ def check_emergency_repair(
 # Output builder
 # ---------------------------------------------------------------------------
 
+
 def build_result(
     a: dict[str, Any],
     b: dict[str, Any],
@@ -601,12 +604,8 @@ def build_result(
     d: dict[str, Any],
     classification: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
-    canonical = sorted(
-        p for p, g in classification.items() if g.get("authority") == "canonical"
-    )
-    derived = sorted(
-        p for p, g in classification.items() if g.get("authority") == "derived"
-    )
+    canonical = sorted(p for p, g in classification.items() if g.get("authority") == "canonical")
+    derived = sorted(p for p, g in classification.items() if g.get("authority") == "derived")
     checks = {
         "reconciliation": {"passed": a["passed"], "details": a["details"]},
         "authority_transitions": {"passed": b["passed"], "details": b["details"]},
@@ -614,9 +613,7 @@ def build_result(
         "emergency_repair": {"passed": d["passed"], "details": d["details"]},
     }
     passed = all(chk["passed"] for chk in checks.values())
-    needs_to_pass = [
-        name for name, chk in checks.items() if not chk["passed"]
-    ]
+    needs_to_pass = [name for name, chk in checks.items() if not chk["passed"]]
     return {
         "passed": passed,
         "checks": checks,
@@ -631,20 +628,27 @@ def build_result(
 # Main
 # ---------------------------------------------------------------------------
 
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Doc Drift Merge Gate — enforce documentation drift control.",
     )
     parser.add_argument(
-        "--repo-root", type=str, default=".",
+        "--repo-root",
+        type=str,
+        default=".",
         help="Path to git repository root (default: .)",
     )
     parser.add_argument(
-        "--base-ref", type=str, default="origin/main",
+        "--base-ref",
+        type=str,
+        default="origin/main",
         help="Base git ref for comparison (default: origin/main)",
     )
     parser.add_argument(
-        "--head-ref", type=str, default="HEAD",
+        "--head-ref",
+        type=str,
+        default="HEAD",
         help="Head git ref for comparison (default: HEAD)",
     )
     return parser.parse_args(argv)
@@ -655,34 +659,52 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = Path(args.repo_root).resolve()
 
     if yaml is None:
-        print(json.dumps({
-            "passed": False, "checks": {},
-            "changed_canonical_docs": [], "changed_derived_surfaces": [],
-            "errors": ["PyYAML is required: pip install pyyaml"],
-            "needs_to_pass": ["dependency"],
-        }))
+        print(
+            json.dumps(
+                {
+                    "passed": False,
+                    "checks": {},
+                    "changed_canonical_docs": [],
+                    "changed_derived_surfaces": [],
+                    "errors": ["PyYAML is required: pip install pyyaml"],
+                    "needs_to_pass": ["dependency"],
+                }
+            )
+        )
         return 2
 
     # Validate repo root
     if not (repo_root / ".git").exists() and not (repo_root / ".git").is_file():
-        print(json.dumps({
-            "passed": False, "checks": {},
-            "changed_canonical_docs": [], "changed_derived_surfaces": [],
-            "errors": [f"Not a git repository: {repo_root}"],
-            "needs_to_pass": ["repo"],
-        }))
+        print(
+            json.dumps(
+                {
+                    "passed": False,
+                    "checks": {},
+                    "changed_canonical_docs": [],
+                    "changed_derived_surfaces": [],
+                    "errors": [f"Not a git repository: {repo_root}"],
+                    "needs_to_pass": ["repo"],
+                }
+            )
+        )
         return 2
 
     # Load registry
     try:
         registry = load_authority_registry(repo_root)
     except RuntimeError as exc:
-        print(json.dumps({
-            "passed": False, "checks": {},
-            "changed_canonical_docs": [], "changed_derived_surfaces": [],
-            "errors": [str(exc)],
-            "needs_to_pass": ["registry"],
-        }))
+        print(
+            json.dumps(
+                {
+                    "passed": False,
+                    "checks": {},
+                    "changed_canonical_docs": [],
+                    "changed_derived_surfaces": [],
+                    "errors": [str(exc)],
+                    "needs_to_pass": ["registry"],
+                }
+            )
+        )
         return 2
 
     doc_groups = registry.get("doc_groups", [])
@@ -693,12 +715,18 @@ def main(argv: list[str] | None = None) -> int:
     try:
         changed_files = get_changed_files(repo_root, args.base_ref, args.head_ref)
     except RuntimeError as exc:
-        print(json.dumps({
-            "passed": False, "checks": {},
-            "changed_canonical_docs": [], "changed_derived_surfaces": [],
-            "errors": [str(exc)],
-            "needs_to_pass": ["git"],
-        }))
+        print(
+            json.dumps(
+                {
+                    "passed": False,
+                    "checks": {},
+                    "changed_canonical_docs": [],
+                    "changed_derived_surfaces": [],
+                    "errors": [str(exc)],
+                    "needs_to_pass": ["git"],
+                }
+            )
+        )
         return 2
 
     # Filter to .md files and classify
@@ -707,14 +735,22 @@ def main(argv: list[str] | None = None) -> int:
 
     # Run checks
     a_result = check_reconciliation_requirement(
-        md_changed, classification, doc_groups, repo_root,
+        md_changed,
+        classification,
+        doc_groups,
+        repo_root,
     )
     b_result = check_authority_transitions(repo_root, args.base_ref, args.head_ref)
     c_result = check_derived_freshness(
-        md_changed, classification, doc_groups, repo_root,
+        md_changed,
+        classification,
+        doc_groups,
+        repo_root,
     )
     d_result = check_emergency_repair(
-        md_changed, classification, repo_root,
+        md_changed,
+        classification,
+        repo_root,
     )
 
     result = build_result(a_result, b_result, c_result, d_result, classification)

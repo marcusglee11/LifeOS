@@ -11,9 +11,7 @@ import yaml
 
 TOOL_PATH = Path(__file__).parent.parent / "tools" / "validate_doc_drift_gate.py"
 REGISTRY_SRC = Path(__file__).parent.parent / "config" / "docs" / "authority_registry.yaml"
-SCHEMA_SRC = (
-    Path(__file__).parent.parent / "config" / "schemas" / "doc_authority_registry_v1.json"
-)
+SCHEMA_SRC = Path(__file__).parent.parent / "config" / "schemas" / "doc_authority_registry_v1.json"
 
 
 # ---------------------------------------------------------------------------
@@ -30,11 +28,15 @@ def gate_repo(tmp_path: Path) -> Path:
     subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
-        cwd=tmp_path, check=True, capture_output=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test"],
-        cwd=tmp_path, check=True, capture_output=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
     )
 
     # Copy registry + schema
@@ -70,7 +72,9 @@ def gate_repo(tmp_path: Path) -> Path:
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "Initial commit"],
-        cwd=tmp_path, check=True, capture_output=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
     )
 
     return tmp_path
@@ -82,17 +86,24 @@ def gate_repo(tmp_path: Path) -> Path:
 
 
 def run_gate(
-    repo_root: Path, base_ref: str = "HEAD~1", head_ref: str = "HEAD",
+    repo_root: Path,
+    base_ref: str = "HEAD~1",
+    head_ref: str = "HEAD",
 ) -> tuple[int, dict]:
     """Run validator and return (exit_code, parsed_json)."""
     result = subprocess.run(
         [
-            sys.executable, str(TOOL_PATH),
-            "--repo-root", str(repo_root),
-            "--base-ref", base_ref,
-            "--head-ref", head_ref,
+            sys.executable,
+            str(TOOL_PATH),
+            "--repo-root",
+            str(repo_root),
+            "--base-ref",
+            base_ref,
+            "--head-ref",
+            head_ref,
         ],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     try:
         data = json.loads(result.stdout)
@@ -105,7 +116,9 @@ def _add_commit(repo_root: Path, msg: str) -> None:
     subprocess.run(["git", "add", "."], cwd=repo_root, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", msg],
-        cwd=repo_root, check=True, capture_output=True,
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
     )
 
 
@@ -128,20 +141,22 @@ class TestDriftGate:
 
         Also update derived surface to satisfy freshness check.
         """
-        _write_file(gate_repo, "docs/00_foundations/architecture.md",
-                    "# Architecture v2\n")
-        _write_file(gate_repo, "docs/10_meta/reconciliation_packets/p1.md",
-                    "---\n"
-                    "changed_canonical_paths:\n"
-                    "  - docs/00_foundations/architecture.md\n"
-                    "affected_derived_surfaces:\n"
-                    "  - docs/INDEX.md\n"
-                    "  - docs/LifeOS_Strategic_Corpus.md\n"
-                    "regeneration_required: true\n"
-                    "authority_class_changes: []\n"
-                    "post_merge_verification_commands:\n"
-                    "  - python3 docs/scripts/generate_strategic_context.py\n"
-                    "---\n")
+        _write_file(gate_repo, "docs/00_foundations/architecture.md", "# Architecture v2\n")
+        _write_file(
+            gate_repo,
+            "docs/10_meta/reconciliation_packets/p1.md",
+            "---\n"
+            "changed_canonical_paths:\n"
+            "  - docs/00_foundations/architecture.md\n"
+            "affected_derived_surfaces:\n"
+            "  - docs/INDEX.md\n"
+            "  - docs/LifeOS_Strategic_Corpus.md\n"
+            "regeneration_required: true\n"
+            "authority_class_changes: []\n"
+            "post_merge_verification_commands:\n"
+            "  - python3 docs/scripts/generate_strategic_context.py\n"
+            "---\n",
+        )
         _write_file(gate_repo, "docs/INDEX.md", "# Index v2\n")
         _write_file(gate_repo, "docs/LifeOS_Strategic_Corpus.md", "# Strategic Corpus v2\n")
 
@@ -153,8 +168,7 @@ class TestDriftGate:
 
     def test_canonical_change_without_packet(self, gate_repo: Path) -> None:
         """FAIL: Change canonical doc without a reconciliation packet."""
-        _write_file(gate_repo, "docs/00_foundations/architecture.md",
-                    "# Architecture v2\n")
+        _write_file(gate_repo, "docs/00_foundations/architecture.md", "# Architecture v2\n")
         # Also update derived surface — still fails because no packet covers it
         _write_file(gate_repo, "docs/INDEX.md", "# Index v2\n")
         _write_file(gate_repo, "docs/LifeOS_Strategic_Corpus.md", "# Strategic Corpus v2\n")
@@ -168,15 +182,17 @@ class TestDriftGate:
 
     def test_canonical_change_with_typo_exemption(self, gate_repo: Path) -> None:
         """PASS: Change canonical doc + typo exemption packet."""
-        _write_file(gate_repo, "docs/00_foundations/architecture.md",
-                    "# Architecture v2\n")
-        _write_file(gate_repo, "docs/10_meta/reconciliation_packets/ex1.md",
-                    "---\n"
-                    "reconciliation_exemption:\n"
-                    "  reason: typo\n"
-                    "  affected_derived_surfaces: none\n"
-                    "  semantic_change: false\n"
-                    "---\n")
+        _write_file(gate_repo, "docs/00_foundations/architecture.md", "# Architecture v2\n")
+        _write_file(
+            gate_repo,
+            "docs/10_meta/reconciliation_packets/ex1.md",
+            "---\n"
+            "reconciliation_exemption:\n"
+            "  reason: typo\n"
+            "  affected_derived_surfaces: none\n"
+            "  semantic_change: false\n"
+            "---\n",
+        )
 
         _add_commit(gate_repo, "fix: typo in architecture docs")
 
@@ -186,15 +202,17 @@ class TestDriftGate:
 
     def test_canonical_change_with_other_exemption(self, gate_repo: Path) -> None:
         """FAIL: Exemption with reason 'other' is not allowed."""
-        _write_file(gate_repo, "docs/00_foundations/architecture.md",
-                    "# Architecture v2\n")
-        _write_file(gate_repo, "docs/10_meta/reconciliation_packets/ex2.md",
-                    "---\n"
-                    "reconciliation_exemption:\n"
-                    "  reason: other\n"
-                    "  affected_derived_surfaces: none\n"
-                    "  semantic_change: false\n"
-                    "---\n")
+        _write_file(gate_repo, "docs/00_foundations/architecture.md", "# Architecture v2\n")
+        _write_file(
+            gate_repo,
+            "docs/10_meta/reconciliation_packets/ex2.md",
+            "---\n"
+            "reconciliation_exemption:\n"
+            "  reason: other\n"
+            "  affected_derived_surfaces: none\n"
+            "  semantic_change: false\n"
+            "---\n",
+        )
 
         _add_commit(gate_repo, "fix: update architecture docs")
 
@@ -216,16 +234,18 @@ class TestDriftGate:
 
         # Add transition record
         transitions = registry.get("authority_transitions", [])
-        transitions.append({
-            "changed_paths": ["discarded-archives"],
-            "from": "discarded",
-            "to": "proposal-only",
-            "approval_evidence": {
-                "type": "human",
-                "url": "https://github.com/owner/repo/issues/42",
-                "verdict": "approved",
-            },
-        })
+        transitions.append(
+            {
+                "changed_paths": ["discarded-archives"],
+                "from": "discarded",
+                "to": "proposal-only",
+                "approval_evidence": {
+                    "type": "human",
+                    "url": "https://github.com/owner/repo/issues/42",
+                    "verdict": "approved",
+                },
+            }
+        )
         registry["authority_transitions"] = transitions
 
         reg_path.write_text(yaml.dump(registry))
@@ -257,8 +277,7 @@ class TestDriftGate:
 
     def test_derived_surface_stale(self, gate_repo: Path) -> None:
         """FAIL: Change canonical doc, derived surface not updated, no packet."""
-        _write_file(gate_repo, "docs/00_foundations/architecture.md",
-                    "# Architecture v2\n")
+        _write_file(gate_repo, "docs/00_foundations/architecture.md", "# Architecture v2\n")
 
         _add_commit(gate_repo, "feat: update architecture docs")
 
@@ -270,22 +289,24 @@ class TestDriftGate:
 
     def test_derived_surface_fresh(self, gate_repo: Path) -> None:
         """PASS: Change canonical doc, derived surface also updated, valid packet."""
-        _write_file(gate_repo, "docs/00_foundations/architecture.md",
-                    "# Architecture v2\n")
+        _write_file(gate_repo, "docs/00_foundations/architecture.md", "# Architecture v2\n")
         _write_file(gate_repo, "docs/INDEX.md", "# Index v2\n")
         _write_file(gate_repo, "docs/LifeOS_Strategic_Corpus.md", "# Strategic Corpus v2\n")
-        _write_file(gate_repo, "docs/10_meta/reconciliation_packets/p1.md",
-                    "---\n"
-                    "changed_canonical_paths:\n"
-                    "  - docs/00_foundations/architecture.md\n"
-                    "affected_derived_surfaces:\n"
-                    "  - docs/INDEX.md\n"
-                    "  - docs/LifeOS_Strategic_Corpus.md\n"
-                    "regeneration_required: true\n"
-                    "authority_class_changes: []\n"
-                    "post_merge_verification_commands:\n"
-                    "  - python3 docs/scripts/generate_strategic_context.py\n"
-                    "---\n")
+        _write_file(
+            gate_repo,
+            "docs/10_meta/reconciliation_packets/p1.md",
+            "---\n"
+            "changed_canonical_paths:\n"
+            "  - docs/00_foundations/architecture.md\n"
+            "affected_derived_surfaces:\n"
+            "  - docs/INDEX.md\n"
+            "  - docs/LifeOS_Strategic_Corpus.md\n"
+            "regeneration_required: true\n"
+            "authority_class_changes: []\n"
+            "post_merge_verification_commands:\n"
+            "  - python3 docs/scripts/generate_strategic_context.py\n"
+            "---\n",
+        )
 
         _add_commit(gate_repo, "feat: update architecture and index")
 
@@ -295,15 +316,18 @@ class TestDriftGate:
 
     def test_emergency_repair_valid(self, gate_repo: Path) -> None:
         """PASS: Edit derived file with valid emergency-manual-repair frontmatter."""
-        _write_file(gate_repo, "docs/LifeOS_Strategic_Corpus.md",
-                    "---\n"
-                    "derived_edit_mode: emergency-manual-repair\n"
-                    "reason: critical error in published content\n"
-                    "follow_up_required: true\n"
-                    "follow_up_issue: https://github.com/owner/repo/issues/42\n"
-                    "approval_evidence: https://github.com/owner/repo/issues/42#issuecomment-1\n"
-                    "---\n"
-                    "# Strategic Corpus (fixed)\n")
+        _write_file(
+            gate_repo,
+            "docs/LifeOS_Strategic_Corpus.md",
+            "---\n"
+            "derived_edit_mode: emergency-manual-repair\n"
+            "reason: critical error in published content\n"
+            "follow_up_required: true\n"
+            "follow_up_issue: https://github.com/owner/repo/issues/42\n"
+            "approval_evidence: https://github.com/owner/repo/issues/42#issuecomment-1\n"
+            "---\n"
+            "# Strategic Corpus (fixed)\n",
+        )
 
         _add_commit(gate_repo, "fix: emergency repair strategic corpus")
 
@@ -313,15 +337,18 @@ class TestDriftGate:
 
     def test_emergency_repair_pending(self, gate_repo: Path) -> None:
         """FAIL: Edit derived file with follow_up_issue: pending."""
-        _write_file(gate_repo, "docs/LifeOS_Strategic_Corpus.md",
-                    "---\n"
-                    "derived_edit_mode: emergency-manual-repair\n"
-                    "reason: quick fix\n"
-                    "follow_up_required: true\n"
-                    "follow_up_issue: pending\n"
-                    "approval_evidence: https://github.com/owner/repo/issues/42\n"
-                    "---\n"
-                    "# Strategic Corpus (fixed)\n")
+        _write_file(
+            gate_repo,
+            "docs/LifeOS_Strategic_Corpus.md",
+            "---\n"
+            "derived_edit_mode: emergency-manual-repair\n"
+            "reason: quick fix\n"
+            "follow_up_required: true\n"
+            "follow_up_issue: pending\n"
+            "approval_evidence: https://github.com/owner/repo/issues/42\n"
+            "---\n"
+            "# Strategic Corpus (fixed)\n",
+        )
 
         _add_commit(gate_repo, "fix: emergency repair strategic corpus")
 
@@ -342,19 +369,21 @@ class TestDriftGate:
 
     def test_stale_derived_with_not_affected_reason(self, gate_repo: Path) -> None:
         """PASS: Change canonical doc, derived not updated, packet says not affected."""
-        _write_file(gate_repo, "docs/00_foundations/architecture.md",
-                    "# Architecture v2\n")
-        _write_file(gate_repo, "docs/10_meta/reconciliation_packets/p1.md",
-                    "---\n"
-                    "changed_canonical_paths:\n"
-                    "  - docs/00_foundations/architecture.md\n"
-                    "affected_derived_surfaces:\n"
-                    "  - docs/INDEX.md\n"
-                    "regeneration_required: false\n"
-                    "not_affected_reason: Trivial whitespace change only\n"
-                    "authority_class_changes: []\n"
-                    "post_merge_verification_commands: []\n"
-                    "---\n")
+        _write_file(gate_repo, "docs/00_foundations/architecture.md", "# Architecture v2\n")
+        _write_file(
+            gate_repo,
+            "docs/10_meta/reconciliation_packets/p1.md",
+            "---\n"
+            "changed_canonical_paths:\n"
+            "  - docs/00_foundations/architecture.md\n"
+            "affected_derived_surfaces:\n"
+            "  - docs/INDEX.md\n"
+            "regeneration_required: false\n"
+            "not_affected_reason: Trivial whitespace change only\n"
+            "authority_class_changes: []\n"
+            "post_merge_verification_commands: []\n"
+            "---\n",
+        )
 
         _add_commit(gate_repo, "fix: whitespace in architecture docs")
 
